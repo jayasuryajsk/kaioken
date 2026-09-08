@@ -1495,6 +1495,7 @@ async function loadLoadingView(): Promise<void> {
 }
 
 async function loadStartupError(args: LoadStartupErrorArgs): Promise<void> {
+  console.error(`[desktop] ${args.title}: ${args.details}\n${args.logs}`);
   bbAppLoaded = false;
   await loadWindowUrl({
     url: createLocalViewUrl({
