@@ -1,3 +1,4 @@
+import { MachineEnrollmentCommand } from "@/components/dialogs/MachineEnrollmentCommand";
 import {
   useCallback,
   useEffect,
@@ -1719,6 +1720,11 @@ export function ThreadDetailPromptArea({
 
   return (
     <>
+      {(runtimeDisplayStatus === "provisioning" ||
+        runtimeDisplayStatus === "starting") &&
+      thread.archivedAt === null ? (
+        <MachineEnrollmentCommand id={thread.id} scope="thread" />
+      ) : null}
       {sentMessageEditorPortal}
       {bottomContent}
     </>

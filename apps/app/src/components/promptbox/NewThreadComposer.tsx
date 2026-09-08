@@ -21,11 +21,13 @@ import {
 import type {
   NewThreadRequest,
   PluginEnvironmentProviderInputsChange,
+  PluginMachineProviderInputsChange,
 } from "@get-bb/plugin-sdk";
 import type {
   CreateExecutionInputSources,
   SidebarBootstrapResponse,
   SystemEnvironmentProvider,
+  SystemMachineProvider,
   SystemExecutionOptionsModelLoadError,
 } from "@bb/server-contract";
 import type { ProjectSelectorCreateProjectConfig } from "@/components/pickers/ProjectSelector";
@@ -35,6 +37,7 @@ import {
   parseEnvironmentValue,
 } from "@/components/pickers/environment-picker-value";
 import { providerInputsControlRequired } from "@/components/pickers/environment-provider-inputs";
+import { machineProviderInputsControlRequired } from "@/components/pickers/machine-provider-inputs";
 import { formatModelLoadErrorText } from "@/components/pickers/model-load-error-message";
 import {
   NewThreadPromptBox,
@@ -50,8 +53,9 @@ import { PluginSlotMount } from "@/components/plugin/PluginSlotMount";
 import { usePluginSlots } from "@/lib/plugin-slots";
 import { useUploadPromptAttachment } from "@/hooks/mutations/project-mutations";
 import { useSystemEnvironmentProviders } from "@/hooks/queries/environment-provider-queries";
+import { useSystemMachineProviders } from "@/hooks/queries/machine-provider-queries";
 import {
-  selectPersistentHosts,
+  selectHosts,
   selectPrimaryHost,
   useHosts,
 } from "@/hooks/queries/host-queries";
@@ -164,6 +168,15 @@ export interface NewThreadComposerState {
   setPermissionMode: (value: PermissionMode) => void;
   setServiceTier: (value: ServiceTier | undefined) => void;
   renderPromptBox: (options: NewThreadComposerPromptOptions) => ReactNode;
+}
+
+export function resolveSubmittedExecutionSources(
+  environment: NewThreadRequest["environment"],
+  sources: CreateExecutionInputSources,
+): CreateExecutionInputSources {
+  return environment.type === "provider" && environment.machine?.type === "new"
+    ? { ...sources, model: "explicit" }
+    : sources;
 }
 
 export interface NewThreadComposerSubmission extends NewThreadRequest {
@@ -402,7 +415,7 @@ export function NewThreadComposer({
 
   const hostsQuery = useHosts();
   const availableHosts = useMemo(
-    () => selectPersistentHosts(hostsQuery.data),
+    () => selectHosts(hostsQuery.data),
     [hostsQuery.data],
   );
   const systemConfigQuery = useSystemConfig();
@@ -483,6 +496,10 @@ export function NewThreadComposer({
       ),
     [availableHosts, environmentProviders, projectGitRemoteUrl, projectSources],
   );
+  const { providers: machineProviders } = useSystemMachineProviders(
+    isProjectless ? {} : { projectId },
+  );
+
   const seedSignature = JSON.stringify([
     resetKey ?? null,
     seed?.providerId ?? null,
@@ -543,6 +560,7 @@ export function NewThreadComposer({
           ? environmentSeed.providerMachine
           : null;
       const candidate = picked ?? seeded;
+      if (candidate?.type === "new") return { provider, machine: candidate };
       if (usable(candidate?.hostId ?? null)) {
         return { provider, machine: candidate };
       }
@@ -743,6 +761,37 @@ export function NewThreadComposer({
     },
     [changeEnvironment],
   );
+  const handleSelectMachineProvider = useCallback(
+    (provider: SystemMachineProvider) => {
+      const current = parseEnvironmentValue(environmentSelectionValue);
+      const environmentProviderId =
+        provider.environmentRow?.environmentProviderId ??
+        (current?.type === "provider"
+          ? current.environmentProviderId
+          : environmentProviders?.find((entry) =>
+              isProjectless
+                ? entry.requires.projectless
+                : entry.id === PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID,
+            )?.id);
+      if (environmentProviderId === undefined) return;
+      changeEnvironment(encodeProviderValue(environmentProviderId), {
+        type: "new",
+        machineProviderId: provider.id,
+        inputs:
+          provider.inputs === null
+            ? null
+            : provider.acceptsEmptyInputs
+              ? {}
+              : null,
+      });
+    },
+    [
+      changeEnvironment,
+      environmentSelectionValue,
+      environmentProviders,
+      isProjectless,
+    ],
+  );
   const effectiveEnvironmentValue = useMemo(
     () =>
       resolveRootComposeEffectiveEnvironmentValue({
@@ -778,6 +827,12 @@ export function NewThreadComposer({
   const providerMachine = providerSelection?.machine ?? null;
   const providerHostId =
     providerMachine?.type === "existing" ? providerMachine.hostId : null;
+  const selectedMachineProvider =
+    providerMachine?.type === "new"
+      ? machineProviders?.find(
+          (provider) => provider.id === providerMachine.machineProviderId,
+        )
+      : undefined;
   const [environmentProviderInputsOverride, setProviderInputsOverride] =
     useState<{ scopeKey: string; value: JsonValue | null } | null>(null);
   const [environmentProviderInputsBlocked, setProviderInputsBlocked] =
@@ -903,6 +958,12 @@ export function NewThreadComposer({
             : null;
   const environmentProviderInputsSlot = useMemo(() => {
     if (environmentProviderInputsRegistration === undefined) return null;
+    if (
+      providerMachine?.type === "new" &&
+      selectedEnvironmentProvider?.id ===
+        PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID
+    )
+      return null;
     const InputsComponent = environmentProviderInputsRegistration.component;
     return (
       <PluginSlotMount
@@ -925,7 +986,134 @@ export function NewThreadComposer({
     providerHostId,
     submissionProviderInputs,
     environmentProviderInputsRegistration,
+    providerMachine?.type,
+    selectedEnvironmentProvider?.id,
   ]);
+
+  const machineProviderInputsSlots = pluginSlots.machineProviderInputs;
+  const machineInputsControlProviderIds = useMemo(() => {
+    const pluginIdByProviderId = new Map(
+      (machineProviders ?? []).map((provider) => [
+        provider.id,
+        provider.pluginId,
+      ]),
+    );
+    return new Set(
+      machineProviderInputsSlots
+        .filter(
+          (slot) =>
+            pluginIdByProviderId.get(slot.machineProviderId) === slot.pluginId,
+        )
+        .map((slot) => slot.machineProviderId),
+    );
+  }, [machineProviderInputsSlots, machineProviders]);
+  const machineProviderInputsRegistration = useMemo(() => {
+    if (selectedMachineProvider === undefined) {
+      return undefined;
+    }
+    return machineProviderInputsSlots.find(
+      (slot) =>
+        slot.machineProviderId === selectedMachineProvider.id &&
+        slot.pluginId === selectedMachineProvider.pluginId,
+    );
+  }, [machineProviderInputsSlots, selectedMachineProvider]);
+  const machineProviderInputsScopeKey = `${projectId}\0${selectedMachineProvider?.id ?? ""}`;
+  const [machineProviderInputsOverride, setMachineProviderInputsOverride] =
+    useState<{ scopeKey: string; value: JsonValue } | null>(null);
+  const [machineProviderInputsBlocked, setMachineProviderInputsBlocked] =
+    useState<{ scopeKey: string; reason: string } | null>(null);
+  const handleMachineProviderInputsChange = useCallback(
+    (next: PluginMachineProviderInputsChange) => {
+      if (next.status === "blocked") {
+        setMachineProviderInputsBlocked({
+          scopeKey: machineProviderInputsScopeKey,
+          reason: next.reason,
+        });
+        return;
+      }
+      setMachineProviderInputsBlocked(null);
+      setMachineProviderInputsOverride({
+        scopeKey: machineProviderInputsScopeKey,
+        value: next.value,
+      });
+    },
+    [machineProviderInputsScopeKey],
+  );
+  const activeMachineInputsOverride =
+    machineProviderInputsOverride?.scopeKey === machineProviderInputsScopeKey
+      ? machineProviderInputsOverride
+      : null;
+  const activeMachineInputsBlocked =
+    machineProviderInputsBlocked?.scopeKey === machineProviderInputsScopeKey
+      ? machineProviderInputsBlocked
+      : null;
+  const machineProviderTakesInputs = selectedMachineProvider?.inputs !== null;
+  const machineInputsControlRequired =
+    selectedMachineProvider !== undefined &&
+    machineProviderInputsControlRequired(selectedMachineProvider);
+  const submissionMachineInputs = useMemo<JsonValue | null>(
+    () =>
+      selectedMachineProvider === undefined || !machineProviderTakesInputs
+        ? null
+        : (activeMachineInputsOverride?.value ??
+          (providerMachine?.type === "new" ? providerMachine.inputs : null) ??
+          (machineProviderInputsRegistration === undefined &&
+          !machineInputsControlRequired
+            ? {}
+            : null)),
+    [
+      activeMachineInputsOverride?.value,
+      machineInputsControlRequired,
+      machineProviderInputsRegistration,
+      machineProviderTakesInputs,
+      providerMachine,
+      selectedMachineProvider,
+    ],
+  );
+  const machineProviderInputsBlocker =
+    selectedMachineProvider === undefined || !machineProviderTakesInputs
+      ? null
+      : activeMachineInputsBlocked !== null
+        ? activeMachineInputsBlocked.reason
+        : machineProviderInputsRegistration === undefined &&
+            machineInputsControlRequired
+          ? `${selectedMachineProvider.displayName} needs its plugin's control`
+          : submissionMachineInputs === null
+            ? `Configure ${selectedMachineProvider.displayName}`
+            : null;
+  const machineProviderInputsSlot = useMemo(() => {
+    if (machineProviderInputsRegistration === undefined) return null;
+    const MachineProviderInputsComponent =
+      machineProviderInputsRegistration.component;
+    return (
+      <PluginSlotMount
+        pluginId={machineProviderInputsRegistration.pluginId}
+        slotKind="machineProviderInputs"
+        slotId={machineProviderInputsRegistration.machineProviderId}
+      >
+        <MachineProviderInputsComponent
+          experimental_agentProviderId={selectedProviderId}
+          projectId={isProjectless ? null : projectId}
+          value={submissionMachineInputs}
+          onChange={handleMachineProviderInputsChange}
+        />
+      </PluginSlotMount>
+    );
+  }, [
+    handleMachineProviderInputsChange,
+    isProjectless,
+    machineProviderInputsRegistration,
+    projectId,
+    selectedProviderId,
+    submissionMachineInputs,
+  ]);
+  const submissionProviderMachine = useMemo(
+    () =>
+      providerMachine?.type === "new"
+        ? { ...providerMachine, inputs: submissionMachineInputs }
+        : providerMachine,
+    [providerMachine, submissionMachineInputs],
+  );
 
   const selectedEnvironment = useMemo(
     () =>
@@ -933,7 +1121,7 @@ export function NewThreadComposer({
         environmentValue: effectiveEnvironmentValue,
         projectId,
         environmentProviders,
-        providerMachine: providerMachine,
+        providerMachine: submissionProviderMachine,
         providerInputs: submissionProviderInputs,
       }),
     [
@@ -941,7 +1129,7 @@ export function NewThreadComposer({
       environmentProviders,
       projectId,
       submissionProviderInputs,
-      providerMachine,
+      submissionProviderMachine,
     ],
   );
 
@@ -1193,7 +1381,8 @@ export function NewThreadComposer({
     (selectionScope === "new-thread" ? seed?.environment : undefined) ??
     null;
   const submitDisabledReason = resolveNewThreadSubmitDisabledReason({
-    environmentProviderInputsBlocker: environmentProviderInputsBlocker,
+    environmentProviderInputsBlocker:
+      machineProviderInputsBlocker ?? environmentProviderInputsBlocker,
     isCopyingAttachments,
     isLoadingModels,
     isSubmitting,
@@ -1240,7 +1429,10 @@ export function NewThreadComposer({
         reasoningLevel,
         permissionMode,
         ...(supportsServiceTier && serviceTier ? { serviceTier } : {}),
-        executionInputSources: sources,
+        executionInputSources: resolveSubmittedExecutionSources(
+          submissionEnvironment,
+          sources,
+        ),
         environment: submissionEnvironment,
         input,
         ...(sendAt === null ? {} : { sendAt }),
@@ -1416,6 +1608,10 @@ export function NewThreadComposer({
               selectedProviderHostId: providerHostId,
               inputsControlProviderIds,
               onSelectProvider: handleSelectProvider,
+              machineProviders: machineProviders ?? [],
+              selectedMachineProviderId: selectedMachineProvider?.id ?? null,
+              machineInputsControlProviderIds,
+              onSelectMachineProvider: handleSelectMachineProvider,
               ...(!isProjectless && options.onRequestMachineSetup
                 ? { onRequestMachineSetup: options.onRequestMachineSetup }
                 : {}),
@@ -1433,6 +1629,7 @@ export function NewThreadComposer({
               supported: supportsPermissionModeSelection,
             },
             environmentProviderInputsSlot,
+            machineProviderInputsSlot,
             banner: options.banner,
             header: options.header,
           }}
@@ -1502,6 +1699,7 @@ export function NewThreadComposer({
       handleProviderChange,
       handleReasoningChange,
       handleSelectProvider,
+      handleSelectMachineProvider,
       handleServiceTierChange,
       handleSubmit,
       handleWorktreeChange,
@@ -1539,8 +1737,12 @@ export function NewThreadComposer({
       supportsServiceTier,
       submitDisabledReason,
       environmentProviderInputsSlot,
+      machineProviderInputsSlot,
       environmentProvidersByHostId,
       inputsControlProviderIds,
+      machineInputsControlProviderIds,
+      machineProviders,
+      selectedMachineProvider,
       providerHostId,
       textEffects,
       serviceTierFastLabel,

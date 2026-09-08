@@ -53,6 +53,7 @@ export {
   listProjectSourcesByProjectIds,
   listProjectSourcesByHost,
   getProjectSourceByHost,
+  projectSourceOwnsPath,
   getDefaultProjectSource,
   updateProjectSource,
   deleteProjectSource,
@@ -245,6 +246,7 @@ export {
   listHosts,
   listNonDestroyedHostsByIds,
   listPublicHosts,
+  settleMachineEnrollments,
   updateHost,
   deleteHost,
 } from "./hosts.js";
@@ -470,3 +472,5 @@ export {
   shouldRunIncrementalVacuum,
 } from "./maintenance.js";
 export * from "./environment-launches.js";
+export * from "./machine-launches.js";
+export * from "./machines.js";

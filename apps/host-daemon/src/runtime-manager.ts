@@ -1,3 +1,4 @@
+import { operationEnvironment } from "./operation-environment.js";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -17,6 +18,7 @@ import type {
 import { threadScope, turnScope } from "@bb/domain";
 import type {
   HostDaemonActiveThread,
+  HostDaemonContributedEnvEntry,
   HostDaemonEnvironmentChange,
   HostDaemonLoadedEnvironment,
   HostDaemonInjectedSkillSource,
@@ -862,9 +864,22 @@ export class RuntimeManager {
   }
 
   async withProviderMaintenanceRuntime<TResult>(
-    args: { dataDir: string },
+    args: {
+      dataDir: string;
+      contributedEnv?: readonly HostDaemonContributedEnvEntry[];
+    },
     request: (runtime: AgentRuntime) => Promise<TResult>,
   ): Promise<TResult> {
+    if (args.contributedEnv !== undefined) {
+      const runtime = await this.createProviderMaintenanceRuntime(args);
+      try {
+        return await request(runtime);
+      } catch {
+        throw new Error("Provider authentication check failed");
+      } finally {
+        await runtime.shutdown();
+      }
+    }
     this.clearProviderMaintenanceIdleTimer();
     this.providerMaintenanceActiveRequests += 1;
     try {
@@ -1154,6 +1169,7 @@ export class RuntimeManager {
 
   private async createProviderMaintenanceRuntime(args: {
     dataDir: string;
+    contributedEnv?: readonly HostDaemonContributedEnvEntry[];
   }): Promise<AgentRuntime> {
     const workspacePath = path.join(
       args.dataDir,
@@ -1163,7 +1179,16 @@ export class RuntimeManager {
 
     let runtime: AgentRuntime | null = null;
     const shellEnv = this.getShellEnv();
-    const providerProcessEnv = providerProcessEnvFromShellEnv(shellEnv);
+    const providerProcessEnv =
+      args.contributedEnv === undefined
+        ? providerProcessEnvFromShellEnv(shellEnv)
+        : Object.fromEntries(
+            Object.entries(
+              operationEnvironment(args.contributedEnv, shellEnv),
+            ).filter(
+              (entry): entry is [string, string] => entry[1] !== undefined,
+            ),
+          );
     runtime = this.createRuntime({
       workspacePath,
       additionalWorkspaceWriteRoots: [],
@@ -1184,7 +1209,8 @@ export class RuntimeManager {
           success: true,
         })),
       onInteractiveRequest: this.options.onInteractiveRequest,
-      onStderr: this.options.onStderr,
+      onStderr:
+        args.contributedEnv === undefined ? this.options.onStderr : undefined,
       onProcessExit: (info) => {
         if (
           runtime &&
@@ -1193,7 +1219,8 @@ export class RuntimeManager {
         ) {
           this.providerMaintenanceRuntime = null;
         }
-        this.options.onProcessExit?.(info);
+        if (args.contributedEnv === undefined)
+          this.options.onProcessExit?.(info);
       },
     });
     return runtime;

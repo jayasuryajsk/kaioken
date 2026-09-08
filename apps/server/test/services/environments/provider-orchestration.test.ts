@@ -1,4 +1,5 @@
 import { withEnvironmentCleanupSlot } from "../../../src/services/environments/cleanup-concurrency.js";
+import { machineLifecycles, environmentHookOperations } from "@bb/db";
 import { registerTestHostRpcCapture } from "../../helpers/commands.js";
 import { recordProvisionedEnvironmentWorkspace } from "@bb/db/internal-environment-lifecycle";
 import { createThreadFromRequest } from "../../../src/services/threads/thread-create.js";
@@ -19,6 +20,7 @@ import {
   claimEnvironmentLaunchPath,
   createEnvironment,
   environments,
+  environmentSetupOutcomes,
   getEnvironment,
   getEnvironmentLaunch,
   getThread,
@@ -374,6 +376,18 @@ describe("core environment orchestration", () => {
         fixture.ask();
         await fixture.settled();
         expect(fixture.row().phase).toBe("ready");
+        const outcome = harness.db
+          .select()
+          .from(environmentSetupOutcomes)
+          .where(eq(environmentSetupOutcomes.hostId, fixture.host.id))
+          .get();
+        if (ownsPath)
+          expect(outcome).toMatchObject({
+            state: "passed",
+            path: "/tmp/hooks",
+            inputHash: expect.any(String),
+          });
+        else expect(outcome).toBeUndefined();
         const environmentId = fixture.attach();
         await sweepProviderEnvironment(harness.deps, environmentId);
         expect(getEnvironment(harness.db, environmentId)?.teardownStatus).toBe(
@@ -1456,3 +1470,36 @@ describe("core environment orchestration", () => {
       }),
   );
 });
+
+it("records skipped teardown after confirmed filesystem loss and still invokes provider cleanup", async () =>
+  withTestHarness(async (harness) => {
+    const remove = vi.fn(async () => ({ status: "removed" as const }));
+    const fixture = setup(harness, { policy: { retireGraceMs: 0 }, remove });
+    fixture.ask();
+    await fixture.settled();
+    const environmentId = fixture.attach();
+    harness.db
+      .insert(machineLifecycles)
+      .values({
+        hostId: fixture.host.id,
+        observedState: "missing",
+        observedAt: Date.now(),
+        recoveryState: "lost-since-last-snapshot",
+      })
+      .run();
+    harness.hub.unregisterDaemon(fixture.session.id);
+    await sweepProviderEnvironment(harness.deps, environmentId);
+    expect(remove).toHaveBeenCalledOnce();
+    expect(getEnvironment(harness.db, environmentId)?.teardownStatus).toBe(
+      "removed",
+    );
+    const operation = harness.db
+      .select()
+      .from(environmentHookOperations)
+      .where(eq(environmentHookOperations.kind, "teardown"))
+      .get();
+    expect(operation).toMatchObject({
+      error: expect.stringContaining("filesystem no longer exists"),
+      finishedAt: expect.any(Number),
+    });
+  }));
