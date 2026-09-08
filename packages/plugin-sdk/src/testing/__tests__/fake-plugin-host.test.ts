@@ -2076,7 +2076,7 @@ describe("environment targets", () => {
         retire: { after: "never" },
         removeRetryMs: 1_000,
       },
-      experimental_reconcileCleanup: async () => ({ status: "removed" }),
+      reconcileCleanup: async () => ({ status: "removed" }),
       create: async () => ({
         status: "created",
         hostId: "host-test-machine",
@@ -2113,7 +2113,7 @@ describe("environment targets", () => {
         displayName: "Half lifecycle",
         policy,
         create,
-        experimental_reconcileCleanup: remove,
+        reconcileCleanup: remove,
         suspend: lifecycle,
         remove,
       }),
@@ -2124,7 +2124,7 @@ describe("environment targets", () => {
         displayName: "Idle without lifecycle",
         policy: { ...policy, idleSuspendMs: 1_000 },
         create,
-        experimental_reconcileCleanup: remove,
+        reconcileCleanup: remove,
         remove,
       }),
     ).toThrow(/idleSuspendMs to null without suspend and resume/);
