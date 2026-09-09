@@ -1,6 +1,6 @@
 import { MachineAccessControls } from "@/components/settings/MachineAccessSettings";
 import { useSystemConfig } from "@/hooks/queries/system-queries";
-import { isLocalOnlyUrl } from "@/lib/loopback-hostname";
+import { machineServerAccessReady } from "@/components/machines/machine-server-access";
 import {
   useEffect,
   useRef,
@@ -80,13 +80,7 @@ export function CreateMachineContent({
     selection ?? (providers.length === 1 ? providers[0]?.id : null);
   const selected = setups.find((slot) => slot.machineProviderId === selectedId);
   const access = config.data?.serverAccess;
-  const accessProvider = access?.providers.find(
-    (provider) => provider.id === access.defaultProviderId,
-  );
-  const accessReady =
-    accessProvider?.availability.status === "available" &&
-    (access?.defaultProviderId !== "direct" ||
-      (!!access.effectiveUrl && !isLocalOnlyUrl(access.effectiveUrl)));
+  const accessReady = machineServerAccessReady(access);
   if (!accessReady || loadedProviders === undefined) {
     const loading =
       config.isPending || (accessReady && loadedProviders === undefined);
