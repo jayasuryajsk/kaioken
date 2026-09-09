@@ -1,3 +1,4 @@
+import { emitPluginTerminalInput } from "../plugins/plugin-thread-events.js";
 import { resolveHostEnvironment } from "../hosts/host-environment.js";
 import { randomUUID } from "node:crypto";
 import {
@@ -1066,6 +1067,8 @@ export class TerminalSessionLifecycle {
       });
       throw new ApiError(502, "host_disconnected", "Host is not connected");
     }
+    if (args.payload.dataBase64.length > 0)
+      emitPluginTerminalInput(toTerminalSession(session));
     return toTerminalSession(session);
   }
 
@@ -1612,6 +1615,8 @@ export class TerminalSessionLifecycle {
       this.disconnectDaemonSessionTerminals({
         daemonSessionId: current.daemonSessionId,
       });
+    } else if (args.message.dataBase64.length > 0) {
+      emitPluginTerminalInput(toTerminalSession(markedInput ?? current));
     }
   }
 

@@ -82,9 +82,9 @@ remains recorded for operator reconciliation.
 An `environmentRow` is optional. Providers without one, such as SSH, require
 `--environment-provider <id>` alongside `bb thread spawn --new-machine <id>`.
 
-Suspend and resume are optional but must be declared together. Without them,
-omit `experimental_idleSuspendMs`. With them, core suspends only after every
-live thread is idle and no terminal is open, then resumes before the next send.
+Suspend and resume are optional but must be declared together. Providers own idle
+timing and request pause through the host SDK. Core interrupts active work before
+invoking suspend and resumes before queued execution.
 Suspend receives `checkpoint(resource)`, which synchronously
 persists a recoverable private resource before destructive cleanup. Use it
 after creating a recovery artifact and before terminating the live machine or
@@ -166,11 +166,11 @@ persists a recovery artifact before destructive cleanup.
 
 ### Coordinated suspension
 
-Use `experimental_idleSuspendMs({hostId,resource})` for a current per-machine idle
-timeout, or omit it to disable automatic suspension. Core checks threads, terminals
-and queued work before idle suspension.
+Own idle timing with plugin storage and background schedules. Subscribe to
+`experimental_thread.events` and `experimental_terminal.input` to extend your deadline.
+Modal v1 checks only `thread.status === "active"` in its thread-event callback.
 
-Call `bb.sdk.hosts.suspend({hostId})` for coordinated suspension. Core blocks new work
+Call `bb.sdk.hosts.suspend({hostId})` for coordinated suspension. Core accepts follow-ups into the host-wait queue
 and drains active turns, setup hooks and terminals with a five-minute bound before
 calling your suspend callback. Persist opaque state with `checkpoint(resource)` before
 terminating compute. Core serializes resource transitions and restores the same host

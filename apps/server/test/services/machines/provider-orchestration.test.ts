@@ -1,3 +1,5 @@
+import { attemptDispatch } from "../../../src/services/threads/dispatch-attempt.js";
+import { listQueuedThreadMessages } from "@bb/db";
 import * as gitCredentials from "../../../src/services/machines/git-credentials.js";
 import {
   createTerminalSession,
@@ -1056,35 +1058,7 @@ describe("core machine provider orchestration", () => {
       });
     }));
 
-  it("starts a durable idle baseline for a box with zero threads and honors its per-machine override", async () =>
-    withTestHarness(async (harness) => {
-      vi.useFakeTimers({ toFake: ["Date"] });
-      vi.setSystemTime(10_000);
-      const { host } = seedHostSession(harness.deps, { id: "host_empty_idle" });
-      const suspend = vi.fn(async ({ resource }: { resource: JsonValue }) => ({
-        resource,
-      }));
-      installMachineProvider(
-        machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 5_000,
-          suspend,
-          resume: async ({ resource }) => ({ resource }),
-        }),
-      );
-      adoptMachine(harness, host.id);
-      await sweepProviderMachine(harness.deps, host.id);
-      expect(getHost(harness.db, host.id)?.idleSince).toBe(10_000);
-      expect(suspend).not.toHaveBeenCalled();
-      vi.setSystemTime(14_999);
-      await sweepProviderMachine(harness.deps, host.id);
-      expect(suspend).not.toHaveBeenCalled();
-      vi.setSystemTime(15_000);
-      await sweepProviderMachine(harness.deps, host.id);
-      expect(suspend).toHaveBeenCalledOnce();
-      expect(getHost(harness.db, host.id)?.phase).toBe("suspended");
-    }));
-
-  it("suspends after every live thread has been idle for the policy delay", async () =>
+  it("suspends when requested by the provider", async () =>
     withTestHarness(async (harness) => {
       vi.useFakeTimers({ toFake: ["Date"] });
       vi.setSystemTime(10_000);
@@ -1107,7 +1081,6 @@ describe("core machine provider orchestration", () => {
       let suspends = 0;
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 5_000,
           suspend: async () => {
             suspends += 1;
             return { resource: { snapshot: "snap-1" } };
@@ -1117,7 +1090,7 @@ describe("core machine provider orchestration", () => {
       );
       adoptMachine(harness, host.id);
 
-      await sweepProviderMachine(harness.deps, host.id);
+      await requestMachineSuspension(harness.deps, host.id);
       expect(suspends).toBe(1);
       expect(getHost(harness.db, host.id)).toMatchObject({
         phase: "suspended",
@@ -1160,7 +1133,6 @@ describe("core machine provider orchestration", () => {
         .run();
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 5_000,
           suspend: async ({ hostId, resource, signal }) => {
             await callPluginHostRpc(harness.deps, {
               pluginId: "test-machine-plugin",
@@ -1178,7 +1150,7 @@ describe("core machine provider orchestration", () => {
       );
       adoptMachine(harness, host.id);
 
-      const sweep = sweepProviderMachine(harness.deps, host.id);
+      const sweep = requestMachineSuspension(harness.deps, host.id);
       const outcome = await Promise.race([
         sweep.then(() => "completed" as const),
         new Promise<"blocked">((resolve) =>
@@ -1219,7 +1191,6 @@ describe("core machine provider orchestration", () => {
       let resumes = 0;
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 5_000,
           suspend: async (context) => {
             context.checkpoint({ snapshot: "snap-recoverable" });
             harness.hub.unregisterDaemon(session.id);
@@ -1238,9 +1209,9 @@ describe("core machine provider orchestration", () => {
       );
       adoptMachine(harness, host.id, { sandbox: "live" });
 
-      await expect(sweepProviderMachine(harness.deps, host.id)).rejects.toThrow(
-        "server crashed after checkpoint",
-      );
+      await expect(
+        requestMachineSuspension(harness.deps, host.id),
+      ).rejects.toThrow("server crashed after checkpoint");
       expect(getHost(harness.db, host.id)).toMatchObject({
         phase: "suspending",
         resource: { snapshot: "snap-recoverable" },
@@ -1281,7 +1252,6 @@ describe("core machine provider orchestration", () => {
       const resources: JsonValue[] = [];
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 1,
           suspend: async ({ resource }) => ({ resource }),
           resume: async ({ resource }) => {
             resources.push(resource);
@@ -1334,7 +1304,6 @@ describe("core machine provider orchestration", () => {
       const removedResources: JsonValue[] = [];
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 5_000,
           suspend: async () => {
             suspendStarted.resolve();
             await suspendRelease.promise;
@@ -1350,7 +1319,7 @@ describe("core machine provider orchestration", () => {
       );
       adoptMachine(harness, host.id, { sandbox: "live" });
 
-      const suspendSweep = sweepProviderMachine(harness.deps, host.id);
+      const suspendSweep = requestMachineSuspension(harness.deps, host.id);
       await suspendStarted.promise;
       harness.db
         .update(threads)
@@ -1404,7 +1373,6 @@ describe("core machine provider orchestration", () => {
       const suspendRelease = createDeferredPromise<void>();
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 5_000,
           suspend: async () => {
             suspendStarted.resolve();
             await suspendRelease.promise;
@@ -1415,7 +1383,7 @@ describe("core machine provider orchestration", () => {
       );
       adoptMachine(harness, host.id, { sandbox: "live" });
 
-      const suspendSweep = sweepProviderMachine(harness.deps, host.id);
+      const suspendSweep = requestMachineSuspension(harness.deps, host.id);
       await suspendStarted.promise;
       updateHost(harness.db, harness.hub, host.id, {
         destroyedAt: 10_000,
@@ -1508,7 +1476,6 @@ describe("core machine provider orchestration", () => {
       let resumes = 0;
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 5_000,
           suspend: async () => {
             suspendStarted.resolve();
             await suspendRelease.promise;
@@ -1522,7 +1489,7 @@ describe("core machine provider orchestration", () => {
       );
       adoptMachine(harness, host.id, { sandbox: "live" });
 
-      const sweep = sweepProviderMachine(harness.deps, host.id);
+      const sweep = requestMachineSuspension(harness.deps, host.id);
       await suspendStarted.promise;
       let dispatched = false;
       const admission = ensureHostSessionReadyForWork(harness.deps, {
@@ -1571,7 +1538,6 @@ describe("core machine provider orchestration", () => {
       let observedProgress: string | null = null;
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 1,
           suspend: async ({ resource }) => ({ resource }),
           resume: async ({ report }) => {
             resumes += 1;
@@ -1792,7 +1758,6 @@ describe("core machine provider orchestration", () => {
       let removes = 0;
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 1,
           suspend: async ({ resource }) => ({ resource }),
           resume: async () => {
             harness.hub.registerDaemon(session.id, host.id, socket);
@@ -1892,7 +1857,6 @@ describe("core machine provider orchestration", () => {
       let removes = 0;
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 1,
           suspend: async ({ resource }) => ({ resource }),
           resume: async () => {
             resumes += 1;
@@ -1928,7 +1892,7 @@ describe("core machine provider orchestration", () => {
       });
     }));
 
-  it("records a machine lifecycle failure and continues sweeping later machines", async () =>
+  it("sweeps removal without invoking provider pause", async () =>
     withTestHarness(async (harness) => {
       vi.useFakeTimers({ toFake: ["Date"] });
       vi.setSystemTime(30_000);
@@ -1963,7 +1927,6 @@ describe("core machine provider orchestration", () => {
       let removes = 0;
       installMachineProvider(
         machineDeclaration(failingHost.id, {
-          experimental_idleSuspendMs: async () => 5_000,
           suspend: async ({ hostId, resource }) => {
             if (hostId === failingHost.id) {
               throw new Error("snapshot service unavailable");
@@ -1985,9 +1948,9 @@ describe("core machine provider orchestration", () => {
         sweepMachineLifecycles(harness.deps),
       ).resolves.toBeUndefined();
       expect(getHost(harness.db, failingHost.id)).toMatchObject({
-        phase: "suspending",
-        teardownStatus: "failed",
-        teardownMessage: "snapshot service unavailable",
+        phase: "active",
+        teardownStatus: null,
+        teardownMessage: null,
       });
       expect(removes).toBe(1);
       expect(getHost(harness.db, removableHost.id)).toMatchObject({
@@ -2098,7 +2061,6 @@ describe("machine lifecycle safety regressions", () => {
       let suspends = 0;
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 5_000,
           suspend: async () => {
             suspends += 1;
             return { resource: { snapshot: "snap-1" } };
@@ -2814,7 +2776,6 @@ it("periodic maintenance does not invalidate an in-flight resume allocation", as
     const proceed = createDeferredPromise<void>();
     installMachineProvider(
       machineDeclaration(host.id, {
-        experimental_idleSuspendMs: async () => 60000,
         suspend: async ({ resource }) => ({ resource }),
         resume: async ({ checkpoint }) => {
           allocated.resolve();
@@ -2851,7 +2812,6 @@ describe("coordinated machine suspension", () => {
       let terminated = false;
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => null,
           suspend: async ({ checkpoint }) => {
             saving.resolve();
             await proceed.promise;
@@ -2890,7 +2850,6 @@ describe("coordinated machine suspension", () => {
       let saves = 0;
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => null,
           suspend: async ({ checkpoint }) => {
             saves += 1;
             if (fails) throw new Error("snapshot unavailable");
@@ -2909,7 +2868,9 @@ describe("coordinated machine suspension", () => {
 
         leaseId: null,
       });
-      await requestMachineSuspension(h.deps, host.id);
+      await expect(requestMachineSuspension(h.deps, host.id)).rejects.toThrow(
+        "Machine already has a lifecycle operation",
+      );
       expect(saves).toBe(1);
       h.db
         .update(machineLifecycles)
@@ -2921,7 +2882,9 @@ describe("coordinated machine suspension", () => {
         .where(eq(machineLifecycles.hostId, host.id))
         .run();
       vi.setSystemTime(30_000);
-      await requestMachineSuspension(h.deps, host.id);
+      await expect(requestMachineSuspension(h.deps, host.id)).rejects.toThrow(
+        "Machine already has a lifecycle operation",
+      );
       expect(saves).toBe(1);
       fails = false;
       vi.setSystemTime(40_001);
@@ -2953,39 +2916,6 @@ describe("coordinated machine suspension", () => {
         ensureHostSessionReadyForWork(h.deps, { hostId: host.id }),
       ).rejects.toThrow("Provider requires explicit recovery");
       expect(getHost(h.db, host.id)?.phase).toBe("suspended");
-    }));
-
-  it("updates idle policy without reloading and never automatically removes the machine", async () =>
-    withTestHarness(async (h) => {
-      vi.useFakeTimers({ toFake: ["Date"] });
-      vi.setSystemTime(10_000);
-      const { host } = seedHostSession(h.deps, { id: "host_live_policy" });
-      adoptMachine(h, host.id);
-      let idleSuspendMs = 100_000;
-      let removed = false;
-      installMachineProvider(
-        machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => idleSuspendMs,
-          remove: async () => {
-            removed = true;
-            return { status: "removed" };
-          },
-          suspend: async ({ resource, checkpoint }) => {
-            checkpoint(resource);
-            return { resource };
-          },
-          resume: async ({ resource }) => ({ resource }),
-        }),
-      );
-      await sweepProviderMachine(h.deps, host.id);
-      vi.setSystemTime(15_000);
-      idleSuspendMs = 1_000;
-      await sweepProviderMachine(h.deps, host.id);
-      expect(getHost(h.db, host.id)?.phase).toBe("suspended");
-      expect(removed).toBe(false);
-      vi.setSystemTime(365 * 86400_000);
-      await sweepProviderMachine(h.deps, host.id);
-      expect(removed).toBe(false);
     }));
 
   it("retains the machine when its provider refuses suspension", async () =>
@@ -3072,7 +3002,6 @@ it.each([false, true])(
       let saves = 0;
       installMachineProvider(
         machineDeclaration(host.id, {
-          experimental_idleSuspendMs: async () => 1,
           suspend: async ({ resource, checkpoint }) => {
             saves += 1;
             checkpoint(resource);
@@ -3134,7 +3063,6 @@ it("concurrent dispatch shares one restore and records an expired image failure"
     let resumes = 0;
     installMachineProvider(
       machineDeclaration(host.id, {
-        experimental_idleSuspendMs: async () => 900_000,
         suspend: async ({ resource }) => ({ resource }),
         resume: async ({ resource, checkpoint }) => {
           resumes += 1;
@@ -3204,7 +3132,6 @@ it("wakes persisted offline queue intent after a suspended machine is reconciled
     let suspends = 0;
     installMachineProvider(
       machineDeclaration(host.id, {
-        experimental_idleSuspendMs: async () => 1_000,
         suspend: async ({ resource }) => {
           suspends += 1;
           return { resource };
@@ -3250,7 +3177,6 @@ it("settles an abandoned maintenance lease after persisted suspension and admits
     });
     installMachineProvider(
       machineDeclaration(host.id, {
-        experimental_idleSuspendMs: async () => 900_000,
         suspend: async ({ resource }) => ({ resource }),
         resume: async ({ resource }) => ({ resource }),
       }),
@@ -3280,3 +3206,91 @@ it("settles an abandoned maintenance lease after persisted suspension and admits
       assertMachineLifecycleAdmission(h.deps, host.id),
     ).not.toThrow();
   }));
+
+it.each([false, true])(
+  "accepts a follow-up during pause and continues automatically (saving=%s)",
+  async (saving) =>
+    withTestHarness(async (h) => {
+      const { host, session } = seedHostSession(h.deps, {
+        id: "host-followup-pause",
+      });
+      const { project, environment } = seedMachineWorkspace(
+        h,
+        host.id,
+        "/tmp/pause-followup",
+      );
+      const thread = seedThread(h.deps, {
+        projectId: project.id,
+        environmentId: environment.id,
+        status: saving ? "idle" : "active",
+      });
+      seedThreadRuntimeState(h.deps, {
+        threadId: thread.id,
+        environmentId: environment.id,
+        providerThreadId: "provider-pause-followup",
+      });
+      if (!saving)
+        seedTurnStarted(h.deps, {
+          threadId: thread.id,
+          environmentId: environment.id,
+          turnId: "turn-pause-followup",
+        });
+      const entered = createDeferredPromise<void>();
+      const release = createDeferredPromise<void>();
+      registerHostRpcResponder(h, {
+        hostId: host.id,
+        sessionId: session.id,
+        handle: async (request) => {
+          if (request.command.type !== "thread.stop")
+            throw new Error(`Unexpected ${request.command.type}`);
+          entered.resolve();
+          await release.promise;
+          return { ok: true, result: { providerCheckpointId: null } };
+        },
+      });
+      const suspend = vi.fn(async ({ resource }: { resource: JsonValue }) => {
+        entered.resolve();
+        await release.promise;
+        return { resource };
+      });
+      const resume = vi.fn(async ({ resource }: { resource: JsonValue }) => ({
+        resource,
+      }));
+      installMachineProvider(machineDeclaration(host.id, { suspend, resume }));
+      adoptMachine(h, host.id);
+      const pause = requestMachineSuspension(h.deps, host.id).then(
+        () => "paused",
+        (error: Error) => error.message,
+      );
+      await entered.promise;
+      const current = getThread(h.db, thread.id);
+      if (!current) throw new Error("missing thread");
+      const outcome = await attemptDispatch(h.deps, {
+        thread: current,
+        payload: { input: textInput("continue after pause"), mode: "auto" },
+        source: { kind: "inline" },
+        queuePayload: { kind: "inline" },
+        origin: null,
+        originPluginId: null,
+        startedOnBehalfOf: null,
+        trigger: "user",
+      });
+      expect(outcome.kind).toBe("queued");
+      expect(listQueuedThreadMessages(h.db, thread.id)).toHaveLength(1);
+      expect(resume).not.toHaveBeenCalled();
+      release.resolve();
+      expect(await pause).toBe(
+        saving ? "paused" : "Pause cancelled because a follow-up was sent.",
+      );
+      await vi.waitFor(() =>
+        expect(getHost(h.db, host.id)?.phase).toBe("active"),
+      );
+      expect(suspend).toHaveBeenCalledTimes(saving ? 1 : 0);
+      expect(resume).toHaveBeenCalledTimes(saving ? 1 : 0);
+      await vi.waitFor(() =>
+        expect(
+          listQueuedThreadMessages(h.db, thread.id)[0]?.waitingOn,
+        ).not.toMatchObject({ kind: "host-offline" }),
+      );
+    }),
+);

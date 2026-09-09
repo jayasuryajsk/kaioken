@@ -1,3 +1,4 @@
+import { ThreadMachineStatus } from "@/components/promptbox/banner/ThreadMachineStatus";
 import { MachineSetupProgress } from "@/components/dialogs/MachineSetupProgress";
 import {
   useCallback,
@@ -1554,6 +1555,11 @@ export function ThreadDetailPromptArea({
           isExpanded={isTodoExpanded}
           onToggle={() => setIsTodoExpanded((value) => !value)}
         />
+        {environmentHostId &&
+        thread.archivedAt === null &&
+        environmentGoneStatus === null ? (
+          <ThreadMachineStatus hostId={environmentHostId} />
+        ) : null}
         <ThreadPromptContextBanner
           archivedSection={
             thread.archivedAt !== null
@@ -1625,6 +1631,7 @@ export function ThreadDetailPromptArea({
       canUseGitUi,
       childPendingInteractionBanners,
       contextBannerMergeBase,
+      environmentHostId,
       expandedBannerSection,
       handleDeleteQueuedMessage,
       beginEditQueuedMessage,

@@ -545,6 +545,8 @@ export function createPluginApi(options: {
   };
   const databaseHandles: Database.Database[] = [];
   const threadEventHandlers: PluginThreadEventHandlers = {
+    "experimental_thread.events": [],
+    "experimental_terminal.input": [],
     "thread.created": [],
     "thread.active": [],
     "thread.idle": [],
@@ -749,10 +751,9 @@ export function createPluginApi(options: {
         );
       }
       const rows = database
-        .prepare<
-          [],
-          { id: number; statement_hash: string | null }
-        >("SELECT id, statement_hash FROM _bb_migrations ORDER BY id")
+        .prepare<[], { id: number; statement_hash: string | null }>(
+          "SELECT id, statement_hash FROM _bb_migrations ORDER BY id",
+        )
         .all();
       const applied = new Map<number, string | null>();
       for (const row of rows) applied.set(row.id, row.statement_hash);

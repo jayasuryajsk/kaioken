@@ -25,6 +25,7 @@ import type {
   StartedOnBehalfOf,
   ThreadCreateOrigin,
   ThreadResponse,
+  TerminalSession,
 } from "@bb/server-contract";
 import type { JsonValue } from "./json-value.js";
 import type {
@@ -265,6 +266,10 @@ export interface PluginTurnFailedEvent {
  * queued row GET /threads/:id/queued-messages serves.
  */
 export interface PluginThreadEventPayloads {
+  /** Debounced per thread (at most once per second), with the latest sequence and current thread DTO. Reading history does not emit this event. */
+  "experimental_thread.events": { thread: ThreadResponse; sequence: number };
+  /** Real accepted terminal input; excludes output, keepalives and input contents. */
+  "experimental_terminal.input": { terminal: TerminalSession };
   /** Fired after a thread row is created. */
   "thread.created": { thread: ThreadResponse };
   /** Fired when a thread transitions into `active`. */

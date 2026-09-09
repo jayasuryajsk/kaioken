@@ -1102,10 +1102,9 @@ function createFakePluginHostInternal(
         );
       }
       const rows = database
-        .prepare<
-          [],
-          { id: number; statement_hash: string | null }
-        >("SELECT id, statement_hash FROM _bb_migrations ORDER BY id")
+        .prepare<[], { id: number; statement_hash: string | null }>(
+          "SELECT id, statement_hash FROM _bb_migrations ORDER BY id",
+        )
         .all();
       const applied = new Map<number, string | null>();
       for (const row of rows) applied.set(row.id, row.statement_hash);
@@ -1808,6 +1807,8 @@ function createFakePluginHostInternal(
   const threadEventHandlers: {
     [E in PluginThreadEventName]: Array<PluginThreadEventHandler<E>>;
   } = {
+    "experimental_thread.events": [],
+    "experimental_terminal.input": [],
     "thread.created": [],
     "thread.active": [],
     "thread.idle": [],
@@ -2312,6 +2313,10 @@ function createFakePluginHostInternal(
       },
       get threadEventHandlers() {
         return {
+          "experimental_thread.events":
+            threadEventHandlers["experimental_thread.events"].length,
+          "experimental_terminal.input":
+            threadEventHandlers["experimental_terminal.input"].length,
           "thread.created": threadEventHandlers["thread.created"].length,
           "thread.active": threadEventHandlers["thread.active"].length,
           "thread.idle": threadEventHandlers["thread.idle"].length,

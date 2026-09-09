@@ -987,6 +987,10 @@ describe("public terminal routes", () => {
       title: "Terminal 1",
     });
 
+    const notify = vi.spyOn(
+      fixture.harness.pluginService.events,
+      "emitTerminalInput",
+    );
     const response = await fixture.harness.app.request(
       `/api/v1/terminals/${session.id}/input`,
       {
@@ -999,6 +1003,12 @@ describe("public terminal routes", () => {
     );
 
     expect(response.status).toBe(200);
+    expect(notify).toHaveBeenCalledOnce();
+    expect(notify.mock.calls[0]?.[0]).toMatchObject({
+      id: session.id,
+      hostId: fixture.host.id,
+    });
+    expect(notify.mock.calls[0]?.[0]).not.toHaveProperty("dataBase64");
     const inputMessage = await waitForDaemonMessage(fixture.socket);
     expect(inputMessage).toMatchObject({
       type: "terminal.input",

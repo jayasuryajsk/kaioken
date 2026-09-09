@@ -209,6 +209,10 @@ export type PluginMentionResolveResult =
   | { ok: false; error: string };
 
 export interface PluginThreadEventEmitter {
+  emitThreadEvents(threadId: string): void;
+  emitTerminalInput(
+    terminal: import("@bb/server-contract").TerminalSession,
+  ): void;
   emitThreadCreated(thread: Thread): void;
   emitThreadActive(thread: Thread): void;
   emitThreadIdle(thread: Thread): void;

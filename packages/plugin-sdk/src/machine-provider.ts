@@ -95,11 +95,6 @@ export interface PluginMachineProviderDefinition<
     context: PluginMachineProviderValidateContext<S>,
   ): PluginMachineValidateDecision | Promise<PluginMachineValidateDecision>;
   environmentRow?: PluginMachineProviderEnvironmentRow;
-  /** Resolve the idle timeout for this machine; null disables automatic suspension. Core owns activity checks. */
-  experimental_idleSuspendMs?(context: {
-    hostId: string;
-    resource: JsonValue;
-  }): Promise<number | null>;
   /** Return provider-owned inventory and estimated costs for machine details. */
   experimental_details?(context: {
     hostId: string;

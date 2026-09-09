@@ -2086,11 +2086,10 @@ describe("environment targets", () => {
       icon: null,
       suspend: null,
       resume: null,
-      experimental_idleSuspendMs: null,
     });
   });
 
-  it("requires machine suspend and resume as a pair and disables idle suspension without them", () => {
+  it("requires machine suspend and resume as a pair", () => {
     const create = async () => ({
       status: "created" as const,
       hostId: "host-machine",
@@ -2108,16 +2107,6 @@ describe("environment targets", () => {
         remove,
       }),
     ).toThrow(/declare suspend and resume together/);
-    expect(() =>
-      createFakePluginHost().bb.experimental_machines.register({
-        id: "idle-without-lifecycle",
-        displayName: "Idle without lifecycle",
-        experimental_idleSuspendMs: async () => 1_000,
-        create,
-        reconcileCleanup: remove,
-        remove,
-      }),
-    ).toThrow(/declare suspend and resume with experimental_idleSuspendMs/);
   });
 
   it("delivers message.cancelled to a listener", async () => {

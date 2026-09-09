@@ -13,7 +13,8 @@ describe("machinePhaseLabel", () => {
   it.each([
     ["active", null],
     ["destroyed", null],
-    ["suspended", "Suspended"],
+    ["suspending", "Pausing"],
+    ["suspended", "Paused"],
     ["retiring", "Retiring"],
   ] as const)("maps %s to %s", (phase, label) => {
     expect(machinePhaseLabel(lifecycle(phase))).toBe(label);

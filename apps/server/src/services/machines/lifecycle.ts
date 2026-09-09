@@ -8,6 +8,7 @@ import {
   machineLifecycles,
   terminalSessions,
   threads,
+  updateHost,
 } from "@bb/db";
 import type { experimental_HostLifecycleResponse } from "@bb/server-contract";
 import type {
@@ -22,6 +23,11 @@ import { stopThreadForCurrentState } from "../threads/thread-lifecycle.js";
 
 const LEASE_MS = 30_000;
 const RETRY_MS = 10_000;
+const preparingPauses = new WeakMap<
+  WorkSessionDeps["db"],
+  Map<string, { cancelled: boolean }>
+>();
+
 type Deps = Pick<WorkSessionDeps, "db" | "hub" | "logger">;
 
 export function getMachineLifecycle(deps: Pick<Deps, "db">, hostId: string) {
@@ -66,6 +72,29 @@ export function assertMachineLifecycleAdmission(
     );
 }
 
+export function cancelPreparingMachinePause(
+  deps: Pick<Deps, "db">,
+  hostId: string,
+): void {
+  const pending = preparingPauses.get(deps.db)?.get(hostId);
+  if (pending !== undefined) pending.cancelled = true;
+}
+
+export function isMachineWaitingForExecution(
+  deps: Pick<Deps, "db">,
+  hostId: string,
+): boolean {
+  const host = getHost(deps.db, hostId);
+  const state = getMachineLifecycle(deps, hostId);
+  return (
+    host?.suspendedAt != null ||
+    host?.phase === "suspending" ||
+    state?.leaseId != null ||
+    state?.recoveryState === "draining" ||
+    state?.recoveryState === "saving"
+  );
+}
+
 export async function maintainMachine(
   deps: LoggedPendingInteractionWorkSessionDeps,
   hostId: string,
@@ -101,7 +130,19 @@ export async function maintainMachine(
       .run();
     return true;
   });
-  if (!claimed) return;
+  if (!claimed)
+    throw new ApiError(
+      409,
+      "machine_maintenance",
+      "Machine already has a lifecycle operation or is waiting for retry.",
+    );
+  const pending = { cancelled: false };
+  const pauses =
+    preparingPauses.get(deps.db) ?? new Map<string, { cancelled: boolean }>();
+  preparingPauses.set(deps.db, pauses);
+  pauses.set(hostId, pending);
+  const originalPhase = getHost(deps.db, hostId)?.phase;
+  updateHost(deps.db, deps.hub, hostId, { phase: "suspending" });
   const owned = and(
     eq(machineLifecycles.hostId, hostId),
     eq(machineLifecycles.leaseId, leaseId),
@@ -113,6 +154,7 @@ export async function maintainMachine(
       .where(owned)
       .run();
   }, 8_000);
+  let preserving = false;
   try {
     await boundedDrain(async () => {
       const hooks = deps.db
@@ -207,6 +249,15 @@ export async function maintainMachine(
     }, 5 * 60_000);
     if (getMachineLifecycle(deps, hostId)?.leaseId !== leaseId)
       throw new Error("Machine maintenance lease was replaced");
+    pauses.delete(hostId);
+    if (pending.cancelled) {
+      throw new ApiError(
+        409,
+        "machine_pause_cancelled",
+        "Pause cancelled because a follow-up was sent.",
+      );
+    }
+    preserving = true;
     deps.db
       .update(machineLifecycles)
       .set({
@@ -226,18 +277,29 @@ export async function maintainMachine(
       .where(owned)
       .run();
   } catch (error) {
+    const cancelled =
+      error instanceof ApiError &&
+      error.body.code === "machine_pause_cancelled";
     const message = error instanceof Error ? error.message : String(error);
     deps.db
       .update(machineLifecycles)
       .set({
-        recoveryState: "recoverable",
-        message: `Machine suspension failed: ${message}`,
-        retryAt: Date.now() + RETRY_MS,
+        recoveryState: cancelled ? "healthy" : "recoverable",
+        message: cancelled ? null : `Machine suspension failed: ${message}`,
+        retryAt: cancelled ? null : Date.now() + RETRY_MS,
       })
       .where(owned)
       .run();
+    if (
+      !preserving &&
+      getHost(deps.db, hostId)?.removalStartedAt === null &&
+      originalPhase !== undefined
+    ) {
+      updateHost(deps.db, deps.hub, hostId, { phase: originalPhase });
+    }
     throw error;
   } finally {
+    pauses.delete(hostId);
     clearInterval(heartbeat);
     deps.db
       .update(machineLifecycles)

@@ -3,7 +3,10 @@ import type {
   PluginMachineProviderCreateContext,
   PluginMachineProviderProgress,
 } from "@get-bb/plugin-sdk/machine-provider";
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import {
+  createFakePluginHost,
+  makeThreadResponse,
+} from "@get-bb/plugin-sdk/testing";
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import type {
@@ -730,7 +733,7 @@ it("does not build an image when enrollment preparation fails", async () => {
   expect(test.backend.creates).toHaveLength(0);
 });
 
-it("observes vendor deadlines and applies current lifecycle settings without plugin reload", async () => {
+it("observes vendor deadlines", async () => {
   const harness = await setup();
   const created = await harness.provider.create(createContext());
   if (created.status !== "created") throw new Error("creation failed");
@@ -742,10 +745,6 @@ it("observes vendor deadlines and applies current lifecycle settings without plu
   expect(await harness.provider.experimental_details?.(context)).toMatchObject({
     values: { state: "running", expiresAt: 24 * 60 * 60_000 },
   });
-  await harness.harness.setSettings({ idleMinutes: "2", timeoutMinutes: "4" });
-  expect(await harness.provider.experimental_idleSuspendMs?.(context)).toEqual(
-    120_000,
-  );
 });
 
 it("blocks observation and resume after the configured account identity changes", async () => {
@@ -1066,4 +1065,75 @@ it("does not allocate debug compute when the image fails to build", async () => 
     stderr: "RUN command failed",
   });
   expect(test.backend.creates).toHaveLength(0);
+});
+
+describe("plugin-owned idle timing", () => {
+  it("bumps only active thread notifications and real terminal input, and reads current settings", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    const test = await setup();
+    try {
+      vi.setSystemTime(0);
+      await test.provider.create(createContext());
+      const suspend = vi.fn(async () => ({ ok: true }));
+      test.harness.sdk.stub("hosts.suspend", suspend);
+      test.harness.sdk.stub("hosts.list", () => [
+        { ...host("connected"), machineProviderId: PROVIDER_ID },
+      ]);
+      const lookup = vi.fn(async () => ({ hostId: HOST_ID }));
+      test.harness.sdk.stub("environments.get", lookup);
+      vi.setSystemTime(10 * 60_000);
+      await test.harness.emitThreadEvent("experimental_thread.events", {
+        thread: makeThreadResponse({
+          status: "active",
+          environmentId: "env-modal",
+        }),
+        sequence: 12,
+      });
+      expect(lookup).toHaveBeenCalledOnce();
+      expect(test.harness.sdk.callsTo("threads.events.list")).toHaveLength(0);
+      vi.setSystemTime(20 * 60_000);
+      await test.harness.emitThreadEvent("experimental_thread.events", {
+        thread: makeThreadResponse({
+          status: "idle",
+          environmentId: "env-modal",
+        }),
+        sequence: 13,
+      });
+      expect(lookup).toHaveBeenCalledOnce();
+      await test.harness.runSchedule("pause-idle-machines");
+      expect(suspend).not.toHaveBeenCalled();
+      await test.harness.emitThreadEvent("experimental_terminal.input", {
+        terminal: {
+          id: "terminal-modal",
+          hostId: HOST_ID,
+          environmentId: null,
+          threadId: null,
+          title: "Terminal",
+          initialCwd: "/tmp",
+          cols: 80,
+          rows: 24,
+          status: "running",
+          exitCode: null,
+          closeReason: null,
+          createdAt: 0,
+          updatedAt: Date.now(),
+          lastUserInputAt: Date.now(),
+        },
+      });
+      vi.setSystemTime(25 * 60_000);
+      await test.harness.runSchedule("pause-idle-machines");
+      expect(suspend).not.toHaveBeenCalled();
+      await test.harness.setSettings({ idleMinutes: 2 });
+      await test.harness.runSchedule("pause-idle-machines");
+      expect(suspend).toHaveBeenCalledWith({ hostId: HOST_ID });
+      suspend.mockClear();
+      await test.harness.setSettings({ idleMinutes: 0 });
+      vi.setSystemTime(60 * 60_000);
+      await test.harness.runSchedule("pause-idle-machines");
+      expect(suspend).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+      await test.harness.lifecycle.dispose();
+    }
+  });
 });

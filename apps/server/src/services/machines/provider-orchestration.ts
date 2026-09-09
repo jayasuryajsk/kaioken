@@ -1,3 +1,4 @@
+import { requestQueuedMachineReadiness } from "../threads/queued-message-dispatch.js";
 import { and, eq } from "drizzle-orm";
 import { hostDaemonSessions } from "@bb/db";
 import { handleHostRemoved } from "../../internal/session-owner-side-effects.js";
@@ -27,8 +28,6 @@ import {
   listProviderMachines,
   listThreadIdsWithHostOfflineQueueWaits,
   machineHasLiveThreads,
-  machineHasOpenTerminal,
-  machineIdleSince,
   updateHost,
   updateMachineLaunchAttempt,
   upsertMachineLaunch,
@@ -496,10 +495,7 @@ export async function prepareMachineProviderSelection(
       `"${record.provider.id}" machine provider validate`,
       () =>
         decideWithinBox(
-          () =>
-            Promise.resolve(
-              record.provider.validate?.({ inputs }),
-            ),
+          () => Promise.resolve(record.provider.validate?.({ inputs })),
           machineProviderDecisionTimeoutMs(),
         ),
     );
@@ -678,7 +674,7 @@ function machineHostResponse(
     machineProviderId: row.machineProviderId,
     machineProviderSelection: row.machineProviderSelection,
     lifecycle: {
-      phase: row.phase === "suspending" ? "active" : row.phase,
+      phase: row.phase,
       suspendedAt: row.suspendedAt,
       retireAt: row.retireAt,
       progress: row.teardownStatus === null ? row.teardownMessage : null,
@@ -951,6 +947,7 @@ async function suspendMachine(deps: Deps, hostId: string): Promise<void> {
     row === null ||
     row.machineProviderId === null ||
     (row.phase !== "active" &&
+      row.phase !== "suspending" &&
       !(row.phase === "retiring" && row.suspendedAt === null))
   ) {
     return;
@@ -961,16 +958,6 @@ async function suspendMachine(deps: Deps, hostId: string): Promise<void> {
     throw new Error(`Machine "${hostId}" has no provider resource`);
   }
   const operationId = `${record.pluginId}:${randomUUID()}`;
-  if (
-    machineIdleSince(deps.db, hostId) === null ||
-    machineHasOpenTerminal(deps.db, hostId)
-  ) {
-    throw new ApiError(
-      409,
-      "machine_busy",
-      "Wait for live threads to become idle and close terminals before sleeping.",
-    );
-  }
   const suspend = record.provider.suspend;
   const resource = row.resource;
   const retiring = row.phase === "retiring";
@@ -1082,7 +1069,19 @@ export async function requestMachineSuspension(
       "Only an active machine can be suspended",
     );
   }
-  await maintainMachine(deps, hostId, () => suspendMachine(deps, hostId));
+  try {
+    await maintainMachine(deps, hostId, () => suspendMachine(deps, hostId));
+  } finally {
+    const state = getMachineLifecycle(deps, hostId);
+    if (
+      state?.recoveryState === "saved" ||
+      state?.recoveryState === "healthy"
+    ) {
+      if (listThreadIdsWithHostOfflineQueueWaits(deps.db, hostId).length > 0) {
+        requestQueuedMachineReadiness(deps, hostId);
+      }
+    }
+  }
 }
 
 export async function requestMachineResume(
@@ -1102,6 +1101,7 @@ export async function requestMachineResume(
       "Only an active or suspended machine can be resumed",
     );
   }
+  await waitForMachineMaintenance(deps, hostId);
   await resumeMachine(deps, hostId);
 }
 
@@ -1232,6 +1232,7 @@ async function resumeMachineWithIntent(
         .update(machineLifecycles)
         .set({
           recoveryState: "healthy",
+          message: null,
           retryAt: null,
         })
         .where(eq(machineLifecycles.hostId, hostId))
@@ -1485,34 +1486,6 @@ export async function sweepProviderMachine(
     });
     row = getHost(deps.db, hostId);
     if (row === null) return;
-  }
-  const idleSuspendMs =
-    record.provider.experimental_idleSuspendMs !== null && row.resource !== null
-      ? z
-          .number()
-          .int()
-          .nonnegative()
-          .nullable()
-          .parse(
-            await record.provider.experimental_idleSuspendMs({
-              hostId,
-              resource: row.resource,
-            }),
-          )
-      : null;
-  const idleSince =
-    row.phase === "active" ? machineIdleSince(deps.db, hostId) : null;
-  if (
-    row.phase === "active" &&
-    idleSuspendMs !== null &&
-    record.provider.suspend !== null &&
-    listThreadIdsWithHostOfflineQueueWaits(deps.db, hostId).length === 0 &&
-    !machineHasOpenTerminal(deps.db, hostId)
-  ) {
-    if (idleSince !== null && now >= idleSince + idleSuspendMs) {
-      await maintainMachine(deps, hostId, () => suspendMachine(deps, hostId));
-      return;
-    }
   }
   if (row.phase !== "retiring" || row.retireAt === null || row.retireAt > now) {
     return;

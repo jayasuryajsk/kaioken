@@ -64,6 +64,8 @@ import {
   deleteInstalledPlugin,
   deletePluginSchedules,
   getInstalledPlugin,
+  getThread,
+  getLatestThreadSequence,
   listDuePluginSchedules,
   listInstalledPlugins,
   listPendingGitPluginArtifacts,
@@ -1542,6 +1544,20 @@ export function createPluginService(deps: PluginServiceDeps): PluginService {
     },
 
     events: {
+      emitThreadEvents(threadId) {
+        emitThreadEvent("experimental_thread.events", () => {
+          const thread = getThread(deps.db, threadId);
+          return thread === null
+            ? null
+            : {
+                thread: buildThreadDto(thread),
+                sequence: getLatestThreadSequence(deps.db, { threadId }),
+              };
+        });
+      },
+      emitTerminalInput(terminal) {
+        emitThreadEvent("experimental_terminal.input", () => ({ terminal }));
+      },
       emitThreadCreated(thread) {
         emitThreadEvent("thread.created", () => ({
           thread: buildThreadDto(thread),

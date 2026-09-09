@@ -1,3 +1,8 @@
+import { requestQueuedMachineReadiness } from "./queued-message-dispatch.js";
+import {
+  cancelPreparingMachinePause,
+  isMachineWaitingForExecution,
+} from "../machines/lifecycle.js";
 import {
   deleteClaimedQueuedThreadMessageBatchInTransaction,
   getEnvironment,
@@ -292,7 +297,14 @@ async function runDispatchAttempt(
   reattempted: boolean,
 ): Promise<DispatchAttemptOutcome> {
   const { payload, thread } = args;
-  ensureThreadIsWritable(thread);
+  const initialHost = dispatchEnvironmentAndHost(
+    deps,
+    thread.environmentId,
+  ).host;
+  ensureThreadIsWritable(
+    thread,
+    initialHost !== null && isMachineWaitingForExecution(deps, initialHost.id),
+  );
   if (args.trigger === "user" && args.source.kind === "inline") {
     // Reject what can never deliver while the sender is still listening; a
     // drain has nobody to tell, and its rows were validated when they were queued.
@@ -371,6 +383,21 @@ async function runDispatchAttempt(
     return waitOn({ kind: "time" }, sendAt);
   }
 
+  const { environment: dispatchEnvironment, host: dispatchHost } =
+    dispatchEnvironmentAndHost(deps, thread.environmentId);
+  if (
+    dispatchHost !== null &&
+    isMachineWaitingForExecution(deps, dispatchHost.id)
+  ) {
+    cancelPreparingMachinePause(deps, dispatchHost.id);
+    const outcome = waitOn(
+      { kind: "host-offline", hostName: dispatchHost.name },
+      null,
+    );
+    requestQueuedMachineReadiness(deps, dispatchHost.id);
+    return outcome;
+  }
+
   if (thread.status === "active" && attempt === "start-turn") {
     if (payload.mode === "start") {
       // `start` asks for a FRESH turn specifically, so a running one is a
@@ -384,8 +411,6 @@ async function runDispatchAttempt(
     return waitOn({ kind: "thread-busy" }, null);
   }
 
-  const { environment: dispatchEnvironment, host: dispatchHost } =
-    dispatchEnvironmentAndHost(deps, thread.environmentId);
   if (
     dispatchEnvironment !== null &&
     goneThreadEnvironmentDetails(dispatchEnvironment) === null &&

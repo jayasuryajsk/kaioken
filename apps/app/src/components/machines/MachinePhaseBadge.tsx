@@ -7,14 +7,15 @@ interface MachinePhaseBadgeProps {
 
 export function machinePhaseLabel(
   lifecycle: MachineLifecycle,
-): "Suspended" | "Retiring" | "Cleanup failed" | null {
+): "Paused" | "Pausing" | "Retiring" | "Cleanup failed" | null {
   if (
     lifecycle.phase === "retiring" &&
     lifecycle.teardown?.status === "failed"
   ) {
     return "Cleanup failed";
   }
-  if (lifecycle.phase === "suspended") return "Suspended";
+  if (lifecycle.phase === "suspending") return "Pausing";
+  if (lifecycle.phase === "suspended") return "Paused";
   if (lifecycle.phase === "retiring") return "Retiring";
   return null;
 }
@@ -26,7 +27,7 @@ export function MachinePhaseBadge({ lifecycle }: MachinePhaseBadgeProps) {
     <span
       className={cn(
         "shrink-0 rounded-sm border px-1.5 py-0.5 text-2xs leading-none",
-        label === "Suspended" &&
+        (label === "Paused" || label === "Pausing") &&
           "border-border bg-muted/40 text-subtle-foreground",
         label === "Retiring" &&
           "border-attention/50 bg-surface-attention text-warning-text",

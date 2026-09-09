@@ -213,6 +213,8 @@ const _assertAllAuthModesListed: MissingAuthMode extends never ? true : never =
 void _assertAllAuthModesListed;
 
 const THREAD_EVENT_PAYLOAD_FIELDS = {
+  "experimental_thread.events": ["thread", "sequence"],
+  "experimental_terminal.input": ["terminal"],
   "thread.created": ["thread"],
   "thread.active": ["thread"],
   "thread.idle": ["thread", "lastAssistantText"],
@@ -685,7 +687,7 @@ describe("bb-plugin-authoring skill", () => {
     expect(readReference("frontend-components.md")).not.toContain(
       'workspace: { type: "personal" }',
     );
-    expect(readReference("backend-events.md")).toContain("Twelve events.");
+    expect(readReference("backend-events.md")).toContain("Fourteen events.");
     expect(readReference("backend-events.md")).toContain(
       "The seven `thread.*` ones",
     );

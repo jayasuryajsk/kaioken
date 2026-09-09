@@ -2778,12 +2778,6 @@ definitive vendor rejection from transport timeouts and ambiguous submissions.
 
 ## Machine dev-box policy and inventory
 
-`PluginMachineProviderDefinition.experimental_idleSuspendMs({hostId, resource})`
-resolves a nullable per-machine timeout. Core retains dispatch exclusion, busy
-thread/terminal checks, a durable idle baseline (including empty machines), and
-retirement policy. Stabilize after testing provider reloads, empty boxes, terminals,
-and wake-on-dispatch across providers.
-
 `PluginMachineProviderDefinition.experimental_details({hostId, resource, signal})`
 returns `{summary, values}` inventory for machine rows/details and
 `bb.sdk.hosts.experimental_providerDetails({hostId, signal})`. The server parses
@@ -2859,12 +2853,10 @@ failure, and parity between public CLI/SDK and plugin/provider-managed dispatch.
 
 ## Coordinated machine maintenance
 
-`PluginMachineProviderDefinition.experimental_idleSuspendMs({hostId,resource})`
-returns the current idle timeout; null disables automatic suspension. Omit the hook
-when suspension is not supported. Core alone checks activity, queued work and terminals.
-There are no static policy, vendor observation, retention or snapshot timestamp APIs.
+Plugins own idle timing using event notifications, plugin KV and background schedules.
+Core does not impose a second idle timeout or veto pause merely because work is active.
 
-`bb.sdk.hosts.suspend({hostId})` blocks dispatch, drains active turns, setup hooks
+`bb.sdk.hosts.suspend({hostId})` accepts follow-ups into the existing host-wait queue, drains active turns, setup hooks
 and terminals with a five-minute bound, then invokes the provider's suspend callback.
 `suspend.checkpoint(resource)` durably persists opaque provider state before destructive
 cleanup. Core fences operations and resumes the same host identity with checkout setup
@@ -2907,3 +2899,25 @@ Stabilization requires plugin unload/reload, missing provider UI, single and mul
 thread provisioning, expired enrollment regeneration, and compact drawer checks.
 Manual setup is the first implementation; it owns command fetching/copying,
 countdown and regeneration.
+
+## Thread-sequence and terminal-input notifications
+
+`PluginEvents.on("experimental_thread.events", handler)` delivers `{thread, sequence}`.
+Core coalesces appends per thread into one notification per one-second window, reading
+the latest sequence and current public thread DTO at delivery. Continuous output is
+reported periodically; the last pending window is delivered after output stops.
+Reads/polling do not emit it. No contents, replay, activity classification or veto.
+
+`PluginEvents.on("experimental_terminal.input", handler)` delivers `{terminal}` after
+real nonempty user input is forwarded, including interactive terminal input. No input
+contents, output or keepalives are exposed. The public terminal DTO identifies its host.
+
+Modal v1 bumps its own idle clock when the delivered thread is active, and on terminal
+input to its machines. It does not fetch or classify thread events. Stabilization
+requires coalescing tests, live streaming/terminal verification, current-status behavior,
+and review of event delivery overhead. No daemon wire change is required.
+
+Follow-ups before the suspend callback cancel preparation after work stopping settles.
+After callback invocation, core completes pause and resumes for queued work. Reconnection
+alone must not release work during preservation. Cancellation is reported as a rejected
+pause, not a successful save.

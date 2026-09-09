@@ -2441,9 +2441,6 @@ export interface NormalizedPluginMachineProvider {
   environmentRow:
     | import("../machine-provider.js").PluginMachineProviderEnvironmentRow
     | null;
-  experimental_idleSuspendMs: NonNullable<
-    PluginMachineProviderDeclaration["experimental_idleSuspendMs"]
-  > | null;
   experimental_details: NonNullable<
     PluginMachineProviderDeclaration["experimental_details"]
   > | null;
@@ -2539,22 +2536,15 @@ export function validatePluginMachineProviderDeclaration(
           })
           .strict()
           .parse(declaration.environmentRow);
-  for (const key of [
-    "experimental_idleSuspendMs",
-    "experimental_details",
-  ] as const) {
-    if (
-      declaration[key] !== undefined &&
-      typeof declaration[key] !== "function"
-    )
-      throw new Error(
-        `machine provider "${id}" declares ${key} that is not a function`,
-      );
-  }
-  if (!hasSuspend && declaration.experimental_idleSuspendMs !== undefined)
+  if (
+    declaration.experimental_details !== undefined &&
+    typeof declaration.experimental_details !== "function"
+  ) {
     throw new Error(
-      `machine provider "${id}" must declare suspend and resume with experimental_idleSuspendMs`,
+      `machine provider "${id}" declares experimental_details that is not a function`,
     );
+  }
+
   return {
     id,
     displayName,
@@ -2564,7 +2554,6 @@ export function validatePluginMachineProviderDeclaration(
     availability: declaration.availability ?? null,
     validate: declaration.validate ?? null,
     environmentRow,
-    experimental_idleSuspendMs: declaration.experimental_idleSuspendMs ?? null,
     experimental_details: declaration.experimental_details ?? null,
     reconcileCleanup: declaration.reconcileCleanup,
     create: declaration.create,

@@ -106,6 +106,61 @@ export function createModalSandboxPlugin(
       debug,
     );
 
+    const idleKey = (hostId: string) => `idle/${hostId}`;
+    async function bumpIdle(hostId: string): Promise<void> {
+      await bb.storage.kv.set(idleKey(hostId), deps.now());
+    }
+    async function bumpOwnedMachine(hostId: string): Promise<void> {
+      const hosts = await bb.sdk.hosts.list();
+      if (
+        hosts.some(
+          (host) =>
+            host.id === hostId &&
+            host.machineProviderId === PROVIDER_ID &&
+            host.lifecycle.phase === "active",
+        )
+      ) {
+        await bumpIdle(hostId);
+      }
+    }
+    bb.events.on("experimental_thread.events", async ({ thread }) => {
+      if (thread.status !== "active" || thread.environmentId === null) return;
+      const environment = await bb.sdk.environments.get({
+        environmentId: thread.environmentId,
+      });
+      await bumpOwnedMachine(environment.hostId);
+    });
+    bb.events.on("experimental_terminal.input", async ({ terminal }) => {
+      await bumpOwnedMachine(terminal.hostId);
+    });
+    bb.background.schedule("pause-idle-machines", "* * * * *", async () => {
+      const resolved = await currentSettings();
+      if (!resolved.ok || resolved.settings.idleMs === null) return;
+      const hosts = await bb.sdk.hosts.list();
+      for (const host of hosts) {
+        if (
+          host.machineProviderId !== PROVIDER_ID ||
+          host.lifecycle.phase !== "active"
+        )
+          continue;
+        const stored = await bb.storage.kv.get<unknown>(idleKey(host.id));
+        const lastActivity =
+          stored === undefined ? null : z.number().finite().parse(stored);
+        if (lastActivity === null) {
+          await bumpIdle(host.id);
+          continue;
+        }
+        if (deps.now() < lastActivity + resolved.settings.idleMs) continue;
+        try {
+          await bb.sdk.hosts.suspend({ hostId: host.id });
+        } catch (error) {
+          bb.log.warn(
+            `Idle pause failed for ${host.id}: ${errorMessage(error)}`,
+          );
+        }
+      }
+    });
+
     async function waitForHostDisconnection(
       hostId: string,
       signal: AbortSignal,
@@ -223,6 +278,7 @@ export function createModalSandboxPlugin(
           signal: context.signal,
         });
         context.signal.throwIfAborted();
+        await bumpIdle(hostId);
         return { status: "created", hostId, resource: allocation };
       } catch (error) {
         context.signal.throwIfAborted();
@@ -372,11 +428,6 @@ export function createModalSandboxPlugin(
           },
         };
       },
-      async experimental_idleSuspendMs() {
-        const resolved = await currentSettings();
-        if (!resolved.ok) throw new Error(resolved.message);
-        return resolved.settings.idleMs;
-      },
       async suspend(context) {
         const resource = readModalMachineResource(context.resource);
         const resolved = await currentSettings();
@@ -510,6 +561,7 @@ export function createModalSandboxPlugin(
             "Modal bootstrap returned a different machine identity.",
           );
         }
+        await bumpIdle(hostId);
         return {
           resource: { ...resource, sandboxId: sandbox.sandboxId },
         };
