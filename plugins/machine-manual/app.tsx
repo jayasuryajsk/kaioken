@@ -103,6 +103,5 @@ export default definePluginApp((app) => {
   app.slots.experimental_machineSetup({
     machineProviderId: "manual",
     component: ManualMachineSetup,
-    progress: ManualEnrollmentCommand,
   });
 });

@@ -820,9 +820,6 @@ export function collectPluginAppRegistrations(
         collected.machineSetup.push({
           machineProviderId,
           component: requireComponent(kind, registration.component),
-          ...(registration.progress === undefined
-            ? {}
-            : { progress: requireComponent(kind, registration.progress) }),
         });
       },
       experimental_machineProviderInputs(registration) {

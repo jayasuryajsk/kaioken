@@ -836,7 +836,6 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "PluginMachineValidateDecision",
           "ExperimentalMachineSetupRegistration",
           "ExperimentalMachineSetupProps",
-          "ExperimentalMachineProgressProps",
           "PluginMachineProviderInputsRegistration",
           "PluginMachineProviderInputsProps",
           "PluginMachineProviderInputsChange",

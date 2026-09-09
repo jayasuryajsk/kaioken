@@ -1,7 +1,6 @@
 import { MachineAccessControls } from "@/components/settings/MachineAccessSettings";
 import { useSystemConfig } from "@/hooks/queries/system-queries";
 import { isLocalOnlyUrl } from "@/lib/loopback-hostname";
-import { MachineSetupProgress } from "./MachineSetupProgress";
 import {
   useEffect,
   useRef,
@@ -482,14 +481,6 @@ export function ProviderMachineSetup({
           {progress}
         </p>
       )}
-      {launchId && selectedMachineProvider && (
-        <MachineSetupProgress
-          id={launchId}
-          scope="launch"
-          providerId={selectedMachineProvider.id}
-        />
-      )}
-
       {createMachine.isPending && launchId ? (
         <DialogFooter>
           <Button

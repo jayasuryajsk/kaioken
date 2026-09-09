@@ -151,10 +151,9 @@ here. Use shared components and typography; keep vendor logic in the backend.
 ## Machine setup
 
 Register `app.slots.experimental_machineSetup({ machineProviderId,
-component, progress })` to own a standalone setup flow. Props are `client`
+component })` to own a standalone setup flow. Props are `client`
 and `onClose`. The client exposes the authenticated
-hosts SDK. Optional progress receives `client`, `id`, and `scope`
-(launch or thread), and returns null when no instructions apply. Match a provider
+hosts SDK. Match a provider
 owned by your plugin. Core blocks setup until machine access is ready, then shows a provider list or
 opens the only provider directly. Your component owns its setup, labels, retry,
 and local cancellation.

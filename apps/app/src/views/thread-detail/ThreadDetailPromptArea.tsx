@@ -1,5 +1,4 @@
 import { ThreadMachineStatus } from "@/components/promptbox/banner/ThreadMachineStatus";
-import { MachineSetupProgress } from "@/components/dialogs/MachineSetupProgress";
 import {
   useCallback,
   useEffect,
@@ -1727,11 +1726,6 @@ export function ThreadDetailPromptArea({
 
   return (
     <>
-      {(runtimeDisplayStatus === "provisioning" ||
-        runtimeDisplayStatus === "starting") &&
-      thread.archivedAt === null ? (
-        <MachineSetupProgress id={thread.id} scope="thread" />
-      ) : null}
       {sentMessageEditorPortal}
       {bottomContent}
     </>

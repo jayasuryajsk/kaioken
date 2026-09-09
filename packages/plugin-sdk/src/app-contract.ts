@@ -1488,18 +1488,10 @@ export interface ExperimentalMachineSetupProps {
   onClose(): void;
 }
 
-export interface ExperimentalMachineProgressProps {
-  client: { hosts: Pick<HostsArea, "experimental_enrollmentCommand"> };
-  id: string;
-  scope: "launch" | "thread";
-}
-
 /** Own the standalone setup flow for a machine provider, including its heading and actions. */
 export interface ExperimentalMachineSetupRegistration {
   machineProviderId: string;
   component: ComponentType<ExperimentalMachineSetupProps>;
-  /** Optional provider-owned instructions while a launch or thread provisions. */
-  progress?: ComponentType<ExperimentalMachineProgressProps>;
 }
 
 // ---------------------------------------------------------------------------
