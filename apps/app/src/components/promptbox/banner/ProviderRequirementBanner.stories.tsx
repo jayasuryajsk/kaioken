@@ -7,10 +7,7 @@ import {
   MACHINE_SERVER_ACCESS_TITLE,
   machineServerAccessBlockedReason,
 } from "@/components/machines/machine-server-access";
-import {
-  CONNECT_UNAVAILABLE,
-  CONNECT_UNPAIRED,
-} from "../../../../.ladle/machine-story-fixtures";
+import { CONNECT_UNPAIRED } from "../../../../.ladle/machine-story-fixtures";
 
 export default {
   title: "promptbox/banner/Provider Requirement",
@@ -75,27 +72,6 @@ export function Requirements() {
           <ProviderRequirementBanner
             title={MACHINE_SERVER_ACCESS_TITLE}
             description={machineServerAccessBlockedReason(CONNECT_UNPAIRED)}
-            action={
-              <Button
-                type="button"
-                size="sm"
-                className="h-8 shrink-0 px-3"
-                onClick={noop}
-              >
-                Set up machine access
-              </Button>
-            }
-          />
-        </ResponsiveStage>
-      </StoryRow>
-      <StoryRow
-        label="machine access is failing"
-        hint="access was set up and stopped working, so the method's own message replaces the instruction"
-      >
-        <ResponsiveStage>
-          <ProviderRequirementBanner
-            title={MACHINE_SERVER_ACCESS_TITLE}
-            description={machineServerAccessBlockedReason(CONNECT_UNAVAILABLE)}
             action={
               <Button
                 type="button"

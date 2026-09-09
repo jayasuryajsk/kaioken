@@ -21,17 +21,7 @@ export const MACHINE_SERVER_ACCESS_UNSET_REASON =
 export function machineServerAccessBlockedReason(
   access: ServerAccessStatus | undefined,
 ): string | null {
-  if (access === undefined || machineServerAccessReady(access)) return null;
-  const provider = access.providers.find(
-    (candidate) => candidate.id === access.defaultProviderId,
-  );
-  if (provider?.availability.status === "unavailable") {
-    return provider.availability.message;
-  }
-  if (provider?.availability.status === "available") {
-    return access.effectiveUrl === null
-      ? MACHINE_SERVER_ACCESS_UNSET_REASON
-      : `Machines cannot reach ${access.effectiveUrl}. Give them an address other than localhost.`;
-  }
-  return MACHINE_SERVER_ACCESS_UNSET_REASON;
+  return machineServerAccessReady(access)
+    ? null
+    : MACHINE_SERVER_ACCESS_UNSET_REASON;
 }

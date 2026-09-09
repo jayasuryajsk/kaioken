@@ -43,6 +43,7 @@ describe("machineServerAccessReady", () => {
 describe("machineServerAccessBlockedReason", () => {
   it.each([
     ["a method that was never set up", CONNECT_UNPAIRED],
+    ["a method that is refusing this bb", CONNECT_UNAVAILABLE],
     ["a direct method with no address", MANUAL_WITHOUT_URL],
     ["a method that is not installed", METHOD_NOT_INSTALLED],
   ] as const)("asks for configuration for %s", (_label, access) => {
@@ -51,24 +52,8 @@ describe("machineServerAccessBlockedReason", () => {
     );
   });
 
-  it("reports a configured method that is failing in its own words", () => {
-    expect(machineServerAccessBlockedReason(CONNECT_UNAVAILABLE)).toBe(
-      "The gate rejected this bb's credential (HTTP 401)",
-    );
-  });
-
-  it("names the unreachable address when one is saved", () => {
-    expect(
-      machineServerAccessBlockedReason({
-        ...MANUAL_WITH_URL,
-        effectiveUrl: "http://localhost:3000",
-      }),
-    ).toBe(
-      "Machines cannot reach http://localhost:3000. Give them an address other than localhost.",
-    );
-  });
-
   it("says nothing once access is ready", () => {
     expect(machineServerAccessBlockedReason(CONNECT_PAIRED)).toBeNull();
+    expect(machineServerAccessBlockedReason(MANUAL_WITH_URL)).toBeNull();
   });
 });
