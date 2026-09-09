@@ -15,6 +15,9 @@ export function machineServerAccessReady(
   return access.effectiveUrl !== null && !isLocalOnlyUrl(access.effectiveUrl);
 }
 
+export const MACHINE_SERVER_ACCESS_UNSET_REASON =
+  "Configure how machines should connect to this bb server.";
+
 export function machineServerAccessBlockedReason(
   access: ServerAccessStatus | undefined,
 ): string | null {
@@ -22,13 +25,13 @@ export function machineServerAccessBlockedReason(
   const provider = access.providers.find(
     (candidate) => candidate.id === access.defaultProviderId,
   );
-  if (provider === undefined) {
-    return "No machine access method is installed for the selected setting.";
-  }
-  if (provider.availability.status !== "available") {
+  if (provider?.availability.status === "unavailable") {
     return provider.availability.message;
   }
-  return access.effectiveUrl === null
-    ? "Set the address machines should use to reach this server."
-    : `Machines cannot reach ${access.effectiveUrl}. Use an address other than localhost.`;
+  if (provider?.availability.status === "available") {
+    return access.effectiveUrl === null
+      ? MACHINE_SERVER_ACCESS_UNSET_REASON
+      : `Machines cannot reach ${access.effectiveUrl}. Give them an address other than localhost.`;
+  }
+  return MACHINE_SERVER_ACCESS_UNSET_REASON;
 }

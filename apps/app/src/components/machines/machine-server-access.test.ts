@@ -41,15 +41,19 @@ describe("machineServerAccessReady", () => {
 });
 
 describe("machineServerAccessBlockedReason", () => {
-  it("passes the method's own message through", () => {
-    expect(machineServerAccessBlockedReason(CONNECT_UNPAIRED)).toBe(
-      "Pair this bb instance with bb connect",
+  it.each([
+    ["a method that was never set up", CONNECT_UNPAIRED],
+    ["a direct method with no address", MANUAL_WITHOUT_URL],
+    ["a method that is not installed", METHOD_NOT_INSTALLED],
+  ] as const)("asks for configuration for %s", (_label, access) => {
+    expect(machineServerAccessBlockedReason(access)).toBe(
+      "Configure how machines should connect to this bb server.",
     );
   });
 
-  it("asks for an address when the direct method has none", () => {
-    expect(machineServerAccessBlockedReason(MANUAL_WITHOUT_URL)).toBe(
-      "Set the address machines should use to reach this server.",
+  it("reports a configured method that is failing in its own words", () => {
+    expect(machineServerAccessBlockedReason(CONNECT_UNAVAILABLE)).toBe(
+      "The gate rejected this bb's credential (HTTP 401)",
     );
   });
 
@@ -60,7 +64,7 @@ describe("machineServerAccessBlockedReason", () => {
         effectiveUrl: "http://localhost:3000",
       }),
     ).toBe(
-      "Machines cannot reach http://localhost:3000. Use an address other than localhost.",
+      "Machines cannot reach http://localhost:3000. Give them an address other than localhost.",
     );
   });
 

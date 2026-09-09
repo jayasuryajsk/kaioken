@@ -19,7 +19,7 @@ export function Reasons() {
     <StoryCard labelWidth="230px" className="max-w-4xl">
       <StoryRow
         label="bb connect unpaired"
-        hint="the default method has not been set up, so a created sandbox would have nothing to dial home to"
+        hint="never set up: the notice asks for configuration rather than repeating the method's own jargon"
       >
         <MachineServerAccessNoticeContent
           reason={machineServerAccessBlockedReason(CONNECT_UNPAIRED)}
@@ -27,7 +27,7 @@ export function Reasons() {
       </StoryRow>
       <StoryRow
         label="bb connect refused"
-        hint="paired once, now rejected; the method reports why"
+        hint="set up but failing, so the method's own words explain what went wrong"
       >
         <MachineServerAccessNoticeContent
           reason={machineServerAccessBlockedReason(CONNECT_UNAVAILABLE)}
@@ -35,7 +35,7 @@ export function Reasons() {
       </StoryRow>
       <StoryRow
         label="manual, no address saved"
-        hint="the direct method needs an address machines can reach"
+        hint="the direct method is selected with no address saved"
       >
         <MachineServerAccessNoticeContent
           reason={machineServerAccessBlockedReason(MANUAL_WITHOUT_URL)}

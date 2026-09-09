@@ -3,6 +3,14 @@ import { Button } from "@bb/shared-ui/button";
 import { StoryCard, StoryRow } from "../../../../.ladle/story-card";
 import { ProviderCliVersionBanner } from "./ProviderCliVersionBanner";
 import { ProviderRequirementBanner } from "./ProviderRequirementBanner";
+import {
+  MACHINE_SERVER_ACCESS_TITLE,
+  machineServerAccessBlockedReason,
+} from "@/components/machines/machine-server-access";
+import {
+  CONNECT_UNAVAILABLE,
+  CONNECT_UNPAIRED,
+} from "../../../../.ladle/machine-story-fixtures";
 
 export default {
   title: "promptbox/banner/Provider Requirement",
@@ -56,6 +64,48 @@ export function Requirements() {
             title="Modal Sandbox needs configuration"
             description="Set tokenId and tokenSecret in the plugin's settings."
             action={configureAction("Modal Sandbox")}
+          />
+        </ResponsiveStage>
+      </StoryRow>
+      <StoryRow
+        label="machines cannot reach bb"
+        hint="the environment would create a machine, but nothing tells that machine how to reach this server"
+      >
+        <ResponsiveStage>
+          <ProviderRequirementBanner
+            title={MACHINE_SERVER_ACCESS_TITLE}
+            description={machineServerAccessBlockedReason(CONNECT_UNPAIRED)}
+            action={
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 shrink-0 px-3"
+                onClick={noop}
+              >
+                Set up machine access
+              </Button>
+            }
+          />
+        </ResponsiveStage>
+      </StoryRow>
+      <StoryRow
+        label="machine access is failing"
+        hint="access was set up and stopped working, so the method's own message replaces the instruction"
+      >
+        <ResponsiveStage>
+          <ProviderRequirementBanner
+            title={MACHINE_SERVER_ACCESS_TITLE}
+            description={machineServerAccessBlockedReason(CONNECT_UNAVAILABLE)}
+            action={
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 shrink-0 px-3"
+                onClick={noop}
+              >
+                Set up machine access
+              </Button>
+            }
           />
         </ResponsiveStage>
       </StoryRow>
