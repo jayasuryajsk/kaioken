@@ -2,7 +2,13 @@ import { MachineAccessControls } from "@/components/settings/MachineAccessSettin
 import { useSystemConfig } from "@/hooks/queries/system-queries";
 import { isLocalOnlyUrl } from "@/lib/loopback-hostname";
 import { MachineSetupProgress } from "./MachineSetupProgress";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react";
 import { Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import type { JsonValue } from "@bb/domain";
@@ -18,6 +24,7 @@ import {
   DialogTitle,
 } from "@bb/shared-ui/dialog";
 import { Icon } from "@bb/shared-ui/icon";
+import { MachineProviderIcon } from "@/components/plugin/MachineProviderIcon";
 import { PluginSlotMount } from "@/components/plugin/PluginSlotMount";
 import { machineProviderInputsControlRequired } from "@/components/pickers/machine-provider-inputs";
 import { OptionPicker } from "@/components/pickers/OptionPicker";
@@ -118,6 +125,23 @@ export function CreateMachineContent({
       setupIds={setups.map((slot) => slot.machineProviderId)}
     />
   );
+}
+
+const machineProviderIcons = new WeakMap<
+  SystemMachineProvider,
+  ComponentType<{ className?: string }>
+>();
+
+function machineProviderIconComponent(
+  provider: SystemMachineProvider,
+): ComponentType<{ className?: string }> {
+  const cached = machineProviderIcons.get(provider);
+  if (cached !== undefined) return cached;
+  function ProviderOptionIcon({ className }: { className?: string }) {
+    return <MachineProviderIcon provider={provider} className={className} />;
+  }
+  machineProviderIcons.set(provider, ProviderOptionIcon);
+  return ProviderOptionIcon;
 }
 
 export type MachineAccessGateState =
@@ -302,18 +326,11 @@ export function ProviderMachineSetup({
             options={providers.map((provider) => ({
               value: provider.id,
               label: provider.displayName,
+              icon: machineProviderIconComponent(provider),
               ...(provider.availability === null ||
               provider.availability.status === "available"
                 ? {}
-                : {
-                    description: provider.availability.message,
-                    ...(provider.availability.status === "unavailable"
-                      ? {
-                          disabled: true,
-                          disabledReason: provider.availability.message,
-                        }
-                      : {}),
-                  }),
+                : { description: provider.availability.message }),
             }))}
             onChange={(providerId) => {
               const provider = providers.find(
@@ -353,12 +370,27 @@ export function ProviderMachineSetup({
                 })}
               </p>
             ) : null}
-            {selectedMachineProvider.availability?.status === "unavailable" ? (
-              <p role="alert" className="text-xs text-destructive-text">
+            {selectedMachineProvider.availability === null ||
+            selectedMachineProvider.availability.status ===
+              "available" ? null : (
+              <p
+                role={
+                  selectedMachineProvider.availability.status === "unavailable"
+                    ? "alert"
+                    : "status"
+                }
+                className={
+                  selectedMachineProvider.availability.status === "unavailable"
+                    ? "text-xs text-destructive-text"
+                    : "text-xs text-subtle-foreground"
+                }
+              >
                 {selectedMachineProvider.availability.message}
               </p>
-            ) : selectedMachineProvider.availability?.status ===
-              "setup-required" ? (
+            )}
+            {selectedMachineProvider.availability?.status ===
+            "unavailable" ? null : selectedMachineProvider.availability
+                ?.status === "setup-required" ? (
               <Button
                 asChild
                 size="sm"

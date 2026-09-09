@@ -116,7 +116,7 @@ export function ProviderChoice() {
       </StoryRow>
       <StoryRow
         label="several providers"
-        hint="nothing is chosen yet — pick a provider to reveal its inputs; the unavailable one cannot be picked"
+        hint="nothing is chosen yet — every provider is pickable, and its own message appears once chosen"
       >
         <DialogStage>
           <ProviderMachineSetup
@@ -146,7 +146,7 @@ export function ProviderChoice() {
       </StoryRow>
       <StoryRow
         label="lone unavailable provider"
-        hint="auto-selected because it is the only one, but its own message replaces the create action"
+        hint="auto-selected because it is the only one — its message replaces the create action"
       >
         <DialogStage>
           <ProviderMachineSetup
