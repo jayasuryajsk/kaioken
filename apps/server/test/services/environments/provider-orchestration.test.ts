@@ -19,7 +19,6 @@ import {
   claimEnvironmentLaunchPath,
   createEnvironment,
   environments,
-  environmentSetupOutcomes,
   getEnvironment,
   getEnvironmentLaunch,
   getThread,
@@ -375,18 +374,6 @@ describe("core environment orchestration", () => {
         fixture.ask();
         await fixture.settled();
         expect(fixture.row().phase).toBe("ready");
-        const outcome = harness.db
-          .select()
-          .from(environmentSetupOutcomes)
-          .where(eq(environmentSetupOutcomes.hostId, fixture.host.id))
-          .get();
-        if (ownsPath)
-          expect(outcome).toMatchObject({
-            state: "passed",
-            path: "/tmp/hooks",
-            inputHash: expect.any(String),
-          });
-        else expect(outcome).toBeUndefined();
         const environmentId = fixture.attach();
         await sweepProviderEnvironment(harness.deps, environmentId);
         expect(getEnvironment(harness.db, environmentId)?.teardownStatus).toBe(

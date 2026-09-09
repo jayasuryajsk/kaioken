@@ -51,7 +51,7 @@ it.each(["cancel", "enroll"])(
       );
       const api = h.pluginService.getApi("machine-manual");
       if (!api) throw new Error("Missing plugin");
-      const enrollment = await api.experimental_machines.prepareEnrollment({
+      const enrollment = await api.experimental_machines.enrollments.prepare({
         key: thread.id,
       });
       if (enrollment.state !== "pending")
@@ -135,7 +135,7 @@ it("returns the current thread replacement command without reviving consumed lau
           "Run the enrollment command shown in the picker",
         ),
       );
-      const enrollment = await api.experimental_machines.prepareEnrollment({
+      const enrollment = await api.experimental_machines.enrollments.prepare({
         key,
       });
       if (enrollment.state !== "pending")

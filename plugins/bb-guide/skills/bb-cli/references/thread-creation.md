@@ -204,14 +204,10 @@ timeouts. Setup failure fails the launch with output in provisioning progress;
 teardown script failure is logged and removal continues. Attaching a user-maintained project checkout or personal workspace skips both
 hooks. A fresh core clone on a new machine is owned and runs the hooks. Providers do not run these
 core hooks themselves.
-Use `bb machine ready MACHINE --provider PROVIDER --project PROJECT_ID --json`
-to check CLI installation, credential-route reachability and checkout setup before
-a turn. A blocked result names cli/auth/workspace and the actionable failure.
-Provider-created machine turns run these checks automatically. A connected daemon
-alone does not establish agent readiness.
+Thread startup does not validate agent credentials, fingerprint the checkout, or install agent CLIs.
 
 `bb machine lifecycle MACHINE --json` shows core maintenance state and any suspension or resume error.
 Maintenance interrupts active turns and closes terminals before saving. Submit a
 new continuation turn after restore; interrupted turns are never reported successful.
 
-`bb machine lifecycle MACHINE --remove --yes --json` runs provider removal through the normal machine removal path. After filesystem restore, core reruns the owned checkout’s idempotent setup hook to restart services; hook failure blocks readiness.
+`bb machine lifecycle MACHINE --remove --yes --json` runs provider removal through the normal machine removal path. Resuming a machine restores its provider state without rerunning environment setup.

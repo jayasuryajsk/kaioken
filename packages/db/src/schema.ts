@@ -1207,29 +1207,10 @@ export const environmentHookOperations = sqliteTable(
   },
 );
 
-export const environmentSetupOutcomes = sqliteTable(
-  "environment_setup_outcomes",
-  {
-    hostId: text("host_id")
-      .notNull()
-      .references(() => hosts.id, { onDelete: "cascade" }),
-    path: text("path").notNull(),
-    operationId: text("operation_id").notNull(),
-    state: text("state", { enum: ["running", "passed", "failed"] }).notNull(),
-    inputHash: text("input_hash"),
-    updatedAt: integer("updated_at").notNull(),
-  },
-  (table) => [primaryKey({ columns: [table.hostId, table.path] })],
-);
-
 export const machineLifecycles = sqliteTable("machine_lifecycles", {
   hostId: text("host_id")
     .primaryKey()
     .references(() => hosts.id, { onDelete: "cascade" }),
-  restoreOperationId: text("restore_operation_id"),
-  restoreCheckouts: text("restore_checkouts", { mode: "json" }).$type<
-    Array<{ id: string; path: string }>
-  >(),
   recoveryState: text("recovery_state", {
     enum: ["healthy", "draining", "saving", "saved", "recoverable"],
   }).notNull(),

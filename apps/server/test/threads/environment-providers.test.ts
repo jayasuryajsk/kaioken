@@ -1,7 +1,6 @@
 import { createDeferredPromise } from "@bb/test-helpers";
 import { resolveGitCheckoutAvailability } from "../../src/services/environments/provider-availability.js";
 import * as gitCredentials from "../../src/services/machines/git-credentials.js";
-import { answerMachineReadiness } from "../helpers/machine-readiness.js";
 import { advanceThreadProvisioning } from "../../src/services/threads/thread-provisioning.js";
 import {
   providerOperations,
@@ -1954,7 +1953,6 @@ describe("machine and environment provider composition", () => {
             getThread(harness.db, checkoutThread.id)?.environmentId ?? "",
           )?.status,
         ).toBe("ready");
-        await answerMachineReadiness(harness);
         const start = await waitForQueuedCommand(
           harness,
           ({ command }) =>
@@ -1965,6 +1963,12 @@ describe("machine and environment provider composition", () => {
           providerThreadId: "provider-composition-thread",
         });
         expect(getThread(harness.db, checkoutThread.id)?.status).toBe("active");
+        expect(listQueuedCommands(harness, "provider.health")).toEqual([]);
+        expect(
+          listQueuedCommands(harness, "provider.installation.status"),
+        ).toEqual([]);
+        expect(listQueuedCommands(harness, "provider.installation.run")).toEqual([]);
+
         if (sourceState === "personal-workspace") {
           expect(checkoutContexts).toHaveLength(1);
           expect(checkoutContexts[0]?.projectCheckout).toBeNull();

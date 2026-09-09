@@ -583,15 +583,8 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Be invoked the same way by a person at a terminal and by an agent mid-task",
           "Receive the thread and project it was invoked from, when bb knows them",
           "Make the plugin usable from scripts and automations, not only from the UI",
-          "Stream bounded pages with experimental_continue; disconnecting a reader leaves durable jobs running",
-          "Reject stale RPC revisions with experimental_PluginRpcConflict and HTTP 409",
         ],
-        apiSymbols: [
-          "PluginCli",
-          "PluginCliResult",
-          "experimental_PluginCliContinuation",
-          "experimental_PluginRpcConflict",
-        ],
+        apiSymbols: ["PluginCli", "PluginCliResult"],
         firstParty: [
           "Automations",
           "Custom instructions",
@@ -804,7 +797,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Expose optional picker sugar that creates the machine and then asks one environment provider for the checkout; without environmentRow, thread --new-machine requires --environment-provider",
           "Create machines that belong to no project; projects reach a machine later through project sources",
           "Make create idempotent by its durable key so a restart after enrolment recovers the same machine",
-          "Prepare versioned single-use enrollment bundles with enrollments.prepare (also prepareEnrollment), waitForConnection and cancel; keys retain host identity across retries",
+          "Prepare versioned single-use enrollment bundles with enrollments.prepare, enrollments.waitForConnection and enrollments.cancel; keys retain host identity across retries",
           "Compose synchronous installerCommand argv plus private stdin, or bootstrap over a MachineExecutor; never put credentials in resource JSON or output",
           "Bootstrap preinstalled or installed daemons and restart an enrolled identity after snapshot restore",
           "Stream progress and honor abort signals for create, suspend, resume and remove",
@@ -817,7 +810,6 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Await resume.checkpoint(resource) before bootstrap; core fences provider ownership, phase and operation and recovers the same enrollment after restart",
           "Allocation checkpoints are recovery records, not filesystem saves; daemon-connected does not mean agent-ready",
           "Own idle timing in the plugin using thread-sequence and terminal-input events plus background schedules",
-          "Publish inventory and estimates through experimental_details; read them with bb.sdk.hosts.experimental_providerDetails, machine rows/details and bb machine show --json",
 
           "Request suspend/resume through the host SDK; core coordinates drain while plugins own idle policy",
           "Persist opaque resource state through suspend.checkpoint(resource) before termination; schedule vendor maintenance in the plugin using bb.background.schedule and bb.sdk.hosts.suspend",
@@ -825,7 +817,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Choose last-thread plus grace retirement with environment-removal cascade, or never retirement with explicit user removal",
           "Return an opaque private JSON resource that core persists and passes back to lifecycle operations",
           "Own standalone setup and provisioning instructions with app.slots.experimental_machineSetup; core provides the shared dialog and authenticated client, while the plugin owns access guidance, enrollment, countdown and regeneration",
-          "Render inputs in both the picker sugar row and Add machine with app.slots.experimental_machineProviderInputs; PluginMachineProviderInputsProps.experimental_agentProviderId identifies the selected composer agent",
+          "Render inputs in both the picker sugar row and Add machine with app.slots.experimental_machineProviderInputs",
         ],
         apiSymbols: [
           "PluginMachines",

@@ -34,7 +34,6 @@ export interface MachineExecutor {
   exec(
     request: MachineExecutorRequest,
   ): Promise<{ exitCode: number; stdout: string; stderr: string }>;
-  writeFile?(path: string, contents: string, mode?: number): Promise<void>;
 }
 
 export interface MachineEnrollmentRequest {
@@ -70,12 +69,6 @@ export interface MachineInstallerCommand {
 
 export interface MachineBootstrapApi {
   enrollments: MachineEnrollments;
-  prepareEnrollment(
-    request: MachineEnrollmentRequest,
-  ): Promise<MachineEnrollment>;
-  waitForConnection(
-    request: MachineConnectionRequest,
-  ): Promise<{ hostId: string }>;
   installerCommand(bootstrap: EnrollmentBootstrap): MachineInstallerCommand;
   bootstrap(request: MachineBootstrapRequest): Promise<{ hostId: string }>;
 }

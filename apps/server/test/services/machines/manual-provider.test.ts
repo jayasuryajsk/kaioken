@@ -53,7 +53,7 @@ it("creates, cancels, and removes manual machines through the production lifecyc
             "Run the enrollment command shown in the picker",
           ),
         );
-        const enrollment = await api.experimental_machines.prepareEnrollment({
+        const enrollment = await api.experimental_machines.enrollments.prepare({
           key,
         });
         if (enrollment.state !== "pending")

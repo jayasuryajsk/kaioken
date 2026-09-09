@@ -17,7 +17,6 @@ import {
 } from "../../../src/services/machines/lifecycle.js";
 import { createBbSdk } from "@bb/sdk/core";
 import { createHttpTransport } from "@bb/sdk";
-import { answerMachineReadiness } from "../../helpers/machine-readiness.js";
 import { archiveThreadAndHiddenSourceForks } from "../../../src/services/threads/thread-archive.js";
 import { cancelAbandonedProviderLaunches } from "../../../src/services/threads/thread-environment-providers.js";
 import { serverAccess } from "../../../src/services/machines/server-access.js";
@@ -25,6 +24,8 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import {
   createProjectSource,
+  environments,
+  environmentHookOperations,
   machineEnrollments,
   createEnvironment,
   getDefaultProjectSource,
@@ -1510,7 +1511,7 @@ describe("core machine provider orchestration", () => {
       });
     }));
 
-  it("resumes a suspended provider machine when a message is sent", async () =>
+  it("resumes an owned workspace without rerunning setup or preflight when a message is sent", async () =>
     withTestHarness(async (harness) => {
       const { host, session } = seedHostSession(harness.deps, {
         id: "host_resume",
@@ -1524,6 +1525,11 @@ describe("core machine provider orchestration", () => {
         host.id,
         "/tmp/resume",
       );
+      harness.db
+        .update(environments)
+        .set({ providerOwnsPath: true })
+        .where(eq(environments.id, environment.id))
+        .run();
       const thread = seedThread(harness.deps, {
         projectId: project.id,
         environmentId: environment.id,
@@ -1554,13 +1560,16 @@ describe("core machine provider orchestration", () => {
         }),
       );
       adoptMachine(harness, host.id, { snapshot: "snap-1" });
+      harness.db
+        .insert(machineLifecycles)
+        .values({ hostId: host.id, recoveryState: "saved" })
+        .run();
       updateHost(harness.db, harness.hub, host.id, {
         phase: "suspended",
         suspendedAt: Date.now(),
       });
       harness.hub.unregisterDaemon(session.id);
 
-      const readiness = answerMachineReadiness(harness);
       await expect(
         sendThreadMessage(harness.deps, {
           environment,
@@ -1576,7 +1585,9 @@ describe("core machine provider orchestration", () => {
           trigger: "user",
         }),
       ).resolves.toBeUndefined();
-      await readiness;
+      expect(
+        harness.db.select().from(environmentHookOperations).all(),
+      ).toEqual([]);
       expect(resumes).toBe(1);
       expect(observedProgress).toBe("Restoring the test machine…");
       expect(getHost(harness.db, host.id)).toMatchObject({

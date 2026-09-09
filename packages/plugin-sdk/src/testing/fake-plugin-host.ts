@@ -2176,8 +2176,6 @@ function createFakePluginHostInternal(
         waitForConnection: unavailableMachineBootstrap,
         cancel: unavailableMachineBootstrap,
       },
-      prepareEnrollment: unavailableMachineBootstrap,
-      waitForConnection: unavailableMachineBootstrap,
       installerCommand: unavailableMachineBootstrap,
       bootstrap: unavailableMachineBootstrap,
     }),
@@ -2463,20 +2461,6 @@ function createFakePluginHostInternal(
       try {
         result = await record.handler(validatedInput as never);
       } catch (error) {
-        if (
-          error instanceof Error &&
-          error.name === "experimental_PluginRpcConflict" &&
-          "latestRevision" in error &&
-          (error.latestRevision === null ||
-            (typeof error.latestRevision === "number" &&
-              Number.isSafeInteger(error.latestRevision) &&
-              error.latestRevision >= 0))
-        )
-          return throwRpcError({
-            code: "conflict",
-            message: error.message,
-            latestRevision: error.latestRevision,
-          });
         return throwRpcError({
           code: "handler_error",
           message: errorMessage(error),
@@ -2505,9 +2489,6 @@ function createFakePluginHostInternal(
         return enforcePluginCliOutputLimit(
           {
             exitCode: result.exitCode,
-            ...(result.experimental_continue
-              ? { experimental_continue: result.experimental_continue }
-              : {}),
             stdout: typeof result.stdout === "string" ? result.stdout : "",
             stderr: typeof result.stderr === "string" ? result.stderr : "",
           },

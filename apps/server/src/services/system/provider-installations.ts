@@ -9,8 +9,6 @@ import { COMMAND_TIMEOUT_MS } from "../../constants.js";
 import { ApiError } from "../../errors.js";
 import {
   callHostRetryableOnlineRpcWithoutAdmission,
-  callHostRetryableOnlineRpc,
-  callHostOnlineRpc,
   isHostUnavailableApiError,
 } from "../hosts/online-rpc.js";
 import { listSystemProviderInfos } from "./execution-options.js";
@@ -159,65 +157,4 @@ export async function serializeProviderInstallation<T>(
     release();
     if (hosts.get(hostId) === tail) hosts.delete(hostId);
   }
-}
-
-export async function ensureProviderInstallation(
-  deps: WorkSessionDeps,
-  args: { hostId: string; providerId: string },
-): Promise<{ ready: boolean; message: string }> {
-  return serializeProviderInstallation(deps, args.hostId, async () => {
-    await deps.providerRegistry.whenProviderRegistered(args.providerId);
-    const registration = deps.providerRegistry.get(args.providerId);
-    const bridgeLaunch = resolveBridgeLaunchForProviderId(
-      deps,
-      args.providerId,
-    );
-    if (!registration?.info.maintenance.installation || !bridgeLaunch)
-      return {
-        ready: false,
-        message: "This provider has no registered CLI installer",
-      };
-    const status = () =>
-      callHostRetryableOnlineRpc(deps, {
-        hostId: args.hostId,
-        timeoutMs: COMMAND_TIMEOUT_MS,
-        command: {
-          type: "provider.installation.status",
-          providerId: args.providerId,
-          bridgeLaunch,
-        },
-      });
-    let installed = await status();
-    if (installed.installed && !installed.versionUnsupported)
-      return {
-        ready: true,
-        message: "Compatible provider CLI already installed",
-      };
-    if (!installed.installAction)
-      return {
-        ready: false,
-        message: "The provider cannot install a compatible CLI on this host",
-      };
-    const result = await callHostOnlineRpc(deps, {
-      hostId: args.hostId,
-      timeoutMs: 10 * 60 * 1000,
-      command: {
-        type: "provider.installation.run",
-        providerId: args.providerId,
-        action: installed.installAction.kind,
-        bridgeLaunch,
-      },
-    });
-    deps.providerRegistry.forgetInstalledKey(args);
-    installed = await status();
-    return {
-      ready:
-        result.events.some(
-          (event) => event.type === "completed" && event.success,
-        ) &&
-        installed.installed &&
-        !installed.versionUnsupported,
-      message: "Provider CLI installation completed",
-    };
-  });
 }

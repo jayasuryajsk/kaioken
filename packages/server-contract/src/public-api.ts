@@ -1,4 +1,3 @@
-import type { JsonValue } from "@bb/domain";
 import {
   machineEnvironmentSetSchema,
   type MachineEnvironmentSet,
@@ -8,9 +7,6 @@ import {
   experimental_hostLifecycleRequestSchema,
   type experimental_HostLifecycleRequest,
   type experimental_HostLifecycleResponse,
-  experimental_hostReadinessRequestSchema,
-  type experimental_HostReadinessRequest,
-  type experimental_HostReadinessResponse,
 } from "./api/hosts.js";
 import {
   desktopBrowserHostRequestSchema,
@@ -830,12 +826,6 @@ export const publicApiRoutes = {
       request: noRequest<PathId>(),
       response: jsonResponse<HostRetryUpdateResponse>(),
     }),
-    experimental_providerDetails: defineRoute({
-      path: "/hosts/:id/provider-details",
-      method: "get",
-      request: noRequest<PathId>(),
-      response: jsonResponse<{ summary: string; values: JsonValue } | null>(),
-    }),
     suspend: defineRoute({
       path: "/hosts/:id/suspend",
       method: "post",
@@ -899,14 +889,6 @@ export const publicApiRoutes = {
         experimental_hostLifecycleRequestSchema,
       ),
       response: jsonResponse<experimental_HostLifecycleResponse>(),
-    }),
-    experimental_ensureReady: defineRoute({
-      path: "/hosts/:id/ready",
-      method: "post",
-      request: jsonRequest<PathId, experimental_HostReadinessRequest>(
-        experimental_hostReadinessRequestSchema,
-      ),
-      response: jsonResponse<experimental_HostReadinessResponse>(),
     }),
     providerCliStatus: defineRoute({
       path: "/hosts/:id/provider-clis/status",

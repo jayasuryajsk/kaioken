@@ -18,32 +18,23 @@ export const SETTING_DESCRIPTORS = {
     description: "The Modal app the sandboxes are created in.",
     default: "bb-sandboxes",
   },
-  timeoutMinutes: {
-    type: "string",
-    label: "Sandbox lifetime (minutes)",
-    description:
-      "Modal terminates the sandbox after this long. Between 1 and 1440.",
-    default: "1440",
-  },
   idleMinutes: {
-    type: "string",
+    type: "number",
     label: "Hibernate after idle (minutes)",
     description:
-      "Snapshot and stop an idle sandbox after this long. Use 0 to keep it running until Modal's lifetime limit.",
-    default: "15",
+      "Snapshot and stop an idle sandbox after this long. Use 0 to keep it running until Modal's 24-hour sandbox limit.",
+    default: 15,
   },
   cpu: {
-    type: "string",
+    type: "number",
     label: "CPU cores",
     description:
-      "Reserved physical cores, fractional allowed. Blank for Modal's default.",
-    default: "",
+      "Physical cores reserved, fractional allowed. Blank uses Modal's default of 0.125.",
   },
   memoryMiB: {
-    type: "string",
+    type: "number",
     label: "Memory (MiB)",
-    description: "Reserved memory in MiB. Blank for Modal's default.",
-    default: "",
+    description: "Memory reserved in MiB. Blank uses Modal's default of 128.",
   },
 } as const;
 
@@ -52,7 +43,6 @@ export interface ResolvedSettings {
   tokenSecret: string;
   appName: string;
   environmentVariables: Readonly<Record<string, string>>;
-  timeoutMs: number;
   idleMs: number | null;
   cpu: number | null;
   memoryMiB: number | null;
@@ -66,20 +56,13 @@ export interface RawSettings {
   tokenId: string | undefined;
   tokenSecret: string | undefined;
   appName: string;
-  timeoutMinutes: string;
-  idleMinutes: string;
-  cpu: string;
-  memoryMiB: string;
+  idleMinutes: number;
+  cpu: number | undefined;
+  memoryMiB: number | undefined;
 }
 
-const MAX_TIMEOUT_MINUTES = 24 * 60;
+export const SANDBOX_LIFETIME_MS = 24 * 60 * 60_000;
 const MAX_IDLE_MINUTES = 24 * 60;
-function parseNumber(raw: string): number | null {
-  const trimmed = raw.trim();
-  if (trimmed.length === 0) return null;
-  const value = Number(trimmed);
-  return Number.isFinite(value) && value > 0 ? value : Number.NaN;
-}
 
 export function resolveSettings(raw: RawSettings): SettingsResolution {
   const tokenId = (raw.tokenId ?? "").trim();
@@ -97,36 +80,25 @@ export function resolveSettings(raw: RawSettings): SettingsResolution {
   if (appName.length === 0) {
     return { ok: false, message: "Modal sandbox appName must not be blank." };
   }
-  const timeoutMinutes = Number(raw.timeoutMinutes.trim());
-  if (
-    !Number.isInteger(timeoutMinutes) ||
-    timeoutMinutes < 1 ||
-    timeoutMinutes > MAX_TIMEOUT_MINUTES
-  ) {
-    return {
-      ok: false,
-      message: `Modal sandbox timeoutMinutes must be a whole number between 1 and ${MAX_TIMEOUT_MINUTES}, not ${raw.timeoutMinutes}.`,
-    };
-  }
-  const cpu = parseNumber(raw.cpu);
-  if (cpu !== null && Number.isNaN(cpu)) {
+  if (raw.cpu !== undefined && !(Number.isFinite(raw.cpu) && raw.cpu > 0)) {
     return {
       ok: false,
       message: `Modal sandbox cpu must be a positive number or blank, not ${raw.cpu}.`,
     };
   }
-  const memoryMiB = parseNumber(raw.memoryMiB);
-  if (memoryMiB !== null && Number.isNaN(memoryMiB)) {
+  if (
+    raw.memoryMiB !== undefined &&
+    !(Number.isFinite(raw.memoryMiB) && raw.memoryMiB > 0)
+  ) {
     return {
       ok: false,
       message: `Modal sandbox memoryMiB must be a positive number or blank, not ${raw.memoryMiB}.`,
     };
   }
-  const idleMinutes = Number(raw.idleMinutes.trim());
   if (
-    !Number.isInteger(idleMinutes) ||
-    idleMinutes < 0 ||
-    idleMinutes > MAX_IDLE_MINUTES
+    !Number.isInteger(raw.idleMinutes) ||
+    raw.idleMinutes < 0 ||
+    raw.idleMinutes > MAX_IDLE_MINUTES
   ) {
     return {
       ok: false,
@@ -140,10 +112,9 @@ export function resolveSettings(raw: RawSettings): SettingsResolution {
       tokenSecret,
       appName,
       environmentVariables: {},
-      timeoutMs: timeoutMinutes * 60_000,
-      idleMs: idleMinutes === 0 ? null : idleMinutes * 60_000,
-      cpu,
-      memoryMiB,
+      idleMs: raw.idleMinutes === 0 ? null : raw.idleMinutes * 60_000,
+      cpu: raw.cpu ?? null,
+      memoryMiB: raw.memoryMiB ?? null,
     },
   };
 }

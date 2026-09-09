@@ -398,7 +398,6 @@ const FRONTEND_SLOT_PROP_FIELDS = {
     "projectId",
     "value",
     "onChange",
-    "experimental_agentProviderId",
   ],
 } as const satisfies {
   [S in keyof SlotPropsByName]: readonly (keyof SlotPropsByName[S])[];
@@ -527,7 +526,7 @@ describe("bb-plugin-authoring skill", () => {
   it("documents machine creation checkpoints and private bootstrap delivery", () => {
     expect(skillEntry).toContain("machine providers");
     const backend = readReference("backend-machines.md");
-    const enrollment = /prepareEnrollment\(\{\s*key,?\s*\}\)/;
+    const enrollment = /enrollments\.prepare\(\{\s*key,?\s*\}\)/;
     expect(backend).toMatch(enrollment);
     expect(backend).toContain("await checkpoint(resource)");
     expect(backend).toContain("bb.experimental_machines.bootstrap({");

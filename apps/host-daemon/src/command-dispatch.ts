@@ -1,19 +1,11 @@
-import { jsonValueSchema } from "@bb/domain";
-import { providerHealthResultSchema } from "@bb/provider-bridge-protocol";
 import {
   operationEnvironment,
-  operationSecrets,
-  redactOperationContent,
   daemonPrivateEnvironmentValues,
 } from "./operation-environment.js";
 import {
   runEnvironmentHook,
   cancelEnvironmentHook,
 } from "./command-handlers/environment-hook.js";
-import {
-  inspectReadiness,
-  probeReadiness,
-} from "./command-handlers/readiness.js";
 import {
   providerCliInstallEventSchema,
   type HostDaemonCommand,
@@ -671,20 +663,11 @@ const onlineRpcHandlers: OnlineRpcHandlerMap = {
       command.bridgeLaunch,
       options,
     );
-    const result = await options.providerHealth({
+    return options.providerHealth({
       providerId: command.providerId,
-      ...(command.contributedEnv !== undefined
-        ? { contributedEnv: command.contributedEnv }
-        : {}),
       ...(command.cwd !== undefined ? { cwd: command.cwd } : {}),
       bridgeLaunch,
     });
-    return providerHealthResultSchema.parse(
-      redactOperationContent(
-        jsonValueSchema.parse(result),
-        operationSecrets(command.contributedEnv ?? []),
-      ),
-    );
   },
   "provider.usage": async (command, options) => {
     const bridgeLaunch = await resolveRuntimeBridgeLaunch(
@@ -697,9 +680,6 @@ const onlineRpcHandlers: OnlineRpcHandlerMap = {
       bridgeLaunch,
     });
   },
-  "workspace.readiness.inspect": (command) => inspectReadiness(command.path),
-  "host.readiness.probe": (command, options) =>
-    probeReadiness(command, options.runtimeManager.getShellEnv().BB_SERVER_URL),
   "provider.installation.status": async (command, options) => {
     const bridgeLaunch = await resolveRuntimeBridgeLaunch(
       command.bridgeLaunch,

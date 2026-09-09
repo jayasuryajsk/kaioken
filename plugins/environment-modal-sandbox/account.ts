@@ -15,11 +15,22 @@ import path from "node:path";
 import { z } from "zod";
 import { dockerfileSchema, imageDefinition } from "./image-definition.js";
 
+const machineInput = z.object({ hostId: z.string().min(1) }).strict();
+const machineOutput = z.object({
+  summary: z.string(),
+  values: z.object({
+    state: z.enum(["running", "suspended", "missing"]),
+    expiresAt: z.number().nullable(),
+    snapshotImageId: z.string().nullable(),
+  }),
+});
+
 const definitionSchema = z.object({
   dockerfile: z.string(),
   customized: z.boolean(),
 });
 export const modalRpcContract = defineRpcContract({
+  "machine.inspect": { input: machineInput, output: machineOutput },
   "image.build": { input: z.object({}).strict(), output: buildOutput },
   "sandbox.run": { input: z.object({}).strict(), output: runOutput },
   "sandbox.exec": { input: execInput, output: execOutput },
@@ -43,9 +54,13 @@ export function registerAccount(
   bb: BbPluginApi,
   inspect: () => Promise<{ available: boolean; message: string }>,
   debug: DebugSandbox,
+  inspectMachine: (
+    input: z.infer<typeof machineInput>,
+  ) => Promise<z.infer<typeof machineOutput>>,
 ) {
   const image = imageDefinition(bb);
   bb.rpc.register(modalRpcContract, {
+    "machine.inspect": inspectMachine,
     "image.build": () => debug.build(),
     "sandbox.run": () => debug.run(),
     "sandbox.exec": (input) => debug.exec(input),
@@ -80,11 +95,16 @@ export function registerAccount(
     return dockerfileSchema.parse(result.content);
   }
   const usage =
-    "Usage: bb modal account inspect [--json] | bb modal image show [--json] | bb modal image set --file PATH [--json] | bb modal image reset [--json] | bb modal image build [--json] | bb modal sandbox run [--json] | bb modal sandbox exec ID [--json] -- COMMAND... | bb modal sandbox stop ID [--json]";
+    "Usage: bb modal machine inspect HOST_ID [--json] | bb modal account inspect [--json] | bb modal image show [--json] | bb modal image set --file PATH [--json] | bb modal image reset [--json] | bb modal image build [--json] | bb modal sandbox run [--json] | bb modal sandbox exec ID [--json] -- COMMAND... | bb modal sandbox stop ID [--json]";
   bb.cli.register({
     name: "modal",
     summary: "Configure, build and debug Modal images",
     commands: [
+      {
+        name: "machine-inspect",
+        summary: "Inspect Modal compute and the last saved snapshot",
+        usage: "bb modal machine inspect HOST_ID [--json]",
+      },
       {
         name: "image-build",
         summary: "Build or reuse the saved image",
@@ -185,6 +205,19 @@ export function registerAccount(
           return {
             exitCode: result.available ? 0 : 1,
             stdout: json ? JSON.stringify(result) : result.message,
+          };
+        }
+        if (
+          args.length === 3 &&
+          args[0] === "machine" &&
+          args[1] === "inspect"
+        ) {
+          const result = await inspectMachine(
+            machineInput.parse({ hostId: args[2] }),
+          );
+          return {
+            exitCode: 0,
+            stdout: json ? JSON.stringify(result) : result.summary,
           };
         }
         if (args[0] !== "image") throw new Error(usage);

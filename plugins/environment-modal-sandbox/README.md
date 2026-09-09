@@ -67,9 +67,8 @@ environment settings.
 | ------------------------ | --------------------------------------------------------- |
 | `tokenId`, `tokenSecret` | Required Modal token, entered in secret settings.         |
 | `appName`                | Modal app, default `bb-sandboxes`.                        |
-| `timeoutMinutes`         | Compute lifetime, 1–1440 minutes; default 1440.           |
 | `idleMinutes`            | Pause after idle, default 15; 0 disables idle suspension. |
-| `cpu`, `memoryMiB`       | Resource reservations; blank uses Modal defaults.         |
+| `cpu`, `memoryMiB`       | Reservations; blank uses Modal's 0.125 cores and 128 MiB. |
 
 Use `bb modal account inspect --json` to validate credentials
 without allocating resources. Create with
@@ -81,26 +80,24 @@ See the [command reference](skills/modal-sandboxes/SKILL.md).
 
 ## Lifecycle
 
-Defaults are a 15-minute idle pause and 24-hour compute lifetime. Open terminals
-prevent idle pause. The current idle setting applies to existing machines; new
-compute uses the current lifetime. There is no automatic retention removal.
+The idle pause defaults to 15 minutes and applies to existing machines without a
+reload. Compute lifetime is fixed at Modal's 24-hour sandbox maximum. Open
+terminals prevent idle pause. There is no automatic retention removal.
 
 Manual and idle pauses snapshot the filesystem before terminating compute. Core
 blocks new work, interrupts turns and closes terminals; the plugin stops the
 daemon, saves the filesystem and durably records the snapshot before termination.
-Resume preserves host identity and reruns setup. Interrupted turns are not replayed.
+Resume preserves host identity without rerunning setup. Interrupted turns are not replayed.
 
-There is no pre-expiry scheduler. A sandbox that stays active until its configured
-timeout (24 hours by default) stops without a guaranteed final snapshot. Changes
+There is no pre-expiry scheduler. A sandbox that stays active for its full
+24-hour lifetime stops without a guaranteed final snapshot. Changes
 since the last successful pause may be lost. Pause before the timeout to save work.
 Failed saves retain compute while it still exists.
-Machine provider details expose vendor state, expiry and the saved image. Missing
+`bb modal machine inspect HOST_ID --json` exposes vendor state, expiry and the saved image. Missing
 compute never silently becomes an empty checkout or an older snapshot. A checkpoint
 from an interrupted planned suspension remains recoverable.
 
-Use `bb machine lifecycle MACHINE --json` for core state and `bb machine show
-MACHINE --json` for machine details. `sdk.hosts.experimental_providerDetails`
-returns Modal status. Remove explicitly with `bb machine remove MACHINE --yes`.
+Use `bb machine lifecycle MACHINE --json` for core state and `bb modal machine inspect HOST_ID --json` for Modal diagnostics. The plugin RPC `machine.inspect` returns the same result. Remove explicitly with `bb machine remove MACHINE --yes`.
 Account identity remains pinned; restore the original account before lifecycle
 operations. Removal deletes private snapshots and compute, retaining the shared
 standard image. Removing lost compute can remain blocked on core checkout cleanup.

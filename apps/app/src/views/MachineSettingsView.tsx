@@ -1,5 +1,4 @@
 import { MachineLifecycleNotice } from "@/components/machines/MachineLifecycleNotice";
-import { MachineProviderDetails } from "@/components/machines/MachineProviderDetails";
 import { useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { Host, PermissionMode } from "@bb/domain";
@@ -475,7 +474,6 @@ export function MachineSettingsView() {
 
         {host.machineProviderId ? (
           <>
-            <MachineProviderDetails hostId={host.id} expanded />
             <MachineLifecycleNotice
               hostId={host.id}
               onRemove={() => setRemoveOpen(true)}

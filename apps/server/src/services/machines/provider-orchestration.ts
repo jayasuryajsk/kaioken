@@ -2,10 +2,6 @@ import { requestQueuedMachineReadiness } from "../threads/queued-message-dispatc
 import { and, eq } from "drizzle-orm";
 import { hostDaemonSessions } from "@bb/db";
 import { handleHostRemoved } from "../../internal/session-owner-side-effects.js";
-import {
-  beginMachineRestoreSetup,
-  runMachineRestoreSetup,
-} from "./restore-setup.js";
 import type { WorkSessionDeps } from "../../types.js";
 import { machineLifecycles } from "@bb/db";
 import {
@@ -1213,7 +1209,6 @@ async function resumeMachineWithIntent(
       }
       const keepRetiring =
         current.phase === "retiring" && !machineHasLiveThreads(deps.db, hostId);
-      beginMachineRestoreSetup(deps, hostId, operationId);
       updateHost(deps.db, deps.hub, hostId, {
         phase: keepRetiring ? "retiring" : "active",
         resource: result.resource,
@@ -1237,7 +1232,6 @@ async function resumeMachineWithIntent(
         })
         .where(eq(machineLifecycles.hostId, hostId))
         .run();
-      await runMachineRestoreSetup(deps, hostId);
     }
   } catch (error) {
     deps.db
@@ -1640,29 +1634,4 @@ export async function sweepMachineLifecycles(
     }
   }
   await Promise.all(pending);
-}
-
-export async function getMachineProviderDetails(
-  deps: Deps,
-  hostId: string,
-  signal: AbortSignal,
-) {
-  const row = getHost(deps.db, hostId);
-  if (row === null || row.destroyedAt !== null)
-    throw new ApiError(404, "host_not_found", "Host not found");
-  const provider =
-    row.machineProviderId === null
-      ? null
-      : getMachineProvider(row.machineProviderId)?.provider;
-  if (!provider?.experimental_details || row.resource === null) return null;
-  return z
-    .object({ summary: z.string().max(2000), values: jsonValueSchema })
-    .strict()
-    .parse(
-      await provider.experimental_details({
-        hostId,
-        resource: row.resource,
-        signal,
-      }),
-    );
 }

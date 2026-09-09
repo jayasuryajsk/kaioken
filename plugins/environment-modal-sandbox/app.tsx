@@ -50,8 +50,17 @@ function StandardImage() {
   return (
     <div className="min-w-0 space-y-3">
       <p className="text-sm text-muted-foreground">
-        Used for new Modal machines across projects. Supports one FROM followed
-        by RUN, ENV, WORKDIR, and USER. BB installs its daemon during bootstrap.
+        The image every new Modal machine starts from. Only FROM, RUN, ENV,
+        WORKDIR, and USER are{" "}
+        <a
+          href="https://modal.com/docs/reference/modal.Image#dockerfile_commands"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2 hover:text-foreground"
+        >
+          supported
+        </a>
+        . BB installs its daemon at bootstrap.
       </p>
       {error && (
         <p className="text-sm text-destructive" role="alert">
@@ -71,7 +80,7 @@ function StandardImage() {
             disabled={saving}
             spellCheck={false}
             rows={24}
-            className="w-full resize-y rounded-md border bg-muted p-4 font-mono text-xs"
+            className="w-full resize-y rounded-md border p-4 font-mono text-xs"
           />
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -87,9 +96,11 @@ function StandardImage() {
             >
               Reset to default
             </Button>
-            <span className="text-sm text-muted-foreground">
-              {saved.customized ? "Custom Dockerfile" : "Bundled default"}
-            </span>
+            {saved.customized && (
+              <span className="text-sm text-muted-foreground">
+                Custom Dockerfile
+              </span>
+            )}
           </div>
         </>
       )}

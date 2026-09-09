@@ -9,7 +9,6 @@ Read the installed declarations for exact current signatures.
 - `PLUGIN_CLI_OUTPUT_MAX_BYTES`
 - `defineRpcContract`
 - `experimental_defineHostEntry`
-- `experimental_PluginRpcConflict`
 - `BbContext`
 - `BbNavigate`
 - `BbPluginApi`
@@ -82,13 +81,13 @@ Read the installed declarations for exact current signatures.
 - `EnrollmentBootstrap` — private versioned enrollment bundle
 - `MachineEnrollment` — pending bundle or enrolled host identity
 - `MachineExecutorRequest` — argv, timeout, signal, optional private stdin
-- `MachineExecutor` — transport exec and optional writeFile
+- `MachineExecutor` — transport exec
 - `MachineEnrollmentRequest` — durable key and optional access selection
 - `MachineConnectionRequest` — enrollmentId, timeoutMs, signal
 - `MachineEnrollments` — prepare, waitForConnection, cancel
 - `MachineBootstrapRequest` — enrollment request, executor, daemon mode, report, signal
 - `MachineInstallerCommand` — command argv and private stdin
-- `MachineBootstrapApi` — enrollments, prepareEnrollment, waitForConnection, installerCommand, bootstrap
+- `MachineBootstrapApi` — enrollments, installerCommand, bootstrap
 - `PluginMachineProviderDeclaration`
 - `PluginMachineValidateDecision`
 - `PluginEnvironmentProviderDeclaration`
@@ -131,7 +130,6 @@ Read the installed declarations for exact current signatures.
 - `PluginCliOutputLimitError`
 - `PluginCliRegistration`
 - `PluginCliResult`
-- `experimental_PluginCliContinuation`
 - `PluginCodeThemeData`
 - `PluginCodeThemeState`
 - `PluginCodeThemeTokenRule`
@@ -335,7 +333,6 @@ Read the installed declarations for exact current signatures.
 ## `@get-bb/plugin-sdk/host`
 
 - `experimental_defineHostEntry`
-- `experimental_PluginRpcConflict`
 - `experimental_filterResolvedNativeRoots`
 - `experimental_killProcessesWithCwdUnder` — reap processes whose cwd is under a
   workspace a provider is tearing down, before removing the directory

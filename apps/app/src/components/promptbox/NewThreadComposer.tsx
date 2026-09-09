@@ -1044,7 +1044,6 @@ export function NewThreadComposer({
         slotId={machineProviderInputsRegistration.machineProviderId}
       >
         <MachineProviderInputsComponent
-          experimental_agentProviderId={selectedProviderId}
           projectId={isProjectless ? null : projectId}
           value={submissionMachineInputs}
           onChange={handleMachineProviderInputsChange}
@@ -1056,7 +1055,6 @@ export function NewThreadComposer({
     isProjectless,
     machineProviderInputsRegistration,
     projectId,
-    selectedProviderId,
     submissionMachineInputs,
   ]);
   const submissionProviderMachine = useMemo(

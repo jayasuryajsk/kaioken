@@ -88,6 +88,48 @@ export function createModalSandboxPlugin(
       };
     });
 
+    async function rememberMachine(
+      hostId: string,
+      resource: ModalMachineResource,
+    ) {
+      await bb.storage.kv.set(`machine/${hostId}`, resource);
+      return resource;
+    }
+    async function inspectMachine({ hostId }: { hostId: string }) {
+      const stored = await bb.storage.kv.get<unknown>(`machine/${hostId}`);
+      if (stored === undefined)
+        throw new Error("No Modal diagnostic record for this machine.");
+      const resource = readModalMachineResource(stored);
+      const resolved = await currentSettings();
+      if (!resolved.ok) throw new Error(resolved.message);
+      const sandbox = await findSandbox(resource, resolved.settings);
+      const observation =
+        sandbox === null
+          ? null
+          : await backendFor(resolved.settings).observe({
+              sandboxId: sandbox.sandboxId,
+              appName: resource.appName ?? resolved.settings.appName,
+              key: resource.key,
+            });
+      const state: "running" | "suspended" | "missing" = observation?.running
+        ? "running"
+        : resource.sandboxId === null && resource.snapshotImageId !== null
+          ? "suspended"
+          : "missing";
+      const expiresAt = observation?.expiresAt ?? null;
+      return {
+        summary:
+          state === "missing"
+            ? "Modal compute is missing. Changes since the last saved image may be lost; automatic recovery is refused."
+            : `Modal machine is ${state}.`,
+        values: {
+          state,
+          expiresAt,
+          snapshotImageId: resource.snapshotImageId,
+        },
+      };
+    }
+
     registerAccount(
       bb,
       async () => {
@@ -105,6 +147,7 @@ export function createModalSandboxPlugin(
         }
       },
       debug,
+      inspectMachine,
     );
 
     const idleKey = (hostId: string) => `idle/${hostId}`;
@@ -197,7 +240,9 @@ export function createModalSandboxPlugin(
           throw new Error("Select a project before creating a Modal machine");
         machineInputsSchema.parse(context.inputs ?? {});
         context.signal.throwIfAborted();
-        await bb.experimental_machines.prepareEnrollment({ key: context.key });
+        await bb.experimental_machines.enrollments.prepare({
+          key: context.key,
+        });
         const accountIdentity = await backend.accountIdentity();
         context.signal.throwIfAborted();
         const appName = resolved.settings.appName;
@@ -280,7 +325,11 @@ export function createModalSandboxPlugin(
         });
         context.signal.throwIfAborted();
         await bumpIdle(hostId);
-        return { status: "created", hostId, resource: allocation };
+        return {
+          status: "created",
+          hostId,
+          resource: await rememberMachine(hostId, allocation),
+        };
       } catch (error) {
         context.signal.throwIfAborted();
         return {
@@ -399,38 +448,6 @@ export function createModalSandboxPlugin(
         }
         return { status: "removed" };
       },
-      async experimental_details(context) {
-        const resource = readModalMachineResource(context.resource);
-        const resolved = await currentSettings();
-        if (!resolved.ok) throw new Error(resolved.message);
-        context.signal.throwIfAborted();
-        const sandbox = await findSandbox(resource, resolved.settings);
-        const observation =
-          sandbox === null
-            ? null
-            : await backendFor(resolved.settings).observe({
-                sandboxId: sandbox.sandboxId,
-                appName: resource.appName ?? resolved.settings.appName,
-                key: resource.key,
-              });
-        const state = observation?.running
-          ? "running"
-          : resource.sandboxId === null && resource.snapshotImageId !== null
-            ? "suspended"
-            : "missing";
-        const expiresAt = observation?.expiresAt ?? null;
-        return {
-          summary:
-            state === "missing"
-              ? "Modal compute is missing. Changes since the last saved image may be lost; automatic recovery is refused."
-              : `Modal machine is ${state}.`,
-          values: {
-            state,
-            expiresAt,
-            snapshotImageId: resource.snapshotImageId,
-          },
-        };
-      },
       async suspend(context) {
         const resource = readModalMachineResource(context.resource);
         const resolved = await currentSettings();
@@ -448,10 +465,13 @@ export function createModalSandboxPlugin(
             throw new Error("The Modal sandbox has no restorable snapshot.");
           }
           return {
-            resource: await deletePendingSnapshots(
-              resource,
-              resolved.settings,
-              context.checkpoint,
+            resource: await rememberMachine(
+              context.hostId,
+              await deletePendingSnapshots(
+                resource,
+                resolved.settings,
+                context.checkpoint,
+              ),
             ),
           };
         }
@@ -509,10 +529,13 @@ export function createModalSandboxPlugin(
         const suspended = { ...checkpoint, sandboxId: null };
         context.checkpoint(suspended);
         return {
-          resource: await deletePendingSnapshots(
-            suspended,
-            resolved.settings,
-            context.checkpoint,
+          resource: await rememberMachine(
+            context.hostId,
+            await deletePendingSnapshots(
+              suspended,
+              resolved.settings,
+              context.checkpoint,
+            ),
           ),
         };
       },
@@ -566,7 +589,10 @@ export function createModalSandboxPlugin(
         }
         await bumpIdle(hostId);
         return {
-          resource: { ...resource, sandboxId: sandbox.sandboxId },
+          resource: await rememberMachine(hostId, {
+            ...resource,
+            sandboxId: sandbox.sandboxId,
+          }),
         };
       },
       async remove(context) {

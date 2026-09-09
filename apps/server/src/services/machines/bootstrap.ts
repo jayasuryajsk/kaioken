@@ -48,8 +48,6 @@ export function createMachineBootstrapApi(
 ): MachineBootstrapApi {
   return {
     enrollments,
-    prepareEnrollment: enrollments.prepare,
-    waitForConnection: enrollments.waitForConnection,
     installerCommand,
     async bootstrap(request) {
       request.signal.throwIfAborted();

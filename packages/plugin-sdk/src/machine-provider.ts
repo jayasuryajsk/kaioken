@@ -97,13 +97,6 @@ export interface PluginMachineProviderDefinition<
     context: PluginMachineProviderValidateContext<S>,
   ): PluginMachineValidateDecision | Promise<PluginMachineValidateDecision>;
   environmentRow?: PluginMachineProviderEnvironmentRow;
-  /** Return provider-owned inventory and estimated costs for machine details. */
-  experimental_details?(context: {
-    hostId: string;
-    resource: JsonValue;
-    signal: AbortSignal;
-  }): Promise<{ summary: string; values: JsonValue }>;
-
   create(
     context: PluginMachineProviderCreateContext<S>,
   ): Promise<PluginMachineProviderCreateResult>;

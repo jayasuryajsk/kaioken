@@ -6,10 +6,9 @@ function settings(overrides: Partial<RawSettings> = {}): RawSettings {
     tokenId: "token-id",
     tokenSecret: "token-secret",
     appName: "bb-sandboxes",
-    timeoutMinutes: "60",
-    idleMinutes: "15",
-    cpu: "",
-    memoryMiB: "",
+    idleMinutes: 15,
+    cpu: undefined,
+    memoryMiB: undefined,
     ...overrides,
   };
 }
@@ -20,14 +19,14 @@ describe("idle hibernation", () => {
       ok: true,
       settings: { idleMs: 15 * 60_000 },
     });
-    expect(resolveSettings(settings({ idleMinutes: "0" }))).toMatchObject({
+    expect(resolveSettings(settings({ idleMinutes: 0 }))).toMatchObject({
       ok: true,
       settings: { idleMs: null },
     });
   });
 
   it("rejects a delay outside the supported range", () => {
-    expect(resolveSettings(settings({ idleMinutes: "1.5" }))).toEqual({
+    expect(resolveSettings(settings({ idleMinutes: 1.5 }))).toEqual({
       ok: false,
       message:
         "Modal sandbox idleMinutes must be a whole number between 0 and 1440, not 1.5.",

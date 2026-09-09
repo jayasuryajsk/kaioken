@@ -1,5 +1,4 @@
 import { MachineLifecycleNotice } from "@/components/machines/MachineLifecycleNotice";
-import { MachineProviderDetails } from "@/components/machines/MachineProviderDetails";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { Host, PermissionMode } from "@bb/domain";
@@ -223,9 +222,6 @@ function MachineRow({
                   </span>
                 )}
               </div>
-              {host.machineProviderId ? (
-                <MachineProviderDetails hostId={host.id} />
-              ) : null}
             </div>
           </Link>
           <div className="flex shrink-0 items-center gap-1">

@@ -37,8 +37,6 @@ unless you pass `--auto-update` explicitly.
   bb machine list                         List machines with ID, connection
                                           status, and relative last-seen time
     --json                                Print the raw host list
-  bb machine ready <machine> --provider <id> --project <id> --json
-                                         Check CLI, auth and checkout readiness
   bb machine providers [--project <id>]   List installed machine providers
     --json                                Include inputs schemas and policy
   bb machine create --provider <id>       Create a standalone machine
@@ -262,19 +260,13 @@ not logged in, or overridden. No credentials are installed in images or global
 Git config. SDK: system.machineEnvironment(), system.setMachineEnvironment({
 name, value, note }), and system.unsetMachineEnvironment(name).
 
-Provider-managed machine turns check readiness before dispatch. `bb machine ready`
-checks the same CLI installation, credential routing reachability, and project
-workspace setup. It returns ready checks or a blocked stage/code/message.
-Compatible CLIs are reused. Core owns repository setup and teardown for
-environments whose provider returns ownsPath: true. Readiness checks the recorded
-setup outcome against the checkout inputs; it never runs a separate recipe script.
-The repo hook owns dependency caching and its unchanged-input no-op path.
+Thread startup does not install or update agent CLIs, probe authentication, or validate workspace fingerprints. Core runs repository setup when creating an owned environment and teardown before removing it. Resume does not rerun setup.
 
 `bb machine lifecycle MACHINE --json` shows core maintenance state and any suspension or resume error.
 Maintenance interrupts active turns and closes terminals before saving. Submit a
 new continuation turn after restore; interrupted turns are never reported successful.
 
-`bb machine lifecycle MACHINE --remove --yes --json` runs provider removal through the normal machine removal path. After filesystem restore, core reruns the owned checkout’s idempotent setup hook to restart services; hook failure blocks readiness.
+`bb machine lifecycle MACHINE --remove --yes --json` runs provider removal through the normal machine removal path. Resuming a machine restores its provider state without rerunning environment setup.
 
 Automatic machine GitHub credentials are enabled by default. Use
 `bb settings general machineGitCredentialsEnabled false` to stop forwarding the

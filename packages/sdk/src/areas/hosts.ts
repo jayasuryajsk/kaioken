@@ -1,10 +1,8 @@
 import type {
   experimental_HostLifecycleResponse,
-  experimental_HostReadinessRequest,
-  experimental_HostReadinessResponse,
 } from "@bb/server-contract";
 import { hostProviderCliInstallEventSchema } from "@bb/server-contract";
-import type { Host, JsonValue } from "@bb/domain";
+import type { Host } from "@bb/domain";
 import type {
   CreateHostJoinCodeResponse,
   CreateMachineRequest,
@@ -101,15 +99,9 @@ export type HostUpdateResult = Host;
 export type MachineProviderListResult = SystemMachineProvider[];
 
 export interface HostsArea {
-  experimental_providerDetails(
-    args: HostGetArgs,
-  ): Promise<{ summary: string; values: JsonValue } | null>;
   experimental_lifecycle(args: {
     hostId: string;
   }): Promise<experimental_HostLifecycleResponse>;
-  experimental_ensureReady(
-    args: experimental_HostReadinessRequest & { hostId: string },
-  ): Promise<experimental_HostReadinessResponse>;
   create(args: MachineCreateArgs): Promise<Host>;
   submit(args: MachineCreateArgs): Promise<MachineLaunchStatus>;
   launch(args: {
@@ -154,27 +146,11 @@ export interface HostsArea {
 export function createHostsArea(args: CreateSdkAreaArgs): HostsArea {
   const { transport } = args;
   return {
-    async experimental_providerDetails(input) {
-      return transport.readJson(
-        transport.api.v1.hosts[":id"]["provider-details"].$get(
-          { param: { id: input.hostId } },
-          ...signalRequestArgs(input.signal),
-        ),
-      );
-    },
     async experimental_lifecycle(input) {
       return transport.readJson(
         transport.api.v1.hosts[":id"].lifecycle.$post({
           param: { id: input.hostId },
           json: {},
-        }),
-      );
-    },
-    async experimental_ensureReady(input) {
-      return transport.readJson(
-        transport.api.v1.hosts[":id"].ready.$post({
-          param: { id: input.hostId },
-          json: { providerId: input.providerId, projectId: input.projectId },
         }),
       );
     },

@@ -1,8 +1,6 @@
 import { getMachineEnrollmentService } from "../services/machines/machine-services.js";
 import { manualEnrollmentCommand } from "../services/machines/manual-enrollment-command.js";
 import { machineLifecycleStatus } from "../services/machines/lifecycle.js";
-import { ensureHostReady } from "../services/machines/readiness.js";
-import { ensureProjectSourceOnHost } from "../services/projects/project-source-setup.js";
 import { serverAccess } from "../services/machines/server-access.js";
 import { getNonDestroyedHost, updateHost } from "@bb/db";
 import {
@@ -45,7 +43,6 @@ import {
   resolveThreadMachineLaunchKey,
   machineLaunchStatus,
   cancelMachineLaunch,
-  getMachineProviderDetails,
   requestMachineResume,
   requestMachineRemoval,
   requestMachineSuspension,
@@ -232,15 +229,6 @@ export function registerHostRoutes(
     return context.json({ ok: true as const });
   });
 
-  get(routes.experimental_providerDetails, async (context) => {
-    return context.json(
-      await getMachineProviderDetails(
-        deps,
-        context.req.param("id"),
-        context.req.raw.signal,
-      ),
-    );
-  });
 
   post(routes.suspend, async (context) => {
     assertHostManagementAllowed(context);
@@ -370,37 +358,6 @@ export function registerHostRoutes(
     const hostId = context.req.param("id");
     assertUsableHostId(deps, { hostId });
     return context.json(machineLifecycleStatus(deps, hostId));
-  });
-
-  post(routes.experimental_ensureReady, async (context, payload) => {
-    const hostId = context.req.param("id");
-    assertUsableHostId(deps, { hostId });
-    const project = requirePublicStandardProject(deps.db, payload.projectId);
-    try {
-      const source = await ensureProjectSourceOnHost(deps, {
-        projectId: project.id,
-        projectName: project.name,
-        hostId,
-        remoteUrl: project.gitRemoteUrl,
-      });
-      return context.json(
-        await ensureHostReady(deps, {
-          ...payload,
-          hostId,
-          threadId: null,
-          path: source.path,
-        }),
-      );
-    } catch {
-      return context.json({
-        status: "blocked" as const,
-        code: "checkout_failed",
-        stage: "workspace" as const,
-        message:
-          "Project checkout could not be prepared; check repository access",
-        retryable: true,
-      });
-    }
   });
 
   get(routes.providerCliStatus, async (context) => {

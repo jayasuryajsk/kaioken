@@ -2043,14 +2043,6 @@ export function enforcePluginCliOutputLimit(
   result: Omit<PluginCliExecutionResult, "error">,
   jsonOutput: boolean,
 ): PluginCliExecutionResult {
-  if (result.experimental_continue !== undefined) {
-    z.object({
-      argv: z.array(z.string().max(262144)).max(100),
-      delayMs: z.number().int().min(0).max(60000),
-    })
-      .strict()
-      .parse(result.experimental_continue);
-  }
   const stdoutBytes = Buffer.byteLength(result.stdout, "utf8");
   const stderrBytes = Buffer.byteLength(result.stderr, "utf8");
   const totalBytes = stdoutBytes + stderrBytes;
@@ -2444,9 +2436,6 @@ export interface NormalizedPluginMachineProvider {
   environmentRow:
     | import("../machine-provider.js").PluginMachineProviderEnvironmentRow
     | null;
-  experimental_details: NonNullable<
-    PluginMachineProviderDeclaration["experimental_details"]
-  > | null;
   reconcileCleanup: PluginMachineProviderDeclaration["reconcileCleanup"];
   create: PluginMachineProviderDeclaration["create"];
   suspend: NonNullable<PluginMachineProviderDeclaration["suspend"]> | null;
@@ -2548,14 +2537,6 @@ export function validatePluginMachineProviderDeclaration(
           })
           .strict()
           .parse(declaration.environmentRow);
-  if (
-    declaration.experimental_details !== undefined &&
-    typeof declaration.experimental_details !== "function"
-  ) {
-    throw new Error(
-      `machine provider "${id}" declares experimental_details that is not a function`,
-    );
-  }
 
   return {
     id,
@@ -2567,7 +2548,6 @@ export function validatePluginMachineProviderDeclaration(
     availability: declaration.availability ?? null,
     validate: declaration.validate ?? null,
     environmentRow,
-    experimental_details: declaration.experimental_details ?? null,
     reconcileCleanup: declaration.reconcileCleanup,
     create: declaration.create,
     suspend: declaration.suspend ?? null,

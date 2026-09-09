@@ -654,7 +654,7 @@ Supporting app exports are `PluginMachineProviderInputsRegistration`,
 
 **What it does.** Registers the app control for one machine provider's inputs
 with `{ machineProviderId, component }`. The component receives
-`{ projectId, value, onChange, experimental_agentProviderId? }` and reports ready JSON or a blocked reason. The experimental agent field is the selected composer provider, null outside the composer, and may be omitted by older hosts. Image controls must validate verification for this selected agent before reporting ready. Stabilization requires coverage of provider changes and project switches without stale launch inputs.
+`{ projectId, value, onChange }` and reports ready JSON or a blocked reason. Stabilization requires coverage of provider changes and project switches without stale launch inputs.
 It is used by the picker sugar row and Add machine flow. The resulting value is
 persisted and readable by every plugin, so it must contain no secrets;
 credentials belong in plugin settings and the value should carry only
@@ -2720,7 +2720,7 @@ prove reachability from a remote machine.
 
 ## Machine enrollment and bootstrap
 
-`bb.experimental_machines.enrollments` exposes `prepare`, `waitForConnection`, and `cancel`; `prepareEnrollment` and `waitForConnection` also compose with `installerCommand` and `bootstrap`. Enrollment keys are scoped to the calling plugin and permanently retain their host identity. Pending credentials are single-use, short-lived, and encrypted at rest with a private server key; preparation after expiry reissues them, while an unexpired bundle survives a server restart. Bootstrap v2 replaces `client` with optional `headers`. Pending encrypted v1 bundles are upgraded on preparation by reacquiring access, retaining the host and unspent enrollment credential, then persisting v2. A successful exchange is recovered as `enrolled` after a server crash. Cancelling an enrolled identity preserves its durable credentials and runtime access.
+`bb.experimental_machines.enrollments` exposes `prepare`, `waitForConnection`, and `cancel`; these compose with `installerCommand` and `bootstrap`. Enrollment keys are scoped to the calling plugin and permanently retain their host identity. Pending credentials are single-use, short-lived, and encrypted at rest with a private server key; preparation after expiry reissues them, while an unexpired bundle survives a server restart. Bootstrap v2 replaces `client` with optional `headers`. Pending encrypted v1 bundles are upgraded on preparation by reacquiring access, retaining the host and unspent enrollment credential, then persisting v2. A successful exchange is recovered as `enrolled` after a server crash. Cancelling an enrolled identity preserves its durable credentials and runtime access.
 
 `MachineExecutor` carries argv, stdin, a timeout, and an abort signal. `installerCommand` returns argv plus private stdin; callers must transport stdin without logging or persisting it in machine resources. `bootstrap` ignores remote output and reports fixed progress messages. It starts enrolled machines again so snapshot restores can reuse their identity. Preinstalled mode requires a compatible `bb` and `bb-app`; install mode requires Node, npm, and curl and installs no OS packages.
 
@@ -2731,8 +2731,7 @@ The bootstrap surface's supporting exports are `EnrollmentBootstrap`,
 `MachineEnrollmentRequest`, `MachineConnectionRequest`, `MachineEnrollments`,
 `MachineBootstrapRequest`, `MachineInstallerCommand`, and `MachineBootstrapApi`.
 They belong to experimental `PluginMachines`; their unprefixed names do not
-indicate stabilization. `installerCommand` is synchronous. Executor `writeFile`
-is optional; bootstrap uses `exec`. Create must prepare enrollment, persist an
+indicate stabilization. `installerCommand` is synchronous. Bootstrap uses executor `exec`. Create must prepare enrollment, persist an
 allocated resource with `await checkpoint(resource)`, then bootstrap with the
 same key. Never checkpoint a bootstrap bundle. Stabilization must verify cleanup
 of checkpointed allocation before successful enrollment, including safe no-op
@@ -2777,16 +2776,6 @@ retrying at the core retry interval indefinitely. An explicit cancel retries cle
 after automatic retries are exhausted. Stabilization requires distinguishing
 definitive vendor rejection from transport timeouts and ambiguous submissions.
 
-## Machine dev-box policy and inventory
-
-`PluginMachineProviderDefinition.experimental_details({hostId, resource, signal})`
-returns `{summary, values}` inventory for machine rows/details and
-`bb.sdk.hosts.experimental_providerDetails({hostId, signal})`. The server parses
-JSON at the provider boundary; the callback must honor cancellation and avoid
-secrets. `bb machine show --json` includes `providerDetails`. Stabilize after
-reviewing cost freshness, unavailable providers and bounded output on large
-accounts. No daemon wire fields change.
-
 ## Transient manual enrollment command
 
 `@bb/sdk` exposes `hosts.experimental_enrollmentCommand({ id, scope?, signal? })`, backed
@@ -2807,19 +2796,6 @@ launch. With `scope: "thread"`, `id` identifies a thread and the server resolves
 its current launch through the machine replacement history on every request.
 Consumed original launches remain unavailable through launch scope. The thread
 picker uses thread scope; machine creation and CLI follow use launch scope.
-
-## `PluginCliResult.experimental_continue`, `PluginCliExecutionResult.experimental_continue`, `experimental_PluginCliContinuation`, and `experimental_PluginRpcConflict`
-
-`experimental_continue: {argv, delayMs}` asks the invoking CLI to print the
-current bounded response and request the next page, waiting at most 60 seconds.
-Interrupting the client stops reading without cancelling a durable job.
-`experimental_PluginRpcConflict(message, latestRevision)` returns a typed
-`conflict` error and HTTP 409; `latestRevision` is null for a key conflict.
-
-Before stabilization, verify interruption and reconnect behavior across remote
-CLIs, validate continuation bounds at both boundaries, and confirm revision and
-idempotency conflicts need the same error shape. These surfaces do not add
-server/daemon wire fields.
 
 ## Project checkout ownership
 

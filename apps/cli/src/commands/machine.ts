@@ -326,37 +326,6 @@ export function registerMachineCommands(
     );
 
   machine
-    .command("ready <machine>")
-    .description("Check CLI, authentication and project workspace readiness")
-    .requiredOption("--provider <id>", "Agent provider")
-    .requiredOption("--project <id>", "Project ID")
-    .option("--json", "Print machine-readable JSON output")
-    .action(
-      action(
-        async (
-          target: string,
-          opts: { provider: string; project: string; json?: boolean },
-        ) => {
-          const sdk = createCliBbSdk(getUrl());
-          const hostId = resolveMachineId(await sdk.hosts.list(), target);
-          const result = await sdk.hosts.experimental_ensureReady({
-            hostId,
-            projectId: opts.project,
-            providerId: opts.provider,
-          });
-          if (!outputJson(opts, result))
-            console.log(
-              result.status === "ready"
-                ? "Machine is ready"
-                : `${result.stage}: ${result.message}`,
-            );
-          if (result.status === "blocked")
-            throw new CliExitError("Machine readiness is blocked", 1);
-        },
-      ),
-    );
-
-  machine
     .command("providers")
     .description("List installed machine providers")
     .option("--project <id>", "Resolve the environment row for a project")
@@ -406,12 +375,7 @@ export function registerMachineCommands(
       action(async (target: string, opts: MachineListCommandOptions) => {
         const sdk = createCliBbSdk(getUrl());
         const hostId = resolveMachineId(await sdk.hosts.list(), target);
-        const host = {
-          ...(await sdk.hosts.get({ hostId })),
-          providerDetails: await sdk.hosts.experimental_providerDetails({
-            hostId,
-          }),
-        };
+        const host = await sdk.hosts.get({ hostId });
         if (outputJson(opts, host)) return;
         console.log(JSON.stringify(host, null, 2));
       }),

@@ -28,7 +28,7 @@ bb.experimental_machines.register({
   icon: "Server",
   inputs: z.object({ target: z.string() }),
   async create({ inputs, key, checkpoint, report, signal }) {
-    const enrollment = await bb.experimental_machines.prepareEnrollment({
+    const enrollment = await bb.experimental_machines.enrollments.prepare({
       key,
     });
     const target = await allocateTarget({ target: inputs.target, key, signal });
@@ -137,11 +137,10 @@ prove reachability from a sandbox.
 
 `bb.experimental_machines` implements `MachineBootstrapApi` alongside register:
 
-- `enrollments.prepare({ key, access? })` and `prepareEnrollment` return a
+- `enrollments.prepare({ key, access? })` returns a
   `MachineEnrollment`: pending with a private `EnrollmentBootstrap` and expiry,
   or enrolled with the stable hostId. Keys are scoped to the calling plugin.
-- `enrollments.waitForConnection({ enrollmentId, timeoutMs, signal })` and
-  `waitForConnection` return `{ hostId }` after the daemon connects.
+- `enrollments.waitForConnection({ enrollmentId, timeoutMs, signal })` returns `{ hostId }` after the daemon connects.
 - `enrollments.cancel({ enrollmentId })` cancels pending enrollment and releases
   its access; an already-enrolled identity retains its credentials and access.
   This does not replace provider cleanup of an allocated resource.
@@ -157,8 +156,7 @@ prove reachability from a sandbox.
 
 A `MachineExecutor` implements `exec({ command, timeoutMs, signal, stdin? })`
 returning `{ exitCode, stdout, stderr }`. Execute argv through the provider's
-transport, honor timeout and cancellation, and keep stdin private. Optional
-`writeFile(path, contents, mode?)` is available to callers; bootstrap uses exec.
+transport, honor timeout and cancellation, and keep stdin private.
 The helper suppresses remote output and reports fixed progress messages. It
 restarts enrolled identities, including a restored preinstalled snapshot.
 Create's awaited checkpoint precedes bootstrap; suspend's synchronous checkpoint
@@ -174,14 +172,14 @@ Call `bb.sdk.hosts.suspend({hostId})` for coordinated suspension. Core accepts f
 and drains active turns, setup hooks and terminals with a five-minute bound before
 calling your suspend callback. Persist opaque state with `checkpoint(resource)` before
 terminating compute. Core serializes resource transitions and restores the same host
-identity, then runs checkout setup/readiness.
+identity without rerunning checkout setup.
 
 Your plugin owns vendor observations, expiry scheduling, snapshot identifiers,
 cleanup and explicit recovery from loss. Use `bb.background.schedule` plus startup
 reconciliation; allow the full core drain bound, snapshot time and scheduler jitter.
 Refuse unsafe recovery or preservation after a missed deadline. A dispatch hook can
 help communicate status but is bypassable and does not protect terminal/file RPCs.
-Use provider details to show snapshots and loss information.
+Expose vendor-specific snapshots and loss information through the plugin’s own RPC and CLI.
 
 `bb.sdk.hosts.experimental_lifecycle({hostId})` and `bb machine lifecycle MACHINE --json`
 show generic maintenance state. Core does not provide retention or keep controls.

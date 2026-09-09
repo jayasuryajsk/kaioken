@@ -8,10 +8,6 @@ import {
   callHostOnlineRpc,
   callHostOnlineRpcWithoutAdmission,
 } from "../hosts/online-rpc.js";
-import {
-  beginEnvironmentSetupOutcome,
-  finishEnvironmentSetupOutcome,
-} from "./setup-outcomes.js";
 
 export const ENVIRONMENT_HOOK_TIMEOUT_MS = 15 * 60 * 1000;
 const TRANSPORT_GRACE_MS = 6_000;
@@ -65,13 +61,6 @@ export async function runEnvironmentHook(
   if (existing?.finishedAt != null) {
     if (existing.error !== null && args.kind === "setup")
       throw new Error(existing.error);
-    if (args.kind === "setup")
-      await finishEnvironmentSetupOutcome(deps, {
-        hostId: args.hostId,
-        path: args.path,
-        operationId: existing.operationId,
-        succeeded: true,
-      });
     return;
   }
   const operationId = args.id;
@@ -101,10 +90,7 @@ export async function runEnvironmentHook(
     );
   };
   args.signal.addEventListener("abort", abort, { once: true });
-  const identity = { hostId: args.hostId, path: args.path, operationId };
   try {
-    if (args.kind === "setup" && existing === undefined)
-      await beginEnvironmentSetupOutcome(deps, identity);
     args.signal.throwIfAborted();
     await callHostOnlineRpc(deps, {
       hostId: args.hostId,
@@ -128,23 +114,12 @@ export async function runEnvironmentHook(
       .where(eq(environmentHookOperations.id, args.id))
       .run();
     args.signal.throwIfAborted();
-    if (args.kind === "setup")
-      await finishEnvironmentSetupOutcome(deps, {
-        ...identity,
-        succeeded: true,
-      });
   } catch (error) {
     await cancelPendingEnvironmentHook(deps, {
       id: args.id,
       hostId: args.hostId,
     });
-    if (args.kind === "setup") {
-      await finishEnvironmentSetupOutcome(deps, {
-        ...identity,
-        succeeded: false,
-      });
-      throw error;
-    }
+    if (args.kind === "setup") throw error;
     const text = error instanceof Error ? error.message : String(error);
     args.report.log(text);
     deps.logger.warn(

@@ -1,10 +1,4 @@
 import {
-  readinessInspectCommandSchema,
-  readinessInspectResultSchema,
-  readinessProbeCommandSchema,
-  readinessProbeResultSchema,
-} from "./readiness.js";
-import {
   desktopBrowserCommandSchemas,
   desktopBrowserResultSchemas,
 } from "./desktop-browser.js";
@@ -854,7 +848,6 @@ const providerHealthCommandSchema = z
     type: z.literal("provider.health"),
     providerId: z.string().min(1),
     bridgeLaunch: hostDaemonBridgeLaunchSchema,
-    contributedEnv: z.array(hostDaemonContributedEnvEntrySchema).optional(),
     cwd: z.string().min(1).optional(),
   })
   .strict();
@@ -1824,24 +1817,6 @@ export const hostDaemonCommandRegistry = {
     type: "provider.health",
     schema: providerHealthCommandSchema,
     resultSchema: providerHealthResultSchema,
-    transport: "onlineRpc",
-    retryable: true,
-    flushEventsBeforeResult: false,
-    envLane: null,
-  }),
-  "workspace.readiness.inspect": defineHostDaemonCommandDescriptor({
-    type: "workspace.readiness.inspect",
-    schema: readinessInspectCommandSchema,
-    resultSchema: readinessInspectResultSchema,
-    transport: "onlineRpc",
-    retryable: true,
-    flushEventsBeforeResult: false,
-    envLane: null,
-  }),
-  "host.readiness.probe": defineHostDaemonCommandDescriptor({
-    type: "host.readiness.probe",
-    schema: readinessProbeCommandSchema,
-    resultSchema: readinessProbeResultSchema,
     transport: "onlineRpc",
     retryable: true,
     flushEventsBeforeResult: false,

@@ -210,16 +210,25 @@ async function setup(
       return { hostId: HOST_ID };
     },
   );
-  const prepareEnrollment = vi.fn(async () => ({
-    id: "enrollment-1",
-    hostId: HOST_ID,
-    state: "pending",
-    bootstrap: { credential: "bootstrap-secret" },
-  }));
+  const prepare = vi.fn(
+    async (): Promise<import("@get-bb/plugin-sdk").MachineEnrollment> => ({
+      id: "enrollment-1",
+      hostId: HOST_ID,
+      state: "pending",
+      expiresAt: 60000,
+      bootstrap: {
+        version: 2,
+        hostId: HOST_ID,
+        serverUrl: "https://bb.example.com",
+        credential: "bootstrap-secret",
+        expiresAt: 60000,
+      },
+    }),
+  );
   Object.assign(fake.bb.experimental_machines, {
     bootstrap,
-    prepareEnrollment,
   });
+  fake.bb.experimental_machines.enrollments.prepare = prepare;
   await createModalSandboxPlugin({
     backendFactory: (credentials) => ({
       ...backend.backend,
@@ -242,7 +251,7 @@ async function setup(
     provider,
     backend,
     bootstrap,
-    prepareEnrollment,
+    prepare,
   };
 }
 
@@ -365,7 +374,7 @@ describe("Modal machine provider", () => {
       if (phase === "lookup") {
         await test.provider.create(createContext());
         test.bootstrap.mockClear();
-        test.prepareEnrollment.mockClear();
+        test.prepare.mockClear();
       }
       const controller = new AbortController();
       if (phase === "create") {
@@ -404,7 +413,7 @@ describe("Modal machine provider", () => {
         pendingSnapshotImageIds: [],
       });
       expect(test.bootstrap).not.toHaveBeenCalled();
-      expect(test.prepareEnrollment.mock.invocationCallOrder[0]).toBeLessThan(
+      expect(test.prepare.mock.invocationCallOrder[0]).toBeLessThan(
         checkpoint.mock.invocationCallOrder[0]!,
       );
       expect(test.backend.states[0]?.terminated).toBe(false);
@@ -416,7 +425,7 @@ describe("Modal machine provider", () => {
         signal: new AbortController().signal,
       });
       expect(test.backend.states[0]?.terminated).toBe(true);
-      expect(test.prepareEnrollment).toHaveBeenCalledOnce();
+      expect(test.prepare).toHaveBeenCalledOnce();
     },
   );
 
@@ -718,14 +727,12 @@ it("reconciles uncertain named allocations without creating or bootstrapping", a
   });
   expect(test.backend.creates).toHaveLength(0);
   expect(test.bootstrap).not.toHaveBeenCalled();
-  expect(test.prepareEnrollment).not.toHaveBeenCalled();
+  expect(test.prepare).not.toHaveBeenCalled();
   await test.harness.lifecycle.dispose();
 });
 it("does not build an image when enrollment preparation fails", async () => {
   const test = await setup();
-  test.prepareEnrollment.mockRejectedValueOnce(
-    new Error("Configure machine access"),
-  );
+  test.prepare.mockRejectedValueOnce(new Error("Configure machine access"));
   expect(await test.provider.create(createContext())).toMatchObject({
     status: "failed",
   });
@@ -737,12 +744,9 @@ it("observes vendor deadlines", async () => {
   const harness = await setup();
   const created = await harness.provider.create(createContext());
   if (created.status !== "created") throw new Error("creation failed");
-  const context = {
-    hostId: HOST_ID,
-    resource: created.resource,
-    signal: new AbortController().signal,
-  };
-  expect(await harness.provider.experimental_details?.(context)).toMatchObject({
+  expect(
+    await harness.harness.callRpc("machine.inspect", { hostId: HOST_ID }),
+  ).toMatchObject({
     values: { state: "running", expiresAt: 24 * 60 * 60_000 },
   });
 });
@@ -760,7 +764,7 @@ it("blocks observation and resume after the configured account identity changes"
     checkpoint: async () => {},
   };
   await expect(
-    harness.provider.experimental_details?.(context),
+    harness.harness.callRpc("machine.inspect", { hostId: HOST_ID }),
   ).rejects.toThrow("pinned Modal account");
   await expect(harness.provider.resume?.(context)).rejects.toThrow(
     "pinned Modal account",
@@ -963,7 +967,7 @@ it("builds without enrollment and runs a bounded debug sandbox with no runtime s
     environmentVariables: {},
     image: { type: "image", imageId: "im-standard" },
   });
-  expect(test.prepareEnrollment).not.toHaveBeenCalled();
+  expect(test.prepare).not.toHaveBeenCalled();
   expect(test.bootstrap).not.toHaveBeenCalled();
 });
 
@@ -1136,4 +1140,51 @@ describe("plugin-owned idle timing", () => {
       await test.harness.lifecycle.dispose();
     }
   });
+});
+
+it("exposes missing compute through Modal RPC and CLI without restoring it", async () => {
+  const test = await setup();
+  await test.provider.create(createContext());
+  const machine = test.backend.states[0];
+  if (!machine) throw new Error("missing test sandbox");
+  machine.terminated = true;
+  const details = await test.harness.callRpc("machine.inspect", {
+    hostId: HOST_ID,
+  });
+  expect(details).toMatchObject({
+    summary: expect.stringContaining(
+      "Changes since the last saved image may be lost",
+    ),
+    values: { state: "missing" },
+  });
+  const cli = await test.harness.runCli([
+    "machine",
+    "inspect",
+    HOST_ID,
+    "--json",
+  ]);
+  expect(cli.exitCode).toBe(0);
+  expect(JSON.parse(cli.stdout)).toEqual(details);
+  expect(test.backend.creates).toHaveLength(1);
+  await expect(
+    test.harness.callRpc("machine.inspect", { hostId: "unrelated-host" }),
+  ).rejects.toThrow("No Modal diagnostic record");
+});
+
+it("reports the saved snapshot after pause and live compute after resume", async () => {
+  const test = await setup();
+  const created = await test.provider.create(createContext());
+  if (created.status !== "created") throw new Error("creation failed");
+  const context = { hostId: HOST_ID, resource: created.resource, report, signal: new AbortController().signal, checkpoint: async () => {} };
+  const suspended = await test.provider.suspend?.(context);
+  if (!suspended) throw new Error("suspend not registered");
+  expect(
+    await test.harness.callRpc("machine.inspect", { hostId: HOST_ID }),
+  ).toMatchObject({
+    values: { state: "suspended", snapshotImageId: "image-1" },
+  });
+  await test.provider.resume?.({ ...context, resource: suspended.resource });
+  expect(
+    await test.harness.callRpc("machine.inspect", { hostId: HOST_ID }),
+  ).toMatchObject({ values: { state: "running", snapshotImageId: "image-1" } });
 });

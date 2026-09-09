@@ -81,7 +81,6 @@ export async function resolvePluginProviderEnv(args: {
 export async function resolvePluginProviderEnvHealth(args: {
   providerId: string;
   hostId: string;
-  threadId?: string | null;
 }) {
   const active = contributions;
   if (!active?.resolveProviderEnvHealth) return null;
@@ -89,9 +88,6 @@ export async function resolvePluginProviderEnvHealth(args: {
     providerId: args.providerId,
     context: {
       hostId: args.hostId,
-      ...(args.threadId !== undefined
-        ? { experimental_readiness: { threadId: args.threadId } }
-        : {}),
     },
   });
 }
