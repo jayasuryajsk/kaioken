@@ -103,7 +103,7 @@ export function ProviderChoice() {
     <StoryCard labelWidth="200px">
       <StoryRow
         label="one provider"
-        hint="a single provider is selected for you, so the dialog opens on its create card"
+        hint="a single provider is selected for you, so the dialog opens on its inputs and action"
       >
         <DialogStage>
           <ProviderMachineSetup
@@ -116,7 +116,7 @@ export function ProviderChoice() {
       </StoryRow>
       <StoryRow
         label="several providers"
-        hint="nothing is selected — click a row to reveal its card; the unavailable row is disabled"
+        hint="nothing is chosen yet — pick a provider to reveal its inputs; the unavailable one cannot be picked"
       >
         <DialogStage>
           <ProviderMachineSetup
@@ -146,7 +146,7 @@ export function ProviderChoice() {
       </StoryRow>
       <StoryRow
         label="lone unavailable provider"
-        hint="a single provider is auto-selected without checking availability, so its disabled row still offers Create"
+        hint="auto-selected because it is the only one, but its own message replaces the create action"
       >
         <DialogStage>
           <ProviderMachineSetup
@@ -159,7 +159,7 @@ export function ProviderChoice() {
       </StoryRow>
       <StoryRow
         label="no providers installed"
-        hint="access is ready and the list is empty — only Close remains"
+        hint="access is ready but nothing is installed, so the picker has nothing to offer"
       >
         <DialogStage>
           <ProviderMachineSetup

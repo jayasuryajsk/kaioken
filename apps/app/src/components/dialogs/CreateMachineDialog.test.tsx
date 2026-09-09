@@ -108,6 +108,13 @@ function show() {
     { wrapper },
   );
 }
+async function pickProvider(name: string) {
+  fireEvent.pointerDown(
+    await screen.findByRole("button", { name: "Machine provider" }),
+    { button: 0 },
+  );
+  fireEvent.click(await screen.findByRole("menuitem", { name }));
+}
 it("opens the only provider directly without submitting in core", async () => {
   const providers = await sdk.hosts.listProviders();
   vi.mocked(sdk.hosts.listProviders).mockResolvedValue(providers.slice(0, 1));
@@ -118,10 +125,7 @@ it("opens the only provider directly without submitting in core", async () => {
 it("offers the generic provider picker when no owned default setup exists", async () => {
   slots.owner = "unrelated-plugin";
   show();
-  fireEvent.click(await screen.findByRole("button", { name: "tailscale" }));
-  expect(
-    screen.getAllByRole("button", { name: "command-provider" }),
-  ).toHaveLength(1);
+  await pickProvider("tailscale");
   fireEvent.click(
     screen.getByRole("button", { name: "Create tailscale machine" }),
   );
@@ -134,7 +138,7 @@ it("offers the generic provider picker when no owned default setup exists", asyn
 it("does not mount another plugin's setup for a provider it does not own", async () => {
   slots.owner = "unrelated-plugin";
   show();
-  await screen.findByRole("button", { name: "command-provider" });
+  await screen.findByRole("button", { name: "Machine provider" });
   expect(
     screen.queryByRole("button", { name: "Plugin-owned setup" }),
   ).toBeNull();
@@ -142,9 +146,7 @@ it("does not mount another plugin's setup for a provider it does not own", async
 
 it("shows multiple providers before opening their setup", async () => {
   show();
-  fireEvent.click(
-    await screen.findByRole("button", { name: "command-provider" }),
-  );
+  await pickProvider("command-provider");
   await screen.findByRole("button", { name: "Plugin-owned setup" });
 });
 it("blocks provider selection until access is configured", async () => {
@@ -156,7 +158,7 @@ it("blocks provider selection until access is configured", async () => {
   vi.mocked(sdk.system.config).mockResolvedValue(config);
   show();
   await screen.findByRole("link", { name: "Set up bb connect" });
-  expect(screen.queryByRole("button", { name: "command-provider" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Machine provider" })).toBeNull();
   expect(
     screen.queryByRole("button", { name: "Plugin-owned setup" }),
   ).toBeNull();
@@ -202,10 +204,10 @@ it("saves a manual address in the access gate and advances without reopening", a
     "Other machines cannot reach localhost. Use a domain or shared-network address.",
   );
   expect(sdk.system.updateGeneralSettings).not.toHaveBeenCalled();
-  expect(screen.queryByRole("button", { name: "command-provider" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Machine provider" })).toBeNull();
   fireEvent.change(address, { target: { value: "https://bb.example.com" } });
   fireEvent.click(screen.getByRole("button", { name: "Save" }));
-  await screen.findByRole("button", { name: "command-provider" });
+  await screen.findByRole("button", { name: "Machine provider" });
   expect(sdk.system.updateGeneralSettings).toHaveBeenCalledWith(
     expect.objectContaining({ machineServerUrl: "https://bb.example.com" }),
   );

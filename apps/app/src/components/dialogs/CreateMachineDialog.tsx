@@ -18,10 +18,9 @@ import {
   DialogTitle,
 } from "@bb/shared-ui/dialog";
 import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { MachineProviderIcon } from "@/components/plugin/MachineProviderIcon";
 import { PluginSlotMount } from "@/components/plugin/PluginSlotMount";
 import { machineProviderInputsControlRequired } from "@/components/pickers/machine-provider-inputs";
+import { OptionPicker } from "@/components/pickers/OptionPicker";
 import { useHosts } from "@/hooks/queries/host-queries";
 import { useSystemMachineProviders } from "@/hooks/queries/machine-provider-queries";
 import { getPluginConfigurationRoutePath } from "@/lib/route-paths";
@@ -278,48 +277,54 @@ export function ProviderMachineSetup({
         <DialogTitle>Add a machine</DialogTitle>
         <DialogDescription>Choose how to add your machine.</DialogDescription>
       </DialogHeader>
-      <div className="space-y-2">
-        <div className="space-y-1 rounded-md border border-border p-1">
-          {providers.map((provider) => {
-            const unavailable = provider.availability?.status === "unavailable";
-            return (
-              <button
-                key={provider.id}
-                type="button"
-                disabled={unavailable || createMachine.isPending}
-                onClick={() => selectMachineProvider(provider)}
-                className="flex w-full items-center gap-2 rounded-sm px-2.5 py-2 text-left text-sm hover:bg-state-hover disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {provider.icon === null ? null : (
-                  <MachineProviderIcon
-                    provider={provider}
-                    className="size-4 shrink-0 text-muted-foreground"
-                  />
-                )}
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate">{provider.displayName}</span>
-                  {provider.availability?.status === "available" ||
-                  provider.availability === null ? null : (
-                    <span className="block text-xs text-muted-foreground">
-                      {provider.availability.message}
-                    </span>
-                  )}
-                </span>
-                <Icon
-                  name="Check"
-                  className={cn(
-                    "size-4 shrink-0",
-                    selectedMachineProvider?.id === provider.id
-                      ? "opacity-100"
-                      : "opacity-0",
-                  )}
-                />
-              </button>
-            );
-          })}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-normal text-foreground">
+            Machine provider
+          </span>
+          <OptionPicker
+            modal={false}
+            align="end"
+            label="Machine provider"
+            value={selectedMachineProvider?.id ?? ""}
+            disabled={providers.length === 0 || createMachine.isPending}
+            showChevronWhenDisabled
+            displayOverride={
+              selectedMachineProvider === null
+                ? {
+                    label:
+                      providers.length === 0
+                        ? "None installed"
+                        : "Choose a provider",
+                  }
+                : undefined
+            }
+            options={providers.map((provider) => ({
+              value: provider.id,
+              label: provider.displayName,
+              ...(provider.availability === null ||
+              provider.availability.status === "available"
+                ? {}
+                : {
+                    description: provider.availability.message,
+                    ...(provider.availability.status === "unavailable"
+                      ? {
+                          disabled: true,
+                          disabledReason: provider.availability.message,
+                        }
+                      : {}),
+                  }),
+            }))}
+            onChange={(providerId) => {
+              const provider = providers.find(
+                (candidate) => candidate.id === providerId,
+              );
+              if (provider) selectMachineProvider(provider);
+            }}
+          />
         </div>
         {selectedMachineProvider === null ? null : (
-          <div className="space-y-2 rounded-md border border-border bg-muted/30 p-3">
+          <div className="space-y-3">
             {machineInputsRegistration === undefined ||
             MachineInputsComponent === undefined ? null : (
               <PluginSlotMount
@@ -335,49 +340,64 @@ export function ProviderMachineSetup({
                 />
               </PluginSlotMount>
             )}
-            {selectedMachineProvider.availability?.status ===
-            "setup-required" ? (
-              <Button asChild size="sm" variant="outline">
-                <Link
-                  to={getPluginConfigurationRoutePath({
-                    pluginId: selectedMachineProvider.pluginId,
-                  })}
-                >
-                  Configure {selectedMachineProvider.displayName}
-                </Link>
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                size="sm"
-                disabled={
-                  createMachine.isPending ||
-                  machineInputsBlocked !== null ||
-                  (machineProviderInputsControlRequired(
-                    selectedMachineProvider,
-                  ) &&
-                    machineInputsRegistration === undefined) ||
-                  (selectedMachineProvider.inputs !== null &&
-                    machineInputs === null)
-                }
-                onClick={() => createMachine.mutate()}
-              >
-                {createMachine.isPending
-                  ? "Creating machine…"
-                  : `Create ${selectedMachineProvider.displayName}${/machine$/iu.test(selectedMachineProvider.displayName) ? "" : " machine"}`}
-              </Button>
-            )}
             {machineInputsBlocked === null ? null : (
-              <p className="text-xs text-destructive">{machineInputsBlocked}</p>
+              <p className="text-xs text-destructive-text">
+                {machineInputsBlocked}
+              </p>
             )}
             {createMachine.isError ? (
-              <p className="text-xs text-destructive">
+              <p role="alert" className="text-xs text-destructive-text">
                 {getMutationErrorMessage({
                   error: createMachine.error,
                   fallbackMessage: "Couldn't create the machine.",
                 })}
               </p>
             ) : null}
+            {selectedMachineProvider.availability?.status === "unavailable" ? (
+              <p role="alert" className="text-xs text-destructive-text">
+                {selectedMachineProvider.availability.message}
+              </p>
+            ) : selectedMachineProvider.availability?.status ===
+              "setup-required" ? (
+              <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="w-full sm:w-auto sm:self-end"
+              >
+                <Link
+                  to={getPluginConfigurationRoutePath({
+                    pluginId: selectedMachineProvider.pluginId,
+                  })}
+                >
+                  Configure {selectedMachineProvider.displayName}
+                  <Icon name="ArrowRight" />
+                </Link>
+              </Button>
+            ) : (
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                  disabled={
+                    createMachine.isPending ||
+                    machineInputsBlocked !== null ||
+                    (machineProviderInputsControlRequired(
+                      selectedMachineProvider,
+                    ) &&
+                      machineInputsRegistration === undefined) ||
+                    (selectedMachineProvider.inputs !== null &&
+                      machineInputs === null)
+                  }
+                  onClick={() => createMachine.mutate()}
+                >
+                  {createMachine.isPending
+                    ? "Creating machine…"
+                    : `Create ${selectedMachineProvider.displayName}${/machine$/iu.test(selectedMachineProvider.displayName) ? "" : " machine"}`}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -394,10 +414,11 @@ export function ProviderMachineSetup({
         />
       )}
 
-      <DialogFooter>
-        {createMachine.isPending && launchId ? (
+      {createMachine.isPending && launchId ? (
+        <DialogFooter>
           <Button
             variant="outline"
+            size="sm"
             onClick={() =>
               void sdk.hosts.cancel({ id: launchId }).then(() => {
                 createController.current?.abort();
@@ -407,11 +428,8 @@ export function ProviderMachineSetup({
           >
             Cancel setup
           </Button>
-        ) : null}
-        <Button variant="ghost" onClick={() => onOpenChange(false)}>
-          Close
-        </Button>
-      </DialogFooter>
+        </DialogFooter>
+      ) : null}
     </>
   );
 }
