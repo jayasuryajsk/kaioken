@@ -1,4 +1,7 @@
-import { MachineLifecycleNotice } from "@/components/machines/MachineLifecycleNotice";
+import {
+  MachineLifecycleNoticeContent,
+  useMachineLifecycleMessage,
+} from "@/components/machines/MachineLifecycleNotice";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { Host, PermissionMode } from "@bb/domain";
@@ -106,7 +109,15 @@ interface MachineRowProps {
   gitStatus: "ready" | "not configured" | null;
 }
 
-function MachineRow({
+function MachineRow(props: MachineRowProps) {
+  const lifecycleMessage = useMachineLifecycleMessage({
+    hostId: props.host.id,
+    enabled: props.host.machineProviderId !== null,
+  });
+  return <MachineRowContent {...props} lifecycleMessage={lifecycleMessage} />;
+}
+
+export function MachineRowContent({
   host,
   isPrimary,
   isThisMachine,
@@ -124,7 +135,8 @@ function MachineRow({
   retryUpdatePending,
   machineProvider,
   gitStatus,
-}: MachineRowProps) {
+  lifecycleMessage,
+}: MachineRowProps & { lifecycleMessage: string | null }) {
   const navigate = useNavigate();
   const detailPath = getSettingsMachineRoutePath(host.id);
   const permission = PERMISSION_MODE_PRESENTATION[host.maxPermissionMode];
@@ -308,9 +320,10 @@ function MachineRow({
             <ResourceRowDetailChevron />
           </div>
         </div>
-        {host.machineProviderId !== null && (
-          <MachineLifecycleNotice hostId={host.id} onRemove={onRemove} />
-        )}
+        <MachineLifecycleNoticeContent
+          message={lifecycleMessage}
+          onRemove={onRemove}
+        />
       </div>
     </SettingsRow>
   );

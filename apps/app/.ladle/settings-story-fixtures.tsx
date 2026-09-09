@@ -25,7 +25,6 @@ import {
 import { createAppQueryClient } from "../src/lib/query-client";
 import { makeSystemConfig } from "../src/test/fixtures/system-config";
 import { systemMachineProvidersQueryKey } from "../src/hooks/queries/machine-provider-queries";
-import { machineLifecycleQueryKey } from "../src/components/machines/MachineLifecycleNotice";
 import {
   MANUAL_MACHINE_PROVIDER,
   MODAL_MACHINE_PROVIDER,
@@ -61,11 +60,6 @@ const SETTINGS_STORY_PRIMARY_HOST = makeHost({
   lastSeenAt: SETTINGS_STORY_NOW,
 });
 
-const PAUSED_MACHINE_ID = "host_story_paused";
-const PAUSING_MACHINE_ID = "host_story_pausing";
-const RETIRING_MACHINE_ID = "host_story_retiring";
-const CLEANUP_FAILED_MACHINE_ID = "host_story_cleanup_failed";
-
 const SETTINGS_STORY_HOSTS = [
   SETTINGS_STORY_PRIMARY_HOST,
   makeHost({
@@ -74,68 +68,6 @@ const SETTINGS_STORY_HOSTS = [
     maxPermissionMode: "auto",
     createdAt: SETTINGS_STORY_NOW - 18 * 24 * 60 * 60_000,
     lastSeenAt: SETTINGS_STORY_NOW - 3 * 60_000,
-  }),
-  makeHost({
-    id: PAUSED_MACHINE_ID,
-    name: "Modal sandbox 3f9a",
-    status: "disconnected",
-    machineProviderId: MODAL_MACHINE_PROVIDER.id,
-    createdAt: SETTINGS_STORY_NOW - 4 * 60 * 60_000,
-    lastSeenAt: SETTINGS_STORY_NOW - 26 * 60_000,
-    lifecycle: {
-      phase: "suspended",
-      suspendedAt: SETTINGS_STORY_NOW - 25 * 60_000,
-      retireAt: null,
-      progress: null,
-      teardown: null,
-    },
-  }),
-  makeHost({
-    id: PAUSING_MACHINE_ID,
-    name: "Modal sandbox 91c4",
-    machineProviderId: MODAL_MACHINE_PROVIDER.id,
-    createdAt: SETTINGS_STORY_NOW - 90 * 60_000,
-    lastSeenAt: SETTINGS_STORY_NOW - 30_000,
-    lifecycle: {
-      phase: "suspending",
-      suspendedAt: null,
-      retireAt: null,
-      progress: "Saving the sandbox filesystem",
-      teardown: null,
-    },
-  }),
-  makeHost({
-    id: RETIRING_MACHINE_ID,
-    name: "Modal sandbox 0af2",
-    machineProviderId: MODAL_MACHINE_PROVIDER.id,
-    createdAt: SETTINGS_STORY_NOW - 3 * 24 * 60 * 60_000,
-    lastSeenAt: SETTINGS_STORY_NOW - 2 * 60_000,
-    lifecycle: {
-      phase: "retiring",
-      suspendedAt: null,
-      retireAt: SETTINGS_STORY_NOW + 5 * 60_000,
-      progress: null,
-      teardown: { status: "running", attempt: 1 },
-    },
-  }),
-  makeHost({
-    id: CLEANUP_FAILED_MACHINE_ID,
-    name: "Modal sandbox 55de",
-    status: "disconnected",
-    machineProviderId: MODAL_MACHINE_PROVIDER.id,
-    createdAt: SETTINGS_STORY_NOW - 6 * 24 * 60 * 60_000,
-    lastSeenAt: SETTINGS_STORY_NOW - 3 * 60 * 60_000,
-    lifecycle: {
-      phase: "retiring",
-      suspendedAt: null,
-      retireAt: SETTINGS_STORY_NOW - 60 * 60_000,
-      progress: null,
-      teardown: {
-        status: "failed",
-        attempt: 3,
-        message: "Modal refused to delete the sandbox",
-      },
-    },
   }),
 ];
 
@@ -369,26 +301,6 @@ function createSettingsStoryQueryClient() {
     MANUAL_MACHINE_PROVIDER,
     MODAL_MACHINE_PROVIDER,
   ]);
-  for (const hostId of [
-    PAUSED_MACHINE_ID,
-    PAUSING_MACHINE_ID,
-    RETIRING_MACHINE_ID,
-  ]) {
-    queryClient.setQueryData(machineLifecycleQueryKey(hostId), {
-      phase: "active",
-      recoveryState: "healthy",
-      message: null,
-    });
-  }
-  queryClient.setQueryData(
-    machineLifecycleQueryKey(CLEANUP_FAILED_MACHINE_ID),
-    {
-      phase: "retiring",
-      recoveryState: "recoverable",
-      message:
-        "Modal refused to delete the sandbox after 3 attempts. Removing the machine here clears it from bb; delete the sandbox in Modal too.",
-    },
-  );
   return queryClient;
 }
 
