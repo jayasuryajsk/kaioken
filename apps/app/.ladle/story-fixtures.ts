@@ -379,7 +379,7 @@ export const STORY_ENVIRONMENT_PROVIDERS: readonly SystemEnvironmentProvider[] =
 export const STORY_MACHINE_PROVIDERS: readonly SystemMachineProvider[] = [
   {
     id: "modal-sandbox",
-    displayName: "Modal sandbox",
+    displayName: "Modal Sandbox",
     description: null,
     icon: "Box",
     machineTag: null,

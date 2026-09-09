@@ -120,7 +120,7 @@ export function machineProvider(
 
 export const MODAL_MACHINE_PROVIDER = machineProvider({
   id: "modal-sandbox",
-  displayName: "Modal sandbox",
+  displayName: "Modal Sandbox",
   description:
     "Create a sandbox in your Modal account, billed by Modal while it runs and suspended when idle.",
   pluginId: "environment-modal-sandbox",
@@ -144,7 +144,7 @@ export const MODAL_NEEDS_TOKEN_PROVIDER = machineProvider({
   availability: {
     status: "setup-required",
     message:
-      "Modal sandbox is not configured: set tokenId, tokenSecret in the plugin's settings.",
+      "Modal Sandbox is not configured: set tokenId, tokenSecret in the plugin's settings.",
   },
 });
 

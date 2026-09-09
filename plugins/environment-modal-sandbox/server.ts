@@ -270,7 +270,7 @@ export function createModalSandboxPlugin(
             resource: null,
             accountIdentity,
           });
-          context.report.step("Creating the Modal sandbox…");
+          context.report.step("Creating the Modal Sandbox…");
           sandbox = await backend.create({
             appName,
             name: context.key,
@@ -378,14 +378,14 @@ export function createModalSandboxPlugin(
 
     bb.experimental_environments.register({
       id: PROVIDER_ID,
-      displayName: "Modal sandbox",
+      displayName: "Modal Sandbox",
       machineProviderId: PROVIDER_ID,
       environmentProviderId: "project-checkout",
     });
 
     bb.experimental_machines.register({
       id: PROVIDER_ID,
-      displayName: "Modal sandbox",
+      displayName: "Modal Sandbox",
       description:
         "Create a sandbox in your Modal account, billed by Modal while it runs and suspended when idle.",
       icon: "./modal-logo.svg",

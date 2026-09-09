@@ -283,13 +283,13 @@ describe("Modal machine provider", () => {
       harness.harness.registrations.environmentCompositions.get(PROVIDER_ID),
     ).toEqual({
       id: PROVIDER_ID,
-      displayName: "Modal sandbox",
+      displayName: "Modal Sandbox",
       machineProviderId: PROVIDER_ID,
       environmentProviderId: "project-checkout",
     });
     expect(harness.provider).toMatchObject({
       id: PROVIDER_ID,
-      displayName: "Modal sandbox",
+      displayName: "Modal Sandbox",
       icon: "./modal-logo.svg",
     });
   });

@@ -8,7 +8,7 @@
     "bb": ">=0.0"
   },
   "bb": {
-    "name": "Modal sandbox",
+    "name": "Modal Sandbox",
     "description": "Run bb threads in on-demand, isolated sandboxes",
     "branding": {
       "icon": "./modal-logo.svg"
