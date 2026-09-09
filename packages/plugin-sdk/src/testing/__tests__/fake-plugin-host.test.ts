@@ -2071,11 +2071,7 @@ describe("environment targets", () => {
     bb.experimental_machines.register({
       id: "test-machine",
       displayName: "Test machine",
-      policy: {
-        idleSuspendMs: null,
 
-        removeRetryMs: 1_000,
-      },
       reconcileCleanup: async () => ({ status: "removed" }),
       create: async () => ({
         status: "created",
@@ -2090,7 +2086,7 @@ describe("environment targets", () => {
       icon: null,
       suspend: null,
       resume: null,
-      policy: { idleSuspendMs: null },
+      experimental_idleSuspendMs: null,
     });
   });
 
@@ -2102,16 +2098,10 @@ describe("environment targets", () => {
     });
     const remove = async () => ({ status: "removed" as const });
     const lifecycle = async () => ({ resource: null });
-    const policy = {
-      idleSuspendMs: null,
-
-      removeRetryMs: 1_000,
-    };
     expect(() =>
       createFakePluginHost().bb.experimental_machines.register({
         id: "half-lifecycle",
         displayName: "Half lifecycle",
-        policy,
         create,
         reconcileCleanup: remove,
         suspend: lifecycle,
@@ -2122,12 +2112,12 @@ describe("environment targets", () => {
       createFakePluginHost().bb.experimental_machines.register({
         id: "idle-without-lifecycle",
         displayName: "Idle without lifecycle",
-        policy: { ...policy, idleSuspendMs: 1_000 },
+        experimental_idleSuspendMs: async () => 1_000,
         create,
         reconcileCleanup: remove,
         remove,
       }),
-    ).toThrow(/idleSuspendMs to null without suspend and resume/);
+    ).toThrow(/declare suspend and resume with experimental_idleSuspendMs/);
   });
 
   it("delivers message.cancelled to a listener", async () => {
