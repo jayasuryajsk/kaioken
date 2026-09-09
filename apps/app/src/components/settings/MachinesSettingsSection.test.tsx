@@ -73,6 +73,7 @@ const offlineHost = host({
 const modalProvider: SystemMachineProvider = {
   id: "modal-sandbox",
   displayName: "Modal sandbox",
+  description: null,
   icon: "./modal-logo.svg",
   logoUrl: "/api/v1/system/providers/machine%3Amodal-sandbox/logo?h=hash",
   pluginId: "environment-modal-sandbox",
@@ -190,6 +191,7 @@ describe("MachinesSettingsSection", () => {
         ...modalProvider,
         id: "test-machine",
         displayName: "Test machine",
+        description: null,
         icon: null,
         logoUrl: null,
         pluginId: "test-machine-provider",

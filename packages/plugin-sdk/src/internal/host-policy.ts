@@ -2428,9 +2428,12 @@ const environmentProviderPolicySchema = z
   })
   .strict();
 
+export const MACHINE_PROVIDER_DESCRIPTION_MAX_CHARS = 200;
+
 export interface NormalizedPluginMachineProvider {
   id: string;
   displayName: string;
+  description: string | null;
   icon: string | null;
   inputs: StandardSchemaV1 | null;
   inputsJsonSchema: JsonValue | null;
@@ -2475,6 +2478,15 @@ export function validatePluginMachineProviderDeclaration(
       `machine provider "${id}" needs a displayName of 1-${ENVIRONMENT_PROVIDER_DISPLAY_NAME_MAX_CHARS} characters`,
     );
   }
+  const description =
+    declaration.description === undefined
+      ? null
+      : z
+          .string()
+          .trim()
+          .min(1)
+          .max(MACHINE_PROVIDER_DESCRIPTION_MAX_CHARS)
+          .parse(declaration.description);
   const icon =
     declaration.icon === undefined
       ? null
@@ -2548,6 +2560,7 @@ export function validatePluginMachineProviderDeclaration(
   return {
     id,
     displayName,
+    description,
     icon,
     inputs: inputs === null ? null : inputs.schema,
     inputsJsonSchema: inputs === null ? null : inputs.jsonSchema,

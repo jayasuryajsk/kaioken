@@ -9,6 +9,7 @@ import type {
 } from "@get-bb/plugin-sdk/machine-provider";
 import {
   resolveSettings,
+  SANDBOX_LIFETIME_MS,
   SETTING_DESCRIPTORS,
   type ResolvedSettings,
 } from "./configuration.js";
@@ -242,7 +243,7 @@ export function createModalSandboxPlugin(
             name: context.key,
             image: { type: "image", imageId },
             environmentVariables: resolved.settings.environmentVariables,
-            timeoutMs: resolved.settings.timeoutMs,
+            timeoutMs: SANDBOX_LIFETIME_MS,
             cpu: resolved.settings.cpu,
             memoryMiB: resolved.settings.memoryMiB,
             tags: { bbMachineKey: context.key },
@@ -255,7 +256,7 @@ export function createModalSandboxPlugin(
           appName,
           cpu: resolved.settings.cpu,
           memoryMiB: resolved.settings.memoryMiB,
-          expiresAt: deps.now() + resolved.settings.timeoutMs,
+          expiresAt: deps.now() + SANDBOX_LIFETIME_MS,
           key: context.key,
           sandboxId: sandbox.sandboxId,
           snapshotImageId: null,
@@ -343,6 +344,8 @@ export function createModalSandboxPlugin(
     bb.experimental_machines.register({
       id: PROVIDER_ID,
       displayName: "Modal sandbox",
+      description:
+        "Create a sandbox in your Modal account, billed by Modal while it runs and suspended when idle.",
       icon: "./modal-logo.svg",
       environmentRow: {
         displayName: "New sandbox",
@@ -541,7 +544,7 @@ export function createModalSandboxPlugin(
               imageId: resource.snapshotImageId,
             },
             environmentVariables: resolved.settings.environmentVariables,
-            timeoutMs: resolved.settings.timeoutMs,
+            timeoutMs: SANDBOX_LIFETIME_MS,
             cpu: resource.cpu,
             memoryMiB: resource.memoryMiB,
             tags: { bbMachineKey: resource.key },

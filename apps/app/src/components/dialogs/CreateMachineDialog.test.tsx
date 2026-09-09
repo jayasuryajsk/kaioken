@@ -69,6 +69,7 @@ beforeEach(() => {
     ["command-provider", "tailscale"].map((id): SystemMachineProvider => ({
       id,
       displayName: id,
+      description: null,
       icon: null,
       logoUrl: null,
       pluginId:

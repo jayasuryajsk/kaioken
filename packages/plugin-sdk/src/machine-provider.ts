@@ -84,6 +84,8 @@ export interface PluginMachineProviderDefinition<
 > {
   id: string;
   displayName: string;
+  /** One line telling a user what choosing this provider gets them, shown wherever a machine is added. */
+  description?: string;
   /** Omit to present provider-created machines like ordinary enrolled machines. */
   icon?: string;
   /** Persisted and readable by every plugin. Store secret references, never secrets. */

@@ -457,6 +457,7 @@ export function registerSystemRoutes(
         listMachineProviders().map(async (record) => ({
           id: record.provider.id,
           displayName: record.provider.displayName,
+          description: record.provider.description,
           icon: record.provider.icon,
           logoUrl:
             record.icon === undefined

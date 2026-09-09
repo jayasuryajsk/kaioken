@@ -365,10 +365,12 @@ export function ProviderMachineSetup({
                 value: provider.id,
                 label: provider.displayName,
                 icon: machineProviderIconComponent(provider),
-                ...(provider.availability === null ||
-                provider.availability.status === "available"
-                  ? {}
-                  : { description: provider.availability.message }),
+                ...(provider.availability !== null &&
+                provider.availability.status !== "available"
+                  ? { description: provider.availability.message }
+                  : provider.description !== null
+                    ? { description: provider.description }
+                    : {}),
               }))}
               onChange={(providerId) => {
                 const provider = providers.find(
@@ -381,6 +383,11 @@ export function ProviderMachineSetup({
         </div>
         {selectedMachineProvider === null ? null : (
           <div className="space-y-3">
+            {selectedMachineProvider.description === null ? null : (
+              <p className="text-xs text-subtle-foreground">
+                {selectedMachineProvider.description}
+              </p>
+            )}
             {machineInputsRegistration === undefined ||
             MachineInputsComponent === undefined ? null : (
               <PluginSlotMount

@@ -105,6 +105,7 @@ export function machineProvider(
     Pick<SystemMachineProvider, "id" | "displayName">,
 ): SystemMachineProvider {
   return {
+    description: null,
     icon: null,
     logoUrl: null,
     pluginId: `plugin-${overrides.id}`,
@@ -120,6 +121,8 @@ export function machineProvider(
 export const MODAL_MACHINE_PROVIDER = machineProvider({
   id: "modal-sandbox",
   displayName: "Modal sandbox",
+  description:
+    "Create a sandbox in your Modal account, billed by Modal while it runs and suspended when idle.",
   pluginId: "environment-modal-sandbox",
   icon: "./modal-logo.svg",
   logoUrl: modalLogoUrl,
@@ -133,6 +136,8 @@ export const MODAL_MACHINE_PROVIDER = machineProvider({
 export const MANUAL_MACHINE_PROVIDER = machineProvider({
   id: "manual",
   displayName: "Manual machine setup",
+  description:
+    "Run one command on a machine you already have to connect it to this server.",
   pluginId: "machine-manual",
   icon: "Terminal",
 });
@@ -159,6 +164,7 @@ export const MODAL_UNRENDERABLE_INPUTS_PROVIDER = machineProvider({
 export const UNAVAILABLE_MACHINE_PROVIDER = machineProvider({
   id: "fleet",
   displayName: "Fleet",
+  description: "Rent a machine from a managed fleet.",
   icon: "Server",
   availability: {
     status: "unavailable",

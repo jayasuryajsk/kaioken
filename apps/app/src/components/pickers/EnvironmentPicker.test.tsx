@@ -92,6 +92,7 @@ const optionalInputsProvider: SystemEnvironmentProvider = {
 const modalMachineProvider: SystemMachineProvider = {
   id: "modal-sandbox",
   displayName: "Modal sandbox",
+  description: null,
   icon: "Box",
   logoUrl: null,
   pluginId: "environment-modal-sandbox",

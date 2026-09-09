@@ -4,6 +4,8 @@ export default function manualMachinePlugin(bb: BbPluginApi): void {
   bb.experimental_machines.register({
     id: "manual",
     displayName: "Manual machine setup",
+    description:
+      "Run one command on a machine you already have to connect it to this server.",
     icon: "Terminal",
 
     async create(context) {

@@ -747,7 +747,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Declare what it needs from the request as a zod inputs schema; bb parses the request with it before the thread exists, publishes it as JSON Schema for the CLI, and hands create the parsed value as inputs",
           "Validate a resolved selection once before thread creation; host-dependent preflight requires connectivity, and create checks conditions that can change afterward",
           "Read the facts as typed values on the create context: host is always non-null, while projectCheckout and gitRemote are non-null exactly when required",
-          "Read projectCheckout.experimental_ownsPath to distinguish core clones from user-maintained attachments; core readiness consumes the environment hook outcome",
+          "Read projectCheckout.experimental_ownsPath to distinguish core clones from user-maintained attachments; core runs environment hooks for owned paths",
           "Render its own control for those inputs beside the picked provider with app.slots.experimental_environmentProviderInputs, reporting either ready inputs or a blocked reason",
           "Use experimental_BranchPicker for a standard branch choice, or compose experimental_useBranches with experimental_useCheckoutState when it needs checkout-aware branch selection",
           "Run one idempotent long create call that returns a created directory or terminal/transient failure; core owns attempts and retry behavior; provider policy exposes only retirement grace and path-key strategy",
@@ -798,6 +798,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Adds plugin-provisioned machines that compose with environment providers. With this, a plugin can:",
         bullets: [
           "Register bb.experimental_machines with a display name and an optional glyph, plugin-relative SVG, declared icon, or React icon; omit it to make created machines look like ordinary enrolled machines",
+          "Declare a one-line description so the add-machine picker can say what choosing this provider gets the user",
           "Declare Standard Schema inputs, availability and validation; core parses and persists inputs before create",
           "Keep secrets in plugin settings because persisted machine inputs are readable by every plugin; pass only non-secret configuration or references",
           "Expose optional picker sugar that creates the machine and then asks one environment provider for the checkout; without environmentRow, thread --new-machine requires --environment-provider",
@@ -820,8 +821,6 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
 
           "Request suspend/resume through the host SDK; core coordinates drain while plugins own idle policy",
           "Persist opaque resource state through suspend.checkpoint(resource) before termination; schedule vendor maintenance in the plugin using bb.background.schedule and bb.sdk.hosts.suspend",
-          "Call bb.sdk.hosts.experimental_ensureReady for CLI, credential-route reachability and checkout checks before dispatch",
-          "Credential health may supply an experimental_probe for authenticated machine-to-proxy reachability without exposing its headers to clients",
           "Optionally declare suspend and resume together; core suspends after idle and resumes on the next send",
           "Choose last-thread plus grace retirement with environment-removal cascade, or never retirement with explicit user removal",
           "Return an opaque private JSON resource that core persists and passes back to lifecycle operations",

@@ -568,7 +568,8 @@ or daemon wire field. Generic discover/adopt ownership and endpoint migration
 remain open; the additional consumer does not stabilize these APIs.
 
 **What it does.** Lets a plugin create and own execution machines. A machine
-provider declares its id, display name, optional icon,
+provider declares its id, display name, an optional one-line description
+shown wherever a machine is added, optional icon,
 optional Standard Schema inputs, availability, validation, optional picker
 sugar row, lifecycle policy, and idempotent create/remove operations. Create is
 keyed durably and names no project: a machine belongs to no project, and
@@ -2820,36 +2821,14 @@ CLIs, validate continuation bounds at both boundaries, and confirm revision and
 idempotency conflicts need the same error shape. These surfaces do not add
 server/daemon wire fields.
 
-## Machine readiness and pinned workspace setup
-
-`hosts.experimental_ensureReady({hostId,providerId,projectId})` is the SDK twin of
-`bb machine ready`. It returns `{status:"ready",checks}` or
-`{status:"blocked",code,stage,message,retryable}`. Core checks CLI compatibility
-through the registered installer, validates credential routing from the machine,
-and checks the recorded checkout setup outcome. Provider-managed turns use the same barrier.
-The server contract exports `experimental_hostReadinessRequestSchema`,
-`experimental_hostReadinessResponseSchema`, `experimental_HostReadinessRequest`
-and `experimental_HostReadinessResponse` for these same validated shapes. Their
-stabilization follows the readiness audit below.
+## Project checkout ownership
 
 The provider context's `projectCheckout.experimental_ownsPath` identifies a
 checkout materialised by core; absence from older servers means unowned. Core
 supplies an explicit boolean, derived from persisted source ownership, never
 from caller inputs. Project checkout reports ownsPath only for that exact path,
 so core's environment hook policy applies to fresh machine clones and leaves
-user-maintained attachments alone. Readiness consumes core hook outcomes rather
-than executing setup. Audit ownership propagation and recovery before stabilizing.
-
-`ExperimentalPluginProviderEnvHealthContext.experimental_readiness` requests a
-fresh thread-aware check (null threadId means a standalone readiness request).
-`ExperimentalPluginProviderEnvHealth.experimental_probe` contains a server-relative
-path and private headers for a bounded authenticated probe from the machine.
-Core never includes these headers in readiness responses or durable stamps.
-
-Before stabilization: audit first dispatch and resumed turns, concurrent install/
-setup, unavailable installers, route rotation/bypass and reachability, dirty
-checkout protection, missing dependencies, ABI/lockfile changes, private clone
-failure, and parity between public CLI/SDK and plugin/provider-managed dispatch.
+user-maintained attachments alone. Audit ownership propagation and recovery before stabilizing.
 
 ## Coordinated machine maintenance
 
@@ -2859,8 +2838,7 @@ Core does not impose a second idle timeout or veto pause merely because work is 
 `bb.sdk.hosts.suspend({hostId})` accepts follow-ups into the existing host-wait queue, drains active turns, setup hooks
 and terminals with a five-minute bound, then invokes the provider's suspend callback.
 `suspend.checkpoint(resource)` durably persists opaque provider state before destructive
-cleanup. Core fences operations and resumes the same host identity with checkout setup
-and readiness afterward. Providers own vendor observations, snapshots, loss reporting,
+cleanup. Core fences operations and resumes the same host identity without rerunning checkout setup. Providers own vendor observations, snapshots, loss reporting,
 and expiry scheduling using `bb.background.schedule` and startup reconciliation.
 Providers must reserve the full drain bound plus snapshot time and scheduling jitter;
 a server outage or late wake cannot guarantee preservation. Unsafe recovery must fail
@@ -2871,10 +2849,6 @@ return phase, recoveryState and message. Explicit machine removal remains availa
 The request/response schemas and types share this behavior and stabilization criteria.
 Stabilization requires interruption, checkpoint/restart, removal serialization,
 failed drain, bounded drain and same-identity restore tests.
-
-Restore setup hooks use the same recorded core hook path as creation and receive the shared core machine environment contributions. Hook output redacts contributed secrets across stream boundaries. PR 2 protocol 193 supplies the shared hook environment and stream redaction. Modal introduced protocol 194 because it adds `workspace.readiness.inspect` and `host.readiness.probe` requests and responses; a protocol 193 daemon cannot execute those readiness commands. Enrolled machines update before use. Failed restore hooks block readiness.
-
-Machine readiness now uses protocol 195: `workspace.readiness.inspect` also returns non-Git directory fingerprints (canonical path and setup-hook content hash), and `provider.health` optionally receives the effective turn environment. Health checks with contributions run in disposable isolated provider processes; rotated credentials do not reuse a prior maintenance process. Successful legacy core hooks are reconciled by two stable, clean inspections without executing setup again.
 
 ## PluginStorage.experimental_secrets
 
