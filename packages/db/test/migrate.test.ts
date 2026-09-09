@@ -1646,7 +1646,6 @@ describe("migrate", () => {
       const host = upsertHost(db, noopNotifier, {
         id: "host-retained-output-migration",
         name: "Migration Host",
-        type: "persistent",
       });
       const { project } = createProject(db, noopNotifier, {
         name: "Migration Project",
@@ -1886,6 +1885,7 @@ describe("migrate", () => {
         defaultProviderId: null,
         machineServerUrl: null,
         defaultMachineAccess: null,
+        machineGitCredentialsEnabled: true,
         streamerMode: false,
         managedBranchPrefix: "bb/",
       });
