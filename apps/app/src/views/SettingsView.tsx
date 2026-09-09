@@ -1227,7 +1227,7 @@ export function SettingsView() {
     content = (
       <>
         <MachinesSettingsSection />
-        {machineHosts.length > 1 ? <MachineAccessSettings /> : null}
+        <MachineAccessSettings />
         {machineHosts.some((host) => host.machineProviderId !== null) ? (
           <details
             id="advanced-machine-settings"
