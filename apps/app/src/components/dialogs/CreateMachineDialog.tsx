@@ -50,7 +50,7 @@ export function CreateMachineDialog({
   );
 }
 
-function CreateMachineContent({
+export function CreateMachineContent({
   onOpenChange,
 }: {
   open: boolean;

@@ -18,7 +18,7 @@ import {
 import { invalidateSystemConfig } from "@/hooks/cache-owners/system-cache-effects";
 import { parseMachineEnvironmentImport } from "./machine-environment-import";
 
-const queryKey = ["machine-environment"];
+export const machineEnvironmentQueryKey = ["machine-environment"];
 type DraftRow = Omit<MachineEnvironmentVariable, "value"> & {
   id: string;
   existing: boolean;
@@ -30,7 +30,7 @@ export function MachineEnvironmentSettings() {
   const settings = useSystemConfig().data?.generalSettings;
   const updateSettings = useUpdateGeneralSettings();
   const query = useQuery({
-    queryKey,
+    queryKey: machineEnvironmentQueryKey,
     queryFn: () => sdk.system.machineEnvironment(),
   });
   const [draft, setDraft] = useState<DraftRow[] | null>(null);
