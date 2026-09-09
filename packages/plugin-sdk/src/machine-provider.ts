@@ -1,7 +1,5 @@
-import type { Project } from "@bb/domain";
 import type {
   JsonValue,
-  PluginMachineProviderRequirements,
   PluginMachineValidateDecision,
   StandardSchemaV1,
   StandardSchemaV1InferOutput,
@@ -11,20 +9,9 @@ export type PluginMachineProviderInputsSchema = StandardSchemaV1 | undefined;
 type InputsValue<S> = S extends StandardSchemaV1
   ? StandardSchemaV1InferOutput<S>
   : null;
-type ProjectFacts<R extends PluginMachineProviderRequirements> =
-  | { project: null; gitRemote: null }
-  | (R extends Record<"gitRemote", true>
-      ? { project: Project; gitRemote: string }
-      : { project: Project; gitRemote: string | null });
-
 export interface PluginMachineProviderProgress {
   step(text: string): void;
   log(text: string): void;
-}
-
-export interface PluginMachineProviderAvailabilityContext {
-  project: Project | null;
-  gitRemote: string | null;
 }
 
 export type PluginMachineProviderAvailability =
@@ -33,20 +20,16 @@ export type PluginMachineProviderAvailability =
   | { status: "unavailable"; message: string };
 
 export type PluginMachineProviderValidateContext<
-  R extends PluginMachineProviderRequirements =
-    PluginMachineProviderRequirements,
   S extends PluginMachineProviderInputsSchema =
     PluginMachineProviderInputsSchema,
-> = ProjectFacts<R> & {
+> = {
   inputs: InputsValue<S>;
 };
 
 export type PluginMachineProviderCreateContext<
-  R extends PluginMachineProviderRequirements =
-    PluginMachineProviderRequirements,
   S extends PluginMachineProviderInputsSchema =
     PluginMachineProviderInputsSchema,
-> = PluginMachineProviderValidateContext<R, S> & {
+> = PluginMachineProviderValidateContext<S> & {
   key: string;
   attempt: number;
   /** Await the allocation recovery record after preparing enrollment, before bootstrap. This is not a filesystem save. Never include a bootstrap bundle. Daemon connection does not imply agent readiness. */
@@ -96,8 +79,6 @@ export interface PluginMachineProviderEnvironmentRow {
 }
 
 export interface PluginMachineProviderDefinition<
-  R extends PluginMachineProviderRequirements =
-    PluginMachineProviderRequirements,
   S extends PluginMachineProviderInputsSchema =
     PluginMachineProviderInputsSchema,
 > {
@@ -105,16 +86,13 @@ export interface PluginMachineProviderDefinition<
   displayName: string;
   /** Omit to present provider-created machines like ordinary enrolled machines. */
   icon?: string;
-  requires?: R;
   /** Persisted and readable by every plugin. Store secret references, never secrets. */
   inputs?: S;
-  availability?(
-    context: PluginMachineProviderAvailabilityContext,
-  ):
+  availability?():
     | PluginMachineProviderAvailability
     | Promise<PluginMachineProviderAvailability>;
   validate?(
-    context: PluginMachineProviderValidateContext<R, S>,
+    context: PluginMachineProviderValidateContext<S>,
   ): PluginMachineValidateDecision | Promise<PluginMachineValidateDecision>;
   environmentRow?: PluginMachineProviderEnvironmentRow;
   /** Resolve the idle timeout for this machine; null disables automatic suspension. Core owns activity checks. */
@@ -130,7 +108,7 @@ export interface PluginMachineProviderDefinition<
   }): Promise<{ summary: string; values: JsonValue }>;
 
   create(
-    context: PluginMachineProviderCreateContext<R, S>,
+    context: PluginMachineProviderCreateContext<S>,
   ): Promise<PluginMachineProviderCreateResult>;
   /** Reconcile and remove an uncertain allocation by durable key without creating or bootstrapping. Return failed while allocation intent remains unresolved. */
   reconcileCleanup(context: {

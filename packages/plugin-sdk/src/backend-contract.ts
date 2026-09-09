@@ -415,24 +415,15 @@ export interface PluginEnvironments {
   recheck(): Promise<void>;
 }
 
-export interface PluginMachineProviderRequirements {
-  gitRemote?: boolean;
-}
-
 export type PluginMachineValidateDecision =
   | { action: "accept" }
   | { action: "refuse"; message: string };
 
 export type PluginMachineProviderDeclaration<
-  Requires extends PluginMachineProviderRequirements =
-    PluginMachineProviderRequirements,
   Inputs extends
     import("./machine-provider.js").PluginMachineProviderInputsSchema =
     import("./machine-provider.js").PluginMachineProviderInputsSchema,
-> = import("./machine-provider.js").PluginMachineProviderDefinition<
-  Requires,
-  Inputs
->;
+> = import("./machine-provider.js").PluginMachineProviderDefinition<Inputs>;
 
 export interface ServerAccessGrant {
   id: string;
@@ -486,12 +477,11 @@ export interface PluginServerAccess {
 
 export interface PluginMachines extends MachineBootstrapApi {
   register<
-    const Requires extends PluginMachineProviderRequirements,
     const Inputs extends
       import("./machine-provider.js").PluginMachineProviderInputsSchema =
       undefined,
   >(
-    declaration: PluginMachineProviderDeclaration<Requires, Inputs>,
+    declaration: PluginMachineProviderDeclaration<Inputs>,
   ): void;
 }
 

@@ -53,14 +53,15 @@ bb.experimental_machines.register({
 });
 ```
 
-`requires.gitRemote` makes the remote non-null when a project is supplied and
-filters out projects without one. Optional Standard Schema `inputs` are parsed
-before create and persisted in `hosts.machine_provider_selection`. Every plugin
+A machine is not scoped to a project: nothing about creation names one, and
+projects reach a machine later through project sources. Optional Standard
+Schema `inputs` are parsed before create and persisted in
+`hosts.machine_provider_selection`. Every plugin
 can read them, so never put secrets there. Store credentials in plugin settings
 and pass a non-secret reference such as a target name in inputs.
 
-Create receives a nullable project, nullable gitRemote, parsed inputs, a stable
-key, monotonic attempt, durable progress reporter, and abort signal. It must be
+Create receives parsed inputs, a stable key, monotonic attempt, durable
+progress reporter, and abort signal. It must be
 idempotent by key: if enrolment completed before the server crashed, the next
 call returns the already-enrolled host instead of creating another resource.
 Prepare enrollment before calling `await checkpoint(resource)` after durable

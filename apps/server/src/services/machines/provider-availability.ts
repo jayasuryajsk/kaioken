@@ -1,6 +1,5 @@
 import { jsonValueSchema } from "@bb/domain";
 import type { SystemMachineProvider } from "@bb/server-contract";
-import type { PluginMachineProviderAvailabilityContext } from "@get-bb/plugin-sdk/machine-provider";
 import { z } from "zod";
 import type { WorkSessionDeps } from "../../types.js";
 import { decideWithinBox } from "../threads/dispatch-hooks.js";
@@ -61,34 +60,13 @@ async function resolveEmptyInputs(
 }
 
 export async function resolveMachineProviderAvailability(
-  deps: WorkSessionDeps,
   record: PluginMachineProviderRecord,
-  query: { projectId?: string },
 ): Promise<Availability> {
-  const project =
-    query.projectId === undefined
-      ? null
-      : requirePublicProject(deps.db, query.projectId);
-  if (
-    record.provider.requires.gitRemote &&
-    project !== null &&
-    project.gitRemoteUrl === null
-  ) {
-    return {
-      status: "unavailable",
-      message: "This project has no git remote.",
-    };
-  }
-  const context: PluginMachineProviderAvailabilityContext = {
-    project,
-    gitRemote: project?.gitRemoteUrl ?? null,
-  };
-  return invokeAvailability(record, context);
+  return invokeAvailability(record);
 }
 
 async function invokeAvailability(
   record: PluginMachineProviderRecord,
-  context: PluginMachineProviderAvailabilityContext,
 ): Promise<Availability> {
   const availability = record.provider.availability;
   if (availability === null) return { status: "available" };
@@ -97,7 +75,7 @@ async function invokeAvailability(
     `"${record.provider.id}" machine provider availability`,
     () =>
       decideWithinBox(
-        () => Promise.resolve(availability(context)),
+        () => Promise.resolve(availability()),
         machineProviderDecisionTimeoutMs(),
       ),
   );

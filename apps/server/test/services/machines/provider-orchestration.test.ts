@@ -35,7 +35,7 @@ import {
   upsertMachineLaunch,
   updateMachineLaunchAttempt,
 } from "@bb/db";
-import { hostSchema, type JsonValue, type Project } from "@bb/domain";
+import { hostSchema, type JsonValue } from "@bb/domain";
 import { createDeferredPromise } from "@bb/test-helpers";
 import {
   defineRpcContract,
@@ -173,12 +173,11 @@ function seedMachineWorkspace(
 
 function seedReadyLaunch(
   harness: TestAppHarness,
-  args: { key: string; hostId: string; projectId?: string },
+  args: { key: string; hostId: string },
 ) {
   upsertMachineLaunch(harness.db, {
     key: args.key,
     providerId: "test-machine",
-    projectId: args.projectId ?? null,
     inputs: null,
     attempt: 1,
     phase: "ready",
@@ -215,7 +214,6 @@ describe("core machine provider orchestration", () => {
       upsertMachineLaunch(harness.db, {
         key: "durable-machine-key",
         providerId: record.provider.id,
-        projectId: null,
         inputs: null,
         attempt: 4,
         phase: "creating",
@@ -235,7 +233,6 @@ describe("core machine provider orchestration", () => {
         askMachineLaunch(harness.deps, {
           key: "durable-machine-key",
           record,
-          projectId: null,
           inputs: null,
         }).action,
       ).toBe("wait");
@@ -270,7 +267,6 @@ describe("core machine provider orchestration", () => {
       await createMachine(harness.deps, {
         key: "inputs-key",
         machineProviderId: "test-machine",
-        projectId: null,
         inputs: { target: "  staging  " },
       });
       expect(seen).toEqual([{ target: "staging" }]);
@@ -287,39 +283,9 @@ describe("core machine provider orchestration", () => {
       await expect(
         prepareMachineProviderSelection(harness.deps, {
           machineProviderId: "missing-machine",
-          projectId: null,
           inputs: null,
         }),
       ).rejects.toThrow('Unknown machine provider "missing-machine"');
-    }));
-
-  it("allows a standalone machine when project facts only constrain project creation", async () =>
-    withTestHarness(async (harness) => {
-      const { host } = seedHostSession(harness.deps, {
-        id: "host_standalone",
-      });
-      const contexts: Array<{
-        project: Project | null;
-        gitRemote: string | null;
-      }> = [];
-      installMachineProvider(
-        machineDeclaration(host.id, {
-          requires: { gitRemote: true },
-          validate: ({ project, gitRemote }) => {
-            contexts.push({ project, gitRemote });
-            return { action: "accept" };
-          },
-        }),
-      );
-
-      await expect(
-        prepareMachineProviderSelection(harness.deps, {
-          machineProviderId: "test-machine",
-          projectId: null,
-          inputs: null,
-        }),
-      ).resolves.toMatchObject({ inputs: null });
-      expect(contexts).toEqual([{ project: null, gitRemote: null }]);
     }));
 
   it("recovers and removes a machine when creation is cancelled", async () =>
@@ -353,7 +319,6 @@ describe("core machine provider orchestration", () => {
       askMachineLaunch(harness.deps, {
         key: "cancel-key",
         record,
-        projectId: null,
         inputs: null,
       });
       await cancelMachineLaunch(harness.deps, "cancel-key");
@@ -407,7 +372,6 @@ describe("core machine provider orchestration", () => {
       askMachineLaunch(harness.deps, {
         key: "checkpoint-cancel",
         record,
-        projectId: null,
         inputs: null,
       });
       await checkpointed.promise;
@@ -511,7 +475,6 @@ describe("core machine provider orchestration", () => {
             askMachineLaunch(harness.deps, {
               key,
               record,
-              projectId: null,
               inputs: null,
             });
             await checkpointed.promise;
@@ -585,7 +548,6 @@ describe("core machine provider orchestration", () => {
       askMachineLaunch(harness.deps, {
         key: "late-cancel",
         record,
-        projectId: null,
         inputs: null,
       });
       await cancelMachineLaunch(harness.deps, "late-cancel");
@@ -618,7 +580,6 @@ describe("core machine provider orchestration", () => {
         upsertMachineLaunch(harness.db, {
           key,
           providerId: record.provider.id,
-          projectId: null,
           inputs: null,
           attempt: 1,
           phase: "failed",
@@ -637,7 +598,6 @@ describe("core machine provider orchestration", () => {
           askMachineLaunch(harness.deps, {
             key,
             record,
-            projectId: null,
             inputs: null,
           });
           expect(getMachineLaunch(harness.db, key)).toMatchObject({
@@ -690,7 +650,6 @@ describe("core machine provider orchestration", () => {
       upsertMachineLaunch(harness.db, {
         key: "cancel-retry-key",
         providerId: record.provider.id,
-        projectId: null,
         inputs: null,
         attempt: 1,
         phase: "cancelled",
@@ -752,7 +711,6 @@ describe("core machine provider orchestration", () => {
       upsertMachineLaunch(harness.db, {
         key: "ready-destroyed-key",
         providerId: record.provider.id,
-        projectId: null,
         inputs: null,
         attempt: 1,
         phase: "ready",
@@ -772,7 +730,6 @@ describe("core machine provider orchestration", () => {
         askMachineLaunch(harness.deps, {
           key: "ready-destroyed-key",
           record,
-          projectId: null,
           inputs: null,
         }).action,
       ).toBe("reject");
@@ -780,7 +737,6 @@ describe("core machine provider orchestration", () => {
         createMachine(harness.deps, {
           key: "ready-destroyed-key",
           machineProviderId: record.provider.id,
-          projectId: null,
           inputs: null,
         }),
       ).rejects.toMatchObject({
@@ -839,7 +795,6 @@ describe("core machine provider orchestration", () => {
       const request = {
         record,
         key: replacementKey,
-        projectId: null,
         inputs: null,
       };
       expect(askMachineLaunch(harness.deps, request).action).toBe("wait");
@@ -917,7 +872,6 @@ describe("core machine provider orchestration", () => {
       askMachineLaunch(harness.deps, {
         key: base,
         record,
-        projectId: null,
         inputs: null,
       });
       seedReadyLaunch(harness, { key: base, hostId: oldHost.id });
@@ -929,7 +883,6 @@ describe("core machine provider orchestration", () => {
       askMachineLaunch(harness.deps, {
         key,
         record,
-        projectId: null,
         inputs: null,
       });
       await vi.waitFor(() =>
@@ -978,11 +931,7 @@ describe("core machine provider orchestration", () => {
           environmentId: null,
           status: "starting",
         });
-        seedReadyLaunch(harness, {
-          key: thread.id,
-          hostId: oldHost.id,
-          projectId: project.id,
-        });
+        seedReadyLaunch(harness, { key: thread.id, hostId: oldHost.id });
         updateHost(harness.db, harness.hub, oldHost.id, {
           destroyedAt: Date.now(),
           phase: "destroyed",
@@ -1011,12 +960,7 @@ describe("core machine provider orchestration", () => {
         const record = installMachineProvider(
           machineDeclaration(newHost.id, { create, remove }),
         );
-        askMachineLaunch(harness.deps, {
-          key,
-          record,
-          projectId: project.id,
-          inputs: null,
-        });
+        askMachineLaunch(harness.deps, { key, record, inputs: null });
         await vi.waitFor(() => expect(create).toHaveBeenCalledOnce());
         if (action === "archive")
           archiveThreadAndHiddenSourceForks(harness.deps, {
@@ -1080,12 +1024,7 @@ describe("core machine provider orchestration", () => {
           },
         }),
       );
-      askMachineLaunch(harness.deps, {
-        key: thread.id,
-        record,
-        projectId: project.id,
-        inputs: null,
-      });
+      askMachineLaunch(harness.deps, { key: thread.id, record, inputs: null });
       await vi.waitFor(() => {
         expect(calls).toEqual([`create:${thread.id}`]);
       });
@@ -2352,7 +2291,6 @@ it("cancel before allocation reconciles without starting a fresh allocation", as
     askMachineLaunch(harness.deps, {
       key: "cancel-before-allocation",
       record,
-      projectId: null,
       inputs: null,
     });
     await started.promise;
@@ -2439,7 +2377,6 @@ it("returns a durable launch before allocation and client disconnect does not ca
       body: JSON.stringify({
         key: "disconnect",
         machineProviderId: "test-machine",
-        projectId: null,
         inputs: null,
       }),
     });
@@ -2488,7 +2425,6 @@ it("explicit cancel settles enrollment, tombstones pending hosts and aborts crea
     await submitMachine(harness.deps, {
       key: "explicit-cancel",
       machineProviderId: "test-machine",
-      projectId: null,
       inputs: null,
     });
     await started.promise;
@@ -2575,7 +2511,6 @@ it("definitive pre-allocation rejection fails immediately without reconciliation
     await submitMachine(harness.deps, {
       key: "rejected-create",
       machineProviderId: "test-machine",
-      projectId: null,
       inputs: null,
     });
     await expect
@@ -2795,7 +2730,6 @@ it.each(["SDK follow", "server create"])(
       const launch = await sdk.hosts.submit({
         key: "review-follow",
         machineProviderId: "test-machine",
-        projectId: null,
         inputs: null,
       });
       await expect
@@ -2811,7 +2745,6 @@ it.each(["SDK follow", "server create"])(
           : createMachine(h.deps, {
               key: launch.id,
               machineProviderId: "test-machine",
-              projectId: null,
               inputs: null,
             })
       ).then(

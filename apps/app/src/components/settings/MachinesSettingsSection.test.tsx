@@ -76,7 +76,6 @@ const modalProvider: SystemMachineProvider = {
   icon: "./modal-logo.svg",
   logoUrl: "/api/v1/system/providers/machine%3Amodal-sandbox/logo?h=hash",
   pluginId: "environment-modal-sandbox",
-  requires: { gitRemote: true },
   inputs: null,
   acceptsEmptyInputs: true,
   supportsSuspend: true,

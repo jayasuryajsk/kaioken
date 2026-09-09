@@ -180,9 +180,10 @@ preview URLs expire and never reveal the host id or absolute root.
 ## Standalone machines
 
 `bb.sdk.hosts.listProviders({ projectId? })` discovers machine providers and their
-input schemas. `bb.sdk.hosts.create({ machineProviderId, projectId, inputs, key?,
-signal? })` returns a public Host; use `projectId: null` for a global machine and
-`inputs: null` only when the provider accepts no inputs. Supply a stable key for
+input schemas; its optional `projectId` only resolves the environment row shown
+for a project. `bb.sdk.hosts.create({ machineProviderId, inputs, key?, signal? })`
+returns a public Host; a machine belongs to no project, and `inputs: null` is
+for a provider that accepts no inputs. Supply a stable key for
 idempotent retries. Creation does not create an environment or a thread.
 `bb.sdk.hosts.suspend({ hostId })` and `resume({ hostId })` require the provider's
 paired suspend/resume operations. `retryCleanup({ hostId })` retries failed

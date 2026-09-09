@@ -31,7 +31,6 @@ export function ManualMachineSetup({
       const launch = await client.hosts.submit({
         key: key.current,
         machineProviderId: "manual",
-        projectId: null,
         inputs: null,
         signal: abort.signal,
       });

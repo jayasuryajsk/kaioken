@@ -1165,7 +1165,6 @@ export const machineLaunches = sqliteTable(
   {
     key: text("key").primaryKey(),
     providerId: text("provider_id").notNull(),
-    projectId: text("project_id"),
     inputs: text("inputs", { mode: "json" }).$type<JsonValue>(),
     attempt: integer("attempt").notNull(),
     phase: text("phase")

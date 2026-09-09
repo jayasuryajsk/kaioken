@@ -212,7 +212,6 @@ describe("ProjectlessEnvSlot", () => {
     icon: "Box",
     logoUrl: null,
     pluginId: "environment-modal-sandbox",
-    requires: { gitRemote: true },
     inputs: null,
     acceptsEmptyInputs: true,
     supportsSuspend: true,

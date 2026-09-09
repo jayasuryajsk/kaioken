@@ -52,7 +52,6 @@ export type CreateHostJoinCodeRequest = z.infer<
 export const createMachineRequestSchema = z
   .object({
     machineProviderId: z.string().min(1),
-    projectId: z.string().min(1).nullable(),
     inputs: jsonValueSchema.nullable(),
     key: z.string().min(1).optional(),
   })

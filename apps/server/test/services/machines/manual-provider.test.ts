@@ -46,7 +46,6 @@ it("creates, cancels, and removes manual machines through the production lifecyc
         await submitMachine(h.deps, {
           key,
           machineProviderId: "manual",
-          projectId: null,
           inputs: null,
         });
         await vi.waitFor(() =>

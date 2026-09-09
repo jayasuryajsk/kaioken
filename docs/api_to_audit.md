@@ -568,11 +568,11 @@ or daemon wire field. Generic discover/adopt ownership and endpoint migration
 remain open; the additional consumer does not stabilize these APIs.
 
 **What it does.** Lets a plugin create and own execution machines. A machine
-provider declares its id, display name, optional icon, optional git-remote requirement,
+provider declares its id, display name, optional icon,
 optional Standard Schema inputs, availability, validation, optional picker
 sugar row, lifecycle policy, and idempotent create/remove operations. Create is
-keyed durably and may enrol a project checkout, but standalone machine creation
-passes a nullable project and does not require a checkout. The returned JSON
+keyed durably and names no project: a machine belongs to no project, and
+projects reach it later through project sources. The returned JSON
 resource is private to the provider and capped at 16 KiB.
 
 Core persists launch attempts and machine lifecycle state on hosts. It suspends

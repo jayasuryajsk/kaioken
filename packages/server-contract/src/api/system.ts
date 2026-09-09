@@ -335,7 +335,6 @@ export const systemMachineProviderSchema = z.object({
   icon: z.string().min(1).nullable(),
   logoUrl: z.string().min(1).nullable(),
   pluginId: z.string().min(1),
-  requires: z.object({ gitRemote: z.boolean() }),
   inputs: jsonValueSchema.nullable(),
   acceptsEmptyInputs: z.boolean(),
   supportsSuspend: z.boolean(),

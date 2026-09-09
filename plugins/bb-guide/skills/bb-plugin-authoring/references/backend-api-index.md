@@ -90,7 +90,6 @@ Read the installed declarations for exact current signatures.
 - `MachineInstallerCommand` — command argv and private stdin
 - `MachineBootstrapApi` — enrollments, prepareEnrollment, waitForConnection, installerCommand, bootstrap
 - `PluginMachineProviderDeclaration`
-- `PluginMachineProviderRequirements` — optional `gitRemote`
 - `PluginMachineValidateDecision`
 - `PluginEnvironmentProviderDeclaration`
 - `PluginEnvironmentProviderRequirements` — `requires`, e.g.
@@ -306,7 +305,6 @@ Read the installed declarations for exact current signatures.
   suspend/resume, and remove
 - `PluginMachineProviderInputsSchema`
 - `PluginMachineProviderEnvironmentRow`
-- `PluginMachineProviderAvailabilityContext`
 - `PluginMachineProviderAvailability`
 - `PluginMachineProviderValidateContext`
 - `PluginMachineProviderCreateContext` — async `checkpoint(resource)` after

@@ -14,6 +14,9 @@ import { confirmDestructiveAction } from "./helpers.js";
 
 interface MachineListCommandOptions {
   json?: boolean;
+}
+
+interface MachineProvidersCommandOptions extends MachineListCommandOptions {
   project?: string;
 }
 
@@ -169,7 +172,6 @@ export function registerMachineCommands(
       "Reuse a stable key when retrying creation",
     )
     .option("--inputs <JSON>", "Provider inputs as JSON")
-    .option("--project <id/name>", "Project ID or exact project name")
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(async (opts: MachineCreateCommandOptions) => {
@@ -189,28 +191,9 @@ export function registerMachineCommands(
         process.once("SIGINT", cancel);
         try {
           const sdk = createCliBbSdk(getUrl());
-          let projectId: string | null = null;
-          if (opts.project !== undefined) {
-            const target = opts.project.trim();
-            if (!target) throw new Error("Project must not be empty.");
-            const projects = await sdk.projects.list({
-              includePersonal: true,
-              signal: controller.signal,
-            });
-            const byId = projects.find((project) => project.id === target);
-            const matches = byId
-              ? [byId]
-              : projects.filter((project) => project.name === target);
-            if (matches.length === 0) throw new Error("Project was not found.");
-            if (matches.length > 1) {
-              throw new Error("Project name is ambiguous; use its ID.");
-            }
-            projectId = matches[0].id;
-          }
           controller.signal.throwIfAborted();
           let launch = await sdk.hosts.submit({
             machineProviderId,
-            projectId,
             inputs,
             ...(key === undefined ? {} : { key }),
             signal: controller.signal,
@@ -376,10 +359,10 @@ export function registerMachineCommands(
   machine
     .command("providers")
     .description("List installed machine providers")
-    .option("--project <id>", "Evaluate availability for a project")
+    .option("--project <id>", "Resolve the environment row for a project")
     .option("--json", "Print machine-readable JSON output")
     .action(
-      action(async (opts: MachineListCommandOptions) => {
+      action(async (opts: MachineProvidersCommandOptions) => {
         const providers = await createCliBbSdk(getUrl()).hosts.listProviders({
           ...(opts.project === undefined ? {} : { projectId: opts.project }),
         });

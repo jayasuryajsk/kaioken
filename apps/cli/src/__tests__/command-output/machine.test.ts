@@ -71,14 +71,12 @@ describe("bb machine command output", () => {
   const register: CommandRegistrar = (program) =>
     registerMachineCommands(program, () => "http://server");
 
-  it("creates with a stable key, JSON inputs, and a project resolved by name", async () => {
+  it("creates with a stable key and JSON inputs", async () => {
     const create = vi.fn(async () => launch);
-    const projects = vi.fn(async () => [{ id: "project-1", name: "Example" }]);
     stubServerApi({
       "v1.hosts.launches.:id.$get": vi.fn(async () => launch),
       "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
       "v1.hosts.$post": create,
-      "v1.projects.$get": projects,
     });
 
     await runCommand(
@@ -91,8 +89,6 @@ describe("bb machine command output", () => {
         "retry-1",
         "--inputs",
         '{"address":"example.test"}',
-        "--project",
-        "Example",
         "--json",
       ],
       register,
@@ -103,7 +99,6 @@ describe("bb machine command output", () => {
         json: {
           machineProviderId: "ssh",
           key: "retry-1",
-          projectId: "project-1",
           inputs: { address: "example.test" },
         },
       },
@@ -140,7 +135,7 @@ describe("bb machine command output", () => {
   it.each([
     { provider: "ssh", inputs: null, argv: [] },
     { provider: "digitalocean", inputs: {}, argv: ["--inputs", "{}"] },
-  ])("creates $provider globally without a project and lets the server choose the key", async ({ provider, inputs, argv }) => {
+  ])("creates $provider and lets the server choose the key", async ({ provider, inputs, argv }) => {
     const create = vi.fn(async () => launch);
     stubServerApi({
       "v1.hosts.launches.:id.$get": vi.fn(async () => launch),
@@ -152,7 +147,7 @@ describe("bb machine command output", () => {
 
     expect(create).toHaveBeenCalledWith(
       {
-        json: { machineProviderId: provider, projectId: null, inputs },
+        json: { machineProviderId: provider, inputs },
       },
       { init: { signal: expect.any(AbortSignal) } },
     );
@@ -250,29 +245,6 @@ describe("bb machine command output", () => {
     expect(create).not.toHaveBeenCalled();
     expect(collectLogPayloads(vi.mocked(console.error))).toEqual([
       "Error: --inputs must be valid JSON.",
-    ]);
-  });
-
-  it("refuses ambiguous project names before creating", async () => {
-    const create = vi.fn(async () => launch);
-    stubServerApi({
-      "v1.hosts.$post": create,
-      "v1.projects.$get": vi.fn(async () => [
-        { id: "project-1", name: "Example" },
-        { id: "project-2", name: "Example" },
-      ]),
-    });
-
-    await expect(
-      runCommand(
-        ["machine", "create", "--provider", "ssh", "--project", "Example"],
-        register,
-      ),
-    ).rejects.toThrow("process.exit:1");
-
-    expect(create).not.toHaveBeenCalled();
-    expect(collectLogPayloads(vi.mocked(console.error))).toEqual([
-      "Error: Project name is ambiguous; use its ID.",
     ]);
   });
 

@@ -73,7 +73,6 @@ beforeEach(() => {
       logoUrl: null,
       pluginId:
         id === "command-provider" ? "command-plugin" : "tailscale-plugin",
-      requires: { gitRemote: false },
       inputs: null,
       acceptsEmptyInputs: true,
       supportsSuspend: false,

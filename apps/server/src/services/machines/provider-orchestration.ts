@@ -50,7 +50,6 @@ import {
   machineProviderDecisionTimeoutMs,
   type PluginMachineProviderRecord,
 } from "../plugins/plugin-machine-provider-registry.js";
-import { requirePublicProject } from "../lib/entity-lookup.js";
 import {
   requestEnvironmentRemoval,
   sweepProviderEnvironment,
@@ -240,20 +239,8 @@ async function invokeCreate(
   deps: Deps,
   signal: AbortSignal,
 ): Promise<PluginMachineProviderCreateResult> {
-  const project =
-    launch.projectId === null
-      ? null
-      : requirePublicProject(deps.db, launch.projectId);
   const invocation = await invokeMachineProvider(record, "machine create", () =>
     record.provider.create({
-      ...(project === null
-        ? { project: null, gitRemote: null }
-        : {
-            project,
-            gitRemote: record.provider.requires.gitRemote
-              ? project.gitRemoteUrl
-              : null,
-          }),
       inputs: launch.inputs,
       key: launch.key,
       attempt: launch.attempt,
@@ -491,7 +478,6 @@ export async function prepareMachineProviderSelection(
   deps: Deps,
   args: {
     machineProviderId: string;
-    projectId: string | null;
     inputs: JsonValue | null;
   },
 ): Promise<{ record: PluginMachineProviderRecord; inputs: JsonValue | null }> {
@@ -503,21 +489,6 @@ export async function prepareMachineProviderSelection(
       `Unknown machine provider "${args.machineProviderId}"`,
     );
   }
-  const project =
-    args.projectId === null
-      ? null
-      : requirePublicProject(deps.db, args.projectId);
-  if (
-    record.provider.requires.gitRemote &&
-    project !== null &&
-    project.gitRemoteUrl === null
-  ) {
-    throw new ApiError(
-      409,
-      "machine_provider_rejected",
-      `${project.name} has no git remote, so the "${record.provider.id}" machine provider has nothing to clone.`,
-    );
-  }
   const inputs = await parseMachineProviderInputs(record, args.inputs);
   if (record.provider.validate !== null) {
     const invocation = await invokeMachineProvider(
@@ -527,17 +498,7 @@ export async function prepareMachineProviderSelection(
         decideWithinBox(
           () =>
             Promise.resolve(
-              record.provider.validate?.({
-                ...(project === null
-                  ? { project: null, gitRemote: null }
-                  : {
-                      project,
-                      gitRemote: record.provider.requires.gitRemote
-                        ? project.gitRemoteUrl
-                        : null,
-                    }),
-                inputs,
-              }),
+              record.provider.validate?.({ inputs }),
             ),
           machineProviderDecisionTimeoutMs(),
         ),
@@ -608,7 +569,6 @@ export function askMachineLaunch(
   args: {
     key: string;
     record: PluginMachineProviderRecord;
-    projectId: string | null;
     inputs: JsonValue | null;
   },
 ): MachineLaunchDecision {
@@ -617,7 +577,6 @@ export function askMachineLaunch(
   const changed =
     row !== null &&
     (row.providerId !== args.record.provider.id ||
-      row.projectId !== args.projectId ||
       JSON.stringify(row.inputs) !== JSON.stringify(args.inputs));
   if (changed) {
     throw new ApiError(
@@ -669,7 +628,6 @@ export function askMachineLaunch(
     row = {
       key: args.key,
       providerId: args.record.provider.id,
-      projectId: args.projectId,
       inputs: args.inputs,
       attempt,
       phase: "creating",
@@ -911,7 +869,6 @@ export async function submitMachine(
   args: {
     key?: string;
     machineProviderId: string;
-    projectId: string | null;
     inputs: JsonValue | null;
   },
 ): Promise<MachineLaunchStatus> {
@@ -920,7 +877,6 @@ export async function submitMachine(
   const decision = askMachineLaunch(deps, {
     key,
     record: prepared.record,
-    projectId: args.projectId,
     inputs: prepared.inputs,
   });
   if (
@@ -1641,7 +1597,6 @@ export async function sweepMachineLifecycles(
         askMachineLaunch(deps, {
           key: launch.key,
           record,
-          projectId: launch.projectId,
           inputs: launch.inputs,
         });
       continue;

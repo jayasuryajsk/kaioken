@@ -151,7 +151,6 @@ describe("@bb/sdk", () => {
     expect(
       await sdk.hosts.create({
         machineProviderId: "digitalocean",
-        projectId: null,
         inputs: {},
       }),
     ).toEqual(host);
@@ -159,7 +158,6 @@ describe("@bb/sdk", () => {
       {
         bodyText: JSON.stringify({
           machineProviderId: "digitalocean",
-          projectId: null,
           inputs: {},
         }),
         method: "POST",

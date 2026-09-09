@@ -175,7 +175,6 @@ describe("machine checkout picker rows", () => {
           expect(
             await createMachine(harness.deps, {
               machineProviderId: "test-machine",
-              projectId: PERSONAL_PROJECT_ID,
               inputs: { size: "small" },
             }),
           ).toMatchObject({ id: host.id });
@@ -184,7 +183,6 @@ describe("machine checkout picker rows", () => {
           expect(
             await createMachine(harness.deps, {
               machineProviderId: "test-machine",
-              projectId: null,
               inputs: { size: "small" },
             }),
           ).toMatchObject({ id: host.id });
@@ -225,11 +223,11 @@ it("rechecks availability after provider setup changes without restarting the pl
       decisionTimeoutMs: 10_000,
     });
     expect(
-      await resolveMachineProviderAvailability(harness.deps, record, {}),
+      await resolveMachineProviderAvailability(record),
     ).toEqual({ status: "setup-required", message: "Connect your account" });
     configured = true;
     expect(
-      await resolveMachineProviderAvailability(harness.deps, record, {}),
+      await resolveMachineProviderAvailability(record),
     ).toEqual({ status: "available" });
   });
 });

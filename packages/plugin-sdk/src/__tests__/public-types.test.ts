@@ -81,7 +81,6 @@ const EXPECTED_BACKEND_ROOT_TYPE_EXPORTS = [
   "PluginKvStorage",
   "PluginLogger",
   "PluginMachineProviderDeclaration",
-  "PluginMachineProviderRequirements",
   "PluginMachineValidateDecision",
   "PluginMachines",
   "PluginMentionItem",

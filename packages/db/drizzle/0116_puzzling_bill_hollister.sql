@@ -1,0 +1,1 @@
+ALTER TABLE `machine_launches` DROP COLUMN `project_id`;

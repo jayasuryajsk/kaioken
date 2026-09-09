@@ -165,7 +165,6 @@ export async function completeProviderSelection(
   } else {
     const prepared = await prepareMachineProviderSelection(deps, {
       machineProviderId: selection.machine.machineProviderId,
-      projectId,
       inputs: selection.machine.inputs,
     });
     machine = {

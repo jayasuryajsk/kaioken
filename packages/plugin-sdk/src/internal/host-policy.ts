@@ -2428,17 +2428,10 @@ const environmentProviderPolicySchema = z
   })
   .strict();
 
-export const MACHINE_PROVIDER_REQUIREMENT_NAMES = ["gitRemote"] as const;
-
-export type NormalizedPluginMachineProviderRequirements = {
-  [K in (typeof MACHINE_PROVIDER_REQUIREMENT_NAMES)[number]]: boolean;
-};
-
 export interface NormalizedPluginMachineProvider {
   id: string;
   displayName: string;
   icon: string | null;
-  requires: NormalizedPluginMachineProviderRequirements;
   inputs: StandardSchemaV1 | null;
   inputsJsonSchema: JsonValue | null;
   availability: NonNullable<
@@ -2500,22 +2493,6 @@ export function validatePluginMachineProviderDeclaration(
     if (icon.length === 0) {
       throw new Error(`machine provider "${id}" declares an empty icon`);
     }
-  }
-  const requires = declaration.requires ?? {};
-  if (
-    typeof requires !== "object" ||
-    requires === null ||
-    Array.isArray(requires)
-  ) {
-    throw new Error(
-      `machine provider "${id}" declares a requires that is not an object`,
-    );
-  }
-  const gitRemote = requires.gitRemote;
-  if (gitRemote !== undefined && typeof gitRemote !== "boolean") {
-    throw new Error(
-      `machine provider "${id}" declares a requires.gitRemote that is not a boolean`,
-    );
   }
   const inputs = normalizeMachineProviderInputs(id, declaration);
   if (
@@ -2582,7 +2559,6 @@ export function validatePluginMachineProviderDeclaration(
     id,
     displayName,
     icon,
-    requires: { gitRemote: gitRemote === true },
     inputs: inputs === null ? null : inputs.schema,
     inputsJsonSchema: inputs === null ? null : inputs.jsonSchema,
     availability: declaration.availability ?? null,

@@ -394,7 +394,6 @@ export async function resolveEnvironmentProvider(
           const machineDecision = askMachineLaunch(deps, {
             key: resolveThreadMachineLaunchKey(deps, thread.id),
             record: machineRecord,
-            projectId: thread.projectId,
             inputs: machine.inputs,
           });
           if (machineDecision.action === "reject") {

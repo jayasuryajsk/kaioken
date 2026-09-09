@@ -463,7 +463,6 @@ export function registerSystemRoutes(
               ? null
               : `/api/v1/system/providers/${encodeURIComponent(`machine:${record.provider.id}`)}/logo?h=${record.icon.hash}`,
           pluginId: record.pluginId,
-          requires: record.provider.requires,
           inputs: record.provider.inputsJsonSchema,
           acceptsEmptyInputs: await machineProviderAcceptsEmptyInputs(record),
           supportsSuspend: record.provider.suspend !== null,
@@ -472,11 +471,7 @@ export function registerSystemRoutes(
             record,
             query,
           ),
-          availability: await resolveMachineProviderAvailability(
-            deps,
-            record,
-            query,
-          ),
+          availability: await resolveMachineProviderAvailability(record),
         })),
       ),
     });

@@ -380,7 +380,6 @@ export const STORY_MACHINE_PROVIDERS: readonly SystemMachineProvider[] = [
     icon: "Box",
     logoUrl: null,
     pluginId: "environment-modal-sandbox",
-    requires: { gitRemote: true },
     inputs: null,
     acceptsEmptyInputs: true,
     supportsSuspend: true,
