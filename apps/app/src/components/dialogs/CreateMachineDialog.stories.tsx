@@ -4,6 +4,7 @@ import {
   CONNECT_UNAVAILABLE,
   CONNECT_UNPAIRED,
   MANUAL_WITHOUT_URL,
+  MANUAL_MACHINE_PROVIDER,
   MODAL_MACHINE_PROVIDER,
   SETUP_REQUIRED_MACHINE_PROVIDER,
   UNAVAILABLE_MACHINE_PROVIDER,
@@ -116,16 +117,12 @@ export function ProviderChoice() {
       </StoryRow>
       <StoryRow
         label="several providers"
-        hint="nothing is chosen yet — every provider is pickable, and its own message appears once chosen"
+        hint="the two providers that ship — every one is pickable, and its own message appears once chosen"
       >
         <DialogStage>
           <ProviderMachineSetup
             onOpenChange={noop}
-            providers={[
-              MODAL_MACHINE_PROVIDER,
-              SETUP_REQUIRED_MACHINE_PROVIDER,
-              UNAVAILABLE_MACHINE_PROVIDER,
-            ]}
+            providers={[MODAL_MACHINE_PROVIDER, MANUAL_MACHINE_PROVIDER]}
             onSelectSetup={noop}
             setupIds={noProviders}
           />

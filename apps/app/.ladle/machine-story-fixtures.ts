@@ -3,6 +3,7 @@ import type {
   SystemMachineProvider,
 } from "@bb/server-contract";
 import type { MachineAccessState } from "../src/components/settings/MachineAccessSettings";
+import modalLogoUrl from "../../../plugins/environment-modal-sandbox/modal-logo.svg";
 
 const noop = () => {};
 const noopAsync = async () => {};
@@ -104,7 +105,7 @@ export function machineProvider(
     Pick<SystemMachineProvider, "id" | "displayName">,
 ): SystemMachineProvider {
   return {
-    icon: "Cloud",
+    icon: null,
     logoUrl: null,
     pluginId: `plugin-${overrides.id}`,
     inputs: null,
@@ -119,7 +120,9 @@ export function machineProvider(
 export const MODAL_MACHINE_PROVIDER = machineProvider({
   id: "modal-sandbox",
   displayName: "Modal sandbox",
-  icon: "Box",
+  pluginId: "environment-modal-sandbox",
+  icon: "./modal-logo.svg",
+  logoUrl: modalLogoUrl,
   supportsSuspend: true,
   environmentRow: {
     displayName: "New sandbox",
@@ -127,19 +130,26 @@ export const MODAL_MACHINE_PROVIDER = machineProvider({
   },
 });
 
+export const MANUAL_MACHINE_PROVIDER = machineProvider({
+  id: "manual",
+  displayName: "Manual machine setup",
+  pluginId: "machine-manual",
+  icon: "Terminal",
+});
+
 export const SETUP_REQUIRED_MACHINE_PROVIDER = machineProvider({
-  id: "acme-fleet",
-  displayName: "Acme Fleet",
-  icon: "Server",
+  ...MODAL_MACHINE_PROVIDER,
   availability: {
     status: "setup-required",
-    message: "Add an API token in plugin settings",
+    message:
+      "Modal sandbox is not configured: set tokenId, tokenSecret in the plugin's settings.",
   },
 });
 
 export const UNAVAILABLE_MACHINE_PROVIDER = machineProvider({
-  id: "zeta-metal",
-  displayName: "Zeta Metal",
-  icon: "HardDrive",
-  availability: { status: "unavailable", message: "Region eu-west is offline" },
+  ...MODAL_MACHINE_PROVIDER,
+  availability: {
+    status: "unavailable",
+    message: "Modal returned 401 for this workspace's token.",
+  },
 });
