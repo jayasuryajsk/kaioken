@@ -141,8 +141,8 @@ describe("machine checkout picker rows", () => {
           environmentRow: { environmentProviderId: "personal-workspace" },
           availability: { status: "available" },
         });
+        expect(providers[0]).not.toHaveProperty("requires");
         expect(providers[0]).toMatchObject({
-          requires: { gitRemote: false },
           availability: { status: "available" },
           environmentRow: scope === "git-project" ? row : null,
           acceptsEmptyInputs: false,
