@@ -1,20 +1,15 @@
-import {
-  MachineAccessControlsContent,
-  MachineAccessSettingsContent,
-} from "./MachineAccessSettings";
+import { MachineAccessSettingsContent } from "./MachineAccessSettings";
 import {
   CONNECT_NEEDS_ATTENTION,
   CONNECT_PAIRED,
   CONNECT_PAIRED_WITHOUT_URL,
   CONNECT_UNAVAILABLE,
   CONNECT_UNPAIRED,
-  MANUAL_WITHOUT_URL,
   MANUAL_WITH_URL,
   METHOD_NOT_INSTALLED,
   machineAccessState,
 } from "../../../.ladle/machine-story-fixtures";
 import { StoryCard, StoryRow } from "../../../.ladle/story-card";
-import { DialogStage } from "../../../.ladle/story-dialog-stage";
 
 export default {
   title: "settings/Machine Access",
@@ -101,43 +96,6 @@ export function Section() {
         <MachineAccessSettingsContent
           machineAccess={machineAccessState(METHOD_NOT_INSTALLED)}
         />
-      </StoryRow>
-    </StoryCard>
-  );
-}
-
-export function InTheAddMachineDialog() {
-  return (
-    <StoryCard labelWidth="200px">
-      <StoryRow
-        label="not set up"
-        hint="the same controls without settings chrome — they stack and go full width under @lg"
-      >
-        <DialogStage>
-          <MachineAccessControlsContent
-            machineAccess={machineAccessState(CONNECT_UNPAIRED)}
-          />
-        </DialogStage>
-      </StoryRow>
-      <StoryRow
-        label="manual without address"
-        hint="the address field is the whole gate for the direct provider"
-      >
-        <DialogStage>
-          <MachineAccessControlsContent
-            machineAccess={machineAccessState(MANUAL_WITHOUT_URL)}
-          />
-        </DialogStage>
-      </StoryRow>
-      <StoryRow
-        label="connected"
-        hint="reachable — shown here only because the picker can still be changed"
-      >
-        <DialogStage>
-          <MachineAccessControlsContent
-            machineAccess={machineAccessState(CONNECT_PAIRED)}
-          />
-        </DialogStage>
       </StoryRow>
     </StoryCard>
   );
