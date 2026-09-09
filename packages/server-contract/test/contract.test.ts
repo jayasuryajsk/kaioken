@@ -78,6 +78,14 @@ const OPTIONAL_SERVER_FIELD_GROUPS: readonly OptionalServerFieldGroup[] = [
   },
   {
     reason:
+      "Composed environment providers choose their declared machine provider; concrete providers require an explicit machine selection.",
+    fields: [
+      "createThreadRequestSchema.environment.machine",
+      "forkThreadRequestSchema.environment.machine",
+    ],
+  },
+  {
+    reason:
       'originPluginId is present exactly when origin is "plugin" (enforced by refinement); omission means a non-plugin origin.',
     fields: ["createThreadRequestSchema.originPluginId"],
   },
@@ -1967,6 +1975,7 @@ describe("environment provider contracts", () => {
   it("lists provider requirements, input defaults, and availability", () => {
     const base = {
       id: "container",
+      machineProviderId: null,
       displayName: "Container",
       icon: null,
       logoUrl: null,

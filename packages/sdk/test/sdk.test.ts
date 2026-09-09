@@ -166,7 +166,7 @@ describe("@bb/sdk", () => {
       {
         bodyText: undefined,
         method: "GET",
-        url: "http://bb.test/api/v1/hosts/launches/launch_do",
+        url: "http://bb.test/api/v1/hosts/launches/launch_do?",
       },
       {
         bodyText: undefined,
