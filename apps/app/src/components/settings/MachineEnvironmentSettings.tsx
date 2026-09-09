@@ -6,6 +6,7 @@ import { useUpdateGeneralSettings } from "@/hooks/mutations/settings-mutations";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   machineEnvironmentSetSchema,
+  type MachineEnvironmentList,
   type MachineEnvironmentVariable,
 } from "@bb/server-contract";
 import { Button } from "@bb/shared-ui/button";
@@ -33,6 +34,62 @@ export function MachineEnvironmentSettings() {
     queryKey: machineEnvironmentQueryKey,
     queryFn: () => sdk.system.machineEnvironment(),
   });
+  const save = async (rows: readonly DraftRow[]) => {
+    for (const row of rows) {
+      if (row.value === null) continue;
+      await sdk.system.setMachineEnvironment({
+        name: row.name,
+        value: row.value,
+        note: row.note,
+      });
+    }
+    for (const original of query.data?.variables ?? []) {
+      if (!rows.some((row) => row.name === original.name))
+        await sdk.system.unsetMachineEnvironment(original.name);
+    }
+  };
+  return (
+    <MachineEnvironmentSettingsContent
+      environment={query.data ?? null}
+      loadFailed={query.isError}
+      gitCredentialsEnabled={settings?.machineGitCredentialsEnabled ?? true}
+      gitSwitchDisabled={!settings || updateSettings.isPending}
+      onSave={save}
+      onSaved={async () => {
+        await query.refetch();
+        invalidateSystemConfig({ queryClient });
+      }}
+      onSaveFailed={() => void query.refetch()}
+      onSetGitCredentials={(enabled) => {
+        if (!settings) return;
+        updateSettings.mutate(
+          { ...settings, machineGitCredentialsEnabled: enabled },
+          { onSuccess: () => void query.refetch() },
+        );
+      }}
+    />
+  );
+}
+
+export function MachineEnvironmentSettingsContent({
+  environment,
+  loadFailed = false,
+  gitCredentialsEnabled,
+  gitSwitchDisabled = false,
+  onSave,
+  onSaved,
+  onSaveFailed,
+  onSetGitCredentials,
+}: {
+  environment: MachineEnvironmentList | null;
+  loadFailed?: boolean;
+  gitCredentialsEnabled: boolean;
+  gitSwitchDisabled?: boolean;
+  onSave: (rows: readonly DraftRow[]) => Promise<void>;
+  onSaved?: () => void | Promise<void>;
+  onSaveFailed?: () => void;
+  onSetGitCredentials: (enabled: boolean) => void;
+}) {
   const [draft, setDraft] = useState<DraftRow[] | null>(null);
   const [visible, setVisible] = useState<Set<string>>(new Set());
   const [touched, setTouched] = useState<Set<string>>(new Set());
@@ -41,7 +98,7 @@ export function MachineEnvironmentSettings() {
   const [error, setError] = useState<string | null>(null);
   const rows =
     draft ??
-    (query.data?.variables ?? []).map((row) => ({
+    (environment?.variables ?? []).map((row) => ({
       ...row,
       id: row.name,
       existing: true,
@@ -61,42 +118,28 @@ export function MachineEnvironmentSettings() {
         : "Use uppercase letters, numbers, and underscores; start with a letter or underscore.";
   });
   const mutation = useMutation({
-    mutationFn: async () => {
-      for (const row of rows) {
-        if (row.value === null) continue;
-        await sdk.system.setMachineEnvironment({
-          name: row.name,
-          value: row.value,
-          note: row.note,
-        });
-      }
-      for (const original of query.data?.variables ?? []) {
-        if (!rows.some((row) => row.name === original.name))
-          await sdk.system.unsetMachineEnvironment(original.name);
-      }
-    },
+    mutationFn: () => onSave(rows),
     onSuccess: async () => {
-      await query.refetch();
-      invalidateSystemConfig({ queryClient });
+      await onSaved?.();
       setDraft(null);
       setVisible(new Set());
       setError(null);
     },
     onError: () => {
-      void query.refetch();
+      onSaveFailed?.();
       setError(
         "Some changes could not be saved. Your edits are retained; try saving again.",
       );
     },
   });
-  const disabled = !query.data || mutation.isPending;
+  const disabled = environment === null || mutation.isPending;
   const change = (id: string, patch: Partial<DraftRow>) => {
     setDraft(rows.map((row) => (row.id === id ? { ...row, ...patch } : row)));
     setError(null);
   };
   const hasOverride = rows.some((row) => row.name === "GH_TOKEN");
-  const git = query.data?.builtInGit;
-  const gitDisabled = settings?.machineGitCredentialsEnabled === false;
+  const git = environment?.builtInGit;
+  const gitDisabled = !gitCredentialsEnabled;
   const gitMissing = git?.status === "not logged in";
   return (
     <SettingsSection
@@ -221,18 +264,9 @@ export function MachineEnvironmentSettings() {
               <div className="flex size-8 items-center justify-center">
                 <Switch
                   aria-label="Automatic GH_TOKEN"
-                  checked={settings?.machineGitCredentialsEnabled ?? true}
-                  disabled={!settings || updateSettings.isPending}
-                  onCheckedChange={(enabled) =>
-                    updateSettings.mutate(
-                      { ...settings!, machineGitCredentialsEnabled: enabled },
-                      {
-                        onSuccess: () => {
-                          void query.refetch();
-                        },
-                      },
-                    )
-                  }
+                  checked={gitCredentialsEnabled}
+                  disabled={gitSwitchDisabled}
+                  onCheckedChange={onSetGitCredentials}
                 />
               </div>
             </div>
@@ -353,7 +387,7 @@ export function MachineEnvironmentSettings() {
           </div>
         ))}
       </div>
-      {query.isError && (
+      {loadFailed && (
         <p role="alert" className="text-xs text-destructive-text">
           Could not load machine variables. Try refreshing this page.
         </p>

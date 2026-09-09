@@ -2,7 +2,7 @@ import { MachineAccessControls } from "@/components/settings/MachineAccessSettin
 import { useSystemConfig } from "@/hooks/queries/system-queries";
 import { isLocalOnlyUrl } from "@/lib/loopback-hostname";
 import { MachineSetupProgress } from "./MachineSetupProgress";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import type { JsonValue } from "@bb/domain";
@@ -82,36 +82,18 @@ export function CreateMachineContent({
   if (!accessReady || loadedProviders === undefined) {
     const loading =
       config.isPending || (accessReady && loadedProviders === undefined);
-    if (loading) {
-      return (
-        <>
-          <DialogTitle className="sr-only">Add a machine</DialogTitle>
-          <p role="status" className="text-sm text-subtle-foreground">
-            Checking machine access…
-          </p>
-        </>
-      );
-    }
     return (
-      <>
-        <DialogHeader>
-          <DialogTitle>Set up machine access</DialogTitle>
-          <DialogDescription>
-            A new machine has to reach this server over the network. Choose the
-            address it should use.
-          </DialogDescription>
-        </DialogHeader>
-        {config.isError ? (
-          <p role="alert">
-            Could not check machine access.{" "}
-            <Button variant="outline" onClick={() => void config.refetch()}>
-              Try again
-            </Button>
-          </p>
-        ) : (
-          <MachineAccessControls onNavigate={() => onOpenChange(false)} />
-        )}
-      </>
+      <MachineAccessGate
+        state={
+          loading
+            ? { status: "checking" }
+            : config.isError
+              ? { status: "failed", onRetry: () => void config.refetch() }
+              : { status: "blocked" }
+        }
+      >
+        <MachineAccessControls onNavigate={() => onOpenChange(false)} />
+      </MachineAccessGate>
     );
   }
   if (selected) {
@@ -139,7 +121,52 @@ export function CreateMachineContent({
   );
 }
 
-function ProviderMachineSetup({
+export type MachineAccessGateState =
+  | { status: "checking" }
+  | { status: "failed"; onRetry: () => void }
+  | { status: "blocked" };
+
+export function MachineAccessGate({
+  state,
+  children,
+}: {
+  state: MachineAccessGateState;
+  children: ReactNode;
+}) {
+  if (state.status === "checking") {
+    return (
+      <>
+        <DialogTitle className="sr-only">Add a machine</DialogTitle>
+        <p role="status" className="text-sm text-subtle-foreground">
+          Checking machine access…
+        </p>
+      </>
+    );
+  }
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Set up machine access</DialogTitle>
+        <DialogDescription>
+          A new machine has to reach this server over the network. Choose the
+          address it should use.
+        </DialogDescription>
+      </DialogHeader>
+      {state.status === "failed" ? (
+        <p role="alert">
+          Could not check machine access.{" "}
+          <Button variant="outline" onClick={state.onRetry}>
+            Try again
+          </Button>
+        </p>
+      ) : (
+        children
+      )}
+    </>
+  );
+}
+
+export function ProviderMachineSetup({
   onOpenChange,
   providers,
   onSelectSetup,

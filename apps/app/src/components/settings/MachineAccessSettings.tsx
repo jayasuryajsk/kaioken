@@ -1,3 +1,4 @@
+import type { ServerAccessStatus } from "@bb/server-contract";
 import { isLocalOnlyUrl } from "@/lib/loopback-hostname";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -23,7 +24,21 @@ function parseUrl(value: string): URL | null {
   }
 }
 
-function useMachineAccess() {
+export interface MachineAccessState {
+  access: ServerAccessStatus | undefined;
+  disabled: boolean;
+  draft: string | null;
+  error: string | null;
+  effective: ServerAccessStatus["providers"][number] | undefined;
+  saving: boolean;
+  selected: string;
+  value: string;
+  editDraft: (next: string) => void;
+  selectProvider: (providerId: string) => void;
+  commitUrl: () => Promise<void>;
+}
+
+function useMachineAccess(): MachineAccessState {
   const config = useSystemConfig();
   const update = useUpdateGeneralSettings();
   const settings = config.data?.generalSettings;
@@ -102,10 +117,16 @@ function useMachineAccess() {
   };
 }
 
-type MachineAccess = ReturnType<typeof useMachineAccess>;
-
 export function MachineAccessSettings() {
   const machineAccess = useMachineAccess();
+  return <MachineAccessSettingsContent machineAccess={machineAccess} />;
+}
+
+export function MachineAccessSettingsContent({
+  machineAccess,
+}: {
+  machineAccess: MachineAccessState;
+}) {
   return (
     <SettingsSection
       title="Machine access"
@@ -125,6 +146,21 @@ export function MachineAccessControls({
 }) {
   const machineAccess = useMachineAccess();
   return (
+    <MachineAccessControlsContent
+      machineAccess={machineAccess}
+      onNavigate={onNavigate}
+    />
+  );
+}
+
+export function MachineAccessControlsContent({
+  machineAccess,
+  onNavigate,
+}: {
+  machineAccess: MachineAccessState;
+  onNavigate?: () => void;
+}) {
+  return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-normal text-foreground">
@@ -143,7 +179,7 @@ export function MachineAccessControls({
 function MachineAccessMethodPicker({
   machineAccess,
 }: {
-  machineAccess: MachineAccess;
+  machineAccess: MachineAccessState;
 }) {
   const { access, disabled, selected } = machineAccess;
   return (
@@ -186,7 +222,7 @@ function MachineAccessDetails({
   machineAccess,
   onNavigate,
 }: {
-  machineAccess: MachineAccess;
+  machineAccess: MachineAccessState;
   onNavigate?: () => void;
 }) {
   const { access, disabled, draft, effective, error, saving, selected, value } =

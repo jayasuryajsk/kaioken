@@ -1,0 +1,145 @@
+import type {
+  ServerAccessStatus,
+  SystemMachineProvider,
+} from "@bb/server-contract";
+import type { MachineAccessState } from "../src/components/settings/MachineAccessSettings";
+
+const noop = () => {};
+const noopAsync = async () => {};
+
+export const CONNECT_UNPAIRED: ServerAccessStatus = {
+  providers: [
+    {
+      id: "connect",
+      displayName: "bb connect",
+      attention: null,
+      availability: {
+        status: "setup-required",
+        message: "Pair this bb instance with bb connect",
+      },
+    },
+    {
+      id: "direct",
+      displayName: "Manual",
+      attention: null,
+      availability: { status: "available" },
+    },
+  ],
+  defaultProviderId: "connect",
+  effectiveUrl: null,
+  urlSource: null,
+};
+
+function withConnect(
+  availability: ServerAccessStatus["providers"][number]["availability"],
+  attention: string | null = null,
+): ServerAccessStatus {
+  return {
+    ...CONNECT_UNPAIRED,
+    providers: [
+      { id: "connect", displayName: "bb connect", attention, availability },
+      CONNECT_UNPAIRED.providers[1]!,
+    ],
+  };
+}
+
+export const CONNECT_PAIRED = withConnect({
+  status: "available",
+  serverUrl: "https://sawyer.getbb.app",
+});
+
+export const CONNECT_PAIRED_WITHOUT_URL = withConnect({ status: "available" });
+
+export const CONNECT_UNAVAILABLE = withConnect({
+  status: "unavailable",
+  message: "The gate rejected this bb's credential (HTTP 401)",
+});
+
+export const CONNECT_NEEDS_ATTENTION = withConnect(
+  { status: "available", serverUrl: "https://sawyer.getbb.app" },
+  "2 legacy access records need attention",
+);
+
+export const MANUAL_WITHOUT_URL: ServerAccessStatus = {
+  ...CONNECT_UNPAIRED,
+  defaultProviderId: "direct",
+};
+
+export const MANUAL_WITH_URL: ServerAccessStatus = {
+  ...CONNECT_UNPAIRED,
+  defaultProviderId: "direct",
+  effectiveUrl: "https://bb.example.com",
+  urlSource: "setting",
+};
+
+export const METHOD_NOT_INSTALLED: ServerAccessStatus = {
+  ...CONNECT_UNPAIRED,
+  providers: [CONNECT_UNPAIRED.providers[1]!],
+  defaultProviderId: "tailscale",
+};
+
+export function machineAccessState(
+  access: ServerAccessStatus,
+  overrides: Partial<MachineAccessState> = {},
+): MachineAccessState {
+  const selected = overrides.selected ?? access.defaultProviderId ?? "connect";
+  return {
+    access,
+    disabled: false,
+    draft: null,
+    error: null,
+    effective: access.providers.find((provider) => provider.id === selected),
+    saving: false,
+    selected,
+    value: access.urlSource === "setting" ? (access.effectiveUrl ?? "") : "",
+    editDraft: noop,
+    selectProvider: noop,
+    commitUrl: noopAsync,
+    ...overrides,
+  };
+}
+
+export function machineProvider(
+  overrides: Partial<SystemMachineProvider> &
+    Pick<SystemMachineProvider, "id" | "displayName">,
+): SystemMachineProvider {
+  return {
+    icon: "Cloud",
+    logoUrl: null,
+    pluginId: `plugin-${overrides.id}`,
+    inputs: null,
+    acceptsEmptyInputs: true,
+    supportsSuspend: false,
+    environmentRow: null,
+    availability: { status: "available" },
+    ...overrides,
+  };
+}
+
+export const MODAL_MACHINE_PROVIDER = machineProvider({
+  id: "modal-sandbox",
+  displayName: "Modal sandbox",
+  icon: "Box",
+  supportsSuspend: true,
+  environmentRow: {
+    displayName: "New sandbox",
+    environmentProviderId: "project-checkout",
+  },
+});
+
+export const SETUP_REQUIRED_MACHINE_PROVIDER = machineProvider({
+  id: "acme-fleet",
+  displayName: "Acme Fleet",
+  icon: "Server",
+  availability: {
+    status: "setup-required",
+    message: "Add an API token in plugin settings",
+  },
+});
+
+export const UNAVAILABLE_MACHINE_PROVIDER = machineProvider({
+  id: "zeta-metal",
+  displayName: "Zeta Metal",
+  icon: "HardDrive",
+  availability: { status: "unavailable", message: "Region eu-west is offline" },
+});
