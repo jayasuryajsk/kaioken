@@ -1253,9 +1253,6 @@ export const machineLifecycles = sqliteTable("machine_lifecycles", {
   leaseUntil: integer("lease_until"),
   retryAt: integer("retry_at"),
   idleSuspendMs: integer("idle_suspend_ms"),
-  retireAfterMs: integer("retire_after_ms"),
   deadlineLeadMs: integer("deadline_lead_ms"),
   unusedSince: integer("unused_since"),
-  retentionAt: integer("retention_at"),
-  keep: integer("keep", { mode: "boolean" }).notNull().default(false),
 });

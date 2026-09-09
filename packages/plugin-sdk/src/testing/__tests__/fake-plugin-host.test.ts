@@ -2073,7 +2073,7 @@ describe("environment targets", () => {
       displayName: "Test machine",
       policy: {
         idleSuspendMs: null,
-        retire: { after: "never" },
+
         removeRetryMs: 1_000,
       },
       reconcileCleanup: async () => ({ status: "removed" }),
@@ -2104,7 +2104,7 @@ describe("environment targets", () => {
     const lifecycle = async () => ({ resource: null });
     const policy = {
       idleSuspendMs: null,
-      retire: { after: "never" as const },
+
       removeRetryMs: 1_000,
     };
     expect(() =>
