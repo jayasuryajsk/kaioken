@@ -17,9 +17,15 @@ a standalone machine with `project: null`; create is not required to enrol a
 project source in that case.
 
 `icon` is optional. Omit it when provider-created machines should look like
-ordinary enrolled machines: the Machines page and Add machine show neither a
-provider logo nor a provider badge. Declaring it enables the normal provider
-glyph, plugin-relative SVG, declared icon, or React icon-slot presentation.
+ordinary enrolled machines: the Machines page and Add machine show no provider
+logo. Declaring it enables the normal provider glyph, plugin-relative SVG,
+declared icon, or React icon-slot presentation.
+
+`experimental_machineTag` is also optional: it is the short tag, up to 24
+characters, shown beside that logo on every machine the provider made. Declare
+it when machines from this provider read better with their own name, as a Modal
+sandbox does with `modal`. Omit it when the provider's display name only
+describes how a machine was added, and those machines stay untagged.
 
 ```ts
 bb.experimental_machines.register({

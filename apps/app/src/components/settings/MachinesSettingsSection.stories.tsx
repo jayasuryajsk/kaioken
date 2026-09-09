@@ -38,12 +38,12 @@ function sandbox(overrides: Partial<Host> = {}): Host {
 function Row({
   host,
   machineProvider = MODAL_MACHINE_PROVIDER,
-  lifecycleMessage = null,
+  lifecycleNotice = null,
   ...overrides
 }: {
   host: Host;
   machineProvider?: typeof MODAL_MACHINE_PROVIDER | null;
-  lifecycleMessage?: string | null;
+  lifecycleNotice?: Parameters<typeof MachineRowContent>[0]["lifecycleNotice"];
 } & Partial<Parameters<typeof MachineRowContent>[0]>) {
   return (
     <div className="min-w-0 flex-1">
@@ -65,7 +65,7 @@ function Row({
           lifecycleActionPending={false}
           retryUpdatePending={false}
           machineProvider={machineProvider}
-          lifecycleMessage={lifecycleMessage}
+          lifecycleNotice={lifecycleNotice}
           {...overrides}
         />
       </SettingsRowList>
@@ -111,13 +111,13 @@ export function Rows() {
       </StoryRow>
       <StoryRow
         label="provider-made, running"
-        hint="a live sandbox — the provider chip carries the plugin's own logo"
+        hint="a live sandbox — the provider tags its machines, so the chip reads modal rather than the provider name"
       >
         <Row host={sandbox({ name: "Modal sandbox 0af2" })} projectCount={1} />
       </StoryRow>
       <StoryRow
         label="pausing"
-        hint="the provider reports its own progress, which replaces the connection line"
+        hint="the phase replaces the connection word, and the provider's own progress follows it"
       >
         <Row
           host={sandbox({
@@ -157,7 +157,7 @@ export function Rows() {
       </StoryRow>
       <StoryRow
         label="cleanup failed"
-        hint="teardown gave up, so the row explains what is left behind and offers removal without opening the menu"
+        hint="teardown gave up; core reports why and offers removal, the only action that clears it"
       >
         <Row
           host={sandbox({
@@ -170,7 +170,10 @@ export function Rows() {
               teardown: { status: "failed", attempt: 3 },
             }),
           })}
-          lifecycleMessage="Modal refused to delete the sandbox after 3 attempts. Removing the machine here clears it from bb; delete the sandbox in Modal too."
+          lifecycleNotice={{
+            recoveryState: "recoverable",
+            message: "Machine removal failed: Modal returned HTTP 500.",
+          }}
         />
       </StoryRow>
     </StoryCard>

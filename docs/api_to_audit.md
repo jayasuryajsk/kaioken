@@ -603,9 +603,14 @@ setup serializes per project/host and uses a stable project-ID target, inspectin
 an existing target for the expected remote before registering it after a crash.
 Refuse mismatched targets without overwriting them. This adds
 no plugin API and does not change standalone machine creation.
-When `icon` is omitted, Machines and Add machine show no provider logo or
-provider badge, so the machine has the same presentation as a manually
-enrolled machine.
+When `icon` is omitted, Machines and Add machine show no provider logo, so the
+machine has the same presentation as a manually enrolled machine.
+`experimental_machineTag` is the short tag Machines and the machine page show
+beside that logo on every machine the provider made, so a Modal sandbox reads
+`modal` rather than repeating the provider's own display name. Omit it to leave
+those machines untagged; a provider whose name only describes how a machine was
+added should. Audit whether one tag per provider is enough, or whether a
+provider needs to tag individual machines it created differently.
 
 **Audit before stabilizing.** Verify create-key ownership and retry timing,
 crash recovery when enrolment completed before create returned, cancellation

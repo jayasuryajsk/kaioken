@@ -457,6 +457,7 @@ export function registerSystemRoutes(
           displayName: record.provider.displayName,
           description: record.provider.description,
           icon: record.provider.icon,
+          machineTag: record.provider.machineTag,
           logoUrl:
             record.icon === undefined
               ? null

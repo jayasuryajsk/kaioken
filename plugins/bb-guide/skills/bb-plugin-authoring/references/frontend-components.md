@@ -231,8 +231,9 @@ className?, draftKey? }` — the `default*` props are SEEDS, not controlled
   A machine provider may contribute an `environmentRow`; choosing it creates a
   new machine and then runs the row's environment provider on that machine.
   A machine provider may omit `icon`; Add machine and the Machines page then
-  render no provider logo or provider badge, matching a manually enrolled
-  machine.
+  render no provider logo, matching a manually enrolled machine. The Machines
+  page badges a machine only when its provider declares
+  `experimental_machineTag`.
   Machine-provider inputs use
   `app.slots.experimental_machineProviderInputs({ machineProviderId,
 component })`. The component receives `{ projectId, value, onChange }` and

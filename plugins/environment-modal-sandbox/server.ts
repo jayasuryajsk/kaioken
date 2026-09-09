@@ -394,6 +394,7 @@ export function createModalSandboxPlugin(
       description:
         "Create a sandbox in your Modal account, billed by Modal while it runs and suspended when idle.",
       icon: "./modal-logo.svg",
+      experimental_machineTag: "modal",
       environmentRow: {
         displayName: "New sandbox",
         environmentProviderId: "project-checkout",

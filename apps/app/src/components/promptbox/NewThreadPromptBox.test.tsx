@@ -211,6 +211,7 @@ describe("ProjectlessEnvSlot", () => {
     displayName: "Modal sandbox",
     description: null,
     icon: "Box",
+    machineTag: null,
     logoUrl: null,
     pluginId: "environment-modal-sandbox",
     inputs: null,

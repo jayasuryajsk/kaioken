@@ -330,6 +330,7 @@ export const systemMachineProviderSchema = z.object({
   displayName: z.string().min(1),
   description: z.string().min(1).nullable(),
   icon: z.string().min(1).nullable(),
+  machineTag: z.string().min(1).nullable(),
   logoUrl: z.string().min(1).nullable(),
   pluginId: z.string().min(1),
   inputs: jsonValueSchema.nullable(),

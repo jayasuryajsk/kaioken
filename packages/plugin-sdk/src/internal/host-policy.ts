@@ -2421,12 +2421,14 @@ const environmentProviderPolicySchema = z
   .strict();
 
 export const MACHINE_PROVIDER_DESCRIPTION_MAX_CHARS = 200;
+export const MACHINE_PROVIDER_TAG_MAX_CHARS = 24;
 
 export interface NormalizedPluginMachineProvider {
   id: string;
   displayName: string;
   description: string | null;
   icon: string | null;
+  machineTag: string | null;
   inputs: StandardSchemaV1 | null;
   inputsJsonSchema: JsonValue | null;
   availability: NonNullable<
@@ -2492,6 +2494,15 @@ export function validatePluginMachineProviderDeclaration(
       throw new Error(`machine provider "${id}" declares an empty icon`);
     }
   }
+  const machineTag =
+    declaration.experimental_machineTag === undefined
+      ? null
+      : z
+          .string()
+          .trim()
+          .min(1)
+          .max(MACHINE_PROVIDER_TAG_MAX_CHARS)
+          .parse(declaration.experimental_machineTag);
   const inputs = normalizeMachineProviderInputs(id, declaration);
   if (
     typeof declaration.create !== "function" ||
@@ -2543,6 +2554,7 @@ export function validatePluginMachineProviderDeclaration(
     displayName,
     description,
     icon,
+    machineTag,
     inputs: inputs === null ? null : inputs.schema,
     inputsJsonSchema: inputs === null ? null : inputs.jsonSchema,
     availability: declaration.availability ?? null,

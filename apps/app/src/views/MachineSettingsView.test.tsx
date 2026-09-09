@@ -175,6 +175,7 @@ describe("MachineSettingsView", () => {
         displayName: "Modal sandbox",
         description: null,
         icon: "./modal-logo.svg",
+        machineTag: "modal",
         logoUrl: "/api/v1/system/providers/machine%3Amodal-sandbox/logo?h=hash",
         pluginId: "environment-modal-sandbox",
         inputs: null,
@@ -187,7 +188,7 @@ describe("MachineSettingsView", () => {
     ]);
     renderView();
 
-    const badge = await screen.findByText("Modal sandbox");
+    const badge = await screen.findByText("modal");
     expect(
       badge.parentElement?.querySelector("[data-provider-logo]"),
     ).not.toBeNull();
@@ -206,6 +207,7 @@ describe("MachineSettingsView", () => {
         displayName: "Test machine",
         description: null,
         icon: null,
+        machineTag: null,
         logoUrl: null,
         pluginId: "test-machine-provider",
         inputs: null,

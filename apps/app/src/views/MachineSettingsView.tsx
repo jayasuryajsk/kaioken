@@ -12,7 +12,10 @@ import { Pill } from "@bb/shared-ui/pill";
 import { ResourceOverflowMenu } from "@bb/shared-ui/resource-list";
 import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
-import { MachinePhaseBadge } from "@/components/machines/MachinePhaseBadge";
+import {
+  machineStatusLabel,
+  machineStatusTone,
+} from "@/components/machines/machine-status";
 import { MachineProviderIcon } from "@/components/plugin/MachineProviderIcon";
 import { PageShell } from "@/components/ui/page-shell.js";
 import {
@@ -85,13 +88,7 @@ function headerMeta({
   platformLabel: string | null;
   now: number;
 }): string {
-  if (host.lifecycle.progress !== null) return host.lifecycle.progress;
-  const parts: string[] = [host.status === "connected" ? "Online" : "Offline"];
-  if (host.status !== "connected" && host.lastSeenAt !== null) {
-    parts.push(
-      `last seen ${formatRelativeTime({ timestamp: host.lastSeenAt, now })}`,
-    );
-  }
+  const parts: string[] = [machineStatusLabel({ host, now })];
   if (platformLabel !== null) parts.push(platformLabel);
   parts.push(
     `paired ${formatRelativeTime({ timestamp: host.createdAt, now })}`,
@@ -307,21 +304,20 @@ export function MachineSettingsView() {
                 {showMachineIdentityBadges && isPrimary ? (
                   <SettingsBadge>Primary</SettingsBadge>
                 ) : null}
-                <MachinePhaseBadge lifecycle={host.lifecycle} />
-                {machineProvider?.icon == null ? null : (
+                {machineProvider?.machineTag == null ? null : (
                   <SettingsBadge>
                     <span className="inline-flex items-center gap-1">
                       <MachineProviderIcon
                         provider={machineProvider}
                         className="size-2.5"
                       />
-                      {machineProvider.displayName}
+                      {machineProvider.machineTag}
                     </span>
                   </SettingsBadge>
                 )}
               </div>
               <div className="mt-1 flex min-w-0 items-center gap-2">
-                <MachineStatusDot connected={host.status === "connected"} />
+                <MachineStatusDot tone={machineStatusTone(host)} />
                 <p className="min-w-0 text-xs text-subtle-foreground/75">
                   {headerMeta({ host, platformLabel, now })}
                 </p>

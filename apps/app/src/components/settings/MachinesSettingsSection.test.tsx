@@ -75,6 +75,7 @@ const modalProvider: SystemMachineProvider = {
   displayName: "Modal sandbox",
   description: null,
   icon: "./modal-logo.svg",
+  machineTag: "modal",
   logoUrl: "/api/v1/system/providers/machine%3Amodal-sandbox/logo?h=hash",
   pluginId: "environment-modal-sandbox",
   inputs: null,
@@ -175,7 +176,7 @@ describe("MachinesSettingsSection", () => {
     renderSection();
 
     const name = await screen.findByText("Modal sandbox 3f9a");
-    expect(name.parentElement?.textContent).toContain("Modal sandbox");
+    expect(name.parentElement?.textContent).toContain("modal");
     expect(screen.queryByText("Active")).toBeNull();
     expect(
       name.parentElement

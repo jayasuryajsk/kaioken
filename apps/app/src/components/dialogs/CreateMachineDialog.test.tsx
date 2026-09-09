@@ -71,6 +71,7 @@ beforeEach(() => {
       displayName: id,
       description: null,
       icon: null,
+      machineTag: null,
       logoUrl: null,
       pluginId:
         id === "command-provider" ? "command-plugin" : "tailscale-plugin",

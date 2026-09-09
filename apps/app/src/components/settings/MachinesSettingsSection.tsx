@@ -1,8 +1,8 @@
 import {
   MachineLifecycleNoticeContent,
-  useMachineLifecycleMessage,
+  useMachineLifecycleNotice,
 } from "@/components/machines/MachineLifecycleNotice";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ComponentProps } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { Host, PermissionMode } from "@bb/domain";
 import type { SystemMachineProvider } from "@bb/server-contract";
@@ -37,7 +37,10 @@ import { CreateMachineDialog } from "@/components/dialogs/CreateMachineDialog";
 import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
 import { appToast } from "@/components/ui/app-toast";
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
-import { MachinePhaseBadge } from "@/components/machines/MachinePhaseBadge";
+import {
+  machineStatusLabel,
+  machineStatusTone,
+} from "@/components/machines/machine-status";
 import { MachineRenameDialog } from "@/components/settings/MachineRenameDialog";
 import { MachineProviderIcon } from "@/components/plugin/MachineProviderIcon";
 import {
@@ -62,7 +65,6 @@ import { useHostDaemon } from "@/hooks/useHostDaemon";
 import { getSettingsMachineRoutePath } from "@/lib/route-paths";
 import { PERMISSION_MODE_OPTIONS } from "@/lib/permission-mode-options";
 import { getMutationErrorMessage } from "@/lib/mutation-errors";
-import { formatRelativeTime } from "@/lib/relative-time";
 import {
   formatHostUpdateStatus,
   hostCanRetryUpdate,
@@ -109,11 +111,11 @@ interface MachineRowProps {
 }
 
 function MachineRow(props: MachineRowProps) {
-  const lifecycleMessage = useMachineLifecycleMessage({
+  const lifecycleNotice = useMachineLifecycleNotice({
     hostId: props.host.id,
     enabled: props.host.machineProviderId !== null,
   });
-  return <MachineRowContent {...props} lifecycleMessage={lifecycleMessage} />;
+  return <MachineRowContent {...props} lifecycleNotice={lifecycleNotice} />;
 }
 
 export function MachineRowContent({
@@ -133,19 +135,17 @@ export function MachineRowContent({
   lifecycleActionPending,
   retryUpdatePending,
   machineProvider,
-  lifecycleMessage,
-}: MachineRowProps & { lifecycleMessage: string | null }) {
+  lifecycleNotice,
+}: MachineRowProps & {
+  lifecycleNotice: ComponentProps<
+    typeof MachineLifecycleNoticeContent
+  >["notice"];
+}) {
   const navigate = useNavigate();
   const detailPath = getSettingsMachineRoutePath(host.id);
   const permission = PERMISSION_MODE_PRESENTATION[host.maxPermissionMode];
   const projectLabel = `${projectCount} ${projectCount === 1 ? "project" : "projects"}`;
-  const connectionLabel =
-    host.lifecycle.progress ??
-    (host.status === "connected"
-      ? "Online"
-      : host.lastSeenAt === null
-        ? "Offline"
-        : `Offline · last seen ${formatRelativeTime({ timestamp: host.lastSeenAt, now })}`);
+  const connectionLabel = machineStatusLabel({ host, now });
   const updateStatus = formatHostUpdateStatus(host);
   const removeItem = (
     <DropdownMenuItem
@@ -195,22 +195,21 @@ export function MachineRowContent({
                 {showPrimaryBadge ? (
                   <SettingsBadge>primary</SettingsBadge>
                 ) : null}
-                <MachinePhaseBadge lifecycle={host.lifecycle} />
-                {machineProvider?.icon == null ? null : (
+                {machineProvider?.machineTag == null ? null : (
                   <SettingsBadge>
                     <span className="inline-flex items-center gap-1">
                       <MachineProviderIcon
                         provider={machineProvider}
                         className="size-2.5"
                       />
-                      {machineProvider.displayName}
+                      {machineProvider.machineTag}
                     </span>
                   </SettingsBadge>
                 )}
               </div>
               <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-subtle-foreground/75">
                 <span className="inline-flex shrink-0 items-center gap-1.5">
-                  <MachineStatusDot connected={host.status === "connected"} />
+                  <MachineStatusDot tone={machineStatusTone(host)} />
                   {connectionLabel}
                 </span>
                 {platformLabel === null ? null : (
@@ -318,7 +317,7 @@ export function MachineRowContent({
           </div>
         </div>
         <MachineLifecycleNoticeContent
-          message={lifecycleMessage}
+          notice={lifecycleNotice}
           onRemove={onRemove}
         />
       </div>

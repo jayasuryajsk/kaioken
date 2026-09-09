@@ -107,6 +107,7 @@ export function machineProvider(
   return {
     description: null,
     icon: null,
+    machineTag: null,
     logoUrl: null,
     pluginId: `plugin-${overrides.id}`,
     inputs: null,
@@ -125,6 +126,7 @@ export const MODAL_MACHINE_PROVIDER = machineProvider({
     "Create a sandbox in your Modal account, billed by Modal while it runs and suspended when idle.",
   pluginId: "environment-modal-sandbox",
   icon: "./modal-logo.svg",
+  machineTag: "modal",
   logoUrl: modalLogoUrl,
   supportsSuspend: true,
   environmentRow: {

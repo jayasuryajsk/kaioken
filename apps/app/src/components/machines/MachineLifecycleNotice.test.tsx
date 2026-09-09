@@ -13,51 +13,54 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-it("delegates explicit removal through the existing confirmation flow", async () => {
-  vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
-    phase: "suspended",
-
-    recoveryState: "healthy",
-    message: "Machine suspension failed",
-  });
-  const remove = vi.fn();
+function renderNotice(onRemove: () => void = () => {}) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   const view = render(
     <QueryClientProvider client={client}>
-      <MachineLifecycleNotice hostId="machine" onRemove={remove} />
+      <MachineLifecycleNotice hostId="machine" onRemove={onRemove} />
     </QueryClientProvider>,
   );
+  return { view, client };
+}
+
+it("delegates explicit removal through the existing confirmation flow", async () => {
+  vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
+    phase: "retiring",
+    recoveryState: "recoverable",
+    message: "Machine removal failed: Modal returned HTTP 500.",
+  });
+  const remove = vi.fn();
+  const { view, client } = renderNotice(remove);
   fireEvent.click(await view.findByText("Remove machine"));
   expect(remove).toHaveBeenCalledTimes(1);
   client.clear();
 });
 
-it.each(["Machine suspension failed"])(
-  "shows maintenance failure: %s",
-  async (message) => {
-    vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
-      phase: "active",
+it("reports maintenance in progress without offering removal", async () => {
+  vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
+    phase: "suspending",
+    recoveryState: "draining",
+    message:
+      "Preserving this machine. Active turns will be interrupted and open terminals closed before the filesystem is saved.",
+  });
+  const { view, client } = renderNotice();
+  expect(await view.findByText(/Preserving this machine/)).toBeTruthy();
+  expect(view.queryByText("Remove machine")).toBeNull();
+  client.clear();
+});
 
-      recoveryState: "recoverable",
-      message,
-    });
-    const client = new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    });
-    const view = render(
-      <QueryClientProvider client={client}>
-        <MachineLifecycleNotice hostId="lost" onRemove={() => {}} />
-      </QueryClientProvider>,
-    );
-    expect(
-      await view.findByText(
-        message ??
-          "Machine preservation was lost. Explicit recovery is required.",
-      ),
-    ).toBeTruthy();
-    expect(view.getByText("Remove machine")).toBeTruthy();
-    client.clear();
-  },
-);
+it("shows a recoverable failure with its recovery action", async () => {
+  vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
+    phase: "active",
+    recoveryState: "recoverable",
+    message: "Machine suspension failed: Modal returned HTTP 500.",
+  });
+  const { view, client } = renderNotice();
+  expect(
+    await view.findByText("Machine suspension failed: Modal returned HTTP 500."),
+  ).toBeTruthy();
+  expect(view.getByText("Remove machine")).toBeTruthy();
+  client.clear();
+});
