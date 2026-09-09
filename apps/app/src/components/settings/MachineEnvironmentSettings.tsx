@@ -144,7 +144,7 @@ export function MachineEnvironmentSettingsContent({
   return (
     <SettingsSection
       title="Machine environment"
-      description="Variables shared by enrolled machines. Changes apply to new agent turns, setup commands, and terminals."
+      description="Configuration for machines provisioned by plugins."
       bodyClassName="space-y-3 rounded-none border-0 bg-transparent p-0"
       action={
         <div className="flex flex-wrap gap-2">

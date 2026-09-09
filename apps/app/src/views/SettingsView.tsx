@@ -74,6 +74,7 @@ import {
   useUpdateAppearance,
   useUpdateExperiments,
 } from "@/hooks/mutations/settings-mutations";
+import { useHosts } from "@/hooks/queries/host-queries";
 import { useSystemConfig } from "@/hooks/queries/system-queries";
 import { useWorkspaceOpenTargets } from "@/hooks/useWorkspaceOpenTargets";
 import { isDesktopBrowserAvailable } from "@/lib/bb-desktop";
@@ -1119,6 +1120,7 @@ export function SettingsView() {
   const updateAppearanceMutation = useUpdateAppearance();
   const appThemePreview = useAppThemePreview();
   const location = useLocation();
+  const machineHosts = useHosts().data ?? [];
   const { activePluginId, activeSection, hasUnknownSection } =
     useSettingsNavState();
   if (hasUnknownSection) {
@@ -1225,8 +1227,10 @@ export function SettingsView() {
     content = (
       <>
         <MachinesSettingsSection />
-        <MachineAccessSettings />
-        <MachineEnvironmentSettings />
+        {machineHosts.length > 1 ? <MachineAccessSettings /> : null}
+        {machineHosts.some((host) => host.machineProviderId !== null) ? (
+          <MachineEnvironmentSettings />
+        ) : null}
       </>
     );
   } else if (activeSection === "updates") {
