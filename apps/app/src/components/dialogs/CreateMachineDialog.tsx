@@ -299,46 +299,58 @@ export function ProviderMachineSetup({
     <>
       <DialogHeader>
         <DialogTitle>Add a machine</DialogTitle>
-        <DialogDescription>Choose how to add your machine.</DialogDescription>
+        {providers.length > 1 ? (
+          <DialogDescription>Choose how to add your machine.</DialogDescription>
+        ) : null}
       </DialogHeader>
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm font-normal text-foreground">
             Machine provider
           </span>
-          <OptionPicker
-            modal={false}
-            align="end"
-            label="Machine provider"
-            value={selectedMachineProvider?.id ?? ""}
-            disabled={providers.length === 0 || createMachine.isPending}
-            showChevronWhenDisabled
-            displayOverride={
-              selectedMachineProvider === null
-                ? {
-                    label:
-                      providers.length === 0
-                        ? "None installed"
-                        : "Choose a provider",
-                  }
-                : undefined
-            }
-            options={providers.map((provider) => ({
-              value: provider.id,
-              label: provider.displayName,
-              icon: machineProviderIconComponent(provider),
-              ...(provider.availability === null ||
-              provider.availability.status === "available"
-                ? {}
-                : { description: provider.availability.message }),
-            }))}
-            onChange={(providerId) => {
-              const provider = providers.find(
-                (candidate) => candidate.id === providerId,
-              );
-              if (provider) selectMachineProvider(provider);
-            }}
-          />
+          {providers.length === 1 && selectedMachineProvider !== null ? (
+            <span className="flex items-center gap-2 text-sm text-foreground">
+              <MachineProviderIcon
+                provider={selectedMachineProvider}
+                className="size-4 shrink-0"
+              />
+              {selectedMachineProvider.displayName}
+            </span>
+          ) : (
+            <OptionPicker
+              modal={false}
+              align="end"
+              label="Machine provider"
+              value={selectedMachineProvider?.id ?? ""}
+              disabled={providers.length === 0 || createMachine.isPending}
+              showChevronWhenDisabled
+              displayOverride={
+                selectedMachineProvider === null
+                  ? {
+                      label:
+                        providers.length === 0
+                          ? "None installed"
+                          : "Choose a provider",
+                    }
+                  : undefined
+              }
+              options={providers.map((provider) => ({
+                value: provider.id,
+                label: provider.displayName,
+                icon: machineProviderIconComponent(provider),
+                ...(provider.availability === null ||
+                provider.availability.status === "available"
+                  ? {}
+                  : { description: provider.availability.message }),
+              }))}
+              onChange={(providerId) => {
+                const provider = providers.find(
+                  (candidate) => candidate.id === providerId,
+                );
+                if (provider) selectMachineProvider(provider);
+              }}
+            />
+          )}
         </div>
         {selectedMachineProvider === null ? null : (
           <div className="space-y-3">
