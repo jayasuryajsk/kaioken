@@ -24,7 +24,7 @@ import {
 } from "../src/hooks/useUpdateInventory";
 import { createAppQueryClient } from "../src/lib/query-client";
 import { makeSystemConfig } from "../src/test/fixtures/system-config";
-import { systemMachineProvidersQueryKey } from "../src/hooks/queries/machine-provider-queries";
+import { systemMachineProvidersQueryKey } from "../src/hooks/queries/query-keys";
 import {
   MANUAL_MACHINE_PROVIDER,
   MODAL_MACHINE_PROVIDER,

@@ -5,15 +5,9 @@ import type {
 } from "@bb/server-contract";
 import { sdk } from "@/lib/sdk";
 import { SERVER_SESSION_QUERY_POLICY } from "./query-policies";
+import { systemMachineProvidersQueryKey } from "./query-keys";
 
-const SYSTEM_MACHINE_PROVIDERS_QUERY_KEY = "systemMachineProviders";
 const NO_MACHINE_PROVIDERS: readonly SystemMachineProvider[] = [];
-
-export function systemMachineProvidersQueryKey(
-  query: SystemMachineProvidersQuery = {},
-) {
-  return [SYSTEM_MACHINE_PROVIDERS_QUERY_KEY, query.projectId ?? null] as const;
-}
 
 export function useSystemMachineProviders(
   query: SystemMachineProvidersQuery = {},
