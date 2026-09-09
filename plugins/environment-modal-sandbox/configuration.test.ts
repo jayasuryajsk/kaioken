@@ -29,7 +29,7 @@ describe("idle hibernation", () => {
     expect(resolveSettings(settings({ idleMinutes: 1.5 }))).toEqual({
       ok: false,
       message:
-        "Modal sandbox idleMinutes must be a whole number between 0 and 1440, not 1.5.",
+        "Modal Sandbox idleMinutes must be a whole number between 0 and 1440, not 1.5.",
     });
   });
 });

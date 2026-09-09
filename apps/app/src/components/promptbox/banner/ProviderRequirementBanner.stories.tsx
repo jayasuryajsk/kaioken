@@ -49,12 +49,12 @@ export function Requirements() {
     <StoryCard labelWidth="230px">
       <StoryRow
         label="environment needs configuring"
-        hint="the selected environment's provider reports setup-required, so the composer says so before the send is pressed"
+        hint="the provider's own setup-required message says what is missing; the title and action carry the rest"
       >
         <ResponsiveStage>
           <ProviderRequirementBanner
             title="Modal Sandbox needs configuration"
-            description="Configure Modal Sandbox before starting a thread."
+            description="Modal Sandbox is not configured: set tokenId, tokenSecret in the plugin's settings."
             action={configureAction("Modal Sandbox")}
           />
         </ResponsiveStage>
@@ -156,7 +156,7 @@ export function Requirements() {
         <ResponsiveStage>
           <ProviderRequirementBanner
             title="DigitalOcean development droplet needs configuration"
-            description="Configure DigitalOcean development droplet before starting a thread."
+            description="Add a DigitalOcean API token in the plugin's settings."
             action={configureAction("DigitalOcean development droplet")}
           />
         </ResponsiveStage>
