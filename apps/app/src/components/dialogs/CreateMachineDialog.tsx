@@ -426,7 +426,7 @@ export function ProviderMachineSetup({
                 >
                   {createMachine.isPending
                     ? "Creating machine…"
-                    : `Create ${selectedMachineProvider.displayName}${/machine$/iu.test(selectedMachineProvider.displayName) ? "" : " machine"}`}
+                    : `Create ${selectedMachineProvider.displayName}${/\bmachines?\b/iu.test(selectedMachineProvider.displayName) ? "" : " machine"}`}
                 </Button>
               </div>
             )}

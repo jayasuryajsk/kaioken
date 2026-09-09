@@ -6,7 +6,8 @@ import {
   MANUAL_WITHOUT_URL,
   MANUAL_MACHINE_PROVIDER,
   MODAL_MACHINE_PROVIDER,
-  SETUP_REQUIRED_MACHINE_PROVIDER,
+  MODAL_NEEDS_TOKEN_PROVIDER,
+  MODAL_UNRENDERABLE_INPUTS_PROVIDER,
   UNAVAILABLE_MACHINE_PROVIDER,
   machineAccessState,
 } from "../../../.ladle/machine-story-fixtures";
@@ -104,7 +105,33 @@ export function ProviderChoice() {
     <StoryCard labelWidth="200px">
       <StoryRow
         label="one provider"
-        hint="a single provider is selected for you, so the dialog opens on its inputs and action"
+        hint="a stock bb ships only manual setup, so it is chosen for you and the dialog opens on its action"
+      >
+        <DialogStage>
+          <ProviderMachineSetup
+            onOpenChange={noop}
+            providers={[MANUAL_MACHINE_PROVIDER]}
+            onSelectSetup={noop}
+            setupIds={noProviders}
+          />
+        </DialogStage>
+      </StoryRow>
+      <StoryRow
+        label="several providers"
+        hint="the two that ship — every one is pickable, and its own message appears once chosen"
+      >
+        <DialogStage>
+          <ProviderMachineSetup
+            onOpenChange={noop}
+            providers={[MANUAL_MACHINE_PROVIDER, MODAL_MACHINE_PROVIDER]}
+            onSelectSetup={noop}
+            setupIds={noProviders}
+          />
+        </DialogStage>
+      </StoryRow>
+      <StoryRow
+        label="cloud provider ready"
+        hint="Modal is configured, so creating is the only thing left to do"
       >
         <DialogStage>
           <ProviderMachineSetup
@@ -116,34 +143,34 @@ export function ProviderChoice() {
         </DialogStage>
       </StoryRow>
       <StoryRow
-        label="several providers"
-        hint="the two providers that ship — every one is pickable, and its own message appears once chosen"
+        label="cloud provider needs a token"
+        hint="the only state Modal reports besides available; its own copy, and Configure instead of Create"
       >
         <DialogStage>
           <ProviderMachineSetup
             onOpenChange={noop}
-            providers={[MODAL_MACHINE_PROVIDER, MANUAL_MACHINE_PROVIDER]}
+            providers={[MODAL_NEEDS_TOKEN_PROVIDER]}
             onSelectSetup={noop}
             setupIds={noProviders}
           />
         </DialogStage>
       </StoryRow>
       <StoryRow
-        label="provider needs setup"
-        hint="selected but setup-required — the action configures the plugin instead of creating"
+        label="inputs the app cannot render"
+        hint="the provider requires inputs but registers no control, so Create stays disabled with nothing to explain it"
       >
         <DialogStage>
           <ProviderMachineSetup
             onOpenChange={noop}
-            providers={[SETUP_REQUIRED_MACHINE_PROVIDER]}
+            providers={[MODAL_UNRENDERABLE_INPUTS_PROVIDER]}
             onSelectSetup={noop}
             setupIds={noProviders}
           />
         </DialogStage>
       </StoryRow>
       <StoryRow
-        label="lone unavailable provider"
-        hint="auto-selected because it is the only one — its message replaces the create action"
+        label="unavailable"
+        hint="a contract state no shipped provider returns today — its message replaces the create action"
       >
         <DialogStage>
           <ProviderMachineSetup

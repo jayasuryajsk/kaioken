@@ -137,7 +137,7 @@ export const MANUAL_MACHINE_PROVIDER = machineProvider({
   icon: "Terminal",
 });
 
-export const SETUP_REQUIRED_MACHINE_PROVIDER = machineProvider({
+export const MODAL_NEEDS_TOKEN_PROVIDER = machineProvider({
   ...MODAL_MACHINE_PROVIDER,
   availability: {
     status: "setup-required",
@@ -146,10 +146,22 @@ export const SETUP_REQUIRED_MACHINE_PROVIDER = machineProvider({
   },
 });
 
-export const UNAVAILABLE_MACHINE_PROVIDER = machineProvider({
+export const MODAL_UNRENDERABLE_INPUTS_PROVIDER = machineProvider({
   ...MODAL_MACHINE_PROVIDER,
+  inputs: {
+    type: "object",
+    properties: { region: { type: "string" } },
+    required: ["region"],
+  },
+  acceptsEmptyInputs: false,
+});
+
+export const UNAVAILABLE_MACHINE_PROVIDER = machineProvider({
+  id: "fleet",
+  displayName: "Fleet",
+  icon: "Server",
   availability: {
     status: "unavailable",
-    message: "Modal returned 401 for this workspace's token.",
+    message: "The region this provider was configured for is offline.",
   },
 });
