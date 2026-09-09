@@ -424,9 +424,7 @@ export function ProviderMachineSetup({
                   }
                   onClick={() => createMachine.mutate()}
                 >
-                  {createMachine.isPending
-                    ? "Creating machine…"
-                    : `Create ${selectedMachineProvider.displayName}${/\bmachines?\b/iu.test(selectedMachineProvider.displayName) ? "" : " machine"}`}
+                  {createMachine.isPending ? "Adding machine…" : "Add machine"}
                 </Button>
               </div>
             )}

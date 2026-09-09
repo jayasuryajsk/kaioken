@@ -127,7 +127,7 @@ it("offers the generic provider picker when no owned default setup exists", asyn
   show();
   await pickProvider("tailscale");
   fireEvent.click(
-    screen.getByRole("button", { name: "Create tailscale machine" }),
+    screen.getByRole("button", { name: "Add machine" }),
   );
   await waitFor(() =>
     expect(sdk.hosts.submit).toHaveBeenCalledWith(
