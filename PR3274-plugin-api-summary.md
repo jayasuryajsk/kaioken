@@ -104,7 +104,7 @@ snapshot tracking, and overlapping static/dynamic policies are removed. Explicit
 removal and interrupted-allocation cleanup remain. Plugins own actual snapshots
 and must refuse unsafe restoration rather than silently start an empty machine.
 
-`0115_machine_providers` adds launch, enrollment, lifecycle, setup/restore records,
+`0116_machine_providers` adds launch, enrollment, lifecycle, setup/restore records,
 and host ownership/state fields. Existing remote hosts are assigned to Manual;
 the local host remains provider-less. `0116` removes the launch's project ID.
 Migrations inherited from main are unchanged. SDK version: **0.4.64**;
