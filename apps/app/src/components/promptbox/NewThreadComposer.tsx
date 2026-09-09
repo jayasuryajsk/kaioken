@@ -202,6 +202,7 @@ type ProjectDefaultsState =
 
 export interface ResolveNewThreadSubmitDisabledReasonArgs {
   environmentProviderInputsBlocker: string | null;
+  environmentSetupRequiredReason: string | null;
   isCopyingAttachments: boolean;
   isLoadingModels: boolean;
   isSubmitting: boolean;
@@ -218,6 +219,7 @@ export interface ResolveNewThreadSubmitDisabledReasonArgs {
 
 export function resolveNewThreadSubmitDisabledReason({
   environmentProviderInputsBlocker,
+  environmentSetupRequiredReason,
   isCopyingAttachments,
   isLoadingModels,
   isSubmitting,
@@ -257,6 +259,7 @@ export function resolveNewThreadSubmitDisabledReason({
     });
   }
   if (!selectedThreadModel) return "Select a model.";
+  if (environmentSetupRequiredReason) return environmentSetupRequiredReason;
   if (environmentProviderInputsBlocker) return environmentProviderInputsBlocker;
   if (submissionEnvironmentUnavailable) return "Select an environment.";
   if (promptInputEmpty) return "Enter a prompt or attach a file.";
@@ -801,6 +804,17 @@ export function NewThreadComposer({
           (provider) => provider.id === providerMachine.machineProviderId,
         )
       : undefined;
+  const setupRequiredMachineProvider =
+    selectedMachineProvider?.availability?.status === "setup-required"
+      ? selectedMachineProvider
+      : null;
+  const environmentSetupRequiredReason =
+    setupRequiredMachineProvider === null
+      ? null
+      : (setupRequiredMachineProvider.availability?.status === "setup-required"
+          ? setupRequiredMachineProvider.availability.message
+          : null) ??
+        `${setupRequiredMachineProvider.displayName} needs setting up.`;
   const [environmentProviderInputsOverride, setProviderInputsOverride] =
     useState<{ scopeKey: string; value: JsonValue | null } | null>(null);
   const [environmentProviderInputsBlocked, setProviderInputsBlocked] =
@@ -1333,6 +1347,7 @@ export function NewThreadComposer({
   const submitDisabledReason = resolveNewThreadSubmitDisabledReason({
     environmentProviderInputsBlocker:
       machineProviderInputsBlocker ?? environmentProviderInputsBlocker,
+    environmentSetupRequiredReason,
     isCopyingAttachments,
     isLoadingModels,
     isSubmitting,

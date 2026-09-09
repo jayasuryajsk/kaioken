@@ -1636,7 +1636,7 @@ describe("NewThreadComposer environment providers", () => {
     const setupRequiredProvider: SystemEnvironmentProvider = {
       ...OPTIONAL_INPUTS_PROVIDER,
       id: "modal-sandbox",
-      displayName: "Modal sandbox",
+      displayName: "Modal Sandbox",
       pluginId: "environment-modal-sandbox",
       inputs: null,
       availability: {
