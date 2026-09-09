@@ -605,7 +605,7 @@ Refuse mismatched targets without overwriting them. This adds
 no plugin API and does not change standalone machine creation.
 When `icon` is omitted, Machines and Add machine show no provider logo, so the
 machine has the same presentation as a manually enrolled machine.
-`experimental_machineTag` is the short tag Machines and the machine page show
+`machineTag` is the short tag Machines and the machine page show
 beside that logo on every machine the provider made, so a Modal sandbox reads
 `modal` rather than repeating the provider's own display name. Omit it to leave
 those machines untagged; a provider whose name only describes how a machine was

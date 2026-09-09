@@ -2495,14 +2495,14 @@ export function validatePluginMachineProviderDeclaration(
     }
   }
   const machineTag =
-    declaration.experimental_machineTag === undefined
+    declaration.machineTag === undefined
       ? null
       : z
           .string()
           .trim()
           .min(1)
           .max(MACHINE_PROVIDER_TAG_MAX_CHARS)
-          .parse(declaration.experimental_machineTag);
+          .parse(declaration.machineTag);
   const inputs = normalizeMachineProviderInputs(id, declaration);
   if (
     typeof declaration.create !== "function" ||

@@ -1,8 +1,4 @@
-import {
-  MachineLifecycleNoticeContent,
-  useMachineLifecycleNotice,
-} from "@/components/machines/MachineLifecycleNotice";
-import { useMemo, useState, type ComponentProps } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { Host, PermissionMode } from "@bb/domain";
 import type { SystemMachineProvider } from "@bb/server-contract";
@@ -110,14 +106,6 @@ interface MachineRowProps {
   machineProvider: SystemMachineProvider | null;
 }
 
-function MachineRow(props: MachineRowProps) {
-  const lifecycleNotice = useMachineLifecycleNotice({
-    hostId: props.host.id,
-    enabled: props.host.machineProviderId !== null,
-  });
-  return <MachineRowContent {...props} lifecycleNotice={lifecycleNotice} />;
-}
-
 export function MachineRowContent({
   host,
   isPrimary,
@@ -135,12 +123,7 @@ export function MachineRowContent({
   lifecycleActionPending,
   retryUpdatePending,
   machineProvider,
-  lifecycleNotice,
-}: MachineRowProps & {
-  lifecycleNotice: ComponentProps<
-    typeof MachineLifecycleNoticeContent
-  >["notice"];
-}) {
+}: MachineRowProps) {
   const navigate = useNavigate();
   const detailPath = getSettingsMachineRoutePath(host.id);
   const permission = PERMISSION_MODE_PRESENTATION[host.maxPermissionMode];
@@ -316,10 +299,6 @@ export function MachineRowContent({
             <ResourceRowDetailChevron />
           </div>
         </div>
-        <MachineLifecycleNoticeContent
-          notice={lifecycleNotice}
-          onRemove={onRemove}
-        />
       </div>
     </SettingsRow>
   );
@@ -391,7 +370,7 @@ export function MachinesSettingsSection() {
         ) : (
           <SettingsRowList>
             {hosts.map((host) => (
-              <MachineRow
+              <MachineRowContent
                 key={host.id}
                 host={host}
                 isPrimary={host.id === serverPrimaryHostId}

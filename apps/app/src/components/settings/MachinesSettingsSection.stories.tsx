@@ -38,12 +38,10 @@ function sandbox(overrides: Partial<Host> = {}): Host {
 function Row({
   host,
   machineProvider = MODAL_MACHINE_PROVIDER,
-  lifecycleNotice = null,
   ...overrides
 }: {
   host: Host;
   machineProvider?: typeof MODAL_MACHINE_PROVIDER | null;
-  lifecycleNotice?: Parameters<typeof MachineRowContent>[0]["lifecycleNotice"];
 } & Partial<Parameters<typeof MachineRowContent>[0]>) {
   return (
     <div className="min-w-0 flex-1">
@@ -65,7 +63,6 @@ function Row({
           lifecycleActionPending={false}
           retryUpdatePending={false}
           machineProvider={machineProvider}
-          lifecycleNotice={lifecycleNotice}
           {...overrides}
         />
       </SettingsRowList>
@@ -157,7 +154,7 @@ export function Rows() {
       </StoryRow>
       <StoryRow
         label="cleanup failed"
-        hint="teardown gave up; core reports why and offers removal, the only action that clears it"
+        hint="teardown gave up, so the dot turns destructive; why it failed is on the machine page, and removal stays in the row menu"
       >
         <Row
           host={sandbox({
@@ -170,10 +167,6 @@ export function Rows() {
               teardown: { status: "failed", attempt: 3 },
             }),
           })}
-          lifecycleNotice={{
-            recoveryState: "recoverable",
-            message: "Machine removal failed: Modal returned HTTP 500.",
-          }}
         />
       </StoryRow>
     </StoryCard>

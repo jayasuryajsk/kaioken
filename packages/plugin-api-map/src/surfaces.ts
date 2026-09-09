@@ -792,7 +792,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
         bullets: [
           "Register bb.experimental_machines with a display name and an optional glyph, plugin-relative SVG, declared icon, or React icon; omit it to make created machines look like ordinary enrolled machines",
           "Declare a one-line description so the add-machine picker can say what choosing this provider gets the user",
-          "Tag every machine the provider made with experimental_machineTag, shown beside its icon in Machines; omit it to leave those machines untagged",
+          "Tag every machine the provider made with machineTag, shown beside its icon in Machines; omit it to leave those machines untagged",
           "Declare Standard Schema inputs, availability and validation; core parses and persists inputs before create",
           "Keep secrets in plugin settings because persisted machine inputs are readable by every plugin; pass only non-secret configuration or references",
           "Expose optional picker sugar that creates the machine and then asks one environment provider for the checkout; without environmentRow, thread --new-machine requires --environment-provider",

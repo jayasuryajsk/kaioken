@@ -233,7 +233,7 @@ className?, draftKey? }` — the `default*` props are SEEDS, not controlled
   A machine provider may omit `icon`; Add machine and the Machines page then
   render no provider logo, matching a manually enrolled machine. The Machines
   page badges a machine only when its provider declares
-  `experimental_machineTag`.
+  `machineTag`.
   Machine-provider inputs use
   `app.slots.experimental_machineProviderInputs({ machineProviderId,
 component })`. The component receives `{ projectId, value, onChange }` and

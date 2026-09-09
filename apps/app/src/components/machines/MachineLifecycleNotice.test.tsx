@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render } from "@testing-library/react";
+import { cleanup, render } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, expect, it, vi } from "vitest";
 import { MachineLifecycleNotice } from "./MachineLifecycleNotice";
@@ -13,32 +13,34 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function renderNotice(onRemove: () => void = () => {}) {
+function renderNotice() {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   const view = render(
     <QueryClientProvider client={client}>
-      <MachineLifecycleNotice hostId="machine" onRemove={onRemove} />
+      <MachineLifecycleNotice hostId="machine" />
     </QueryClientProvider>,
   );
   return { view, client };
 }
 
-it("delegates explicit removal through the existing confirmation flow", async () => {
+it("reports a recoverable failure as destructive", async () => {
   vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
     phase: "retiring",
     recoveryState: "recoverable",
     message: "Machine removal failed: Modal returned HTTP 500.",
   });
-  const remove = vi.fn();
-  const { view, client } = renderNotice(remove);
-  fireEvent.click(await view.findByText("Remove machine"));
-  expect(remove).toHaveBeenCalledTimes(1);
+  const { view, client } = renderNotice();
+  const notice = await view.findByRole("status");
+  expect(notice.textContent).toBe(
+    "Machine removal failed: Modal returned HTTP 500.",
+  );
+  expect(notice.className).toContain("text-destructive-text");
   client.clear();
 });
 
-it("reports maintenance in progress without offering removal", async () => {
+it("reports maintenance in progress without destructive styling", async () => {
   vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
     phase: "suspending",
     recoveryState: "draining",
@@ -46,21 +48,21 @@ it("reports maintenance in progress without offering removal", async () => {
       "Preserving this machine. Active turns will be interrupted and open terminals closed before the filesystem is saved.",
   });
   const { view, client } = renderNotice();
-  expect(await view.findByText(/Preserving this machine/)).toBeTruthy();
-  expect(view.queryByText("Remove machine")).toBeNull();
+  const notice = await view.findByRole("status");
+  expect(notice.className).not.toContain("text-destructive-text");
   client.clear();
 });
 
-it("shows a recoverable failure with its recovery action", async () => {
+it("renders nothing when core reports no maintenance", async () => {
   vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
     phase: "active",
-    recoveryState: "recoverable",
-    message: "Machine suspension failed: Modal returned HTTP 500.",
+    recoveryState: "healthy",
+    message: null,
   });
   const { view, client } = renderNotice();
-  expect(
-    await view.findByText("Machine suspension failed: Modal returned HTTP 500."),
-  ).toBeTruthy();
-  expect(view.getByText("Remove machine")).toBeTruthy();
+  await vi.waitFor(() => {
+    expect(vi.mocked(sdk.hosts.experimental_lifecycle)).toHaveBeenCalled();
+  });
+  expect(view.queryByRole("status")).toBeNull();
   client.clear();
 });

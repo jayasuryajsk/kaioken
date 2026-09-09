@@ -1,7 +1,11 @@
 import type { Host, MachineLifecycle } from "@bb/domain";
 import { formatRelativeTime } from "@/lib/relative-time";
 
-export type MachineStatusTone = "online" | "attention" | "offline";
+export type MachineStatusTone =
+  | "online"
+  | "attention"
+  | "failed"
+  | "offline";
 
 export function machinePhaseLabel(
   lifecycle: MachineLifecycle,
@@ -19,7 +23,12 @@ export function machinePhaseLabel(
 }
 
 export function machineStatusTone(host: Host): MachineStatusTone {
-  if (host.lifecycle.phase === "retiring") return "attention";
+  if (machinePhaseLabel(host.lifecycle) === "Cleanup failed") return "failed";
+  if (
+    host.lifecycle.phase === "retiring" ||
+    host.lifecycle.phase === "suspending"
+  )
+    return "attention";
   return host.status === "connected" ? "online" : "offline";
 }
 

@@ -19,6 +19,7 @@ export function MachineStatusDot({
         "size-1.5 shrink-0 rounded-full",
         resolved === "online" && "bg-success",
         resolved === "attention" && "bg-attention",
+        resolved === "failed" && "bg-destructive",
         resolved === "offline" && "border border-muted-foreground",
         className,
       )}

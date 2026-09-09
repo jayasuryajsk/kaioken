@@ -470,10 +470,7 @@ export function MachineSettingsView() {
 
         {host.machineProviderId ? (
           <>
-            <MachineLifecycleNotice
-              hostId={host.id}
-              onRemove={() => setRemoveOpen(true)}
-            />
+            <MachineLifecycleNotice hostId={host.id} />
           </>
         ) : null}
         <SettingsSection title="Machine information">

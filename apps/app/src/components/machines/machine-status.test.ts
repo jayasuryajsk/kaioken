@@ -50,16 +50,30 @@ describe("machinePhaseLabel", () => {
 });
 
 describe("machineStatusTone", () => {
-  it("marks a retiring machine for attention even while it is still connected", () => {
+  it.each(["retiring", "suspending"] as const)(
+    "marks a %s machine for attention even while it is still connected",
+    (phase) => {
+      expect(machineStatusTone(host({ lifecycle: lifecycle(phase) }))).toBe(
+        "attention",
+      );
+    },
+  );
+
+  it("marks a failed teardown as failed rather than merely retiring", () => {
     expect(
-      machineStatusTone(host({ lifecycle: lifecycle("retiring") })),
-    ).toBe("attention");
+      machineStatusTone(
+        host({
+          status: "disconnected",
+          lifecycle: lifecycle("retiring", {
+            teardown: { status: "failed", attempt: 3 },
+          }),
+        }),
+      ),
+    ).toBe("failed");
   });
 
   it("follows the connection for every other phase", () => {
-    expect(
-      machineStatusTone(host({ lifecycle: lifecycle("suspending") })),
-    ).toBe("online");
+    expect(machineStatusTone(host())).toBe("online");
     expect(
       machineStatusTone(
         host({ status: "disconnected", lifecycle: lifecycle("suspended") }),
