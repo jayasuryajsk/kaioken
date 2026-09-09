@@ -72,17 +72,17 @@ export function resolveSettings(raw: RawSettings): SettingsResolution {
   if (missing.length > 0) {
     return {
       ok: false,
-      message: `Modal Sandbox is not configured: set ${missing.join(", ")} in the plugin's settings.`,
+      message: `Set ${missing.join(" and ")} in the plugin's settings.`,
     };
   }
   const appName = raw.appName.trim();
   if (appName.length === 0) {
-    return { ok: false, message: "Modal Sandbox appName must not be blank." };
+    return { ok: false, message: "The app name must not be blank." };
   }
   if (raw.cpu !== undefined && !(Number.isFinite(raw.cpu) && raw.cpu > 0)) {
     return {
       ok: false,
-      message: `Modal Sandbox cpu must be a positive number or blank, not ${raw.cpu}.`,
+      message: `cpu must be a positive number or blank, not ${raw.cpu}.`,
     };
   }
   if (
@@ -91,7 +91,7 @@ export function resolveSettings(raw: RawSettings): SettingsResolution {
   ) {
     return {
       ok: false,
-      message: `Modal Sandbox memoryMiB must be a positive number or blank, not ${raw.memoryMiB}.`,
+      message: `memoryMiB must be a positive number or blank, not ${raw.memoryMiB}.`,
     };
   }
   if (
@@ -101,7 +101,7 @@ export function resolveSettings(raw: RawSettings): SettingsResolution {
   ) {
     return {
       ok: false,
-      message: `Modal Sandbox idleMinutes must be a whole number between 0 and ${MAX_IDLE_MINUTES}, not ${raw.idleMinutes}.`,
+      message: `idleMinutes must be a whole number between 0 and ${MAX_IDLE_MINUTES}, not ${raw.idleMinutes}.`,
     };
   }
   return {

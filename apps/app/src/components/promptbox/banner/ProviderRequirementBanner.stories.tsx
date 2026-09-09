@@ -54,7 +54,7 @@ export function Requirements() {
         <ResponsiveStage>
           <ProviderRequirementBanner
             title="Modal Sandbox needs configuration"
-            description="Modal Sandbox is not configured: set tokenId, tokenSecret in the plugin's settings."
+            description="Set tokenId and tokenSecret in the plugin's settings."
             action={configureAction("Modal Sandbox")}
           />
         </ResponsiveStage>

@@ -144,7 +144,7 @@ export const MODAL_NEEDS_TOKEN_PROVIDER = machineProvider({
   availability: {
     status: "setup-required",
     message:
-      "Modal Sandbox is not configured: set tokenId, tokenSecret in the plugin's settings.",
+      "Set tokenId and tokenSecret in the plugin's settings.",
   },
 });
 
