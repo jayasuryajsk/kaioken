@@ -2216,6 +2216,10 @@ function createFakePluginHostInternal(
         assertLive();
         serverAccessProviders.set(declaration.id, declaration);
       },
+      recheck() {
+        assertLive();
+        requestedDrains += 1;
+      },
     },
     status,
     server,

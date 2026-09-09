@@ -26,6 +26,18 @@ const metadataSchema = z.strictObject({
   codeId: z.string().optional(),
 });
 
+export function createServerAccessRecheck(
+  bb: BbPluginApi,
+): (status: { paired: boolean; url: string | null }) => void {
+  let last: string | null = null;
+  return (status) => {
+    const signature = `${status.paired}:${status.url ?? ""}`;
+    const changed = last !== null && last !== signature;
+    last = signature;
+    if (changed) bb.experimental_serverAccess.recheck();
+  };
+}
+
 function recoveryError(message: string): Error {
   return Object.assign(new Error(message), {
     name: "experimental_ServerAccessRecoveryError",

@@ -474,6 +474,14 @@ export interface ServerAccessProviderDeclaration {
 
 export interface PluginServerAccess {
   register(declaration: ServerAccessProviderDeclaration): void;
+  /**
+   * Ask core to re-read this plugin's provider availability now instead of
+   * waiting for the next request that happens to load system configuration —
+   * call it whenever access is gained or lost (paired, unpaired, credential
+   * revoked). Core re-invokes `availability` and tells connected clients, so
+   * Machines settings stops showing a stale state.
+   */
+  recheck(): void;
 }
 
 export interface PluginMachines extends MachineBootstrapApi {

@@ -29,3 +29,15 @@ export async function invokeServerAccessProvider<T>(
   if (!bridge) throw new Error("Server access provider is unavailable");
   return bridge.invoke(record.pluginId, run);
 }
+
+let recheckHandler: ((pluginId: string) => void) | undefined;
+
+export function setServerAccessRecheckHandler(
+  handler: ((pluginId: string) => void) | undefined,
+): void {
+  recheckHandler = handler;
+}
+
+export function requestServerAccessRecheck(pluginId: string): void {
+  recheckHandler?.(pluginId);
+}

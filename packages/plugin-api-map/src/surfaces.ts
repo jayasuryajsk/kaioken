@@ -880,6 +880,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
         bullets: [
           "Register bb.experimental_serverAccess with availability (including an optional public serverUrl), idempotent acquire and release",
           "Return a user-safe experimental_attention diagnostic for Machines settings without disabling healthy access",
+          "Call recheck when access is gained or lost so Machines settings stops showing a stale availability",
           "Return { id, serverUrl, headers? }; machines attach headers to all server requests without provider-specific redemption",
           "Choose a General default or override access for a machine; automatic selection prefers paired bb Cloud then a configured direct URL",
           "Use the Server URL reachable by machines setting or BB_EXTERNAL_URL fallback; the URL is not a reachability guarantee",

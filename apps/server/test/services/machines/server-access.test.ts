@@ -11,7 +11,10 @@ import {
   serverAccess,
   serverAccessStatus,
 } from "../../../src/services/machines/server-access.js";
-import { setServerAccessBridge } from "../../../src/services/plugins/plugin-server-access-registry.js";
+import {
+  setServerAccessBridge,
+  setServerAccessRecheckHandler,
+} from "../../../src/services/plugins/plugin-server-access-registry.js";
 import { listPublicHostsWithStatus } from "../../../src/services/lib/entity-lookup.js";
 import { withTestHarness } from "../../helpers/test-app.js";
 
@@ -301,5 +304,21 @@ it("keeps interrupted access visible and releases the acquisition without a retu
       grantId: null,
     });
     expect(getHost(deps.db, host.id)?.serverAccessProviderId).toBeNull();
+  });
+});
+
+it("routes a provider recheck to core with the calling plugin id", async () => {
+  await withTestHarness(async (h) => {
+    await h.pluginService.install("builtin:machine-manual", { kind: "root" });
+    const api = h.pluginService.getApi("machine-manual");
+    if (!api) throw new Error("Manual provider did not load");
+    const rechecked: string[] = [];
+    setServerAccessRecheckHandler((pluginId) => rechecked.push(pluginId));
+    try {
+      api.experimental_serverAccess.recheck();
+    } finally {
+      setServerAccessRecheckHandler(undefined);
+    }
+    expect(rechecked).toEqual(["machine-manual"]);
   });
 });

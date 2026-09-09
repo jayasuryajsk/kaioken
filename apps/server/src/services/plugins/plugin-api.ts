@@ -115,6 +115,7 @@ import type {
 } from "@get-bb/plugin-sdk/internal/host-policy";
 import type { BbSdk, ThreadForkArgs, ThreadSpawnArgs } from "@bb/sdk";
 import { requestEnvironmentProviderRecheck } from "./plugin-environment-provider-registry.js";
+import { requestServerAccessRecheck } from "./plugin-server-access-registry.js";
 import type { ServerLogger } from "../../types.js";
 import type { PluginInteractionResult } from "../interactions/pending-interactions.js";
 import { appendPluginLogLine } from "./plugin-log.js";
@@ -1613,6 +1614,10 @@ export function createPluginApi(options: {
           );
         }
         serverAccessProviders.set(declaration.id, declaration);
+      },
+      recheck() {
+        assertLive();
+        requestServerAccessRecheck(options.pluginId);
       },
     };
 

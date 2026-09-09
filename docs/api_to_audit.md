@@ -2664,6 +2664,24 @@ Use durable state for diagnostics that must survive plugin reload. Never return
 credentials or raw provider payloads. Stabilization requires verifying reload,
 cleared diagnostics, multiple providers, and no impact on provider selection.
 
+## `bb.experimental_serverAccess.recheck`
+
+Availability is only read when something loads system configuration, so a
+provider that gains or loses access between reads leaves Machines settings
+showing a stale state. `recheck` is the plugin's way to say its availability
+changed; core re-reads the registered providers and notifies connected clients
+with a system `config-changed` change, exactly like the environment provider
+recheck handler. It is a fire-and-forget signal, not a request for a decision,
+and it carries no payload: core re-invokes `availability` rather than trusting
+anything the caller reports. Callers must debounce to real transitions —
+Connect signals only when its paired state or public URL changes, not on every
+tunnel status publish, because each call broadcasts to every client.
+
+Stabilization requires proving that a recheck from an unregistered or disposed
+plugin is inert, that a provider cannot use it to force repeated refreshes of
+unrelated configuration, and that pairing, unpairing and credential rejection
+each reach the Machines settings section without a manual reload.
+
 ## `bb.experimental_serverAccess.register`
 
 Availability may include an optional public `serverUrl` for display in Machines

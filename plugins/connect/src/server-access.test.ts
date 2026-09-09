@@ -12,7 +12,10 @@ import {
   pluginKv,
   listPluginKvKeys,
 } from "@bb/db";
-import { registerServerAccess } from "./server-access.js";
+import {
+  createServerAccessRecheck,
+  registerServerAccess,
+} from "./server-access.js";
 
 const credential = {
   serverUrl: "https://test.getbb.app",
@@ -539,3 +542,22 @@ it.each(["invalid-url", "invalid-headers", "unexpected-headers"])(
     );
   },
 );
+
+describe("server access recheck", () => {
+  it("tells core only when paired state or public URL changes", async () => {
+    const host = await setup();
+    const recheck = createServerAccessRecheck(host.bb);
+    recheck({ paired: false, url: null });
+    expect(host.harness.recheckCount).toBe(0);
+    recheck({ paired: false, url: null });
+    expect(host.harness.recheckCount).toBe(0);
+    recheck({ paired: true, url: "https://test.getbb.app" });
+    expect(host.harness.recheckCount).toBe(1);
+    recheck({ paired: true, url: "https://test.getbb.app" });
+    expect(host.harness.recheckCount).toBe(1);
+    recheck({ paired: true, url: "https://renamed.getbb.app" });
+    expect(host.harness.recheckCount).toBe(2);
+    recheck({ paired: false, url: null });
+    expect(host.harness.recheckCount).toBe(3);
+  });
+});

@@ -195,160 +195,164 @@ export function MachineEnvironmentSettings() {
           </Button>
         </div>
       )}
-      {!hasOverride && (
-        <div className="space-y-2">
-          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-            <Input
-              className={`col-span-2 font-mono sm:col-span-1 ${gitDisabled ? "opacity-50" : ""}`}
-              aria-label="Automatic variable name"
-              value="GH_TOKEN"
-              readOnly
-            />
-            <Input
-              className={`font-mono ${gitDisabled ? "opacity-50" : ""}`}
-              aria-label="Automatic GH_TOKEN value"
-              value={git?.status === "logged in" ? "••••••••" : ""}
-              placeholder={
-                git?.status === "disabled"
-                  ? "Disabled"
-                  : gitMissing
-                    ? "Not available"
-                    : "Checking…"
-              }
-              readOnly
-            />
-            <div className="flex size-8 items-center justify-center">
-              <Switch
-                aria-label="Automatic GH_TOKEN"
-                checked={settings?.machineGitCredentialsEnabled ?? true}
-                disabled={!settings || updateSettings.isPending}
-                onCheckedChange={(enabled) =>
-                  updateSettings.mutate(
-                    { ...settings!, machineGitCredentialsEnabled: enabled },
-                    {
-                      onSuccess: () => {
-                        void query.refetch();
-                      },
-                    },
-                  )
-                }
-              />
-            </div>
-          </div>
-          <div
-            className={`flex flex-wrap items-center gap-2 text-xs ${gitDisabled ? "opacity-50" : ""}`}
-          >
-            <SettingsBadge>Automatic</SettingsBadge>
-            <span
-              role={gitMissing ? "alert" : "status"}
-              className={
-                gitMissing ? "text-destructive-text" : "text-subtle-foreground"
-              }
-            >
-              {gitMissing ? (
-                "GitHub is not logged in. Run gh auth login on the server, or add your own GH_TOKEN."
-              ) : git?.status === "logged in" ? (
-                <>
-                  Generated using{" "}
-                  <code>gh auth token --hostname github.com</code>.
-                </>
-              ) : git?.status === "disabled" ? (
-                "Disabled — no automatic GitHub credentials are sent to machines."
-              ) : git?.status === "overridden" ? (
-                "The server’s GitHub login will be used after saving."
-              ) : (
-                "Checking the server’s GitHub login…"
-              )}
-            </span>
-          </div>
-        </div>
-      )}
-      {rows.map((row, index) => (
-        <div key={row.id} className="space-y-2">
-          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-            <Input
-              className="col-span-2 font-mono sm:col-span-1"
-              aria-label={`Variable name ${index + 1}`}
-              placeholder="KEY"
-              value={row.name}
-              disabled={disabled}
-              readOnly={row.existing}
-              aria-invalid={touched.has(row.id) && issues[index] !== null}
-              onBlur={() =>
-                setTouched((current) => new Set(current).add(row.id))
-              }
-              onChange={(event) =>
-                change(row.id, {
-                  name: event.target.value,
-                })
-              }
-            />
-            <div className="relative min-w-0">
+      <div className="space-y-5">
+        {!hasOverride && (
+          <div className="space-y-2">
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
               <Input
-                className="min-w-0 pr-9 font-mono"
-                aria-label={`Value for ${row.name || `variable ${index + 1}`}`}
-                type={visible.has(row.id) ? "text" : "password"}
-                placeholder={
-                  row.value === null
-                    ? "Saved secret · enter to replace"
-                    : "VALUE"
-                }
-                value={row.value ?? ""}
-                autoComplete="off"
-                disabled={disabled}
-                onChange={(event) =>
-                  change(row.id, { value: event.target.value })
-                }
+                className={`col-span-2 font-mono sm:col-span-1 ${gitDisabled ? "opacity-50" : ""}`}
+                aria-label="Automatic variable name"
+                value="GH_TOKEN"
+                readOnly
               />
-              <Button
-                size="icon"
-                variant="ghost"
-                className="absolute inset-y-0 right-0 my-auto size-8 text-subtle-foreground"
-                aria-label={`${visible.has(row.id) ? "Hide" : "Show"} ${row.name || "value"}`}
-                disabled={disabled || row.value === null}
-                onClick={() =>
-                  setVisible((current) => {
-                    const next = new Set(current);
-                    if (next.has(row.id)) next.delete(row.id);
-                    else next.add(row.id);
-                    return next;
+              <Input
+                className={`font-mono ${gitDisabled ? "opacity-50" : ""}`}
+                aria-label="Automatic GH_TOKEN value"
+                value={git?.status === "logged in" ? "••••••••" : ""}
+                placeholder={
+                  git?.status === "disabled"
+                    ? "Disabled"
+                    : gitMissing
+                      ? "Not available"
+                      : "Checking…"
+                }
+                readOnly
+              />
+              <div className="flex size-8 items-center justify-center">
+                <Switch
+                  aria-label="Automatic GH_TOKEN"
+                  checked={settings?.machineGitCredentialsEnabled ?? true}
+                  disabled={!settings || updateSettings.isPending}
+                  onCheckedChange={(enabled) =>
+                    updateSettings.mutate(
+                      { ...settings!, machineGitCredentialsEnabled: enabled },
+                      {
+                        onSuccess: () => {
+                          void query.refetch();
+                        },
+                      },
+                    )
+                  }
+                />
+              </div>
+            </div>
+            <p
+              className={`flex min-w-0 items-center gap-1.5 text-xs ${gitDisabled ? "opacity-50" : ""}`}
+            >
+              <SettingsBadge>Automatic</SettingsBadge>
+              <span
+                role={gitMissing ? "alert" : "status"}
+                className={`min-w-0 truncate ${
+                  gitMissing
+                    ? "text-destructive-text"
+                    : "text-subtle-foreground"
+                }`}
+              >
+                {gitMissing ? (
+                  "GitHub is not logged in. Run gh auth login on the server, or add your own GH_TOKEN."
+                ) : git?.status === "logged in" ? (
+                  <>
+                    Generated using{" "}
+                    <code>gh auth token --hostname github.com</code>.
+                  </>
+                ) : git?.status === "disabled" ? (
+                  "Disabled — no automatic GitHub credentials are sent to machines."
+                ) : git?.status === "overridden" ? (
+                  "The server’s GitHub login will be used after saving."
+                ) : (
+                  "Checking the server’s GitHub login…"
+                )}
+              </span>
+            </p>
+          </div>
+        )}
+        {rows.map((row, index) => (
+          <div key={row.id} className="space-y-2">
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+              <Input
+                className="col-span-2 font-mono sm:col-span-1"
+                aria-label={`Variable name ${index + 1}`}
+                placeholder="KEY"
+                value={row.name}
+                disabled={disabled}
+                readOnly={row.existing}
+                aria-invalid={touched.has(row.id) && issues[index] !== null}
+                onBlur={() =>
+                  setTouched((current) => new Set(current).add(row.id))
+                }
+                onChange={(event) =>
+                  change(row.id, {
+                    name: event.target.value,
                   })
                 }
-              >
-                <Icon
-                  name={visible.has(row.id) ? "EyeOff" : "Eye"}
-                  className="size-4"
+              />
+              <div className="relative min-w-0">
+                <Input
+                  className="min-w-0 pr-9 font-mono"
+                  aria-label={`Value for ${row.name || `variable ${index + 1}`}`}
+                  type={visible.has(row.id) ? "text" : "password"}
+                  placeholder={
+                    row.value === null
+                      ? "Saved secret · enter to replace"
+                      : "VALUE"
+                  }
+                  value={row.value ?? ""}
+                  autoComplete="off"
+                  disabled={disabled}
+                  onChange={(event) =>
+                    change(row.id, { value: event.target.value })
+                  }
                 />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="absolute inset-y-0 right-0 my-auto size-8 text-subtle-foreground"
+                  aria-label={`${visible.has(row.id) ? "Hide" : "Show"} ${row.name || "value"}`}
+                  disabled={disabled || row.value === null}
+                  onClick={() =>
+                    setVisible((current) => {
+                      const next = new Set(current);
+                      if (next.has(row.id)) next.delete(row.id);
+                      else next.add(row.id);
+                      return next;
+                    })
+                  }
+                >
+                  <Icon
+                    name={visible.has(row.id) ? "EyeOff" : "Eye"}
+                    className="size-4"
+                  />
+                </Button>
+              </div>
+              <Button
+                size="icon"
+                className="size-8 text-subtle-foreground hover:text-destructive-text"
+                variant="ghost"
+                aria-label={`Remove ${row.name || "variable"}`}
+                disabled={disabled}
+                onClick={() =>
+                  setDraft(rows.filter((entry) => entry.id !== row.id))
+                }
+              >
+                <Icon name="X" className="size-4" />
               </Button>
             </div>
-            <Button
-              size="icon"
-              className="size-8 text-subtle-foreground hover:text-destructive-text"
-              variant="ghost"
-              aria-label={`Remove ${row.name || "variable"}`}
-              disabled={disabled}
-              onClick={() =>
-                setDraft(rows.filter((entry) => entry.id !== row.id))
-              }
-            >
-              <Icon name="X" className="size-4" />
-            </Button>
+            {row.name === "GH_TOKEN" && (
+              <p className="text-xs text-subtle-foreground">
+                Overrides the automatic token from the server’s GitHub login.
+              </p>
+            )}
+            {row.note && (
+              <p className="text-xs text-subtle-foreground">{row.note}</p>
+            )}
+            {touched.has(row.id) && issues[index] && (
+              <p role="alert" className="text-xs text-destructive-text">
+                {issues[index]}
+              </p>
+            )}
           </div>
-          {row.name === "GH_TOKEN" && (
-            <p className="text-xs text-subtle-foreground">
-              Overrides the automatic token from the server’s GitHub login.
-            </p>
-          )}
-          {row.note && (
-            <p className="text-xs text-subtle-foreground">{row.note}</p>
-          )}
-          {touched.has(row.id) && issues[index] && (
-            <p role="alert" className="text-xs text-destructive-text">
-              {issues[index]}
-            </p>
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
       {query.isError && (
         <p role="alert" className="text-xs text-destructive-text">
           Could not load machine variables. Try refreshing this page.
