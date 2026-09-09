@@ -163,8 +163,12 @@ async function setup(
   } = {},
 ) {
   const backend = createBackend(options);
+  const machineResource = vi.fn(
+    async (_hostId: string): Promise<JsonValue | null> => null,
+  );
   const fake = createFakePluginHost({
     pluginId: PLUGIN_ID,
+    machineResource,
     settings,
     sdk: {
       hosts: {
@@ -240,6 +244,7 @@ async function setup(
     throw new Error("machine provider not registered");
   return {
     ...fake,
+    machineResource,
     provider,
     backend,
     bootstrap,
@@ -271,17 +276,21 @@ describe("Modal machine provider", () => {
     expect(svg).toContain('fill="black"');
   });
 
-  it("registers only a machine provider with the Modal asset and picker sugar", async () => {
+  it("registers a machine and a project-checkout environment composition", async () => {
     const harness = await setup();
     expect(harness.harness.registrations.environmentProviders.size).toBe(0);
+    expect(
+      harness.harness.registrations.environmentCompositions.get(PROVIDER_ID),
+    ).toEqual({
+      id: PROVIDER_ID,
+      displayName: "Modal sandbox",
+      machineProviderId: PROVIDER_ID,
+      environmentProviderId: "project-checkout",
+    });
     expect(harness.provider).toMatchObject({
       id: PROVIDER_ID,
       displayName: "Modal sandbox",
       icon: "./modal-logo.svg",
-      environmentRow: {
-        displayName: "New sandbox",
-        environmentProviderId: "project-checkout",
-      },
     });
   });
 
@@ -452,12 +461,6 @@ describe("Modal machine provider", () => {
     expect(JSON.stringify(harness.backend.creates)).not.toContain(
       "image-secret-sentinel",
     );
-    expect(harness.backend.creates[0]?.environmentVariables).not.toHaveProperty(
-      "GH_TOKEN",
-    );
-    expect(harness.backend.creates[0]?.environmentVariables).not.toHaveProperty(
-      "GIT_CONFIG_COUNT",
-    );
     expect(harness.bootstrap.mock.calls[0]?.[0]).not.toHaveProperty(
       "contributedEnv",
     );
@@ -478,12 +481,6 @@ describe("Modal machine provider", () => {
       report,
       signal: lifecycleContext.signal,
     });
-    expect(harness.backend.creates[1]?.environmentVariables).not.toHaveProperty(
-      "GH_TOKEN",
-    );
-    expect(harness.backend.creates[1]?.environmentVariables).not.toHaveProperty(
-      "GIT_CONFIG_COUNT",
-    );
     expect(JSON.stringify(harness.backend.creates)).not.toContain(
       "contributedEnv",
     );
@@ -720,6 +717,9 @@ it("observes vendor deadlines", async () => {
   const harness = await setup();
   const created = await harness.provider.create(createContext());
   if (created.status !== "created") throw new Error("creation failed");
+  harness.machineResource.mockImplementation(async (hostId) =>
+    hostId === HOST_ID ? created.resource : null,
+  );
   expect(
     await harness.harness.callRpc("machine.inspect", { hostId: HOST_ID }),
   ).toMatchObject({
@@ -731,6 +731,9 @@ it("blocks observation and resume after the configured account identity changes"
   const harness = await setup();
   const created = await harness.provider.create(createContext());
   if (created.status !== "created") throw new Error("creation failed");
+  harness.machineResource.mockImplementation(async (hostId) =>
+    hostId === HOST_ID ? created.resource : null,
+  );
   await harness.harness.setSettings({ tokenId: "different-account" });
   const context = {
     hostId: HOST_ID,
@@ -940,7 +943,6 @@ it("builds without enrollment and runs a bounded debug sandbox with no runtime s
   expect(result).toMatchObject({ sandboxId: "sandbox-1" });
   expect(test.backend.creates[0]).toMatchObject({
     timeoutMs: 1_800_000,
-    environmentVariables: {},
     image: { type: "image", imageId: "im-standard" },
   });
   expect(test.prepare).not.toHaveBeenCalled();
@@ -1059,6 +1061,12 @@ describe("plugin-owned idle timing", () => {
       test.harness.sdk.stub("hosts.list", () => [
         { ...host("connected"), machineProviderId: PROVIDER_ID },
       ]);
+      const getHost = vi.fn(async () => ({
+        ...host("connected"),
+        machineProviderId: PROVIDER_ID,
+        connectMachineId: null,
+      }));
+      test.harness.sdk.stub("hosts.get", getHost);
       const lookup = vi.fn(async () => ({ hostId: HOST_ID }));
       test.harness.sdk.stub("environments.get", lookup);
       vi.setSystemTime(10 * 60_000);
@@ -1070,6 +1078,8 @@ describe("plugin-owned idle timing", () => {
         sequence: 12,
       });
       expect(lookup).toHaveBeenCalledOnce();
+      expect(getHost).toHaveBeenCalledWith({ hostId: HOST_ID });
+      expect(test.harness.sdk.callsTo("hosts.list")).toHaveLength(0);
       expect(test.harness.sdk.callsTo("threads.events.list")).toHaveLength(0);
       vi.setSystemTime(20 * 60_000);
       await test.harness.emitThreadEvent("experimental_thread.events", {
@@ -1120,7 +1130,11 @@ describe("plugin-owned idle timing", () => {
 
 it("exposes missing compute through Modal RPC and CLI without restoring it", async () => {
   const test = await setup();
-  await test.provider.create(createContext());
+  const created = await test.provider.create(createContext());
+  if (created.status !== "created") throw new Error("creation failed");
+  test.machineResource.mockImplementation(async (hostId) =>
+    hostId === HOST_ID ? created.resource : null,
+  );
   const machine = test.backend.states[0];
   if (!machine) throw new Error("missing test sandbox");
   machine.terminated = true;
@@ -1144,22 +1158,37 @@ it("exposes missing compute through Modal RPC and CLI without restoring it", asy
   expect(test.backend.creates).toHaveLength(1);
   await expect(
     test.harness.callRpc("machine.inspect", { hostId: "unrelated-host" }),
-  ).rejects.toThrow("No Modal diagnostic record");
+  ).rejects.toThrow("No provider resource");
 });
 
 it("reports the saved snapshot after pause and live compute after resume", async () => {
   const test = await setup();
   const created = await test.provider.create(createContext());
   if (created.status !== "created") throw new Error("creation failed");
-  const context = { hostId: HOST_ID, resource: created.resource, report, signal: new AbortController().signal, checkpoint: async () => {} };
+  test.machineResource.mockImplementation(async (hostId) =>
+    hostId === HOST_ID ? created.resource : null,
+  );
+  const context = {
+    hostId: HOST_ID,
+    resource: created.resource,
+    report,
+    signal: new AbortController().signal,
+    checkpoint: async () => {},
+  };
   const suspended = await test.provider.suspend?.(context);
   if (!suspended) throw new Error("suspend not registered");
+  test.machineResource.mockResolvedValue(suspended.resource);
   expect(
     await test.harness.callRpc("machine.inspect", { hostId: HOST_ID }),
   ).toMatchObject({
     values: { state: "suspended", snapshotImageId: "image-1" },
   });
-  await test.provider.resume?.({ ...context, resource: suspended.resource });
+  const resumed = await test.provider.resume?.({
+    ...context,
+    resource: suspended.resource,
+  });
+  if (!resumed) throw new Error("resume not registered");
+  test.machineResource.mockResolvedValue(resumed.resource);
   expect(
     await test.harness.callRpc("machine.inspect", { hostId: HOST_ID }),
   ).toMatchObject({ values: { state: "running", snapshotImageId: "image-1" } });

@@ -1,54 +1,28 @@
 import { expect, it } from "vitest";
 import { readModalMachineResource } from "./lifecycle.js";
 
-it("retains existing catalogue-machine identity and snapshots without reading the deleted catalogue", () => {
-  expect(
-    readModalMachineResource({
-      version: 4,
-      key: "existing",
-      sandboxId: null,
-      snapshotImageId: "saved-files",
-      pendingSnapshotImageIds: ["older-files"],
-      imageId: "original-image",
-      accountIdentity: "original-account",
-      appName: "original-app",
-      buildId: "removed-build-record",
-      accountRef: "default",
-      resources: { cpuCores: 2, memoryMiB: 8192 },
-      policy: { idleMinutes: 15, lifetimeMinutes: 1440, retentionDays: 30 },
-      policyRevision: 1,
-      expiresAt: null,
-    }),
-  ).toEqual({
+it("drops obsolete expiration metadata while retaining current snapshot recovery state", () => {
+  const resource = {
     version: 5,
     key: "existing",
     sandboxId: null,
-    snapshotImageId: "saved-files",
-    pendingSnapshotImageIds: ["older-files"],
-    imageId: "original-image",
-    accountIdentity: "original-account",
-    appName: "original-app",
+    snapshotImageId: "saved",
+    snapshotSandboxId: "previous-sandbox",
+    pendingSnapshotImageIds: ["older-snapshot"],
+    imageId: "base-image",
+    accountIdentity: "account",
+    appName: "app",
     cpu: 2,
     memoryMiB: 8192,
-    expiresAt: null,
-    snapshotSandboxId: null,
-  });
-});
-
-it("keeps legacy snapshots recoverable and rejects malformed current resources", () => {
-  const legacy = readModalMachineResource({
-    version: 3,
-    key: "existing",
-    sandboxId: null,
-    snapshotImageId: "saved",
-    pendingSnapshotImageIds: [],
-  });
-  expect(legacy).toMatchObject({
-    snapshotImageId: "saved",
-    accountIdentity: null,
-    appName: null,
-  });
+  };
+  expect(readModalMachineResource({ ...resource, expiresAt: 123 })).toEqual(
+    resource,
+  );
+  expect(readModalMachineResource(resource)).toEqual(resource);
+  for (const version of [3, 4]) {
+    expect(() => readModalMachineResource({ ...resource, version })).toThrow();
+  }
   expect(() =>
-    readModalMachineResource({ ...legacy, accountIdentity: "" }),
+    readModalMachineResource({ ...resource, accountIdentity: "" }),
   ).toThrow();
 });

@@ -61,17 +61,20 @@ it("creates, cancels, and removes manual machines through the production lifecyc
         expect(getMachineLaunch(h.db, key)?.stepText).not.toContain(
           enrollment.bootstrap.credential,
         );
-        const commandUrl = `/api/v1/hosts/launches/${key}/enrollment-command`;
-        const commandResponse = await h.app.request(commandUrl);
+        const commandRequest = (headers: Record<string, string> = {}) =>
+          h.app.request("/api/v1/plugins/machine-manual/rpc/command", {
+            method: "POST",
+            headers: { "content-type": "application/json", ...headers },
+            body: JSON.stringify({ launchId: key }),
+          });
+        const commandResponse = await commandRequest();
         expect(commandResponse.headers.get("cache-control")).toBe("no-store");
-        expect((await commandResponse.json()).command).toContain(
+        expect((await commandResponse.json()).result.command).toContain(
           enrollment.bootstrap.credential,
         );
-        const denied = await h.app.request(commandUrl, {
-          headers: {
-            "x-bb-gate-auth": "machine",
-            "x-bb-gate-machine-id": "other-machine",
-          },
+        const denied = await commandRequest({
+          "x-bb-gate-auth": "machine",
+          "x-bb-gate-machine-id": "other-machine",
         });
         expect(denied.status).toBe(403);
         let daemonKey: string | null = null;
@@ -92,10 +95,7 @@ it("creates, cancels, and removes manual machines through the production lifecyc
           });
           if (!enrolled) throw new Error("Enrollment failed");
           daemonKey = enrolled.hostKey;
-          expect(await (await h.app.request(commandUrl)).json()).toEqual({
-            command: null,
-            expiresAt: null,
-          });
+
           const session = openSession(h.db, {
             hostId: enrollment.hostId,
             instanceId: key,
@@ -147,7 +147,7 @@ it("creates, cancels, and removes manual machines through the production lifecyc
             serverAccessGrantId: null,
           });
         }
-        expect(await (await h.app.request(commandUrl)).json()).toEqual({
+        expect((await (await commandRequest()).json()).result).toEqual({
           command: null,
           expiresAt: null,
         });

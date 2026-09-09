@@ -275,6 +275,7 @@ function makeProjectSource(hostId = "host_1"): ProjectSource {
 
 function makeProjectProvider(id: string): SystemEnvironmentProvider {
   return {
+    machineProviderId: null,
     id,
     displayName: id,
     icon: null,
@@ -297,6 +298,7 @@ function makeProjectlessProvider(
   projectless: boolean,
 ): SystemEnvironmentProvider {
   return {
+    machineProviderId: null,
     id,
     displayName: id,
     icon: null,

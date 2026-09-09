@@ -94,8 +94,8 @@ This index lists every command path that the core CLI registers. Read the task-s
 - `bb machine provider-cli install`
 
 `bb thread spawn --new-machine <provider-id>` creates a machine for a new
-environment. Add `--environment-provider <id>` when the machine provider has no
-`environmentRow` (including SSH). `--machine-inputs <json>` configures the machine;
+environment and requires `--environment-provider <id>`. For a composed option,
+use `--environment-provider modal-sandbox` alone. `--machine-inputs <json>` configures the machine;
 `--environment-inputs <json>` configures the workspace. Neither carries secrets.
 
 ## updates

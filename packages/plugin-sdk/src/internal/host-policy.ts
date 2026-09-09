@@ -2245,6 +2245,23 @@ export type NormalizedPluginEnvironmentProviderRequirements = {
   [K in (typeof ENVIRONMENT_PROVIDER_REQUIREMENT_NAMES)[number]]: boolean;
 };
 
+export const environmentCompositionSchema = z
+  .object({
+    id: z.string().regex(ENVIRONMENT_PROVIDER_ID_PATTERN),
+    displayName: z
+      .string()
+      .trim()
+      .min(1)
+      .max(ENVIRONMENT_PROVIDER_DISPLAY_NAME_MAX_CHARS),
+    icon: z.string().min(1).optional(),
+    machineProviderId: z.string().regex(ENVIRONMENT_PROVIDER_ID_PATTERN),
+    environmentProviderId: z.string().regex(ENVIRONMENT_PROVIDER_ID_PATTERN),
+  })
+  .strict();
+export type NormalizedPluginEnvironmentComposition = z.infer<
+  typeof environmentCompositionSchema
+>;
+
 export interface NormalizedPluginEnvironmentProvider {
   id: string;
   displayName: string;
@@ -2435,9 +2452,6 @@ export interface NormalizedPluginMachineProvider {
     PluginMachineProviderDeclaration["availability"]
   > | null;
   validate: NonNullable<PluginMachineProviderDeclaration["validate"]> | null;
-  environmentRow:
-    | import("../machine-provider.js").PluginMachineProviderEnvironmentRow
-    | null;
   reconcileCleanup: PluginMachineProviderDeclaration["reconcileCleanup"];
   create: PluginMachineProviderDeclaration["create"];
   suspend: NonNullable<PluginMachineProviderDeclaration["suspend"]> | null;
@@ -2536,18 +2550,6 @@ export function validatePluginMachineProviderDeclaration(
       `machine provider "${id}" declares availability that is not a function`,
     );
   }
-  const environmentRow =
-    declaration.environmentRow === undefined
-      ? null
-      : z
-          .object({
-            displayName: z.string().trim().min(1).max(80),
-            environmentProviderId: z
-              .string()
-              .regex(ENVIRONMENT_PROVIDER_ID_PATTERN),
-          })
-          .strict()
-          .parse(declaration.environmentRow);
 
   return {
     id,
@@ -2559,7 +2561,6 @@ export function validatePluginMachineProviderDeclaration(
     inputsJsonSchema: inputs === null ? null : inputs.jsonSchema,
     availability: declaration.availability ?? null,
     validate: declaration.validate ?? null,
-    environmentRow,
     reconcileCleanup: declaration.reconcileCleanup,
     create: declaration.create,
     suspend: declaration.suspend ?? null,

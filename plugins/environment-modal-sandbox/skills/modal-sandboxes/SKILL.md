@@ -103,4 +103,15 @@ SDK clients use `sdk.plugins.callRpc` with `modalRpcContract`: `image.build({})`
 `sandbox.run({})`, `sandbox.exec({sandboxId,command})`, and
 `sandbox.stop({sandboxId})`. Build/run incur Modal usage.
 
-`bb modal machine inspect HOST_ID [--json]` and the plugin RPC `machine.inspect({ hostId })` read vendor state without waking compute. Snapshot metadata reflects the last completed create, pause or resume. Older machines need a successful pause/resume to populate this plugin-owned diagnostic record.
+`bb modal machine inspect HOST_ID [--json]` and the plugin RPC `machine.inspect({ hostId })` read vendor state without waking compute. Sandbox and snapshot identifiers come directly from core’s current persisted machine resource, including lifecycle checkpoints. Existing machines need no diagnostic initialization.
+
+
+### New thread with a new sandbox
+
+Use `bb thread spawn --project <id> --environment-provider modal-sandbox --prompt "..."`.
+The composed environment creates a Modal machine and uses core project-checkout
+setup to clone the project. Do not pass machine selectors with this environment.
+The same option appears once in the environment picker. Existing sandbox hosts
+retain their normal checkout/worktree choices. Machine creation, checkout setup
+and environment setup report into the thread's provisioning details. A clone
+failure keeps the machine for retry or explicit removal.

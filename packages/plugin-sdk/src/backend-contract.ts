@@ -410,7 +410,17 @@ export interface PluginEnvironments {
       import("./environment-provider.js").PluginEnvironmentProviderInputsSchema =
       undefined,
   >(
-    declaration: PluginEnvironmentProviderDeclaration<Requires, Inputs>,
+    declaration:
+      | PluginEnvironmentProviderDeclaration<Requires, Inputs>
+      | {
+          id: string;
+          displayName: string;
+          icon?: string;
+          machineProviderId: string;
+          environmentProviderId: string;
+          create?: never;
+          remove?: never;
+        },
   ): void;
   /**
    * Ask core to re-ask this plugin's waiting providers now instead of at their
@@ -481,6 +491,8 @@ export interface PluginServerAccess {
 }
 
 export interface PluginMachines extends MachineBootstrapApi {
+  /** Read core’s current persisted provider resource, or null when the host or resource is absent. Available across plugins; resources must not contain credentials. */
+  experimental_getResource(hostId: string): Promise<JsonValue | null>;
   register<
     const Inputs extends
       import("./machine-provider.js").PluginMachineProviderInputsSchema =

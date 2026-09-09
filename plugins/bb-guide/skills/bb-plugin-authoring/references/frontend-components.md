@@ -228,8 +228,10 @@ className?, draftKey? }` — the `default*` props are SEEDS, not controlled
   provider's control owns the base branch, and the checkout provider's owns
   the directory and the branch to switch to.
 
-  A machine provider may contribute an `environmentRow`; choosing it creates a
-  new machine and then runs the row's environment provider on that machine.
+  An environment composition declares `machineProviderId` and
+  `environmentProviderId`; choosing it creates the machine and runs the concrete
+  environment provider. It appears once, outside existing-host groups.
+  Machine-only registrations do not contribute environment-picker entries.
   A machine provider may omit `icon`; Add machine and the Machines page then
   render no provider logo, matching a manually enrolled machine. The Machines
   page badges a machine only when its provider declares
@@ -237,8 +239,8 @@ className?, draftKey? }` — the `default*` props are SEEDS, not controlled
   Machine-provider inputs use
   `app.slots.experimental_machineProviderInputs({ machineProviderId,
 component })`. The component receives `{ projectId, value, onChange }` and
-  reports ready JSON or a blocked reason. The same control appears in the
-  picker sugar row and Settings → Machines → Add machine. Inputs are persisted
+  reports ready JSON or a blocked reason. The control appears in
+  Settings → Machines → Add machine. Inputs are persisted
   and readable by every plugin, so never put secrets in them; store credentials
   in plugin settings and emit only non-secret configuration or references.
 

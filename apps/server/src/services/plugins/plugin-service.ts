@@ -922,6 +922,7 @@ export function createPluginService(deps: PluginServiceDeps): PluginService {
     invokeWrapped,
     isBuiltinPluginId,
     listPluginHooks,
+    listPluginEnvironmentCompositions,
     listPluginEnvironmentProviders,
     getPluginEnvironmentProvider,
     listPluginMachineProviders,
@@ -1626,6 +1627,7 @@ export function createPluginService(deps: PluginServiceDeps): PluginService {
     },
 
     environmentProviders: {
+      listEnvironmentCompositions: listPluginEnvironmentCompositions,
       listEnvironmentProviders: listPluginEnvironmentProviders,
       getEnvironmentProvider: getPluginEnvironmentProvider,
       invokeProvider: async (pluginId, label, run) => {

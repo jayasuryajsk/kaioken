@@ -273,7 +273,6 @@ type ExpectedFilesKey =
 type ExpectedGuideKey = "render";
 
 type ExpectedHostsKey =
-  | "experimental_enrollmentCommand"
   | "experimental_lifecycle"
   | "submit"
   | "launch"

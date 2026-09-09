@@ -42,7 +42,6 @@ export interface ResolvedSettings {
   tokenId: string;
   tokenSecret: string;
   appName: string;
-  environmentVariables: Readonly<Record<string, string>>;
   idleMs: number | null;
   cpu: number | null;
   memoryMiB: number | null;
@@ -111,7 +110,6 @@ export function resolveSettings(raw: RawSettings): SettingsResolution {
       tokenId,
       tokenSecret,
       appName,
-      environmentVariables: {},
       idleMs: raw.idleMinutes === 0 ? null : raw.idleMinutes * 60_000,
       cpu: raw.cpu ?? null,
       memoryMiB: raw.memoryMiB ?? null,

@@ -51,6 +51,7 @@ function withQueryClient(
 }
 
 const worktreeProvider: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "git-worktree",
   displayName: "Worktree",
   icon: "GitBranch",
@@ -68,6 +69,7 @@ const worktreeProvider: SystemEnvironmentProvider = {
 };
 
 const modalProvider: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "modal-sandbox",
   displayName: "Modal sandbox",
   icon: "Cloud",
@@ -85,6 +87,7 @@ const modalProvider: SystemEnvironmentProvider = {
 };
 
 const personalProvider: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "personal-workspace",
   displayName: "Personal workspace",
   icon: "Folder",

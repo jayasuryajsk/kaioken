@@ -90,7 +90,6 @@ export function debugSandbox(
         appName: settings.appName,
         name: key,
         image: { type: "image", imageId: built.imageId },
-        environmentVariables: {},
         timeoutMs: 30 * 60_000,
         cpu: settings.cpu,
         memoryMiB: settings.memoryMiB,

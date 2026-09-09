@@ -113,7 +113,6 @@ export function machineProvider(
     inputs: null,
     acceptsEmptyInputs: true,
     supportsSuspend: false,
-    environmentRow: null,
     availability: { status: "available" },
     ...overrides,
   };
@@ -129,10 +128,6 @@ export const MODAL_MACHINE_PROVIDER = machineProvider({
   machineTag: "modal",
   logoUrl: modalLogoUrl,
   supportsSuspend: true,
-  environmentRow: {
-    displayName: "New sandbox",
-    environmentProviderId: "project-checkout",
-  },
 });
 
 export const MANUAL_MACHINE_PROVIDER = machineProvider({

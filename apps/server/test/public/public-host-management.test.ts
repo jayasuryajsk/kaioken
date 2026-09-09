@@ -113,7 +113,6 @@ describe("public host management", () => {
             id: "plain-machine",
             icon: null,
             logoUrl: null,
-            environmentRow: null,
           },
         ],
       });

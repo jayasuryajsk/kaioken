@@ -15,19 +15,14 @@ import { createMachine } from "../../src/services/machines/provider-orchestratio
 import { seedHostSession, seedProjectWithSource } from "../helpers/seed.js";
 import { withTestHarness } from "../helpers/test-app.js";
 
-const row = {
-  displayName: "Test machine",
-  environmentProviderId: "project-checkout",
-};
-
 afterEach(() => {
   setPluginMachineProviderBridge(undefined);
   setPluginEnvironmentProviderBridge(undefined);
 });
 
-describe("machine checkout picker rows", () => {
+describe("machine provider listing", () => {
   it.each(["git-project", "no-remote", "personal", "unscoped"] as const)(
-    "gates only the checkout row for %s",
+    "keeps machine providers independent of project scope for %s",
     async (scope) => {
       await withTestHarness(async (harness) => {
         const { host } = seedHostSession(harness.deps, { id: "row-host" });
@@ -75,7 +70,6 @@ describe("machine checkout picker rows", () => {
             reconcileCleanup: async () => ({ status: "removed" }),
             id: "test-machine",
             displayName: "Test machine",
-            environmentRow: row,
             inputs: z.object({ size: z.string() }),
             create: async () => ({
               status: "created",
@@ -85,28 +79,7 @@ describe("machine checkout picker rows", () => {
             remove: async () => ({ status: "removed" }),
           }),
         };
-        const machineRecords = [
-          machineRecord,
-          {
-            ...machineRecord,
-            provider: {
-              ...machineRecord.provider,
-              id: "no-shortcut",
-              environmentRow: null,
-            },
-          },
-          {
-            ...machineRecord,
-            provider: {
-              ...machineRecord.provider,
-              id: "personal-shortcut",
-              environmentRow: {
-                displayName: "Personal machine",
-                environmentProviderId: "personal-workspace",
-              },
-            },
-          },
-        ];
+        const machineRecords = [machineRecord];
         setPluginMachineProviderBridge({
           listMachineProviders: () => machineRecords,
           getMachineProvider: (id) =>
@@ -130,21 +103,11 @@ describe("machine checkout picker rows", () => {
         const { providers } = systemMachineProvidersResponseSchema.parse(
           await response.json(),
         );
-        expect(providers).toHaveLength(3);
-        expect(providers[1]).toMatchObject({
-          id: "no-shortcut",
-          environmentRow: null,
-          availability: { status: "available" },
-        });
-        expect(providers[2]).toMatchObject({
-          id: "personal-shortcut",
-          environmentRow: { environmentProviderId: "personal-workspace" },
-          availability: { status: "available" },
-        });
+        expect(providers).toHaveLength(1);
         expect(providers[0]).not.toHaveProperty("requires");
+        expect(providers[0]).not.toHaveProperty("environmentRow");
         expect(providers[0]).toMatchObject({
           availability: { status: "available" },
-          environmentRow: scope === "git-project" ? row : null,
           acceptsEmptyInputs: false,
           inputs: { type: "object", properties: { size: { type: "string" } } },
         });
@@ -222,12 +185,115 @@ it("rechecks availability after provider setup changes without restarting the pl
       }),
       decisionTimeoutMs: 10_000,
     });
-    expect(
-      await resolveMachineProviderAvailability(record),
-    ).toEqual({ status: "setup-required", message: "Connect your account" });
+    expect(await resolveMachineProviderAvailability(record)).toEqual({
+      status: "setup-required",
+      message: "Connect your account",
+    });
     configured = true;
-    expect(
-      await resolveMachineProviderAvailability(record),
-    ).toEqual({ status: "available" });
+    expect(await resolveMachineProviderAvailability(record)).toEqual({
+      status: "available",
+    });
+  });
+});
+
+it("lists compositions once outside host groups and preserves machine setup availability", async () => {
+  await withTestHarness(async (h) => {
+    const { host } = seedHostSession(h.deps, { id: "composition-host" });
+    const { project } = seedProjectWithSource(h.deps, { hostId: host.id });
+    const environment = {
+      pluginId: "checkout",
+      provider: validatePluginEnvironmentProviderDeclaration({
+        id: "project-checkout",
+        displayName: "Project checkout",
+        requires: { projectCheckout: true },
+        create: async () => ({
+          status: "created",
+          path: "/checkout",
+          ownsPath: false,
+        }),
+        remove: async () => ({ status: "removed" }),
+      }),
+    };
+    const machine = {
+      pluginId: "cloud",
+      provider: validatePluginMachineProviderDeclaration({
+        id: "cloud-machine",
+        displayName: "Cloud machine",
+        availability: () => ({
+          status: "setup-required",
+          message: "Connect account",
+        }),
+        create: async () => {
+          throw new Error("Listing must not provision");
+        },
+        reconcileCleanup: async () => ({ status: "removed" }),
+        remove: async () => ({ status: "removed" }),
+      }),
+    };
+    setPluginEnvironmentProviderBridge({
+      listEnvironmentProviders: () => [environment],
+      getEnvironmentProvider: (id) =>
+        id === environment.provider.id ? environment : undefined,
+      listEnvironmentCompositions: () => [
+        {
+          pluginId: "cloud",
+          composition: {
+            id: "cloud-sandbox",
+            displayName: "Cloud sandbox",
+            machineProviderId: "cloud-machine",
+            environmentProviderId: "project-checkout",
+          },
+        },
+      ],
+      invokeProvider: async (_pluginId, _label, run) => ({
+        ok: true,
+        value: await run(),
+      }),
+      decisionTimeoutMs: 10000,
+    });
+    setPluginMachineProviderBridge({
+      listMachineProviders: () => [machine],
+      getMachineProvider: (id) =>
+        id === machine.provider.id ? machine : undefined,
+      invokeProvider: async (_pluginId, _label, run) => ({
+        ok: true,
+        value: await run(),
+      }),
+      decisionTimeoutMs: 10000,
+    });
+    const list = async (hostId?: string) => {
+      const response = await h.app.request(
+        `/api/v1/system/environment-providers?projectId=${project.id}${hostId ? "&hostId=" + hostId : ""}`,
+      );
+      return (await response.json()).providers;
+    };
+    expect(await list()).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "cloud-sandbox" }),
+      ]),
+    );
+    setProjectGitRemoteUrlIfMissing(
+      h.db,
+      h.hub,
+      project.id,
+      "https://example.test/project.git",
+    );
+    expect(await list()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "cloud-sandbox",
+          machineProviderId: "cloud-machine",
+          availability: {
+            status: "setup-required",
+            message: "Connect account",
+          },
+        }),
+      ]),
+    );
+    expect(await list(host.id)).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "cloud-sandbox" }),
+      ]),
+    );
   });
 });

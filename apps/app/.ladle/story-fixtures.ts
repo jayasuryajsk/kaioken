@@ -324,6 +324,7 @@ export const STORY_WORKTREE_OPTIONS: readonly ReuseThreadOption[] = [
 export const STORY_ENVIRONMENT_PROVIDERS: readonly SystemEnvironmentProvider[] =
   [
     {
+      machineProviderId: null,
       id: "project-checkout",
       displayName: "Project checkout",
       icon: "Laptop",
@@ -340,6 +341,7 @@ export const STORY_ENVIRONMENT_PROVIDERS: readonly SystemEnvironmentProvider[] =
       inputs: null,
     },
     {
+      machineProviderId: null,
       id: "git-worktree",
       displayName: "Worktree",
       icon: "GitBranch",
@@ -356,6 +358,7 @@ export const STORY_ENVIRONMENT_PROVIDERS: readonly SystemEnvironmentProvider[] =
       inputs: null,
     },
     {
+      machineProviderId: null,
       id: "personal-workspace",
       displayName: "Personal workspace",
       icon: "Folder",
@@ -385,10 +388,6 @@ export const STORY_MACHINE_PROVIDERS: readonly SystemMachineProvider[] = [
     inputs: null,
     acceptsEmptyInputs: true,
     supportsSuspend: true,
-    environmentRow: {
-      displayName: "Modal sandbox",
-      environmentProviderId: "project-checkout",
-    },
 
     availability: null,
   },

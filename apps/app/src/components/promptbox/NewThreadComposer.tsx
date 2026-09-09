@@ -1558,7 +1558,6 @@ export function NewThreadComposer({
               selectedProviderHostId: providerHostId,
               inputsControlProviderIds,
               onSelectProvider: handleSelectProvider,
-              machineProviders: machineProviders ?? [],
               selectedMachineProviderId: selectedMachineProvider?.id ?? null,
               ...(!isProjectless && options.onRequestMachineSetup
                 ? { onRequestMachineSetup: options.onRequestMachineSetup }
@@ -1687,7 +1686,6 @@ export function NewThreadComposer({
       machineProviderInputsSlot,
       environmentProvidersByHostId,
       inputsControlProviderIds,
-      machineProviders,
       selectedMachineProvider,
       providerHostId,
       textEffects,

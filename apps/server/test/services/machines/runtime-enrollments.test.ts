@@ -73,6 +73,48 @@ function launch(harness: TestAppHarness, key: string, providerId: string) {
 }
 
 describe("production machine enrollment wiring", () => {
+  it("reads the current core resource across plugins without diagnostic storage", async () => {
+    await withTestHarness(async (h) => {
+      const api = await installPlugin(h, "resource-reader");
+      const hostId = "resource-host";
+      h.db
+        .insert(hosts)
+        .values({
+          id: hostId,
+          name: "Existing machine",
+          machineProviderId: "another-plugin-machine",
+          resource: { sandboxId: "sandbox-existing" },
+          createdAt: 1,
+          updatedAt: 1,
+        })
+        .run();
+      expect(
+        await api.experimental_machines.experimental_getResource(hostId),
+      ).toEqual({ sandboxId: "sandbox-existing" });
+      h.db
+        .update(hosts)
+        .set({ resource: { sandboxId: null, snapshotImageId: "image-1" } })
+        .where(eq(hosts.id, hostId))
+        .run();
+      expect(
+        await api.experimental_machines.experimental_getResource(hostId),
+      ).toEqual({ sandboxId: null, snapshotImageId: "image-1" });
+      h.db
+        .update(hosts)
+        .set({ resource: null })
+        .where(eq(hosts.id, hostId))
+        .run();
+      expect(
+        await api.experimental_machines.experimental_getResource(hostId),
+      ).toBeNull();
+      expect(
+        await api.experimental_machines.experimental_getResource(
+          "missing-host",
+        ),
+      ).toBeNull();
+    });
+  });
+
   it("reserves the launch host through the loaded plugin and reuses production connection state", async () => {
     await withTestHarness(async (h) => {
       setAppSettings(h.db, {

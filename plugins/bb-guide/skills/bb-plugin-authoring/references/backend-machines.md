@@ -3,7 +3,7 @@
 ### Machine providers: core-owned machines
 
 Register machine resource operations with `bb.experimental_machines.register`.
-Machine providers compose with environment providers: a picker sugar row first
+An explicit environment composition first
 creates the machine, then asks its named environment provider for a workspace
 on that machine. After a new machine connects, core sets up the project's Git
 remote on that host and registers its source before invoking an environment
@@ -85,8 +85,12 @@ Omit `allocation` for unknown outcomes such as timeouts. Automatic unresolved
 cleanup retries are bounded to a 30-minute launch window; unresolved cleanup
 remains recorded for operator reconciliation.
 
-An `environmentRow` is optional. Providers without one, such as SSH, require
-`--environment-provider <id>` alongside `bb thread spawn --new-machine <id>`.
+Machine registration does not contribute environment-picker entries. Register
+an environment composition with `machineProviderId` and `environmentProviderId`
+to offer a new machine plus a concrete environment. Modal combines its machine
+with `project-checkout`; core prepares the missing checkout. CLI users select
+`--environment-provider modal-sandbox` without machine flags. Explicit
+`--new-machine <id>` always requires `--environment-provider <id>`.
 
 Suspend and resume are optional but must be declared together. Providers own idle
 timing and request pause through the host SDK. Core interrupts active work before

@@ -1281,7 +1281,57 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("creates a provider machine and its picker-sugar environment", async () => {
+  it("selects a composed environment without choosing a host or machine provider", async () => {
+    const post = vi.fn(async () =>
+      fixtures.makeThread({
+        id: "composed-thread",
+        projectId: "proj-1",
+        providerId: "codex",
+      }),
+    );
+    stubServerApi({
+      "v1.threads.$post": post,
+      "v1.system.machine-providers.$get": vi.fn(async () => ({
+        providers: [],
+      })),
+      "v1.system.environment-providers.$get": vi.fn(async () => ({
+        providers: [
+          {
+            id: "modal-sandbox",
+            displayName: "Modal sandbox",
+            machineProviderId: "modal-sandbox",
+            inputs: null,
+            acceptsEmptyInputs: true,
+            availability: { status: "available" },
+          },
+        ],
+      })),
+    });
+    await runCommand(
+      [
+        "thread",
+        "spawn",
+        "--project",
+        "proj-1",
+        "--prompt",
+        "hello",
+        "--environment-provider",
+        "modal-sandbox",
+      ],
+      register,
+    );
+    expect(post).toHaveBeenCalledWith({
+      json: expect.objectContaining({
+        environment: {
+          type: "provider",
+          environmentProviderId: "modal-sandbox",
+          inputs: null,
+        },
+      }),
+    });
+  });
+
+  it("creates a provider machine with an explicit environment provider", async () => {
     const post = vi.fn(async () =>
       fixtures.makeThread({
         id: "thread-new-machine",
@@ -1306,10 +1356,6 @@ describe("bb thread spawn command output", () => {
               required: ["target"],
             },
             acceptsEmptyInputs: false,
-            environmentRow: {
-              displayName: "Test machine",
-              environmentProviderId: "project-checkout",
-            },
 
             availability: null,
           },
@@ -1345,6 +1391,8 @@ describe("bb thread spawn command output", () => {
         "proj-1",
         "--prompt",
         "hello",
+        "--environment-provider",
+        "project-checkout",
         "--new-machine",
         "test-machine",
         "--machine-inputs",

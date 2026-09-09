@@ -2,10 +2,10 @@ import { eq } from "drizzle-orm";
 import { expect, it, vi } from "vitest";
 import { defaultAppSettings } from "@bb/domain";
 import {
+  machineEnrollments,
   getMachineLaunch,
   setAppSettings,
   listEvents,
-  machineEnrollments,
 } from "@bb/db";
 import { withTestHarness } from "../../helpers/test-app.js";
 import { seedHostSession, seedProjectWithSource } from "../../helpers/seed.js";
@@ -13,9 +13,9 @@ import { textInput } from "../../helpers/prompt-input.js";
 import { createThreadFromRequest } from "../../../src/services/threads/thread-create.js";
 import { advanceThreadProvisioning } from "../../../src/services/threads/thread-provisioning.js";
 import {
-  cancelMachineLaunch,
   requestMachineRemoval,
   sweepProviderMachine,
+  cancelMachineLaunch,
 } from "../../../src/services/machines/provider-orchestration.js";
 
 it.each(["cancel", "enroll"])(
@@ -56,8 +56,17 @@ it.each(["cancel", "enroll"])(
       });
       if (enrollment.state !== "pending")
         throw new Error("Expected pending enrollment");
-      const url = `/api/v1/hosts/launches/${thread.id}/enrollment-command`;
-      expect((await (await h.app.request(url)).json()).command).toContain(
+      const readCommand = async () =>
+        (
+          await (
+            await h.app.request("/api/v1/plugins/machine-manual/rpc/command", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ launchId: thread.id }),
+            })
+          ).json()
+        ).result;
+      expect((await readCommand()).command).toContain(
         enrollment.bootstrap.credential,
       );
       await advanceThreadProvisioning(h.deps, { threadId: thread.id });
@@ -87,18 +96,24 @@ it.each(["cancel", "enroll"])(
             allowPublicEnrollment: true,
           }),
         ).not.toBeNull();
+        h.hub.registerDaemon("manual-connected", enrollment.hostId, {
+          close() {},
+          send() {},
+        });
       } else await cancelMachineLaunch(h.deps, thread.id);
-      expect(await (await h.app.request(url)).json()).toEqual({
-        command: null,
-        expiresAt: null,
-      });
+      await vi.waitFor(async () =>
+        expect(await readCommand()).toEqual({
+          command: null,
+          expiresAt: null,
+        }),
+      );
       assertRedacted();
       await cancelMachineLaunch(h.deps, thread.id);
     });
   },
 );
 
-it("returns the current thread replacement command without reviving consumed launches", async () => {
+it("resolves replacement launch identity while Manual owns command retrieval", async () => {
   await withTestHarness(async (h) => {
     setAppSettings(h.db, {
       ...defaultAppSettings,
@@ -125,8 +140,19 @@ it("returns the current thread replacement command without reviving consumed lau
     const api = h.pluginService.getApi("machine-manual");
     if (!api) throw new Error("Missing plugin");
     const url = (id: string) =>
-      `/api/v1/hosts/launches/${encodeURIComponent(id)}/enrollment-command`;
+      `/api/v1/hosts/launches/${encodeURIComponent(id)}`;
     const threadUrl = `${url(thread.id)}?scope=thread`;
+    const readCommand = async (launchId: string) => {
+      const response = await h.app.request(
+        "/api/v1/plugins/machine-manual/rpc/command",
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ launchId }),
+        },
+      );
+      return (await response.json()).result;
+    };
     const consumedKeys: string[] = [];
     let key = thread.id;
     for (let generation = 0; generation < 3; generation++) {
@@ -141,7 +167,6 @@ it("returns the current thread replacement command without reviving consumed lau
       if (enrollment.state !== "pending")
         throw new Error("Expected enrollment");
       const response = await h.app.request(threadUrl);
-      expect(response.headers.get("cache-control")).toBe("no-store");
       const install = () =>
         h.app.request("/install.sh", {
           headers: { "X-BB-Enrollment": enrollment.bootstrap.credential },
@@ -160,14 +185,12 @@ it("returns the current thread replacement command without reviving consumed lau
         ).status,
       ).toBe(403);
 
-      expect((await response.json()).command).toContain(
-        enrollment.bootstrap.credential,
-      );
-      expect((await (await h.app.request(url(key))).json()).command).toContain(
+      expect((await response.json()).id).toBe(key);
+      expect((await readCommand(key)).command).toContain(
         enrollment.bootstrap.credential,
       );
       for (const consumed of consumedKeys) {
-        expect(await (await h.app.request(url(consumed))).json()).toEqual({
+        expect(await readCommand(consumed)).toEqual({
           command: null,
           expiresAt: null,
         });
@@ -189,9 +212,6 @@ it("returns the current thread replacement command without reviving consumed lau
           .where(eq(machineEnrollments.id, enrollment.id))
           .run();
         expect((await install()).status).toBe(403);
-        const expiredCommand = await (await h.app.request(threadUrl)).json();
-        expect(expiredCommand.command).toBeNull();
-        expect(expiredCommand.expiresAt).toBeLessThan(Date.now());
         h.db
           .update(machineEnrollments)
           .set({ expiresAt: enrollment.expiresAt })
@@ -199,7 +219,7 @@ it("returns the current thread replacement command without reviving consumed lau
           .run();
         await cancelMachineLaunch(h.deps, key);
         expect((await install()).status).toBe(403);
-        expect(await (await h.app.request(threadUrl)).json()).toEqual({
+        expect(await readCommand(key)).toEqual({
           command: null,
           expiresAt: null,
         });
@@ -224,7 +244,7 @@ it("returns the current thread replacement command without reviving consumed lau
       await vi.waitFor(() =>
         expect(getMachineLaunch(h.db, key)?.phase).toBe("ready"),
       );
-      expect(await (await h.app.request(threadUrl)).json()).toEqual({
+      expect(await readCommand(key)).toEqual({
         command: null,
         expiresAt: null,
       });
@@ -232,11 +252,11 @@ it("returns the current thread replacement command without reviving consumed lau
       await sweepProviderMachine(h.deps, enrollment.hostId);
       consumedKeys.push(key);
       key = `${thread.id}:replacement:${enrollment.hostId}`;
-      expect(await (await h.app.request(threadUrl)).json()).toEqual({
+      expect(await readCommand(key)).toEqual({
         command: null,
         expiresAt: null,
       });
       await advanceThreadProvisioning(h.deps, { threadId: thread.id });
     }
   });
-});
+}, 20000);

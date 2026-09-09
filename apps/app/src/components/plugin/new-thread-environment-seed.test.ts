@@ -16,6 +16,7 @@ const BRANCH_INPUTS_SCHEMA = {
 
 const ENVIRONMENT_PROVIDERS: SystemEnvironmentProvider[] = [
   {
+    machineProviderId: null,
     id: "branchy",
     displayName: "New branch workspace",
     icon: "GitBranch",
@@ -32,6 +33,7 @@ const ENVIRONMENT_PROVIDERS: SystemEnvironmentProvider[] = [
     inputs: BRANCH_INPUTS_SCHEMA,
   },
   {
+    machineProviderId: null,
     id: "project-checkout",
     displayName: "Project checkout",
     icon: "Laptop",
@@ -51,6 +53,7 @@ const ENVIRONMENT_PROVIDERS: SystemEnvironmentProvider[] = [
     },
   },
   {
+    machineProviderId: null,
     id: "git-worktree",
     displayName: "Worktree",
     icon: "GitBranch",
@@ -67,6 +70,7 @@ const ENVIRONMENT_PROVIDERS: SystemEnvironmentProvider[] = [
     inputs: BRANCH_INPUTS_SCHEMA,
   },
   {
+    machineProviderId: null,
     id: "personal-workspace",
     displayName: "Personal workspace",
     icon: "Folder",
@@ -83,6 +87,7 @@ const ENVIRONMENT_PROVIDERS: SystemEnvironmentProvider[] = [
     inputs: null,
   },
   {
+    machineProviderId: null,
     id: "container",
     displayName: "Docker container",
     icon: "Container",

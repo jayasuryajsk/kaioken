@@ -16,10 +16,10 @@
   an empty object; otherwise the CLI supplies `{}` when the flag is omitted.
   `--machine` picks the existing machine.
 - List machine providers with `bb machine providers [--project <id>]`. Create a
-  new provider machine and its advertised environment row with
-  `bb thread spawn --new-machine <provider-id>`. Pass
-  `--environment-provider <id>` when the machine provider has no environmentRow,
-  including SSH. Pass `--machine-inputs <json>` when required. These inputs are persisted and
+  new provider machine with
+  `bb thread spawn --new-machine <provider-id> --environment-provider <id>`.
+  For Modal's composed environment, use `--environment-provider modal-sandbox`
+  without machine selectors. Pass `--machine-inputs <json>` when required. These inputs are persisted and
   readable by plugins, so keep credentials in plugin settings and send only
   non-secret configuration or references.
 - Omit `--base-branch` for bb's default. Explicit values are exact; use

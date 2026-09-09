@@ -277,5 +277,14 @@ Changes apply to new turns, setup commands and terminals.
 
 Manual enrollment commands display the server expiry timestamp as a countdown.
 After expiry, Add a machine offers Generate new command: it cancels the old
-attempt and creates a fresh one. The SDK enrollment-command response includes
-`expiresAt` (milliseconds since epoch), including when a pending code has expired.
+attempt and creates a fresh one. Manual owns the command and expiry in memory;
+polling does not renew it. Restart machine setup if the plugin or server restarts.
+
+
+For a new thread on a new Modal sandbox, select the environment composition:
+`bb thread spawn --project <id> --environment-provider modal-sandbox --prompt "..."`.
+It creates the machine, prepares the project checkout, and runs environment setup.
+Progress and failures appear in the thread's provisioning details. If cloning
+fails, the machine remains available for retry or explicit removal.
+`--new-machine <id>` requires an explicit `--environment-provider <id>`; machine
+providers do not implicitly choose an environment.

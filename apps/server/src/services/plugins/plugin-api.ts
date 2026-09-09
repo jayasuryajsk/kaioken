@@ -1,3 +1,7 @@
+import {
+  environmentCompositionSchema,
+  type NormalizedPluginEnvironmentComposition,
+} from "@get-bb/plugin-sdk/internal/host-policy";
 import { writeSecretFile, deleteSecretFile } from "@bb/secret-storage";
 import { readSecret, pluginSecretsDir } from "./plugin-settings.js";
 import { createMachineBootstrapApi } from "../machines/bootstrap.js";
@@ -11,6 +15,7 @@ import { CronExpressionParser } from "cron-parser";
 import {
   deletePluginKvValue,
   getPluginKvValue,
+  getHost,
   listPluginKvKeys,
   setPluginKvValue,
   type DbConnection,
@@ -258,6 +263,7 @@ export interface PluginApiHandle {
   threadEventHandlers: PluginThreadEventHandlers;
   /** Hook handlers recorded by `bb.experimental_hooks.on`. */
   hooks: PluginHookRecords;
+  environmentCompositions: Map<string, NormalizedPluginEnvironmentComposition>;
   environmentProviders: Map<string, NormalizedPluginEnvironmentProvider>;
   machineProviders: Map<string, NormalizedPluginMachineProvider>;
   serverAccessProviders: Map<
@@ -563,6 +569,10 @@ export function createPluginApi(options: {
   const hooks: PluginHookRecords = {
     "message.dispatch": null,
   };
+  const environmentCompositions = new Map<
+    string,
+    NormalizedPluginEnvironmentComposition
+  >();
   const environmentProviders = new Map<
     string,
     NormalizedPluginEnvironmentProvider
@@ -1560,8 +1570,30 @@ export function createPluginApi(options: {
   };
 
   const experimental_environments: PluginEnvironments = {
-    register(declaration) {
+    register(
+      declaration:
+        | import("@get-bb/plugin-sdk").PluginEnvironmentProviderDeclaration
+        | NormalizedPluginEnvironmentComposition,
+    ) {
       assertLive();
+      if ("machineProviderId" in declaration) {
+        const composition = environmentCompositionSchema.parse(declaration);
+        const owner = options.isEnvironmentProviderIdTaken(composition.id);
+        if (owner !== undefined)
+          throw new Error(
+            `environment provider "${composition.id}" is already registered by plugin "${owner}"`,
+          );
+        if (environmentProviders.has(composition.id))
+          throw new Error(
+            "Environment ID is already registered as a concrete provider",
+          );
+        environmentCompositions.set(composition.id, composition);
+        return;
+      }
+      if (environmentCompositions.has(declaration.id))
+        throw new Error(
+          "Environment ID is already registered as a composition",
+        );
       const provider =
         validatePluginEnvironmentProviderDeclaration(declaration);
       const problem =
@@ -1638,6 +1670,10 @@ export function createPluginApi(options: {
   };
   const experimental_machines: PluginMachines = {
     ...createMachineBootstrapApi(enrollmentApi),
+    async experimental_getResource(hostId) {
+      assertLive();
+      return getHost(db, hostId)?.resource ?? null;
+    },
     register(declaration) {
       assertLive();
       const provider = validatePluginMachineProviderDeclaration(declaration);
@@ -1719,6 +1755,7 @@ export function createPluginApi(options: {
     databaseHandles,
     threadEventHandlers,
     hooks,
+    environmentCompositions,
     environmentProviders,
     machineProviders,
     serverAccessProviders,

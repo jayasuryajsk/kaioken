@@ -1820,6 +1820,37 @@ describe("experimental_aiServices.register", () => {
 });
 
 describe("environment targets", () => {
+  it("keeps compositions separate from concrete lifecycle providers", () => {
+    const { bb, harness } = createFakePluginHost();
+    bb.experimental_environments.register({
+      id: "sandbox",
+      displayName: "Sandbox",
+      machineProviderId: "cloud-machine",
+      environmentProviderId: "project-checkout",
+    });
+    expect(harness.registrations.environmentProviders.has("sandbox")).toBe(
+      false,
+    );
+    expect(
+      harness.registrations.environmentCompositions.get("sandbox"),
+    ).toMatchObject({
+      machineProviderId: "cloud-machine",
+      environmentProviderId: "project-checkout",
+    });
+    expect(() =>
+      bb.experimental_environments.register({
+        id: "sandbox",
+        displayName: "Conflicting concrete provider",
+        create: async () => ({
+          status: "created",
+          path: "/checkout",
+          ownsPath: false,
+        }),
+        remove: async () => ({ status: "removed" }),
+      }),
+    ).toThrow("already registered as a composition");
+  });
+
   it("normalizes a registration and exposes it to the harness", async () => {
     const { bb, harness } = createFakePluginHost();
     const create = async () => ({

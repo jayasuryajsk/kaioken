@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { Button } from "@bb/shared-ui/button";
-import type { ExperimentalMachineProgressProps } from "@get-bb/plugin-sdk/app";
 
-export function ManualEnrollmentCommand({
-  client,
-  id,
-  scope,
+export function ManualEnrollmentCommandView({
+  readCommand,
+  launchId,
   onRegenerate,
   onExpired,
   onReadyChange,
-}: ExperimentalMachineProgressProps & {
+}: {
+  launchId: string;
+  readCommand: (
+    launchId: string,
+  ) => Promise<{ command: string | null; expiresAt: number | null }>;
   onRegenerate?: () => Promise<void>;
   onExpired?: () => void;
   onReadyChange?: (ready: boolean) => void;
@@ -56,11 +58,7 @@ export function ManualEnrollmentCommand({
     setError(null);
     const poll = async () => {
       try {
-        const result = await client.hosts.experimental_enrollmentCommand({
-          id,
-          scope,
-          signal: controller.signal,
-        });
+        const result = await readCommand(launchId);
         if (!controller.signal.aborted) {
           setCommand(result.command);
           setExpiresAt(
@@ -81,7 +79,7 @@ export function ManualEnrollmentCommand({
       controller.abort();
       clearTimeout(timer);
     };
-  }, [client, id, scope]);
+  }, [readCommand, launchId]);
   if (command === null && !expired) return null;
   return (
     <div className="overflow-hidden rounded-md border border-border bg-muted/30">

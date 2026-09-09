@@ -214,7 +214,7 @@ describe("surface card copy", () => {
       "PluginMachineProviderSuspendContext",
     );
     expect(machineProviders?.bullets.join(" ")).toContain(
-      "Checkpoint a recoverable private resource during suspend",
+      "Checkpoint a recoverable resource during suspend",
     );
   });
 

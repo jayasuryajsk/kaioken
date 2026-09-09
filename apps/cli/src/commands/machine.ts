@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { registerMachineEnvironmentCommands } from "./machine-environment.js";
 import { registerMachineLifecycleCommands } from "./machine-lifecycle.js";
 import {
@@ -203,9 +204,14 @@ export function registerMachineCommands(
             while (launch.phase === "creating" && command === null) {
               controller.signal.throwIfAborted();
               command = (
-                await sdk.hosts.experimental_enrollmentCommand({
-                  id: launch.id,
-                  signal: controller.signal,
+                await sdk.plugins.callRpc({
+                  pluginId: "machine-manual",
+                  method: "command",
+                  input: { launchId: launch.id },
+                  outputSchema: z.object({
+                    command: z.string().nullable(),
+                    expiresAt: z.number().nullable(),
+                  }),
                 })
               ).command;
               if (command !== null) break;

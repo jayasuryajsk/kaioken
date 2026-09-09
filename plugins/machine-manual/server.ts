@@ -1,6 +1,25 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import { manualRpcContract } from "./rpc.js";
+import type { EnrollmentBootstrap, BbPluginApi } from "@get-bb/plugin-sdk";
 
 export default function manualMachinePlugin(bb: BbPluginApi): void {
+  const pending = new Map<string, EnrollmentBootstrap>();
+  bb.onDispose(() => pending.clear());
+  bb.rpc.register(manualRpcContract, {
+    command: ({ launchId }) => {
+      const enrollment = pending.get(launchId);
+      if (!enrollment) return { command: null, expiresAt: null };
+      if (enrollment.expiresAt <= Date.now()) {
+        pending.delete(launchId);
+        return { command: null, expiresAt: enrollment.expiresAt };
+      }
+      const quote = (value: string) =>
+        "'" + value.replaceAll("'", "'\"'\"'") + "'";
+      return {
+        command: `curl -fsSL -H ${quote(`X-BB-Enrollment: ${enrollment.credential}`)} ${quote(new URL("/install.sh", enrollment.serverUrl).href)} | sh`,
+        expiresAt: enrollment.expiresAt,
+      };
+    },
+  });
   bb.experimental_machines.register({
     id: "manual",
     displayName: "Manual machine setup",
@@ -13,18 +32,24 @@ export default function manualMachinePlugin(bb: BbPluginApi): void {
       const enrollment = await bb.experimental_machines.enrollments.prepare({
         key: context.key,
       });
-      const resource = { version: 1, hostId: enrollment.hostId };
-      await context.checkpoint(resource);
-      context.signal.throwIfAborted();
-      context.report.step("Run the enrollment command shown in the picker");
-      const { hostId } =
-        await bb.experimental_machines.enrollments.waitForConnection({
-          enrollmentId: enrollment.id,
-          timeoutMs: 15 * 60_000,
-          signal: context.signal,
-        });
-      context.report.step("Machine connected");
-      return { status: "created", hostId, resource };
+      if (enrollment.state === "pending")
+        pending.set(context.key, enrollment.bootstrap);
+      try {
+        const resource = { version: 1, hostId: enrollment.hostId };
+        await context.checkpoint(resource);
+        context.signal.throwIfAborted();
+        context.report.step("Run the enrollment command shown in the picker");
+        const { hostId } =
+          await bb.experimental_machines.enrollments.waitForConnection({
+            enrollmentId: enrollment.id,
+            timeoutMs: 15 * 60_000,
+            signal: context.signal,
+          });
+        context.report.step("Machine connected");
+        return { status: "created", hostId, resource };
+      } finally {
+        pending.delete(context.key);
+      }
     },
     async reconcileCleanup() {
       return { status: "removed" };

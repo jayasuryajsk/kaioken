@@ -250,6 +250,13 @@ async function buildProviderSpawnEnvironment(args: {
       `The '${match.id}' environment provider takes no --environment-inputs.`,
     );
   }
+  if (match.machineProviderId) {
+    if (args.machine !== null || args.machineHostId !== null)
+      throw new Error(
+        "This environment provider chooses its own new machine; omit machine selectors.",
+      );
+    return { type: "provider", environmentProviderId: match.id, inputs };
+  }
   const machine = args.machine ?? {
     type: "existing" as const,
     hostId: requireHostId(
@@ -427,12 +434,10 @@ export function registerSpawnCommand(
                 machineProviderId: machineProvider.id,
                 inputs: machineInputs,
               };
-        const selectedEnvironmentProvider =
-          opts.environmentProvider ??
-          machineProvider?.environmentRow?.environmentProviderId;
+        const selectedEnvironmentProvider = opts.environmentProvider;
         if (machineProvider && selectedEnvironmentProvider === undefined) {
           throw new Error(
-            `The '${machineProvider.id}' machine provider has no environment row; combine --new-machine with --environment-provider <id>.`,
+            `The '${machineProvider.id}' machine provider requires an environment provider; combine --new-machine with --environment-provider <id>.`,
           );
         }
         const needsHostId =

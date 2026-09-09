@@ -550,18 +550,6 @@ export function createMachineEnrollmentService(
   }
   return {
     forOwner: scoped,
-    pendingBootstrapForLaunch,
-    pendingEnrollmentExpiresAtForLaunch(launchId: string): number | null {
-      const row = readPendingManualEnrollment(launchId);
-      if (
-        !row ||
-        row.enrollment.owner !== getMachineProvider("manual")?.pluginId ||
-        deps.isConnected(row.enrollment.hostId) ||
-        hasIssuedDaemonCredential(row.enrollment.hostId)
-      )
-        return null;
-      return row.enrollment.expiresAt;
-    },
     async pendingBootstrapForCredential(
       credential: string,
     ): Promise<EnrollmentBootstrap | null> {

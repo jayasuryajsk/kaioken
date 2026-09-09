@@ -59,7 +59,10 @@ import {
 import { deriveTitleFallback } from "./title-generation.js";
 import type { ThreadProvisionEnvironmentIntent } from "./thread-provisioning-context.js";
 import { resolveSystemProviderModels } from "../system/execution-options.js";
-import { getEnvironmentProvider } from "../plugins/plugin-environment-provider-registry.js";
+import {
+  getEnvironmentProvider,
+  listEnvironmentCompositions,
+} from "../plugins/plugin-environment-provider-registry.js";
 
 type ThreadCreateDeps = LoggedPendingInteractionWorkSessionDeps;
 
@@ -601,7 +604,11 @@ export async function createThreadFromRequest(
   if (
     requestedEnvironment.type === "provider" &&
     getEnvironmentProvider(requestedEnvironment.environmentProviderId) ===
-      undefined
+      undefined &&
+    !listEnvironmentCompositions().some(
+      (record) =>
+        record.composition.id === requestedEnvironment.environmentProviderId,
+    )
   ) {
     throw new ApiError(400, "invalid_request", "unknown environment provider");
   }
@@ -633,7 +640,7 @@ export async function createThreadFromRequest(
     resolvedEnvironment !== null
       ? childHostIdForResolvedEnvironment(resolvedEnvironment)
       : request.environment.type === "provider"
-        ? request.environment.machine.type === "existing"
+        ? request.environment.machine?.type === "existing"
           ? request.environment.machine.hostId
           : null
         : null;
@@ -649,7 +656,7 @@ export async function createThreadFromRequest(
     resolvedEnvironment !== null
       ? modelCatalogCwdForResolvedEnvironment(resolvedEnvironment)
       : request.environment.type === "provider" &&
-          request.environment.machine.type === "existing"
+          request.environment.machine?.type === "existing"
         ? projectCheckoutPathOnHost(
             deps,
             request.projectId,

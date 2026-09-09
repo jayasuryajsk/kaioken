@@ -1480,10 +1480,7 @@ export interface PluginMachineProviderInputsRegistration {
 
 export interface ExperimentalMachineSetupProps {
   client: {
-    hosts: Pick<
-      HostsArea,
-      "submit" | "follow" | "cancel" | "experimental_enrollmentCommand"
-    >;
+    hosts: Pick<HostsArea, "submit" | "follow" | "cancel">;
   };
   onClose(): void;
 }

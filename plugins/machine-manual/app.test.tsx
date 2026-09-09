@@ -3,12 +3,14 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import { createBrowserBbSdk } from "@bb/sdk/browser";
 import { makeSystemConfig } from "../../apps/app/src/test/fixtures/system-config.js";
-import { ManualMachineSetup } from "./app.js";
+import { ManualMachineSetupView as ManualMachineSetup } from "./app.js";
 
 vi.mock("@get-bb/plugin-sdk/app", () => ({
   definePluginApp: vi.fn(),
   UrlLink: (props: React.ComponentProps<"a">) => <a {...props} />,
 }));
+const readCommand =
+  vi.fn<() => Promise<{ command: string | null; expiresAt: number | null }>>();
 const client = createBrowserBbSdk({ baseUrl: "http://localhost" });
 const launch = {
   id: "manual-launch",
@@ -49,7 +51,7 @@ beforeEach(() => {
     phase: "cancelled",
     terminal: true,
   });
-  vi.spyOn(client.hosts, "experimental_enrollmentCommand").mockResolvedValue({
+  readCommand.mockResolvedValue({
     command: "test-command",
     expiresAt: Date.now() + 60_000,
   });
@@ -61,13 +63,17 @@ afterEach(() => {
 
 it("waits for a command before showing connection status and leaves enrollment valid on close", async () => {
   let resolveCommand!: (value: { command: string; expiresAt: number }) => void;
-  vi.mocked(client.hosts.experimental_enrollmentCommand).mockReturnValue(
+  readCommand.mockReturnValue(
     new Promise((resolve) => {
       resolveCommand = resolve;
     }),
   );
   const view = render(
-    <ManualMachineSetup client={client} onClose={() => {}} />,
+    <ManualMachineSetup
+      readCommand={readCommand}
+      client={client}
+      onClose={() => {}}
+    />,
   );
   await waitFor(() => expect(client.hosts.submit).toHaveBeenCalledTimes(1));
   expect(screen.getByText("Preparing command…")).toBeTruthy();

@@ -181,7 +181,6 @@ describe("MachineSettingsView", () => {
         inputs: null,
         acceptsEmptyInputs: true,
         supportsSuspend: true,
-        environmentRow: null,
 
         availability: { status: "available" },
       },
@@ -213,7 +212,6 @@ describe("MachineSettingsView", () => {
         inputs: null,
         acceptsEmptyInputs: true,
         supportsSuspend: false,
-        environmentRow: null,
 
         availability: { status: "available" },
       },

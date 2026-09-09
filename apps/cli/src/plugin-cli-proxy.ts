@@ -290,24 +290,6 @@ async function materializeStdinFlag(
   argv: readonly string[],
   input: PluginCliInputStream,
 ): Promise<string[]> {
-  if (argv.includes("--stdin")) {
-    if (input.isTTY === true) throw new Error("--stdin requires piped input.");
-    if (argv.includes("--input-text"))
-      throw new Error("Choose --stdin or --input-text.");
-    const chunks: Buffer[] = [];
-    let bytes = 0;
-    for await (const chunk of input) {
-      const data = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
-      bytes += data.length;
-      if (bytes > 256 * 1024) throw new Error("--stdin exceeds 256 KiB.");
-      chunks.push(data);
-    }
-    return argv.flatMap((value) =>
-      value === "--stdin"
-        ? ["--input-text", Buffer.concat(chunks).toString("utf8")]
-        : [value],
-    );
-  }
   const matches = argv.flatMap((flag, index) => {
     const match = PLUGIN_CLI_STDIN_FLAG.exec(flag);
     const name = match?.[1];

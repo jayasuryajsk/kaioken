@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "f32c9a17-cebc-45c1-8684-71a699468cfc",
+  "id": "7d17c9fa-b198-4a28-be4d-94e9b91cf35b",
   "prevId": "29773b03-78e7-4083-a89c-e38d38412675",
   "tables": {
     "app_settings": {
@@ -1448,13 +1448,6 @@
         },
         "suspended_at": {
           "name": "suspended_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "idle_since": {
-          "name": "idle_since",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,

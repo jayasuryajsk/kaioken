@@ -35,6 +35,7 @@ import type { Hono } from "hono";
 import { pluginImageResponse } from "./plugin-image-response.js";
 import {
   getEnvironmentProvider,
+  listEnvironmentCompositions,
   listEnvironmentProviders,
 } from "../services/plugins/plugin-environment-provider-registry.js";
 import {
@@ -75,7 +76,6 @@ import {
 import {
   machineProviderAcceptsEmptyInputs,
   resolveMachineProviderAvailability,
-  resolveMachineProviderEnvironmentRow,
 } from "../services/machines/provider-availability.js";
 import { requirePublicProject } from "../services/lib/entity-lookup.js";
 
@@ -429,6 +429,7 @@ export function registerSystemRoutes(
                 return null;
               }
               return {
+                machineProviderId: null,
                 id: record.provider.id,
                 displayName: record.provider.displayName,
                 icon: record.provider.icon,
@@ -445,7 +446,57 @@ export function registerSystemRoutes(
               };
             }),
         )
-      ).filter((provider) => provider !== null),
+      )
+        .filter((provider) => provider !== null)
+        .concat(
+          query.hostId !== undefined
+            ? []
+            : (
+                await Promise.all(
+                  listEnvironmentCompositions().map(
+                    async ({ pluginId, composition }) => {
+                      const record = getEnvironmentProvider(
+                        composition.environmentProviderId,
+                      );
+                      const machine = getMachineProvider(
+                        composition.machineProviderId,
+                      );
+                      if (!record || !machine) return null;
+                      if (
+                        project !== null &&
+                        (record.provider.requires.projectCheckout ||
+                          record.provider.requires.gitRemote) &&
+                        project.gitRemoteUrl === null
+                      )
+                        return null;
+                      if (
+                        project !== null &&
+                        record.provider.requires.projectless !==
+                          (project.id === PERSONAL_PROJECT_ID)
+                      )
+                        return null;
+                      return {
+                        id: composition.id,
+                        displayName: composition.displayName,
+                        icon: composition.icon ?? machine.provider.icon,
+                        logoUrl:
+                          machine.icon === undefined
+                            ? null
+                            : `/api/v1/system/providers/${encodeURIComponent("machine:" + machine.provider.id)}/logo?h=${machine.icon.hash}`,
+                        pluginId,
+                        machineProviderId: composition.machineProviderId,
+                        requires: record.provider.requires,
+                        inputs: record.provider.inputsJsonSchema,
+                        acceptsEmptyInputs:
+                          await environmentProviderAcceptsEmptyInputs(record),
+                        availability:
+                          await resolveMachineProviderAvailability(machine),
+                      };
+                    },
+                  ),
+                )
+              ).filter((provider) => provider !== null),
+        ),
     });
   });
 
@@ -466,11 +517,6 @@ export function registerSystemRoutes(
           inputs: record.provider.inputsJsonSchema,
           acceptsEmptyInputs: await machineProviderAcceptsEmptyInputs(record),
           supportsSuspend: record.provider.suspend !== null,
-          environmentRow: resolveMachineProviderEnvironmentRow(
-            deps,
-            record,
-            query,
-          ),
           availability: await resolveMachineProviderAvailability(record),
         })),
       ),

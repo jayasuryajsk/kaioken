@@ -238,7 +238,10 @@ export function resolveRootComposeEffectiveEnvironmentValue({
       : fallbackValue;
   }
 
-  if (selectedProvider !== undefined && primaryHostId !== null) {
+  if (
+    selectedProvider !== undefined &&
+    (selectedProvider.machineProviderId !== null || primaryHostId !== null)
+  ) {
     return environmentSelectionValue;
   }
 

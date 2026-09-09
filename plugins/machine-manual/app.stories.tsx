@@ -4,7 +4,7 @@ import { StoryCard, StoryRow } from "../../apps/app/.ladle/story-card";
 import { DialogStage } from "../../apps/app/.ladle/story-dialog-stage";
 
 installTestPluginRuntime();
-const { ManualMachineSetup } = await import("./app");
+const { ManualMachineSetupView: ManualMachineSetup } = await import("./app");
 
 export default {
   title: "plugins/Manual machine setup",
@@ -17,14 +17,18 @@ const COMMAND =
   "curl -fsSL -H 'X-BB-Enrollment: bbde_MUtbGDavhoebJjRGJbPLSvPFkyaUfbbACEuDygrUhFhRcCjSpKjUaqFaGkGYTKCO' 'https://sawyer.getbb.app/install.sh' | sh";
 
 function client(
-  enrollmentCommand: ExperimentalMachineSetupProps["client"]["hosts"]["experimental_enrollmentCommand"],
-): ExperimentalMachineSetupProps["client"] {
+  enrollmentCommand: (
+    launchId: string,
+  ) => Promise<{ command: string | null; expiresAt: number | null }>,
+): ExperimentalMachineSetupProps["client"] & {
+  readCommand: typeof enrollmentCommand;
+} {
   return {
+    readCommand: enrollmentCommand,
     hosts: {
       submit: async () => ({ id: "launch_story", phase: "creating" }) as never,
       follow: never,
       cancel: async () => ({}) as never,
-      experimental_enrollmentCommand: enrollmentCommand,
     },
   };
 }
@@ -58,7 +62,11 @@ export function Enrollment() {
         hint="the view submits a launch on mount; until the server has a bootstrap there is no command to show"
       >
         <DialogStage>
-          <ManualMachineSetup client={preparing} onClose={noop} />
+          <ManualMachineSetup
+            client={preparing}
+            readCommand={preparing.readCommand}
+            onClose={noop}
+          />
         </DialogStage>
       </StoryRow>
       <StoryRow
@@ -66,7 +74,11 @@ export function Enrollment() {
         hint="what a stock bb shows for its only provider: run this on the machine, with a countdown to expiry"
       >
         <DialogStage>
-          <ManualMachineSetup client={ready} onClose={noop} />
+          <ManualMachineSetup
+            client={ready}
+            readCommand={ready.readCommand}
+            onClose={noop}
+          />
         </DialogStage>
       </StoryRow>
       <StoryRow
@@ -74,7 +86,11 @@ export function Enrollment() {
         hint="the enrollment credential timed out before the machine connected"
       >
         <DialogStage>
-          <ManualMachineSetup client={expired} onClose={noop} />
+          <ManualMachineSetup
+            client={expired}
+            readCommand={expired.readCommand}
+            onClose={noop}
+          />
         </DialogStage>
       </StoryRow>
       <StoryRow
@@ -82,7 +98,11 @@ export function Enrollment() {
         hint="submitting the launch failed, so the view offers to try again"
       >
         <DialogStage>
-          <ManualMachineSetup client={unavailable} onClose={noop} />
+          <ManualMachineSetup
+            client={unavailable}
+            readCommand={ready.readCommand}
+            onClose={noop}
+          />
         </DialogStage>
       </StoryRow>
     </StoryCard>

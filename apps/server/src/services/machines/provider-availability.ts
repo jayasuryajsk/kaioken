@@ -1,16 +1,12 @@
 import { jsonValueSchema } from "@bb/domain";
 import type { SystemMachineProvider } from "@bb/server-contract";
 import { z } from "zod";
-import type { WorkSessionDeps } from "../../types.js";
 import { decideWithinBox } from "../threads/dispatch-hooks.js";
-import { requirePublicProject } from "../lib/entity-lookup.js";
 import {
   invokeMachineProvider,
   machineProviderDecisionTimeoutMs,
   type PluginMachineProviderRecord,
 } from "../plugins/plugin-machine-provider-registry.js";
-
-import { getEnvironmentProvider } from "../plugins/plugin-environment-provider-registry.js";
 
 type Availability = SystemMachineProvider["availability"];
 
@@ -104,23 +100,4 @@ async function invokeAvailability(
     };
   }
   return parsed.data;
-}
-
-export function resolveMachineProviderEnvironmentRow(
-  deps: Pick<WorkSessionDeps, "db">,
-  record: PluginMachineProviderRecord,
-  query: { projectId?: string },
-): SystemMachineProvider["environmentRow"] {
-  const row = record.provider.environmentRow;
-  if (row === null) return null;
-  const environment = getEnvironmentProvider(row.environmentProviderId);
-  if (environment === undefined) return row;
-  if (environment.provider.requires.projectCheckout) {
-    const project =
-      query.projectId === undefined
-        ? null
-        : requirePublicProject(deps.db, query.projectId);
-    if (project === null || project.gitRemoteUrl === null) return null;
-  }
-  return row;
 }

@@ -1,5 +1,3 @@
-import { getMachineEnrollmentService } from "../services/machines/machine-services.js";
-import { manualEnrollmentCommand } from "../services/machines/manual-enrollment-command.js";
 import { machineLifecycleStatus } from "../services/machines/lifecycle.js";
 import { serverAccess } from "../services/machines/server-access.js";
 import { getNonDestroyedHost, updateHost } from "@bb/db";
@@ -121,29 +119,15 @@ export function registerHostRoutes(
     return context.json(host, 201);
   });
 
-  get(routes.launch, (context) => {
+  get(routes.launch, (context, query) => {
     assertHostManagementAllowed(context);
-    return context.json(machineLaunchStatus(deps, context.req.param("id")));
-  });
-
-  get(routes.experimental_enrollmentCommand, async (context, query) => {
-    assertHostManagementAllowed(context);
-    context.header("Cache-Control", "no-store");
     const id = context.req.param("id");
-    const launchId =
-      query.scope === "thread" ? resolveThreadMachineLaunchKey(deps, id) : id;
-    const bootstrap =
-      await getMachineEnrollmentService(deps).pendingBootstrapForLaunch(
-        launchId,
-      );
-    return context.json({
-      command: bootstrap === null ? null : manualEnrollmentCommand(bootstrap),
-      expiresAt:
-        bootstrap?.expiresAt ??
-        getMachineEnrollmentService(deps).pendingEnrollmentExpiresAtForLaunch(
-          launchId,
-        ),
-    });
+    return context.json(
+      machineLaunchStatus(
+        deps,
+        query.scope === "thread" ? resolveThreadMachineLaunchKey(deps, id) : id,
+      ),
+    );
   });
 
   post(routes.cancelLaunch, async (context) => {
@@ -228,7 +212,6 @@ export function registerHostRoutes(
     deps.hub.requestHostProtocolUpdateRetry(hostId);
     return context.json({ ok: true as const });
   });
-
 
   post(routes.suspend, async (context) => {
     assertHostManagementAllowed(context);

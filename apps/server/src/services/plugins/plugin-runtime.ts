@@ -639,6 +639,15 @@ export function createPluginRuntime(context: PluginRuntimeContext) {
     return registrations;
   }
 
+  function listPluginEnvironmentCompositions() {
+    return Array.from(loaded).flatMap(([pluginId, plugin]) =>
+      Array.from(
+        plugin.handle.environmentCompositions.values(),
+        (composition) => ({ pluginId, composition }),
+      ),
+    );
+  }
+
   function listPluginEnvironmentProviders(): PluginEnvironmentProviderRecord[] {
     const records: PluginEnvironmentProviderRecord[] = [];
     const seen = new Set<string>();
@@ -1420,7 +1429,8 @@ export function createPluginRuntime(context: PluginRuntimeContext) {
         for (const [pluginId, plugin] of loaded) {
           if (
             pluginId !== row.id &&
-            plugin.handle.environmentProviders.has(id)
+            (plugin.handle.environmentProviders.has(id) ||
+              plugin.handle.environmentCompositions.has(id))
           ) {
             return pluginId;
           }
@@ -1844,6 +1854,7 @@ export function createPluginRuntime(context: PluginRuntimeContext) {
     invokeWrapped,
     isBuiltinPluginId,
     listPluginHooks,
+    listPluginEnvironmentCompositions,
     listPluginEnvironmentProviders,
     getPluginEnvironmentProvider,
     listPluginMachineProviders,

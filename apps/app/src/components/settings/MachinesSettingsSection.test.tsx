@@ -81,10 +81,6 @@ const modalProvider: SystemMachineProvider = {
   inputs: null,
   acceptsEmptyInputs: true,
   supportsSuspend: true,
-  environmentRow: {
-    displayName: "Modal sandbox",
-    environmentProviderId: "project-checkout",
-  },
 
   availability: null,
 };
@@ -197,7 +193,6 @@ describe("MachinesSettingsSection", () => {
         logoUrl: null,
         pluginId: "test-machine-provider",
         supportsSuspend: false,
-        environmentRow: null,
       },
     ]);
     vi.mocked(sdk.hosts.list).mockResolvedValue([

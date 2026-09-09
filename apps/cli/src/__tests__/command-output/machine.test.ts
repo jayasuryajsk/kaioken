@@ -135,26 +135,32 @@ describe("bb machine command output", () => {
   it.each([
     { provider: "ssh", inputs: null, argv: [] },
     { provider: "digitalocean", inputs: {}, argv: ["--inputs", "{}"] },
-  ])("creates $provider and lets the server choose the key", async ({ provider, inputs, argv }) => {
-    const create = vi.fn(async () => launch);
-    stubServerApi({
-      "v1.hosts.launches.:id.$get": vi.fn(async () => launch),
-      "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
-      "v1.hosts.$post": create,
-    });
+  ])(
+    "creates $provider and lets the server choose the key",
+    async ({ provider, inputs, argv }) => {
+      const create = vi.fn(async () => launch);
+      stubServerApi({
+        "v1.hosts.launches.:id.$get": vi.fn(async () => launch),
+        "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
+        "v1.hosts.$post": create,
+      });
 
-    await runCommand(["machine", "create", "--provider", provider, ...argv], register);
+      await runCommand(
+        ["machine", "create", "--provider", provider, ...argv],
+        register,
+      );
 
-    expect(create).toHaveBeenCalledWith(
-      {
-        json: { machineProviderId: provider, inputs },
-      },
-      { init: { signal: expect.any(AbortSignal) } },
-    );
-    expect(collectLogPayloads(vi.mocked(console.log))).toEqual([
-      "Machine host-remote created",
-    ]);
-  });
+      expect(create).toHaveBeenCalledWith(
+        {
+          json: { machineProviderId: provider, inputs },
+        },
+        { init: { signal: expect.any(AbortSignal) } },
+      );
+      expect(collectLogPayloads(vi.mocked(console.log))).toEqual([
+        "Machine host-remote created",
+      ]);
+    },
+  );
 
   it("returns the launch ID without polling with --no-wait", async () => {
     const poll = vi.fn(async () => launch);
@@ -173,10 +179,17 @@ describe("bb machine command output", () => {
   });
 
   it.each([true, false])(
-    "prints manual credentials only from the transient endpoint (no-wait=%s)",
+    "prints manual credentials only from the plugin RPC (no-wait=%s)",
     async (noWait) => {
       const command = "bb machine enroll --bootstrap-env TRANSIENT_SECRET";
-      const readCommand = vi.fn(async () => ({ command }));
+      const readCommand = vi
+        .mocked(globalThis.fetch)
+        .mockResolvedValue(
+          Response.json({
+            ok: true,
+            result: { command, expiresAt: Date.now() + 60000 },
+          }),
+        );
       stubServerApi({
         "v1.hosts.$post": vi.fn(async () => ({
           ...launch,
@@ -184,7 +197,6 @@ describe("bb machine command output", () => {
           terminal: false,
           step: "Run the enrollment command shown in the picker",
         })),
-        "v1.hosts.launches.:id.enrollment-command.$get": readCommand,
         "v1.hosts.launches.:id.$get": vi.fn(async () => launch),
         "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
       });
@@ -199,8 +211,11 @@ describe("bb machine command output", () => {
         register,
       );
       expect(readCommand).toHaveBeenCalledWith(
-        { param: { id: launch.id }, query: { scope: undefined } },
-        { init: { signal: expect.any(AbortSignal) } },
+        "http://server/api/v1/plugins/machine-manual/rpc/command",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ launchId: launch.id }),
+        }),
       );
       if (noWait) {
         const result = JSON.parse(

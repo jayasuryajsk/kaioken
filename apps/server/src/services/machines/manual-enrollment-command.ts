@@ -4,12 +4,6 @@ function quote(value: string): string {
   return "'" + value.replaceAll("'", "'\"'\"'") + "'";
 }
 
-export function manualEnrollmentCommand(
-  bootstrap: EnrollmentBootstrap,
-): string {
-  return `curl -fsSL -H ${quote(`X-BB-Enrollment: ${bootstrap.credential}`)} ${quote(new URL("/install.sh", bootstrap.serverUrl).href)} | sh`;
-}
-
 export function enrolledInstallerScript(
   script: string,
   bootstrap: EnrollmentBootstrap,

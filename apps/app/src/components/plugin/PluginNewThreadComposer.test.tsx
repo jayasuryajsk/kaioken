@@ -397,6 +397,7 @@ const BRANCH_INPUTS_SCHEMA = {
 };
 
 const CHECKOUT_PROVIDER: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "project-checkout",
   displayName: "Project checkout",
   icon: "Laptop",
@@ -417,6 +418,7 @@ const CHECKOUT_PROVIDER: SystemEnvironmentProvider = {
 };
 
 const PERSONAL_WORKSPACE_PROVIDER: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "personal-workspace",
   displayName: "Personal workspace",
   icon: "Folder",
@@ -434,6 +436,7 @@ const PERSONAL_WORKSPACE_PROVIDER: SystemEnvironmentProvider = {
 };
 
 const MANAGED_WORKTREE_SUGAR_PROVIDER: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "git-worktree",
   displayName: "Worktree",
   icon: "GitBranch",
@@ -1334,6 +1337,7 @@ describe("PluginNewThreadComposer seeding", () => {
 });
 
 const SANDBOX_PROVIDER: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "container",
   displayName: "Docker container",
   icon: "Container",
@@ -1355,6 +1359,7 @@ const SANDBOX_PROVIDER: SystemEnvironmentProvider = {
 };
 
 const OPTIONAL_INPUTS_PROVIDER: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "optional-sandbox",
   displayName: "Optional sandbox",
   icon: "Container",
@@ -1375,6 +1380,7 @@ const OPTIONAL_INPUTS_PROVIDER: SystemEnvironmentProvider = {
 };
 
 const BRANCH_PROVIDER: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "branchy",
   displayName: "New branch workspace",
   icon: "GitBranch",
@@ -1392,6 +1398,7 @@ const BRANCH_PROVIDER: SystemEnvironmentProvider = {
 };
 
 const HOST_PROVIDER: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "hosted",
   displayName: "Machine sandbox",
   icon: "Server",

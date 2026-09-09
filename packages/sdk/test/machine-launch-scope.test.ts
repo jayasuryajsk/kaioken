@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { createBbSdk } from "../src/core.js";
 import { createHttpTransport } from "../src/transport-http.js";
 
-it("distinguishes thread command resolution from an exact consumed launch", async () => {
+it("distinguishes thread launch resolution from an exact consumed launch", async () => {
   const urls: URL[] = [];
   const sdk = createBbSdk({
     transport: createHttpTransport({
@@ -12,26 +12,24 @@ it("distinguishes thread command resolution from an exact consumed launch", asyn
         const requestUrl = new URL(String(url));
         urls.push(requestUrl);
         return Response.json({
-          command:
+          id:
             requestUrl.searchParams.get("scope") === "thread"
-              ? "replacement-command"
+              ? "replacement-launch"
               : null,
         });
       },
     }),
   });
+  expect(await sdk.hosts.launch({ id: "thread" })).toEqual({ id: null });
   expect(
-    await sdk.hosts.experimental_enrollmentCommand({ id: "thread" }),
-  ).toEqual({ command: null });
-  expect(
-    await sdk.hosts.experimental_enrollmentCommand({
+    await sdk.hosts.launch({
       id: "thread",
       scope: "thread",
     }),
-  ).toEqual({ command: "replacement-command" });
+  ).toEqual({ id: "replacement-launch" });
   expect(urls.map((url) => url.pathname)).toEqual([
-    "/api/v1/hosts/launches/thread/enrollment-command",
-    "/api/v1/hosts/launches/thread/enrollment-command",
+    "/api/v1/hosts/launches/thread",
+    "/api/v1/hosts/launches/thread",
   ]);
   expect(urls.map((url) => url.search)).toEqual(["", "?scope=thread"]);
 });

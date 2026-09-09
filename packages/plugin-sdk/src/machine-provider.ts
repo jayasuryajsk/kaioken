@@ -73,11 +73,6 @@ export type PluginMachineProviderRemoveResult =
   | { status: "removed" }
   | { status: "failed"; message: string };
 
-export interface PluginMachineProviderEnvironmentRow {
-  displayName: string;
-  environmentProviderId: string;
-}
-
 export interface PluginMachineProviderDefinition<
   S extends PluginMachineProviderInputsSchema =
     PluginMachineProviderInputsSchema,
@@ -98,7 +93,6 @@ export interface PluginMachineProviderDefinition<
   validate?(
     context: PluginMachineProviderValidateContext<S>,
   ): PluginMachineValidateDecision | Promise<PluginMachineValidateDecision>;
-  environmentRow?: PluginMachineProviderEnvironmentRow;
   create(
     context: PluginMachineProviderCreateContext<S>,
   ): Promise<PluginMachineProviderCreateResult>;

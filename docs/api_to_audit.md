@@ -574,7 +574,8 @@ optional Standard Schema inputs, availability, validation, optional picker
 sugar row, lifecycle policy, and idempotent create/remove operations. Create is
 keyed durably and names no project: a machine belongs to no project, and
 projects reach it later through project sources. The returned JSON
-resource is private to the provider and capped at 16 KiB.
+resource is capped at 16 KiB and must not contain credentials. Plugins can read
+the current host resource with `bb.experimental_machines.experimental_getResource(hostId)`.
 
 Core persists launch attempts and machine lifecycle state on hosts. It suspends
 an idle machine only when the provider declares both suspend and resume; a
@@ -616,7 +617,7 @@ provider needs to tag individual machines it created differently.
 crash recovery when enrolment completed before create returned, cancellation
 cleanup, resource privacy, removal serialization, and lifecycle progress
 presentation. Confirm the requirement vocabulary is sufficient for future
-remote and VM providers, the picker-sugar coupling to one environment provider,
+remote and VM providers, composition with one environment provider,
 and whether policies need per-machine overrides before dropping the prefix.
 
 ## `@get-bb/plugin-sdk/machine-provider`
@@ -646,7 +647,7 @@ covered by this audit alongside these machine-provider subpath exports:
 **Audit before stabilizing.** Audit the same lifecycle, retry, privacy, and
 composition questions as `bb.experimental_machines`, whether an omitted icon
 should continue to suppress provider branding, plus whether suspend and
-resume need distinct result unions beyond an updated private resource. Audit
+resume need distinct result unions beyond an updated resource. Audit
 both `PluginMachineProviderCreateContext.checkpoint` and
 `PluginMachineProviderSuspendContext.checkpoint` durability: cancellation before
 enrollment, a crash after allocation, same-key recovery without duplicate
@@ -660,7 +661,7 @@ Supporting app exports are `PluginMachineProviderInputsRegistration`,
 **What it does.** Registers the app control for one machine provider's inputs
 with `{ machineProviderId, component }`. The component receives
 `{ projectId, value, onChange }` and reports ready JSON or a blocked reason. Stabilization requires coverage of provider changes and project switches without stale launch inputs.
-It is used by the picker sugar row and Add machine flow. The resulting value is
+It is used by the Add machine flow. The resulting value is
 persisted and readable by every plugin, so it must contain no secrets;
 credentials belong in plugin settings and the value should carry only
 non-secret configuration or credential references.
@@ -2781,26 +2782,20 @@ retrying at the core retry interval indefinitely. An explicit cancel retries cle
 after automatic retries are exhausted. Stabilization requires distinguishing
 definitive vendor rejection from transport timeouts and ambiguous submissions.
 
-## Transient manual enrollment command
+## Transient provider setup data
 
-`@bb/sdk` exposes `hosts.experimental_enrollmentCommand({ id, scope?, signal? })`, backed
-by `GET /hosts/launches/:id/enrollment-command`. Authorized host-management
-followers receive `{ command: string | null }` with `Cache-Control: no-store`.
-Machine-gated callers are rejected. The server decrypts the pending bundle on
-demand, checks provider ownership, launch state, expiry and unused credentials,
-and returns null after exchange, cancellation or connection. Clients must keep
-it in transient view state, never progress events, logs, persisted query caches
-or transcripts. No new plugin registration contract was introduced.
+Machine setup slots receive launch identity and launch controls, not enrollment
+command retrieval. Manual keeps the result of `enrollments.prepare` in memory
+and serves command/expiry through its own typed RPC. Reading does not renew the
+enrollment. Completion, cancellation and expiry remove the cached command;
+plugin reload and server restart do not recover it. Commands stay out of
+persisted progress and transcripts. Machine credentials cannot retrieve commands.
 
-Stabilization requires authorization, settlement races, no-store and credential
-non-persistence coverage, plus a provider-neutral transient-action contract if
-other machine providers need this interaction.
-
-The enrollment command scope defaults to `launch`, which reads only that exact
-launch. With `scope: "thread"`, `id` identifies a thread and the server resolves
-its current launch through the machine replacement history on every request.
-Consumed original launches remain unavailable through launch scope. The thread
-picker uses thread scope; machine creation and CLI follow use launch scope.
+The existing SDK `hosts.launch({ id, scope? })` defaults to exact launch lookup.
+With `scope: "thread"`, core resolves the thread's current launch, including
+replacement launches, before passing its ID to the plugin's progress component.
+Stabilization requires replacement-launch resolution, expiry/cancellation,
+credential authorization and transcript-redaction coverage.
 
 ## Project checkout ownership
 
@@ -2875,3 +2870,34 @@ Follow-ups before the suspend callback cancel preparation after work stopping se
 After callback invocation, core completes pause and resumes for queued work. Reconnection
 alone must not release work during preservation. Cancellation is reported as a rejected
 pause, not a successful save.
+
+## `bb.experimental_machines.experimental_getResource`
+
+Returns core’s current persisted host resource as JSON, or null when the host or
+resource is absent. Reads are available across plugins, following the host access
+model; callers parse provider-specific data. Resources must contain identifiers
+and configuration, never credentials. This lets provider RPCs inspect existing
+machines without duplicating lifecycle state in plugin KV. Stabilization requires
+validating missing-resource semantics and use by additional machine providers.
+
+
+## Environment compositions
+
+`bb.experimental_environments.register({ id, displayName, machineProviderId,
+environmentProviderId })` declares a new-machine environment option backed by
+one concrete environment provider. It cannot also supply lifecycle callbacks
+or inputs. The server resolves the references before creating the launch,
+persists the concrete provider and explicit machine selection, and uses the
+existing provisioning lifecycle. Machine registration alone adds no picker row.
+
+The environment-provider listing includes nullable `machineProviderId`.
+Compositions appear outside host groups; explicit SDK/CLI creation omits machine
+selection. Ordinary environment selections still require a machine. Core rejects
+conflicting machine selectors, missing referenced providers and required missing
+Git remotes before allocation. Modal combines its machine with project-checkout;
+core retains checkout cloning, project-source registration and setup hooks.
+A clone failure leaves the ready machine intact and records the thread error.
+
+Stabilization requires UI/CLI parity, registration validation, pre-allocation
+refusals, provisioning timeline coverage, clone-failure machine retention and
+later project-checkout/worktree reuse. There is no clone plugin or new lifecycle.

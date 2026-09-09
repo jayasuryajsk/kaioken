@@ -9,25 +9,28 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { createBrowserBbSdk } from "@bb/sdk/browser";
-const sdk = createBrowserBbSdk({ baseUrl: "http://localhost" });
-import { ManualEnrollmentCommand } from "./enrollment-command.js";
+const readCommand =
+  vi.fn<() => Promise<{ command: string | null; expiresAt: number | null }>>();
+vi.mock("@get-bb/plugin-sdk/app", () => ({ useRpc: vi.fn() }));
+import { ManualEnrollmentCommandView as ManualEnrollmentCommand } from "./enrollment-command.js";
 
-vi.spyOn(sdk.hosts, "experimental_enrollmentCommand");
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
 
 it("discards the private command when the server settles enrollment", async () => {
-  vi.mocked(sdk.hosts.experimental_enrollmentCommand)
+  readCommand
     .mockResolvedValueOnce({
       command: "bb machine enroll --bootstrap-env PRIVATE_BUNDLE",
       expiresAt: Date.now() + 60_000,
     })
     .mockResolvedValue({ command: null, expiresAt: null });
   render(
-    <ManualEnrollmentCommand client={sdk} id="manual-launch" scope="launch" />,
+    <ManualEnrollmentCommand
+      readCommand={readCommand}
+      launchId="manual-launch"
+    />,
   );
   expect(
     await screen.findByText("bb machine enroll --bootstrap-env PRIVATE_BUNDLE"),
@@ -42,27 +45,11 @@ it("discards the private command when the server settles enrollment", async () =
   expect(screen.queryByRole("button", { name: "Copy command" })).toBeNull();
 });
 
-it("aborts retrieval when the follower closes", async () => {
-  let signal: AbortSignal | undefined;
-  vi.mocked(sdk.hosts.experimental_enrollmentCommand).mockImplementation(
-    async (args) => {
-      signal = args.signal;
-      return new Promise(() => {});
-    },
-  );
-  const view = render(
-    <ManualEnrollmentCommand client={sdk} id="manual-launch" scope="launch" />,
-  );
-  expect(signal?.aborted).toBe(false);
-  view.unmount();
-  expect(signal?.aborted).toBe(true);
-});
-
 it("counts down, keeps the expired state after the command disappears, and lets regeneration retry", async () => {
   vi.useFakeTimers();
   try {
     const expiresAt = Date.now() + 2000;
-    vi.mocked(sdk.hosts.experimental_enrollmentCommand).mockResolvedValue({
+    readCommand.mockResolvedValue({
       command: "private-command",
       expiresAt,
     });
@@ -72,9 +59,8 @@ it("counts down, keeps the expired state after the command disappears, and lets 
       .mockResolvedValue(undefined);
     render(
       <ManualEnrollmentCommand
-        client={sdk}
-        id="expiring"
-        scope="launch"
+        readCommand={readCommand}
+        launchId="expiring"
         onRegenerate={regenerate}
       />,
     );
@@ -88,7 +74,7 @@ it("counts down, keeps the expired state after the command disappears, and lets 
     expect(screen.getByText("Code expired")).toBeTruthy();
     expect(screen.queryByText("private-command")).toBeNull();
     expect(screen.queryByRole("button", { name: "Copy command" })).toBeNull();
-    vi.mocked(sdk.hosts.experimental_enrollmentCommand).mockResolvedValue({
+    readCommand.mockResolvedValue({
       command: null,
       expiresAt: null,
     });

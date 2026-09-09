@@ -127,12 +127,10 @@ export type HostProviderCliInstallRequest = ProviderCliInstallRequest;
 export const hostProviderCliInstallEventSchema = providerCliInstallEventSchema;
 export type HostProviderCliInstallEvent = ProviderCliInstallEvent;
 
-export const machineEnrollmentCommandQuerySchema = z.object({
+export const machineLaunchQuerySchema = z.object({
   scope: z.enum(["launch", "thread"]).default("launch"),
 });
-export type MachineEnrollmentCommandQuery = z.input<
-  typeof machineEnrollmentCommandQuerySchema
->;
+export type MachineLaunchQuery = z.input<typeof machineLaunchQuerySchema>;
 
 export const experimental_hostLifecycleRequestSchema = z.object({}).strict();
 export type experimental_HostLifecycleRequest = z.infer<

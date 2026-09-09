@@ -78,7 +78,6 @@ beforeEach(() => {
       inputs: null,
       acceptsEmptyInputs: true,
       supportsSuspend: false,
-      environmentRow: null,
 
       availability: { status: "available" },
     })),

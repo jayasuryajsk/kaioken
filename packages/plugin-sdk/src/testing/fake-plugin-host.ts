@@ -1,3 +1,7 @@
+import {
+  environmentCompositionSchema,
+  type NormalizedPluginEnvironmentComposition,
+} from "../internal/host-policy.js";
 import type { MachineBootstrapApi } from "../machine-bootstrap.js";
 import { createHash } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -288,6 +292,10 @@ export interface FakePluginRegistrations {
   hooks: {
     [K in PluginHookName]: PluginHookHandler<K> | null;
   };
+  environmentCompositions: ReadonlyMap<
+    string,
+    NormalizedPluginEnvironmentComposition
+  >;
   environmentProviders: ReadonlyMap<
     string,
     NormalizedPluginEnvironmentProvider
@@ -488,6 +496,7 @@ export interface FakePluginHarness
 
 export interface CreateFakePluginHostOptions {
   machineBootstrap?: MachineBootstrapApi;
+  machineResource?: (hostId: string) => Promise<JsonValue | null>;
   /** Defaults to "test-plugin". */
   pluginId?: string;
   /**
@@ -1827,6 +1836,10 @@ function createFakePluginHostInternal(
   } = {
     "message.dispatch": null,
   };
+  const environmentCompositions = new Map<
+    string,
+    NormalizedPluginEnvironmentComposition
+  >();
   const environmentProviders = new Map<
     string,
     NormalizedPluginEnvironmentProvider
@@ -2147,8 +2160,25 @@ function createFakePluginHostInternal(
   };
 
   const experimental_environments: PluginEnvironments = {
-    register(declaration) {
+    register(
+      declaration:
+        | import("@get-bb/plugin-sdk").PluginEnvironmentProviderDeclaration
+        | NormalizedPluginEnvironmentComposition,
+    ) {
       assertLive();
+      if ("machineProviderId" in declaration) {
+        const composition = environmentCompositionSchema.parse(declaration);
+        if (environmentProviders.has(composition.id))
+          throw new Error(
+            "Environment ID is already registered as a concrete provider",
+          );
+        environmentCompositions.set(composition.id, composition);
+        return;
+      }
+      if (environmentCompositions.has(declaration.id))
+        throw new Error(
+          "Environment ID is already registered as a composition",
+        );
       const target = validatePluginEnvironmentProviderDeclaration(declaration);
       const problem =
         target.icon === null
@@ -2170,6 +2200,10 @@ function createFakePluginHostInternal(
     );
   };
   const experimental_machines: PluginMachines = {
+    async experimental_getResource(hostId) {
+      assertLive();
+      return options.machineResource ? options.machineResource(hostId) : null;
+    },
     ...(options.machineBootstrap ?? {
       enrollments: {
         prepare: unavailableMachineBootstrap,
@@ -2333,6 +2367,9 @@ function createFakePluginHostInternal(
       },
       get hooks() {
         return { ...hooks };
+      },
+      get environmentCompositions() {
+        return new Map(environmentCompositions);
       },
       get environmentProviders() {
         return new Map(environmentProviders);

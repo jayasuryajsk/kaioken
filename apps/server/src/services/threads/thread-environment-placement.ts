@@ -26,6 +26,7 @@ import { ApiError } from "../../errors.js";
 import {
   environmentProviderDecisionTimeoutMs,
   getEnvironmentProvider,
+  listEnvironmentCompositions,
   invokeEnvironmentProvider,
   type PluginEnvironmentProviderRecord,
 } from "../plugins/plugin-environment-provider-registry.js";
@@ -548,17 +549,57 @@ export async function resolveThreadEnvironmentPlacement(
 ): Promise<ThreadEnvironmentPlacement> {
   if (args.requestedEnvironment.type === "provider") {
     const requested = args.requestedEnvironment;
+    const composition = listEnvironmentCompositions().find(
+      (record) => record.composition.id === requested.environmentProviderId,
+    )?.composition;
+    const environmentProviderId =
+      composition?.environmentProviderId ?? requested.environmentProviderId;
+    if (composition && requested.machine !== undefined) {
+      refuseProviderSelection(
+        requested.environmentProviderId,
+        "chooses its own new machine; omit machine",
+      );
+    }
+    const machine = composition
+      ? {
+          type: "new" as const,
+          machineProviderId: composition.machineProviderId,
+          inputs: null,
+        }
+      : requested.machine;
+    if (machine === undefined)
+      refuseProviderSelection(
+        environmentProviderId,
+        "requires a machine selection",
+      );
+    if (composition) {
+      const target = getEnvironmentProvider(environmentProviderId);
+      if (!target)
+        refuseProviderSelection(
+          requested.environmentProviderId,
+          "requires an environment provider that is not registered",
+        );
+      if (
+        (target.provider.requires.projectCheckout ||
+          target.provider.requires.gitRemote) &&
+        requirePublicProject(deps.db, args.projectId).gitRemoteUrl === null
+      )
+        refuseProviderSelection(
+          requested.environmentProviderId,
+          "requires a project with a Git remote",
+        );
+    }
     const selection = await resolveCompleteProviderSelection(
       deps,
       args.projectId,
-      requested.environmentProviderId,
-      requested,
+      environmentProviderId,
+      { machine, inputs: requested.inputs },
     );
     return {
       environmentId: null,
       environmentIntent: {
         type: "provider",
-        environmentProviderId: requested.environmentProviderId,
+        environmentProviderId,
         machine: selection.machine,
         inputs: selection.inputs,
         selectionResolved: selection.selectionResolved,

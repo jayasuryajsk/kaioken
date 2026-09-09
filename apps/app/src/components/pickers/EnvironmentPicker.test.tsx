@@ -4,10 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { Host, ProjectSource } from "@bb/domain";
 import { makeHost } from "@bb/test-helpers/domain-fixtures";
 import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
-import type {
-  SystemEnvironmentProvider,
-  SystemMachineProvider,
-} from "@bb/server-contract";
+import type { SystemEnvironmentProvider } from "@bb/server-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   EnvironmentPickerUI,
@@ -15,6 +12,7 @@ import {
 } from "./EnvironmentPicker";
 
 const checkoutProvider: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "project-checkout",
   displayName: "Project checkout",
   icon: "Laptop",
@@ -32,6 +30,7 @@ const checkoutProvider: SystemEnvironmentProvider = {
 };
 
 const branchProvider: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "branchy",
   displayName: "New branch workspace",
   icon: "GitBranch",
@@ -49,6 +48,7 @@ const branchProvider: SystemEnvironmentProvider = {
 };
 
 const sandboxProvider: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "container",
   displayName: "Docker container",
   icon: "Container",
@@ -70,6 +70,7 @@ const sandboxProvider: SystemEnvironmentProvider = {
 };
 
 const optionalInputsProvider: SystemEnvironmentProvider = {
+  machineProviderId: null,
   id: "optional-sandbox",
   displayName: "Optional sandbox",
   icon: "Container",
@@ -87,25 +88,6 @@ const optionalInputsProvider: SystemEnvironmentProvider = {
     type: "object",
     properties: { image: { type: "string" } },
   },
-};
-
-const modalMachineProvider: SystemMachineProvider = {
-  id: "modal-sandbox",
-  displayName: "Modal sandbox",
-  description: null,
-  icon: "Box",
-  machineTag: null,
-  logoUrl: null,
-  pluginId: "environment-modal-sandbox",
-  inputs: null,
-  acceptsEmptyInputs: true,
-  supportsSuspend: true,
-  environmentRow: {
-    displayName: "Modal sandbox",
-    environmentProviderId: checkoutProvider.id,
-  },
-
-  availability: null,
 };
 
 const host = makeHost({
@@ -441,6 +423,36 @@ describe("EnvironmentPickerUI", () => {
     );
   });
 
+  it("offers one composed environment independently of an existing host", () => {
+    const onSelectProvider = vi.fn();
+    const modal = {
+      ...checkoutProvider,
+      id: "modal-sandbox",
+      displayName: "Modal sandbox",
+      machineProviderId: "modal-sandbox",
+      inputs: null,
+    };
+    render(
+      <EnvironmentPickerUI
+        value="provider:modal-sandbox"
+        sources={sources}
+        host={null}
+        isLocal={false}
+        providers={[checkoutProvider, modal]}
+        selectedProviderHostId={null}
+        onSelectProvider={onSelectProvider}
+        modal={false}
+      />,
+    );
+    fireEvent.pointerDown(screen.getByRole("button", { name: "Environment" }), {
+      button: 0,
+    });
+    const items = screen.getAllByRole("menuitem", { name: /Modal sandbox/u });
+    expect(items).toHaveLength(1);
+    fireEvent.click(items[0]);
+    expect(onSelectProvider).toHaveBeenCalledWith(modal, null);
+  });
+
   it("only offers environments on existing machines", () => {
     render(
       <EnvironmentPickerUI
@@ -451,7 +463,6 @@ describe("EnvironmentPickerUI", () => {
         providers={[checkoutProvider, branchProvider]}
         selectedProviderHostId={host.id}
         onSelectProvider={vi.fn()}
-        machineProviders={[modalMachineProvider]}
         modal={false}
       />,
     );

@@ -49,7 +49,6 @@ export interface SandboxCreateRequest {
   appName: string;
   name: string;
   image: SandboxImage;
-  environmentVariables: Readonly<Record<string, string>>;
   timeoutMs: number;
   cpu: number | null;
   memoryMiB: number | null;
@@ -206,7 +205,7 @@ export const createModalBackend: SandboxBackendFactory = (credentials) => {
         name: request.name,
         timeoutMs: request.timeoutMs,
         tags: request.tags,
-        env: { ...request.environmentVariables },
+        env: {},
         ...(request.cpu === null ? {} : { cpu: request.cpu }),
         ...(request.memoryMiB === null ? {} : { memoryMiB: request.memoryMiB }),
       });

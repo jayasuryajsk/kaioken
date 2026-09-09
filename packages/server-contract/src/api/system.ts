@@ -269,6 +269,7 @@ export type SystemConfigReloadResponse = z.infer<
 >;
 
 export const systemEnvironmentProviderSchema = z.object({
+  machineProviderId: z.string().min(1).nullable(),
   id: z.string().min(1),
   displayName: z.string().min(1),
   icon: z.string().min(1).nullable(),
@@ -336,12 +337,6 @@ export const systemMachineProviderSchema = z.object({
   inputs: jsonValueSchema.nullable(),
   acceptsEmptyInputs: z.boolean(),
   supportsSuspend: z.boolean(),
-  environmentRow: z
-    .object({
-      displayName: z.string().min(1),
-      environmentProviderId: z.string().min(1),
-    })
-    .nullable(),
   availability: z
     .discriminatedUnion("status", [
       z.object({ status: z.literal("available") }),

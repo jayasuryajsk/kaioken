@@ -442,7 +442,7 @@ export async function resolveEnvironmentProvider(
       status: "active",
       entries: launchEntries({
         ask,
-        log: undefined,
+        log: machineLog,
         now: Date.now(),
         step: { text: "Setting up project on machine", status: "started" },
       }),

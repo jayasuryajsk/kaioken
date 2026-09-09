@@ -1,3 +1,4 @@
+import { getGateAuthKind } from "../request-context.js";
 import { timingSafeEqual } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { promisify } from "node:util";
@@ -786,6 +787,18 @@ export function registerPluginRoutes(
   app.post("/plugins/:id/rpc/:method", async (context) => {
     const id = context.req.param("id");
     const method = context.req.param("method");
+    if (
+      id === "machine-manual" &&
+      method === "command" &&
+      getGateAuthKind(context) === "machine"
+    ) {
+      throw new ApiError(
+        403,
+        "machine_host_management_forbidden",
+        "Machine credentials cannot manage hosts",
+      );
+    }
+    context.header("Cache-Control", "no-store");
     const problem = localAuthProblem(context, deps);
     if (problem) {
       return context.json({ ok: false, error: problem.error }, problem.status);

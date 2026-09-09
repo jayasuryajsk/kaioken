@@ -88,17 +88,11 @@ export function createModalSandboxPlugin(
       };
     });
 
-    async function rememberMachine(
-      hostId: string,
-      resource: ModalMachineResource,
-    ) {
-      await bb.storage.kv.set(`machine/${hostId}`, resource);
-      return resource;
-    }
     async function inspectMachine({ hostId }: { hostId: string }) {
-      const stored = await bb.storage.kv.get<unknown>(`machine/${hostId}`);
-      if (stored === undefined)
-        throw new Error("No Modal diagnostic record for this machine.");
+      const stored =
+        await bb.experimental_machines.experimental_getResource(hostId);
+      if (stored === null)
+        throw new Error("No provider resource for this machine.");
       const resource = readModalMachineResource(stored);
       const resolved = await currentSettings();
       if (!resolved.ok) throw new Error(resolved.message);
@@ -155,14 +149,10 @@ export function createModalSandboxPlugin(
       await bb.storage.kv.set(idleKey(hostId), deps.now());
     }
     async function bumpOwnedMachine(hostId: string): Promise<void> {
-      const hosts = await bb.sdk.hosts.list();
+      const host = await bb.sdk.hosts.get({ hostId });
       if (
-        hosts.some(
-          (host) =>
-            host.id === hostId &&
-            host.machineProviderId === PROVIDER_ID &&
-            host.lifecycle.phase === "active",
-        )
+        host.machineProviderId === PROVIDER_ID &&
+        host.lifecycle.phase === "active"
       ) {
         await bumpIdle(hostId);
       }
@@ -285,7 +275,6 @@ export function createModalSandboxPlugin(
             appName,
             name: context.key,
             image: { type: "image", imageId },
-            environmentVariables: resolved.settings.environmentVariables,
             timeoutMs: SANDBOX_LIFETIME_MS,
             cpu: resolved.settings.cpu,
             memoryMiB: resolved.settings.memoryMiB,
@@ -299,7 +288,6 @@ export function createModalSandboxPlugin(
           appName,
           cpu: resolved.settings.cpu,
           memoryMiB: resolved.settings.memoryMiB,
-          expiresAt: deps.now() + SANDBOX_LIFETIME_MS,
           key: context.key,
           sandboxId: sandbox.sandboxId,
           snapshotImageId: null,
@@ -326,7 +314,7 @@ export function createModalSandboxPlugin(
         return {
           status: "created",
           hostId,
-          resource: await rememberMachine(hostId, allocation),
+          resource: allocation,
         };
       } catch (error) {
         context.signal.throwIfAborted();
@@ -388,6 +376,13 @@ export function createModalSandboxPlugin(
       return current;
     }
 
+    bb.experimental_environments.register({
+      id: PROVIDER_ID,
+      displayName: "Modal sandbox",
+      machineProviderId: PROVIDER_ID,
+      environmentProviderId: "project-checkout",
+    });
+
     bb.experimental_machines.register({
       id: PROVIDER_ID,
       displayName: "Modal sandbox",
@@ -395,10 +390,6 @@ export function createModalSandboxPlugin(
         "Create a sandbox in your Modal account, billed by Modal while it runs and suspended when idle.",
       icon: "./modal-logo.svg",
       machineTag: "modal",
-      environmentRow: {
-        displayName: "New sandbox",
-        environmentProviderId: "project-checkout",
-      },
       async availability() {
         const resolved = await currentSettings();
         return resolved.ok
@@ -464,13 +455,10 @@ export function createModalSandboxPlugin(
             throw new Error("The Modal sandbox has no restorable snapshot.");
           }
           return {
-            resource: await rememberMachine(
-              context.hostId,
-              await deletePendingSnapshots(
-                resource,
-                resolved.settings,
-                context.checkpoint,
-              ),
+            resource: await deletePendingSnapshots(
+              resource,
+              resolved.settings,
+              context.checkpoint,
             ),
           };
         }
@@ -528,13 +516,10 @@ export function createModalSandboxPlugin(
         const suspended = { ...checkpoint, sandboxId: null };
         context.checkpoint(suspended);
         return {
-          resource: await rememberMachine(
-            context.hostId,
-            await deletePendingSnapshots(
-              suspended,
-              resolved.settings,
-              context.checkpoint,
-            ),
+          resource: await deletePendingSnapshots(
+            suspended,
+            resolved.settings,
+            context.checkpoint,
           ),
         };
       },
@@ -544,7 +529,6 @@ export function createModalSandboxPlugin(
         if (!resolved.ok) throw new Error(resolved.message);
         resource = await deletePendingSnapshots(resource, resolved.settings);
         let sandbox = await findSandbox(resource, resolved.settings);
-        let expiresAt = resource.expiresAt;
         if (sandbox === null) {
           if (
             resource.sandboxId !== null &&
@@ -557,7 +541,6 @@ export function createModalSandboxPlugin(
             throw new Error("The Modal sandbox has no restorable snapshot.");
           }
           context.report.step("Restoring the Modal sandbox…");
-          expiresAt = null;
           sandbox = await backendFor(resolved.settings).create({
             appName: resource.appName ?? resolved.settings.appName,
             name: resource.key,
@@ -565,14 +548,13 @@ export function createModalSandboxPlugin(
               type: "snapshot",
               imageId: resource.snapshotImageId,
             },
-            environmentVariables: resolved.settings.environmentVariables,
             timeoutMs: SANDBOX_LIFETIME_MS,
             cpu: resource.cpu,
             memoryMiB: resource.memoryMiB,
             tags: { bbMachineKey: resource.key },
           });
         }
-        resource = { ...resource, sandboxId: sandbox.sandboxId, expiresAt };
+        resource = { ...resource, sandboxId: sandbox.sandboxId };
         await context.checkpoint(resource);
         const { hostId } = await bb.experimental_machines.bootstrap({
           key: resource.key,
@@ -588,10 +570,10 @@ export function createModalSandboxPlugin(
         }
         await bumpIdle(hostId);
         return {
-          resource: await rememberMachine(hostId, {
+          resource: {
             ...resource,
             sandboxId: sandbox.sandboxId,
-          }),
+          },
         };
       },
       async remove(context) {

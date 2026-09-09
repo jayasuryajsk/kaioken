@@ -1,15 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   definePluginApp,
+  useRpc,
   type ExperimentalMachineSetupProps,
 } from "@get-bb/plugin-sdk/app";
 import { Button } from "@bb/shared-ui/button";
-import { ManualEnrollmentCommand } from "./enrollment-command.js";
+import { manualRpcContract } from "./rpc.js";
+import { ManualEnrollmentCommandView } from "./enrollment-command.js";
 
-export function ManualMachineSetup({
+export function ManualMachineSetup(props: ExperimentalMachineSetupProps) {
+  const rpc = useRpc<typeof manualRpcContract>();
+  const readCommand = useCallback(
+    (launchId: string) => rpc.call("command", { launchId }),
+    [rpc],
+  );
+  return <ManualMachineSetupView {...props} readCommand={readCommand} />;
+}
+
+export function ManualMachineSetupView({
+  readCommand,
   client,
   onClose,
-}: ExperimentalMachineSetupProps) {
+}: ExperimentalMachineSetupProps & {
+  readCommand: (
+    launchId: string,
+  ) => Promise<{ command: string | null; expiresAt: number | null }>;
+}) {
   const [launchId, setLaunchId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [expired, setExpired] = useState(false);
@@ -73,10 +89,9 @@ export function ManualMachineSetup({
         </div>
       )}
       {launchId && (
-        <ManualEnrollmentCommand
-          client={client}
-          id={launchId}
-          scope="launch"
+        <ManualEnrollmentCommandView
+          readCommand={readCommand}
+          launchId={launchId}
           onReadyChange={setReady}
           onExpired={() => setExpired(true)}
           onRegenerate={async () => {

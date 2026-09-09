@@ -32,6 +32,7 @@ describe("ProjectlessMachineSlot", () => {
   };
 
   const personalWorkspaceProvider: SystemEnvironmentProvider = {
+    machineProviderId: null,
     id: "personal-workspace",
     displayName: "Personal workspace",
     icon: "Folder",
@@ -173,6 +174,7 @@ describe("ProjectlessEnvSlot", () => {
   };
 
   const personalProvider: SystemEnvironmentProvider = {
+    machineProviderId: null,
     id: "personal-workspace",
     displayName: "Personal workspace",
     icon: "Folder",
@@ -190,6 +192,7 @@ describe("ProjectlessEnvSlot", () => {
   };
 
   const sandboxProvider: SystemEnvironmentProvider = {
+    machineProviderId: null,
     id: "modal-sandbox",
     displayName: "Modal sandbox",
     icon: "Cloud",
@@ -217,10 +220,6 @@ describe("ProjectlessEnvSlot", () => {
     inputs: null,
     acceptsEmptyInputs: true,
     supportsSuspend: true,
-    environmentRow: {
-      displayName: "Modal sandbox",
-      environmentProviderId: personalProvider.id,
-    },
 
     availability: null,
   };

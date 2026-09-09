@@ -88,7 +88,6 @@ export interface NewThreadEnvironmentConfig {
   selectedProviderHostId?: string | null;
   inputsControlProviderIds?: ReadonlySet<string>;
   onSelectProvider?: EnvironmentPickerUIProps["onSelectProvider"];
-  machineProviders?: EnvironmentPickerUIProps["machineProviders"];
   selectedMachineProviderId?: string | null;
 }
 
@@ -452,8 +451,6 @@ export function ThreadEnvSlot({
         selectedProviderHostId={environment.selectedProviderHostId}
         inputsControlProviderIds={environment.inputsControlProviderIds}
         onSelectProvider={environment.onSelectProvider}
-        machineProviders={environment.machineProviders}
-        selectedMachineProviderId={environment.selectedMachineProviderId}
         className="shrink-0"
         muted
       />
@@ -528,8 +525,6 @@ export function ProjectlessEnvSlot({
         selectedProviderHostId={environment.selectedProviderHostId}
         inputsControlProviderIds={environment.inputsControlProviderIds}
         onSelectProvider={environment.onSelectProvider}
-        machineProviders={environment.machineProviders}
-        selectedMachineProviderId={environment.selectedMachineProviderId}
         className="shrink-0"
         muted
       />
@@ -587,7 +582,11 @@ export function ProjectlessMachineSlot({
     },
     [handleSelectProvider, selectedProvider],
   );
-  if (!machines || availableHosts.length <= 1) {
+  if (
+    selectedProvider?.machineProviderId ||
+    !machines ||
+    availableHosts.length <= 1
+  ) {
     return null;
   }
   return (
