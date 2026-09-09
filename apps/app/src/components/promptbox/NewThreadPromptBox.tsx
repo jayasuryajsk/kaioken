@@ -504,7 +504,11 @@ export function ProjectlessEnvSlot({
         )
       : undefined;
   const showReuseEnvironmentPicker = parsedEnvironment?.type === "reuse";
-  if (!environment.isLoading && providers.length <= 1 && !showReuseEnvironmentPicker) {
+  if (
+    !environment.isLoading &&
+    providers.length <= 1 &&
+    !showReuseEnvironmentPicker
+  ) {
     return <ProjectlessMachineSlot environment={environment} />;
   }
 

@@ -19,14 +19,6 @@ import { createModalSandboxPlugin, PROVIDER_ID } from "./server.js";
 
 const PLUGIN_ID = "environment-modal-sandbox";
 const HOST_ID = "host_modal";
-const PROJECT = {
-  id: "proj_1",
-  kind: "standard" as const,
-  name: "bb",
-  gitRemoteUrl: "https://github.com/get-bb/bb.git",
-  createdAt: 1,
-  updatedAt: 1,
-};
 const SETTINGS = {
   tokenId: "tok-id",
   tokenSecret: "tok-secret",
@@ -259,8 +251,6 @@ function createContext(
   key = "modal-machine-key",
 ): PluginMachineProviderCreateContext {
   return {
-    project: PROJECT,
-    gitRemote: null,
     inputs: null,
     key,
     attempt: 1,
@@ -297,9 +287,9 @@ describe("Modal machine provider", () => {
 
   it("reports setup-required without credentials", async () => {
     const harness = await setup({});
-    await expect(
-      harness.provider.availability?.({ project: PROJECT, gitRemote: null }),
-    ).resolves.toMatchObject({ status: "setup-required" });
+    await expect(harness.provider.availability?.()).resolves.toMatchObject({
+      status: "setup-required",
+    });
   });
 
   it("creates once by key and recovers the same host", async () => {
@@ -443,20 +433,6 @@ describe("Modal machine provider", () => {
       status: "created",
     });
     expect(test.backend.creates).toHaveLength(1);
-  });
-
-  it("rejects projectless image launches before allocating", async () => {
-    const harness = await setup();
-    const result = await harness.provider.create({
-      ...createContext(),
-      project: null,
-      gitRemote: null,
-    });
-    expect(result).toMatchObject({
-      status: "failed",
-      message: "Select a project before creating a Modal machine",
-    });
-    expect(harness.backend.creates).toHaveLength(0);
   });
 
   it("suspends to a snapshot, resumes, and removes the machine resource", async () => {

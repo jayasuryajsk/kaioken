@@ -236,8 +236,6 @@ export function createModalSandboxPlugin(
       }
       const backend = backendFor(resolved.settings);
       try {
-        if (!context.project)
-          throw new Error("Select a project before creating a Modal machine");
         machineInputsSchema.parse(context.inputs ?? {});
         context.signal.throwIfAborted();
         await bb.experimental_machines.enrollments.prepare({

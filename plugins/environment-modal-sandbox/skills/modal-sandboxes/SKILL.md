@@ -15,8 +15,8 @@ description: Connect Modal and create reusable cloud machines with the bundled s
 3. Resolve the project with `bb project list --json`. It needs a Git remote,
    credentials to clone it, and machine server access reachable from Modal.
 4. Select the project and create a machine in the UI, or run
-   `bb machine create --provider modal-sandbox --project PROJECT --json`.
-   SDK: `hosts.submit({machineProviderId:"modal-sandbox",projectId,key})`.
+   `bb machine create --provider modal-sandbox --json`.
+   SDK: `hosts.submit({machineProviderId:"modal-sandbox",key})`.
    No image or build inputs are accepted. Use a stable creation key for retries.
 
 Settings edits the shared Dockerfile used for future machines. Agents can run
@@ -64,7 +64,6 @@ Remove with `bb machine remove MACHINE --yes --json`. This removes
 owned environments, compute and private snapshots. Shared standard images remain
 cached for future launches. Builds and machines incur Modal usage; obtain task
 authorization before allocating them during testing.
-
 
 ## Debug an image
 

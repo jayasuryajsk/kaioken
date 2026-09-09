@@ -9,17 +9,6 @@ CREATE TABLE `environment_hook_operations` (
 	`error` text
 );
 --> statement-breakpoint
-CREATE TABLE `environment_setup_outcomes` (
-	`host_id` text NOT NULL,
-	`path` text NOT NULL,
-	`operation_id` text NOT NULL,
-	`state` text NOT NULL,
-	`input_hash` text,
-	`updated_at` integer NOT NULL,
-	PRIMARY KEY(`host_id`, `path`),
-	FOREIGN KEY (`host_id`) REFERENCES `hosts`(`id`) ON UPDATE no action ON DELETE cascade
-);
---> statement-breakpoint
 CREATE TABLE `machine_enrollments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`owner` text NOT NULL,
@@ -37,7 +26,6 @@ CREATE UNIQUE INDEX `machine_enrollments_host_id_idx` ON `machine_enrollments` (
 CREATE TABLE `machine_launches` (
 	`key` text PRIMARY KEY NOT NULL,
 	`provider_id` text NOT NULL,
-	`project_id` text,
 	`inputs` text,
 	`attempt` integer NOT NULL,
 	`phase` text NOT NULL,
@@ -59,8 +47,6 @@ CREATE INDEX `machine_launches_phase_idx` ON `machine_launches` (`phase`);--> st
 CREATE INDEX `machine_launches_host_id_idx` ON `machine_launches` (`host_id`);--> statement-breakpoint
 CREATE TABLE `machine_lifecycles` (
 	`host_id` text PRIMARY KEY NOT NULL,
-	`restore_operation_id` text,
-	`restore_checkouts` text,
 	`recovery_state` text NOT NULL,
 	`message` text,
 	`lease_id` text,
