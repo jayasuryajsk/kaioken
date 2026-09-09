@@ -170,7 +170,7 @@ export function ProviderChoice() {
       </StoryRow>
       <StoryRow
         label="no providers installed"
-        hint="access is ready but nothing is installed, so the picker has nothing to offer"
+        hint="nothing can add a machine, so the dialog says so and points at the plugins instead of offering an empty picker"
       >
         <DialogStage>
           <ProviderMachineSetup

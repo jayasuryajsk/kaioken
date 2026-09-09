@@ -30,7 +30,10 @@ import { machineProviderInputsControlRequired } from "@/components/pickers/machi
 import { OptionPicker } from "@/components/pickers/OptionPicker";
 import { useHosts } from "@/hooks/queries/host-queries";
 import { useSystemMachineProviders } from "@/hooks/queries/machine-provider-queries";
-import { getPluginConfigurationRoutePath } from "@/lib/route-paths";
+import {
+  getPluginConfigurationRoutePath,
+  TOOLS_PLUGIN_BROWSE_ROUTE_PATH,
+} from "@/lib/route-paths";
 import { sdk } from "@/lib/sdk";
 import { getMutationErrorMessage } from "@/lib/mutation-errors";
 import { usePluginSlots } from "@/lib/plugin-slots";
@@ -295,6 +298,30 @@ export function ProviderMachineSetup({
     onSuccess: () => onOpenChange(false),
   });
 
+  if (providers.length === 0) {
+    return (
+      <>
+        <DialogHeader>
+          <DialogTitle>Add a machine</DialogTitle>
+          <DialogDescription>
+            No machine provider is installed, so there is nothing to add a
+            machine with.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex justify-end">
+          <Button asChild size="sm" variant="outline">
+            <Link
+              to={TOOLS_PLUGIN_BROWSE_ROUTE_PATH}
+              onClick={() => onOpenChange(false)}
+            >
+              Browse plugins
+              <Icon name="ArrowRight" />
+            </Link>
+          </Button>
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <DialogHeader>
