@@ -2,6 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@bb/shared-ui/button";
 import { sdk } from "@/lib/sdk";
 
+export function machineLifecycleQueryKey(hostId: string) {
+  return ["machine-lifecycle", hostId] as const;
+}
+
 export function MachineLifecycleNotice({
   hostId,
   onRemove,
@@ -10,7 +14,7 @@ export function MachineLifecycleNotice({
   onRemove: () => void;
 }) {
   const query = useQuery({
-    queryKey: ["machine-lifecycle", hostId],
+    queryKey: machineLifecycleQueryKey(hostId),
     queryFn: () => sdk.hosts.experimental_lifecycle({ hostId }),
     refetchInterval: 10_000,
   });
