@@ -143,6 +143,23 @@ export function MachineAccessGate({
       </>
     );
   }
+  if (state.status === "failed") {
+    return (
+      <>
+        <DialogHeader>
+          <DialogTitle>Add a machine</DialogTitle>
+          <DialogDescription>
+            Couldn’t check whether machines can reach this server.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={state.onRetry}>
+            Try again
+          </Button>
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <DialogHeader>
@@ -152,16 +169,7 @@ export function MachineAccessGate({
           address it should use.
         </DialogDescription>
       </DialogHeader>
-      {state.status === "failed" ? (
-        <p role="alert">
-          Could not check machine access.{" "}
-          <Button variant="outline" onClick={state.onRetry}>
-            Try again
-          </Button>
-        </p>
-      ) : (
-        children
-      )}
+      {children}
     </>
   );
 }

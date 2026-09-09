@@ -86,7 +86,7 @@ export function AccessGate() {
       </StoryRow>
       <StoryRow
         label="check failed"
-        hint="the access check itself failed — retry instead of setup"
+        hint="the access check itself failed, so nothing is known about access — retry, and no setup copy"
       >
         <DialogStage>
           <MachineAccessGate state={{ status: "failed", onRetry: noop }}>
