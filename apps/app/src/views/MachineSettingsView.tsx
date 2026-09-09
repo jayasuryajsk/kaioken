@@ -1,7 +1,11 @@
-import { MachineLifecycleNotice } from "@/components/machines/MachineLifecycleNotice";
-import { useMemo, useState, type ReactNode } from "react";
+import {
+  MachineLifecycleNoticeContent,
+  useMachineLifecycleNotice,
+} from "@/components/machines/MachineLifecycleNotice";
+import { useMemo, useState, type ComponentProps, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { Host, PermissionMode } from "@bb/domain";
+import type { SystemMachineProvider } from "@bb/server-contract";
 import type { HostPlatform } from "@bb/host-daemon-contract";
 import { Button } from "@bb/shared-ui/button";
 import { DialogFooter, DialogHeader, DialogTitle } from "@bb/shared-ui/dialog";
@@ -172,6 +176,124 @@ function DetailRow({ label, children }: DetailRowProps) {
   );
 }
 
+export function MachineSettingsHeader({
+  host,
+  machineProvider,
+  platformLabel,
+  now,
+  isPrimary,
+  isThisMachine,
+  showPrimaryBadge,
+  lifecycleNotice,
+  lifecycleActionPending,
+  onSuspend,
+  onResume,
+  onRetryCleanup,
+  onRename,
+}: {
+  host: Host;
+  machineProvider: SystemMachineProvider | null;
+  platformLabel: string | null;
+  now: number;
+  isPrimary: boolean;
+  isThisMachine: boolean;
+  showPrimaryBadge: boolean;
+  lifecycleNotice: ComponentProps<
+    typeof MachineLifecycleNoticeContent
+  >["notice"];
+  lifecycleActionPending: boolean;
+  onSuspend: () => void;
+  onResume: () => void;
+  onRetryCleanup: () => void;
+  onRename: () => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <Link
+        to={getSettingsRoutePath("machines")}
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <Icon name="ChevronLeft" className="size-3.5" />
+        Machines
+      </Link>
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1">
+          <div className="flex min-w-0 items-center gap-2">
+            <h1 className="min-w-0 truncate text-sm font-semibold text-foreground">
+              {host.name}
+            </h1>
+            {isThisMachine ? <SettingsBadge>This machine</SettingsBadge> : null}
+            {showPrimaryBadge ? <SettingsBadge>Primary</SettingsBadge> : null}
+            {machineProvider?.machineTag == null ? null : (
+              <SettingsBadge>
+                <span className="inline-flex items-center gap-1">
+                  <MachineProviderIcon
+                    provider={machineProvider}
+                    className="size-2.5"
+                  />
+                  {machineProvider.machineTag}
+                </span>
+              </SettingsBadge>
+            )}
+          </div>
+          <div className="flex min-w-0 items-center gap-2">
+            <MachineStatusDot tone={machineStatusTone(host)} />
+            <p className="min-w-0 text-xs text-subtle-foreground/75">
+              {headerMeta({ host, platformLabel, now })}
+            </p>
+          </div>
+          <MachineLifecycleNoticeContent notice={lifecycleNotice} />
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {machineProvider?.supportsSuspend &&
+          host.lifecycle.phase === "active" ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={lifecycleActionPending}
+              onClick={onSuspend}
+            >
+              <Icon name="Pause" className="size-3.5" aria-hidden />
+              Suspend
+            </Button>
+          ) : null}
+          {machineProvider?.supportsSuspend &&
+          host.lifecycle.phase === "suspended" ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={lifecycleActionPending}
+              onClick={onResume}
+            >
+              <Icon name="Play" className="size-3.5" aria-hidden />
+              Resume
+            </Button>
+          ) : null}
+          {host.lifecycle.phase === "retiring" &&
+          host.lifecycle.teardown?.status === "failed" ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={lifecycleActionPending}
+              onClick={onRetryCleanup}
+            >
+              <Icon name="RotateCcw" className="size-3.5" aria-hidden />
+              Retry cleanup
+            </Button>
+          ) : null}
+          <ResourceOverflowMenu
+            label={`${host.name} actions`}
+            items={[{ label: "Rename", icon: "Edit", onSelect: onRename }]}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function MachineSettingsView() {
   const { hostId } = useParams<{ hostId: string }>();
   const navigate = useNavigate();
@@ -193,6 +315,10 @@ export function MachineSettingsView() {
 
   const hosts = hostsQuery.data;
   const host = hosts?.find((candidate) => candidate.id === hostId) ?? null;
+  const lifecycleNotice = useMachineLifecycleNotice({
+    hostId: hostId ?? "",
+    enabled: host !== null && host.machineProviderId !== null,
+  });
   const primaryHostId = systemConfig.data?.primaryHostId ?? null;
   const isPrimary = host !== null && host.id === primaryHostId;
   const showMachineIdentityBadges = (hosts?.length ?? 0) > 1;
@@ -284,101 +410,28 @@ export function MachineSettingsView() {
   return (
     <PageShell contentClassName="pt-4 md:pt-5">
       <div className="mx-auto w-full max-w-3xl space-y-6 pb-10">
-        <div className="space-y-3">
-          <Link
-            to={getSettingsRoutePath("machines")}
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <Icon name="ChevronLeft" className="size-3.5" />
-            Machines
-          </Link>
-          <div className="flex min-w-0 items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex min-w-0 items-center gap-2">
-                <h1 className="min-w-0 truncate text-sm font-semibold text-foreground">
-                  {host.name}
-                </h1>
-                {isThisMachine ? (
-                  <SettingsBadge>This machine</SettingsBadge>
-                ) : null}
-                {showMachineIdentityBadges && isPrimary ? (
-                  <SettingsBadge>Primary</SettingsBadge>
-                ) : null}
-                {machineProvider?.machineTag == null ? null : (
-                  <SettingsBadge>
-                    <span className="inline-flex items-center gap-1">
-                      <MachineProviderIcon
-                        provider={machineProvider}
-                        className="size-2.5"
-                      />
-                      {machineProvider.machineTag}
-                    </span>
-                  </SettingsBadge>
-                )}
-              </div>
-              <div className="mt-1 flex min-w-0 items-center gap-2">
-                <MachineStatusDot tone={machineStatusTone(host)} />
-                <p className="min-w-0 text-xs text-subtle-foreground/75">
-                  {headerMeta({ host, platformLabel, now })}
-                </p>
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              {machineProvider?.supportsSuspend &&
-              host.lifecycle.phase === "active" ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={suspendHost.isPending}
-                  onClick={() => suspendHost.mutate(host.id)}
-                >
-                  <Icon name="Pause" className="size-3.5" aria-hidden />
-                  Suspend
-                </Button>
-              ) : null}
-              {machineProvider?.supportsSuspend &&
-              host.lifecycle.phase === "suspended" ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={resumeHost.isPending}
-                  onClick={() => resumeHost.mutate(host.id)}
-                >
-                  <Icon name="Play" className="size-3.5" aria-hidden />
-                  Resume
-                </Button>
-              ) : null}
-              {host.lifecycle.phase === "retiring" &&
-              host.lifecycle.teardown?.status === "failed" ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={retryHostCleanup.isPending}
-                  onClick={() => retryHostCleanup.mutate(host.id)}
-                >
-                  <Icon name="RotateCcw" className="size-3.5" aria-hidden />
-                  Retry cleanup
-                </Button>
-              ) : null}
-              <ResourceOverflowMenu
-                label={`${host.name} actions`}
-                items={[
-                  {
-                    label: "Rename",
-                    icon: "Edit",
-                    onSelect: () => {
-                      renameHost.reset();
-                      setRenameOpen(true);
-                    },
-                  },
-                ]}
-              />
-            </div>
-          </div>
-        </div>
+        <MachineSettingsHeader
+          host={host}
+          machineProvider={machineProvider}
+          platformLabel={platformLabel}
+          now={now}
+          isPrimary={isPrimary}
+          isThisMachine={isThisMachine}
+          showPrimaryBadge={showMachineIdentityBadges && isPrimary}
+          lifecycleNotice={lifecycleNotice}
+          lifecycleActionPending={
+            suspendHost.isPending ||
+            resumeHost.isPending ||
+            retryHostCleanup.isPending
+          }
+          onSuspend={() => suspendHost.mutate(host.id)}
+          onResume={() => resumeHost.mutate(host.id)}
+          onRetryCleanup={() => retryHostCleanup.mutate(host.id)}
+          onRename={() => {
+            renameHost.reset();
+            setRenameOpen(true);
+          }}
+        />
 
         <SettingsSection
           title="Permission limit"
@@ -468,11 +521,6 @@ export function MachineSettingsView() {
           </SettingsRowList>
         </SettingsSection>
 
-        {host.machineProviderId ? (
-          <>
-            <MachineLifecycleNotice hostId={host.id} />
-          </>
-        ) : null}
         <SettingsSection title="Machine information">
           <SettingsRowList>
             <DetailRow label="Projects">

@@ -8,13 +8,25 @@ type MachineLifecycleNoticeState = Pick<
   "message" | "recoveryState"
 > | null;
 
-export function MachineLifecycleNotice({ hostId }: { hostId: string }) {
+export function useMachineLifecycleNotice({
+  hostId,
+  enabled = true,
+}: {
+  hostId: string;
+  enabled?: boolean;
+}): MachineLifecycleNoticeState {
   const query = useQuery({
     queryKey: ["machine-lifecycle", hostId],
     queryFn: () => sdk.hosts.experimental_lifecycle({ hostId }),
     refetchInterval: 10_000,
+    enabled,
   });
-  return <MachineLifecycleNoticeContent notice={query.data ?? null} />;
+  return query.data ?? null;
+}
+
+export function MachineLifecycleNotice({ hostId }: { hostId: string }) {
+  const notice = useMachineLifecycleNotice({ hostId });
+  return <MachineLifecycleNoticeContent notice={notice} />;
 }
 
 export function MachineLifecycleNoticeContent({
