@@ -65,7 +65,6 @@ function Row({
           lifecycleActionPending={false}
           retryUpdatePending={false}
           machineProvider={machineProvider}
-          gitStatus={machineProvider === null ? null : "not configured"}
           lifecycleMessage={lifecycleMessage}
           {...overrides}
         />
@@ -79,7 +78,7 @@ export function Rows() {
     <StoryCard labelWidth="220px" className="max-w-4xl">
       <StoryRow
         label="this machine"
-        hint="the machine bb itself runs on: no provider, so no provider chip and no git line"
+        hint="the machine bb itself runs on: no provider, so no provider chip"
       >
         <Row
           host={makeHost({

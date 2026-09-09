@@ -115,4 +115,4 @@ agent turn, setup command, and new BB terminal. User values override built-ins;
 agent-provider entries override host values. Reopen existing terminals after a
 change. The server gh login provides GitHub Git/gh authentication and commit
 identity by default; a user GH_TOKEN replaces it. See Settings → Machines →
-Machine environment, and `bb settings show --json` for machineGit readiness.
+Machine environment, and `bb machine env list` for builtInGit readiness.

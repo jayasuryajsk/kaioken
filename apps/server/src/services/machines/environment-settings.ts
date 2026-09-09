@@ -61,16 +61,3 @@ export async function machineEnvironmentView(
     },
   };
 }
-
-export async function effectiveMachineGitHealth(
-  db: DbConnection,
-  dataDir: string,
-) {
-  const view = await machineEnvironmentView(db, dataDir);
-  return {
-    status: ["not logged in", "disabled"].includes(view.builtInGit.status)
-      ? ("not configured" as const)
-      : ("ready" as const),
-    statusMessage: view.builtInGit.statusMessage,
-  };
-}

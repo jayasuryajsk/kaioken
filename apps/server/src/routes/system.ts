@@ -1,5 +1,4 @@
 import {
-  effectiveMachineGitHealth,
   machineEnvironmentView,
   updateMachineEnvironment,
 } from "../services/machines/environment-settings.js";
@@ -187,7 +186,6 @@ export function registerSystemRoutes(
     return {
       generalSettings: compatibleGeneralSettings(),
       serverAccess: await serverAccessStatus(deps),
-      machineGit: await effectiveMachineGitHealth(deps.db, deps.config.dataDir),
       keybindings: applyAppKeybindingOverrides(
         DEFAULT_APP_KEYBINDINGS,
         keybindingOverrides,

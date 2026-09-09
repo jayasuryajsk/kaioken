@@ -1331,7 +1331,7 @@ from a secure source instead of putting them in shell history.
 SDK parity: `sdk.system.machineEnvironment()`,
 `sdk.system.setMachineEnvironment({ name, value, note })`, and
 `sdk.system.unsetMachineEnvironment(name)`. All list rows have `value: null` and `secret: true`.
-`bb settings show --json` exposes the built-in readiness as `machineGit`.
+`bb machine env list` reports the built-in readiness as `builtInGit`.
 
 Automatic machine GitHub credentials are enabled by default. Use
 `bb settings general machineGitCredentialsEnabled false` to stop forwarding the

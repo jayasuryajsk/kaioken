@@ -147,10 +147,6 @@ export type ServerAccessStatus = z.infer<typeof serverAccessStatusSchema>;
 
 export const systemConfigResponseSchema = z.object({
   serverAccess: serverAccessStatusSchema,
-  machineGit: z.object({
-    status: z.enum(["ready", "not configured"]),
-    statusMessage: z.string(),
-  }),
   generalSettings: appSettingsSchema.extend({
     showUnhandledProviderEvents: z.boolean().optional(),
   }),

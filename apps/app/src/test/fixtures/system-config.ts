@@ -11,10 +11,6 @@ export function makeSystemConfig(
   overrides: Partial<SystemConfigResponse> = {},
 ): SystemConfigResponse {
   return {
-    machineGit: {
-      status: "not configured",
-      statusMessage: "Server is unavailable",
-    },
     serverAccess: {
       providers: [],
       defaultProviderId: null,

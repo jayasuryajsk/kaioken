@@ -106,7 +106,6 @@ interface MachineRowProps {
   lifecycleActionPending: boolean;
   retryUpdatePending: boolean;
   machineProvider: SystemMachineProvider | null;
-  gitStatus: "ready" | "not configured" | null;
 }
 
 function MachineRow(props: MachineRowProps) {
@@ -134,7 +133,6 @@ export function MachineRowContent({
   lifecycleActionPending,
   retryUpdatePending,
   machineProvider,
-  gitStatus,
   lifecycleMessage,
 }: MachineRowProps & { lifecycleMessage: string | null }) {
   const navigate = useNavigate();
@@ -219,7 +217,6 @@ export function MachineRowContent({
                   <span className="truncate">{platformLabel}</span>
                 )}
                 <span className="shrink-0">{projectLabel}</span>
-                {gitStatus === null ? null : <span>git: {gitStatus}</span>}
                 <span
                   className={cn(
                     "shrink-0",
@@ -398,11 +395,6 @@ export function MachinesSettingsSection() {
               <MachineRow
                 key={host.id}
                 host={host}
-                gitStatus={
-                  host.machineProviderId === null
-                    ? null
-                    : (systemConfig.data?.machineGit.status ?? "not configured")
-                }
                 isPrimary={host.id === serverPrimaryHostId}
                 isThisMachine={
                   showMachineIdentityBadges && host.id === localDaemonHostId
