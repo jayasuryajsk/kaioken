@@ -623,3 +623,4 @@ export function installSafeProcessDiagnostics(
 }
 
 export { createSecretStreamRedactor } from "./secret-redaction.js";
+export { redactJsonStrings } from "./json-redaction.js";

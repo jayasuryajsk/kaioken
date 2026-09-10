@@ -77,8 +77,6 @@ function createBackend(
       sandboxId: state.id,
       async exec(command) {
         if (command[0] === "bootstrap-test") state.connected = true;
-        if (command.join(" ").includes("machine stop --host-id"))
-          state.connected = false;
         return { exitCode: 0, stdout: "ok", stderr: "" };
       },
       async terminate() {
@@ -90,8 +88,6 @@ function createBackend(
         }
       },
       async snapshotFilesystem() {
-        if (state.connected)
-          throw new Error("snapshot requires a stopped daemon");
         if (failSnapshot) {
           failSnapshot = false;
           throw new Error("snapshot creation failed");
@@ -202,7 +198,6 @@ async function setup(
         signal: request.signal,
         stdin: "bootstrap-secret",
       });
-      return { hostId: HOST_ID };
     },
   );
   const prepare = vi.fn(
@@ -302,7 +297,7 @@ describe("Modal machine provider", () => {
     const harness = await setup();
     const first = await harness.provider.create(createContext());
     const second = await harness.provider.create(createContext());
-    expect(first).toMatchObject({ status: "created", hostId: HOST_ID });
+    expect(first).toMatchObject({ status: "created" });
     expect(second).toEqual(first);
     expect(harness.backend.creates).toHaveLength(1);
     expect(harness.bootstrap).toHaveBeenCalledTimes(2);
@@ -320,12 +315,10 @@ describe("Modal machine provider", () => {
     harness.bootstrap.mockRejectedValueOnce(new Error("connection timed out"));
     await expect(harness.provider.create(context)).resolves.toMatchObject({
       status: "failed",
-      failure: "transient",
     });
     expect(harness.backend.states[0]?.terminated).toBe(false);
     await expect(harness.provider.create(context)).resolves.toMatchObject({
       status: "created",
-      hostId: HOST_ID,
     });
     expect(harness.backend.creates).toHaveLength(1);
     expect(harness.bootstrap).toHaveBeenLastCalledWith(
@@ -336,7 +329,7 @@ describe("Modal machine provider", () => {
     );
   });
 
-  it("rejects a changed bootstrap identity on resume without deleting the snapshot", async () => {
+  it("resumes without receiving a host identity from bootstrap", async () => {
     const harness = await setup();
     const created = await harness.provider.create(createContext());
     if (created.status !== "created") throw new Error(created.message);
@@ -349,11 +342,6 @@ describe("Modal machine provider", () => {
     };
     const suspended = await harness.provider.suspend?.(context);
     if (suspended === undefined) throw new Error("suspend not registered");
-    harness.bootstrap.mockResolvedValueOnce({ hostId: "different-host" });
-    await expect(
-      harness.provider.resume?.({ ...context, resource: suspended.resource }),
-    ).rejects.toThrow("different machine identity");
-    expect(harness.backend.deletedSnapshots).toEqual([]);
     await expect(
       harness.provider.resume?.({ ...context, resource: suspended.resource }),
     ).resolves.toMatchObject({
@@ -430,7 +418,7 @@ describe("Modal machine provider", () => {
     });
     expect(
       await test.provider.create({ ...createContext(), checkpoint }),
-    ).toMatchObject({ status: "failed", failure: "transient" });
+    ).toMatchObject({ status: "failed" });
     expect(test.bootstrap).not.toHaveBeenCalled();
     expect(test.backend.states[0]?.terminated).toBe(false);
     expect(await test.provider.create(createContext())).toMatchObject({
@@ -576,6 +564,7 @@ describe("Modal machine provider", () => {
       signal: new AbortController().signal,
       async checkpoint() {},
     };
+    harness.backend.states[0]!.connected = false;
 
     await expect(harness.provider.suspend?.(lifecycleContext)).rejects.toThrow(
       "snapshot creation failed",
@@ -696,16 +685,9 @@ describe("Modal machine provider", () => {
 
 it("reconciles uncertain named allocations without creating or bootstrapping", async () => {
   const test = await setup();
-  const request = createContext();
+  const request = { ...createContext(), resource: null };
   expect(await test.provider.reconcileCleanup(request)).toEqual({
     status: "removed",
-  });
-  await test.bb.storage.kv.set(`allocation/${request.key}`, {
-    appName: "bb",
-    sandboxId: null,
-  });
-  expect(await test.provider.reconcileCleanup(request)).toMatchObject({
-    status: "failed",
   });
   test.backend.states.push({
     id: "uncertain",
@@ -773,20 +755,13 @@ it("blocks observation and resume after the configured account identity changes"
   expect(harness.backend.creates).toHaveLength(1);
 });
 
-it("retries an image build failure without recording an uncertain sandbox allocation", async () => {
+it("retries an image build failure inside one create call", async () => {
   const test = await setup();
   test.backend.image.mockRejectedValueOnce(new Error("image build failed"));
   expect(await test.provider.create(createContext())).toMatchObject({
-    status: "failed",
-    message: "image build failed",
-  });
-  expect(test.backend.creates).toHaveLength(0);
-  expect(
-    await test.bb.storage.kv.get("allocation/modal-machine-key"),
-  ).toBeUndefined();
-  expect(await test.provider.create(createContext())).toMatchObject({
     status: "created",
   });
+  expect(test.backend.image).toHaveBeenCalledTimes(2);
   expect(test.backend.creates[0]?.image).toEqual({
     type: "image",
     imageId: "im-standard",

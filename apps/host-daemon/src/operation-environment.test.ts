@@ -59,6 +59,17 @@ it("redacts complete clone diagnostics with newline conversion and overlapping s
   ).toBe("[redacted] [redacted]");
 });
 
+it("redacts strings throughout operation content", () => {
+  expect(
+    redactOperationContent(
+      { output: ["safe", { nested: "before secret after" }] },
+      ["secret"],
+    ),
+  ).toEqual({
+    output: ["safe", { nested: "before [redacted] after" }],
+  });
+});
+
 it("fails closed when content cannot be traversed", () => {
   const value = Object.defineProperty({}, "text", {
     enumerable: true,

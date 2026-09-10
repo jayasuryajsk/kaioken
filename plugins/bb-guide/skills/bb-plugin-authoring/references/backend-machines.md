@@ -37,13 +37,13 @@ bb.experimental_machines.register({
     const target = await allocateTarget({ target: inputs.target, key, signal });
     const resource = { target: target.id, hostId: enrollment.hostId };
     await checkpoint(resource);
-    const { hostId } = await bb.experimental_machines.bootstrap({
+    await bb.experimental_machines.bootstrap({
       key,
       executor: target.executor,
       report,
       signal,
     });
-    return { status: "created", hostId, resource };
+    return { status: "created", resource };
   },
   async remove({ resource }) {
     const owned = z
@@ -65,12 +65,13 @@ and pass a non-secret reference such as a target name in inputs.
 Create receives parsed inputs, a stable key, monotonic attempt, durable
 progress reporter, and abort signal. It must be
 idempotent by key: if enrolment completed before the server crashed, the next
-call returns the already-enrolled host instead of creating another resource.
+call reuses the already-enrolled host instead of creating another resource.
 Prepare enrollment before calling `await checkpoint(resource)` after durable
 allocation and before bootstrap. Create's checkpoint is asynchronous and makes
 partial allocation recoverable even if enrollment never succeeds. Never put the
-bootstrap bundle in resource JSON. Return the host id plus a private JSON resource
-for later lifecycle operations. `allocateTarget` and `disconnectTarget` above
+bootstrap bundle in resource JSON. Return a private JSON resource for later
+lifecycle operations; core uses the host identity reserved on the launch.
+`allocateTarget` and `disconnectTarget` above
 stand for provider-owned allocation, transport, and idempotent cleanup; removal
 must handle a checkpointed target whose daemon was never installed or enrolled.
 Core owns enrollment, identity files, and daemon installation internals.
@@ -86,7 +87,7 @@ with `project-checkout`; core prepares the missing checkout. CLI users select
 
 Suspend and resume are optional but must be declared together. Providers own idle
 timing and request pause through the host SDK. Core interrupts active work before
-invoking suspend and resumes before queued execution.
+stopping the host daemon and invoking suspend, and resumes before queued execution.
 Suspend receives `checkpoint(resource)`, which synchronously
 persists a recoverable private resource before destructive cleanup. Use it
 after creating a recovery artifact and before terminating the live machine or
@@ -145,7 +146,7 @@ prove reachability from a sandbox.
 - `enrollments.waitForConnection({ enrollmentId, timeoutMs, signal })` returns `{ hostId }` after the daemon connects.
 - `bootstrap({ key, executor, access?, report, signal })` prepares or recovers
   enrollment, installs or starts the daemon, waits for its
-  connection, and returns `{ hostId }`. Reuse the same key and access selection
+  connection, and returns nothing. Reuse the same key and access selection
   used before the create checkpoint. Initial installation needs Node, npm, and
   curl; the helper does not install OS packages.
 

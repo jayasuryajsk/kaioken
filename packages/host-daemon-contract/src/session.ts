@@ -315,6 +315,7 @@ const hostDaemonSessionCloseReasonSchema = z.enum([
   "replaced",
   "expired",
   "daemon-disconnect",
+  "machine-suspend",
 ]);
 export type HostDaemonSessionCloseReason = z.infer<
   typeof hostDaemonSessionCloseReasonSchema

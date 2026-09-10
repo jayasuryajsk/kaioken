@@ -199,6 +199,28 @@ afterEach(() => {
 });
 
 describe("ServerConnection", () => {
+  it("shuts down cleanly when core suspends the machine", async () => {
+    const { connection, webSocket } = createConnectionFixture();
+    const closeHandler = vi.fn(async () => {});
+    connection.setSessionCloseHandler(closeHandler);
+    await connection.start();
+    const socket = webSocket.sockets[0];
+    if (!socket) throw new Error("Expected test socket");
+
+    socket.onmessage?.({
+      data: JSON.stringify({
+        type: "session-close",
+        reason: "machine-suspend",
+      }),
+    });
+
+    await vi.waitFor(() => {
+      expect(closeHandler).toHaveBeenCalledWith("machine-suspend");
+      expect(socket.close).toHaveBeenCalled();
+    });
+    await connection.shutdown();
+  });
+
   it("runs protocol self-update handling only for protocol mismatch rejection", async () => {
     const handleProtocolMismatch = vi.fn(async () => "updated" as const);
     const onSelfUpdateInstalled = vi.fn();

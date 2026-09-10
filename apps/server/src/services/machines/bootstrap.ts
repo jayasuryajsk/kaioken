@@ -73,7 +73,7 @@ export function createMachineBootstrapApi(
       }
       request.signal.throwIfAborted();
       request.report.step("Waiting for machine connection");
-      return enrollments.waitForConnection({
+      await enrollments.waitForConnection({
         enrollmentId: enrollment.id,
         timeoutMs: 120_000,
         signal: request.signal,

@@ -58,6 +58,7 @@ const THREAD_TIMELINE_TURN_SUMMARY_DETAILS_QUERY_KEY =
 const SYSTEM_PROVIDERS_QUERY_KEY = "systemProviders";
 const SYSTEM_MACHINE_PROVIDERS_QUERY_KEY = "systemMachineProviders";
 const MACHINE_LIFECYCLE_QUERY_KEY = "machine-lifecycle";
+const MACHINE_ENVIRONMENT_QUERY_KEY = "machine-environment";
 const SYSTEM_CONFIG_QUERY_KEY = "systemConfig";
 const UI_PREFERENCES_QUERY_KEY = "uiPreferences";
 const SYSTEM_THEME_QUERY_KEY = "systemTheme";
@@ -457,6 +458,9 @@ type AllSystemMachineProvidersQueryKeyPrefix = readonly [
 type MachineLifecycleQueryKey = readonly [
   typeof MACHINE_LIFECYCLE_QUERY_KEY,
   string,
+];
+type MachineEnvironmentQueryKey = readonly [
+  typeof MACHINE_ENVIRONMENT_QUERY_KEY,
 ];
 type SystemConfigQueryKey = readonly [typeof SYSTEM_CONFIG_QUERY_KEY];
 type UiPreferencesQueryKey = readonly [typeof UI_PREFERENCES_QUERY_KEY];
@@ -1099,6 +1103,10 @@ export function machineLifecycleQueryKey(
   hostId: string,
 ): MachineLifecycleQueryKey {
   return [MACHINE_LIFECYCLE_QUERY_KEY, hostId];
+}
+
+export function machineEnvironmentQueryKey(): MachineEnvironmentQueryKey {
+  return [MACHINE_ENVIRONMENT_QUERY_KEY];
 }
 
 export function systemCliSkillsQueryKey(): SystemCliSkillsQueryKey {

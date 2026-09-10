@@ -306,9 +306,8 @@ Read the installed declarations for exact current signatures.
 - `PluginMachineProviderCreateContext` — async `checkpoint(resource)` after
   preparing enrollment and allocating, before bootstrap; never bundle credentials
 - `PluginMachineProviderCreateResult`
-- `PluginMachineProviderLifecycleContext`
-- `PluginMachineProviderSuspendContext` — suspend context with a durable
-  `checkpoint` resource callback
+- `PluginMachineProviderLifecycleContext` — shared create, suspend and resume
+  context with a durable `checkpoint` resource callback
 - `PluginMachineProviderProgress`
 - `PluginMachineProviderResourceResult`
 - `PluginMachineProviderRemoveResult`

@@ -208,10 +208,10 @@ describe("surface card copy", () => {
     expect(eventCopy).toContain("cancelled before dispatch");
   });
 
-  it("documents durable machine suspension checkpoints", () => {
+  it("documents durable machine lifecycle checkpoints", () => {
     const machineProviders = SURFACES_BY_ID.get("machine-providers");
     expect(machineProviders?.apiSymbols).toContain(
-      "PluginMachineProviderSuspendContext",
+      "PluginMachineProviderLifecycleContext",
     );
     expect(machineProviders?.bullets.join(" ")).toContain(
       "Await suspend.checkpoint(resource) before destructive cleanup",

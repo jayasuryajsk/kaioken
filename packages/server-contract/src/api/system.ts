@@ -16,6 +16,34 @@ import {
 } from "@bb/domain";
 import { providerHealthSchema as providerHealthSchema } from "@bb/provider-bridge-protocol/provider-maintenance";
 import { hostPlatformSchema } from "@bb/host-daemon-contract/local";
+import { machineEnvironmentSetSchema } from "./machine-environment.js";
+
+const machineEnvironmentReplacementVariableSchema =
+  machineEnvironmentSetSchema.extend({
+    value: machineEnvironmentSetSchema.shape.value.nullable(),
+  });
+
+export const machineEnvironmentReplaceSchema = z
+  .object({
+    variables: z.array(machineEnvironmentReplacementVariableSchema),
+  })
+  .strict()
+  .superRefine(({ variables }, context) => {
+    const names = new Set<string>();
+    for (const [index, variable] of variables.entries()) {
+      if (names.has(variable.name)) {
+        context.addIssue({
+          code: "custom",
+          path: ["variables", index, "name"],
+          message: "Machine environment variable names must be unique",
+        });
+      }
+      names.add(variable.name);
+    }
+  });
+export type MachineEnvironmentReplace = z.infer<
+  typeof machineEnvironmentReplaceSchema
+>;
 
 export const systemExecutionOptionsModelLoadErrorCodeSchema = z.enum([
   "provider_unavailable",

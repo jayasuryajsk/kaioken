@@ -6,6 +6,7 @@ import { afterEach, beforeEach, expect, it } from "vitest";
 import {
   decryptMachineEnvironment,
   readMachineEnvironment,
+  replaceMachineEnvironment,
   updateMachineEnvironment,
 } from "./environment-storage.js";
 
@@ -21,13 +22,13 @@ afterEach(async () => {
   await rm(dataDir, { recursive: true, force: true });
 });
 it("stores encrypted values that survive a database reopen", async () => {
-  for (const name of ["REGION", "TOKEN"]) {
-    await updateMachineEnvironment(db, dataDir, name, {
+  await replaceMachineEnvironment(db, dataDir, {
+    variables: ["REGION", "TOKEN"].map((name) => ({
       name,
       value: "private-" + name,
       note: null,
-    });
-  }
+    })),
+  });
   const rows = readMachineEnvironment(db);
   const persisted = db.select().from(appSettingsValues).all();
   expect(JSON.stringify(persisted)).not.toContain("private-");
@@ -42,6 +43,26 @@ it("stores encrypted values that survive a database reopen", async () => {
   expect(await decryptMachineEnvironment(dataDir, rows[1]!)).toBe(
     "private-TOKEN",
   );
+});
+
+it("replaces the whole list while retaining unchanged ciphertext", async () => {
+  await replaceMachineEnvironment(db, dataDir, {
+    variables: [
+      { name: "REMOVE", value: "old", note: null },
+      { name: "TOKEN", value: "private", note: null },
+    ],
+  });
+  const token = readMachineEnvironment(db).find((row) => row.name === "TOKEN");
+  await replaceMachineEnvironment(db, dataDir, {
+    variables: [
+      { name: "TOKEN", value: null, note: "Retained" },
+      { name: "ADDED", value: "new", note: null },
+    ],
+  });
+  const rows = readMachineEnvironment(db);
+  expect(rows.map((row) => row.name)).toEqual(["ADDED", "TOKEN"]);
+  expect(rows[1]).toEqual({ ...token, note: "Retained" });
+  expect(await decryptMachineEnvironment(dataDir, rows[1]!)).toBe("private");
 });
 
 it("authenticates ciphertext and its variable name", async () => {

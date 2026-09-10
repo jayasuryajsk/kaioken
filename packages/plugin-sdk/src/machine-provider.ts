@@ -26,42 +26,35 @@ export type PluginMachineProviderValidateContext<
   inputs: InputsValue<S>;
 };
 
+export interface PluginMachineProviderLifecycleContext {
+  checkpoint(resource: JsonValue): Promise<void>;
+  report: PluginMachineProviderProgress;
+  signal: AbortSignal;
+}
+
 export type PluginMachineProviderCreateContext<
   S extends PluginMachineProviderInputsSchema =
     PluginMachineProviderInputsSchema,
-> = PluginMachineProviderValidateContext<S> & {
-  key: string;
-  attempt: number;
-  /** Await the allocation recovery record after preparing enrollment, before bootstrap. This is not a filesystem save. Never include a bootstrap bundle. Daemon connection does not imply agent readiness. */
-  checkpoint(resource: JsonValue): Promise<void>;
-  report: PluginMachineProviderProgress;
-  signal: AbortSignal;
-};
+> = PluginMachineProviderValidateContext<S> &
+  PluginMachineProviderLifecycleContext & {
+    key: string;
+    attempt: number;
+  };
 
 export type PluginMachineProviderCreateResult =
-  | { status: "created"; hostId: string; resource: JsonValue }
-  | {
-      status: "failed";
-      failure: "transient" | "terminal";
-      message: string;
-    };
+  | { status: "created"; resource: JsonValue }
+  | { status: "failed"; message: string };
 
-export interface PluginMachineProviderLifecycleContext {
-  hostId: string;
-  resource: JsonValue;
-  report: PluginMachineProviderProgress;
-  signal: AbortSignal;
-}
+type PluginMachineProviderResourceLifecycleContext =
+  PluginMachineProviderLifecycleContext & {
+    hostId: string;
+    resource: JsonValue;
+  };
 
-export interface PluginMachineProviderSuspendContext extends PluginMachineProviderLifecycleContext {
-  /** Persist the provider resource before terminating compute. The provider owns filesystem preservation. */
-  checkpoint(resource: JsonValue): Promise<void>;
-}
-
-export interface PluginMachineProviderResumeContext extends PluginMachineProviderLifecycleContext {
-  /** Await the allocation recovery record before bootstrap. Core fences ownership, phase and operation; restart reuses this record and enrollment. This does not save the filesystem or establish agent readiness. */
-  checkpoint(resource: JsonValue): Promise<void>;
-}
+type PluginMachineProviderRemoveContext = Omit<
+  PluginMachineProviderResourceLifecycleContext,
+  "checkpoint"
+>;
 
 export interface PluginMachineProviderResourceResult {
   resource: JsonValue;
@@ -97,16 +90,17 @@ export interface PluginMachineProviderDefinition<
   /** Reconcile and remove an uncertain allocation by durable key without creating or bootstrapping. Return failed while allocation intent remains unresolved. */
   reconcileCleanup(context: {
     key: string;
+    resource: JsonValue | null;
     report: PluginMachineProviderProgress;
     signal: AbortSignal;
   }): Promise<PluginMachineProviderRemoveResult>;
   suspend?(
-    context: PluginMachineProviderSuspendContext,
+    context: PluginMachineProviderResourceLifecycleContext,
   ): Promise<PluginMachineProviderResourceResult>;
   resume?(
-    context: PluginMachineProviderResumeContext,
+    context: PluginMachineProviderResourceLifecycleContext,
   ): Promise<PluginMachineProviderResourceResult>;
   remove(
-    context: PluginMachineProviderLifecycleContext,
+    context: PluginMachineProviderRemoveContext,
   ): Promise<PluginMachineProviderRemoveResult>;
 }

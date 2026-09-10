@@ -62,14 +62,6 @@ async function fixture(
         ? `<key>BB_DATA_DIR</key><string>${dataDir}</string>`
         : `Environment="BB_DATA_DIR=${dataDir}"\nExecStart="/usr/bin/node" "${launcher}" host-daemon --auto-update --host-daemon-port "44001" --server-url "https://bb.example"`,
     );
-  const reservation = join(
-    homeDir,
-    ".bb-machines",
-    "host-daemon-ports",
-    "44001",
-  );
-  await mkdir(reservation, { recursive: true });
-  await writeFile(join(reservation, "data-dir"), dataDir);
   const calls: string[] = [];
   const state = {
     active: true,
@@ -114,7 +106,7 @@ async function fixture(
     },
     sleep: async () => {},
   };
-  return { homeDir, dataDir, servicePath, reservation, calls, state, deps };
+  return { homeDir, dataDir, servicePath, calls, state, deps };
 }
 
 const options = { hostId: "host_one" };
@@ -178,21 +170,10 @@ describe("owned local machine lifecycle", () => {
       await expect(
         readFile(join(f.dataDir, "auth.json")),
       ).rejects.toMatchObject({ code: "ENOENT" });
-      await expect(
-        readFile(join(f.reservation, "data-dir")),
-      ).rejects.toMatchObject({ code: "ENOENT" });
       expect(f.calls.some((call) => call.includes("host_one"))).toBe(true);
       await runMachineLifecycle("uninstall", options, f.deps);
     },
   );
-  it("retains a port reservation owned by another installation", async () => {
-    const f = await fixture();
-    await writeFile(join(f.reservation, "data-dir"), "/other");
-    await runMachineLifecycle("uninstall", options, f.deps);
-    expect(await readFile(join(f.reservation, "data-dir"), "utf8")).toBe(
-      "/other",
-    );
-  });
   it("refuses a different server before stopping anything", async () => {
     const f = await fixture();
     await expect(
@@ -284,9 +265,6 @@ describe("owned local machine lifecycle", () => {
     expect(f.calls).toContain("kill 1234");
     expect(await readFile(join(f.dataDir, "auth.json"), "utf8")).toContain(
       "host_one",
-    );
-    expect(await readFile(join(f.reservation, "data-dir"), "utf8")).toBe(
-      f.dataDir,
     );
   });
   it("starts a stopped container daemon using its private installation", async () => {

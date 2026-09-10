@@ -13,8 +13,7 @@ import { MachineEnvironmentSettings } from "./MachineEnvironmentSettings";
 
 const mocks = vi.hoisted(() => ({
   list: vi.fn(),
-  set: vi.fn(),
-  unset: vi.fn(),
+  replace: vi.fn(),
 }));
 vi.mock("@/hooks/queries/system-queries", () => ({
   useSystemConfig: () => ({
@@ -28,8 +27,7 @@ vi.mock("@/lib/sdk", () => ({
   sdk: {
     system: {
       machineEnvironment: mocks.list,
-      setMachineEnvironment: mocks.set,
-      unsetMachineEnvironment: mocks.unset,
+      replaceMachineEnvironment: mocks.replace,
     },
   },
 }));
@@ -76,16 +74,16 @@ it("stages additions and preserves an unchanged saved secret", async () => {
   fireEvent.change(screen.getByLabelText("Value for NEW_VALUE"), {
     target: { value: "example" },
   });
-  expect(mocks.set).not.toHaveBeenCalled();
+  expect(mocks.replace).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Save variables" }));
   await waitFor(() =>
-    expect(mocks.set).toHaveBeenCalledExactlyOnceWith({
-      name: "NEW_VALUE",
-      value: "example",
-      note: null,
+    expect(mocks.replace).toHaveBeenCalledExactlyOnceWith({
+      variables: [
+        { name: "API_KEY", value: null, note: null },
+        { name: "NEW_VALUE", value: "example", note: null },
+      ],
     }),
   );
-  expect(mocks.unset).not.toHaveBeenCalled();
 });
 
 it("stages removal and lets users discard it without deleting", async () => {
@@ -94,12 +92,12 @@ it("stages removal and lets users discard it without deleting", async () => {
   expect(screen.queryByDisplayValue("API_KEY")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Discard changes" }));
   expect(screen.getByDisplayValue("API_KEY")).toBeTruthy();
-  expect(mocks.unset).not.toHaveBeenCalled();
+  expect(mocks.replace).not.toHaveBeenCalled();
 });
 
 it("retains a secret replacement when saving fails", async () => {
   await show();
-  mocks.set.mockRejectedValue(new Error("offline"));
+  mocks.replace.mockRejectedValue(new Error("offline"));
   fireEvent.change(screen.getByLabelText("Value for API_KEY"), {
     target: { value: "replacement" },
   });

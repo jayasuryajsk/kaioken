@@ -43,7 +43,7 @@ async function installPlugin(harness: TestAppHarness, id: string) {
       description: "Provision a runtime test machine.", icon: "Terminal",
 
       reconcileCleanup: async () => ({ status: "removed" }),
-      create: async () => ({ status: "failed", failure: "terminal", message: "unused" }),
+      create: async () => ({ status: "failed", message: "unused" }),
       remove: async () => ({ status: "removed" })
     });
   }`,
@@ -64,7 +64,6 @@ function launch(harness: TestAppHarness, key: string, providerId: string) {
       attempt: 1,
       phase: "creating",
       startedAt: Date.now(),
-      transientFailures: 0,
       stepText: "checkpoint step",
       pendingLog: "checkpoint log",
       cancelPending: false,
@@ -162,7 +161,7 @@ describe("production machine enrollment wiring", () => {
           report: { step() {}, log() {} },
           signal: new AbortController().signal,
         }),
-      ).resolves.toEqual({ hostId: enrollment.hostId });
+      ).resolves.toBeUndefined();
       expect(exec).toHaveBeenCalledOnce();
       expect(
         await api.experimental_machines.enrollments.prepare({

@@ -22,24 +22,13 @@ import {
 } from "./sandbox-backend.js";
 import {
   readModalMachineResource,
-  modalMachineResourceSchema,
   type ModalMachineResource,
 } from "./lifecycle.js";
 
 export const PROVIDER_ID = "modal-sandbox";
 
-const allocationSchema = z
-  .object({
-    appName: z.string().min(1),
-    sandboxId: z.string().min(1).nullable(),
-    resource: modalMachineResourceSchema.nullable().default(null),
-    accountIdentity: z.string().nullable().default(null),
-  })
-  .strict();
-
-const HOST_CONNECT_TIMEOUT_MS = 240_000;
-const HOST_POLL_INTERVAL_MS = 3_000;
-const DAEMON_STOP_TIMEOUT_MS = 60_000;
+const MODAL_API_RETRY_LIMIT = 3;
+const MODAL_API_RETRY_MS = 1_000;
 const SNAPSHOT_TIMEOUT_MS = 300_000;
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -195,21 +184,18 @@ export function createModalSandboxPlugin(
       }
     });
 
-    async function waitForHostDisconnection(
-      hostId: string,
+    async function retryModalApi<T>(
+      operation: () => Promise<T>,
       signal: AbortSignal,
-    ): Promise<void> {
-      const deadline = deps.now() + HOST_CONNECT_TIMEOUT_MS;
-      for (;;) {
-        signal.throwIfAborted();
-        const host = (await bb.sdk.hosts.list()).find(
-          (candidate) => candidate.id === hostId,
-        );
-        if (host?.status !== "connected") return;
-        if (deps.now() >= deadline) {
-          throw new Error(`host ${hostId} remained connected after suspension`);
+    ): Promise<T> {
+      for (let attempt = 1; ; attempt += 1) {
+        try {
+          return await operation();
+        } catch (error) {
+          signal.throwIfAborted();
+          if (attempt >= MODAL_API_RETRY_LIMIT) throw error;
+          await deps.sleep(MODAL_API_RETRY_MS * attempt);
         }
-        await deps.sleep(HOST_POLL_INTERVAL_MS);
       }
     }
 
@@ -220,69 +206,50 @@ export function createModalSandboxPlugin(
       if (!resolved.ok) {
         return {
           status: "failed",
-          failure: "terminal",
           message: resolved.message,
         };
       }
       const backend = backendFor(resolved.settings);
       try {
         context.signal.throwIfAborted();
-        await bb.experimental_machines.enrollments.prepare({
+        const enrollment = await bb.experimental_machines.enrollments.prepare({
           key: context.key,
         });
-        const accountIdentity = await backend.accountIdentity();
+        const accountIdentity = await retryModalApi(
+          () => backend.accountIdentity(),
+          context.signal,
+        );
         context.signal.throwIfAborted();
         const appName = resolved.settings.appName;
-        let sandbox = await backend.fromName(appName, context.key);
-        const intentKey = `allocation/${context.key}`;
-        const stored = await bb.storage.kv.get<unknown>(intentKey);
-        const intent =
-          stored === undefined ? null : allocationSchema.parse(stored);
-        if (
-          intent?.accountIdentity &&
-          intent.accountIdentity !== accountIdentity
-        )
-          throw new Error("Allocation account differs from the pinned account");
-        if (intent && intent.appName !== appName)
-          throw new Error("Allocation key belongs to a different Modal app");
-        if (sandbox === null && stored !== undefined) {
-          return {
-            status: "failed",
-            failure: "transient",
-            message:
-              "Modal allocation intent is unresolved; reconcile its name before retrying.",
-          };
-        }
-        let imageId = intent?.resource?.imageId;
-        if (imageId === undefined) {
-          context.report.step("Preparing the standard Modal image…");
-          imageId = await backend.ensureStandardImage({
-            appName,
-            dockerfile: (await image.get()).dockerfile,
-            signal: context.signal,
-            report: context.report,
-          });
-          context.signal.throwIfAborted();
-        }
-        if (sandbox === null) {
-          await bb.storage.kv.set(intentKey, {
-            appName,
-            sandboxId: null,
-            resource: null,
-            accountIdentity,
-          });
-          context.report.step("Creating the Modal Sandbox…");
-          sandbox = await backend.create({
-            appName,
-            name: context.key,
-            image: { type: "image", imageId },
-            timeoutMs: SANDBOX_LIFETIME_MS,
-            cpu: resolved.settings.cpu,
-            memoryMiB: resolved.settings.memoryMiB,
-            tags: { bbMachineKey: context.key },
-          });
-        }
-        const allocation: ModalMachineResource = intent?.resource ?? {
+        context.report.step("Preparing the standard Modal image…");
+        const imageId = await retryModalApi(
+          async () =>
+            backend.ensureStandardImage({
+              appName,
+              dockerfile: (await image.get()).dockerfile,
+              signal: context.signal,
+              report: context.report,
+            }),
+          context.signal,
+        );
+        context.signal.throwIfAborted();
+        context.report.step("Creating the Modal Sandbox…");
+        const sandbox = await retryModalApi(async () => {
+          const existing = await backend.fromName(appName, context.key);
+          return (
+            existing ??
+            backend.create({
+              appName,
+              name: context.key,
+              image: { type: "image", imageId },
+              timeoutMs: SANDBOX_LIFETIME_MS,
+              cpu: resolved.settings.cpu,
+              memoryMiB: resolved.settings.memoryMiB,
+              tags: { bbMachineKey: context.key },
+            })
+          );
+        }, context.signal);
+        const allocation: ModalMachineResource = {
           imageId,
           accountIdentity,
           appName,
@@ -295,31 +262,23 @@ export function createModalSandboxPlugin(
           pendingSnapshotImageIds: [],
         };
         await context.checkpoint(allocation);
-        await bb.storage.kv.set(intentKey, {
-          appName,
-          sandboxId: sandbox.sandboxId,
-          resource: allocation,
-          accountIdentity,
-        });
         context.signal.throwIfAborted();
-        const { hostId } = await bb.experimental_machines.bootstrap({
+        await bb.experimental_machines.bootstrap({
           key: context.key,
           executor: createSandboxExecutor(sandbox),
           report: context.report,
           signal: context.signal,
         });
         context.signal.throwIfAborted();
-        await bumpIdle(hostId);
+        await bumpIdle(enrollment.hostId);
         return {
           status: "created",
-          hostId,
           resource: allocation,
         };
       } catch (error) {
         context.signal.throwIfAborted();
         return {
           status: "failed",
-          failure: "transient",
           message: errorMessage(error),
         };
       }
@@ -392,44 +351,23 @@ export function createModalSandboxPlugin(
       },
       create: launch,
       async reconcileCleanup(context) {
-        const stored = await bb.storage.kv.get<unknown>(
-          `allocation/${context.key}`,
-        );
-        if (stored === undefined) {
-          return { status: "removed" };
-        }
-        const intent = allocationSchema.parse(stored);
         const resolved = await currentSettings();
         if (!resolved.ok)
           return { status: "failed", message: resolved.message };
         context.signal.throwIfAborted();
-        if (
-          intent.accountIdentity &&
-          intent.accountIdentity !==
-            (await backendFor(resolved.settings).accountIdentity())
-        )
-          return {
-            status: "failed",
-            message: "Restore the allocation’s pinned account before cleanup",
-          };
         const backend = backendFor(resolved.settings);
+        const resource =
+          context.resource === null
+            ? null
+            : readModalMachineResource(context.resource);
         const sandbox =
-          intent.sandboxId === null
-            ? await backend.fromName(intent.appName, context.key)
-            : await backend.fromId(intent.sandboxId);
-        if (sandbox === null && intent.sandboxId === null)
-          return {
-            status: "failed",
-            message:
-              "Modal allocation intent is unresolved; retry name reconciliation.",
-          };
-        if (sandbox !== null) {
-          await bb.storage.kv.set(`allocation/${context.key}`, {
-            ...intent,
-            sandboxId: sandbox.sandboxId,
-          });
-          await sandbox.terminate();
-        }
+          resource?.sandboxId == null
+            ? await backend.fromName(
+                resource?.appName ?? resolved.settings.appName,
+                context.key,
+              )
+            : await backend.fromId(resource.sandboxId);
+        await sandbox?.terminate();
         return { status: "removed" };
       },
       async suspend(context) {
@@ -456,25 +394,6 @@ export function createModalSandboxPlugin(
             ),
           };
         }
-        context.report.step("Stopping the bb machine…");
-        const stopped = await sandbox.exec(
-          [
-            "sh",
-            "-c",
-            'bb_bin=$(command -v bb || true); if [ -z "$bb_bin" ]; then bb_bin="$HOME/.local/bin/bb"; fi; exec "$bb_bin" machine stop --host-id "$1"',
-            "sh",
-            context.hostId,
-          ],
-          {
-            timeoutMs: DAEMON_STOP_TIMEOUT_MS,
-            signal: context.signal,
-          },
-        );
-        if (stopped.exitCode !== 0)
-          throw new Error(
-            `Stopping the bb machine exited ${stopped.exitCode}: ${stopped.stderr}`,
-          );
-        await waitForHostDisconnection(context.hostId, context.signal);
         context.report.step("Saving the Modal filesystem…");
         const snapshotStartedAt = deps.now();
         const snapshotImageId = await sandbox.snapshotFilesystem({
@@ -546,18 +465,13 @@ export function createModalSandboxPlugin(
         }
         resource = { ...resource, sandboxId: sandbox.sandboxId };
         await context.checkpoint(resource);
-        const { hostId } = await bb.experimental_machines.bootstrap({
+        await bb.experimental_machines.bootstrap({
           key: resource.key,
           executor: createSandboxExecutor(sandbox),
           report: context.report,
           signal: context.signal,
         });
-        if (hostId !== context.hostId) {
-          throw new Error(
-            "Modal bootstrap returned a different machine identity.",
-          );
-        }
-        await bumpIdle(hostId);
+        await bumpIdle(context.hostId);
         return {
           resource: {
             ...resource,

@@ -38,24 +38,25 @@ describe("machine env commands", () => {
         register,
       );
       expect(collectLogPayloads(vi.mocked(console.error))).toEqual([]);
-      expect(await requests[0].json()).toEqual({
-        name: "GH_TOKEN",
-        value: "cli-secret",
-        note: null,
+      expect(await requests[1].json()).toEqual({
+        variables: [{ name: "GH_TOKEN", value: "cli-secret", note: null }],
       });
-      expect(requests[0].method).toBe("PUT");
+      expect(requests[1].method).toBe("PUT");
       await runCommand(["machine", "env", "list", "--json"], register);
       await runCommand(
         ["machine", "env", "unset", "GH_TOKEN", "--json"],
         register,
       );
       expect(requests.map((request) => request.method)).toEqual([
+        "GET",
         "PUT",
         "GET",
-        "DELETE",
+        "GET",
+        "PUT",
       ]);
-      expect(requests[2].url).toBe(
-        "http://server/api/v1/settings/machine-environment/GH_TOKEN",
+      expect(await requests[4].json()).toEqual({ variables: [] });
+      expect(requests[4].url).toBe(
+        "http://server/api/v1/settings/machine-environment",
       );
       expect(
         collectLogPayloads(vi.mocked(console.log)).join("\n"),

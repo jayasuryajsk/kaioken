@@ -258,8 +258,9 @@ terminals retain their launch environment.
 The server's gh login provides GitHub credentials, a Git environment-only HTTPS
 helper and SSH rewrites, and commit identity. The built-in row reports logged in,
 not logged in, or overridden. No credentials are installed in images or global
-Git config. SDK: system.machineEnvironment(), system.setMachineEnvironment({
-name, value, note }), and system.unsetMachineEnvironment(name).
+Git config. SDK: system.machineEnvironment() and
+system.replaceMachineEnvironment({ variables }). Replacement is atomic; pass
+every row to retain, using value: null for an unchanged saved secret.
 
 Thread startup does not install or update agent CLIs, probe authentication, or validate workspace fingerprints. Core runs repository setup when creating an owned environment and teardown before removing it. Resume does not rerun setup.
 

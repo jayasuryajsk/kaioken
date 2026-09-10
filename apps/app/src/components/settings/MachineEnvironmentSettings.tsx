@@ -17,9 +17,8 @@ import {
   SettingsSection,
 } from "@/components/ui/settings-section";
 import { invalidateSystemConfig } from "@/hooks/cache-owners/system-cache-effects";
-import { parseMachineEnvironmentImport } from "./machine-environment-import";
+import { machineEnvironmentQueryKey } from "@/hooks/queries/query-keys";
 
-export const machineEnvironmentQueryKey = ["machine-environment"];
 type DraftRow = Omit<MachineEnvironmentVariable, "value"> & {
   id: string;
   existing: boolean;
@@ -31,22 +30,17 @@ export function MachineEnvironmentSettings() {
   const settings = useSystemConfig().data?.generalSettings;
   const updateSettings = useUpdateGeneralSettings();
   const query = useQuery({
-    queryKey: machineEnvironmentQueryKey,
+    queryKey: machineEnvironmentQueryKey(),
     queryFn: () => sdk.system.machineEnvironment(),
   });
   const save = async (rows: readonly DraftRow[]) => {
-    for (const row of rows) {
-      if (row.value === null) continue;
-      await sdk.system.setMachineEnvironment({
+    await sdk.system.replaceMachineEnvironment({
+      variables: rows.map((row) => ({
         name: row.name,
         value: row.value,
         note: row.note,
-      });
-    }
-    for (const original of query.data?.variables ?? []) {
-      if (!rows.some((row) => row.name === original.name))
-        await sdk.system.unsetMachineEnvironment(original.name);
-    }
+      })),
+    });
   };
   return (
     <MachineEnvironmentSettingsContent
@@ -93,8 +87,6 @@ export function MachineEnvironmentSettingsContent({
   const [draft, setDraft] = useState<DraftRow[] | null>(null);
   const [visible, setVisible] = useState<Set<string>>(new Set());
   const [touched, setTouched] = useState<Set<string>>(new Set());
-  const [importOpen, setImportOpen] = useState(false);
-  const [importText, setImportText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const rows =
     draft ??
@@ -147,97 +139,28 @@ export function MachineEnvironmentSettingsContent({
       description="Configuration for machines provisioned by plugins."
       bodyClassName="space-y-3 rounded-none border-0 bg-transparent p-0"
       action={
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={disabled}
-            onClick={() =>
-              setDraft([
-                ...rows,
-                {
-                  id: crypto.randomUUID(),
-                  existing: false,
-                  name: "",
-                  value: "",
-                  secret: true,
-                  note: null,
-                },
-              ])
-            }
-          >
-            Add variable
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={disabled}
-            onClick={() => setImportOpen(!importOpen)}
-          >
-            Import .env
-          </Button>
-        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={disabled}
+          onClick={() =>
+            setDraft([
+              ...rows,
+              {
+                id: crypto.randomUUID(),
+                existing: false,
+                name: "",
+                value: "",
+                secret: true,
+                note: null,
+              },
+            ])
+          }
+        >
+          Add variable
+        </Button>
       }
     >
-      {importOpen && (
-        <div className="space-y-2 rounded-md border border-border p-3">
-          <label className="block space-y-2 text-xs">
-            <span>
-              Paste .env contents. Matching names replace existing values when
-              you save.
-            </span>
-            <textarea
-              className="min-h-32 w-full rounded-md border border-border bg-background p-2 font-mono text-sm"
-              aria-label="Environment file contents"
-              value={importText}
-              disabled={disabled}
-              onChange={(event) => setImportText(event.target.value)}
-            />
-          </label>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={disabled || !importText.trim()}
-            onClick={() => {
-              try {
-                const imported = parseMachineEnvironmentImport(importText);
-                const next = [...rows];
-                for (const entry of imported) {
-                  const index = next.findIndex(
-                    (row) => row.name === entry.name,
-                  );
-                  if (index >= 0)
-                    next[index] = {
-                      ...next[index]!,
-                      value: entry.value,
-                      secret: true,
-                    };
-                  else
-                    next.push({
-                      ...entry,
-                      id: crypto.randomUUID(),
-                      existing: false,
-                      secret: true,
-                      note: null,
-                    });
-                }
-                setDraft(next);
-                setImportText("");
-                setImportOpen(false);
-                setError(null);
-              } catch (cause) {
-                setError(
-                  cause instanceof Error
-                    ? cause.message
-                    : "Could not import variables.",
-                );
-              }
-            }}
-          >
-            Import variables
-          </Button>
-        </div>
-      )}
       <div className="space-y-5">
         {!hasOverride && (
           <div className="space-y-2">

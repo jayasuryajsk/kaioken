@@ -58,12 +58,23 @@ export function registerMachineEnvironmentCommands(
     .action(
       action(
         async (name: string, options: { note?: string; json?: boolean }) => {
-          const result = await createCliBbSdk(
-            getUrl(),
-          ).system.setMachineEnvironment({
-            name,
-            value: await readValue(),
-            note: options.note ?? null,
+          const system = createCliBbSdk(getUrl()).system;
+          const current = await system.machineEnvironment();
+          const result = await system.replaceMachineEnvironment({
+            variables: [
+              ...current.variables
+                .filter((variable) => variable.name !== name)
+                .map((variable) => ({
+                  name: variable.name,
+                  value: null,
+                  note: variable.note,
+                })),
+              {
+                name,
+                value: await readValue(),
+                note: options.note ?? null,
+              },
+            ],
           });
           printEnvironment(result, options);
         },
@@ -74,8 +85,18 @@ export function registerMachineEnvironmentCommands(
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(async (name: string, options: { json?: boolean }) => {
+        const system = createCliBbSdk(getUrl()).system;
+        const current = await system.machineEnvironment();
         printEnvironment(
-          await createCliBbSdk(getUrl()).system.unsetMachineEnvironment(name),
+          await system.replaceMachineEnvironment({
+            variables: current.variables
+              .filter((variable) => variable.name !== name)
+              .map((variable) => ({
+                name: variable.name,
+                value: null,
+                note: variable.note,
+              })),
+          }),
           options,
         );
       }),

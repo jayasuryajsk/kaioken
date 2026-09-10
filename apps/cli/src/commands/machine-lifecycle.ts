@@ -6,11 +6,10 @@ import {
   readdir,
   realpath,
   rm,
-  rmdir,
   writeFile,
 } from "node:fs/promises";
 import { homedir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import type { Command } from "commander";
 import { z } from "zod";
@@ -114,11 +113,7 @@ async function installation(options: LifecycleOptions, deps: LifecycleRuntime) {
   else {
     try {
       candidates = (await readdir(root, { withFileTypes: true }))
-        .filter(
-          (entry) =>
-            entry.name !== "host-daemon-ports" &&
-            (entry.isDirectory() || entry.isSymbolicLink()),
-        )
+        .filter((entry) => entry.isDirectory() || entry.isSymbolicLink())
         .map((entry) => join(root, entry.name));
     } catch (error) {
       if (error instanceof Error && "code" in error && error.code === "ENOENT")
@@ -140,7 +135,6 @@ async function installation(options: LifecycleOptions, deps: LifecycleRuntime) {
     const canonicalRoot = await realpath(root);
     if (
       dirname(dataDir) !== canonicalRoot ||
-      basename(dataDir) === "host-daemon-ports" ||
       (await lstat(candidate)).isSymbolicLink()
     ) {
       throw new Error(
@@ -306,15 +300,6 @@ export async function runMachineLifecycle(
     return true;
   }
   const livePid = await ownedPid();
-  const reservation = join(
-    deps.homeDir,
-    ".bb-machines",
-    "host-daemon-ports",
-    rawPort,
-  );
-  const reservationOwner = (
-    await optionalText(join(reservation, "data-dir"))
-  )?.trim();
   if (operation === "start") {
     if (active) return;
     if (service !== null) {
@@ -388,12 +373,6 @@ export async function runMachineLifecycle(
     await rm(servicePath);
     if (deps.platform === "linux")
       await deps.run("systemctl", [systemdScope, "daemon-reload"]);
-  }
-  if (reservationOwner === dataDir) {
-    if ((await realpath(reservation)) !== reservation)
-      throw new Error("Refusing a symlinked port reservation.");
-    await rm(join(reservation, "data-dir"));
-    await rmdir(reservation);
   }
   await rm(dataDir, { recursive: true });
 }

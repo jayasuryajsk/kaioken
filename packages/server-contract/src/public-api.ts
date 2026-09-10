@@ -1,8 +1,8 @@
+import { type MachineEnvironmentList } from "./api/machine-environment.js";
 import {
-  machineEnvironmentSetSchema,
-  type MachineEnvironmentSet,
-  type MachineEnvironmentList,
-} from "./api/machine-environment.js";
+  machineEnvironmentReplaceSchema,
+  type MachineEnvironmentReplace,
+} from "./api/system.js";
 import {
   experimental_hostLifecycleRequestSchema,
   type experimental_HostLifecycleRequest,
@@ -1595,18 +1595,12 @@ export const publicApiRoutes = {
       request: noRequest(),
       response: jsonResponse<MachineEnvironmentList>(),
     }),
-    setMachineEnvironment: defineRoute({
+    replaceMachineEnvironment: defineRoute({
       path: "/settings/machine-environment",
       method: "put",
-      request: jsonRequest<EmptyInput, MachineEnvironmentSet>(
-        machineEnvironmentSetSchema,
+      request: jsonRequest<EmptyInput, MachineEnvironmentReplace>(
+        machineEnvironmentReplaceSchema,
       ),
-      response: jsonResponse<MachineEnvironmentList>(),
-    }),
-    unsetMachineEnvironment: defineRoute({
-      path: "/settings/machine-environment/:name",
-      method: "delete",
-      request: noRequest<{ param: { name: string } }>(),
       response: jsonResponse<MachineEnvironmentList>(),
     }),
     attention: defineRoute({

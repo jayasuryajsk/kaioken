@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "f844e6dd-fe42-4bc6-96ae-1fc80148953c",
+  "id": "59f94074-8612-4cdc-ac4d-d26fd525af62",
   "prevId": "29773b03-78e7-4083-a89c-e38d38412675",
   "tables": {
     "app_settings": {
@@ -1987,13 +1987,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false
-        },
-        "transient_failures": {
-          "name": "transient_failures",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
           "autoincrement": false
         },
         "host_id": {

@@ -27,7 +27,6 @@ import {
 import type {
   NewThreadRequest,
   PluginEnvironmentProviderInputsChange,
-  PluginMachineProviderInputsChange,
 } from "@get-bb/plugin-sdk";
 import type {
   CreateExecutionInputSources,
@@ -42,7 +41,6 @@ import {
   parseEnvironmentValue,
 } from "@/components/pickers/environment-picker-value";
 import { providerInputsControlRequired } from "@/components/pickers/environment-provider-inputs";
-import { machineProviderInputsControlRequired } from "@/components/pickers/machine-provider-inputs";
 import { formatModelLoadErrorText } from "@/components/pickers/model-load-error-message";
 import {
   NewThreadPromptBox,
@@ -1011,113 +1009,13 @@ export function NewThreadComposer({
     environmentProviderInputsRegistration,
   ]);
 
-  const machineProviderInputsSlots = pluginSlots.machineProviderInputs;
-  const machineProviderInputsRegistration = useMemo(() => {
-    if (selectedMachineProvider === undefined) {
-      return undefined;
-    }
-    return machineProviderInputsSlots.find(
-      (slot) =>
-        slot.machineProviderId === selectedMachineProvider.id &&
-        slot.pluginId === selectedMachineProvider.pluginId,
-    );
-  }, [machineProviderInputsSlots, selectedMachineProvider]);
-  const machineProviderInputsScopeKey = `${projectId}\0${selectedMachineProvider?.id ?? ""}`;
-  const [machineProviderInputsOverride, setMachineProviderInputsOverride] =
-    useState<{ scopeKey: string; value: JsonValue } | null>(null);
-  const [machineProviderInputsBlocked, setMachineProviderInputsBlocked] =
-    useState<{ scopeKey: string; reason: string } | null>(null);
-  const handleMachineProviderInputsChange = useCallback(
-    (next: PluginMachineProviderInputsChange) => {
-      if (next.status === "blocked") {
-        setMachineProviderInputsBlocked({
-          scopeKey: machineProviderInputsScopeKey,
-          reason: next.reason,
-        });
-        return;
-      }
-      setMachineProviderInputsBlocked(null);
-      setMachineProviderInputsOverride({
-        scopeKey: machineProviderInputsScopeKey,
-        value: next.value,
-      });
-    },
-    [machineProviderInputsScopeKey],
-  );
-  const activeMachineInputsOverride =
-    machineProviderInputsOverride?.scopeKey === machineProviderInputsScopeKey
-      ? machineProviderInputsOverride
-      : null;
-  const activeMachineInputsBlocked =
-    machineProviderInputsBlocked?.scopeKey === machineProviderInputsScopeKey
-      ? machineProviderInputsBlocked
-      : null;
-  const machineProviderTakesInputs = selectedMachineProvider?.inputs !== null;
-  const machineInputsControlRequired =
-    selectedMachineProvider !== undefined &&
-    machineProviderInputsControlRequired(selectedMachineProvider);
-  const submissionMachineInputs = useMemo<JsonValue | null>(
-    () =>
-      selectedMachineProvider === undefined || !machineProviderTakesInputs
-        ? null
-        : (activeMachineInputsOverride?.value ??
-          (providerMachine?.type === "new" ? providerMachine.inputs : null) ??
-          (machineProviderInputsRegistration === undefined &&
-          !machineInputsControlRequired
-            ? {}
-            : null)),
-    [
-      activeMachineInputsOverride?.value,
-      machineInputsControlRequired,
-      machineProviderInputsRegistration,
-      machineProviderTakesInputs,
-      providerMachine,
-      selectedMachineProvider,
-    ],
-  );
-  const machineProviderInputsBlocker =
-    selectedMachineProvider === undefined || !machineProviderTakesInputs
-      ? null
-      : activeMachineInputsBlocked !== null
-        ? activeMachineInputsBlocked.reason
-        : machineProviderInputsRegistration === undefined &&
-            machineInputsControlRequired
-          ? `${selectedMachineProvider.displayName} needs its plugin's control`
-          : submissionMachineInputs === null
-            ? `Configure ${selectedMachineProvider.displayName}`
-            : null;
-  const machineProviderInputsSlot = (() => {
-    if (machineProviderInputsRegistration === undefined) return null;
-    const MachineProviderInputsComponent =
-      machineProviderInputsRegistration.component;
-    return (
-      <PluginSlotMount
-        pluginId={machineProviderInputsRegistration.pluginId}
-        slotKind="machineProviderInputs"
-        slotId={machineProviderInputsRegistration.machineProviderId}
-      >
-        <MachineProviderInputsComponent
-          value={submissionMachineInputs}
-          onChange={handleMachineProviderInputsChange}
-        />
-      </PluginSlotMount>
-    );
-  })();
-  const submissionProviderMachine = useMemo(
-    () =>
-      providerMachine?.type === "new"
-        ? { ...providerMachine, inputs: submissionMachineInputs }
-        : providerMachine,
-    [providerMachine, submissionMachineInputs],
-  );
-
   const selectedEnvironment = useMemo(
     () =>
       resolveRootComposeThreadEnvironment({
         environmentValue: effectiveEnvironmentValue,
         projectId,
         environmentProviders,
-        providerMachine: submissionProviderMachine,
+        providerMachine,
         providerInputs: submissionProviderInputs,
       }),
     [
@@ -1125,7 +1023,7 @@ export function NewThreadComposer({
       environmentProviders,
       projectId,
       submissionProviderInputs,
-      submissionProviderMachine,
+      providerMachine,
     ],
   );
 
@@ -1375,8 +1273,7 @@ export function NewThreadComposer({
     (selectionScope === "new-thread" ? seed?.environment : undefined) ??
     null;
   const submitDisabledReason = resolveNewThreadSubmitDisabledReason({
-    environmentProviderInputsBlocker:
-      machineProviderInputsBlocker ?? environmentProviderInputsBlocker,
+    environmentProviderInputsBlocker,
     environmentSetupRequiredReason:
       environmentSetupRequiredReason ?? machineServerAccessReason,
     isCopyingAttachments,
@@ -1622,7 +1519,6 @@ export function NewThreadComposer({
               supported: supportsPermissionModeSelection,
             },
             environmentProviderInputsSlot,
-            machineProviderInputsSlot,
             banner:
               options.banner ??
               (machineServerAccessReason !== null ? (
@@ -1776,7 +1672,6 @@ export function NewThreadComposer({
       setupRequiredProvider,
       navigate,
       environmentProviderInputsSlot,
-      machineProviderInputsSlot,
       environmentProvidersByHostId,
       inputsControlProviderIds,
       selectedMachineProvider,

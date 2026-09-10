@@ -1166,10 +1166,9 @@ npx bb-app --server-port 48886 --host-daemon-port 48887
 
 The Settings → Machines installer assigns every enrolled standalone host daemon
 a stable local API port so it can coexist with the desktop app and with daemons
-enrolled to other servers. Atomic reservations under
-`~/.bb-machines/host-daemon-ports/` cover both default and custom
-`BB_DATA_DIR` locations. Its generated command accepts `--host-daemon-port
-<port>` when an explicit port is required.
+enrolled to other servers. The selected port is persisted in the machine data
+directory and reused by subsequent runs. Its generated command accepts
+`--host-daemon-port <port>` when an explicit port is required.
 
 ## Source Development
 
@@ -1328,9 +1327,10 @@ stdin, removes one trailing newline, and never accepts a value in argv. For
 example, `printf '%s' staging | bb machine env set DEPLOY_REGION`. Pipe secrets
 from a secure source instead of putting them in shell history.
 
-SDK parity: `sdk.system.machineEnvironment()`,
-`sdk.system.setMachineEnvironment({ name, value, note })`, and
-`sdk.system.unsetMachineEnvironment(name)`. All list rows have `value: null` and `secret: true`.
+SDK parity: `sdk.system.machineEnvironment()` and
+`sdk.system.replaceMachineEnvironment({ variables })`. Replacement is atomic;
+pass every row to retain, using `value: null` for an unchanged saved secret. All
+list rows have `value: null` and `secret: true`.
 `bb machine env list` reports the built-in readiness as `builtInGit`.
 
 Automatic machine GitHub credentials are enabled by default. Use

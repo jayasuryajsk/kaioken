@@ -90,7 +90,6 @@ it("keeps short-secret matches out of structural fields and nested content keys"
       ...event.item,
       arguments: { type: "[redacted]" },
       result: { type: "[redacted]" },
-      error: undefined,
     },
   });
 });

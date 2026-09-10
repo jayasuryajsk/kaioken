@@ -39,14 +39,13 @@ export default function manualMachinePlugin(bb: BbPluginApi): void {
         await context.checkpoint(resource);
         context.signal.throwIfAborted();
         context.report.step("Run the enrollment command shown in the picker");
-        const { hostId } =
-          await bb.experimental_machines.enrollments.waitForConnection({
-            enrollmentId: enrollment.id,
-            timeoutMs: 15 * 60_000,
-            signal: context.signal,
-          });
+        await bb.experimental_machines.enrollments.waitForConnection({
+          enrollmentId: enrollment.id,
+          timeoutMs: 15 * 60_000,
+          signal: context.signal,
+        });
         context.report.step("Machine connected");
-        return { status: "created", hostId, resource };
+        return { status: "created", resource };
       } finally {
         pending.delete(context.key);
       }

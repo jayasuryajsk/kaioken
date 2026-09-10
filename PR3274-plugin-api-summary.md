@@ -112,13 +112,8 @@ type Availability =
 type Validation = { action: "accept" } | { action: "refuse"; message: string };
 
 type CreateResult =
-  | { status: "created"; hostId: string; resource: JsonValue }
-  | {
-      status: "failed";
-      failure: "transient" | "terminal";
-      message: string;
-      allocation?: "none";
-    };
+  | { status: "created"; resource: JsonValue }
+  | { status: "failed"; message: string };
 
 type RemoveResult =
   | { status: "removed" }
@@ -146,9 +141,9 @@ Call `bb.experimental_machines.getResource(hostId)`. It reads core's saved resou
 
 Read these contracts as follows:
 
-- `key` identifies a retryable allocation; `attempt` identifies the current attempt. Plugins must avoid allocating a second resource for the same key.
+- `key` identifies one durable allocation; providers retry vendor API hiccups inside `create` and must avoid allocating a second resource for the same key.
 - `checkpoint(resource)` saves opaque recovery metadata in core. It does not snapshot files. Prepare enrollment, checkpoint allocation metadata, then bootstrap.
-- `created` returns the enrolled host identity and final resource. A failure with `allocation: "none"` means definitively nothing was allocated; omitting it leaves allocation uncertain.
+- `created` returns the final resource after the provider enrolls core's reserved host identity. A failed result is terminal; uncertain allocations are reconciled by key and the last checkpointed resource.
 - `remove` handles a known resource. `reconcileCleanup` finds and removes an uncertain allocation by key; it must not create or bootstrap one.
 - `suspend` and `resume` are optional but registration requires them together.
 - The input schema is Standard Schema, with output inferred into callbacks; no schema means `inputs: null`.

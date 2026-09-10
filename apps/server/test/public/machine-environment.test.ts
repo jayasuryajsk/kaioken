@@ -36,15 +36,19 @@ describe("machine environment settings", () => {
               harness.app.fetch(new Request(input, init)),
           }),
         });
-        await sdk.system.setMachineEnvironment({
-          name: "DEPLOY_REGION",
-          value: "test-region",
-          note: "Gate",
-        });
-        const result = await sdk.system.setMachineEnvironment({
-          name: "GH_TOKEN",
-          value: "user-private-token",
-          note: null,
+        const result = await sdk.system.replaceMachineEnvironment({
+          variables: [
+            {
+              name: "DEPLOY_REGION",
+              value: "test-region",
+              note: "Gate",
+            },
+            {
+              name: "GH_TOKEN",
+              value: "user-private-token",
+              note: null,
+            },
+          ],
         });
         expect(result.builtInGit.status).toBe("overridden");
         expect(result.variables).toContainEqual({
@@ -124,7 +128,9 @@ describe("machine environment settings", () => {
         ).toContainEqual(
           expect.objectContaining({ name: "GIT_CONFIG_COUNT", value: "4" }),
         );
-        await sdk.system.unsetMachineEnvironment("GH_TOKEN");
+        await sdk.system.replaceMachineEnvironment({
+          variables: [{ name: "DEPLOY_REGION", value: null, note: "Gate" }],
+        });
         await expect(stat(path)).rejects.toMatchObject({ code: "ENOENT" });
         expect(
           await resolveHostEnvironment(harness.deps, {

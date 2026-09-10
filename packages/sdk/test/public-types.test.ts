@@ -345,8 +345,7 @@ type ExpectedStatusKey = "get";
 
 type ExpectedSystemKey =
   | "machineEnvironment"
-  | "setMachineEnvironment"
-  | "unsetMachineEnvironment"
+  | "replaceMachineEnvironment"
   | "attention"
   | "cliSkillsStatus"
   | "config"

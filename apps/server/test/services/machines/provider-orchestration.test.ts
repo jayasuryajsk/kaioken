@@ -15,8 +15,6 @@ import {
   getMachineLifecycle,
   machineLifecycleStatus,
 } from "../../../src/services/machines/lifecycle.js";
-import { createBbSdk } from "@bb/sdk/core";
-import { createHttpTransport } from "@bb/sdk";
 import { archiveThreadAndHiddenSourceForks } from "../../../src/services/threads/thread-archive.js";
 import { cancelAbandonedProviderLaunches } from "../../../src/services/threads/thread-environment-providers.js";
 import { serverAccess } from "../../../src/services/machines/server-access.js";
@@ -40,10 +38,7 @@ import {
 } from "@bb/db";
 import { hostSchema, type JsonValue } from "@bb/domain";
 import { createDeferredPromise } from "@bb/test-helpers";
-import {
-  defineRpcContract,
-  type PluginMachineProviderDeclaration,
-} from "@get-bb/plugin-sdk";
+import type { PluginMachineProviderDeclaration } from "@get-bb/plugin-sdk";
 import {
   validatePluginEnvironmentProviderDeclaration,
   validatePluginMachineProviderDeclaration,
@@ -79,16 +74,7 @@ import {
 } from "../../helpers/test-app.js";
 import { sendThreadMessage } from "../../../src/services/threads/thread-send.js";
 import { ensureHostSessionReadyForWork } from "../../../src/services/hosts/host-lifecycle.js";
-import { callPluginHostRpc } from "../../../src/services/plugins/plugin-host-rpc.js";
 import { registerHostRpcResponder } from "../../helpers/host-rpc.js";
-import { stubHostArtifact } from "../../helpers/provider-registry.js";
-
-const lifecycleHostContract = defineRpcContract({
-  probe: {
-    input: z.object({}).strict(),
-    output: z.object({ ok: z.literal(true) }).strict(),
-  },
-});
 
 function installMachineProvider(declaration: PluginMachineProviderDeclaration) {
   const record = {
@@ -115,7 +101,7 @@ function installMachineProvider(declaration: PluginMachineProviderDeclaration) {
 }
 
 function machineDeclaration(
-  hostId: string,
+  _hostId: string,
   overrides: Partial<PluginMachineProviderDeclaration> = {},
 ): PluginMachineProviderDeclaration {
   return {
@@ -127,7 +113,6 @@ function machineDeclaration(
     reconcileCleanup: async () => ({ status: "removed" }),
     create: async ({ key }) => ({
       status: "created",
-      hostId,
       resource: { key },
     }),
     remove: async () => ({ status: "removed" }),
@@ -190,13 +175,22 @@ function seedReadyLaunch(
     failedAt: null,
     failure: null,
     message: null,
-    transientFailures: 0,
     hostId: args.hostId,
     resource: { key: args.key },
     stepText: "Ready",
     pendingLog: "",
     cancelPending: false,
   });
+}
+
+function reserveLaunchHost(
+  harness: TestAppHarness,
+  key: string,
+  hostId: string,
+): void {
+  const row = getMachineLaunch(harness.db, key);
+  if (row === null) throw new Error("Missing launch");
+  updateMachineLaunchAttempt(harness.db, { ...row, hostId });
 }
 
 describe("core machine provider orchestration", () => {
@@ -208,9 +202,9 @@ describe("core machine provider orchestration", () => {
         machineDeclaration(host.id, {
           create: async ({ attempt, key }) => {
             calls.push({ attempt, key });
+            reserveLaunchHost(harness, key, host.id);
             return {
               status: "created",
-              hostId: host.id,
               resource: { key },
             };
           },
@@ -226,7 +220,6 @@ describe("core machine provider orchestration", () => {
         failedAt: null,
         failure: null,
         message: null,
-        transientFailures: 0,
         hostId: null,
         resource: null,
         stepText: "Creating Test machine…",
@@ -260,9 +253,9 @@ describe("core machine provider orchestration", () => {
           inputs: z.object({ target: z.string().trim().min(1) }).strict(),
           create: async ({ inputs, key }) => {
             seen.push(z.object({ target: z.string() }).strict().parse(inputs));
+            reserveLaunchHost(harness, key, host.id);
             return {
               status: "created",
-              hostId: host.id,
               resource: { key },
             };
           },
@@ -365,7 +358,6 @@ describe("core machine provider orchestration", () => {
           });
           return {
             status: "failed" as const,
-            failure: "terminal" as const,
             message: "unreachable",
           };
         },
@@ -410,122 +402,6 @@ describe("core machine provider orchestration", () => {
       revoke.mockRestore();
     }));
 
-  it.each(["normal", "cancelled", "recovery"])(
-    "rejects a reserved-host mismatch during %s creation and cleans only the checkpoint",
-    async (scenario) =>
-      withTestHarness(async (harness) => {
-        const { host: reserved } = seedHostSession(harness.deps, {
-          id: "host_reserved",
-        });
-        const { host: foreign } = seedHostSession(harness.deps, {
-          id: "host_foreign",
-        });
-        const foreignBefore = getHost(harness.db, foreign.id);
-        const key = `host-mismatch-${scenario}`;
-        const resource = { allocation: "reserved-allocation" };
-        const checkpointed = createDeferredPromise<void>();
-        const complete = createDeferredPromise<void>();
-        const create = vi.fn(
-          async (
-            context: Parameters<PluginMachineProviderDeclaration["create"]>[0],
-          ) => {
-            const row = getMachineLaunch(harness.db, context.key);
-            if (row === null) throw new Error("Missing launch");
-            updateMachineLaunchAttempt(harness.db, {
-              ...row,
-              hostId: reserved.id,
-            });
-            await context.checkpoint(resource);
-            checkpointed.resolve();
-            if (scenario === "cancelled") await complete.promise;
-            return {
-              status: "created" as const,
-              hostId: foreign.id,
-              resource: { allocation: "foreign-allocation" },
-            };
-          },
-        );
-        const remove = vi.fn(async () => {
-          expect(getMachineLaunch(harness.db, key)).toMatchObject({
-            hostId: reserved.id,
-            resource,
-          });
-          return { status: "removed" as const };
-        });
-        const record = installMachineProvider(
-          machineDeclaration(foreign.id, { create, remove }),
-        );
-        const release = vi.spyOn(serverAccess, "release");
-        const revokeEnroll = vi.spyOn(
-          harness.deps.machineAuth,
-          "revokeHostEnrollKeys",
-        );
-        const revokeAuth = vi.spyOn(
-          harness.deps.machineAuth,
-          "revokeHostAuthKeys",
-        );
-        try {
-          if (scenario === "recovery") {
-            seedReadyLaunch(harness, { key, hostId: reserved.id });
-            const row = getMachineLaunch(harness.db, key);
-            if (row === null) throw new Error("Missing launch");
-            updateMachineLaunchAttempt(harness.db, {
-              ...row,
-              phase: "cancelled",
-              cancelPending: true,
-              resource,
-            });
-            await cancelMachineLaunch(harness.deps, key);
-          } else {
-            askMachineLaunch(harness.deps, {
-              key,
-              record,
-              inputs: null,
-            });
-            await checkpointed.promise;
-            if (scenario === "normal") {
-              await vi.waitFor(() => {
-                expect(getMachineLaunch(harness.db, key)).toMatchObject({
-                  phase: "failed",
-                  failure: "terminal",
-                  hostId: reserved.id,
-                  message: expect.stringContaining("instead of reserved host"),
-                });
-              });
-            }
-            const cancellation = cancelMachineLaunch(harness.deps, key);
-            complete.resolve();
-            await cancellation;
-          }
-          expect(create).toHaveBeenCalledTimes(scenario === "recovery" ? 0 : 1);
-          expect(remove).toHaveBeenCalledExactlyOnceWith(
-            expect.objectContaining({ hostId: reserved.id, resource }),
-          );
-          expect(release).toHaveBeenCalledExactlyOnceWith(harness.deps, {
-            key,
-            hostId: reserved.id,
-          });
-          expect(revokeEnroll).toHaveBeenCalledExactlyOnceWith({
-            hostId: reserved.id,
-          });
-          expect(revokeAuth).toHaveBeenCalledExactlyOnceWith({
-            hostId: reserved.id,
-          });
-          expect(getMachineLaunch(harness.db, key)).toMatchObject({
-            hostId: reserved.id,
-            cancelPending: false,
-            cleanupResourceRemoved: true,
-          });
-          expect(getHost(harness.db, reserved.id)?.phase).toBe("destroyed");
-          expect(getHost(harness.db, foreign.id)).toEqual(foreignBefore);
-        } finally {
-          release.mockRestore();
-          revokeEnroll.mockRestore();
-          revokeAuth.mockRestore();
-        }
-      }),
-  );
-
   it("finalizes host cleanup when creation succeeds after cancellation", async () =>
     withTestHarness(async (harness) => {
       const { host } = seedHostSession(harness.deps, {
@@ -534,14 +410,14 @@ describe("core machine provider orchestration", () => {
       const remove = vi.fn(async () => ({ status: "removed" as const }));
       const record = installMachineProvider(
         machineDeclaration(host.id, {
-          create: ({ signal }) =>
+          create: ({ key, signal }) =>
             new Promise((resolve) => {
+              reserveLaunchHost(harness, key, host.id);
               signal.addEventListener(
                 "abort",
                 () =>
                   resolve({
                     status: "created",
-                    hostId: host.id,
                     resource: { allocation: "late" },
                   }),
                 { once: true },
@@ -564,64 +440,47 @@ describe("core machine provider orchestration", () => {
       });
     }));
 
-  it.each(["terminal", "exhausted", "retry"])(
-    "retains checkpoints through %s failure handling",
-    async (scenario) =>
-      withTestHarness(async (harness) => {
-        const { host } = seedHostSession(harness.deps, {
-          id: `host_failure_${scenario}`,
-        });
-        const resource = { allocation: `allocated-${scenario}` };
-        const create = vi.fn(async () => ({
-          status: "failed" as const,
-          failure: "terminal" as const,
-          message: "access unavailable",
-        }));
-        const remove = vi.fn(async () => ({ status: "removed" as const }));
-        const record = installMachineProvider(
-          machineDeclaration(host.id, { create, remove }),
-        );
-        const key = `failure-${scenario}`;
-        upsertMachineLaunch(harness.db, {
-          key,
-          providerId: record.provider.id,
-          inputs: null,
-          attempt: 1,
-          phase: "failed",
-          startedAt: Date.now() - 60000,
-          failedAt: Date.now() - 60000,
-          failure: scenario === "terminal" ? "terminal" : "transient",
-          message: "bootstrap failed",
-          transientFailures: scenario === "exhausted" ? 4 : 1,
-          hostId: host.id,
-          resource,
-          stepText: "Bootstrap failed",
-          pendingLog: "",
-          cancelPending: false,
-        });
-        if (scenario === "retry") {
-          askMachineLaunch(harness.deps, {
-            key,
-            record,
-            inputs: null,
-          });
-          expect(getMachineLaunch(harness.db, key)).toMatchObject({
-            hostId: host.id,
-            resource,
-            attempt: 2,
-          });
-          await cancelMachineLaunch(harness.deps, key);
-          expect(create).toHaveBeenCalledOnce();
-        } else {
-          await sweepMachineLifecycles(harness.deps);
-          expect(create).not.toHaveBeenCalled();
-        }
-        expect(remove).toHaveBeenCalledWith(
-          expect.objectContaining({ hostId: host.id, resource }),
-        );
-        expect(getHost(harness.db, host.id)?.phase).toBe("destroyed");
-      }),
-  );
+  it("retains checkpoints while cleaning up a terminal create failure", async () =>
+    withTestHarness(async (harness) => {
+      const { host } = seedHostSession(harness.deps, {
+        id: "host_terminal_failure",
+      });
+      const resource = { allocation: "allocated-terminal" };
+      const create = vi.fn(async () => ({
+        status: "failed" as const,
+        message: "access unavailable",
+      }));
+      const remove = vi.fn(async () => ({ status: "removed" as const }));
+      const record = installMachineProvider(
+        machineDeclaration(host.id, { create, remove }),
+      );
+      const key = "failure-terminal";
+      upsertMachineLaunch(harness.db, {
+        key,
+        providerId: record.provider.id,
+        inputs: null,
+        attempt: 1,
+        phase: "failed",
+        startedAt: Date.now() - 60_000,
+        failedAt: Date.now() - 60_000,
+        failure: "terminal",
+        message: "bootstrap failed",
+        hostId: host.id,
+        resource,
+        stepText: "Bootstrap failed",
+        pendingLog: "",
+        cancelPending: false,
+      });
+      expect(
+        askMachineLaunch(harness.deps, { key, record, inputs: null }),
+      ).toMatchObject({ action: "reject", message: "bootstrap failed" });
+      await sweepMachineLifecycles(harness.deps);
+      expect(create).not.toHaveBeenCalled();
+      expect(remove).toHaveBeenCalledWith(
+        expect.objectContaining({ hostId: host.id, resource }),
+      );
+      expect(getHost(harness.db, host.id)?.phase).toBe("destroyed");
+    }));
 
   it("keeps cancellation pending after a transient recovery failure and retries after the retry deadline", async () =>
     withTestHarness(async (harness) => {
@@ -662,7 +521,6 @@ describe("core machine provider orchestration", () => {
         failedAt: null,
         failure: null,
         message: null,
-        transientFailures: 0,
         hostId: null,
         resource: null,
         stepText: "Cancelling Test machine…",
@@ -707,7 +565,6 @@ describe("core machine provider orchestration", () => {
             calls.push(attempt);
             return {
               status: "created",
-              hostId: replacementHost.id,
               resource: { key },
             };
           },
@@ -723,7 +580,6 @@ describe("core machine provider orchestration", () => {
         failedAt: null,
         failure: null,
         message: null,
-        transientFailures: 0,
         hostId: destroyedHost.id,
         resource: { key: "ready-destroyed-key" },
         stepText: "Ready",
@@ -759,93 +615,6 @@ describe("core machine provider orchestration", () => {
       );
     }));
 
-  it("walks destroyed generations and keeps a replacement key stable across transient retries", async () =>
-    withTestHarness(async (harness) => {
-      const first = seedHostSession(harness.deps, {
-        id: "generation-first",
-      }).host;
-      const second = seedHostSession(harness.deps, {
-        id: "generation-second",
-      }).host;
-      const third = seedHostSession(harness.deps, {
-        id: "generation-third",
-      }).host;
-      const base = "thread-generations";
-      seedReadyLaunch(harness, { key: base, hostId: first.id });
-      updateHost(harness.db, harness.hub, first.id, {
-        destroyedAt: Date.now(),
-        phase: "destroyed",
-      });
-      const replacementKey = `${base}:replacement:${first.id}`;
-      expect(resolveThreadMachineLaunchKey(harness.deps, base)).toBe(
-        replacementKey,
-      );
-      const create = vi.fn(
-        async ({ key, attempt }: { key: string; attempt: number }) =>
-          attempt === 1
-            ? {
-                status: "failed" as const,
-                failure: "transient" as const,
-                message: "try again",
-              }
-            : {
-                status: "created" as const,
-                hostId: second.id,
-                resource: { key },
-              },
-      );
-      const record = installMachineProvider(
-        machineDeclaration(second.id, { create }),
-      );
-      const request = {
-        record,
-        key: replacementKey,
-        inputs: null,
-      };
-      expect(askMachineLaunch(harness.deps, request).action).toBe("wait");
-      await vi.waitFor(() =>
-        expect(getMachineLaunch(harness.db, replacementKey)?.phase).toBe(
-          "failed",
-        ),
-      );
-      expect(resolveThreadMachineLaunchKey(harness.deps, base)).toBe(
-        replacementKey,
-      );
-      updateMachineLaunchAttempt(harness.db, {
-        key: replacementKey,
-        attempt: 1,
-        failedAt: Date.now() - 30_001,
-      });
-      expect(askMachineLaunch(harness.deps, request).action).toBe("wait");
-      await vi.waitFor(() =>
-        expect(getMachineLaunch(harness.db, replacementKey)?.phase).toBe(
-          "ready",
-        ),
-      );
-      expect(
-        create.mock.calls.map(([request]) => [request.key, request.attempt]),
-      ).toEqual([
-        [replacementKey, 1],
-        [replacementKey, 2],
-      ]);
-      expect(getMachineLaunch(harness.db, base)).toMatchObject({
-        attempt: 1,
-        phase: "ready",
-        hostId: first.id,
-      });
-      expect(resolveThreadMachineLaunchKey(harness.deps, base)).toBe(
-        replacementKey,
-      );
-      updateHost(harness.db, harness.hub, second.id, {
-        destroyedAt: Date.now(),
-        phase: "destroyed",
-      });
-      const nextKey = `${base}:replacement:${second.id}`;
-      expect(resolveThreadMachineLaunchKey(harness.deps, base)).toBe(nextKey);
-      seedReadyLaunch(harness, { key: nextKey, hostId: third.id });
-      expect(resolveThreadMachineLaunchKey(harness.deps, base)).toBe(nextKey);
-    }));
-
   it("keeps late cleanup from an old attempt on its old host and resource", async () =>
     withTestHarness(async (harness) => {
       const oldHost = seedHostSession(harness.deps, {
@@ -856,21 +625,20 @@ describe("core machine provider orchestration", () => {
       }).host;
       const oldResult = createDeferredPromise<{
         status: "created";
-        hostId: string;
         resource: { key: string };
       }>();
       const remove = vi.fn(async () => ({ status: "removed" as const }));
       const base = "thread-late-generation";
       const record = installMachineProvider(
         machineDeclaration(newHost.id, {
-          create: ({ key }) =>
-            key === base
-              ? oldResult.promise
-              : Promise.resolve({
-                  status: "created",
-                  hostId: newHost.id,
-                  resource: { key },
-                }),
+          create: ({ key }) => {
+            if (key === base) return oldResult.promise;
+            reserveLaunchHost(harness, key, newHost.id);
+            return Promise.resolve({
+              status: "created",
+              resource: { key },
+            });
+          },
           remove,
         }),
       );
@@ -895,7 +663,6 @@ describe("core machine provider orchestration", () => {
       );
       oldResult.resolve({
         status: "created",
-        hostId: oldHost.id,
         resource: { key: base },
       });
       await vi.waitFor(() => expect(remove).toHaveBeenCalledOnce());
@@ -947,15 +714,14 @@ describe("core machine provider orchestration", () => {
           ({ signal, key }: { signal: AbortSignal; key: string }) =>
             new Promise<{
               status: "created";
-              hostId: string;
               resource: { key: string };
             }>((resolve) => {
+              reserveLaunchHost(harness, key, newHost.id);
               signal.addEventListener(
                 "abort",
                 () =>
                   resolve({
                     status: "created",
-                    hostId: newHost.id,
                     resource: { key },
                   }),
                 { once: true },
@@ -1102,22 +868,12 @@ describe("core machine provider orchestration", () => {
       });
     }));
 
-  it("allows a suspend callback to call its own host RPC", async () =>
+  it("disconnects the daemon before invoking suspend", async () =>
     withTestHarness(async (harness) => {
       vi.useFakeTimers({ toFake: ["Date"] });
       vi.setSystemTime(10_000);
-      const { host, session } = seedHostSession(harness.deps, {
+      const { host } = seedHostSession(harness.deps, {
         id: "host_suspend_rpc",
-      });
-      const responder = registerHostRpcResponder(harness, {
-        hostId: host.id,
-        sessionId: session.id,
-        handle: (request) => {
-          if (request.command.type !== "plugin.host.call") {
-            throw new Error(`Unexpected RPC ${request.command.type}`);
-          }
-          return { ok: true, result: { output: { ok: true } } };
-        },
       });
       const { project, environment } = seedMachineWorkspace(
         harness,
@@ -1136,16 +892,8 @@ describe("core machine provider orchestration", () => {
         .run();
       installMachineProvider(
         machineDeclaration(host.id, {
-          suspend: async ({ hostId, resource, signal }) => {
-            await callPluginHostRpc(harness.deps, {
-              pluginId: "test-machine-plugin",
-              contract: lifecycleHostContract,
-              method: "probe",
-              input: {},
-              hostId,
-              signal,
-              artifact: stubHostArtifact("test-machine-plugin"),
-            });
+          suspend: async ({ resource }) => {
+            expect(harness.hub.hasDaemonForHost(host.id)).toBe(false);
             return { resource };
           },
           resume: async ({ resource }) => ({ resource }),
@@ -1153,16 +901,8 @@ describe("core machine provider orchestration", () => {
       );
       adoptMachine(harness, host.id);
 
-      const sweep = requestMachineSuspension(harness.deps, host.id);
-      const outcome = await Promise.race([
-        sweep.then(() => "completed" as const),
-        new Promise<"blocked">((resolve) =>
-          setImmediate(() => resolve("blocked")),
-        ),
-      ]);
-
-      expect(outcome).toBe("completed");
-      expect(responder.requests).toHaveLength(1);
+      await requestMachineSuspension(harness.deps, host.id);
+      expect(harness.hub.hasDaemonForHost(host.id)).toBe(false);
     }));
 
   it("persists a suspension checkpoint even when the provider crashes afterward", async () =>
@@ -1455,7 +1195,7 @@ describe("core machine provider orchestration", () => {
       const { host, session } = seedHostSession(harness.deps, {
         id: "host_suspend_race",
       });
-      registerTestHostRpcCapture(harness.deps, {
+      const socket = registerTestHostRpcCapture(harness.deps, {
         hostId: host.id,
         sessionId: session.id,
       });
@@ -1486,6 +1226,7 @@ describe("core machine provider orchestration", () => {
           },
           resume: async () => {
             resumes += 1;
+            harness.hub.registerDaemon(session.id, host.id, socket);
             return { resource: { sandbox: "resumed" } };
           },
         }),
@@ -2257,7 +1998,6 @@ it("cancel before allocation reconciles without starting a fresh allocation", as
           allocations++;
           return {
             status: "created",
-            hostId: host.id,
             resource: { allocated: true },
           };
         },
@@ -2333,12 +2073,12 @@ it("returns a durable launch before allocation and client disconnect does not ca
     let providerSignal: AbortSignal | undefined;
     installMachineProvider(
       machineDeclaration(host.id, {
-        create: async ({ signal }) => {
+        create: async ({ key, signal }) => {
           providerSignal = signal;
+          reserveLaunchHost(harness, key, host.id);
           await release.promise;
           return {
             status: "created",
-            hostId: host.id,
             resource: { allocated: true },
           };
         },
@@ -2623,77 +2363,6 @@ it.each(["owner", "operation", "phase"])(
     }),
 );
 
-it.each(["SDK follow", "server create"])(
-  "%s survives a server-owned transient retry",
-  async (client) =>
-    withTestHarness(async (h) => {
-      const { host } = seedHostSession(h.deps, { id: "review-follow" });
-      let creates = 0;
-      installMachineProvider(
-        machineDeclaration(host.id, {
-          create: async () => {
-            if (++creates === 1)
-              return {
-                status: "failed",
-                failure: "transient",
-                message: "temporary vendor failure",
-              };
-            return {
-              status: "created",
-              hostId: host.id,
-              resource: { id: "allocated" },
-            };
-          },
-        }),
-      );
-      const sdk = createBbSdk({
-        transport: createHttpTransport({
-          runtime: "node",
-          baseUrl: "http://bb.test",
-          fetch: async (input, init) => h.app.request(input, init),
-        }),
-      });
-      const launch = await sdk.hosts.experimental_submit({
-        key: "review-follow",
-        machineProviderId: "test-machine",
-        inputs: null,
-      });
-      await expect
-        .poll(() => getMachineLaunch(h.db, launch.id)?.phase)
-        .toBe("failed");
-      expect(
-        await sdk.hosts.experimental_launch({ id: launch.id }),
-      ).toMatchObject({
-        phase: "failed",
-        terminal: false,
-      });
-      const following = (
-        client === "SDK follow"
-          ? sdk.hosts.experimental_follow({ id: launch.id })
-          : createMachine(h.deps, {
-              key: launch.id,
-              machineProviderId: "test-machine",
-              inputs: null,
-            })
-      ).then(
-        (value) => ({ ok: true, value }),
-        (error) => ({ ok: false, error: String(error) }),
-      );
-      await new Promise((resolve) => setTimeout(resolve, 25));
-      updateMachineLaunchAttempt(h.db, {
-        key: launch.id,
-        attempt: 1,
-        failedAt: Date.now() - 31000,
-      });
-      await sweepMachineLifecycles(h.deps);
-      await expect
-        .poll(() => getMachineLaunch(h.db, launch.id)?.phase)
-        .toBe("ready");
-      const result = await following;
-      expect(result.ok).toBe(true);
-    }),
-);
-
 it("known allocated resource keeps retrying removal after the launch window", async () =>
   withTestHarness(async (h) => {
     vi.useFakeTimers({ toFake: ["Date"] });
@@ -2954,6 +2623,7 @@ it.each([false, true])(
       const responder = registerHostRpcResponder(h, {
         hostId: host.id,
         sessionId: session.id,
+        restoreCommandCaptureAfterResponse: true,
         handle: (request) => {
           expect(request.command.type).toBe("thread.stop");
           return stopFails
@@ -3203,25 +2873,31 @@ it.each([false, true])(
         });
       const entered = createDeferredPromise<void>();
       const release = createDeferredPromise<void>();
-      registerHostRpcResponder(h, {
+      const socket = registerTestHostRpcCapture(h.deps, {
         hostId: host.id,
         sessionId: session.id,
-        handle: async (request) => {
-          if (request.command.type !== "thread.stop")
-            throw new Error(`Unexpected ${request.command.type}`);
-          entered.resolve();
-          await release.promise;
-          return { ok: true, result: { providerCheckpointId: null } };
-        },
       });
+      if (!saving)
+        registerHostRpcResponder(h, {
+          hostId: host.id,
+          sessionId: session.id,
+          handle: async (request) => {
+            if (request.command.type !== "thread.stop")
+              throw new Error(`Unexpected ${request.command.type}`);
+            entered.resolve();
+            await release.promise;
+            return { ok: true, result: { providerCheckpointId: null } };
+          },
+        });
       const suspend = vi.fn(async ({ resource }: { resource: JsonValue }) => {
         entered.resolve();
         await release.promise;
         return { resource };
       });
-      const resume = vi.fn(async ({ resource }: { resource: JsonValue }) => ({
-        resource,
-      }));
+      const resume = vi.fn(async ({ resource }: { resource: JsonValue }) => {
+        h.hub.registerDaemon(session.id, host.id, socket);
+        return { resource };
+      });
       installMachineProvider(machineDeclaration(host.id, { suspend, resume }));
       adoptMachine(h, host.id);
       const pause = requestMachineSuspension(h.deps, host.id).then(

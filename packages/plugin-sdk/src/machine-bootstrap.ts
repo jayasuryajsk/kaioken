@@ -60,5 +60,5 @@ export interface MachineBootstrapRequest extends MachineEnrollmentRequest {
 
 export interface MachineBootstrapApi {
   enrollments: MachineEnrollments;
-  bootstrap(request: MachineBootstrapRequest): Promise<{ hostId: string }>;
+  bootstrap(request: MachineBootstrapRequest): Promise<void>;
 }

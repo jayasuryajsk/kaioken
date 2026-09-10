@@ -1,4 +1,9 @@
-import { ensurePersonalProject, setProjectGitRemoteUrlIfMissing } from "@bb/db";
+import {
+  ensurePersonalProject,
+  getMachineLaunch,
+  setProjectGitRemoteUrlIfMissing,
+  updateMachineLaunchAttempt,
+} from "@bb/db";
 import { PERSONAL_PROJECT_ID } from "@bb/domain";
 import { afterEach, describe, expect, it } from "vitest";
 import { z } from "zod";
@@ -73,11 +78,15 @@ describe("machine provider listing", () => {
             id: "test-machine",
             displayName: "Test machine",
             inputs: z.object({ size: z.string() }),
-            create: async () => ({
-              status: "created",
-              hostId: host.id,
-              resource: {},
-            }),
+            create: async ({ key }) => {
+              const launch = getMachineLaunch(harness.db, key);
+              if (launch === null) throw new Error("Missing machine launch");
+              updateMachineLaunchAttempt(harness.db, {
+                ...launch,
+                hostId: host.id,
+              });
+              return { status: "created", resource: {} };
+            },
             remove: async () => ({ status: "removed" }),
           }),
         };
@@ -173,7 +182,6 @@ it("rechecks availability after provider setup changes without restarting the pl
             : { status: "setup-required", message: "Connect your account" },
         create: async () => ({
           status: "created",
-          hostId: "test-host",
           resource: {},
         }),
         reconcileCleanup: async () => ({ status: "removed" }),

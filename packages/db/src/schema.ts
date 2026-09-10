@@ -1173,7 +1173,6 @@ export const machineLaunches = sqliteTable(
     failedAt: integer("failed_at"),
     failure: text("failure").$type<"terminal" | "transient">(),
     message: text("message"),
-    transientFailures: integer("transient_failures").notNull(),
     hostId: text("host_id"),
     resource: text("resource", { mode: "json" }).$type<JsonValue>(),
     stepText: text("step_text").notNull(),

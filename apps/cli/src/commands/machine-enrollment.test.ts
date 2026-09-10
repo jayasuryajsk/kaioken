@@ -72,7 +72,11 @@ describe("machine enroll", () => {
       authorization: "Bearer private-bootstrap",
     });
     expect((await stat(join(h.dir, "auth.json"))).mode & 0o777).toBe(0o600);
-    await writeFile(join(h.dir, "enrollment.lock"), "stale-lock");
+    const port = Number(
+      (await readFile(join(h.dir, "host-daemon-port"), "utf8")).trim(),
+    );
+    expect(port).toBeGreaterThan(0);
+    expect(port).toBeLessThanOrEqual(65535);
     h.env.BB_ENROLLMENT = JSON.stringify({ ...bundle(), expiresAt: 1 });
     expect(await h.run()).toEqual({ hostId: "host_test" });
     expect(h.fetchFn).toHaveBeenCalledOnce();
@@ -91,16 +95,6 @@ describe("machine enroll", () => {
     );
   });
 
-  it("recovers a dead process lock and refuses a live owner", async () => {
-    const h = await harness();
-    await writeFile(join(h.dir, "enrollment.lock"), String(process.pid));
-    await expect(h.run()).rejects.toThrow("holds the local identity lock");
-    expect(h.fetchFn).not.toHaveBeenCalled();
-    await writeFile(join(h.dir, "enrollment.lock"), "2147483647");
-    h.env.BB_ENROLLMENT = JSON.stringify(bundle());
-    await expect(h.run()).resolves.toEqual({ hostId: "host_test" });
-  });
-
   it("rejects invalid and expired bundles without exposing their input", async () => {
     const h = await harness();
     h.env.BB_ENROLLMENT = '{"credential":"do-not-echo"';
@@ -116,7 +110,7 @@ describe("machine enroll", () => {
     expect(h.fetchFn).not.toHaveBeenCalled();
   });
 
-  it("suppresses secret-bearing remote errors and releases the identity lock", async () => {
+  it("suppresses secret-bearing remote errors and permits a retry", async () => {
     const h = await harness();
     h.fetchFn.mockRejectedValueOnce(new Error("private-bootstrap"));
     await expect(h.run()).rejects.toThrow(

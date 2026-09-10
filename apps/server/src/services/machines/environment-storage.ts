@@ -1,12 +1,17 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { eq, like } from "drizzle-orm";
+import { like } from "drizzle-orm";
 import { z } from "zod";
-import { appSettingsValues, type DbConnection } from "@bb/db";
+import {
+  appSettingsValues,
+  type DbConnection,
+  type DbQueryConnection,
+} from "@bb/db";
 import { readOrCreateSecretFile } from "@bb/secret-storage";
 import {
   machineEnvironmentNameSchema,
+  type MachineEnvironmentReplace,
   type MachineEnvironmentSet,
 } from "@bb/server-contract";
 
@@ -108,7 +113,7 @@ export async function decryptMachineEnvironment(
   }
 }
 
-function save(db: DbConnection, row: EncryptedVariable) {
+function save(db: DbQueryConnection, row: EncryptedVariable) {
   const value = JSON.stringify(row);
   const updatedAt = Date.now();
   db.insert(appSettingsValues)
@@ -129,6 +134,41 @@ export function readMachineEnvironment(db: DbConnection): EncryptedVariable[] {
   });
 }
 
+async function replaceRows(
+  db: DbConnection,
+  dataDir: string,
+  variables: MachineEnvironmentReplace["variables"],
+): Promise<void> {
+  const current = readMachineEnvironment(db);
+  const currentByName = new Map(current.map((row) => [row.name, row]));
+  const needsEncryption = variables.some((variable) => variable.value !== null);
+  const key = needsEncryption
+    ? await encryptionKey(dataDir, current.length === 0)
+    : null;
+  const replacements = variables.flatMap((variable) => {
+    if (variable.value !== null) {
+      if (key === null) throw new Error("Missing machine environment key");
+      return [encrypt(key, { ...variable, value: variable.value })];
+    }
+    const existing = currentByName.get(variable.name);
+    return existing === undefined ? [] : [{ ...existing, note: variable.note }];
+  });
+  db.transaction((tx) => {
+    tx.delete(appSettingsValues)
+      .where(like(appSettingsValues.key, `${prefix}%`))
+      .run();
+    for (const row of replacements) save(tx, row);
+  });
+}
+
+export function replaceMachineEnvironment(
+  db: DbConnection,
+  dataDir: string,
+  input: MachineEnvironmentReplace,
+): Promise<void> {
+  return serialized(db, () => replaceRows(db, dataDir, input.variables));
+}
+
 export function updateMachineEnvironment(
   db: DbConnection,
   dataDir: string,
@@ -137,16 +177,11 @@ export function updateMachineEnvironment(
 ): Promise<void> {
   name = machineEnvironmentNameSchema.parse(name);
   return serialized(db, async () => {
-    if (input === null) {
-      db.delete(appSettingsValues)
-        .where(eq(appSettingsValues.key, prefix + name))
-        .run();
-    } else {
-      const key = await encryptionKey(
-        dataDir,
-        readMachineEnvironment(db).length === 0,
-      );
-      save(db, encrypt(key, { ...input, name }));
-    }
+    const variables: MachineEnvironmentReplace["variables"] =
+      readMachineEnvironment(db)
+        .filter((row) => row.name !== name)
+        .map((row) => ({ name: row.name, value: null, note: row.note }));
+    if (input !== null) variables.push({ ...input, name });
+    await replaceRows(db, dataDir, variables);
   });
 }

@@ -41,7 +41,7 @@ describe("machine bootstrap", () => {
       stdout: bootstrap.credential,
       stderr: bootstrap.credential,
     });
-    await h.api.bootstrap({
+    const result = await h.api.bootstrap({
       key: "key",
       executor: { exec: h.exec },
       report: h.report,
@@ -54,6 +54,7 @@ describe("machine bootstrap", () => {
     );
     expect(h.report.log).not.toHaveBeenCalled();
     expect(h.enrollments.waitForConnection).toHaveBeenCalledOnce();
+    expect(result).toBeUndefined();
     expect(request[0].command.join(" ")).not.toContain(bootstrap.credential);
   });
 

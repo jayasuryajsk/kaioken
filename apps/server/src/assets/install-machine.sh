@@ -252,8 +252,6 @@ machine_npm_prefix="$canonical_data_dir/npm"
 # npm 10 ignores the unknown flag; npm 11 accepts it.
 bb_app_native_modules="better-sqlite3,node-pty,@parcel/watcher"
 bb_app_allow_scripts="--allow-scripts=$bb_app_native_modules"
-port_registry_dir="$HOME/.bb-machines/host-daemon-ports"
-mkdir -p "$port_registry_dir"
 
 valid_port() {
   node -e '
@@ -322,60 +320,12 @@ report_wait_progress() {
   fi
 }
 
-reservation_owner() {
-  sed -n '1p' "$port_registry_dir/$1/data-dir" 2>/dev/null || true
-}
-
-claim_port_for_data_dir() {
-  claim_port=$1
-  claim_data_dir=$2
-  claim_dir="$port_registry_dir/$claim_port"
-  if mkdir "$claim_dir" 2>/dev/null; then
-    claim_owner_temp="$claim_dir/data-dir.$$.tmp"
-    (umask 077 && printf '%s\n' "$claim_data_dir" >"$claim_owner_temp")
-    mv "$claim_owner_temp" "$claim_dir/data-dir"
-    return 0
-  fi
-  [ "$(reservation_owner "$claim_port")" = "$claim_data_dir" ]
-}
-
-release_port_for_data_dir() {
-  release_port=$1
-  release_data_dir=$2
-  release_dir="$port_registry_dir/$release_port"
-  if [ "$(reservation_owner "$release_port")" = "$release_data_dir" ]; then
-    rm -f "$release_dir/data-dir"
-    rmdir "$release_dir" 2>/dev/null || true
-  fi
-}
-
-# Migrate reservations from installs created before the global registry. Each
-# per-port mkdir is the allocation lock: concurrent installers cannot claim the
-# same port even after its availability probe closes.
-register_existing_default_ports() {
-  for existing_data_dir in "$HOME/.bb-machines"/*; do
-    [ -d "$existing_data_dir" ] || continue
-    existing_port_file="$existing_data_dir/host-daemon-port"
-    [ -f "$existing_port_file" ] || continue
-    existing_port=$(sed -n '1p' "$existing_port_file")
-    valid_port "$existing_port" || continue
-    existing_canonical_data_dir=$(node -e '
-      const fs = require("node:fs");
-      process.stdout.write(fs.realpathSync(process.argv[1]));
-    ' "$existing_data_dir")
-    claim_port_for_data_dir "$existing_port" "$existing_canonical_data_dir" || true
-  done
-}
-
-find_and_claim_available_host_daemon_port() {
+find_available_host_daemon_port() {
   candidate_port=38888
   while [ "$candidate_port" -le 65535 ]; do
-    if claim_port_for_data_dir "$candidate_port" "$canonical_data_dir"; then
-      if port_is_available "$candidate_port"; then
-        printf '%s\n' "$candidate_port"
-        return 0
-      fi
-      release_port_for_data_dir "$candidate_port" "$canonical_data_dir"
+    if port_is_available "$candidate_port"; then
+      printf '%s\n' "$candidate_port"
+      return 0
     fi
     candidate_port=$((candidate_port + 1))
   done
@@ -383,26 +333,15 @@ find_and_claim_available_host_daemon_port() {
   return 1
 }
 
-register_existing_default_ports
 host_daemon_port_file="$data_dir/host-daemon-port"
-previous_host_daemon_port=
-if [ -f "$host_daemon_port_file" ]; then
-  previous_host_daemon_port=$(sed -n '1p' "$host_daemon_port_file")
-fi
 host_daemon_port=
 if [ -n "$requested_host_daemon_port" ]; then
   if ! valid_port "$requested_host_daemon_port"; then
     fail_step "--host-daemon-port must be an integer between 1 and 65535."
     exit 2
   fi
-  if ! claim_port_for_data_dir "$requested_host_daemon_port" "$canonical_data_dir"; then
-    fail_step "Host daemon local API port $requested_host_daemon_port is reserved by another bb enrollment."
-    detail "Choose another value for --host-daemon-port and rerun this command." >&2
-    exit 1
-  fi
   if ! port_is_available "$requested_host_daemon_port" && \
      ! daemon_status_matches "$requested_host_daemon_port" no; then
-    release_port_for_data_dir "$requested_host_daemon_port" "$canonical_data_dir"
     fail_step "Host daemon local API port $requested_host_daemon_port is already in use."
     detail "Choose another value for --host-daemon-port and rerun this command." >&2
     exit 1
@@ -411,26 +350,19 @@ if [ -n "$requested_host_daemon_port" ]; then
 elif [ -f "$host_daemon_port_file" ]; then
   stored_host_daemon_port=$(sed -n '1p' "$host_daemon_port_file")
   if valid_port "$stored_host_daemon_port" && \
-     claim_port_for_data_dir "$stored_host_daemon_port" "$canonical_data_dir" && \
      { port_is_available "$stored_host_daemon_port" || daemon_status_matches "$stored_host_daemon_port" no; }; then
     host_daemon_port=$stored_host_daemon_port
   else
-    if valid_port "$stored_host_daemon_port"; then
-      release_port_for_data_dir "$stored_host_daemon_port" "$canonical_data_dir"
-    fi
     warning_step "Stored host-daemon port $stored_host_daemon_port is unavailable; assigning a new port."
   fi
 fi
 
 if [ -z "$host_daemon_port" ]; then
-  host_daemon_port=$(find_and_claim_available_host_daemon_port)
+  host_daemon_port=$(find_available_host_daemon_port)
 fi
 host_daemon_port_temp="$host_daemon_port_file.$$.tmp"
 (umask 077 && printf '%s\n' "$host_daemon_port" >"$host_daemon_port_temp")
 mv "$host_daemon_port_temp" "$host_daemon_port_file"
-if valid_port "$previous_host_daemon_port" && [ "$previous_host_daemon_port" != "$host_daemon_port" ]; then
-  release_port_for_data_dir "$previous_host_daemon_port" "$canonical_data_dir"
-fi
 complete_step "Using local host-daemon port $host_daemon_port"
 
 # The server's own build is always installed when it offers one: version

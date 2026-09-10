@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   chmodSync,
@@ -69,31 +69,6 @@ function runScript(
     encoding: "utf8",
     env: createScriptEnv(fixture, env),
   });
-}
-
-async function runScriptAsync(
-  args: string[],
-  fixture: Fixture,
-  env: Record<string, string | undefined> = {},
-): Promise<{ status: number | null; stderr: string; stdout: string }> {
-  const child = spawn("sh", [SCRIPT_PATH.pathname, ...args], {
-    env: createScriptEnv(fixture, env),
-  });
-  child.stderr.setEncoding("utf8");
-  child.stdout.setEncoding("utf8");
-  let stderr = "";
-  let stdout = "";
-  child.stderr.on("data", (chunk: string) => {
-    stderr += chunk;
-  });
-  child.stdout.on("data", (chunk: string) => {
-    stdout += chunk;
-  });
-  const status = await new Promise<number | null>((resolve, reject) => {
-    child.once("error", reject);
-    child.once("close", resolve);
-  });
-  return { status, stderr, stdout };
 }
 
 const JOIN_ARGS = [
@@ -829,59 +804,6 @@ fs.writeFileSync(path.join(process.env.BB_DATA_DIR, "config.json"), JSON.stringi
         });
       }
     }
-  });
-
-  it("atomically reserves different ports for concurrent custom data directories", async () => {
-    const fixture = createFixture();
-    const firstDataDir = join(fixture.homeDir, "custom-machine-one");
-    const secondDataDir = join(fixture.homeDir, "custom-machine-two");
-    mkdirSync(firstDataDir, { recursive: true });
-    mkdirSync(secondDataDir, { recursive: true });
-    const firstFixture = { ...fixture, dataDir: firstDataDir };
-    const secondFixture = { ...fixture, dataDir: secondDataDir };
-    writeJoinedState(firstFixture);
-    writeJoinedState(secondFixture);
-    writeCurlArtifactMock(fixture, 404);
-    writeExecutable(
-      join(fixture.binDir, "bb-app"),
-      createEnrollingBbAppScript({ hostId: "host-test" }),
-    );
-
-    const [firstResult, secondResult] = await Promise.all([
-      runScriptAsync(JOIN_ARGS, firstFixture, { BB_INSTALL_SKIP_SERVICE: "1" }),
-      runScriptAsync(JOIN_ARGS, secondFixture, {
-        BB_INSTALL_SKIP_SERVICE: "1",
-      }),
-    ]);
-
-    expect(firstResult.status, firstResult.stderr).toBe(0);
-    expect(secondResult.status, secondResult.stderr).toBe(0);
-    const firstPort = readFileSync(
-      join(firstDataDir, "host-daemon-port"),
-      "utf8",
-    ).trim();
-    const secondPort = readFileSync(
-      join(secondDataDir, "host-daemon-port"),
-      "utf8",
-    ).trim();
-    expect(firstPort).not.toBe(secondPort);
-    const registryDir = join(fixture.homeDir, ".bb-machines/host-daemon-ports");
-    expect(
-      new Set([
-        readFileSync(join(registryDir, firstPort, "data-dir"), "utf8").trim(),
-        readFileSync(join(registryDir, secondPort, "data-dir"), "utf8").trim(),
-      ]),
-    ).toEqual(
-      new Set([realpathSync(firstDataDir), realpathSync(secondDataDir)]),
-    );
-    process.kill(
-      Number(readFileSync(join(firstDataDir, "install-daemon.pid"), "utf8")),
-      "SIGTERM",
-    );
-    process.kill(
-      Number(readFileSync(join(secondDataDir, "install-daemon.pid"), "utf8")),
-      "SIGTERM",
-    );
   });
 
   it("redeems and persists a connect machine code before joining through the tunnel", () => {

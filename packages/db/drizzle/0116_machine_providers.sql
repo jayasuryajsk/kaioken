@@ -33,7 +33,6 @@ CREATE TABLE `machine_launches` (
 	`failed_at` integer,
 	`failure` text,
 	`message` text,
-	`transient_failures` integer NOT NULL,
 	`host_id` text,
 	`resource` text,
 	`step_text` text NOT NULL,

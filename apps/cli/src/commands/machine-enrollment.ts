@@ -9,7 +9,6 @@ import {
   writeFile,
   symlink,
   access,
-  lstat,
 } from "node:fs/promises";
 import { homedir, hostname } from "node:os";
 import { join, resolve } from "node:path";
@@ -71,97 +70,22 @@ async function atomicWrite(path: string, value: string): Promise<void> {
   }
 }
 
-async function reservePort(dataDir: string, home: string): Promise<void> {
+async function reservePort(dataDir: string): Promise<void> {
   const path = join(dataDir, "host-daemon-port");
   if ((await readOptional(path)) !== null) return;
-  const registry = join(home, ".bb-machines", "host-daemon-ports");
-  await mkdir(registry, { recursive: true });
-  for (let port = 38888; port <= 65535; port += 1) {
-    const reservation = join(registry, String(port));
-    try {
-      await mkdir(reservation);
-    } catch {
-      continue;
-    }
-    const server = createServer();
-    let claimed = false;
-    try {
-      await new Promise<void>((resolve, reject) => {
-        server.once("error", reject);
-        server.listen(port, "127.0.0.1", resolve);
-      });
-      await atomicWrite(join(reservation, "data-dir"), `${dataDir}\n`);
-      await atomicWrite(path, `${port}\n`);
-      claimed = true;
-      return;
-    } catch (error) {
-      if (
-        !(
-          error instanceof Error &&
-          "code" in error &&
-          error.code === "EADDRINUSE"
-        )
-      )
-        throw error;
-    } finally {
-      if (server.listening)
-        await new Promise<void>((resolve) => server.close(() => resolve()));
-      if (!claimed) await rm(reservation, { recursive: true, force: true });
-    }
-  }
-  throw new Error("No machine daemon port is available");
-}
-
-async function acquireEnrollmentLock(
-  path: string,
-): Promise<() => Promise<void>> {
-  async function create(): Promise<() => Promise<void>> {
-    await writeFile(path, `${process.pid}`, { flag: "wx", mode: 0o600 });
-    const owned = await lstat(path);
-    return async () => {
-      const current = await lstat(path).catch(() => null);
-      if (current?.ino === owned.ino && current.dev === owned.dev)
-        await rm(path);
-    };
-  }
+  const server = createServer();
   try {
-    return await create();
-  } catch (error) {
-    if (!(error instanceof Error && "code" in error && error.code === "EEXIST"))
-      throw new Error("Could not acquire machine identity lock");
-  }
-  const previous = await lstat(path);
-  if (
-    !previous.isFile() ||
-    (process.getuid && previous.uid !== process.getuid())
-  )
-    throw new Error("Refusing to replace an unowned machine identity lock");
-  const owner = await readFile(path, "utf8");
-  if (!/^[1-9][0-9]*$/u.test(owner) || !Number.isSafeInteger(Number(owner)))
-    throw new Error("Machine identity lock owner is invalid");
-  try {
-    process.kill(Number(owner), 0);
-    throw new Error("Another machine enrollment holds the local identity lock");
-  } catch (error) {
-    if (!(error instanceof Error && "code" in error && error.code === "ESRCH"))
-      throw new Error(
-        "Another machine enrollment holds the local identity lock",
-      );
-  }
-  const current = await lstat(path);
-  if (
-    current.ino !== previous.ino ||
-    current.dev !== previous.dev ||
-    current.mtimeMs !== previous.mtimeMs
-  )
-    throw new Error("Machine identity lock changed; retry enrollment");
-  await rm(path);
-  try {
-    return await create();
-  } catch {
-    throw new Error(
-      "Another machine enrollment acquired the local identity lock",
-    );
+    await new Promise<void>((resolve, reject) => {
+      server.once("error", reject);
+      server.listen(0, "127.0.0.1", resolve);
+    });
+    const address = server.address();
+    if (address === null || typeof address === "string")
+      throw new Error("Could not choose a machine daemon port");
+    await atomicWrite(path, `${address.port}\n`);
+  } finally {
+    if (server.listening)
+      await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 }
 
@@ -240,92 +164,86 @@ export async function enrollMachine(
     return { hostId: auth.hostId };
   }
   await mkdir(dataDir, { recursive: true, mode: 0o700 });
-  const lockPath = join(dataDir, "enrollment.lock");
-  const releaseLock = await acquireEnrollmentLock(lockPath);
+  let config: z.infer<typeof configSchema>;
+  let auth: z.infer<typeof authSchema> | null;
   try {
-    let config: z.infer<typeof configSchema>;
-    let auth: z.infer<typeof authSchema> | null;
+    config = configSchema.parse(
+      JSON.parse((await readOptional(join(dataDir, "config.json"))) ?? "{}"),
+    );
+    const rawAuth = await readOptional(join(dataDir, "auth.json"));
+    auth = rawAuth === null ? null : authSchema.parse(JSON.parse(rawAuth));
+  } catch {
+    throw new Error("Invalid persisted machine identity");
+  }
+  const persistedId = (await readOptional(join(dataDir, "host-id")))?.trim();
+  if (
+    (auth && auth.hostId !== bootstrap.hostId) ||
+    (persistedId && persistedId !== bootstrap.hostId) ||
+    (config.serverUrl && normalizeUrl(config.serverUrl) !== serverUrl)
+  )
+    throw new Error("Refusing to overwrite a different machine identity");
+  async function prepareRuntime(): Promise<void> {
+    await reservePort(dataDir);
+    const launcher = join(dataDir, "npm", "bin", "bb-app");
     try {
-      config = configSchema.parse(
-        JSON.parse((await readOptional(join(dataDir, "config.json"))) ?? "{}"),
-      );
-      const rawAuth = await readOptional(join(dataDir, "auth.json"));
-      auth = rawAuth === null ? null : authSchema.parse(JSON.parse(rawAuth));
+      await access(launcher);
     } catch {
-      throw new Error("Invalid persisted machine identity");
-    }
-    const persistedId = (await readOptional(join(dataDir, "host-id")))?.trim();
-    if (
-      (auth && auth.hostId !== bootstrap.hostId) ||
-      (persistedId && persistedId !== bootstrap.hostId) ||
-      (config.serverUrl && normalizeUrl(config.serverUrl) !== serverUrl)
-    )
-      throw new Error("Refusing to overwrite a different machine identity");
-    async function prepareRuntime(): Promise<void> {
-      await reservePort(dataDir, home);
-      const launcher = join(dataDir, "npm", "bin", "bb-app");
-      try {
-        await access(launcher);
-      } catch {
-        const result = await promisify(execFile)(
-          "sh",
-          ["-c", "command -v bb-app"],
-          { env },
-        ).catch(() => null);
-        if (result?.stdout.trim()) {
-          await mkdir(join(dataDir, "npm", "bin"), { recursive: true });
-          await symlink(result.stdout.trim(), launcher);
-        }
+      const result = await promisify(execFile)(
+        "sh",
+        ["-c", "command -v bb-app"],
+        { env },
+      ).catch(() => null);
+      if (result?.stdout.trim()) {
+        await mkdir(join(dataDir, "npm", "bin"), { recursive: true });
+        await symlink(result.stdout.trim(), launcher);
       }
     }
-    if (auth) {
-      if (!config.serverUrl)
-        throw new Error("Persisted machine server identity is missing");
-      await prepareRuntime();
-      return { hostId: auth.hostId };
-    }
-    if (bootstrap.expiresAt <= Date.now())
-      throw new Error("Machine enrollment bootstrap has expired");
-    const fetchFn = runtime.fetchFn ?? fetch;
-    const signal = AbortSignal.timeout(60_000);
-    config = { ...config, serverUrl, serverHeaders: bootstrap.headers };
-    await atomicWrite(
-      join(dataDir, "config.json"),
-      `${JSON.stringify(config)}\n`,
-    );
-    await atomicWrite(join(dataDir, "host-id"), `${bootstrap.hostId}\n`);
-    await prepareRuntime();
-    let enrolled: z.infer<typeof authSchema>;
-    try {
-      const response = await fetchFn(
-        new URL("/internal/hosts/enroll", serverUrl),
-        {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            authorization: `Bearer ${bootstrap.credential}`,
-            ...config.serverHeaders,
-          },
-          body: JSON.stringify({
-            hostId: bootstrap.hostId,
-            hostName: hostname(),
-          }),
-          signal,
-        },
-      );
-      if (response.status !== 201) throw new Error();
-      enrolled = authSchema.parse(await response.json());
-    } catch {
-      throw new Error("Could not exchange machine enrollment credential");
-    }
-    if (enrolled.hostId !== bootstrap.hostId)
-      throw new Error("Enrollment returned a different machine identity");
-    await atomicWrite(
-      join(dataDir, "auth.json"),
-      `${JSON.stringify(enrolled)}\n`,
-    );
-    return { hostId: enrolled.hostId };
-  } finally {
-    await releaseLock();
   }
+  if (auth) {
+    if (!config.serverUrl)
+      throw new Error("Persisted machine server identity is missing");
+    await prepareRuntime();
+    return { hostId: auth.hostId };
+  }
+  if (bootstrap.expiresAt <= Date.now())
+    throw new Error("Machine enrollment bootstrap has expired");
+  const fetchFn = runtime.fetchFn ?? fetch;
+  const signal = AbortSignal.timeout(60_000);
+  config = { ...config, serverUrl, serverHeaders: bootstrap.headers };
+  await atomicWrite(
+    join(dataDir, "config.json"),
+    `${JSON.stringify(config)}\n`,
+  );
+  await atomicWrite(join(dataDir, "host-id"), `${bootstrap.hostId}\n`);
+  await prepareRuntime();
+  let enrolled: z.infer<typeof authSchema>;
+  try {
+    const response = await fetchFn(
+      new URL("/internal/hosts/enroll", serverUrl),
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${bootstrap.credential}`,
+          ...config.serverHeaders,
+        },
+        body: JSON.stringify({
+          hostId: bootstrap.hostId,
+          hostName: hostname(),
+        }),
+        signal,
+      },
+    );
+    if (response.status !== 201) throw new Error();
+    enrolled = authSchema.parse(await response.json());
+  } catch {
+    throw new Error("Could not exchange machine enrollment credential");
+  }
+  if (enrolled.hostId !== bootstrap.hostId)
+    throw new Error("Enrollment returned a different machine identity");
+  await atomicWrite(
+    join(dataDir, "auth.json"),
+    `${JSON.stringify(enrolled)}\n`,
+  );
+  return { hostId: enrolled.hostId };
 }

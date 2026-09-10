@@ -2116,7 +2116,6 @@ describe("environment targets", () => {
       reconcileCleanup: async () => ({ status: "removed" }),
       create: async () => ({
         status: "created",
-        hostId: "host-test-machine",
         resource: { target: "staging" },
       }),
       remove: async () => ({ status: "removed" }),
@@ -2142,7 +2141,6 @@ describe("environment targets", () => {
         ...metadata,
         create: async () => ({
           status: "created",
-          hostId: "host-test",
           resource: null,
         }),
         reconcileCleanup: async () => ({ status: "removed" }),
@@ -2154,7 +2152,6 @@ describe("environment targets", () => {
   it("requires machine suspend and resume as a pair", () => {
     const create = async () => ({
       status: "created" as const,
-      hostId: "host-machine",
       resource: null,
     });
     const remove = async () => ({ status: "removed" as const });

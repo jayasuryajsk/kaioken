@@ -16,6 +16,7 @@ import {
   getHost,
   getMachineLaunch,
   upsertMachineLaunch,
+  updateMachineLaunchAttempt,
   updateHost,
   getDefaultProjectSource,
   getProjectSourceByHost,
@@ -1793,7 +1794,6 @@ describe("machine and environment provider composition", () => {
         );
       const create = vi.fn(async () => ({
         status: "created" as const,
-        hostId: host.id,
         resource: {},
       }));
       const machine = {
@@ -1920,11 +1920,15 @@ describe("machine and environment provider composition", () => {
           displayName: "Test machine",
 
           reconcileCleanup: async () => ({ status: "removed" }),
-          create: async ({ key }) => ({
-            status: "created",
-            hostId: host.id,
-            resource: { key },
-          }),
+          create: async ({ key }) => {
+            const launch = getMachineLaunch(harness.db, key);
+            if (launch === null) throw new Error("Missing machine launch");
+            updateMachineLaunchAttempt(harness.db, {
+              ...launch,
+              hostId: host.id,
+            });
+            return { status: "created", resource: { key } };
+          },
           remove: async () => ({ status: "removed" }),
         } satisfies PluginMachineProviderDeclaration);
         const machineRecord = {
@@ -2463,9 +2467,14 @@ describe("a provider-produced environment over its life", () => {
               }),
               create: async ({ key }) => {
                 machineKeys.push(key);
+                const launch = getMachineLaunch(harness.db, key);
+                if (launch === null) throw new Error("Missing machine launch");
+                updateMachineLaunchAttempt(harness.db, {
+                  ...launch,
+                  hostId: replacementHost.id,
+                });
                 return {
                   status: "created",
-                  hostId: replacementHost.id,
                   resource: { key },
                 };
               },
@@ -2529,7 +2538,6 @@ describe("a provider-produced environment over its life", () => {
             failedAt: null,
             failure: null,
             message: null,
-            transientFailures: 0,
             hostId: host.id,
             resource: { key: thread.id },
             stepText: "Ready",

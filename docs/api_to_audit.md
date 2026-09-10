@@ -571,8 +571,9 @@ suspend/resume callbacks. Core validates descriptions/icons and parses inputs
 at registration/creation boundaries. Inputs and resource JSON must not contain
 credentials. Resource records are bounded to 16 KiB.
 
-Core owns enrollment, durable launches, retries and coordinated lifecycle
+Core owns enrollment, durable launches, cleanup retries and coordinated lifecycle
 transitions. Plugins own allocation, filesystem preservation and idle policy.
+Create failures are terminal; providers retry vendor API hiccups inside create.
 Create prepares enrollment and awaits checkpoint before bootstrap. Suspend and
 resume also await checkpoint before destructive cleanup/bootstrap. All three
 checkpoint signatures return Promise<void>; a rejected checkpoint stops the
@@ -594,10 +595,11 @@ removal retry timing is internal, not a public retirement policy.
 ## `@get-bb/plugin-sdk/machine-provider`
 
 Exports provider definitions, input schemas, availability/validation results,
-create/lifecycle/suspend/resume contexts, progress and resource/removal results.
+create and lifecycle contexts, progress and resource/removal results.
 Create receives inputs/key/attempt/checkpoint/report/signal and no project.
-ReconcileCleanup only discovers/removes uncertain allocations. Suspend and resume
-must be registered together. Description and icon are required.
+ReconcileCleanup receives the last checkpointed resource and only
+discovers/removes uncertain allocations. Suspend and resume share the lifecycle
+context and must be registered together. Description and icon are required.
 
 Supporting declarations belong to the experimental machine namespace.
 Stabilization follows the registration audit above.
@@ -2667,7 +2669,7 @@ prove reachability from a remote machine.
 
 `bb.experimental_machines.enrollments` exposes `prepare` and `waitForConnection`; these compose with `bootstrap`. Enrollment keys are scoped to the calling plugin and permanently retain their host identity. Pending credentials are single-use, short-lived, and encrypted at rest with a private server key; preparation after expiry reissues them, while an unexpired bundle survives a server restart. Bootstrap bundles carry optional access headers. A successful exchange is recovered as `enrolled` after a server crash.
 
-`MachineExecutor` carries argv, stdin, a timeout, and an abort signal. `bootstrap` passes the bundle through private stdin, ignores remote output, and reports fixed progress messages. It installs pending enrollments and starts enrolled machines again so snapshot restores can reuse their identity. Installation requires Node, npm, and curl and installs no OS packages.
+`MachineExecutor` carries argv, stdin, a timeout, and an abort signal. `bootstrap` passes the bundle through private stdin, ignores remote output, and reports fixed progress messages. It installs pending enrollments and starts enrolled machines again so snapshot restores can reuse their identity. It returns no host ID; the prepared enrollment owns the reserved identity. Installation requires Node, npm, and curl and installs no OS packages.
 
 Stabilization requires independent Modal and SSH consumers, failure verification for expired credentials, concurrent retries, interrupted exchange, cancellation, identity mismatch, and restored snapshots, plus an audit that credentials never enter resource data or logs. Migration and live vendor verification remain part of the integration release gate.
 
@@ -2687,9 +2689,9 @@ uninstall when installation never began, and retry after partial installation.
 Required reconciliation-only cancellation callback on `PluginMachineProviderDefinition`.
 It remains experimental through `bb.experimental_machines`; the unprefixed callback
 name does not indicate stabilization.
-Core supplies the durable launch key, progress reporter and a cleanup signal.
-Providers discover and remove uncertain allocations using a persisted submission intent
-and vendor tags, names or metadata; the callback must never allocate or bootstrap.
+Core supplies the durable launch key, last checkpointed resource or null,
+progress reporter and a cleanup signal. Providers discover and remove uncertain
+allocations using vendor tags, names or metadata; the callback must never allocate or bootstrap.
 Return removed only after cleanup is settled (including no submitted allocation), or
 failed while the allocation is unresolved. Core persists the core cleanup retry deadline
 across sweeps and restarts, including subsequent access release failures.
@@ -2697,12 +2699,13 @@ Stabilization requires crash/abort coverage before submission, after submission 
 before checkpoint, eventual vendor discovery, and access-release retry coverage for
 each shipped provider.
 
-### Machine resume allocation checkpoint
+### Machine lifecycle allocation checkpoint
 
-`PluginMachineProviderResumeContext.checkpoint(resource): Promise<void>` on the
-experimental machine-provider contract persists a bounded allocation recovery
-record before bootstrap. It is not a filesystem save, and daemon-connected is
-not agent-ready: checkout setup and provider authentication remain core work.
+`PluginMachineProviderLifecycleContext.checkpoint(resource): Promise<void>` on
+the experimental machine-provider contract persists a bounded recovery record.
+Create extends this context; suspend and resume add the current host and resource.
+It is not a filesystem save, and daemon-connected is not agent-ready: checkout
+setup and provider authentication remain core work.
 Core fences provider ownership, lifecycle phase and a persisted operation ID;
 stale resume, suspend and removal completions cannot replace newer state. Restart
 uses the checkpoint with the same enrollment key. Stabilization requires real-DB
