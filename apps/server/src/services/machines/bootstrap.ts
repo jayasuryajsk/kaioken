@@ -3,6 +3,7 @@ import type {
   MachineBootstrapApi,
   MachineEnrollments,
 } from "@get-bb/plugin-sdk";
+import { readFile } from "node:fs/promises";
 
 const installerScript = `
 set -eu
@@ -29,6 +30,18 @@ function installerCommand(bootstrap: EnrollmentBootstrap) {
   };
 }
 
+const installerSource = readFile(
+  new URL("../../assets/install-machine.sh", import.meta.url),
+  "utf8",
+);
+
+async function installerStartCommand(hostId: string) {
+  return {
+    command: ["sh", "-s", "--", "--start", "--host-id", hostId],
+    stdin: await installerSource,
+  };
+}
+
 export function createMachineBootstrapApi(
   enrollments: MachineEnrollments,
 ): MachineBootstrapApi {
@@ -47,18 +60,9 @@ export function createMachineBootstrapApi(
           ? "Starting enrolled machine"
           : "Bootstrapping machine",
       );
-      const execution =
-        enrollment.state === "enrolled"
-          ? {
-              command: [
-                "sh",
-                "-c",
-                'bb_bin="$HOME/.local/bin/bb"; if [ ! -x "$bb_bin" ]; then bb_bin=$(command -v bb); fi; exec "$bb_bin" machine start --host-id "$1"',
-                "bb-machine-start",
-                enrollment.hostId,
-              ],
-            }
-          : installerCommand(enrollment.bootstrap);
+      const execution = await (enrollment.state === "enrolled"
+        ? installerStartCommand(enrollment.hostId)
+        : installerCommand(enrollment.bootstrap));
       try {
         const result = await request.executor.exec({
           ...execution,

@@ -47,7 +47,7 @@ function useMachineAccess(): MachineAccessState {
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const disabled = !settings || update.isPending;
-  const savedProviderId = access?.defaultProviderId ?? "connect";
+  const savedProviderId = access?.defaultProviderId ?? "direct";
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(
     null,
   );
@@ -190,29 +190,11 @@ function MachineAccessMethodPicker({
       disabled={disabled}
       showChevronWhenDisabled
       align="end"
-      options={[
-        ...(!access?.providers.some((provider) => provider.id === "connect")
-          ? [
-              {
-                value: "connect",
-                label: "bb connect",
-                description: "Use a private getbb.app address.",
-              },
-            ]
-          : []),
-        ...(access?.providers ?? []).map((provider) => ({
-          value: provider.id,
-          label: provider.displayName,
-          description:
-            provider.id === "connect"
-              ? "Use a private getbb.app address."
-              : provider.id === "direct"
-                ? "Use your own domain or network address."
-                : provider.availability.status !== "available"
-                  ? provider.availability.message
-                  : "Use this provider for new machine connections.",
-        })),
-      ]}
+      options={(access?.providers ?? []).map((provider) => ({
+        value: provider.id,
+        label: provider.displayName,
+        description: provider.description,
+      }))}
       onChange={machineAccess.selectProvider}
     />
   );
@@ -230,7 +212,7 @@ function MachineAccessDetails({
   const connected = effective?.availability.status === "available";
   return (
     <>
-      {selected === "connect" && (
+      {selected !== "direct" && effective !== undefined && (
         <div className="@container">
           <div className="flex flex-col gap-4 @lg:flex-row @lg:items-center @lg:justify-between @lg:gap-3">
             <div className="min-w-0 space-y-1 @lg:flex-1">
@@ -263,33 +245,34 @@ function MachineAccessDetails({
                 ) : effective?.availability.status === "unavailable" ? (
                   effective.availability.message
                 ) : (
-                  "bb connect gives this server a private address your machines can reach."
+                  effective.availability.message
                 )}
               </p>
             </div>
-            <Button
-              variant={connected ? "outline" : "default"}
-              size="sm"
-              className="w-full @lg:w-auto"
-              asChild
-            >
-              <Link
-                onClick={onNavigate}
-                to={getPluginConfigurationRoutePath({ pluginId: "connect" })}
+            {effective.pluginId !== null && (
+              <Button
+                variant={connected ? "outline" : "default"}
+                size="sm"
+                className="w-full @lg:w-auto"
+                asChild
               >
-                {connected ? "Manage" : "Set up bb connect"}
-                <Icon name="ArrowRight" />
-              </Link>
-            </Button>
+                <Link
+                  onClick={onNavigate}
+                  to={getPluginConfigurationRoutePath({
+                    pluginId: effective.pluginId,
+                  })}
+                >
+                  {connected ? "Manage" : `Set up ${effective.displayName}`}
+                  <Icon name="ArrowRight" />
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       )}
-      {selected !== "connect" && selected !== "direct" && (
+      {selected !== "direct" && effective === undefined && (
         <p className="text-xs text-subtle-foreground">
-          {effective?.availability.status === "available"
-            ? "Ready to connect new machines."
-            : (effective?.availability.message ??
-              "This connection method is not installed.")}
+          This connection method is not installed.
         </p>
       )}
       {selected === "direct" && (

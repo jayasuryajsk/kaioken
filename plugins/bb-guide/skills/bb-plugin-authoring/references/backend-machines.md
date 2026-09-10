@@ -111,17 +111,17 @@ interval.
 
 ## Server access
 
-`bb.experimental_serverAccess.register` declares id, displayName,
-availability, acquire({ key, hostId, signal }) returning a ServerAccessGrant,
-and release({ key, hostId, grantId }). Acquire is idempotent by key. Return `{ id, serverUrl, headers?: Record<string, string> }`; the grant serves runtime requests as well
+`bb.experimental_serverAccess.register` declares id, displayName, description,
+availability, acquire({ key, hostId, signal }) returning a ServerAccessGrant or
+`{ status: "failed", message }`, and release({ key, hostId, grantId }). Acquire
+is idempotent by key. Return `{ id, serverUrl, headers?: Record<string, string> }`; the grant serves runtime requests as well
 as enrolment. Acquire must redeem provider-specific codes server-side and persist
 the revocation identity before returning, so release works before enrolment.
 Direct grants omit headers. Bootstrap carries the headers. Host metadata stores
 the provider id and grant id; pending
 bootstrap credentials are encrypted separately by core.
-An Error named `experimental_ServerAccessRecoveryError` exposes its deliberate
-user-safe recovery message through the plugin boundary; ordinary errors stay
-redacted. Release receives a null grantId when acquire was interrupted. Core persists the
+The failed result's message is deliberate user-safe recovery copy; ordinary
+thrown errors stay redacted. Release receives a null grantId when acquire was interrupted. Core persists the
 provider before acquisition and retries release by key and hostId. Keep intent
 and credential-bearing grants in secret storage; only non-secret revocation
 metadata belongs in KV.
@@ -130,7 +130,8 @@ metadata belongs in KV.
 synchronously or asynchronously. Machines settings displays it independently of
 availability; never include credentials or raw provider payloads.
 
-Machines settings select the default. Plugins can pass ServerAccessSelection
+Machines settings select the default. Without a saved selection, core uses the
+first registered provider, or direct when none are registered. Plugins can pass ServerAccessSelection
 to the machine enrolment/bootstrap APIs. The direct provider reads
 machineServerUrl, falling back to BB_EXTERNAL_URL. Declaring a URL does not
 prove reachability from a sandbox.

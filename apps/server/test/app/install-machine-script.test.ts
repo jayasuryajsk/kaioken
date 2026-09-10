@@ -293,6 +293,53 @@ exec '${process.execPath}' "$@"
     );
   });
 
+  it("stops and uninstalls an owned Linux service through installer flags", () => {
+    const fixture = createFixture();
+    mkdirSync(join(fixture.homeDir, ".bb-machines", "owned"), {
+      recursive: true,
+    });
+    const dataDir = realpathSync(
+      join(fixture.homeDir, ".bb-machines", "owned"),
+    );
+    writeJoinedState({ ...fixture, dataDir });
+    writeFileSync(join(dataDir, "host-daemon-port"), "40000\n");
+    const serviceDir = join(fixture.homeDir, ".config", "systemd", "user");
+    const serviceName = "bb-host-daemon-machine-getbb-app-host-test.service";
+    const servicePath = join(serviceDir, serviceName);
+    mkdirSync(serviceDir, { recursive: true });
+    writeFileSync(
+      servicePath,
+      `[Service]\nEnvironment="BB_DATA_DIR=${dataDir}"\n`,
+    );
+    writeExecutable(
+      join(fixture.binDir, "uname"),
+      "#!/bin/sh\nprintf '%s\\n' Linux\n",
+    );
+    const systemctlLog = join(fixture.homeDir, "systemctl.log");
+    writeExecutable(
+      join(fixture.binDir, "systemctl"),
+      `#!/bin/sh\nprintf '%s\\n' "$*" >>${JSON.stringify(systemctlLog)}\n`,
+    );
+    const stopped = runScript(
+      ["--stop", "--host-id", "host-test", "--data-dir", dataDir],
+      fixture,
+    );
+    expect(stopped.status, stopped.stderr).toBe(0);
+    expect(existsSync(dataDir)).toBe(true);
+    expect(readFileSync(systemctlLog, "utf8")).toContain(
+      `--user stop ${serviceName}`,
+    );
+    const uninstalled = runScript(
+      ["--uninstall", "--host-id", "host-test", "--data-dir", dataDir],
+      fixture,
+    );
+    expect(uninstalled.status, uninstalled.stderr).toBe(0);
+    expect(existsSync(dataDir)).toBe(false);
+    expect(readFileSync(systemctlLog, "utf8")).toContain(
+      `--user disable --now ${serviceName}`,
+    );
+  });
+
   it("rejects an invalid explicit host-daemon port", () => {
     const fixture = createFixture();
     const result = runScript(

@@ -17,6 +17,7 @@ import {
   sweepProviderMachine,
   cancelMachineLaunch,
 } from "../../../src/services/machines/provider-orchestration.js";
+import { getMachineEnrollmentService } from "../../../src/services/machines/machine-services.js";
 
 it.each(["cancel", "enroll"])(
   "never persists manual credentials in launches or provisioning transcripts after %s",
@@ -27,7 +28,6 @@ it.each(["cancel", "enroll"])(
         defaultMachineAccess: "direct",
         machineServerUrl: "https://machine.example.test",
       });
-      await h.pluginService.install("builtin:machine-manual", { kind: "root" });
       const host = seedHostSession(h.deps, { id: "review-local" }).host;
       const { project } = seedProjectWithSource(h.deps, { hostId: host.id });
       const thread = await createThreadFromRequest(h.deps, {
@@ -46,44 +46,38 @@ it.each(["cancel", "enroll"])(
       });
       await vi.waitFor(() =>
         expect(getMachineLaunch(h.db, thread.id)?.stepText).toBe(
-          "Run the enrollment command shown in the picker",
+          "Run the enrollment command shown below",
         ),
       );
-      const api = h.pluginService.getApi("machine-manual");
-      if (!api) throw new Error("Missing plugin");
-      const enrollment = await api.experimental_machines.enrollments.prepare({
-        key: thread.id,
+      const enrollment = h.db
+        .select()
+        .from(machineEnrollments)
+        .where(eq(machineEnrollments.key, thread.id))
+        .get();
+      const bootstrap = await getMachineEnrollmentService(
+        h.deps,
+      ).pendingBootstrapForLaunch({
+        launchId: thread.id,
+        owner: "core",
       });
-      if (enrollment.state !== "pending")
+      if (!enrollment || !bootstrap)
         throw new Error("Expected pending enrollment");
       const readCommand = async () =>
-        (
-          await (
-            await h.app.request("/api/v1/plugins/machine-manual/rpc/command", {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({ launchId: thread.id }),
-            })
-          ).json()
-        ).result;
-      expect((await readCommand()).command).toContain(
-        enrollment.bootstrap.credential,
-      );
+        (await h.app.request(`/api/v1/hosts/launches/${thread.id}`)).json();
+      expect((await readCommand()).command).toContain(bootstrap.credential);
       await advanceThreadProvisioning(h.deps, { threadId: thread.id });
       const assertRedacted = () => {
         const events = listEvents(h.db, { threadId: thread.id });
         expect(
           events.some((event) =>
             JSON.stringify(event).includes(
-              "Run the enrollment command shown in the picker",
+              "Run the enrollment command shown below",
             ),
           ),
         ).toBe(true);
-        expect(JSON.stringify(events)).not.toContain(
-          enrollment.bootstrap.credential,
-        );
+        expect(JSON.stringify(events)).not.toContain(bootstrap.credential);
         expect(JSON.stringify(getMachineLaunch(h.db, thread.id))).not.toContain(
-          enrollment.bootstrap.credential,
+          bootstrap.credential,
         );
         expect(JSON.stringify(events)).not.toContain("BB_ENROLLMENT=");
       };
@@ -92,7 +86,7 @@ it.each(["cancel", "enroll"])(
         expect(
           await h.deps.machineAuth.enrollHost({
             hostId: enrollment.hostId,
-            token: enrollment.bootstrap.credential,
+            token: bootstrap.credential,
             allowPublicEnrollment: true,
           }),
         ).not.toBeNull();
@@ -102,10 +96,7 @@ it.each(["cancel", "enroll"])(
         });
       } else await cancelMachineLaunch(h.deps, thread.id);
       await vi.waitFor(async () =>
-        expect(await readCommand()).toEqual({
-          command: null,
-          expiresAt: null,
-        }),
+        expect((await readCommand()).command).toBeNull(),
       );
       assertRedacted();
       await cancelMachineLaunch(h.deps, thread.id);
@@ -120,7 +111,6 @@ it("resolves replacement launch identity while Manual owns command retrieval", a
       defaultMachineAccess: "direct",
       machineServerUrl: "https://machine.example.test",
     });
-    await h.pluginService.install("builtin:machine-manual", { kind: "root" });
     const host = seedHostSession(h.deps, { id: "replacement-local" }).host;
     const { project } = seedProjectWithSource(h.deps, { hostId: host.id });
     const thread = await createThreadFromRequest(h.deps, {
@@ -137,39 +127,35 @@ it("resolves replacement launch identity while Manual owns command retrieval", a
       model: "requested-model",
       startedOnBehalfOf: null,
     });
-    const api = h.pluginService.getApi("machine-manual");
-    if (!api) throw new Error("Missing plugin");
+    const enrollments = getMachineEnrollmentService(h.deps);
     const url = (id: string) =>
       `/api/v1/hosts/launches/${encodeURIComponent(id)}`;
     const threadUrl = `${url(thread.id)}?scope=thread`;
     const readCommand = async (launchId: string) => {
-      const response = await h.app.request(
-        "/api/v1/plugins/machine-manual/rpc/command",
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ launchId }),
-        },
-      );
-      return (await response.json()).result;
+      return (await h.app.request(url(launchId))).json();
     };
     const consumedKeys: string[] = [];
     let key = thread.id;
     for (let generation = 0; generation < 3; generation++) {
       await vi.waitFor(() =>
         expect(getMachineLaunch(h.db, key)?.stepText).toBe(
-          "Run the enrollment command shown in the picker",
+          "Run the enrollment command shown below",
         ),
       );
-      const enrollment = await api.experimental_machines.enrollments.prepare({
-        key,
+      const enrollment = h.db
+        .select()
+        .from(machineEnrollments)
+        .where(eq(machineEnrollments.key, key))
+        .get();
+      const bootstrap = await enrollments.pendingBootstrapForLaunch({
+        launchId: key,
+        owner: "core",
       });
-      if (enrollment.state !== "pending")
-        throw new Error("Expected enrollment");
+      if (!enrollment || !bootstrap) throw new Error("Expected enrollment");
       const response = await h.app.request(threadUrl);
       const install = () =>
         h.app.request("/install.sh", {
-          headers: { "X-BB-Enrollment": enrollment.bootstrap.credential },
+          headers: { "X-BB-Enrollment": bootstrap.credential },
         });
       const installer = await install();
       expect(installer.status).toBe(200);
@@ -186,14 +172,9 @@ it("resolves replacement launch identity while Manual owns command retrieval", a
       ).toBe(403);
 
       expect((await response.json()).id).toBe(key);
-      expect((await readCommand(key)).command).toContain(
-        enrollment.bootstrap.credential,
-      );
+      expect((await readCommand(key)).command).toContain(bootstrap.credential);
       for (const consumed of consumedKeys) {
-        expect(await readCommand(consumed)).toEqual({
-          command: null,
-          expiresAt: null,
-        });
+        expect((await readCommand(consumed)).command).toBeNull();
       }
       expect((await h.app.request(`${url(key)}?scope=invalid`)).status).toBe(
         400,
@@ -214,21 +195,18 @@ it("resolves replacement launch identity while Manual owns command retrieval", a
         expect((await install()).status).toBe(403);
         h.db
           .update(machineEnrollments)
-          .set({ expiresAt: enrollment.bootstrap.expiresAt })
+          .set({ expiresAt: bootstrap.expiresAt })
           .where(eq(machineEnrollments.id, enrollment.id))
           .run();
         await cancelMachineLaunch(h.deps, key);
         expect((await install()).status).toBe(403);
-        expect(await readCommand(key)).toEqual({
-          command: null,
-          expiresAt: null,
-        });
+        expect((await readCommand(key)).command).toBeNull();
         break;
       }
       expect(
         await h.deps.machineAuth.enrollHost({
           hostId: enrollment.hostId,
-          token: enrollment.bootstrap.credential,
+          token: bootstrap.credential,
           allowPublicEnrollment: true,
         }),
       ).not.toBeNull();
@@ -244,18 +222,12 @@ it("resolves replacement launch identity while Manual owns command retrieval", a
       await vi.waitFor(() =>
         expect(getMachineLaunch(h.db, key)?.phase).toBe("ready"),
       );
-      expect(await readCommand(key)).toEqual({
-        command: null,
-        expiresAt: null,
-      });
+      expect((await readCommand(key)).command).toBeNull();
       expect(requestMachineRemoval(h.deps, enrollment.hostId)).toBe(true);
       await sweepProviderMachine(h.deps, enrollment.hostId);
       consumedKeys.push(key);
       key = `${thread.id}:replacement:${enrollment.hostId}`;
-      expect(await readCommand(key)).toEqual({
-        command: null,
-        expiresAt: null,
-      });
+      expect((await h.app.request(url(key))).status).toBe(404);
       await advanceThreadProvisioning(h.deps, { threadId: thread.id });
     }
   });

@@ -242,15 +242,15 @@ interface MachineBootstrapApi {
 }
 ```
 
-`enrollments.prepare({key})` establishes/reuses an identity scoped to the plugin. A pending result contains sensitive bootstrap credentials; an enrolled result contains no new command. `waitForConnection` waits for enrollment/connection; it is not an agent authentication or checkout-readiness check.
+`enrollments.prepare({key})` establishes/reuses an identity scoped to the plugin and always reissues its pending credential. A pending result contains sensitive bootstrap credentials; an enrolled result contains no new command. `waitForConnection` waits for enrollment/connection; it is not an agent authentication or checkout-readiness check.
 
 `installerCommand` returns an argv array and private stdin. `bootstrap` uses the supplied executor to install/start the daemon. `daemon.kind` chooses preinstalled tools versus installation. A restored machine reuses the existing enrolled identity.
 
 The bootstrap bundle is version 2 with optional HTTP headers. Version 1 is a compatibility concern within this branch's development history, not an API that existed on main at this comparison base.
 
-Manual keeps the pending prepare result in memory and retrieves its command through its own RPC. It does not use a generic enrollment `.get` API. Reload/restart does not recover that UI cache.
+The core-owned manual provider renders the transient command returned with launch progress. It does not persist the command after enrollment or cancellation.
 
-Source: [machine-bootstrap.ts](packages/plugin-sdk/src/machine-bootstrap.ts), [Manual RPC](plugins/machine-manual/rpc.ts).
+Source: [backend-contract.ts](packages/plugin-sdk/src/backend-contract.ts), [manual-provider.ts](apps/server/src/services/machines/manual-provider.ts).
 
 ## 3. Server access providers — new
 
@@ -275,13 +275,14 @@ type AccessAvailability =
 interface ServerAccessProviderDeclaration {
   id: string;
   displayName: string;
+  description: string;
   availability(): AccessAvailability | Promise<AccessAvailability>;
 
   acquire(context: {
     key: string;
     hostId: string;
     signal: AbortSignal;
-  }): Promise<ServerAccessGrant>;
+  }): Promise<ServerAccessGrant | { status: "failed"; message: string }>;
   release(context: {
     key: string;
     hostId: string;
@@ -298,16 +299,10 @@ interface PluginServerAccess {
 ```
 
 - `availability` reports configuration readiness; optional `serverUrl` is display metadata, not proof a remote machine can reach it.
-- `acquire` returns a grant with server URL and optional headers. Those headers are used for enrollment and subsequent runtime requests.
+- `acquire` returns a grant with server URL and optional headers, or an explicit failure with a user-facing message. Grant headers are used for enrollment and subsequent runtime requests.
 - `release` gets a nullable grant ID because acquisition may have been interrupted before returning. The key/host identify unfinished acquisition.
 - `recheck()` is a void notification to refresh configuration clients. Existing environment-provider `recheck()` returns a Promise; these signatures are currently inconsistent.
-- An ordinary thrown error is redacted. Deliberate recovery messages use an Error whose **name** is `experimental_ServerAccessRecoveryError`; there is no exported error class:
-
-```ts
-const error = new Error("Reconnect your account to restore machine access.");
-error.name = "experimental_ServerAccessRecoveryError";
-throw error;
-```
+- Thrown errors are redacted. Explicit failed results preserve their message as the machine's recovery guidance.
 
 Connect is the plugin implementation in this PR; direct/manual URL access is core-owned. Credential material belongs in private storage, not provider resource metadata or exposed settings.
 
@@ -463,27 +458,6 @@ interface PluginMachineProviderInputsRegistration {
   component: ComponentType<PluginMachineProviderInputsProps>;
 }
 
-interface ExperimentalMachineSetupProps {
-  client: {
-    hosts: {
-      experimental_submit(
-        args: MachineCreateArgs,
-      ): Promise<MachineLaunchStatus>;
-      experimental_follow(args: {
-        id: string;
-        signal?: AbortSignal;
-        onProgress?: (status: MachineLaunchStatus) => void;
-      }): Promise<Host>;
-      experimental_cancel(args: { id: string }): Promise<MachineLaunchStatus>;
-    };
-  };
-  onClose(): void;
-}
-
-interface ExperimentalMachineSetupRegistration {
-  machineProviderId: string;
-  component: ComponentType<ExperimentalMachineSetupProps>;
-}
 ```
 
 ```ts
@@ -491,15 +465,10 @@ interface PluginAppSlots {
   experimental_machineProviderInputs(
     registration: PluginMachineProviderInputsRegistration,
   ): void;
-  experimental_machineSetup(
-    registration: ExperimentalMachineSetupRegistration,
-  ): void;
 }
 ```
 
-These are additions to the existing slots interface. Machine inputs collect non-secret JSON; setup is a provider-owned standalone dialog experience. Core checks plugin ownership and blocks setup until server access is configured.
-
-`client.hosts` in setup exposes only submit/follow/cancel, with the full signatures shown in section 9. There is no core enrollment-command client in these props. Manual uses its own command RPC.
+This is an addition to the existing slots interface. Machine inputs collect non-secret JSON. Core owns the setup flow and blocks it until server access is configured.
 
 The existing `experimental_providerIcon` slot also accepts machine provider IDs now; its registration signature did not change.
 

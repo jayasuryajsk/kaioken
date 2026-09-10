@@ -22,10 +22,12 @@ vi.mock("@/components/pickers/OptionPicker", () => ({
     value,
     onChange,
     disabled,
+    options,
   }: {
     value: string;
     onChange: (value: string) => void;
     disabled: boolean;
+    options: Array<{ value: string; label: string }>;
   }) => (
     <select
       aria-label="Connection method"
@@ -33,8 +35,11 @@ vi.mock("@/components/pickers/OptionPicker", () => ({
       disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
     >
-      <option value="connect">bb connect</option>
-      <option value="direct">Manual</option>
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
     </select>
   ),
 }));
@@ -56,21 +61,28 @@ beforeEach(() => {
   mocks.isPending = false;
 });
 
-function show(defaultProviderId: string, paired = false) {
+function show(defaultProviderId: string, available = false) {
   mocks.config.mockReturnValue({
     data: makeSystemConfig({
       serverAccess: {
         providers: [
           {
-            id: "connect",
-            displayName: "bb connect",
-            availability: paired
-              ? { status: "available", serverUrl: "https://test.getbb.app" }
-              : { status: "setup-required", message: "Set up bb connect" },
+            id: "relay",
+            displayName: "Managed relay",
+            description: "Use a managed relay address.",
+            pluginId: "relay-plugin",
+            availability: available
+              ? {
+                  status: "available",
+                  serverUrl: "https://relay.example.com",
+                }
+              : { status: "setup-required", message: "Set up the relay" },
           },
           {
             id: "direct",
             displayName: "Manual",
+            description: "Use your own domain or network address.",
+            pluginId: null,
             availability: { status: "available" },
           },
         ],
@@ -87,45 +99,45 @@ function show(defaultProviderId: string, paired = false) {
   );
 }
 
-it("offers Connect setup without exposing the manual URL even when a URL exists", () => {
-  show("connect");
+it("links provider setup through its registering plugin", () => {
+  show("relay");
   expect(
     screen
-      .getByRole("link", { name: "Set up bb connect" })
+      .getByRole("link", { name: "Set up Managed relay" })
       .getAttribute("href"),
-  ).toBe("/settings/plugins/connect");
-  expect(
-    screen.getByText(
-      "bb connect gives this server a private address your machines can reach.",
-    ),
-  ).toBeTruthy();
+  ).toBe("/settings/plugins/relay-plugin");
+  expect(screen.getByText("Set up the relay")).toBeTruthy();
   expect(screen.queryByText("Not connected")).toBeNull();
   expect(screen.queryByRole("textbox")).toBeNull();
-  expect(screen.queryByText("Automatic")).toBeNull();
+  expect(screen.getAllByRole("option")).toHaveLength(2);
 });
 
 it("shows the URL input only for Manual", () => {
   show("direct");
   expect(screen.getByRole("textbox", { name: "Server address" })).toBeTruthy();
-  expect(screen.queryByRole("link", { name: "Set up bb connect" })).toBeNull();
+  expect(
+    screen.queryByRole("link", { name: "Set up Managed relay" }),
+  ).toBeNull();
 });
 
-it("retains diagnostics for paired Connect without showing setup", () => {
-  show("connect", true);
+it("retains diagnostics for an available provider without showing setup", () => {
+  show("relay", true);
   expect(screen.getByText("Connected")).toBeTruthy();
   expect(
     screen
-      .getByRole("link", { name: "https://test.getbb.app" })
+      .getByRole("link", { name: "https://relay.example.com" })
       .getAttribute("href"),
-  ).toBe("https://test.getbb.app");
+  ).toBe("https://relay.example.com");
   expect(
     screen.getByRole("link", { name: "Manage" }).getAttribute("href"),
-  ).toBe("/settings/plugins/connect");
-  expect(screen.queryByRole("link", { name: "Set up bb connect" })).toBeNull();
+  ).toBe("/settings/plugins/relay-plugin");
+  expect(
+    screen.queryByRole("link", { name: "Set up Managed relay" }),
+  ).toBeNull();
 });
 
 it("keeps the selection through saving and a stale config refresh", () => {
-  const view = show("connect");
+  const view = show("relay");
   fireEvent.change(screen.getByRole("combobox"), {
     target: { value: "direct" },
   });
@@ -157,17 +169,17 @@ it("keeps the selection through saving and a stale config refresh", () => {
   expect(screen.getByRole<HTMLSelectElement>("combobox").value).toBe("direct");
   mocks.config.mockReturnValue(config);
   refresh();
-  expect(screen.getByRole<HTMLSelectElement>("combobox").value).toBe("connect");
+  expect(screen.getByRole<HTMLSelectElement>("combobox").value).toBe("relay");
 });
 
 it("restores the saved selection when saving fails", () => {
-  show("connect");
+  show("relay");
   fireEvent.change(screen.getByRole("combobox"), {
     target: { value: "direct" },
   });
   expect(screen.getByRole("textbox", { name: "Server address" })).toBeTruthy();
   act(() => mocks.mutate.mock.calls[0][1].onError(new Error("Save failed")));
-  expect(screen.getByRole<HTMLSelectElement>("combobox").value).toBe("connect");
+  expect(screen.getByRole<HTMLSelectElement>("combobox").value).toBe("relay");
   expect(screen.queryByRole("textbox", { name: "Server address" })).toBeNull();
 });
 

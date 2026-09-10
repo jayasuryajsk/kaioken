@@ -803,7 +803,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Bootstrap over a MachineExecutor; never put credentials in resource JSON or output",
           "Install a daemon for pending enrollment and restart an enrolled identity after snapshot restore",
           "Stream progress and honor abort signals for create, suspend, resume and remove",
-          "Keep credentials out of report.step and report.log: core persists progress and copies it into thread transcripts; manual enrollment commands are fetched transiently by authorized followers",
+          "Keep credentials out of report.step and report.log: core persists progress and copies it into thread transcripts; core exposes manual enrollment commands transiently through launch status",
           "Prepare an encrypted enrollment bundle with optional request headers",
           "Prepare enrollment, then await create.checkpoint(resource) immediately after allocation so cancellation can remove it without waiting for bootstrap; never checkpoint the bootstrap bundle",
           "Implement reconcileCleanup to discover and remove uncertain allocations from the durable key and last checkpointed resource, never create or bootstrap; return failed while allocation intent is unresolved so core retries on its cleanup interval",
@@ -818,7 +818,6 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Optionally declare suspend and resume together; plugins own idle timing and core coordinates transitions",
           "Return an opaque JSON resource that core persists and passes back to lifecycle operations; never include credentials",
           "Treat a failed create as terminal and retry vendor API hiccups inside the create call",
-          "Own the standalone setup flow with app.slots.experimental_machineSetup; core provides the shared dialog and authenticated client, while the plugin retrieves transient setup data through its own RPC and owns countdown and regeneration",
           "Render Add machine inputs with app.slots.experimental_machineProviderInputs",
         ],
         apiSymbols: [
@@ -844,8 +843,6 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "MachineBootstrapApi",
           "PluginMachineProviderDeclaration",
           "PluginMachineValidateDecision",
-          "ExperimentalMachineSetupRegistration",
-          "ExperimentalMachineSetupProps",
           "PluginMachineProviderInputsRegistration",
           "PluginMachineProviderInputsProps",
           "PluginMachineProviderInputsChange",
@@ -875,12 +872,12 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
         summary:
           "Registers server access for enrolment and ongoing machine runtime requests. With this, a plugin can:",
         bullets: [
-          "Register bb.experimental_serverAccess with availability (including an optional public serverUrl), idempotent acquire and release",
+          "Register bb.experimental_serverAccess with picker copy, availability (including an optional public serverUrl), idempotent acquire and release",
           "Call recheck when access is gained or lost so Machines settings stops showing a stale availability",
           "Return { id, serverUrl, headers? }; machines attach headers to all server requests without provider-specific redemption",
-          "Choose a General default or override access for a machine; automatic selection prefers paired bb Cloud then a configured direct URL",
+          "Choose a General default or override access for a machine; automatic selection uses the first registered provider, or direct when none are registered",
           "Use the Server URL reachable by machines setting or BB_EXTERNAL_URL fallback; the URL is not a reachability guarantee",
-          "Use an experimental_ServerAccessRecoveryError for a user-safe recovery message; persist acquisition intent and keep credentials in secret storage; release receives key, hostId and a nullable grantId to reconcile interrupted acquisitions before enrollment",
+          "Return { status: 'failed', message } for a user-safe recovery message; persist acquisition intent and keep credentials in secret storage; release receives key, hostId and a nullable grantId to reconcile interrupted acquisitions before enrollment",
         ],
         apiSymbols: [
           "PluginServerAccess",

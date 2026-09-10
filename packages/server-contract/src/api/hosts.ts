@@ -60,6 +60,7 @@ export type CreateMachineRequest = z.infer<typeof createMachineRequestSchema>;
 
 export interface MachineLaunchStatus {
   id: string;
+  command: string | null;
   phase: "creating" | "ready" | "failed" | "cancelled";
   hostId: string | null;
   step: string;

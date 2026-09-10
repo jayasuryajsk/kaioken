@@ -284,33 +284,6 @@ export function createMachineEnrollmentService(
               .run();
             return { id: row.id, hostId: row.hostId, state: "enrolled" };
           }
-          if (
-            row.encryptedBootstrap &&
-            row.expiresAt !== null &&
-            row.expiresAt > now &&
-            row.state === "pending"
-          ) {
-            const bootstrap = await open(row.id, row.encryptedBootstrap);
-            if (
-              bootstrap.hostId !== row.hostId ||
-              bootstrap.expiresAt !== row.expiresAt
-            )
-              throw new Error("Pending machine enrollment identity is invalid");
-            if (
-              await hasUnusedEnrollmentCredential(
-                row.hostId,
-                bootstrap.credential,
-                now,
-              )
-            ) {
-              return {
-                id: row.id,
-                hostId: row.hostId,
-                state: "pending",
-                bootstrap,
-              };
-            }
-          }
           deps.db
             .insert(hosts)
             .values({
@@ -327,6 +300,7 @@ export function createMachineEnrollmentService(
             access: request.access,
             signal: AbortSignal.timeout(60_000),
           });
+          await deps.machineAuth.revokeHostEnrollKeys({ hostId: row.hostId });
           const credential = await deps.machineAuth.issueHostEnrollKey({
             hostId: row.hostId,
             enrollSource: "public-multi-machine",
@@ -389,7 +363,7 @@ export function createMachineEnrollmentService(
       },
     };
   }
-  function readPendingManualEnrollment(launchId: string) {
+  function readPendingEnrollment(launchId: string, owner: string) {
     return deps.db
       .select({ enrollment: machineEnrollments, launch: machineLaunches })
       .from(machineEnrollments)
@@ -403,24 +377,24 @@ export function createMachineEnrollmentService(
       .where(
         and(
           eq(machineLaunches.key, launchId),
-          eq(machineLaunches.providerId, "manual"),
           eq(machineLaunches.phase, "creating"),
           eq(machineLaunches.cancelPending, false),
           eq(machineEnrollments.state, "pending"),
+          eq(machineEnrollments.owner, owner),
         ),
       )
       .get();
   }
-  async function pendingBootstrapForLaunch(
-    launchId: string,
-  ): Promise<EnrollmentBootstrap | null> {
-    const read = () => readPendingManualEnrollment(launchId);
+  async function pendingBootstrapForLaunch(request: {
+    launchId: string;
+    owner: string;
+  }): Promise<EnrollmentBootstrap | null> {
+    const read = () => readPendingEnrollment(request.launchId, request.owner);
     const row = read();
     if (
       !row?.enrollment.encryptedBootstrap ||
       row.enrollment.expiresAt === null ||
       row.enrollment.expiresAt <= Date.now() ||
-      row.enrollment.owner !== getMachineProvider("manual")?.pluginId ||
       deps.isConnected(row.enrollment.hostId) ||
       hasIssuedDaemonCredential(row.enrollment.hostId)
     )
@@ -449,6 +423,7 @@ export function createMachineEnrollmentService(
   }
   return {
     forOwner: scoped,
+    pendingBootstrapForLaunch,
     async pendingBootstrapForCredential(
       credential: string,
     ): Promise<EnrollmentBootstrap | null> {
@@ -479,7 +454,23 @@ export function createMachineEnrollmentService(
         )
         .get();
       if (!row) return null;
-      const bootstrap = await pendingBootstrapForLaunch(row.launchId);
+      const enrollment = deps.db
+        .select({ owner: machineEnrollments.owner })
+        .from(machineEnrollments)
+        .innerJoin(
+          machineLaunches,
+          and(
+            eq(machineLaunches.key, machineEnrollments.key),
+            eq(machineLaunches.hostId, machineEnrollments.hostId),
+          ),
+        )
+        .where(eq(machineLaunches.key, row.launchId))
+        .get();
+      if (!enrollment) return null;
+      const bootstrap = await pendingBootstrapForLaunch({
+        launchId: row.launchId,
+        owner: enrollment.owner,
+      });
       return bootstrap &&
         (await defaultKeyHasher(bootstrap.credential)) === hashedCredential
         ? bootstrap

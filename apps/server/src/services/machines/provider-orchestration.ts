@@ -819,6 +819,7 @@ export function machineLaunchStatus(
     );
   return {
     id: row.key,
+    command: null,
     phase: row.phase,
     hostId: row.hostId,
     step: row.stepText,

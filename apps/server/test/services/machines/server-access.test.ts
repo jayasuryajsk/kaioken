@@ -34,8 +34,9 @@ function installProvider(provider: ServerAccessProviderDeclaration) {
 
 function provider(): ServerAccessProviderDeclaration {
   return {
-    id: "connect",
-    displayName: "bb connect",
+    id: "relay",
+    displayName: "Relay",
+    description: "Use a managed relay.",
     availability: () => ({ status: "available" }),
     acquire: async ({ hostId }) => ({
       id: hostId,
@@ -58,7 +59,7 @@ describe("machine server access", () => {
         availability: () => ({ status: "available", serverUrl }),
       });
       const status = await serverAccessStatus(deps);
-      const access = status.providers.find((entry) => entry.id === "connect");
+      const access = status.providers.find((entry) => entry.id === "relay");
       expect(access?.availability).toEqual(
         valid
           ? { status: "available", serverUrl }
@@ -69,13 +70,17 @@ describe("machine server access", () => {
       );
     });
   });
-  it("prefers paired Connect and respects an explicit direct default", async () => {
+  it("prefers the first registered provider and respects an explicit direct default", async () => {
     await withTestHarness(async ({ deps }) => {
       vi.stubEnv("BB_EXTERNAL_URL", "https://direct.example.com");
+      expect((await serverAccessStatus(deps)).defaultProviderId).toBe("direct");
       installProvider(provider());
-      expect((await serverAccessStatus(deps)).defaultProviderId).toBe(
-        "connect",
-      );
+      expect((await serverAccessStatus(deps)).defaultProviderId).toBe("relay");
+      expect((await serverAccessStatus(deps)).providers[0]).toMatchObject({
+        id: "relay",
+        pluginId: "access-plugin",
+        description: "Use a managed relay.",
+      });
       setAppSettings(deps.db, {
         ...defaultAppSettings,
         defaultMachineAccess: "direct",
@@ -92,23 +97,21 @@ describe("machine server access", () => {
     });
   });
 
-  it("requires Connect setup instead of silently falling back to a configured URL", async () => {
+  it("requires provider setup instead of silently falling back to a configured URL", async () => {
     await withTestHarness(async ({ deps }) => {
       vi.stubEnv("BB_EXTERNAL_URL", "https://direct.example.com");
       installProvider({
         ...provider(),
         availability: () => ({
           status: "setup-required",
-          message: "Set up bb connect",
+          message: "Set up the relay",
         }),
       });
-      expect((await serverAccessStatus(deps)).defaultProviderId).toBe(
-        "connect",
-      );
+      expect((await serverAccessStatus(deps)).defaultProviderId).toBe("relay");
       const host = upsertHost(deps.db, deps.hub, { name: "test" })!;
       await expect(
         serverAccess.resolve(deps, { key: "k", hostId: host.id, signal }),
-      ).rejects.toThrow("Set up bb connect");
+      ).rejects.toThrow("Set up the relay");
       setAppSettings(deps.db, {
         ...defaultAppSettings,
         defaultMachineAccess: "direct",
@@ -153,7 +156,7 @@ describe("machine server access", () => {
       });
       expect(grant.headers).toEqual({ "x-access-token": "secret-header" });
       const row = getHost(deps.db, host.id)!;
-      expect(row.serverAccessProviderId).toBe("connect");
+      expect(row.serverAccessProviderId).toBe("relay");
       expect(row.serverAccessGrantId).toBe(host.id);
       expect(JSON.stringify(row)).not.toContain("secret-header");
       await expect(
@@ -221,9 +224,7 @@ it("keeps interrupted access visible and releases the acquisition without a retu
       .mockResolvedValue(undefined);
     installProvider({
       ...provider(),
-      acquire: async () => {
-        throw new Error(message);
-      },
+      acquire: async () => ({ status: "failed", message }),
       release,
     });
     const host = upsertHost(deps.db, deps.hub, { name: "interrupted" })!;
@@ -246,7 +247,7 @@ it("keeps interrupted access visible and releases the acquisition without a retu
       serverAccess.resolve(deps, { key: "k", hostId: host.id, signal }),
     ).rejects.toThrow(message);
     expect(getHost(deps.db, host.id)).toMatchObject({
-      serverAccessProviderId: "connect",
+      serverAccessProviderId: "relay",
       serverAccessGrantId: null,
       teardownMessage: message,
     });
@@ -257,7 +258,7 @@ it("keeps interrupted access visible and releases the acquisition without a retu
     await expect(
       serverAccess.release(deps, { key: "k", hostId: host.id }),
     ).rejects.toThrow(message);
-    expect(getHost(deps.db, host.id)?.serverAccessProviderId).toBe("connect");
+    expect(getHost(deps.db, host.id)?.serverAccessProviderId).toBe("relay");
     await serverAccess.release(deps, { key: "k", hostId: host.id });
     expect(release).toHaveBeenLastCalledWith({
       key: JSON.stringify(["test", "k"]),
@@ -270,9 +271,9 @@ it("keeps interrupted access visible and releases the acquisition without a retu
 
 it("routes a provider recheck to core with the calling plugin id", async () => {
   await withTestHarness(async (h) => {
-    await h.pluginService.install("builtin:machine-manual", { kind: "root" });
-    const api = h.pluginService.getApi("machine-manual");
-    if (!api) throw new Error("Manual provider did not load");
+    await h.pluginService.install("builtin:keep-awake", { kind: "root" });
+    const api = h.pluginService.getApi("keep-awake");
+    if (!api) throw new Error("Test plugin did not load");
     const rechecked: string[] = [];
     setServerAccessRecheckHandler((pluginId) => rechecked.push(pluginId));
     try {
@@ -280,6 +281,6 @@ it("routes a provider recheck to core with the calling plugin id", async () => {
     } finally {
       setServerAccessRecheckHandler(undefined);
     }
-    expect(rechecked).toEqual(["machine-manual"]);
+    expect(rechecked).toEqual(["keep-awake"]);
   });
 });

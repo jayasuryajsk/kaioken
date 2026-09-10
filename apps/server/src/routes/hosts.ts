@@ -47,12 +47,25 @@ import {
   retryMachineCleanup,
   sweepProviderMachine,
 } from "../services/machines/provider-orchestration.js";
+import { getMachineEnrollmentService } from "../services/machines/machine-services.js";
+import { manualLaunchCommand } from "../services/machines/manual-provider.js";
 
 const PROVIDER_CLI_INSTALL_TIMEOUT_MS = 15 * 60 * 1000;
 const FOLDER_PICKER_TIMEOUT_MS = 10 * 60 * 1000;
 
 function providerCliInstallEventsToNdjson(events: readonly unknown[]): string {
   return events.map((event) => `${JSON.stringify(event)}\n`).join("");
+}
+
+async function launchStatus(deps: AppDeps, key: string) {
+  const status = machineLaunchStatus(deps, key);
+  return {
+    ...status,
+    command:
+      status.phase === "creating"
+        ? await manualLaunchCommand(getMachineEnrollmentService(deps), key)
+        : null,
+  };
 }
 
 function requireMutableHost(deps: AppDeps, hostId: string) {
@@ -115,15 +128,15 @@ export function registerHostRoutes(
 
   post(routes.create, async (context, payload) => {
     assertHostManagementAllowed(context);
-    const host = await submitMachine(deps, payload);
-    return context.json(host, 201);
+    const launch = await submitMachine(deps, payload);
+    return context.json(await launchStatus(deps, launch.id), 201);
   });
 
-  get(routes.launch, (context, query) => {
+  get(routes.launch, async (context, query) => {
     assertHostManagementAllowed(context);
     const id = context.req.param("id");
     return context.json(
-      machineLaunchStatus(
+      await launchStatus(
         deps,
         query.scope === "thread" ? resolveThreadMachineLaunchKey(deps, id) : id,
       ),
@@ -135,7 +148,7 @@ export function registerHostRoutes(
     const key = context.req.param("id");
     machineLaunchStatus(deps, key);
     await cancelMachineLaunch(deps, key, false, true);
-    return context.json(machineLaunchStatus(deps, key));
+    return context.json(await launchStatus(deps, key));
   });
 
   post(routes.createJoinCode, async (context, payload) => {

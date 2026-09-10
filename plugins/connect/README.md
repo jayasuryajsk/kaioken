@@ -13,7 +13,8 @@ through the authenticated Cloud machine-code endpoint. If consumed, Connect
 revokes its device before issuing a replacement. If unconsumed, a valid code can
 be reused; an expired code is replaced. An unavailable or ambiguous lookup keeps
 the pending record and reports that dashboard revocation may be needed. It does
-not silently issue another grant.
+not silently issue another grant. Acquire reports this recoverable state with a
+typed failed result; unexpected thrown errors remain private at the plugin boundary.
 
 Release revokes the completed grant's device even if enrollment never finished.
 The record is deleted only after successful cleanup; failures keep it for retry.

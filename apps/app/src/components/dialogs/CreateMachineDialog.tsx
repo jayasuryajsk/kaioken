@@ -66,18 +66,6 @@ export function CreateMachineContent({
   const { providers: loadedProviders } = useSystemMachineProviders();
   const providers = loadedProviders ?? [];
   const config = useSystemConfig();
-  const { machineSetup } = usePluginSlots();
-  const [selection, setSelection] = useState<string | null | undefined>();
-  const setups = machineSetup.filter((slot) =>
-    providers.some(
-      (provider) =>
-        provider.id === slot.machineProviderId &&
-        provider.pluginId === slot.pluginId,
-    ),
-  );
-  const selectedId =
-    selection ?? (providers.length === 1 ? providers[0]?.id : null);
-  const selected = setups.find((slot) => slot.machineProviderId === selectedId);
   const access = config.data?.serverAccess;
   const accessReady = machineServerAccessReady(access);
   if (!accessReady || loadedProviders === undefined) {
@@ -97,28 +85,8 @@ export function CreateMachineContent({
       </MachineAccessGate>
     );
   }
-  if (selected) {
-    const Component = selected.component;
-    return (
-      <>
-        <DialogTitle className="sr-only">Add a machine</DialogTitle>
-        <PluginSlotMount
-          pluginId={selected.pluginId}
-          slotKind="machineSetup"
-          slotId={selected.machineProviderId}
-        >
-          <Component client={sdk} onClose={() => onOpenChange(false)} />
-        </PluginSlotMount>
-      </>
-    );
-  }
   return (
-    <ProviderMachineSetup
-      onOpenChange={onOpenChange}
-      providers={providers}
-      onSelectSetup={(id) => setSelection(id)}
-      setupIds={setups.map((slot) => slot.machineProviderId)}
-    />
+    <ProviderMachineSetup onOpenChange={onOpenChange} providers={providers} />
   );
 }
 
@@ -195,18 +163,15 @@ export function MachineAccessGate({
 export function ProviderMachineSetup({
   onOpenChange,
   providers,
-  onSelectSetup,
-  setupIds,
 }: {
   onOpenChange: (open: boolean) => void;
   providers: readonly SystemMachineProvider[];
-  onSelectSetup: (id: string) => void;
-  setupIds: readonly string[];
 }) {
   const createController = useRef<AbortController | null>(null);
   const createKey = useRef<string | null>(null);
   const [progress, setProgress] = useState("");
   const [launchId, setLaunchId] = useState<string | null>(null);
+  const [command, setCommand] = useState<string | null>(null);
   useEffect(() => () => createController.current?.abort(), []);
   const machineProviderInputsSlots = usePluginSlots().machineProviderInputs;
   const [selectedMachineProvider, setSelectedMachineProvider] =
@@ -233,10 +198,6 @@ export function ProviderMachineSetup({
         );
   const MachineInputsComponent = machineInputsRegistration?.component;
   const selectMachineProvider = (provider: SystemMachineProvider): void => {
-    if (setupIds.includes(provider.id)) {
-      onSelectSetup(provider.id);
-      return;
-    }
     createKey.current = null;
     setSelectedMachineProvider(provider);
     setMachineInputs(
@@ -263,6 +224,7 @@ export function ProviderMachineSetup({
       }
       setProgress("");
       setLaunchId(null);
+      setCommand(null);
       const controller = new AbortController();
       createController.current = controller;
       createKey.current ??= crypto.randomUUID();
@@ -274,11 +236,13 @@ export function ProviderMachineSetup({
           signal: controller.signal,
         });
         setLaunchId(launch.id);
+        setCommand(launch.command);
         return await sdk.hosts.experimental_follow({
           id: launch.id,
           signal: controller.signal,
           onProgress: (status) => {
             setProgress(status.step);
+            setCommand(status.command);
             if (status.terminal) createKey.current = null;
           },
         });
@@ -469,6 +433,9 @@ export function ProviderMachineSetup({
           {progress}
         </p>
       )}
+      {command === null ? null : (
+        <MachineLaunchCommand key={command} command={command} />
+      )}
       {createMachine.isPending && launchId ? (
         <DialogFooter>
           <Button
@@ -486,5 +453,42 @@ export function ProviderMachineSetup({
         </DialogFooter>
       ) : null}
     </>
+  );
+}
+
+function MachineLaunchCommand({ command }: { command: string }) {
+  const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(command);
+      setCopied(true);
+      setCopyFailed(false);
+    } catch {
+      setCopyFailed(true);
+    }
+  };
+  return (
+    <div className="overflow-hidden rounded-md border border-border bg-muted/30">
+      <div className="space-y-1 border-b border-border px-3 py-2">
+        <p className="text-sm font-medium">Run this command</p>
+        <p className="text-xs text-subtle-foreground">
+          It expires 15 minutes after it was issued.
+        </p>
+      </div>
+      <pre className="whitespace-pre-wrap break-all p-3 font-mono text-xs">
+        {command}
+      </pre>
+      <div className="flex justify-end border-t border-border px-3 py-2">
+        <Button variant="outline" size="sm" onClick={() => void copy()}>
+          {copied ? "Copied" : "Copy command"}
+        </Button>
+      </div>
+      {copyFailed ? (
+        <p role="alert" className="px-3 pb-3 text-xs text-destructive-text">
+          Could not copy the command. Try again.
+        </p>
+      ) : null}
+    </div>
   );
 }

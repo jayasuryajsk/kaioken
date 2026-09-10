@@ -74,9 +74,6 @@ This index lists every command path that the core CLI registers. Read the task-s
 - `bb machine env list`
 - `bb machine env set`
 - `bb machine env unset`
-- `bb machine start`
-- `bb machine stop`
-- `bb machine uninstall`
 - `bb machine create`
 - `bb machine status`
 - `bb machine cancel`

@@ -57,6 +57,7 @@ CREATE TABLE `machine_lifecycles` (
 ALTER TABLE `hosts` ADD `machine_provider_id` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `machine_operation_id` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `server_access_provider_id` text;--> statement-breakpoint
+UPDATE `hosts` SET `server_access_provider_id` = 'connect' WHERE `connect_machine_id` IS NOT NULL;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `server_access_grant_id` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `resource` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `machine_provider_selection` text;--> statement-breakpoint

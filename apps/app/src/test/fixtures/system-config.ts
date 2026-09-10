@@ -13,7 +13,7 @@ export function makeSystemConfig(
   return {
     serverAccess: {
       providers: [],
-      defaultProviderId: null,
+      defaultProviderId: "direct",
       effectiveUrl: null,
       urlSource: null,
     },

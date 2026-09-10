@@ -13,6 +13,8 @@ export const CONNECT_UNPAIRED: ServerAccessStatus = {
     {
       id: "connect",
       displayName: "bb connect",
+      description: "Use a private getbb.app address.",
+      pluginId: "connect",
       availability: {
         status: "setup-required",
         message: "Pair this bb instance with bb connect",
@@ -21,6 +23,8 @@ export const CONNECT_UNPAIRED: ServerAccessStatus = {
     {
       id: "direct",
       displayName: "Manual",
+      description: "Use your own domain or network address.",
+      pluginId: null,
       availability: { status: "available" },
     },
   ],
@@ -35,7 +39,7 @@ function withConnect(
   return {
     ...CONNECT_UNPAIRED,
     providers: [
-      { id: "connect", displayName: "bb connect", availability },
+      { ...CONNECT_UNPAIRED.providers[0]!, availability },
       CONNECT_UNPAIRED.providers[1]!,
     ],
   };
@@ -127,7 +131,7 @@ export const MANUAL_MACHINE_PROVIDER = machineProvider({
   displayName: "Manual machine setup",
   description:
     "Run one command on a machine you already have to connect it to this server.",
-  pluginId: "machine-manual",
+  pluginId: "core",
   icon: "Terminal",
 });
 

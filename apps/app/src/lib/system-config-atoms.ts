@@ -20,7 +20,7 @@ import { wsManager } from "./ws";
 const unavailableSystemConfig: SystemConfigResponse = {
   serverAccess: {
     providers: [],
-    defaultProviderId: null,
+    defaultProviderId: "direct",
     effectiveUrl: null,
     urlSource: null,
   },

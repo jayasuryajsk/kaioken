@@ -447,6 +447,7 @@ export interface ServerAccessSelection {
 export interface ServerAccessProviderDeclaration {
   id: string;
   displayName: string;
+  description: string;
   availability():
     | (import("./machine-provider.js").PluginMachineProviderAvailability & {
         serverUrl?: string;
@@ -456,12 +457,11 @@ export interface ServerAccessProviderDeclaration {
           serverUrl?: string;
         }
       >;
-  /** Throw an Error named experimental_ServerAccessRecoveryError to expose a deliberate user-safe recovery message. Ordinary failures are redacted. */
   acquire(context: {
     key: string;
     hostId: string;
     signal: AbortSignal;
-  }): Promise<ServerAccessGrant>;
+  }): Promise<ServerAccessGrant | { status: "failed"; message: string }>;
   release(context: {
     key: string;
     hostId: string;

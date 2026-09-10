@@ -15,6 +15,7 @@ import {
 
 const launch = {
   id: "retry-1",
+  command: null,
   phase: "ready",
   hostId: "host-remote",
   step: "Connected",
@@ -179,21 +180,16 @@ describe("bb machine command output", () => {
   });
 
   it.each([true, false])(
-    "prints manual credentials only from the plugin RPC (no-wait=%s)",
+    "prints transient commands from launch status (no-wait=%s)",
     async (noWait) => {
       const command = "bb machine enroll --bootstrap-env TRANSIENT_SECRET";
-      const readCommand = vi.mocked(globalThis.fetch).mockResolvedValue(
-        Response.json({
-          ok: true,
-          result: { command, expiresAt: Date.now() + 60000 },
-        }),
-      );
       stubServerApi({
         "v1.hosts.$post": vi.fn(async () => ({
           ...launch,
+          command,
           phase: "creating",
           terminal: false,
-          step: "Run the enrollment command shown in the picker",
+          step: "Run the enrollment command shown below",
         })),
         "v1.hosts.launches.:id.$get": vi.fn(async () => launch),
         "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
@@ -207,13 +203,6 @@ describe("bb machine command output", () => {
           ...(noWait ? ["--no-wait", "--json"] : []),
         ],
         register,
-      );
-      expect(readCommand).toHaveBeenCalledWith(
-        "http://server/api/v1/plugins/machine-manual/rpc/command",
-        expect.objectContaining({
-          method: "POST",
-          body: JSON.stringify({ launchId: launch.id }),
-        }),
       );
       if (noWait) {
         const result = JSON.parse(

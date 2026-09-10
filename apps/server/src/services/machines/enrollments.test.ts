@@ -52,14 +52,14 @@ async function harness() {
 }
 
 describe("machine enrollments", () => {
-  it("serializes same-key prepares and preserves host identity across restart without storing credentials", async () => {
+  it("serializes same-key prepares and reissues credentials for the same durable identity", async () => {
     const h = await harness();
     const [first, parallel] = await Promise.all([
       h.api.prepare({ key: "create" }),
       h.api.prepare({ key: "create" }),
     ]);
-    expect(parallel).toEqual(first);
-    expect(h.serverAccess.resolve).toHaveBeenCalledOnce();
+    expect(parallel.hostId).toBe(first.hostId);
+    expect(h.serverAccess.resolve).toHaveBeenCalledTimes(2);
     const restarted = await h
       .create()
       .forOwner("plugin-a")
@@ -69,7 +69,11 @@ describe("machine enrollments", () => {
     expect(first.state).toBe("pending");
     if (first.state !== "pending" || restarted.state !== "pending")
       throw new Error("Expected pending enrollment");
-    expect(restarted.bootstrap.credential).toBe(first.bootstrap.credential);
+    expect(restarted.bootstrap.credential).not.toBe(first.bootstrap.credential);
+    expect(parallel.state).toBe("pending");
+    if (parallel.state !== "pending")
+      throw new Error("Expected pending enrollment");
+    expect(parallel.bootstrap.credential).not.toBe(first.bootstrap.credential);
     expect(
       JSON.stringify(h.db.select().from(machineEnrollments).all()),
     ).not.toContain(first.bootstrap.credential);
@@ -112,16 +116,19 @@ describe("machine enrollments", () => {
     ).toBeNull();
   });
 
-  it("fails closed on encrypted bundle corruption and removed identities", async () => {
+  it("reissues corrupted bundles and rejects removed identities", async () => {
     const h = await harness();
     const prepared = await h.api.prepare({ key: "corrupt" });
+    if (prepared.state !== "pending") throw new Error("Expected enrollment");
     h.db
       .update(machineEnrollments)
       .set({ encryptedBootstrap: "invalid" })
       .where(eq(machineEnrollments.id, prepared.id))
       .run();
-    await expect(h.api.prepare({ key: "corrupt" })).rejects.toThrow(
-      "Could not recover",
+    const reissued = await h.api.prepare({ key: "corrupt" });
+    if (reissued.state !== "pending") throw new Error("Expected enrollment");
+    expect(reissued.bootstrap.credential).not.toBe(
+      prepared.bootstrap.credential,
     );
     h.db
       .update(hosts)
@@ -200,5 +207,4 @@ describe("machine enrollments", () => {
     const retry = await h.api.prepare({ key: "create" });
     expect(retry.hostId).toBe(row?.hostId);
   });
-
 });

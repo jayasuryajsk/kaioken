@@ -1,4 +1,6 @@
 import { buildHostDaemonWebSocketProtocols } from "@bb/host-daemon-contract";
+import type { MachineEnrollments } from "@get-bb/plugin-sdk";
+import { eq } from "drizzle-orm";
 import {
   onDaemonSocketMessage,
   validateDaemonWebSocket,
@@ -22,6 +24,31 @@ import {
   sweepProviderMachine,
 } from "../../../src/services/machines/provider-orchestration.js";
 import { serverAccess } from "../../../src/services/machines/server-access.js";
+import { getMachineEnrollmentService } from "../../../src/services/machines/machine-services.js";
+import { createManualMachineProviderRecord } from "../../../src/services/machines/manual-provider.js";
+
+it("reports the manual uninstall hint once during removal", async () => {
+  const step = vi.fn();
+  const enrollments: MachineEnrollments = {
+    prepare: vi.fn<MachineEnrollments["prepare"]>(async () => ({
+      id: "enrollment-one",
+      hostId: "host-one",
+      state: "enrolled",
+    })),
+    waitForConnection: vi.fn(async () => ({ hostId: "host-one" })),
+  };
+  const record = createManualMachineProviderRecord(enrollments);
+  await record.provider.remove({
+    hostId: "host-one",
+    resource: { hostId: "host-one" },
+    report: { step, log: vi.fn() },
+    signal: new AbortController().signal,
+  });
+  expect(step).toHaveBeenCalledOnce();
+  expect(step).toHaveBeenCalledWith(
+    "Uninstall the machine service with its original installer: install-machine.sh --uninstall --host-id host-one",
+  );
+});
 
 it("creates, cancels, and removes manual machines through the production lifecycle", async () => {
   await withTestHarness(async (h) => {
@@ -30,12 +57,7 @@ it("creates, cancels, and removes manual machines through the production lifecyc
       defaultMachineAccess: "direct",
       machineServerUrl: "https://machine.example.test",
     });
-    const installed = await h.pluginService.install("builtin:machine-manual", {
-      kind: "root",
-    });
-    expect(installed.status).toBe("running");
-    const api = h.pluginService.getApi("machine-manual");
-    if (!api) throw new Error("Manual provider did not load");
+    const enrollments = getMachineEnrollmentService(h.deps);
     const release = vi.spyOn(serverAccess, "release");
     try {
       for (const key of [
@@ -49,28 +71,29 @@ it("creates, cancels, and removes manual machines through the production lifecyc
           inputs: null,
         });
         await vi.waitFor(() =>
-          expect(getMachineLaunch(h.db, key)?.stepText).not.toContain(
-            "Run the enrollment command shown in the picker",
+          expect(getMachineLaunch(h.db, key)?.stepText).toBe(
+            "Run the enrollment command shown below",
           ),
         );
-        const enrollment = await api.experimental_machines.enrollments.prepare({
-          key,
+        const bootstrap = await enrollments.pendingBootstrapForLaunch({
+          launchId: key,
+          owner: "core",
         });
-        if (enrollment.state !== "pending")
+        const enrollment = h.db
+          .select()
+          .from(machineEnrollments)
+          .where(eq(machineEnrollments.key, key))
+          .get();
+        if (!bootstrap || !enrollment)
           throw new Error("Expected pending enrollment");
         expect(getMachineLaunch(h.db, key)?.stepText).not.toContain(
-          enrollment.bootstrap.credential,
+          bootstrap.credential,
         );
         const commandRequest = (headers: Record<string, string> = {}) =>
-          h.app.request("/api/v1/plugins/machine-manual/rpc/command", {
-            method: "POST",
-            headers: { "content-type": "application/json", ...headers },
-            body: JSON.stringify({ launchId: key }),
-          });
+          h.app.request(`/api/v1/hosts/launches/${key}`, { headers });
         const commandResponse = await commandRequest();
-        expect(commandResponse.headers.get("cache-control")).toBe("no-store");
-        expect((await commandResponse.json()).result.command).toContain(
-          enrollment.bootstrap.credential,
+        expect((await commandResponse.json()).command).toContain(
+          bootstrap.credential,
         );
         const denied = await commandRequest({
           "x-bb-gate-auth": "machine",
@@ -90,7 +113,7 @@ it("creates, cancels, and removes manual machines through the production lifecyc
         if (key !== "manual-cancel") {
           const enrolled = await h.deps.machineAuth.enrollHost({
             hostId: enrollment.hostId,
-            token: enrollment.bootstrap.credential,
+            token: bootstrap.credential,
             allowPublicEnrollment: true,
           });
           if (!enrolled) throw new Error("Enrollment failed");
@@ -136,7 +159,7 @@ it("creates, cancels, and removes manual machines through the production lifecyc
           );
           expect(getHost(h.db, enrollment.hostId)).toMatchObject({
             machineProviderId: "manual",
-            resource: { version: 1, hostId: enrollment.hostId },
+            resource: { hostId: enrollment.hostId },
             removeRetryAt: null,
           });
           expect(requestMachineRemoval(h.deps, enrollment.hostId)).toBe(true);
@@ -147,12 +170,9 @@ it("creates, cancels, and removes manual machines through the production lifecyc
             serverAccessGrantId: null,
           });
         }
-        expect((await (await commandRequest()).json()).result).toEqual({
-          command: null,
-          expiresAt: null,
-        });
+        expect((await (await commandRequest()).json()).command).toBeNull();
         expect(JSON.stringify(getMachineLaunch(h.db, key))).not.toContain(
-          enrollment.bootstrap.credential,
+          bootstrap.credential,
         );
         if (sessionId !== null) {
           onDaemonSocketMessage(h.deps, {
@@ -190,7 +210,7 @@ it("creates, cancels, and removes manual machines through the production lifecyc
         expect(
           await h.deps.machineAuth.enrollHost({
             hostId: enrollment.hostId,
-            token: enrollment.bootstrap.credential,
+            token: bootstrap.credential,
             allowPublicEnrollment: true,
           }),
         ).toBeNull();
@@ -204,13 +224,14 @@ it("creates, cancels, and removes manual machines through the production lifecyc
 
 it("releases legacy Connect access when removing a backfilled manual host", async () => {
   await withTestHarness(async (h) => {
-    await h.pluginService.install("builtin:machine-manual", { kind: "root" });
-    const api = h.pluginService.getApi("machine-manual");
-    if (!api) throw new Error("Manual provider did not load");
+    await h.pluginService.install("builtin:keep-awake", { kind: "root" });
+    const api = h.pluginService.getApi("keep-awake");
+    if (!api) throw new Error("Test plugin did not load");
     const release = vi.fn(async () => {});
     api.experimental_serverAccess.register({
       id: "connect",
       displayName: "Legacy access",
+      description: "Legacy access for a backfilled machine.",
       availability: () => ({ status: "available" }),
       acquire: async () => {
         throw new Error("Must not acquire during removal");
@@ -224,6 +245,8 @@ it("releases legacy Connect access when removing a backfilled manual host", asyn
         name: "Legacy",
         connectMachineId: "legacy-cloud-machine",
         machineProviderId: "manual",
+        serverAccessProviderId: "connect",
+        serverAccessGrantId: null,
         resource: { version: 1, hostId: "legacy-manual" },
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -233,7 +256,7 @@ it("releases legacy Connect access when removing a backfilled manual host", asyn
     await sweepProviderMachine(h.deps, "legacy-manual");
     expect(release).toHaveBeenCalledWith({
       key: "legacy-manual",
-      grantId: "legacy-manual",
+      grantId: null,
       hostId: "legacy-manual",
     });
     expect(getHost(h.db, "legacy-manual")?.phase).toBe("destroyed");

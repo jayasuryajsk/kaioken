@@ -86,7 +86,10 @@ describe("machine bootstrap", () => {
       signal: new AbortController().signal,
     });
     expect(h.exec).toHaveBeenCalledWith(
-      expect.objectContaining({ command: expect.arrayContaining(["host_1"]) }),
+      expect.objectContaining({
+        command: ["sh", "-s", "--", "--start", "--host-id", "host_1"],
+        stdin: expect.stringContaining("Usage: install.sh"),
+      }),
     );
     expect(h.enrollments.waitForConnection).toHaveBeenCalledOnce();
   });

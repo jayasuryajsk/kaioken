@@ -43,7 +43,6 @@ export default {
     "src/**/*.stories.tsx",
     "../../plugins/workflows/**/*.stories.tsx",
     "../../plugins/ask-user-question/*.stories.tsx",
-    "../../plugins/machine-manual/*.stories.tsx",
   ],
   defaultStory: "",
   viteConfig: "./.ladle/vite.config.ts",

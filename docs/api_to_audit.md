@@ -573,6 +573,8 @@ credentials. Resource records are bounded to 16 KiB.
 
 Core owns enrollment, durable launches, cleanup retries and coordinated lifecycle
 transitions. Plugins own allocation, filesystem preservation and idle policy.
+Each `enrollments.prepare` call revokes any pending credential and issues a fresh
+one for the same durable host identity.
 Create failures are terminal; providers retry vendor API hiccups inside create.
 Create prepares enrollment and awaits checkpoint before bootstrap. Suspend and
 resume also await checkpoint before destructive cleanup/bootstrap. All three
@@ -2639,22 +2641,23 @@ display metadata, not a machine access grant. Audit provider URL safety before
 stabilizing this field.
 
 `PluginServerAccess` registers server access through `ServerAccessProviderDeclaration`: id,
-displayName, availability, acquire({ key, hostId, signal }) and
-release({ key, hostId, grantId }). `ServerAccessGrant` carries `{ id, serverUrl, headers?: Record<string, string> }`.
+displayName, description, availability, acquire({ key, hostId, signal }) and
+release({ key, hostId, grantId }). Acquire returns either a `ServerAccessGrant` carrying
+`{ id, serverUrl, headers?: Record<string, string> }` or
+`{ status: "failed", message }`.
 Machines attach these optional headers to enrollment, HTTP, WebSocket and runtime
 requests. A direct grant omits headers; access providers own credential redemption.
 `ServerAccessSelection` selects a provider explicitly. Core persists only
 provider id and grant id per host; credentials travel in bootstrap delivery.
 Direct access reads machineServerUrl with BB_EXTERNAL_URL fallback.
-defaultMachineAccess selects a provider; automatic prefers paired
-Connect, then an available direct URL. Access covers account-pool and other
+defaultMachineAccess selects a provider; otherwise core uses the first registered
+provider, or direct when none are registered. Access covers account-pool and other
 runtime requests after enrolment. Connect redeems Cloud codes server-side and persists connectMachineId with the
 grant before returning it, allowing release to revoke even before enrollment.
 Host detail retains connectMachineId from trusted gate metadata for legacy grants.
 
-An Error named `experimental_ServerAccessRecoveryError` exposes its deliberate
-user-safe recovery message through the plugin boundary; ordinary errors stay
-redacted. Release receives a null grantId when acquire was interrupted. Core persists the
+The failed acquisition result exposes its deliberate user-safe recovery message
+through the plugin boundary; ordinary thrown errors stay redacted. Release receives a null grantId when acquire was interrupted. Core persists the
 provider before acquisition and retries release by key and hostId. Keep intent
 and credential-bearing grants in secret storage; only non-secret revocation
 metadata belongs in KV.
@@ -2761,21 +2764,6 @@ return phase, recoveryState and message. Explicit machine removal remains availa
 The request/response schemas and types share this behavior and stabilization criteria.
 Stabilization requires interruption, checkpoint/restart, removal serialization,
 failed drain, bounded drain and same-identity restore tests.
-
-## Provider-owned machine setup
-
-`app.slots.experimental_machineSetup({machineProviderId, component})`
-hosts a provider-owned standalone setup UI. Only a registration matching the
-server provider's plugin ownership is eligible. Core blocks setup until machine access is ready, then lists providers or opens the only provider directly. The setup
-component receives client (the authenticated hosts SDK) and onClose. Core does not interpret provider IDs.
-Closing unmounts the component;
-the plugin owns cancellation and must abort local work without cancelling a
-durable enrollment merely because the dialog closes.
-
-Stabilization requires plugin unload/reload, missing provider UI, single and multiple providers,
-thread provisioning, expired enrollment regeneration, and compact drawer checks.
-Manual setup is the first implementation; it owns command fetching/copying,
-countdown and regeneration.
 
 ## Thread-sequence and terminal-input notifications
 

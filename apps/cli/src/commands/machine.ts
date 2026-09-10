@@ -1,6 +1,4 @@
-import { z } from "zod";
 import { registerMachineEnvironmentCommands } from "./machine-environment.js";
-import { registerMachineLifecycleCommands } from "./machine-lifecycle.js";
 import {
   enrollMachine,
   type MachineEnrollmentOptions,
@@ -139,7 +137,6 @@ export function registerMachineCommands(
     .command("machine")
     .description("Inspect execution machines");
 
-  registerMachineLifecycleCommands(machine);
   registerMachineEnvironmentCommands(machine, getUrl);
 
   machine
@@ -189,54 +186,31 @@ export function registerMachineCommands(
         try {
           const sdk = createCliBbSdk(getUrl());
           controller.signal.throwIfAborted();
-          let launch = await sdk.hosts.experimental_submit({
+          const launch = await sdk.hosts.experimental_submit({
             machineProviderId,
             inputs,
             ...(key === undefined ? {} : { key }),
             signal: controller.signal,
           });
-          let command: string | null = null;
-          if (machineProviderId === "manual") {
-            while (launch.phase === "creating" && command === null) {
-              controller.signal.throwIfAborted();
-              command = (
-                await sdk.plugins.callRpc({
-                  pluginId: "machine-manual",
-                  method: "command",
-                  input: { launchId: launch.id },
-                  outputSchema: z.object({
-                    command: z.string().nullable(),
-                    expiresAt: z.number().nullable(),
-                  }),
-                })
-              ).command;
-              if (command !== null) break;
-              await new Promise<void>((resolve) => setTimeout(resolve, 100));
-              launch = await sdk.hosts.experimental_launch({
-                id: launch.id,
-                signal: controller.signal,
-              });
-            }
-          }
           if (!opts.wait) {
-            if (
-              !outputJson(
-                opts,
-                machineProviderId === "manual"
-                  ? { ...launch, command }
-                  : launch,
-              )
-            )
-              console.log([launch.id, command ?? launch.step].join("\n"));
+            if (!outputJson(opts, launch))
+              console.log(
+                [launch.id, launch.command ?? launch.step].join("\n"),
+              );
             return;
           }
-          if (command !== null) console.error(command);
+          if (launch.command !== null) console.error(launch.command);
           console.error(`Following machine launch ${launch.id}`);
           let step = "";
+          let command = launch.command;
           const host = await sdk.hosts.experimental_follow({
             id: launch.id,
             signal: controller.signal,
             onProgress: (status) => {
+              if (status.command !== null && status.command !== command) {
+                command = status.command;
+                console.error(status.command);
+              }
               if (status.step !== step) {
                 step = status.step;
                 console.error(step);
@@ -409,13 +383,6 @@ export function registerMachineCommands(
         const result = await sdk.hosts.delete({ hostId });
         if (outputJson(opts, result)) return;
         console.log(`Machine ${hostId} removed`);
-        if (
-          hosts.find((host) => host.id === hostId)?.machineProviderId ===
-          "manual"
-        )
-          console.log(
-            `Uninstall manually on the machine: bb machine uninstall --host-id ${hostId}`,
-          );
       }),
     );
 

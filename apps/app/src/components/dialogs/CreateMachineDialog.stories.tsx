@@ -111,21 +111,17 @@ export function ProviderChoice() {
           <ProviderMachineSetup
             onOpenChange={noop}
             providers={[MODAL_MACHINE_PROVIDER]}
-            onSelectSetup={noop}
-            setupIds={noProviders}
           />
         </DialogStage>
       </StoryRow>
       <StoryRow
         label="several providers"
-        hint="both shipped providers; choosing Manual machine setup hands the whole dialog to that plugin's enrollment view, which this component never renders"
+        hint="both shipped providers use the same core-owned launch flow"
       >
         <DialogStage>
           <ProviderMachineSetup
             onOpenChange={noop}
             providers={[MANUAL_MACHINE_PROVIDER, MODAL_MACHINE_PROVIDER]}
-            onSelectSetup={noop}
-            setupIds={["manual"]}
           />
         </DialogStage>
       </StoryRow>
@@ -137,8 +133,6 @@ export function ProviderChoice() {
           <ProviderMachineSetup
             onOpenChange={noop}
             providers={[MODAL_NEEDS_TOKEN_PROVIDER]}
-            onSelectSetup={noop}
-            setupIds={noProviders}
           />
         </DialogStage>
       </StoryRow>
@@ -150,8 +144,6 @@ export function ProviderChoice() {
           <ProviderMachineSetup
             onOpenChange={noop}
             providers={[MODAL_UNRENDERABLE_INPUTS_PROVIDER]}
-            onSelectSetup={noop}
-            setupIds={noProviders}
           />
         </DialogStage>
       </StoryRow>
@@ -163,8 +155,6 @@ export function ProviderChoice() {
           <ProviderMachineSetup
             onOpenChange={noop}
             providers={[UNAVAILABLE_MACHINE_PROVIDER]}
-            onSelectSetup={noop}
-            setupIds={noProviders}
           />
         </DialogStage>
       </StoryRow>
@@ -173,12 +163,7 @@ export function ProviderChoice() {
         hint="nothing can add a machine, so the dialog says so and points at the plugins instead of offering an empty picker"
       >
         <DialogStage>
-          <ProviderMachineSetup
-            onOpenChange={noop}
-            providers={noProviders}
-            onSelectSetup={noop}
-            setupIds={noProviders}
-          />
+          <ProviderMachineSetup onOpenChange={noop} providers={noProviders} />
         </DialogStage>
       </StoryRow>
     </StoryCard>

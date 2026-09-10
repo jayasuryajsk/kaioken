@@ -111,10 +111,16 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 describe("Connect server-owned machine access", () => {
+  it("declares picker copy", async () => {
+    const host = await setup();
+    expect(provider(host).description).toBe("Use a private getbb.app address.");
+  });
+
   it("persists redemption before enrollment and revokes after restart", async () => {
     const api = cloud();
     const original = await setup();
     const grant = await provider(original).acquire(request);
+    if ("status" in grant) throw new Error(grant.message);
     expect(grant).toEqual({
       id: request.hostId,
       serverUrl: credential.serverUrl,
@@ -240,9 +246,11 @@ it.each([true, false])(
         return Response.json({ ok: true });
       }),
     );
-    await expect(provider(host).acquire(request)).rejects.toThrow(
-      "Cloud device may need dashboard revocation",
-    );
+    await expect(provider(host).acquire(request)).resolves.toEqual({
+      status: "failed",
+      message:
+        "Cloud device may need dashboard revocation: interrupted machine access acquisition",
+    });
     if (available) {
       await provider(host).acquire(request);
       await provider(host).release({
@@ -252,9 +260,11 @@ it.each([true, false])(
       });
       expect(active.size).toBe(0);
     } else {
-      await expect(provider(host).acquire(request)).rejects.toThrow(
-        "Cloud device may need dashboard revocation",
-      );
+      await expect(provider(host).acquire(request)).resolves.toEqual({
+        status: "failed",
+        message:
+          "Cloud device may need dashboard revocation: interrupted machine access acquisition; retry after Cloud lookup is available",
+      });
       await expect(
         provider(host).release({
           key: request.key,

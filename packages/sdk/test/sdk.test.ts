@@ -128,6 +128,7 @@ describe("@bb/sdk", () => {
     };
     const launch = {
       id: "launch_do",
+      command: null,
       phase: "ready",
       hostId: host.id,
       step: "Ready",

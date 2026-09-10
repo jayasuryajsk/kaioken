@@ -156,6 +156,8 @@ export const serverAccessStatusSchema = z.object({
     z.object({
       id: z.string(),
       displayName: z.string(),
+      description: z.string(),
+      pluginId: z.string().min(1).nullable(),
       availability: z.discriminatedUnion("status", [
         z.object({
           status: z.literal("available"),
@@ -166,7 +168,7 @@ export const serverAccessStatusSchema = z.object({
       ]),
     }),
   ),
-  defaultProviderId: z.string().nullable(),
+  defaultProviderId: z.string(),
   effectiveUrl: z.string().nullable(),
   urlSource: z.enum(["setting", "BB_EXTERNAL_URL"]).nullable(),
 });

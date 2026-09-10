@@ -47,9 +47,6 @@ bb machine create --provider <id> Create a standalone machine
 --json Print the created machine as JSON
 bb machine enroll --bootstrap-file <path>
 --bootstrap-env <NAME> Alternative private bundle source
-bb machine start --host-id <id> Start an owned local daemon
-bb machine stop --host-id <id> Stop an owned local daemon
-bb machine uninstall --host-id <id> Remove an owned local installation
 bb machine show <id-or-name> Show machine details
 bb machine join-code Create a machine pairing code
 bb machine rename <id-or-name> <name> Rename a machine
@@ -160,7 +157,7 @@ The plugin skill documents SSH prerequisites and safe endpoint cleanup.
 
 ## Local daemon lifecycle
 
-`bb machine start|stop|uninstall --host-id <id>` starts, stops or removes an
+`install-machine.sh --start|--stop|--uninstall --host-id <id>` starts, stops or removes an
 owned local installation. Optional `--server-url <url>` and `--data-dir <path>`
 assert the expected installation. BB_DATA_DIR is treated as an assertion too.
 An identity mismatch refuses the operation. These commands are local machine
@@ -227,16 +224,16 @@ follows the launch until the daemon connects. Run that command on the target
 machine; it installs bb if needed. Server access is resolved through the selected
 default access provider, just like SSH or cloud machines. `--no-wait` returns the
 launch ID and command once enrollment is prepared; `--json` includes the command
-in `command`. This command is fetched transiently from the encrypted pending
+in `command`. This command is built transiently from the encrypted pending
 bundle; durable progress contains no credential. After enrollment or cancellation,
-the command endpoint returns nothing. Treat this short-lived command as a credential.
+launch status returns no command. Treat this short-lived command as a credential.
 
 Use `bb machine status <launch-id>` to recover progress and
 `bb machine cancel <launch-id>` to cancel and revoke enrollment/access. Stopping
 the CLI or closing the dialog only stops following; creation continues.
 Manual machines never idle-suspend or automatically retire and do not expose
 suspend/resume. Removing one revokes its server access without executing on the
-machine. Run `bb machine uninstall --host-id <host-id>` on that box, with its
+machine. Run the original installer with `--uninstall --host-id <host-id>` on that box, with its
 original `BB_DATA_DIR` if explicitly configured, to remove its installation.
 
 ## Machine environment

@@ -1604,7 +1604,10 @@ export function createPluginApi(options: {
           throw new Error("Invalid or reserved server access provider id");
         }
         if (
+          typeof declaration.displayName !== "string" ||
           !declaration.displayName.trim() ||
+          typeof declaration.description !== "string" ||
+          !declaration.description.trim() ||
           typeof declaration.availability !== "function" ||
           typeof declaration.acquire !== "function" ||
           typeof declaration.release !== "function"

@@ -529,6 +529,12 @@ const eventLargeValuesMigrationPath = resolve(
   "drizzle",
   "0031_mysterious_zaran.sql",
 );
+const machineProvidersMigrationPath = resolve(
+  __dirname,
+  "..",
+  "drizzle",
+  "0116_machine_providers.sql",
+);
 function closeConnection(db: DbConnection): void {
   db.$client.close();
 }
@@ -5980,6 +5986,47 @@ describe("environment providers migration", () => {
           inputs: null,
         },
       });
+    } finally {
+      closeConnection(db);
+    }
+  });
+});
+
+describe("machine providers migration", () => {
+  it("backfills server access for machines with a legacy access identity", () => {
+    const db = createConnection(":memory:");
+    try {
+      db.$client.exec(`
+        CREATE TABLE hosts (
+          id text PRIMARY KEY NOT NULL,
+          name text NOT NULL,
+          type text NOT NULL,
+          connect_machine_id text
+        );
+        CREATE TABLE project_sources (id text PRIMARY KEY NOT NULL);
+        CREATE TABLE host_daemon_sessions (
+          id text PRIMARY KEY NOT NULL,
+          host_type text NOT NULL
+        );
+        CREATE TEMP TABLE bb_migration_local_host (id text PRIMARY KEY NOT NULL);
+        INSERT INTO hosts VALUES
+          ('legacy', 'Legacy', 'persistent', 'cloud-machine'),
+          ('direct', 'Direct', 'persistent', NULL);
+      `);
+
+      runMigrationFile({ db, migrationPath: machineProvidersMigrationPath });
+
+      expect(
+        db.$client
+          .prepare<
+            [],
+            { id: string; providerId: string | null }
+          >("SELECT id, server_access_provider_id AS providerId FROM hosts ORDER BY id")
+          .all(),
+      ).toEqual([
+        { id: "direct", providerId: null },
+        { id: "legacy", providerId: "connect" },
+      ]);
     } finally {
       closeConnection(db);
     }

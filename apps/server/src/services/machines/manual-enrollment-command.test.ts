@@ -1,6 +1,9 @@
 import { spawnSync } from "node:child_process";
 import { expect, it } from "vitest";
-import { enrolledInstallerScript } from "./manual-enrollment-command.js";
+import {
+  enrolledInstallerScript,
+  manualEnrollmentCommand,
+} from "./manual-enrollment-command.js";
 import type { EnrollmentBootstrap } from "@get-bb/plugin-sdk";
 
 const bootstrap: EnrollmentBootstrap = {
@@ -20,5 +23,11 @@ it("passes the exact bootstrap and arguments to the installer without shell expa
   expect(result.status).toBe(0);
   expect(result.stdout).toBe(
     `--bootstrap-env\nBB_ENROLLMENT\n${JSON.stringify(bootstrap)}`,
+  );
+});
+
+it("builds the transient curl command from the enrollment bootstrap", () => {
+  expect(manualEnrollmentCommand(bootstrap)).toBe(
+    "curl -fsSL -H 'X-BB-Enrollment: short-lived-code' 'https://test.getbb.app/install.sh' | sh",
   );
 });

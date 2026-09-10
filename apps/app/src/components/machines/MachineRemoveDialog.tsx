@@ -38,15 +38,8 @@ export function MachineRemoveDialog({
             <DialogTitle>Remove {target.name}?</DialogTitle>
             <DialogDescription>
               This revokes {target.name}'s access to this server.
-              {target.machineProviderId === "manual" ? (
-                <span className="mt-2 block">
-                  Uninstall manually on the machine:{" "}
-                  <code>bb machine uninstall --host-id {target.id}</code>
-                </span>
-              ) : null}
-              {target.machineProviderId !== null &&
-              target.machineProviderId !== "manual"
-                ? "This deletes the managed compute and saved snapshots. Its environments remain as read-only history."
+              {target.machineProviderId !== null
+                ? "The provider cleans up resources it owns. Its environments remain as read-only history."
                 : "Project checkouts stay on its disk, but its environments become read-only history and it cannot run new work until paired again."}
             </DialogDescription>
           </DialogHeader>

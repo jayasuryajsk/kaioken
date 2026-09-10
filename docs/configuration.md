@@ -564,8 +564,8 @@ the pending bootstrap in its uncached response; cancelled, expired, or consumed
 enrollments are rejected. `bb machine create
 --provider manual` follows the same lifecycle; `--no-wait` returns the launch ID
 and command. Manual machines never suspend or retire automatically. Removal
-revokes access; run `bb machine uninstall --host-id <id>` on that machine to
-uninstall its daemon. The local host remains provider-less.
+revokes access; run the original installer with `--uninstall --host-id <id>` on
+that machine to uninstall its daemon. The local host remains provider-less.
 
 Settings → Machines can also rename and remove machines; project settings can add a path or clone source on
 each machine; and thread creation can target any enrolled machine with a usable

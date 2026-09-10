@@ -14,19 +14,10 @@ import { sdk } from "@/lib/sdk";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
 import { CreateMachineDialog } from "./CreateMachineDialog";
 
-const slots = vi.hoisted(() => ({ owner: "command-plugin" }));
 vi.mock("@/lib/plugin-slots", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/plugin-slots")>()),
   usePluginSlots: () => ({
     machineProviderInputs: [],
-    machineSetup: [
-      {
-        machineProviderId: "command-provider",
-        pluginId: slots.owner,
-        generation: 1,
-        component: () => <button>Plugin-owned setup</button>,
-      },
-    ],
   }),
 }));
 vi.mock("@/components/plugin/PluginSlotMount", () => ({
@@ -48,7 +39,6 @@ vi.mock("@/lib/ws", () => ({
   wsManager: { subscribe: vi.fn(), unsubscribe: vi.fn() },
 }));
 beforeEach(() => {
-  slots.owner = "command-plugin";
   vi.mocked(sdk.system.config).mockResolvedValue(
     makeSystemConfig({
       serverAccess: {
@@ -59,6 +49,8 @@ beforeEach(() => {
           {
             id: "connect",
             displayName: "bb connect",
+            description: "Reach this server through bb connect.",
+            pluginId: "connect",
             availability: { status: "available" },
           },
         ],
@@ -86,6 +78,7 @@ beforeEach(() => {
   );
   vi.mocked(sdk.hosts.experimental_submit).mockResolvedValue({
     id: "launch",
+    command: null,
     hostId: null,
     phase: "creating",
     step: "",
@@ -120,17 +113,16 @@ async function pickProvider(name: string) {
     await screen.findByRole("menuitem", { name: new RegExp(name) }),
   );
 }
-it("opens the only provider directly without submitting in core", async () => {
+it("selects the only provider without submitting until asked", async () => {
   const providers = await sdk.hosts.experimental_listProviders();
   vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue(
     providers.slice(0, 1),
   );
   show();
-  await screen.findByRole("button", { name: "Plugin-owned setup" });
+  await screen.findByRole("button", { name: "Add machine" });
   expect(sdk.hosts.experimental_submit).not.toHaveBeenCalled();
 });
-it("offers the generic provider picker when no owned default setup exists", async () => {
-  slots.owner = "unrelated-plugin";
+it("offers the generic provider picker", async () => {
   show();
   await pickProvider("tailscale");
   fireEvent.click(screen.getByRole("button", { name: "Add machine" }));
@@ -140,19 +132,48 @@ it("offers the generic provider picker when no owned default setup exists", asyn
     ),
   );
 });
-it("does not mount another plugin's setup for a provider it does not own", async () => {
-  slots.owner = "unrelated-plugin";
-  show();
-  await screen.findByRole("button", { name: "Machine provider" });
-  expect(
-    screen.queryByRole("button", { name: "Plugin-owned setup" }),
-  ).toBeNull();
-});
-
-it("shows multiple providers before opening their setup", async () => {
+it("submits every provider through the generic setup flow", async () => {
   show();
   await pickProvider("command-provider");
-  await screen.findByRole("button", { name: "Plugin-owned setup" });
+  fireEvent.click(screen.getByRole("button", { name: "Add machine" }));
+  await waitFor(() =>
+    expect(sdk.hosts.experimental_submit).toHaveBeenCalledWith(
+      expect.objectContaining({ machineProviderId: "command-provider" }),
+    ),
+  );
+});
+
+it("shows and copies a transient launch command with its expiry", async () => {
+  const providers = await sdk.hosts.experimental_listProviders();
+  vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue(
+    providers.slice(0, 1),
+  );
+  vi.mocked(sdk.hosts.experimental_submit).mockResolvedValue({
+    id: "launch",
+    command: "curl private | sh",
+    hostId: null,
+    phase: "creating",
+    step: "Run the command",
+    message: null,
+    log: "",
+    cancelPending: false,
+    terminal: false,
+  });
+  const writeText = vi.fn().mockResolvedValue(undefined);
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: { writeText },
+  });
+  show();
+  fireEvent.click(await screen.findByRole("button", { name: "Add machine" }));
+  expect(await screen.findByText("Run this command")).toBeTruthy();
+  expect(
+    screen.getByText("It expires 15 minutes after it was issued."),
+  ).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Copy command" }));
+  await waitFor(() =>
+    expect(writeText).toHaveBeenCalledWith("curl private | sh"),
+  );
 });
 it("blocks provider selection until access is configured", async () => {
   const config = await sdk.system.config();
@@ -164,9 +185,6 @@ it("blocks provider selection until access is configured", async () => {
   show();
   await screen.findByRole("link", { name: "Set up bb connect" });
   expect(screen.queryByRole("button", { name: "Machine provider" })).toBeNull();
-  expect(
-    screen.queryByRole("button", { name: "Plugin-owned setup" }),
-  ).toBeNull();
   expect(sdk.hosts.experimental_submit).not.toHaveBeenCalled();
 });
 
@@ -180,6 +198,8 @@ it("saves a manual address in the access gate and advances without reopening", a
       {
         id: "direct",
         displayName: "Manual",
+        description: "Use a server address.",
+        pluginId: null,
         availability: { status: "available" },
       },
     ],

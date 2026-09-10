@@ -12,7 +12,6 @@ import type {
   PluginDiffRendererRegistration,
   PluginEnvironmentProviderInputsRegistration,
   PluginMachineProviderInputsRegistration,
-  ExperimentalMachineSetupRegistration,
   PluginFileOpenerRegistration,
   PluginHomepageSectionRegistration,
   PluginCommandPaletteActionRegistration,
@@ -308,7 +307,6 @@ export interface CollectedPluginAppRegistrations {
   timelineRenderers: PluginTimelineRendererRegistration[];
   environmentProviderInputs: PluginEnvironmentProviderInputsRegistration[];
   machineProviderInputs: PluginMachineProviderInputsRegistration[];
-  machineSetup: ExperimentalMachineSetupRegistration[];
   contentScripts: PluginContentScriptRegistration[];
 }
 
@@ -359,7 +357,6 @@ export function collectPluginAppRegistrations(
     timelineRenderers: [],
     environmentProviderInputs: [],
     machineProviderInputs: [],
-    machineSetup: [],
     contentScripts: [],
   };
   sidebarFooterItemsByRegistrationSet.set(collected, sidebarFooterItems);
@@ -386,7 +383,6 @@ export function collectPluginAppRegistrations(
     timelineRenderer: new Set<string>(),
     environmentProviderInputs: new Set<string>(),
     machineProviderInputs: new Set<string>(),
-    machineSetup: new Set<string>(),
     contentScript: new Set<string>(),
   };
 
@@ -807,18 +803,6 @@ export function collectPluginAppRegistrations(
         );
         collected.environmentProviderInputs.push({
           environmentProviderId,
-          component: requireComponent(kind, registration.component),
-        });
-      },
-      experimental_machineSetup(registration) {
-        const kind = "slots.experimental_machineSetup";
-        const machineProviderId = requireProviderId(
-          kind,
-          registration?.machineProviderId,
-        );
-        requireUniqueId(kind, seenIds.machineSetup, machineProviderId);
-        collected.machineSetup.push({
-          machineProviderId,
           component: requireComponent(kind, registration.component),
         });
       },

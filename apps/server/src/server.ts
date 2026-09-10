@@ -1,6 +1,7 @@
 import { enrolledInstallerScript } from "./services/machines/manual-enrollment-command.js";
 import { recheckEnvironmentLaunch } from "./services/threads/thread-environment-providers.js";
 import { getMachineEnrollmentService } from "./services/machines/machine-services.js";
+import { withManualMachineProvider } from "./services/machines/manual-provider.js";
 import { registerDesktopBrowserRoutes } from "./routes/desktop-browsers.js";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { createHash } from "node:crypto";
@@ -645,7 +646,12 @@ export function createApp(
   setEnvironmentLaunchRecheckHandler((threadId) =>
     recheckEnvironmentLaunch(deps, threadId),
   );
-  setPluginMachineProviderBridge(pluginService.machineProviders);
+  setPluginMachineProviderBridge(
+    withManualMachineProvider(
+      pluginService.machineProviders,
+      getMachineEnrollmentService(deps),
+    ),
+  );
   setServerAccessBridge(pluginService.serverAccessProviders);
   setServerAccessRecheckHandler(() => {
     deps.hub.notifySystem(["config-changed"]);

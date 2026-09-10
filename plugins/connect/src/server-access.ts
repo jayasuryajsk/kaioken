@@ -27,10 +27,8 @@ export function createServerAccessRecheck(
   };
 }
 
-function recoveryError(message: string): Error {
-  return Object.assign(new Error(message), {
-    name: "experimental_ServerAccessRecoveryError",
-  });
+function acquisitionFailure(message: string) {
+  return { status: "failed" as const, message };
 }
 
 function grantKey(hostId: string): string {
@@ -83,12 +81,13 @@ export async function registerServerAccess(
     } catch {
       const message =
         "Cloud device may need dashboard revocation: interrupted machine access acquisition; retry after Cloud lookup is available";
-      throw recoveryError(message);
+      return acquisitionFailure(message);
     }
   }
   bb.experimental_serverAccess.register({
     id: "connect",
     displayName: "bb connect",
+    description: "Use a private getbb.app address.",
     availability: () => {
       const status = tunnel.status();
       return status.paired
@@ -111,8 +110,10 @@ export async function registerServerAccess(
           throw new Error("Pair this bb instance with bb connect");
         let intent = existing?.intent;
         if (intent) {
-          const consumed = await reconcile(intent);
-          if (consumed || intent.expiresAt <= Date.now()) intent = undefined;
+          const reconciliation = await reconcile(intent);
+          if (typeof reconciliation !== "boolean") return reconciliation;
+          if (reconciliation || intent.expiresAt <= Date.now())
+            intent = undefined;
         }
         if (!intent) {
           const code = await fetchMachineCode(credential);
@@ -126,11 +127,11 @@ export async function registerServerAccess(
         }
         await bb.storage.kv.set(grantKey(hostId), { intent });
         const pending = intent;
-        const redeemed = await redeemMachineCode(pending).catch(async () => {
-          const message =
-            "Cloud device may need dashboard revocation: interrupted machine access acquisition";
-          throw recoveryError(message);
-        });
+        const redeemed = await redeemMachineCode(pending).catch(() => null);
+        if (redeemed === null)
+          return acquisitionFailure(
+            "Cloud device may need dashboard revocation: interrupted machine access acquisition",
+          );
         const grant = {
           id: hostId,
           serverUrl: redeemed.serverUrl,
@@ -147,7 +148,9 @@ export async function registerServerAccess(
         const stored = await load(hostId);
         if (!stored) return;
         if ("intent" in stored) {
-          await reconcile(stored.intent);
+          const reconciliation = await reconcile(stored.intent);
+          if (typeof reconciliation !== "boolean")
+            throw new Error(reconciliation.message);
         } else {
           const credential = tunnel.getCredential();
           if (!credential)

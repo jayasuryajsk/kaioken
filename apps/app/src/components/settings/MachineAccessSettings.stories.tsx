@@ -1,14 +1,90 @@
-import { MachineAccessSettingsContent } from "./MachineAccessSettings";
+import type { ServerAccessStatus } from "@bb/server-contract";
 import {
-  CONNECT_PAIRED,
-  CONNECT_PAIRED_WITHOUT_URL,
-  CONNECT_UNAVAILABLE,
-  CONNECT_UNPAIRED,
-  MANUAL_WITH_URL,
-  METHOD_NOT_INSTALLED,
-  machineAccessState,
-} from "../../../.ladle/machine-story-fixtures";
+  MachineAccessSettingsContent,
+  type MachineAccessState,
+} from "./MachineAccessSettings";
 import { StoryCard, StoryRow } from "../../../.ladle/story-card";
+
+const noop = () => {};
+const noopAsync = async () => {};
+const direct = {
+  id: "direct",
+  displayName: "Manual",
+  description: "Use your own domain or network address.",
+  pluginId: null,
+  availability: { status: "available" as const },
+};
+
+function access(
+  availability: ServerAccessStatus["providers"][number]["availability"],
+): ServerAccessStatus {
+  return {
+    providers: [
+      {
+        id: "relay",
+        displayName: "Managed relay",
+        description: "Use a managed relay address.",
+        pluginId: "relay-plugin",
+        availability,
+      },
+      direct,
+    ],
+    defaultProviderId: "relay",
+    effectiveUrl: null,
+    urlSource: null,
+  };
+}
+
+function machineAccessState(
+  serverAccess: ServerAccessStatus,
+  overrides: Partial<MachineAccessState> = {},
+): MachineAccessState {
+  const selected = overrides.selected ?? serverAccess.defaultProviderId;
+  return {
+    access: serverAccess,
+    disabled: false,
+    draft: null,
+    error: null,
+    effective: serverAccess.providers.find(
+      (provider) => provider.id === selected,
+    ),
+    saving: false,
+    selected,
+    value:
+      serverAccess.urlSource === "setting"
+        ? (serverAccess.effectiveUrl ?? "")
+        : "",
+    editDraft: noop,
+    selectProvider: noop,
+    commitUrl: noopAsync,
+    ...overrides,
+  };
+}
+
+const PROVIDER_SETUP_REQUIRED = access({
+  status: "setup-required",
+  message: "Set up the relay",
+});
+const PROVIDER_READY = access({
+  status: "available",
+  serverUrl: "https://relay.example.com",
+});
+const PROVIDER_READY_WITHOUT_URL = access({ status: "available" });
+const PROVIDER_UNAVAILABLE = access({
+  status: "unavailable",
+  message: "The relay rejected this server's credential",
+});
+const DIRECT_WITH_URL = {
+  ...PROVIDER_SETUP_REQUIRED,
+  defaultProviderId: "direct",
+  effectiveUrl: "https://bb.example.com",
+  urlSource: "setting" as const,
+};
+const METHOD_NOT_INSTALLED = {
+  ...PROVIDER_SETUP_REQUIRED,
+  providers: [direct],
+  defaultProviderId: "missing",
+};
 
 export default {
   title: "settings/Machine Access",
@@ -22,7 +98,7 @@ export function Section() {
         hint="setup-required — no status verdict, just the explanation and a primary action"
       >
         <MachineAccessSettingsContent
-          machineAccess={machineAccessState(CONNECT_UNPAIRED)}
+          machineAccess={machineAccessState(PROVIDER_SETUP_REQUIRED)}
         />
       </StoryRow>
       <StoryRow
@@ -30,7 +106,7 @@ export function Section() {
         hint="available with a public URL — the action drops to secondary"
       >
         <MachineAccessSettingsContent
-          machineAccess={machineAccessState(CONNECT_PAIRED)}
+          machineAccess={machineAccessState(PROVIDER_READY)}
         />
       </StoryRow>
       <StoryRow
@@ -38,7 +114,7 @@ export function Section() {
         hint="available before the tunnel reports an address"
       >
         <MachineAccessSettingsContent
-          machineAccess={machineAccessState(CONNECT_PAIRED_WITHOUT_URL)}
+          machineAccess={machineAccessState(PROVIDER_READY_WITHOUT_URL)}
         />
       </StoryRow>
       <StoryRow
@@ -46,7 +122,7 @@ export function Section() {
         hint="paired once and now refused — the provider's message replaces the explanation"
       >
         <MachineAccessSettingsContent
-          machineAccess={machineAccessState(CONNECT_UNAVAILABLE)}
+          machineAccess={machineAccessState(PROVIDER_UNAVAILABLE)}
         />
       </StoryRow>
       <StoryRow
@@ -54,7 +130,7 @@ export function Section() {
         hint="the direct provider — the saved URL is the placeholder"
       >
         <MachineAccessSettingsContent
-          machineAccess={machineAccessState(MANUAL_WITH_URL)}
+          machineAccess={machineAccessState(DIRECT_WITH_URL)}
         />
       </StoryRow>
       <StoryRow
@@ -62,7 +138,7 @@ export function Section() {
         hint="a rejected draft — destructive text in the hint's place, announced as an alert"
       >
         <MachineAccessSettingsContent
-          machineAccess={machineAccessState(MANUAL_WITH_URL, {
+          machineAccess={machineAccessState(DIRECT_WITH_URL, {
             draft: "notaurl",
             error: "Enter a valid HTTP or HTTPS URL without credentials",
           })}
@@ -73,7 +149,7 @@ export function Section() {
         hint="the update is in flight — every control is disabled"
       >
         <MachineAccessSettingsContent
-          machineAccess={machineAccessState(MANUAL_WITH_URL, {
+          machineAccess={machineAccessState(DIRECT_WITH_URL, {
             draft: "https://bb.example.com/",
             disabled: true,
             saving: true,

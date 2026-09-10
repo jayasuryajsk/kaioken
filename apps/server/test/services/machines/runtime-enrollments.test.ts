@@ -10,6 +10,7 @@ import {
   setAppSettings,
 } from "@bb/db";
 import { defaultAppSettings } from "@bb/domain";
+import type { ServerAccessGrant } from "@get-bb/plugin-sdk";
 import { describe, expect, it, vi } from "vitest";
 import { getMachineEnrollmentService } from "../../../src/services/machines/machine-services.js";
 import { serverAccess } from "../../../src/services/machines/server-access.js";
@@ -133,18 +134,34 @@ describe("production machine enrollment wiring", () => {
       expect(getMachineEnrollmentService(h.deps)).toBe(
         getMachineEnrollmentService(h.deps),
       );
-      expect(
-        await api.experimental_machines.enrollments.prepare({
-          key: "runtime-launch",
-        }),
-      ).toEqual(enrollment);
-      if (enrollment.state !== "pending")
+      const reissued = await api.experimental_machines.enrollments.prepare({
+        key: "runtime-launch",
+      });
+      expect(reissued).toMatchObject({
+        id: enrollment.id,
+        hostId: enrollment.hostId,
+        state: "pending",
+      });
+      if (enrollment.state !== "pending" || reissued.state !== "pending")
         throw new Error("Expected pending enrollment");
-      const exec = vi.fn(async () => {
+      expect(reissued.bootstrap.credential).not.toBe(
+        enrollment.bootstrap.credential,
+      );
+      const exec = vi.fn(async ({ stdin }: { stdin?: string }) => {
+        if (stdin === undefined) throw new Error("Expected enrollment input");
+        const input: unknown = JSON.parse(stdin);
+        if (
+          typeof input !== "object" ||
+          input === null ||
+          !("credential" in input) ||
+          typeof input.credential !== "string"
+        ) {
+          throw new Error("Expected enrollment credential");
+        }
         expect(
           await h.deps.machineAuth.enrollHost({
             hostId: enrollment.hostId,
-            token: enrollment.bootstrap.credential,
+            token: input.credential,
             allowPublicEnrollment: true,
           }),
         ).not.toBeNull();
@@ -191,13 +208,18 @@ describe("production machine enrollment wiring", () => {
       const api = await installPlugin(h, "enrollment-runtime");
       const other = await installPlugin(h, "enrollment-other");
       const release = vi.fn(async () => {});
-      const acquire = vi.fn(async ({ hostId }: { hostId: string }) => ({
-        id: "runtime-grant",
-        serverUrl: "https://machine.example.test",
-      }));
+      const acquire = vi.fn(
+        async ({ hostId }: { hostId: string }): Promise<
+          ServerAccessGrant | { status: "failed"; message: string }
+        > => ({
+          id: "runtime-grant",
+          serverUrl: "https://machine.example.test",
+        }),
+      );
       api.experimental_serverAccess.register({
         id: "runtime-access",
         displayName: "Runtime access",
+        description: "Reach the server through the runtime test provider.",
         availability: () => ({ status: "available" }),
         acquire,
         release,
@@ -210,11 +232,10 @@ describe("production machine enrollment wiring", () => {
         }),
       ).rejects.toThrow("different plugin");
       expect(h.db.select().from(machineEnrollments).all()).toEqual([]);
-      acquire.mockRejectedValueOnce(
-        Object.assign(new Error("Cloud device may need dashboard revocation"), {
-          name: "experimental_ServerAccessRecoveryError",
-        }),
-      );
+      acquire.mockResolvedValueOnce({
+        status: "failed",
+        message: "Cloud device may need dashboard revocation",
+      });
       await expect(
         api.experimental_machines.enrollments.prepare({
           key: "failure-launch",

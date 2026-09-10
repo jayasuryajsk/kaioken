@@ -6,6 +6,7 @@ usage() {
   cat >&2 <<'EOF'
 Usage: install.sh --join-code <code> --host-id <host-id> --server <url> [--machine-code <code>] [--host-daemon-port <port>]
        install.sh --bootstrap-env <NAME>
+       install.sh --start|--stop|--uninstall --host-id <host-id> [--server-url <url>] [--data-dir <path>]
 
 The first three options are required. --machine-code is required through bb connect.
 By default, the installer assigns this enrolled daemon its own local API port.
@@ -19,6 +20,8 @@ host_id=
 server_url=
 machine_code=
 requested_host_daemon_port=
+lifecycle_action=
+requested_data_dir=
 
 CURL_CONNECT_TIMEOUT_SECONDS=10
 PACKAGE_DOWNLOAD_TIMEOUT_SECONDS=300
@@ -98,9 +101,166 @@ ready_row() {
   log " " "$(dim "$ready_label") $2"
 }
 
+run_lifecycle() {
+  case "$host_id" in *[!A-Za-z0-9_-]*|'') fail_step "Invalid machine host ID."; exit 2 ;; esac
+  lifecycle_data_dir=${requested_data_dir:-${BB_DATA_DIR:-}}
+  installation=$(node -e '
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const [home, requested, hostId, expectedServer] = process.argv.slice(1);
+    const root = path.join(home, ".bb-machines");
+    let candidates;
+    if (requested) candidates = [path.resolve(requested)];
+    else {
+      try { candidates = fs.readdirSync(root).map((name) => path.join(root, name)); }
+      catch (error) { if (error.code === "ENOENT") process.exit(3); throw error; }
+    }
+    const canonicalRoot = fs.realpathSync(root);
+    const matches = [];
+    for (const candidate of candidates) {
+      let auth;
+      try { auth = JSON.parse(fs.readFileSync(path.join(candidate, "auth.json"), "utf8")); }
+      catch (error) { if (error.code === "ENOENT") continue; throw error; }
+      if (auth.hostId !== hostId) {
+        if (requested) throw new Error("Machine data directory belongs to another host.");
+        continue;
+      }
+      const dataDir = fs.realpathSync(candidate);
+      if (path.dirname(dataDir) !== canonicalRoot || fs.lstatSync(candidate).isSymbolicLink()) {
+        throw new Error("Refusing a machine data directory outside its installer-owned root.");
+      }
+      const config = JSON.parse(fs.readFileSync(path.join(dataDir, "config.json"), "utf8"));
+      const serverUrl = new URL(config.serverUrl).href.replace(/\/+$/u, "");
+      if (expectedServer && serverUrl !== new URL(expectedServer).href.replace(/\/+$/u, "")) {
+        throw new Error("Machine data directory belongs to another server.");
+      }
+      matches.push({ dataDir, serverUrl });
+    }
+    if (matches.length > 1) throw new Error("Host identity matches multiple machine installations; specify --data-dir.");
+    if (matches.length === 0) process.exit(3);
+    process.stdout.write(JSON.stringify(matches[0]));
+  ' "$HOME" "$lifecycle_data_dir" "$host_id" "$server_url") || {
+    lifecycle_status=$?
+    if [ "$lifecycle_status" -eq 3 ]; then
+      if [ "$lifecycle_action" = start ]; then fail_step "Machine installation was not found."; exit 1; fi
+      return 0
+    fi
+    exit "$lifecycle_status"
+  }
+  data_dir=$(node -e 'process.stdout.write(JSON.parse(process.argv[1]).dataDir)' "$installation")
+  server_url=$(node -e 'process.stdout.write(JSON.parse(process.argv[1]).serverUrl)' "$installation")
+  host_daemon_port=$(sed -n '1p' "$data_dir/host-daemon-port")
+  case "$host_daemon_port" in *[!0-9]*|'') fail_step "Refusing an invalid daemon port."; exit 1 ;; esac
+  if [ "$host_daemon_port" -lt 1024 ] || [ "$host_daemon_port" -gt 65535 ] || [ "$host_daemon_port" -eq 38886 ] || [ "$host_daemon_port" -eq 38887 ]; then
+    fail_step "Refusing an invalid or default daemon port."
+    exit 1
+  fi
+  lifecycle_server_host=$(node -e 'process.stdout.write(new URL(process.argv[1]).host.replace(/[^a-zA-Z0-9.-]/gu, "-"))' "$server_url")
+  lifecycle_slug=$(printf '%s-%s' "$lifecycle_server_host" "$host_id" | tr '.' '-')
+  systemd_scope=--user
+  if [ "$platform" = darwin ]; then
+    service_name="app.getbb.host-daemon.$lifecycle_slug"
+    service_file="$HOME/Library/LaunchAgents/$service_name.plist"
+  else
+    service_name="bb-host-daemon-$lifecycle_slug.service"
+    service_file="$HOME/.config/systemd/user/$service_name"
+    system_service_file="$data_dir/systemd/$service_name"
+    if [ -f "$system_service_file" ]; then
+      [ "$(id -u)" -eq 0 ] || { fail_step "Machine system service requires root."; exit 1; }
+      [ ! -e "$service_file" ] || { fail_step "Machine has both user and system services."; exit 1; }
+      [ ! -L "${system_service_file%/*}" ] || { fail_step "Refusing a symlinked machine system service directory."; exit 1; }
+      service_file=$system_service_file
+      systemd_scope=--system
+    fi
+  fi
+  if [ -e "$service_file" ]; then
+    [ ! -L "$service_file" ] || { fail_step "Machine service belongs to another installation."; exit 1; }
+    BB_LIFECYCLE_DATA_DIR="$data_dir" node -e '
+      const fs = require("node:fs");
+      const service = fs.readFileSync(process.argv[1], "utf8");
+      const dataDir = process.env.BB_LIFECYCLE_DATA_DIR;
+      const escaped = dataDir.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;").replaceAll("'"'"'", "&apos;");
+      const systemd = dataDir.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"").replaceAll("%", "%%");
+      if (!service.includes(`<key>BB_DATA_DIR</key><string>${escaped}</string>`) && !service.includes(`Environment="BB_DATA_DIR=${systemd}"`)) {
+        process.stderr.write(`Machine service does not reference ${dataDir}.\n`);
+        process.exit(1);
+      }
+    ' "$service_file" || { fail_step "Machine service belongs to another installation."; exit 1; }
+  fi
+  daemon_matches() {
+    node -e '
+      const [port, hostId, serverUrl] = process.argv.slice(1);
+      void fetch(`http://127.0.0.1:${port}/status`, { signal: AbortSignal.timeout(750) })
+        .then(async (response) => {
+          const status = await response.json();
+          const normalize = (value) => new URL(String(value)).href.replace(/\/+$/u, "");
+          process.exit(status.hostId === hostId && normalize(status.serverUrl) === normalize(serverUrl) ? 0 : 1);
+        }).catch(() => process.exit(1));
+    ' "$host_daemon_port" "$host_id" "$server_url" >/dev/null 2>&1
+  }
+  pid_file="$data_dir/install-daemon.pid"
+  daemon_pid=
+  if [ -f "$pid_file" ]; then daemon_pid=$(sed -n '1p' "$pid_file"); fi
+  owned_pid() {
+    [ -n "$daemon_pid" ] || return 1
+    case "$daemon_pid" in *[!0-9]*|'0'|'1') fail_step "Invalid installed daemon PID."; exit 1 ;; esac
+    daemon_command=$(ps -p "$daemon_pid" -o command= 2>/dev/null) || return 1
+    launcher="$data_dir/npm/bin/bb-app"
+    case " $daemon_command " in *" $launcher "*" host-daemon "*" --host-daemon-port $host_daemon_port "*" --server-url $server_url "*) return 0 ;; esac
+    fail_step "Recorded daemon PID belongs to another process."
+    exit 1
+  }
+  if [ "$lifecycle_action" = start ]; then
+    if daemon_matches; then return 0; fi
+    if [ -f "$service_file" ]; then
+      if [ "$platform" = darwin ]; then
+        launchctl bootstrap "gui/$(id -u)" "$service_file"
+      else
+        systemctl "$systemd_scope" enable "$service_file" >/dev/null
+        systemctl "$systemd_scope" start "$service_name"
+      fi
+    elif ! owned_pid; then
+      BB_APP_NPM_PREFIX="$data_dir/npm" BB_DATA_DIR="$data_dir" nohup "$data_dir/npm/bin/bb-app" host-daemon --auto-update --host-daemon-port "$host_daemon_port" --server-url "$server_url" >"$data_dir/install-daemon.log" 2>&1 &
+      daemon_pid=$!
+      (umask 077 && printf '%s\n' "$daemon_pid" >"$pid_file")
+    fi
+    lifecycle_attempt=0
+    while [ "$lifecycle_attempt" -lt 80 ]; do
+      if daemon_matches; then return 0; fi
+      lifecycle_attempt=$((lifecycle_attempt + 1))
+      sleep 0.25
+    done
+    fail_step "Machine daemon did not start within 20 seconds."
+    exit 1
+  fi
+  if [ -f "$service_file" ]; then
+    if [ "$platform" = darwin ]; then
+      launchctl bootout "gui/$(id -u)" "$service_file" >/dev/null 2>&1 || true
+    elif [ "$lifecycle_action" = uninstall ]; then
+      systemctl "$systemd_scope" disable --now "$service_name"
+    else
+      systemctl "$systemd_scope" stop "$service_name"
+    fi
+  fi
+  if owned_pid; then kill "$daemon_pid"; fi
+  lifecycle_attempt=0
+  while [ "$lifecycle_attempt" -lt 80 ]; do
+    if ! daemon_matches && ! owned_pid; then break; fi
+    lifecycle_attempt=$((lifecycle_attempt + 1))
+    sleep 0.25
+  done
+  [ "$lifecycle_attempt" -lt 80 ] || { fail_step "Machine daemon did not stop within 20 seconds."; exit 1; }
+  rm -f "$pid_file"
+  if [ "$lifecycle_action" = uninstall ]; then
+    if [ -f "$service_file" ]; then rm -f "$service_file"; fi
+    if [ "$platform" = linux ]; then systemctl "$systemd_scope" daemon-reload; fi
+    node -e 'require("node:fs").rmSync(process.argv[1], { recursive: true })' "$data_dir"
+  fi
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --bootstrap-env|--join-code|--host-id|--server|--machine-code|--host-daemon-port)
+    --bootstrap-env|--join-code|--host-id|--server|--server-url|--machine-code|--host-daemon-port|--data-dir)
       [ "$#" -ge 2 ] || usage
       [ -n "$2" ] || usage
       case "$1" in
@@ -108,10 +268,17 @@ while [ "$#" -gt 0 ]; do
         --join-code) join_code=$2 ;;
         --host-id) host_id=$2 ;;
         --server) server_url=$2 ;;
+        --server-url) server_url=$2 ;;
         --machine-code) machine_code=$2 ;;
         --host-daemon-port) requested_host_daemon_port=$2 ;;
+        --data-dir) requested_data_dir=$2 ;;
       esac
       shift 2
+      ;;
+    --start|--stop|--uninstall)
+      [ -z "$lifecycle_action" ] || usage
+      lifecycle_action=${1#--}
+      shift
       ;;
     -h|--help) usage ;;
     *)
@@ -121,7 +288,9 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ -n "$bootstrap_env" ]; then
+if [ -n "$lifecycle_action" ]; then
+  [ -z "$bootstrap_env$join_code$machine_code$requested_host_daemon_port" ] || usage
+elif [ -n "$bootstrap_env" ]; then
   if [ -n "$join_code$host_id$server_url$machine_code" ]; then usage; fi
   host_id=$(node -e '
     const name = process.argv[1];
@@ -146,7 +315,7 @@ else
   [ -n "$join_code" ] || usage
 fi
 [ -n "$host_id" ] || usage
-[ -n "$server_url" ] || usage
+if [ -z "$lifecycle_action" ]; then [ -n "$server_url" ] || usage; fi
 printf '\n  %s\n\n' "$(bold "bb machine setup")"
 active_step "Setting up this machine as $host_id for $server_url"
 
@@ -181,6 +350,11 @@ node_bin=$(command -v node)
 if [ -z "${HOME:-}" ]; then
   HOME=$(node -e 'const home = require("node:os").homedir(); if (!require("node:path").isAbsolute(home)) process.exit(1); process.stdout.write(home);')
   export HOME
+fi
+
+if [ -n "$lifecycle_action" ]; then
+  run_lifecycle
+  exit 0
 fi
 
 require_npm() {

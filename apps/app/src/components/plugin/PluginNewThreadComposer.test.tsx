@@ -176,6 +176,8 @@ vi.mock("@/hooks/queries/system-queries", () => ({
           {
             id: "connect",
             displayName: "bb connect",
+            description: "Use a private getbb.app address.",
+            pluginId: "connect",
             availability: mocks.serverAccessReady
               ? { status: "available", serverUrl: "https://sawyer.getbb.app" }
               : { status: "setup-required", message: "Pair with bb connect" },
@@ -183,7 +185,7 @@ vi.mock("@/hooks/queries/system-queries", () => ({
         ],
         defaultProviderId: "connect",
         effectiveUrl: "https://sawyer.getbb.app",
-        urlSource: "connect",
+        urlSource: null,
       },
     },
   }),

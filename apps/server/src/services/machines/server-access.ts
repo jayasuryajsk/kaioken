@@ -31,6 +31,12 @@ const grantSchema: z.ZodType<ServerAccessGrant> = z
     headers: z.record(z.string(), z.string()).optional(),
   })
   .strict();
+const acquireResultSchema = z.union([
+  grantSchema,
+  z
+    .object({ status: z.literal("failed"), message: z.string().min(1) })
+    .strict(),
+]);
 const availabilitySchema = z.discriminatedUnion("status", [
   z.object({
     status: z.literal("available"),
@@ -57,8 +63,15 @@ export function machineServerUrl(deps: Dependencies) {
 
 export async function serverAccessStatus(deps: Dependencies) {
   const direct = machineServerUrl(deps);
-  const providers = await Promise.all(
-    listServerAccessProviders().map(async (record) => {
+  const records = listServerAccessProviders();
+  const providers: Array<{
+    id: string;
+    displayName: string;
+    description: string;
+    pluginId: string | null;
+    availability: z.infer<typeof availabilitySchema>;
+  }> = await Promise.all(
+    records.map(async (record) => {
       try {
         const availability = availabilitySchema.parse(
           await invokeServerAccessProvider(record, async () =>
@@ -68,12 +81,16 @@ export async function serverAccessStatus(deps: Dependencies) {
         return {
           id: record.provider.id,
           displayName: record.provider.displayName,
+          description: record.provider.description,
+          pluginId: record.pluginId,
           availability,
         };
       } catch {
         return {
           id: record.provider.id,
           displayName: record.provider.displayName,
+          description: record.provider.description,
+          pluginId: record.pluginId,
           availability: {
             status: "unavailable" as const,
             message: "Server access provider is unavailable",
@@ -85,6 +102,8 @@ export async function serverAccessStatus(deps: Dependencies) {
   providers.push({
     id: "direct",
     displayName: "Manual",
+    description: "Use your own domain or network address.",
+    pluginId: null,
     availability:
       direct.url === null
         ? {
@@ -94,7 +113,7 @@ export async function serverAccessStatus(deps: Dependencies) {
         : { status: "available" },
   });
   const configured = getAppSettings(deps.db).defaultMachineAccess;
-  const defaultProviderId = configured ?? "connect";
+  const defaultProviderId = configured ?? records[0]?.provider.id ?? "direct";
   return {
     providers,
     defaultProviderId,
@@ -152,11 +171,16 @@ async function resolve(
       .set({ serverAccessProviderId: providerId })
       .where(eq(hosts.id, args.hostId))
       .run();
-    let result: ServerAccessGrant;
+    let result: unknown;
     try {
       result = await invokeServerAccessProvider(record, () =>
         record.provider.acquire(args),
       );
+      const parsed = acquireResultSchema.safeParse(result);
+      if (!parsed.success)
+        throw new Error("Server access provider returned an invalid grant");
+      if ("status" in parsed.data) throw new Error(parsed.data.message);
+      grant = parsed.data;
     } catch (error) {
       deps.db
         .update(hosts)
@@ -169,10 +193,6 @@ async function resolve(
       deps.hub.notifyHost(args.hostId, ["host-connected"]);
       throw error;
     }
-    const parsed = grantSchema.safeParse(result);
-    if (!parsed.success)
-      throw new Error("Server access provider returned an invalid grant");
-    grant = parsed.data;
   }
   if (
     host.serverAccessGrantId !== null &&
@@ -207,14 +227,8 @@ async function release(
     : args.key;
   const host = getHost(deps.db, args.hostId);
   if (!host) return;
-  const providerId =
-    host.serverAccessProviderId ??
-    (host.machineProviderId === "manual" && host.connectMachineId !== null
-      ? "connect"
-      : null);
-  const grantId =
-    host.serverAccessGrantId ??
-    (host.connectMachineId === null ? null : host.id);
+  const providerId = host.serverAccessProviderId;
+  const grantId = host.serverAccessGrantId;
   if (providerId === null) return;
   if (providerId !== "direct") {
     const record = listServerAccessProviders().find(

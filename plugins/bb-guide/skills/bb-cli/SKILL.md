@@ -59,8 +59,8 @@ BB_HOST_DAEMON_PORT only for an intentional non-default target.
   belongs to `--new-environment worktree` only.
 - Enroll an existing machine with `bb machine create --provider manual`; run
   the printed command on the target. `--no-wait` returns its launch ID and command.
-  Cancel with `bb machine cancel <launch-id>`. Removal revokes access; uninstall
-  manually on that box with `bb machine uninstall --host-id <host-id>`.
+  Cancel with `bb machine cancel <launch-id>`. Removal revokes access; use the
+  original `install-machine.sh --uninstall --host-id <host-id>` on that box.
 - Create a standalone machine with `bb machine create --provider <id>`; use
   `--inputs <JSON>` for non-secret provider inputs and `--key` for retry identity.
 - List plugin-provisioned machine choices with `bb machine providers`. Create a
@@ -70,9 +70,9 @@ BB_HOST_DAEMON_PORT only for an intentional non-default target.
   persisted and non-secret; credentials belong in plugin settings. Composed
   environments choose their own machine: use `--environment-provider modal-sandbox`
   without machine selectors.
-- Use `bb machine enroll` for a private core-prepared bundle and local
-  `bb machine start|stop|uninstall --host-id <id>` for an owned installation;
-  see references/thread-creation.md for isolation and ownership checks.
+- Use `bb machine enroll` for a private core-prepared bundle. Local lifecycle is
+  handled by `install-machine.sh --start|--stop|--uninstall --host-id <id>`;
+  see references/thread-creation.md for ownership checks.
 - Use `bb machine suspend|resume <id-or-name>` only for providers that expose
   suspend and resume. Resume waits for pending suspension and is a no-op
   when already active. Use `bb machine retry-cleanup <id-or-name>` to retry a
