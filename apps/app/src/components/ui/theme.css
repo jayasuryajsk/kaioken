@@ -155,7 +155,9 @@
     --kaioken-sidebar-sticky-row-height: var(--kaioken-sidebar-row-height);
     --kaioken-sidebar-sticky-row-gap: 0.25rem;
     --kaioken-sidebar-sticky-child-row-gap: 0.125rem;
-    --kaioken-sidebar-sticky-label-top: var(--kaioken-sidebar-sticky-stack-padding-top);
+    --kaioken-sidebar-sticky-label-top: var(
+      --kaioken-sidebar-sticky-stack-padding-top
+    );
     --kaioken-sidebar-sticky-project-top: calc(
       var(--kaioken-sidebar-sticky-label-top) +
         var(--kaioken-sidebar-sticky-label-height) +
@@ -168,7 +170,8 @@
        affords. The section variant (no project row) overrides the base below. */
     --kaioken-sidebar-sticky-parent-base-top: calc(
       var(--kaioken-sidebar-sticky-project-top) +
-        var(--kaioken-sidebar-sticky-row-height) + var(--kaioken-sidebar-sticky-row-gap)
+        var(--kaioken-sidebar-sticky-row-height) +
+        var(--kaioken-sidebar-sticky-row-gap)
     );
     --kaioken-sidebar-sticky-parent-stride: calc(
       var(--kaioken-sidebar-sticky-row-height) +
@@ -331,7 +334,9 @@
 
   [data-sidebar-sticky-stack] [data-sidebar-sticky-tier="label"] {
     --kaioken-sidebar-sticky-tier-top: var(--kaioken-sidebar-sticky-label-top);
-    --kaioken-sidebar-sticky-tier-height: var(--kaioken-sidebar-sticky-label-height);
+    --kaioken-sidebar-sticky-tier-height: var(
+      --kaioken-sidebar-sticky-label-height
+    );
     --kaioken-sidebar-sticky-tier-z-index: 60;
     --kaioken-sidebar-sticky-tier-shield-top-height: var(
       --kaioken-sidebar-sticky-stack-padding
@@ -344,8 +349,12 @@
   }
 
   [data-sidebar-sticky-stack] [data-sidebar-sticky-tier="project"] {
-    --kaioken-sidebar-sticky-tier-top: var(--kaioken-sidebar-sticky-project-top);
-    --kaioken-sidebar-sticky-tier-height: var(--kaioken-sidebar-sticky-row-height);
+    --kaioken-sidebar-sticky-tier-top: var(
+      --kaioken-sidebar-sticky-project-top
+    );
+    --kaioken-sidebar-sticky-tier-height: var(
+      --kaioken-sidebar-sticky-row-height
+    );
     --kaioken-sidebar-sticky-tier-z-index: 50;
     --kaioken-sidebar-sticky-tier-shield-bottom-height: var(
       --kaioken-sidebar-sticky-row-gap
@@ -362,7 +371,9 @@
         var(--kaioken-sidebar-sticky-parent-level, 0) *
         var(--kaioken-sidebar-sticky-parent-stride)
     );
-    --kaioken-sidebar-sticky-tier-height: var(--kaioken-sidebar-sticky-row-height);
+    --kaioken-sidebar-sticky-tier-height: var(
+      --kaioken-sidebar-sticky-row-height
+    );
     /* Shallower ancestors win the overlap, so z-index descends with depth. */
     --kaioken-sidebar-sticky-tier-z-index: calc(
       var(--kaioken-sidebar-sticky-parent-base-z) -
@@ -387,12 +398,16 @@
      first parent pins directly under the section label instead of reserving an
      empty project-row slot. One base override covers every depth. */
   [data-sidebar-sticky-stack] [data-sidebar-sticky-section] {
-    --kaioken-sidebar-sticky-parent-base-top: var(--kaioken-sidebar-sticky-project-top);
+    --kaioken-sidebar-sticky-parent-base-top: var(
+      --kaioken-sidebar-sticky-project-top
+    );
   }
 
   @media (max-width: 767px) and (pointer: coarse) {
     [data-sidebar-sticky-stack] {
-      --kaioken-sidebar-sticky-row-height: var(--kaioken-sidebar-row-height-coarse);
+      --kaioken-sidebar-sticky-row-height: var(
+        --kaioken-sidebar-row-height-coarse
+      );
     }
   }
 }
@@ -880,6 +895,19 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
+  }
+  /* Per-aspect font preferences (Settings > Appearance > Fonts) set
+     --font-heading / --font-prose on <html>; otherwise these inherit. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading, var(--font-sans));
+  }
+  .kaioken-prose {
+    font-family: var(--font-prose, var(--font-sans));
   }
 
   button,

@@ -9,6 +9,7 @@ import { AppToaster } from "./components/AppToaster";
 import { registerProviderCliInstallQueryClient } from "./components/provider-cli/provider-cli-install-store";
 import { initializePreferredTheme } from "./hooks/useTheme";
 import { initializeFavicon } from "./lib/favicon-color-preference";
+import { initializeFontPreferences } from "./lib/font-preference";
 import { installForeignDomMutationGuard } from "./lib/foreign-dom-mutation-guard";
 import { installAppQueryClientBrowserEvents } from "./lib/query-client";
 import { appQueryClient } from "./lib/app-query-client";
@@ -25,6 +26,7 @@ registerProviderCliInstallQueryClient(appQueryClient);
 initializePreferredTheme();
 applyCachedAppThemeCss();
 initializeFavicon();
+initializeFontPreferences();
 disableGlobalCursorStyles();
 
 createRoot(document.getElementById("root")!, {

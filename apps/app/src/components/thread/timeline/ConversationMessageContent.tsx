@@ -271,7 +271,7 @@ function CollapsibleMessageText({
       <div
         ref={bodyRef}
         className={cn(
-          "break-words",
+          "kaioken-prose break-words",
           !isExpanded && "max-h-[15lh] overflow-hidden",
         )}
         style={
