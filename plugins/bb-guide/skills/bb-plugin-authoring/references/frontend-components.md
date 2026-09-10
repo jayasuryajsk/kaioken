@@ -232,10 +232,18 @@ className?, draftKey? }` — the `default*` props are SEEDS, not controlled
   `environmentProviderId`; choosing it creates the machine and runs the concrete
   environment provider. It appears once, outside existing-host groups.
   Machine-only registrations do not contribute environment-picker entries.
+  When the composition's machine provider declares inputs, its
+  `experimental_machineProviderInputs` compact chip renders before the
+  environment provider's inputs chip. It reports a ready default on mount and
+  opens richer configuration in the shared responsive drawer; a blocked or
+  crashed control disables submit with its short reason.
   A machine provider may omit `icon`; Add machine and the Machines page then
   render no provider logo, matching a manually enrolled machine. The Machines
   page badges a machine only when its provider declares
   `machineTag`.
+  Machine inputs are persisted and readable by every plugin, so never put
+  secrets in them; store credentials in plugin settings and emit only
+  non-secret configuration or references.
   Store-then-restore: the request's selection fields map to the `default*`
   seed props. The host composer creates `input` and `executionInputSources`
   from its draft and selection provenance. A plugin can re-open a saved

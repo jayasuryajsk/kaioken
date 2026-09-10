@@ -68,13 +68,16 @@ environment settings.
 | `tokenId`, `tokenSecret` | Required Modal token, entered in secret settings.         |
 | `appName`                | Modal app, default `bb-sandboxes`.                        |
 | `idleMinutes`            | Pause after idle, default 15; 0 disables idle suspension. |
-| `cpu`, `memoryMiB`       | Reservations; blank uses Modal's 0.125 cores and 128 MiB. |
+| Sandbox size presets     | Named CPU and memory reservations for new machines.       |
+| Images                   | Named Dockerfiles or existing Modal image IDs.            |
 
 Use `bb modal account inspect --json` to validate credentials
 without allocating resources. Create with
 `bb machine create --provider modal-sandbox --json`, or SDK
 `hosts.experimental_submit({machineProviderId:"modal-sandbox",key})`. Machine creation
-accepts no per-machine image inputs; configure the shared Dockerfile separately. Account inspection is also available through the
+accepts optional configured names in `{"preset":"Large","image":"Node 22"}`.
+With one or zero choices, the default applies and the composer shows no extra
+chip. Account inspection is also available through the
 plugin's typed `modalRpcContract` (`account.inspect`) and `sdk.plugins.callRpc`.
 See the [command reference](skills/modal-sandboxes/SKILL.md).
 
@@ -142,8 +145,8 @@ not forward them. This adapter is tied to the pinned vendor SDK. Output is not
 streamed to the CLI. An already submitted build can finish after CLI cancellation.
 
 Run builds or reuses that image and returns `sandboxId`, `imageId`, `expiresAt`
-and build `logs`. Debug sandboxes expire after 30 minutes, use configured CPU and
-memory, and contain no injected BB credentials, daemon, project clone or setup
+and build `logs`. Debug sandboxes expire after 30 minutes, use Modal's default CPU
+and memory, and contain no injected BB credentials, daemon, project clone or setup
 hook. They are separate from BB Machines and do not snapshot. Files and running
 processes remain between exec calls until stop or expiry. Copy successful fixes
 into the Dockerfile, save it, and run a new sandbox to verify them.

@@ -562,6 +562,25 @@ and owns the existing/new selection, labels, blocker copy, and emitted inputs.
    has to report ready from an effect on mount, as the worktree does.
    Decide whether the registration should instead declare a default value.
 
+## `app.slots.experimental_machineProviderInputs` (`@get-bb/plugin-sdk/app`)
+
+Supporting app exports are `PluginMachineProviderInputsRegistration`,
+`PluginMachineProviderInputsProps`, and `PluginMachineProviderInputsChange`.
+
+**What it does.** Registers the compact app control for one machine provider's
+inputs with `{ machineProviderId, component }`. The component receives
+`{ value, onChange }` and reports ready JSON or a blocked reason. It renders in
+the New Thread toolbar when a selected environment composition declares machine
+inputs. A control reports its
+default ready value on mount and loads richer choices only after its shared
+responsive drawer opens. The resulting value is persisted and readable by
+every plugin, so it must contain no secrets; credentials belong in plugin
+settings and the value carries only non-secret configuration or references.
+
+**Audit before stabilizing.** Confirm the compact-chip and responsive-drawer
+shape works across machine providers, that ready/blocked is sufficient, and
+that provider changes and crashed controls cannot retain stale launch inputs.
+
 ## `bb.experimental_machines` (`register`)
 
 Registers project-independent machine providers with required id, displayName,
@@ -2683,6 +2702,18 @@ across sweeps and restarts, including subsequent access release failures.
 Stabilization requires crash/abort coverage before submission, after submission but
 before checkpoint, eventual vendor discovery, and access-release retry coverage for
 each shipped provider.
+
+## Machine provider `ephemeral`
+
+Optional boolean on `PluginMachineProviderDefinition`, defaulting to false.
+Providers set it only when they create disposable compute. After the last
+non-destroyed environment is gone, core automatically requests removal unless a
+live thread or its creating/ready machine launch still needs the machine. The
+request uses the ordinary durable removal lifecycle, including environment
+cascade and `removeRetryAt` retries. Manually enrolled machines and providers
+that omit the field are never automatically removed. Stabilization requires
+another compute provider and recovery coverage across environment retirement,
+live-work races, provider unavailability, and repeated removal failures.
 
 ### Machine lifecycle allocation checkpoint
 

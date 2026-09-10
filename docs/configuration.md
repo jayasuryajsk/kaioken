@@ -1343,9 +1343,10 @@ Changes apply to new turns, setup commands and terminals.
 
 ## Modal machines
 
-The optional Modal sandbox plugin builds/reuses a standard tools image for new
-machines. Settings can save a shared Dockerfile override or reset to the bundled
-default. CLI: `bb modal image show`, `bb modal image set --file PATH`, and
+The optional Modal sandbox plugin builds/reuses named tools images for new
+machines. Its plugin page keeps the bundled Standard Dockerfile as the first
+image and can add named Dockerfiles, existing Modal image IDs, and named CPU/memory
+presets. CLI: `bb modal image show`, `bb modal image set --file PATH`, and
 `bb modal image reset` (append `--json`). Typed plugin RPCs `image.definition`,
 `image.set({dockerfile})`, and `image.reset` expose the same persistent definition.
 Supported instructions are one FROM followed by RUN, ENV, WORKDIR, and USER; no
@@ -1354,7 +1355,7 @@ machines. The next new machine uses the saved definition. BB installs the daemon
 on demand, then clones the project and runs its setup hook.
 
 Configure `tokenId` and `tokenSecret` in secret plugin settings; `appName` defaults
-to `bb-sandboxes`. `cpu` and `memoryMiB` default to blank (Modal defaults).
+to `bb-sandboxes`. With no size preset, Modal's CPU and memory defaults apply.
 `idleMinutes` defaults to 15 (0 disables idle suspension), and `timeoutMinutes`
 defaults to 1440 with an allowed range of 1–1440. Existing machines use current idle
 policy; running compute keeps its vendor deadline and restored compute uses the

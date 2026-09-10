@@ -812,6 +812,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Allocation checkpoints are recovery records, not filesystem saves; daemon-connected does not mean agent-ready",
           "Read the current persisted machine resource by host ID with bb.experimental_machines.getResource; reads work across plugins and return null for absent hosts or resources",
           "Own idle timing in the plugin using thread-sequence and terminal-input events plus background schedules",
+          "Render one compact machine-inputs control in composed thread creation with app.slots.experimental_machineProviderInputs, reporting a ready non-secret JSON value on mount or a one-sentence blocked reason",
 
           "Request suspend/resume through the host SDK; core coordinates drain while plugins own idle policy",
           "Read maintenance state and suspension failures from each host's lifecycle phase and progress",
@@ -843,6 +844,9 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "MachineBootstrapApi",
           "PluginMachineProviderDeclaration",
           "PluginMachineValidateDecision",
+          "PluginMachineProviderInputsRegistration",
+          "PluginMachineProviderInputsProps",
+          "PluginMachineProviderInputsChange",
           "PluginMachineProviderDefinition",
           "PluginMachineProviderInputsSchema",
           "PluginMachineProviderAvailability",

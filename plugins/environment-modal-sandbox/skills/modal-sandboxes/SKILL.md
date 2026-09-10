@@ -7,7 +7,8 @@ description: Connect Modal and create reusable cloud machines with the bundled s
 
 1. Install `builtin:environment-modal-sandbox` and configure `tokenId` and
    `tokenSecret` in plugin Settings. Do not print credentials. `appName` defaults
-   to `bb-sandboxes`; optional `cpu` and `memoryMiB` settings reserve resources.
+   to `bb-sandboxes`. The plugin page defines named sandbox size presets and
+   images; the initial Standard image contains the bundled Dockerfile.
 2. Run `bb modal account inspect --json` to test the connection without allocating
    compute. Exit status 1 means configuration or connection failed; the JSON gives
    a secret-free message. SDK callers use the plugin's `modalRpcContract`
@@ -17,9 +18,13 @@ description: Connect Modal and create reusable cloud machines with the bundled s
 4. Select the project and create a machine in the UI, or run
    `bb machine create --provider modal-sandbox --json`.
    SDK: `hosts.experimental_submit({machineProviderId:"modal-sandbox",key})`.
-   No image or build inputs are accepted. Use a stable creation key for retries.
+   Use a stable creation key for retries. Composed thread creation accepts
+   optional configured names as `{"preset":"Large","image":"Node 22"}`.
 
-Settings edits the shared Dockerfile used for future machines. Agents can run
+Settings edits the Standard image's Dockerfile, adds named Dockerfile or Modal
+image-ID entries, and adds named CPU/memory presets. One or zero choices use the
+default without adding a composer chip; multiple choices share one chip. Agents
+can run
 `bb modal image show > Dockerfile`, edit the file, then run `bb modal image set
 --file ./Dockerfile`. `bb modal image reset` restores the bundled default.
 Append `--json` for structured output. File paths resolve from the CLI directory
@@ -83,8 +88,8 @@ not forward them. This adapter is tied to the pinned vendor SDK. Output is not
 streamed to the CLI. An already submitted build can finish after CLI cancellation.
 
 Run builds or reuses that image and returns `sandboxId`, `imageId`, `expiresAt`
-and build `logs`. Debug sandboxes expire after 30 minutes, use configured CPU and
-memory, and contain no injected BB credentials, daemon, project clone or setup
+and build `logs`. Debug sandboxes expire after 30 minutes, use Modal's default CPU
+and memory, and contain no injected BB credentials, daemon, project clone or setup
 hook. They are separate from BB Machines and do not snapshot. Files and running
 processes remain between exec calls until stop or expiry. Copy successful fixes
 into the Dockerfile, save it, and run a new sandbox to verify them.

@@ -41,6 +41,7 @@ import {
   parseEnvironmentValue,
 } from "@/components/pickers/environment-picker-value";
 import { providerInputsControlRequired } from "@/components/pickers/environment-provider-inputs";
+import { useMachineProviderInputs } from "@/components/pickers/machine-provider-inputs";
 import { formatModelLoadErrorText } from "@/components/pickers/model-load-error-message";
 import {
   NewThreadPromptBox,
@@ -1009,13 +1010,53 @@ export function NewThreadComposer({
     environmentProviderInputsRegistration,
   ]);
 
+  const compositionMachineProvider =
+    selectedEnvironmentProvider?.machineProviderId === undefined ||
+    selectedEnvironmentProvider.machineProviderId === null ||
+    selectedEnvironmentProvider.machineInputs === undefined ||
+    selectedEnvironmentProvider.machineAcceptsEmptyInputs === undefined ||
+    selectedEnvironmentProvider.machineProviderPluginId === undefined
+      ? null
+      : {
+          id: selectedEnvironmentProvider.machineProviderId,
+          displayName: selectedEnvironmentProvider.displayName,
+          pluginId: selectedEnvironmentProvider.machineProviderPluginId,
+          inputs: selectedEnvironmentProvider.machineInputs,
+          acceptsEmptyInputs:
+            selectedEnvironmentProvider.machineAcceptsEmptyInputs,
+        };
+  const seededMachineInputs =
+    !seedOverridden &&
+    environmentSeed?.selectionValue === effectiveEnvironmentValue &&
+    environmentSeed.providerMachine?.type === "new" &&
+    environmentSeed.providerMachine.machineProviderId ===
+      compositionMachineProvider?.id
+      ? environmentSeed.providerMachine.inputs
+      : undefined;
+  const machineProviderInputs = useMachineProviderInputs({
+    provider: compositionMachineProvider,
+    initialValue: seededMachineInputs,
+    instanceId: `new-thread-${projectId}`,
+  });
+  const compositionMachineProviderId = compositionMachineProvider?.id ?? null;
+  const compositionMachineInputsSchema =
+    compositionMachineProvider?.inputs ?? null;
+
   const selectedEnvironment = useMemo(
     () =>
       resolveRootComposeThreadEnvironment({
         environmentValue: effectiveEnvironmentValue,
         projectId,
         environmentProviders,
-        providerMachine,
+        providerMachine:
+          compositionMachineProviderId !== null &&
+          compositionMachineInputsSchema !== null
+            ? {
+                type: "new",
+                machineProviderId: compositionMachineProviderId,
+                inputs: machineProviderInputs.value,
+              }
+            : providerMachine,
         providerInputs: submissionProviderInputs,
       }),
     [
@@ -1023,6 +1064,9 @@ export function NewThreadComposer({
       environmentProviders,
       projectId,
       submissionProviderInputs,
+      compositionMachineInputsSchema,
+      compositionMachineProviderId,
+      machineProviderInputs.value,
       providerMachine,
     ],
   );
@@ -1273,7 +1317,8 @@ export function NewThreadComposer({
     (selectionScope === "new-thread" ? seed?.environment : undefined) ??
     null;
   const submitDisabledReason = resolveNewThreadSubmitDisabledReason({
-    environmentProviderInputsBlocker,
+    environmentProviderInputsBlocker:
+      machineProviderInputs.blockedReason ?? environmentProviderInputsBlocker,
     environmentSetupRequiredReason:
       environmentSetupRequiredReason ?? machineServerAccessReason,
     isCopyingAttachments,
@@ -1518,6 +1563,7 @@ export function NewThreadComposer({
               supported: supportsPermissionModeSelection,
             },
             environmentProviderInputsSlot,
+            machineProviderInputsSlot: machineProviderInputs.control,
             banner:
               options.banner ??
               (machineServerAccessReason !== null ? (
@@ -1671,6 +1717,7 @@ export function NewThreadComposer({
       setupRequiredProvider,
       navigate,
       environmentProviderInputsSlot,
+      machineProviderInputs.control,
       environmentProvidersByHostId,
       inputsControlProviderIds,
       providerHostId,

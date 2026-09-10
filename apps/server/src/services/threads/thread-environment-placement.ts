@@ -554,18 +554,23 @@ export async function resolveThreadEnvironmentPlacement(
     )?.composition;
     const environmentProviderId =
       composition?.environmentProviderId ?? requested.environmentProviderId;
-    if (composition && requested.machine !== undefined) {
+    if (
+      composition &&
+      requested.machine !== undefined &&
+      (requested.machine.type !== "new" ||
+        requested.machine.machineProviderId !== composition.machineProviderId)
+    ) {
       refuseProviderSelection(
         requested.environmentProviderId,
-        "chooses its own new machine; omit machine",
+        `creates a new machine with provider "${composition.machineProviderId}"; machine must select that provider`,
       );
     }
     const machine = composition
-      ? {
+      ? (requested.machine ?? {
           type: "new" as const,
           machineProviderId: composition.machineProviderId,
           inputs: null,
-        }
+        })
       : requested.machine;
     if (machine === undefined)
       refuseProviderSelection(

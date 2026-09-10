@@ -13,10 +13,11 @@ import {
 } from "@get-bb/plugin-sdk";
 import path from "node:path";
 import { z } from "zod";
+import { dockerfileSchema, type ImageDefinition } from "./image-definition.js";
 import {
-  dockerfileSchema,
-  type ImageDefinition,
-} from "./image-definition.js";
+  modalLaunchOptionsSchema,
+  type ModalLaunchOptionsStore,
+} from "./launch-options.js";
 
 const machineInput = z.object({ hostId: z.string().min(1) }).strict();
 const machineOutput = z.object({
@@ -47,6 +48,14 @@ export const modalRpcContract = defineRpcContract({
     output: definitionSchema,
   },
   "image.reset": { input: z.object({}).strict(), output: definitionSchema },
+  "launch.options": {
+    input: z.object({}).strict(),
+    output: modalLaunchOptionsSchema,
+  },
+  "launch.options.set": {
+    input: modalLaunchOptionsSchema,
+    output: modalLaunchOptionsSchema,
+  },
   "account.inspect": {
     input: z.object({}).strict(),
     output: z.object({ available: z.boolean(), message: z.string() }),
@@ -56,6 +65,7 @@ export const modalRpcContract = defineRpcContract({
 export function registerRpcAndCli(
   bb: BbPluginApi,
   image: ImageDefinition,
+  launchOptions: ModalLaunchOptionsStore,
   inspect: () => Promise<{ available: boolean; message: string }>,
   debug: DebugSandbox,
   inspectMachine: (
@@ -72,6 +82,8 @@ export function registerRpcAndCli(
     "image.definition": image.get,
     "image.set": ({ dockerfile }) => image.set(dockerfile),
     "image.reset": image.reset,
+    "launch.options": launchOptions.get,
+    "launch.options.set": launchOptions.set,
   });
   async function readDockerfile(file: string, context: PluginCliContext) {
     let hostId: string | undefined;
@@ -227,9 +239,7 @@ export function registerRpcAndCli(
         );
         return {
           exitCode: 0,
-          stdout: json
-            ? JSON.stringify(result)
-            : `Stopped ${result.sandboxId}`,
+          stdout: json ? JSON.stringify(result) : `Stopped ${result.sandboxId}`,
         };
       },
     },
@@ -294,7 +304,7 @@ export function registerRpcAndCli(
           (candidate) =>
             candidate.path.every((part, index) => args[index] === part) &&
             args.length === candidate.path.length + candidate.arity &&
-            (candidate.separator === true) === (separator >= 0),
+            (candidate.separator === true) === separator >= 0,
         );
         if (route === undefined) throw new Error(usage);
         return route.run(

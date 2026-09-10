@@ -15,6 +15,7 @@ import type {
   SandboxHandle,
 } from "./sandbox-backend.js";
 import { readModalMachineResource } from "./lifecycle.js";
+import { modalLaunchOptionsSchema } from "./launch-options.js";
 import { createModalSandboxPlugin, PROVIDER_ID } from "./server.js";
 
 const PLUGIN_ID = "environment-modal-sandbox";
@@ -246,9 +247,10 @@ async function setup(
 
 function createContext(
   key = "modal-machine-key",
+  inputs: JsonValue = {},
 ): PluginMachineProviderCreateContext {
   return {
-    inputs: null,
+    inputs,
     key,
     attempt: 1,
     report,
@@ -278,6 +280,43 @@ describe("Modal machine provider", () => {
       executor: { exec: expect.any(Function) },
       report,
       signal: expect.any(AbortSignal),
+    });
+  });
+
+  it("resolves configured preset and image names for validation and creation", async () => {
+    const harness = await setup();
+    const current = modalLaunchOptionsSchema.parse(
+      await harness.harness.callRpc("launch.options", {}),
+    );
+    await harness.harness.callRpc("launch.options.set", {
+      presets: [
+        { name: "Small", cpu: 0.5, memoryMiB: 512 },
+        { name: "Large", cpu: 4, memoryMiB: 8192 },
+      ],
+      images: [
+        ...current.images,
+        { name: "Ready", source: "image-id", imageId: "im-ready" },
+      ],
+    });
+    await expect(
+      harness.provider.validate?.({ inputs: { preset: "Missing" } }),
+    ).resolves.toEqual({
+      action: "refuse",
+      message: 'The Modal sandbox preset "Missing" is not configured.',
+    });
+    await expect(
+      harness.provider.create(
+        createContext("configured-machine", {
+          preset: "Large",
+          image: "Ready",
+        }),
+      ),
+    ).resolves.toMatchObject({ status: "created" });
+    expect(harness.backend.image).not.toHaveBeenCalled();
+    expect(harness.backend.creates[0]).toMatchObject({
+      cpu: 4,
+      memoryMiB: 8192,
+      image: { type: "image", imageId: "im-ready" },
     });
   });
 

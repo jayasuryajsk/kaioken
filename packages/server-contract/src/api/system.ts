@@ -313,6 +313,9 @@ export const systemEnvironmentProviderSchema = z.object({
   }),
   inputs: jsonValueSchema.nullable(),
   acceptsEmptyInputs: z.boolean(),
+  machineInputs: jsonValueSchema.nullable().optional(),
+  machineAcceptsEmptyInputs: z.boolean().optional(),
+  machineProviderPluginId: z.string().min(1).optional(),
   availability: z
     .discriminatedUnion("status", [
       z.object({ status: z.literal("available") }),

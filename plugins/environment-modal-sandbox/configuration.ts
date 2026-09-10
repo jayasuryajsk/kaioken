@@ -25,17 +25,6 @@ export const SETTING_DESCRIPTORS = {
       "Snapshot and stop an idle sandbox after this long. Use 0 to keep it running until Modal's 24-hour sandbox limit.",
     default: 15,
   },
-  cpu: {
-    type: "number",
-    label: "CPU cores",
-    description:
-      "Physical cores reserved, fractional allowed. Blank uses Modal's default of 0.125.",
-  },
-  memoryMiB: {
-    type: "number",
-    label: "Memory (MiB)",
-    description: "Memory reserved in MiB. Blank uses Modal's default of 128.",
-  },
 } as const;
 
 export interface ResolvedSettings {
@@ -43,8 +32,6 @@ export interface ResolvedSettings {
   tokenSecret: string;
   appName: string;
   idleMs: number | null;
-  cpu: number | null;
-  memoryMiB: number | null;
 }
 
 export type SettingsResolution =
@@ -56,8 +43,6 @@ export interface RawSettings {
   tokenSecret: string | undefined;
   appName: string;
   idleMinutes: number;
-  cpu: number | undefined;
-  memoryMiB: number | undefined;
 }
 
 export const SANDBOX_LIFETIME_MS = 24 * 60 * 60_000;
@@ -79,21 +64,6 @@ export function resolveSettings(raw: RawSettings): SettingsResolution {
   if (appName.length === 0) {
     return { ok: false, message: "The app name must not be blank." };
   }
-  if (raw.cpu !== undefined && !(Number.isFinite(raw.cpu) && raw.cpu > 0)) {
-    return {
-      ok: false,
-      message: `cpu must be a positive number or blank, not ${raw.cpu}.`,
-    };
-  }
-  if (
-    raw.memoryMiB !== undefined &&
-    !(Number.isFinite(raw.memoryMiB) && raw.memoryMiB > 0)
-  ) {
-    return {
-      ok: false,
-      message: `memoryMiB must be a positive number or blank, not ${raw.memoryMiB}.`,
-    };
-  }
   if (
     !Number.isInteger(raw.idleMinutes) ||
     raw.idleMinutes < 0 ||
@@ -111,8 +81,6 @@ export function resolveSettings(raw: RawSettings): SettingsResolution {
       tokenSecret,
       appName,
       idleMs: raw.idleMinutes === 0 ? null : raw.idleMinutes * 60_000,
-      cpu: raw.cpu ?? null,
-      memoryMiB: raw.memoryMiB ?? null,
     },
   };
 }

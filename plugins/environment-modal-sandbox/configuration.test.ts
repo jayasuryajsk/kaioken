@@ -7,8 +7,6 @@ function settings(overrides: Partial<RawSettings> = {}): RawSettings {
     tokenSecret: "token-secret",
     appName: "bb-sandboxes",
     idleMinutes: 15,
-    cpu: undefined,
-    memoryMiB: undefined,
     ...overrides,
   };
 }

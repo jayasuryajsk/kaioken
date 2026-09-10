@@ -23,12 +23,19 @@ it when machines from this provider read better with their own name, as a Modal
 sandbox does with `modal`. Omit it when the provider's display name only
 describes how a machine was added, and those machines stay untagged.
 
+Set `ephemeral: true` only when the provider creates disposable
+compute. Core then automatically requests machine removal after every environment
+on it is destroyed, provided no live thread or live thread's creating/ready
+machine launch still needs it. The default is false, so manually enrolled machines
+and provider-managed machines intended to persist are never removed automatically.
+
 ```ts
 bb.experimental_machines.register({
   id: "custom-machine",
   displayName: "Custom machine",
   description: "Create a machine with custom compute.",
   icon: "Server",
+  ephemeral: true,
   inputs: z.object({ target: z.string() }),
   async create({ inputs, key, checkpoint, report, signal }) {
     const enrollment = await bb.experimental_machines.enrollments.prepare({
@@ -82,7 +89,8 @@ Machine registration does not contribute environment-picker entries. Register
 an environment composition with `machineProviderId` and `environmentProviderId`
 to offer a new machine plus a concrete environment. Modal combines its machine
 with `project-checkout`; core prepares the missing checkout. CLI users select
-`--environment-provider modal-sandbox` without machine flags. Explicit
+`--environment-provider modal-sandbox` without machine selectors and may pass
+`--machine-inputs <json>` for the composition's machine inputs. Explicit
 `--new-machine <id>` always requires `--environment-provider <id>`.
 
 Suspend and resume are optional but must be declared together. Providers own idle
@@ -107,7 +115,9 @@ explicitly cancel; closing a client or aborting its signal stops following.
 
 Removal always cascades through the machine's environment providers before
 machine remove; failures persist and retry after the core one-minute retry
-interval.
+interval. Ephemeral machines enter this same removal path automatically after
+their last environment is destroyed and no live thread or pending live-thread
+launch needs the machine.
 
 ## Server access
 

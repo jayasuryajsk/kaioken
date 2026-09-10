@@ -19,7 +19,9 @@
   new provider machine with
   `bb thread spawn --new-machine <provider-id> --environment-provider <id>`.
   For Modal's composed environment, use `--environment-provider modal-sandbox`
-  without machine selectors. Pass `--machine-inputs <json>` when required. These inputs are persisted and
+  without machine selectors; `--machine-inputs <json>` configures that composed
+  machine with optional configured names such as
+  `{"preset":"Large","image":"Node 22"}`. These inputs are persisted and
   readable by plugins, so keep credentials in plugin settings and send only
   non-secret configuration or references.
 - Omit `--base-branch` for bb's default. Explicit values are exact; use

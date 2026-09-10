@@ -468,6 +468,10 @@ export function registerSystemRoutes(
                         inputs: record.provider.inputsJsonSchema,
                         acceptsEmptyInputs:
                           await environmentProviderAcceptsEmptyInputs(record),
+                        machineInputs: machine.provider.inputsJsonSchema,
+                        machineAcceptsEmptyInputs:
+                          await machineProviderAcceptsEmptyInputs(machine),
+                        machineProviderPluginId: machine.pluginId,
                         availability:
                           await resolveMachineProviderAvailability(machine),
                       };

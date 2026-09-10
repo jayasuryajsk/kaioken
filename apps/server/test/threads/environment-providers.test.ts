@@ -34,6 +34,7 @@ import type {
   PluginHookName,
 } from "@get-bb/plugin-sdk";
 import type { PluginEnvironmentProviderValidateContext } from "@get-bb/plugin-sdk/environment-provider";
+import type { PluginMachineProviderCreateContext } from "@get-bb/plugin-sdk/machine-provider";
 import {
   validatePluginEnvironmentProviderDeclaration,
   validatePluginMachineProviderDeclaration,
@@ -1772,21 +1773,259 @@ describe("environment provider listing", () => {
 });
 
 describe("machine and environment provider composition", () => {
-  it.each([
-    "missing-remote",
-    "missing-environment",
-    "conflicting-machine",
-  ] as const)("refuses %s before allocating", async (failure) => {
-    await withTestHarness(async (h) => {
-      const { host } = seedHostSession(h.deps, { id: "preallocation-host" });
-      const { project } = seedProjectWithSource(h.deps, { hostId: host.id });
-      if (failure !== "missing-remote")
-        setProjectGitRemoteUrlIfMissing(
-          h.db,
-          h.hub,
-          project.id,
-          "https://example.test/project.git",
+  it.each(["missing-remote", "missing-environment"] as const)(
+    "refuses %s before allocating",
+    async (failure) => {
+      await withTestHarness(async (h) => {
+        const { host } = seedHostSession(h.deps, { id: "preallocation-host" });
+        const { project } = seedProjectWithSource(h.deps, { hostId: host.id });
+        if (failure !== "missing-remote")
+          setProjectGitRemoteUrlIfMissing(
+            h.db,
+            h.hub,
+            project.id,
+            "https://example.test/project.git",
+          );
+        const create = vi.fn(
+          async (_context: PluginMachineProviderCreateContext) => ({
+            status: "created" as const,
+            resource: {},
+          }),
         );
+        const machine = {
+          pluginId: "cloud",
+          provider: validatePluginMachineProviderDeclaration({
+            description: "Provision a test machine.",
+            icon: "Terminal",
+            id: "test-machine",
+            displayName: "Test machine",
+            create,
+            reconcileCleanup: async () => ({ status: "removed" }),
+            remove: async () => ({ status: "removed" }),
+          }),
+        };
+        setPluginMachineProviderBridge({
+          listMachineProviders: () => [machine],
+          getMachineProvider: () => machine,
+          invokeProvider: async (_plugin, _label, run) => ({
+            ok: true,
+            value: await run(),
+          }),
+          decisionTimeoutMs: 10000,
+        });
+        installTargets(
+          failure === "missing-environment"
+            ? []
+            : [
+                {
+                  id: "project-checkout",
+                  requiresProjectCheckout: true,
+                  provision: () => {
+                    throw new Error("Must not provision");
+                  },
+                },
+              ],
+          [
+            {
+              pluginId: "cloud",
+              composition: {
+                id: "test-sandbox",
+                displayName: "Test sandbox",
+                machineProviderId: "test-machine",
+                environmentProviderId: "project-checkout",
+              },
+            },
+          ],
+        );
+        await expect(
+          createThreadFromRequest(h.deps, {
+            environment: {
+              type: "provider",
+              environmentProviderId: "test-sandbox",
+              inputs: null,
+            },
+            projectId: project.id,
+            input: textInput("Do not allocate"),
+            origin: "app",
+            providerId: "codex",
+            model: "requested-model",
+            startedOnBehalfOf: null,
+          }),
+        ).rejects.toThrow(
+          failure === "missing-remote" ? "Git remote" : "not registered",
+        );
+        expect(create).not.toHaveBeenCalled();
+      });
+    },
+  );
+
+  it("validates composition machine inputs and passes the parsed value to create", async () => {
+    await withTestHarness(async (h) => {
+      const { host } = seedHostSession(h.deps, { id: "composition-inputs" });
+      const { project } = seedProjectWithSource(h.deps, { hostId: host.id });
+      setProjectGitRemoteUrlIfMissing(
+        h.db,
+        h.hub,
+        project.id,
+        "https://example.test/project.git",
+      );
+      const create = vi.fn(
+        async (_context: PluginMachineProviderCreateContext) => ({
+          status: "failed" as const,
+          message: "Stop after observing inputs",
+        }),
+      );
+      const machine = {
+        pluginId: "cloud",
+        provider: validatePluginMachineProviderDeclaration({
+          description: "Provision a test machine.",
+          icon: "Terminal",
+          id: "test-machine",
+          displayName: "Test machine",
+          inputs: z.object({ imageId: z.string().trim().min(1) }),
+          create,
+          reconcileCleanup: async () => ({ status: "removed" }),
+          remove: async () => ({ status: "removed" }),
+        }),
+      };
+      setPluginMachineProviderBridge({
+        listMachineProviders: () => [machine],
+        getMachineProvider: (id) =>
+          id === machine.provider.id ? machine : undefined,
+        invokeProvider: async (_plugin, _label, run) => ({
+          ok: true,
+          value: await run(),
+        }),
+        decisionTimeoutMs: 10_000,
+      });
+      installTargets(
+        [
+          {
+            id: "project-checkout",
+            requiresProjectCheckout: true,
+            provision: () => ({ action: "wait", reason: "Waiting" }),
+          },
+        ],
+        [
+          {
+            pluginId: "cloud",
+            composition: {
+              id: "test-sandbox",
+              displayName: "Test sandbox",
+              machineProviderId: "test-machine",
+              environmentProviderId: "project-checkout",
+            },
+          },
+        ],
+      );
+      await createThreadFromRequest(h.deps, {
+        environment: {
+          type: "provider",
+          environmentProviderId: "test-sandbox",
+          machine: {
+            type: "new",
+            machineProviderId: "test-machine",
+            inputs: { imageId: "  im-custom  " },
+          },
+          inputs: null,
+        },
+        projectId: project.id,
+        input: textInput("Create it"),
+        origin: "app",
+        providerId: "codex",
+        model: "requested-model",
+        startedOnBehalfOf: null,
+      });
+      await expect
+        .poll(() => create.mock.calls[0]?.[0].inputs)
+        .toEqual({ imageId: "im-custom" });
+    });
+  });
+
+  it("passes null machine inputs when a composition omits machine", async () => {
+    await withTestHarness(async (h) => {
+      const { host } = seedHostSession(h.deps, { id: "composition-default" });
+      const { project } = seedProjectWithSource(h.deps, { hostId: host.id });
+      setProjectGitRemoteUrlIfMissing(
+        h.db,
+        h.hub,
+        project.id,
+        "https://example.test/project.git",
+      );
+      const create = vi.fn(
+        async (_context: PluginMachineProviderCreateContext) => ({
+          status: "failed" as const,
+          message: "Stop after observing inputs",
+        }),
+      );
+      const machine = {
+        pluginId: "cloud",
+        provider: validatePluginMachineProviderDeclaration({
+          description: "Provision a test machine.",
+          icon: "Terminal",
+          id: "test-machine",
+          displayName: "Test machine",
+          create,
+          reconcileCleanup: async () => ({ status: "removed" }),
+          remove: async () => ({ status: "removed" }),
+        }),
+      };
+      setPluginMachineProviderBridge({
+        listMachineProviders: () => [machine],
+        getMachineProvider: () => machine,
+        invokeProvider: async (_plugin, _label, run) => ({
+          ok: true,
+          value: await run(),
+        }),
+        decisionTimeoutMs: 10_000,
+      });
+      installTargets(
+        [
+          {
+            id: "project-checkout",
+            requiresProjectCheckout: true,
+            provision: () => ({ action: "wait", reason: "Waiting" }),
+          },
+        ],
+        [
+          {
+            pluginId: "cloud",
+            composition: {
+              id: "test-sandbox",
+              displayName: "Test sandbox",
+              machineProviderId: "test-machine",
+              environmentProviderId: "project-checkout",
+            },
+          },
+        ],
+      );
+      await createThreadFromRequest(h.deps, {
+        environment: {
+          type: "provider",
+          environmentProviderId: "test-sandbox",
+          inputs: null,
+        },
+        projectId: project.id,
+        input: textInput("Create it"),
+        origin: "app",
+        providerId: "codex",
+        model: "requested-model",
+        startedOnBehalfOf: null,
+      });
+      await expect.poll(() => create.mock.calls[0]?.[0].inputs).toBeNull();
+    });
+  });
+
+  it("refuses a composition request with the wrong machine provider before allocating", async () => {
+    await withTestHarness(async (h) => {
+      const { host } = seedHostSession(h.deps, { id: "composition-wrong" });
+      const { project } = seedProjectWithSource(h.deps, { hostId: host.id });
+      setProjectGitRemoteUrlIfMissing(
+        h.db,
+        h.hub,
+        project.id,
+        "https://example.test/project.git",
+      );
       const create = vi.fn(async () => ({
         status: "created" as const,
         resource: {},
@@ -1810,20 +2049,16 @@ describe("machine and environment provider composition", () => {
           ok: true,
           value: await run(),
         }),
-        decisionTimeoutMs: 10000,
+        decisionTimeoutMs: 10_000,
       });
       installTargets(
-        failure === "missing-environment"
-          ? []
-          : [
-              {
-                id: "project-checkout",
-                requiresProjectCheckout: true,
-                provision: () => {
-                  throw new Error("Must not provision");
-                },
-              },
-            ],
+        [
+          {
+            id: "project-checkout",
+            requiresProjectCheckout: true,
+            provision: () => ({ action: "wait", reason: "Waiting" }),
+          },
+        ],
         [
           {
             pluginId: "cloud",
@@ -1841,10 +2076,12 @@ describe("machine and environment provider composition", () => {
           environment: {
             type: "provider",
             environmentProviderId: "test-sandbox",
+            machine: {
+              type: "new",
+              machineProviderId: "other-machine",
+              inputs: null,
+            },
             inputs: null,
-            ...(failure === "conflicting-machine"
-              ? { machine: { type: "existing" as const, hostId: host.id } }
-              : {}),
           },
           projectId: project.id,
           input: textInput("Do not allocate"),
@@ -1853,13 +2090,7 @@ describe("machine and environment provider composition", () => {
           model: "requested-model",
           startedOnBehalfOf: null,
         }),
-      ).rejects.toThrow(
-        failure === "missing-remote"
-          ? "Git remote"
-          : failure === "missing-environment"
-            ? "not registered"
-            : "omit machine",
-      );
+      ).rejects.toThrow("must select that provider");
       expect(create).not.toHaveBeenCalled();
     });
   });

@@ -91,7 +91,8 @@ This index lists every command path that the core CLI registers. Read the task-s
 
 `bb thread spawn --new-machine <provider-id>` creates a machine for a new
 environment and requires `--environment-provider <id>`. For a composed option,
-use `--environment-provider modal-sandbox` alone. `--machine-inputs <json>` configures the machine;
+use `--environment-provider modal-sandbox` alone. `--machine-inputs <json>`
+configures the machine with optional configured `preset` and `image` names;
 `--environment-inputs <json>` configures the workspace. Neither carries secrets.
 
 ## updates

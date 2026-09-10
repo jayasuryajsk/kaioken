@@ -91,8 +91,8 @@ export function debugSandbox(
         name: key,
         image: { type: "image", imageId: built.imageId },
         timeoutMs: 30 * 60_000,
-        cpu: settings.cpu,
-        memoryMiB: settings.memoryMiB,
+        cpu: null,
+        memoryMiB: null,
         tags: { bbDebug: "true", bbMachineKey: key },
       });
       try {

@@ -24,6 +24,7 @@ import {
   type PluginNewThreadPanelProps,
   type PluginPendingInteractionProps,
   type PluginEnvironmentProviderInputsProps,
+  type PluginMachineProviderInputsProps,
   type PluginProviderIconRegistration,
   type PluginTimelineRendererProps,
   type PluginSettingDescriptor,
@@ -234,7 +235,9 @@ const THREAD_EVENT_PAYLOAD_FIELDS = {
     "attemptNumber",
   ],
 } as const satisfies {
-  [E in keyof PluginThreadEventPayloads]: readonly (keyof PluginThreadEventPayloads[E])[];
+  [
+    E in keyof PluginThreadEventPayloads
+  ]: readonly (keyof PluginThreadEventPayloads[E])[];
 };
 
 type MissingThreadEventField = {
@@ -269,6 +272,7 @@ type SlotPropsByName = {
   experimental_providerIcon: PluginProviderIconRegistration;
   experimental_timelineRenderer: PluginTimelineRendererProps;
   experimental_environmentProviderInputs: PluginEnvironmentProviderInputsProps;
+  experimental_machineProviderInputs: PluginMachineProviderInputsProps;
 };
 
 type MissingSlot = Exclude<keyof PluginAppSlots, keyof SlotPropsByName>;
@@ -387,6 +391,7 @@ const FRONTEND_SLOT_PROP_FIELDS = {
     "value",
     "onChange",
   ],
+  experimental_machineProviderInputs: ["value", "onChange"],
 } as const satisfies {
   [S in keyof SlotPropsByName]: readonly (keyof SlotPropsByName[S])[];
 };

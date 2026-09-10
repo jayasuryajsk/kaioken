@@ -69,7 +69,8 @@ BB_HOST_DAEMON_PORT only for an intentional non-default target.
   `--machine-inputs <json>` when its schema requires inputs. Machine inputs are
   persisted and non-secret; credentials belong in plugin settings. Composed
   environments choose their own machine: use `--environment-provider modal-sandbox`
-  without machine selectors.
+  without machine selectors and pass `--machine-inputs <json>` when configuring
+  the composition's machine provider.
 - Use `bb machine enroll` for a private core-prepared bundle. Local lifecycle is
   handled by `install-machine.sh --start|--stop|--uninstall --host-id <id>`;
   see references/thread-creation.md for ownership checks.

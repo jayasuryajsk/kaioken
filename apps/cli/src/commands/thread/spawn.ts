@@ -211,6 +211,8 @@ async function buildProviderSpawnEnvironment(args: {
   baseBranch: string | undefined;
   machineHostId: string | null;
   machine: EnvironmentMachineSelection | null;
+  machineInputs: JsonValue | null;
+  machineInputsProvided: boolean;
   projectId: string;
   resolveDefaultHostId: () => Promise<string | null>;
 }): Promise<CreateThreadEnvironmentArgs> {
@@ -255,7 +257,41 @@ async function buildProviderSpawnEnvironment(args: {
       throw new Error(
         "This environment provider chooses its own new machine; omit machine selectors.",
       );
-    return { type: "provider", environmentProviderId: match.id, inputs };
+    let machineInputs = args.machineInputs;
+    if (match.machineInputs !== undefined) {
+      if (match.machineInputs !== null && machineInputs === null) {
+        if (match.machineAcceptsEmptyInputs) machineInputs = {};
+        else {
+          throw new Error(
+            `The '${match.machineProviderId}' machine provider needs --machine-inputs <json>; \`bb environment providers --json\` shows its schema.`,
+          );
+        }
+      }
+      if (match.machineInputs === null && machineInputs !== null) {
+        throw new Error(
+          `The '${match.machineProviderId}' machine provider takes no --machine-inputs.`,
+        );
+      }
+    }
+    return {
+      type: "provider",
+      environmentProviderId: match.id,
+      ...(match.machineInputs === undefined || match.machineInputs === null
+        ? {}
+        : {
+            machine: {
+              type: "new" as const,
+              machineProviderId: match.machineProviderId,
+              inputs: machineInputs,
+            },
+          }),
+      inputs,
+    };
+  }
+  if (args.machineInputsProvided && args.machine === null) {
+    throw new Error(
+      "--machine-inputs requires --new-machine <provider-id> or a composed --environment-provider.",
+    );
   }
   const machine = args.machine ?? {
     type: "existing" as const,
@@ -306,7 +342,7 @@ export function registerSpawnCommand(
     )
     .option(
       "--machine-inputs <json>",
-      "Persisted non-secret inputs for --new-machine; store credentials in plugin settings",
+      "Persisted non-secret inputs for --new-machine or a composed --environment-provider; store credentials in plugin settings",
     )
     .option("--parent-thread <id>", "Parent thread ID for worker thread links")
     .option("--parent-self", "Parent the new thread to BB_THREAD_ID")
@@ -381,9 +417,10 @@ export function registerSpawnCommand(
           );
         }
         if (opts.machineInputs !== undefined && !opts.newMachine) {
-          throw new Error(
-            "--machine-inputs requires --new-machine <provider-id>.",
-          );
+          if (!opts.environmentProvider)
+            throw new Error(
+              "--machine-inputs requires --new-machine <provider-id> or a composed --environment-provider.",
+            );
         }
         if (
           machineTarget &&
@@ -464,6 +501,8 @@ export function registerSpawnCommand(
               baseBranch: opts.baseBranch,
               machineHostId: hostId,
               machine: newMachineSelection,
+              machineInputs,
+              machineInputsProvided: opts.machineInputs !== undefined,
               projectId,
               resolveDefaultHostId: resolveLocalHostId,
             })

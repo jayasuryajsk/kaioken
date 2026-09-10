@@ -24,8 +24,45 @@ import {
   readModalMachineResource,
   type ModalMachineResource,
 } from "./lifecycle.js";
+import { PROVIDER_ID } from "./provider-id.js";
+import {
+  modalLaunchOptions,
+  type ModalImage,
+  type ModalLaunchOptions,
+  type SandboxPreset,
+} from "./launch-options.js";
 
-export const PROVIDER_ID = "modal-sandbox";
+export { PROVIDER_ID } from "./provider-id.js";
+export const modalMachineInputsSchema = z
+  .object({
+    preset: z.string().trim().min(1).optional(),
+    image: z.string().trim().min(1).optional(),
+  })
+  .strict();
+
+type ModalMachineInputs = z.infer<typeof modalMachineInputsSchema>;
+
+function resolveLaunchSelection(
+  inputs: ModalMachineInputs,
+  options: ModalLaunchOptions,
+): { preset: SandboxPreset | null; image: ModalImage } {
+  const presetName = inputs.preset ?? options.presets[0]?.name;
+  const preset =
+    presetName === undefined
+      ? null
+      : (options.presets.find((entry) => entry.name === presetName) ?? null);
+  if (presetName !== undefined && preset === null) {
+    throw new Error(
+      `The Modal sandbox preset "${presetName}" is not configured.`,
+    );
+  }
+  const imageName = inputs.image ?? options.images[0]?.name;
+  const image = options.images.find((entry) => entry.name === imageName);
+  if (image === undefined) {
+    throw new Error(`The Modal image "${imageName ?? ""}" is not configured.`);
+  }
+  return { preset, image };
+}
 
 const MODAL_API_RETRY_LIMIT = 3;
 const MODAL_API_RETRY_MS = 1_000;
@@ -45,6 +82,7 @@ export function createModalSandboxPlugin(
 ): (bb: BbPluginApi) => Promise<void> {
   return async (bb) => {
     const image = imageDefinition(bb);
+    const launchOptions = modalLaunchOptions(bb, image);
     const settings = bb.settings.define(SETTING_DESCRIPTORS);
     let cachedBackend: { token: string; backend: SandboxBackend } | null = null;
 
@@ -115,6 +153,7 @@ export function createModalSandboxPlugin(
     registerRpcAndCli(
       bb,
       image,
+      launchOptions,
       async () => {
         const resolved = await currentSettings();
         if (!resolved.ok)
@@ -202,6 +241,7 @@ export function createModalSandboxPlugin(
     async function launch(
       context: PluginMachineProviderCreateContext,
     ): Promise<PluginMachineProviderCreateResult> {
+      const inputs = modalMachineInputsSchema.parse(context.inputs);
       const resolved = await currentSettings();
       if (!resolved.ok) {
         return {
@@ -211,6 +251,10 @@ export function createModalSandboxPlugin(
       }
       const backend = backendFor(resolved.settings);
       try {
+        const selection = resolveLaunchSelection(
+          inputs,
+          await launchOptions.get(),
+        );
         context.signal.throwIfAborted();
         const enrollment = await bb.experimental_machines.enrollments.prepare({
           key: context.key,
@@ -221,17 +265,25 @@ export function createModalSandboxPlugin(
         );
         context.signal.throwIfAborted();
         const appName = resolved.settings.appName;
-        context.report.step("Preparing the standard Modal image…");
-        const imageId = await retryModalApi(
-          async () =>
-            backend.ensureStandardImage({
-              appName,
-              dockerfile: (await image.get()).dockerfile,
-              signal: context.signal,
-              report: context.report,
-            }),
-          context.signal,
+        context.report.step(
+          selection.image.source === "dockerfile"
+            ? `Preparing the ${selection.image.name} Modal image…`
+            : `Using the ${selection.image.name} Modal image…`,
         );
+        const selectedImage = selection.image;
+        const imageId =
+          selectedImage.source === "image-id"
+            ? selectedImage.imageId
+            : await retryModalApi(
+                () =>
+                  backend.ensureStandardImage({
+                    appName,
+                    dockerfile: selectedImage.dockerfile,
+                    signal: context.signal,
+                    report: context.report,
+                  }),
+                context.signal,
+              );
         context.signal.throwIfAborted();
         context.report.step("Creating the Modal Sandbox…");
         const sandbox = await retryModalApi(async () => {
@@ -243,8 +295,8 @@ export function createModalSandboxPlugin(
               name: context.key,
               image: { type: "image", imageId },
               timeoutMs: SANDBOX_LIFETIME_MS,
-              cpu: resolved.settings.cpu,
-              memoryMiB: resolved.settings.memoryMiB,
+              cpu: selection.preset?.cpu ?? null,
+              memoryMiB: selection.preset?.memoryMiB ?? null,
               tags: { bbMachineKey: context.key },
             })
           );
@@ -253,8 +305,8 @@ export function createModalSandboxPlugin(
           imageId,
           accountIdentity,
           appName,
-          cpu: resolved.settings.cpu ?? 0.125,
-          memoryMiB: resolved.settings.memoryMiB ?? 128,
+          cpu: selection.preset?.cpu ?? 0.125,
+          memoryMiB: selection.preset?.memoryMiB ?? 128,
           key: context.key,
           sandboxId: sandbox.sandboxId,
           snapshotImageId: null,
@@ -342,6 +394,16 @@ export function createModalSandboxPlugin(
       description: "Create a sandbox in your Modal account.",
       icon: "./modal-logo.svg",
       machineTag: "modal",
+      ephemeral: true,
+      inputs: modalMachineInputsSchema,
+      async validate({ inputs }) {
+        try {
+          resolveLaunchSelection(inputs, await launchOptions.get());
+          return { action: "accept" };
+        } catch (error) {
+          return { action: "refuse", message: errorMessage(error) };
+        }
+      },
       async availability() {
         const resolved = await currentSettings();
         return resolved.ok

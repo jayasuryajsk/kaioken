@@ -38,11 +38,7 @@ export function resolveRootComposeThreadEnvironment(
     return {
       type: "provider",
       environmentProviderId: provider.id,
-      ...(provider.machineProviderId
-        ? {}
-        : machine === null
-          ? {}
-          : { machine }),
+      ...(machine === null ? {} : { machine }),
       inputs,
     };
   }
