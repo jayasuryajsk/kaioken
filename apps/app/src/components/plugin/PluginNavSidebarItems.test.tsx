@@ -50,6 +50,7 @@ import {
 import { writeLastKnownPluginNavPanelChrome } from "@/lib/plugin-nav-panel-chrome";
 import { splitLayoutAtom } from "@/lib/split-layout/atoms";
 import { countPanes, findPaneByContent } from "@/lib/split-layout";
+import { usePublishPluginDetailOpener } from "./plugin-detail-navigation";
 vi.mock("@/components/ui/app-toast", () => ({
   appToast: {
     dismiss: vi.fn(),
@@ -502,6 +503,28 @@ describe("PluginNavSidebarItems", () => {
     );
   });
 
+  it("opens details in the active workspace without changing its route", async () => {
+    const open = vi.fn(() => true);
+    function Workspace() {
+      usePublishPluginDetailOpener(open, true);
+      return null;
+    }
+    render(<Workspace />);
+    registerPanel("docs", "Docs");
+    renderSidebarItems({ initialEntry: "/plugins/docs/main" });
+    fireEvent.pointerDown(
+      screen.getByRole("button", { name: "Docs panel options" }),
+      { button: 0 },
+    );
+    fireEvent.click(
+      await screen.findByRole("menuitem", { name: "View details" }),
+    );
+    expect(open).toHaveBeenCalledWith({ pluginId: "docs", title: "Docs" });
+    expect(screen.getByTestId("location-path").textContent).toBe(
+      "/plugins/docs/main",
+    );
+  });
+
   it("disables a plugin and leaves its active panel", async () => {
     const fetchMock = vi.fn<typeof fetch>(
       async () =>
@@ -522,9 +545,7 @@ describe("PluginNavSidebarItems", () => {
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     await waitFor(() =>
-      expect(screen.getByTestId("location-path").textContent).toBe(
-        "/plugins",
-      ),
+      expect(screen.getByTestId("location-path").textContent).toBe("/plugins"),
     );
     expect(appToast.success).toHaveBeenCalledWith("Docs disabled");
   });
@@ -1273,10 +1294,9 @@ describe("PluginNavSidebarItems", () => {
       item.textContent?.includes("Docs"),
     );
     if (!row) throw new Error("Docs customization row is missing");
-    fireEvent.click(
-      within(row).getByRole("button", { name: "Docs" }),
-      { metaKey: true },
-    );
+    fireEvent.click(within(row).getByRole("button", { name: "Docs" }), {
+      metaKey: true,
+    });
 
     const layout = store.get(splitLayoutAtom);
     expect(layout).not.toBeNull();
