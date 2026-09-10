@@ -1,7 +1,3 @@
-import {
-  operationSecrets,
-  redactOperationSecrets,
-} from "../operation-environment.js";
 import type { HostDaemonContributedEnvEntry } from "@bb/host-daemon-contract";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -77,7 +73,6 @@ export async function cloneProject(args: {
   projectSlug: string;
   remoteUrl: string;
   env?: NodeJS.ProcessEnv;
-  redactValues?: readonly string[];
   contributedEnv?: readonly HostDaemonContributedEnvEntry[];
   targetPath?: string;
   shellPath?: string;
@@ -97,23 +92,9 @@ export async function cloneProject(args: {
     });
   } catch (error) {
     if (error instanceof WorkspaceError) {
-      throw new ExpectedCommandDispatchError(
-        error.code,
-        redactOperationSecrets(error.message, [
-          ...operationSecrets(args.contributedEnv ?? []),
-          ...(args.redactValues ?? []),
-        ]),
-      );
+      throw new ExpectedCommandDispatchError(error.code, error.message);
     }
-    throw new Error(
-      redactOperationSecrets(
-        error instanceof Error ? error.message : String(error),
-        [
-          ...operationSecrets(args.contributedEnv ?? []),
-          ...(args.redactValues ?? []),
-        ],
-      ),
-    );
+    throw new Error(error instanceof Error ? error.message : String(error));
   }
   return inspectProjectPath(
     targetPath,

@@ -244,14 +244,12 @@ describe("createAgentRuntime lifecycle", () => {
           value: "/plugin/bin",
           source: { plugin: "env-test" },
           reason: "Use the plugin toolchain",
-          secret: false,
         },
         {
           name: "AUTH_PROXY_URL",
           value: { serverPath: "/plugins/env-test/auth" },
           source: { plugin: "env-test" },
           reason: "Use the authenticated server proxy",
-          secret: true,
         },
       ] as const;
       const runtime = createScriptedEchoRuntime({
@@ -312,12 +310,12 @@ describe("createAgentRuntime lifecycle", () => {
           {
             name: "AUTH_PROXY_URL",
             source: { plugin: "env-test" },
-            value: { masked: true },
+            value: "http://127.0.0.1:3334/plugins/env-test/auth",
             reason: "Use the authenticated server proxy",
           },
         ]),
       });
-      expect(JSON.stringify(events)).not.toContain("/plugins/env-test/auth");
+      expect(JSON.stringify(events)).toContain("/plugins/env-test/auth");
 
       await runtime.runTurn({
         clientRequestId: "creq_222222224c",
@@ -333,7 +331,7 @@ describe("createAgentRuntime lifecycle", () => {
       await runtime.shutdown();
     });
 
-    it("reinjects rotated machine credentials on the next turn and resume without exposing them in events", async () => {
+    it("reinjects rotated machine credentials on the next turn and resume", async () => {
       const record = createScriptedEchoRequestRecord();
       const events: ThreadEvent[] = [];
       const runtime = createScriptedEchoRuntime({
@@ -349,7 +347,6 @@ describe("createAgentRuntime lifecycle", () => {
           value,
           source: { core: "machine-git" as const },
           reason: "Server gh login",
-          secret: true,
         },
       ];
       try {
@@ -375,7 +372,7 @@ describe("createAgentRuntime lifecycle", () => {
           events,
           providerId: "fake",
           runtime,
-          text: "[redacted]",
+          text: "rotated-git-token",
           threadId: "git-thread",
         });
         await runtime.resumeThread({
@@ -389,9 +386,8 @@ describe("createAgentRuntime lifecycle", () => {
         expect(record.last("thread/resume")?.params).toMatchObject({
           options: { envVars: { GH_TOKEN: "resumed-git-token" } },
         });
-        expect(JSON.stringify(events)).not.toContain("first-git-token");
-        expect(JSON.stringify(events)).not.toContain("rotated-git-token");
-        expect(JSON.stringify(events)).not.toContain("resumed-git-token");
+        expect(JSON.stringify(events)).toContain("first-git-token");
+        expect(JSON.stringify(events)).toContain("resumed-git-token");
         expect(
           events.filter((event) => event.type === "provider.env-resolved"),
         ).toEqual(
@@ -400,7 +396,7 @@ describe("createAgentRuntime lifecycle", () => {
               entries: expect.arrayContaining([
                 expect.objectContaining({
                   name: "GH_TOKEN",
-                  value: { masked: true },
+                  value: "rotated-git-token",
                 }),
               ]),
             }),
@@ -434,7 +430,6 @@ describe("createAgentRuntime lifecycle", () => {
             value: { serverPath: "/plugins/env-test/auth" },
             source: { plugin: "env-test" },
             reason: "Use the authenticated server proxy",
-            secret: true,
           },
         ],
         options: fullRuntimeOptions,

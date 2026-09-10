@@ -1,9 +1,5 @@
 import { StringDecoder } from "node:string_decoder";
-import {
-  operationEnvironment,
-  operationSecrets,
-  createSecretStreamRedactor,
-} from "./operation-environment.js";
+import { operationEnvironment } from "./operation-environment.js";
 import type { HostDaemonContributedEnvEntry } from "@bb/host-daemon-contract";
 import {
   isProcessGroupAlive,
@@ -160,17 +156,12 @@ async function runLifecycleScript(
 
   const readers = [child.stdout, child.stderr].map((stream) => {
     const decoder = new StringDecoder("utf8");
-    const redactor = createSecretStreamRedactor(
-      operationSecrets(args.contributedEnv ?? []),
-    );
     const emit = (text: string) => {
       outputChunks.push(text);
       emitScriptOutputLines(outputLineReader.push(text));
     };
-    stream.on("data", (chunk: Buffer) =>
-      emit(redactor.push(decoder.write(chunk))),
-    );
-    return () => emit(redactor.push(decoder.end()) + redactor.flush());
+    stream.on("data", (chunk: Buffer) => emit(decoder.write(chunk)));
+    return () => emit(decoder.end());
   });
 
   const timeout = setTimeout(() => {

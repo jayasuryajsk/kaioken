@@ -1,7 +1,3 @@
-import {
-  operationSecrets,
-  redactOperationSecrets,
-} from "../operation-environment.js";
 import type {
   CommandDispatchOptions,
   CommandOf,
@@ -37,7 +33,6 @@ export async function runEnvironmentHook(
   command: CommandOf<"environment.hook.run">,
   options: CommandDispatchOptions,
 ): Promise<Record<string, never>> {
-  const secrets = operationSecrets(command.contributedEnv);
   const active = controllers(options);
   const existing = active.get(command.operationId);
   if (existing === "cancelled")
@@ -67,18 +62,13 @@ export async function runEnvironmentHook(
               operationId: command.operationId,
               entry: {
                 type: entry.type,
-                text: redactOperationSecrets(entry.text, secrets),
+                text: entry.text,
                 status: entry.status ?? null,
               },
             }),
         });
       } catch (error) {
-        throw new Error(
-          redactOperationSecrets(
-            error instanceof Error ? error.message : String(error),
-            secrets,
-          ),
-        );
+        throw new Error(error instanceof Error ? error.message : String(error));
       }
       return {};
     },

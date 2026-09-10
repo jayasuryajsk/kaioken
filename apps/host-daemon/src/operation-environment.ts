@@ -1,9 +1,4 @@
-import {
-  createSecretStreamRedactor,
-  redactJsonStrings,
-  sanitizeInheritedChildProcessEnv,
-} from "@bb/process-utils";
-import type { JsonValue } from "@bb/domain";
+import { sanitizeInheritedChildProcessEnv } from "@bb/process-utils";
 import type { HostDaemonContributedEnvEntry } from "@bb/host-daemon-contract";
 
 export function operationEnvironment(
@@ -23,58 +18,4 @@ export function operationEnvironment(
     }
   }
   return env;
-}
-
-export function operationSecrets(
-  entries: readonly HostDaemonContributedEnvEntry[],
-): string[] {
-  return entries.flatMap((entry) =>
-    entry.secret && typeof entry.value === "string" && entry.value.length > 0
-      ? [entry.value]
-      : [],
-  );
-}
-
-export function redactOperationSecrets(
-  text: string,
-  secrets: readonly string[],
-): string {
-  try {
-    const redactor = createSecretStreamRedactor(secrets);
-    return redactor.push(text) + redactor.flush();
-  } catch {
-    return "[redacted]";
-  }
-}
-
-export function redactOperationContent(
-  value: JsonValue,
-  secrets: readonly string[],
-): JsonValue {
-  try {
-    return redactJsonStrings(value, (text) =>
-      redactOperationSecrets(text, secrets),
-    );
-  } catch {
-    return "[redacted]";
-  }
-}
-
-export { createSecretStreamRedactor };
-
-export function daemonPrivateEnvironmentValues(
-  env: NodeJS.ProcessEnv,
-): string[] {
-  const values = Object.entries(env).flatMap(([key, value]) =>
-    key.startsWith("BB_") && value ? [value] : [],
-  );
-  if (env.BB_SERVER_HEADERS) {
-    try {
-      const headers: unknown = JSON.parse(env.BB_SERVER_HEADERS);
-      if (headers && typeof headers === "object")
-        for (const value of Object.values(headers))
-          if (typeof value === "string" && value) values.push(value);
-    } catch {}
-  }
-  return values;
 }

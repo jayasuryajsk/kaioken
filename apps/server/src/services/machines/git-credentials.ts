@@ -42,7 +42,6 @@ export function githubGitConfiguration(): HostDaemonContributedEnvEntry[] {
       value,
       source: { core: "machine-git" },
       reason: "GitHub HTTPS authentication",
-      secret: false,
     }),
   );
 }
@@ -75,7 +74,6 @@ export async function resolveGitCredentials(
         value,
         source: { core: "machine-git" },
         reason: "GitHub credentials from the server gh login",
-        secret: name === "GH_TOKEN",
       })),
     ];
   } catch {

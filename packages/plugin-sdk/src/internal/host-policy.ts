@@ -109,7 +109,6 @@ const pluginProviderEnvEntrySchema = z
       z.object({ serverPath: z.string().startsWith("/") }).strict(),
     ]),
     reason: z.string(),
-    secret: z.boolean(),
   })
   .strict();
 

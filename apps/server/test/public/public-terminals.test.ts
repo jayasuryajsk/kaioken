@@ -397,7 +397,6 @@ describe("public terminal routes", () => {
           value: "terminal-secret",
           source: { core: "machine-git" },
           reason: "Server gh login",
-          secret: true,
         },
       ]);
     try {

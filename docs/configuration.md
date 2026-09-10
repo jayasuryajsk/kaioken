@@ -1288,8 +1288,9 @@ Without an explicit directory, lifecycle commands locate the unique matching hos
 Core resolves machine contributions through
 `apps/server/src/services/hosts/host-environment.ts` before dispatching setup and
 teardown hooks. The `environment.hook.run` command carries `contributedEnv`;
-the daemon applies them to the hook child process and redacts secrets from
-progress and errors. Machine selection and precedence stay in the server
+the daemon applies them to the hook child process. Hook progress and errors are
+forwarded as-is, so contributed values printed by the child remain visible.
+Machine selection and precedence stay in the server
 resolver, which returns no contributions for the local host.
 
 Settings → Machines → Machine environment defines variables for all enrolled

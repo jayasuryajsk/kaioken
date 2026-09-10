@@ -1,8 +1,4 @@
-import {
-  operationEnvironment,
-  operationSecrets,
-  createSecretStreamRedactor,
-} from "../operation-environment.js";
+import { operationEnvironment } from "../operation-environment.js";
 import { accessSync, chmodSync, constants, existsSync } from "node:fs";
 import { access, stat } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -586,9 +582,6 @@ export class TerminalManager {
     try {
       const target = await this.resolveTerminalOpenTarget(message);
       const shell = await this.resolveShell();
-      const redactor = createSecretStreamRedactor(
-        operationSecrets(message.contributedEnv),
-      );
       const pty = this.ptyAdapter.spawn({
         args: terminalSpawnArgsForStart(message),
         cols: message.cols,
@@ -629,11 +622,8 @@ export class TerminalManager {
         );
       }
       session.disposables.push(
-        pty.onData((data) =>
-          this.handleTerminalOutput(session, redactor.push(data)),
-        ),
+        pty.onData((data) => this.handleTerminalOutput(session, data)),
         pty.onExit((event) => {
-          this.handleTerminalOutput(session, redactor.flush());
           void this.runTerminalOperation({
             operation: () =>
               this.finishTerminalSession({

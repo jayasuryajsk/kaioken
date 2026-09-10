@@ -90,7 +90,7 @@ export function resolveThreadEnvironment(args: ResolveThreadEnvironmentArgs): {
     entries.push({
       name: contribution.name,
       source: contribution.source,
-      value: contribution.secret ? { masked: true } : value,
+      value,
       reason: contribution.reason,
     });
   }

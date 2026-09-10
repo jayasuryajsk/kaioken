@@ -64,7 +64,6 @@ if [ "$1" = auth ]; then printf 'test-gh-secret\\n'; else printf '{"login":"octo
         expect.objectContaining({
           name: "GH_TOKEN",
           value: "test-gh-secret",
-          secret: true,
         }),
       ]),
     );

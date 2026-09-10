@@ -1616,7 +1616,6 @@ export interface ExperimentalPluginProviderEnvEntry {
   name: string;
   value: string | { serverPath: string };
   reason: string;
-  secret: boolean;
 }
 
 export interface ExperimentalPluginProviderEnvHealthContext {

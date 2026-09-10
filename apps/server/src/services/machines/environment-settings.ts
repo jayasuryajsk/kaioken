@@ -20,7 +20,6 @@ export async function resolveUserMachineEnvironment(
     rows.map(async (row) => ({
       name: row.name,
       value: await decryptMachineEnvironment(dataDir, row),
-      secret: true,
       reason: row.note ?? "Machine environment setting",
       source: { core: "machine-environment" },
     })),

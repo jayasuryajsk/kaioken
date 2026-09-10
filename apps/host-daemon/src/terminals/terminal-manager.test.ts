@@ -426,21 +426,25 @@ describe("TerminalManager", () => {
     ).resolves.toEqual([]);
   });
 
-  it("injects host credentials into a PTY and redacts terminal output", async () => {
+  it("injects host credentials into a PTY and forwards terminal output as-is", async () => {
     const harness = createHarness();
-    await openTerminal(harness, [
+    const pty = await openTerminal(harness, [
       {
         name: "GH_TOKEN",
         value: "terminal-private-token",
         source: { core: "machine-git" },
         reason: "Git",
-        secret: true,
       },
     ]);
     expect(harness.adapter.spawned[0]?.args.env.GH_TOKEN).toBe(
       "terminal-private-token",
     );
-    expect(JSON.stringify(harness.messages)).not.toContain(
+    pty.emitData("terminal-private-token");
+    await waitForOutputContaining({
+      messages: harness.messages,
+      text: "terminal-private-token",
+    });
+    expect(collectTerminalOutput(harness.messages)).toContain(
       "terminal-private-token",
     );
   });

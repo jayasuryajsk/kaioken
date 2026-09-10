@@ -65,7 +65,6 @@ describe("machine Git environment", () => {
         value: "provider-token",
         source: { plugin: "provider" },
         reason: "Override",
-        secret: true,
       },
     ];
     const merged = mergeHostAndProviderEnvironment(host, provider);

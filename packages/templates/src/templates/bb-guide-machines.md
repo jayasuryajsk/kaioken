@@ -224,7 +224,9 @@ follows the launch until the daemon connects. Run that command on the target
 machine; it installs bb if needed. Server access is resolved through the selected
 default access provider, just like SSH or cloud machines. `--no-wait` returns the
 launch ID and command once enrollment is prepared; `--json` includes the command
-in `command`. This command is built transiently from the encrypted pending
+in `command` and its expiry in `commandExpiresAt`, a millisecond timestamp that
+is null whenever no command is outstanding. The CLI prints that expiry beside
+the command it echoes. This command is built transiently from the encrypted pending
 bundle; durable progress contains no credential. After enrollment or cancellation,
 launch status returns no command. Treat this short-lived command as a credential.
 
@@ -250,7 +252,8 @@ GH_TOKEN row shows server login health; a custom GH_TOKEN overrides it. User var
 override built-in values for all enrolled machine hosts, excluding local hosts.
 Agent-provider variables win over these host values for agent turns. Changes
 apply to the next turn, setup operation, or newly opened BB terminal; existing
-terminals retain their launch environment.
+terminals retain their launch environment. Runtime output is forwarded as-is,
+so commands and providers can print contributed values.
 
 The server's gh login provides GitHub credentials, a Git environment-only HTTPS
 helper and SSH rewrites, and commit identity. The built-in row reports logged in,

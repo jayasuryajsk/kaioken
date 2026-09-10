@@ -164,7 +164,7 @@ it("reports unknown after daemon memory is lost without rerunning the script", a
 });
 
 it.each(["setup", "teardown"] as const)(
-  "injects %s contributions without leaking secrets into progress",
+  "injects %s contributions and forwards progress as-is",
   async (kind) => {
     const path = await makeTempDir("bb-hook-environment-");
     const secret = "hook-secret-fixture";
@@ -182,14 +182,12 @@ it.each(["setup", "teardown"] as const)(
         {
           name: "GH_TOKEN",
           value: secret,
-          secret: true,
           source: { core: "machine-environment" as const },
           reason: "test",
         },
         {
           name: "HOOK_PLAIN",
           value: "configured",
-          secret: false,
           source: { core: "machine-environment" as const },
           reason: "test",
         },
@@ -206,14 +204,13 @@ it.each(["setup", "teardown"] as const)(
       );
     else await dispatchOnlineRpcCommand(command, options);
     expect(await readFile(join(path, "received"), "utf8")).toBe(secret);
-    expect(output.join("\n")).not.toContain(secret);
-    expect(output.join("\n")).toContain("[redacted]");
+    expect(output.join("\n")).toContain(secret);
     expect(process.env.GH_TOKEN).not.toBe(secret);
   },
 );
 
 it.each(["setup", "teardown"] as const)(
-  "redacts multiline secrets before streaming %s hook lines",
+  "streams multiline contributed environment values from %s hook lines",
   async (kind) => {
     const path = await makeTempDir("bb-hook-multiline-");
     await writeFile(
@@ -232,21 +229,19 @@ it.each(["setup", "teardown"] as const)(
           {
             name: "MULTILINE",
             value: "HEADER\nPRIVATE_BODY\nFOOTER",
-            secret: true,
             source: { core: "machine-environment" as const },
             reason: "test",
           },
         ],
         resumeOnly: false,
-        operationId: `redact-${kind}`,
+        operationId: `output-${kind}`,
         path,
         kind,
         timeoutMs: 5000,
       },
       options,
     );
-    expect(output.join("\n")).not.toContain("PRIVATE_BODY");
-    expect(output.join("\n")).toContain("[redacted]");
+    expect(output.join("\n")).toContain("PRIVATE_BODY");
   },
 );
 
@@ -267,7 +262,6 @@ it("applies hook NODE_ENV and PATH contributions after sanitizing inherited stat
   }).map(([name, value]) => ({
     name,
     value,
-    secret: false,
     source: { core: "machine-environment" as const },
     reason: "test",
   }));

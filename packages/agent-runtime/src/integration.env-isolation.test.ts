@@ -196,7 +196,6 @@ it("codex provider applies rotated and removed contributions on the next turn", 
       name: "BB_MACHINE_ROTATION_TEST",
       value,
       reason: "Verify next-turn rotation",
-      secret: true,
       source: { core: "machine-git" as const },
     },
   ];

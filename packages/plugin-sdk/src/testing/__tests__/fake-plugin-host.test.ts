@@ -1700,7 +1700,6 @@ describe("providers.experimental_contributeEnv", () => {
           name: "PLUGIN_API_URL",
           value: { serverPath: "/plugins/auth-proxy/api" },
           reason: "Route provider traffic through the plugin",
-          secret: true,
         },
       ];
     });
@@ -1716,7 +1715,6 @@ describe("providers.experimental_contributeEnv", () => {
         name: "PLUGIN_API_URL",
         value: { serverPath: "/plugins/auth-proxy/api" },
         reason: "Route provider traffic through the plugin",
-        secret: true,
       },
     ]);
     expect(contexts).toEqual([
@@ -1769,7 +1767,6 @@ describe("providers.experimental_contributeEnv", () => {
         name: "lowercase",
         value: "hidden",
         reason: "invalid name",
-        secret: false,
       },
     ]);
     expect(() =>

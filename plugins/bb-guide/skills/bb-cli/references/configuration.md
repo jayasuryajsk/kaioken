@@ -107,8 +107,10 @@ all server requests. Do not print these headers; they can contain access tokens.
 
 Use `bb machine env list --json` for variables and built-in gh health.
 `bb machine env set NAME [--note text] --json` reads the value from
-stdin and removes one trailing newline; never pass secrets in argv or print
-them. `bb machine env unset NAME --json` removes an override. All values are encrypted in the database and omitted from responses.
+stdin and removes one trailing newline; never pass secrets in argv. Runtime
+output is forwarded as-is, so commands and providers can print contributed
+values. `bb machine env unset NAME --json` removes an override. All values are
+encrypted in the database and omitted from settings responses.
 
 These settings apply globally to enrolled machines, not local hosts, on each
 agent turn, setup command, and new BB terminal. User values override built-ins;

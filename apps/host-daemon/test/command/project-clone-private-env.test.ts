@@ -12,7 +12,7 @@ afterEach(async () => {
   vi.unstubAllEnvs();
   await cleanupTempDirs();
 });
-it("strips daemon-private inherited variables from real Git helpers and redacts clone failures", async () => {
+it("strips daemon-private inherited variables and returns clone failures as-is", async () => {
   const dir = await makeTempDir("bb-clone-private-");
   const helper = join(dir, "helper.sh");
   const capture = join(dir, "environment");
@@ -31,7 +31,6 @@ it("strips daemon-private inherited variables from real Git helpers and redacts 
   }).map(([name, value]) => ({
     name,
     value,
-    secret: name === "CONTRIBUTED_SECRET",
     source: { core: "machine-environment" as const },
     reason: "test",
   }));
@@ -54,7 +53,6 @@ it("strips daemon-private inherited variables from real Git helpers and redacts 
   expect(environment).not.toContain("BB_SERVER_HEADERS");
   expect(environment).not.toContain("BB_PRIVATE_TEST");
   expect(environment).toContain("CONTRIBUTED_SECRET=contributed-private");
-  expect(failure).toContain("[redacted]");
-  expect(failure).not.toContain("private-daemon-token");
-  expect(failure).not.toContain("contributed-private");
+  expect(failure).toContain("private-daemon-token");
+  expect(failure).toContain("contributed-private");
 });

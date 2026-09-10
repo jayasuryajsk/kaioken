@@ -21,7 +21,6 @@ describe("machine environment settings", () => {
         {
           name: "GH_TOKEN",
           value: "builtin-token",
-          secret: true,
           source: { core: "machine-git" },
           reason: "Git",
         },
@@ -110,7 +109,6 @@ describe("machine environment settings", () => {
         expect(env.filter((entry) => entry.name === "GH_TOKEN")).toEqual([
           expect.objectContaining({
             value: "user-private-token",
-            secret: true,
           }),
         ]);
         expect(env).toContainEqual(

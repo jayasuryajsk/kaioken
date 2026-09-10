@@ -197,7 +197,6 @@ export const hostDaemonContributedEnvEntrySchema = z
         .strict(),
     ]),
     reason: z.string(),
-    secret: z.boolean(),
   })
   .strict();
 export type HostDaemonContributedEnvEntry = z.infer<

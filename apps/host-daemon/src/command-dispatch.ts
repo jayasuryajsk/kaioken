@@ -1,7 +1,4 @@
-import {
-  operationEnvironment,
-  daemonPrivateEnvironmentValues,
-} from "./operation-environment.js";
+import { operationEnvironment } from "./operation-environment.js";
 import {
   runEnvironmentHook,
   cancelEnvironmentHook,
@@ -478,10 +475,6 @@ const commandHandlers: CommandHandlerMap = {
         },
         true,
       ),
-      redactValues: daemonPrivateEnvironmentValues({
-        ...process.env,
-        ...options.runtimeManager.getShellEnv(),
-      }),
       contributedEnv: command.contributedEnv,
       remoteUrl: command.remoteUrl,
       ...userExecutableProcessOptions(options.runtimeManager.getShellEnv()),

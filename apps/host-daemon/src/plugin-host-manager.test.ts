@@ -189,7 +189,7 @@ describe("PluginHostManager", () => {
     expect(fetchArtifact).toHaveBeenCalledOnce();
   });
 
-  it("scopes setup env, waits for rotation, and redacts secrets returned by a worker", async () => {
+  it("scopes setup env, waits for rotation, and returns worker output as-is", async () => {
     const manager = await createManager({
       shellEnv: () => ({ npm_config_user_agent: "test" }),
     });
@@ -197,14 +197,12 @@ describe("PluginHostManager", () => {
       {
         name: "GATE_VALUE",
         value,
-        secret: false,
         reason: "Gate",
         source: { core: "machine-environment" as const },
       },
       {
         name: "GH_TOKEN",
         value: 'worker-secret\nwith"quotes',
-        secret: true,
         reason: "Git",
         source: { core: "machine-git" as const },
       },
@@ -228,12 +226,12 @@ describe("PluginHostManager", () => {
     expect(first.output).toEqual({
       before: "first",
       after: "first",
-      token: "[redacted]",
+      token: 'worker-secret\nwith"quotes',
     });
     expect(rotated.output).toEqual({
       before: "rotated",
       after: "rotated",
-      token: "[redacted]",
+      token: 'worker-secret\nwith"quotes',
     });
     expect(
       (await manager.call(callCommand({ method: "environment", input: {} })))
@@ -254,17 +252,16 @@ describe("PluginHostManager", () => {
           {
             name: "TEST_SECRET",
             value: secret,
-            secret: true,
             reason: "Probe",
             source: { core: "machine-environment" },
           },
         ],
       });
       const payload = {
-        type: "[redacted]",
+        type: secret,
         true: true,
         ok: true,
-        nested: [{ text: "[redacted]" }],
+        nested: [{ text: secret }],
       };
       expect(await manager.call(command)).toEqual({ output: payload });
       expect(onSignal).toHaveBeenCalledWith({
@@ -275,7 +272,7 @@ describe("PluginHostManager", () => {
       });
       await expect(
         manager.call({ ...command, input: { fail: true } }),
-      ).rejects.toThrow("[redacted]");
+      ).rejects.toThrow(secret);
     },
   );
 
@@ -283,57 +280,57 @@ describe("PluginHostManager", () => {
     "first-line\nsecond-line",
     "first-line\r\nsecond-line",
     "π-first\nsecond-line",
-  ])(
-    "redacts worker stderr before framing, across byte chunks and rotation: %j",
-    async (secret) => {
-      const warn = vi.fn();
-      const manager = await createManager({
-        logger: { debug: vi.fn(), info: vi.fn(), warn },
-      });
-      const command = callCommand({
-        method: "secretProbe",
-        input: {},
-        contributedEnv: [
-          {
-            name: "TEST_SECRET",
-            value: secret,
-            secret: true,
-            reason: "Probe",
-            source: { core: "machine-environment" },
-          },
-        ],
-      });
-      await manager.call(command);
-      const bytes = Buffer.from(
-        secret.replaceAll("\r\n", "\n").replaceAll("\n", "\r\n") + "\n",
-      );
-      await manager.call({
-        ...command,
-        contributedEnv: [],
-        input: { chunks: [...bytes].map((byte) => [byte]) },
-      });
-      await vi.waitFor(() =>
-        expect(warn).toHaveBeenCalledWith(
-          { pluginId: "fixture", origin: "host", stderr: "[redacted]" },
-          "Host plugin stderr",
-        ),
-      );
-      const pendingPrefix = Buffer.from(secret.slice(0, 5));
-      await manager.call({
-        ...command,
-        contributedEnv: [],
-        input: { chunks: [[...pendingPrefix]] },
-      });
-      await manager.shutdown();
-      const records = warn.mock.calls.filter(
-        ([, message]) => message === "Host plugin stderr",
-      );
-      expect(records.map(([record]) => record.stderr)).toEqual([
-        "[redacted]",
-        "[redacted]",
-      ]);
-    },
-  );
+  ])("frames worker stderr as-is across byte chunks: %j", async (secret) => {
+    const warn = vi.fn();
+    const manager = await createManager({
+      logger: { debug: vi.fn(), info: vi.fn(), warn },
+    });
+    const command = callCommand({
+      method: "secretProbe",
+      input: {},
+      contributedEnv: [
+        {
+          name: "TEST_SECRET",
+          value: secret,
+          reason: "Probe",
+          source: { core: "machine-environment" },
+        },
+      ],
+    });
+    await manager.call(command);
+    const bytes = Buffer.from(
+      secret.replaceAll("\r\n", "\n").replaceAll("\n", "\r\n") + "\n",
+    );
+    await manager.call({
+      ...command,
+      contributedEnv: [],
+      input: { chunks: [...bytes].map((byte) => [byte]) },
+    });
+    await vi.waitFor(() =>
+      expect(warn).toHaveBeenCalledWith(
+        {
+          pluginId: "fixture",
+          origin: "host",
+          stderr: secret.replaceAll("\r\n", "\n").split("\n")[0],
+        },
+        "Host plugin stderr",
+      ),
+    );
+    const pendingPrefix = Buffer.from(secret.slice(0, 5));
+    await manager.call({
+      ...command,
+      contributedEnv: [],
+      input: { chunks: [[...pendingPrefix]] },
+    });
+    await manager.shutdown();
+    const records = warn.mock.calls.filter(
+      ([, message]) => message === "Host plugin stderr",
+    );
+    expect(records.map(([record]) => record.stderr)).toEqual([
+      ...secret.replaceAll("\r\n", "\n").split("\n"),
+      secret.slice(0, 5),
+    ]);
+  });
 
   it("migrates a verified legacy host.js cache entry without downloading", async () => {
     const fetchArtifact = vi.fn(async () => artifactSource);
