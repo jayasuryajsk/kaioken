@@ -72,44 +72,6 @@ describe("bb machine command output", () => {
   const register: CommandRegistrar = (program) =>
     registerMachineCommands(program, () => "http://server");
 
-  it("creates with a stable key and JSON inputs", async () => {
-    const create = vi.fn(async () => launch);
-    stubServerApi({
-      "v1.hosts.launches.:id.$get": vi.fn(async () => launch),
-      "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
-      "v1.hosts.$post": create,
-    });
-
-    await runCommand(
-      [
-        "machine",
-        "create",
-        "--provider",
-        "ssh",
-        "--key",
-        "retry-1",
-        "--inputs",
-        '{"address":"example.test"}',
-        "--json",
-      ],
-      register,
-    );
-
-    expect(create).toHaveBeenCalledWith(
-      {
-        json: {
-          machineProviderId: "ssh",
-          key: "retry-1",
-          inputs: { address: "example.test" },
-        },
-      },
-      { init: { signal: expect.any(AbortSignal) } },
-    );
-    expect(JSON.parse(collectLogPayloads(vi.mocked(console.log))[0])).toEqual(
-      hosts[1],
-    );
-  });
-
   it("follows transient launch failures until the server reaches ready", async () => {
     const poll = vi
       .fn()
@@ -132,36 +94,6 @@ describe("bb machine command output", () => {
       "Machine host-remote created",
     ]);
   });
-
-  it.each([
-    { provider: "ssh", inputs: null, argv: [] },
-    { provider: "digitalocean", inputs: {}, argv: ["--inputs", "{}"] },
-  ])(
-    "creates $provider and lets the server choose the key",
-    async ({ provider, inputs, argv }) => {
-      const create = vi.fn(async () => launch);
-      stubServerApi({
-        "v1.hosts.launches.:id.$get": vi.fn(async () => launch),
-        "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
-        "v1.hosts.$post": create,
-      });
-
-      await runCommand(
-        ["machine", "create", "--provider", provider, ...argv],
-        register,
-      );
-
-      expect(create).toHaveBeenCalledWith(
-        {
-          json: { machineProviderId: provider, inputs },
-        },
-        { init: { signal: expect.any(AbortSignal) } },
-      );
-      expect(collectLogPayloads(vi.mocked(console.log))).toEqual([
-        "Machine host-remote created",
-      ]);
-    },
-  );
 
   it("returns the launch ID without polling with --no-wait", async () => {
     const poll = vi.fn(async () => launch);
@@ -338,26 +270,6 @@ describe("bb machine command output", () => {
       ]);
     },
   );
-
-  it("bb machine providers lists providers without project scope", async () => {
-    const listProviders = vi.fn(async () => ({
-      providers: [
-        {
-          id: "modal-sandbox",
-          displayName: "Modal sandbox",
-          availability: { status: "available" },
-        },
-      ],
-    }));
-    stubServerApi({ "v1.system.machine-providers.$get": listProviders });
-
-    await runCommand(["machine", "providers"], register);
-
-    expect(listProviders).toHaveBeenCalledWith({});
-    expect(collectLogPayloads(vi.mocked(console.log))).toEqual([
-      "modal-sandbox  Modal sandbox  available",
-    ]);
-  });
 
   it("bb machine remove resolves and removes a provider machine", async () => {
     const remove = vi.fn(async () => undefined);

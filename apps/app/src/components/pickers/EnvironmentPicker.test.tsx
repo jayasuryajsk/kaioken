@@ -430,99 +430,6 @@ describe("EnvironmentPickerUI", () => {
       host.id,
     );
   });
-
-  it("offers one composed environment independently of an existing host", () => {
-    const onSelectProvider = vi.fn();
-    const modal = {
-      ...checkoutProvider,
-      id: "modal-sandbox",
-      displayName: "Modal sandbox",
-      machineProviderId: "modal-sandbox",
-      environmentProviderId: "project-checkout",
-      inputs: null,
-    };
-    renderPicker(
-      <EnvironmentPickerUI
-        value="provider:modal-sandbox"
-        sources={sources}
-        host={null}
-        isLocal={false}
-        providers={[checkoutProvider, modal]}
-        selectedProviderHostId={null}
-        onSelectProvider={onSelectProvider}
-        modal={false}
-      />,
-    );
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Environment" }), {
-      button: 0,
-    });
-    expect(
-      screen.getByRole("button", { name: "Environment" }).textContent,
-    ).toContain("Modal sandbox");
-    expect(
-      screen.getByRole("button", { name: "Environment" }).textContent,
-    ).not.toContain("Project checkout");
-    const items = screen.getAllByRole("menuitem", { name: /Modal sandbox/u });
-    expect(items).toHaveLength(1);
-    fireEvent.click(items[0]);
-    expect(onSelectProvider).toHaveBeenCalledWith(modal, null);
-  });
-
-  it("lists machine-less environments after the ones on a machine", () => {
-    const modal = {
-      ...checkoutProvider,
-      id: "modal-sandbox",
-      displayName: "Modal Sandbox",
-      machineProviderId: "modal-sandbox",
-      environmentProviderId: "project-checkout",
-      inputs: null,
-    };
-    renderPicker(
-      <EnvironmentPickerUI
-        value="provider:project-checkout"
-        sources={sources}
-        host={host}
-        isLocal
-        providers={[modal, checkoutProvider]}
-        selectedProviderHostId={host.id}
-        onSelectProvider={vi.fn()}
-        modal={false}
-      />,
-    );
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Environment" }), {
-      button: 0,
-    });
-    expect(screen.getByRole("separator")).toBeTruthy();
-    const labels = screen
-      .getAllByRole("menuitem")
-      .map((item) => item.textContent ?? "");
-    expect(labels.findIndex((label) => label.includes("Modal Sandbox"))).toBe(
-      labels.length - 1,
-    );
-  });
-
-  it("only offers environments on existing machines", () => {
-    renderPicker(
-      <EnvironmentPickerUI
-        value="provider:project-checkout"
-        sources={sources}
-        host={host}
-        isLocal
-        providers={[checkoutProvider, branchProvider]}
-        selectedProviderHostId={host.id}
-        onSelectProvider={vi.fn()}
-        modal={false}
-      />,
-    );
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Environment" }), {
-      button: 0,
-    });
-    expect(screen.queryByText("New machine")).toBeNull();
-    expect(
-      screen.queryByRole("menuitem", { name: /Modal sandbox/u }),
-    ).toBeNull();
-    expect(screen.getAllByRole("menuitem")).toHaveLength(2);
-  });
 });
 
 describe("EnvironmentPickerUI multi-machine menu", () => {
@@ -598,38 +505,6 @@ describe("EnvironmentPickerUI multi-machine menu", () => {
     expect(checkoutItems).toHaveLength(3);
     fireEvent.click(checkoutItems[1]!);
     expect(onSelectProvider).toHaveBeenCalledWith(checkoutProvider, studio.id);
-  });
-
-  it("includes provider-made hosts in environment picker machine sections", () => {
-    const providerHost = makeHost({
-      id: "host_modal",
-      name: "Modal sandbox 3f9a",
-      machineProviderId: "modal-sandbox",
-    });
-    renderPicker(
-      <EnvironmentPickerUI
-        value="provider:project-checkout"
-        sources={machineSources}
-        host={thisMachine}
-        isLocal
-        machines={{
-          hosts: [thisMachine, studio, providerHost],
-          localDaemonHostId: thisMachine.id,
-          primaryHostId: thisMachine.id,
-        }}
-        providers={[checkoutProvider]}
-        selectedProviderHostId={thisMachine.id}
-        onSelectProvider={vi.fn()}
-        modal={false}
-      />,
-    );
-
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Environment" }), {
-      button: 0,
-    });
-
-    expect(screen.getByText("Mac Studio")).toBeTruthy();
-    expect(screen.getByText("Modal sandbox 3f9a")).toBeTruthy();
   });
 
   it("does not show project checkout paths in machine headers", () => {

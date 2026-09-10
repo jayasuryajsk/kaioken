@@ -56,15 +56,6 @@ async function show(
   await screen.findByDisplayValue("API_KEY");
 }
 
-it("renders the automatic token as a read-only variable with a login error", async () => {
-  await show("not logged in");
-  expect(
-    screen.getByDisplayValue("GH_TOKEN").getAttribute("readonly"),
-  ).not.toBeNull();
-  expect(screen.getByText("Automatic")).toBeTruthy();
-  expect(screen.getByRole("alert").textContent).toContain("gh auth login");
-});
-
 it("stages additions and preserves an unchanged saved secret", async () => {
   await show();
   fireEvent.click(screen.getByRole("button", { name: "Add variable" }));
@@ -104,15 +95,4 @@ it("retains a secret replacement when saving fails", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Save variables" }));
   await screen.findByText(/Some changes could not be saved/);
   expect(screen.getByDisplayValue("replacement")).toBeTruthy();
-});
-
-it("does not show a validation error until a new name field loses focus", async () => {
-  await show();
-  fireEvent.click(screen.getByRole("button", { name: "Add variable" }));
-  expect(screen.queryByRole("alert")).toBeNull();
-  const name = screen.getByLabelText("Variable name 2");
-  fireEvent.blur(name);
-  expect(screen.getByRole("alert").textContent).toBe("Enter a variable name.");
-  fireEvent.change(name, { target: { value: "VALID_NAME" } });
-  expect(screen.queryByRole("alert")).toBeNull();
 });

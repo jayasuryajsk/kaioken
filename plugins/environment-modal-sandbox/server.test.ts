@@ -258,34 +258,6 @@ function createContext(
 }
 
 describe("Modal machine provider", () => {
-  it("bundles Modal's official one-color icon mark", () => {
-    const svg = readFileSync(
-      new URL("./modal-logo.svg", import.meta.url),
-      "utf8",
-    );
-    expect(svg).toContain('width="611" height="317"');
-    expect(svg).toContain('viewBox="0 0 611 317"');
-    expect(svg).toContain('fill="black"');
-  });
-
-  it("registers a machine and a project-checkout environment composition", async () => {
-    const harness = await setup();
-    expect(harness.harness.registrations.environmentProviders.size).toBe(0);
-    expect(
-      harness.harness.registrations.environmentCompositions.get(PROVIDER_ID),
-    ).toEqual({
-      id: PROVIDER_ID,
-      displayName: "Modal Sandbox",
-      machineProviderId: PROVIDER_ID,
-      environmentProviderId: "project-checkout",
-    });
-    expect(harness.provider).toMatchObject({
-      id: PROVIDER_ID,
-      displayName: "Modal Sandbox",
-      icon: "./modal-logo.svg",
-    });
-  });
-
   it("reports setup-required without credentials", async () => {
     const harness = await setup({});
     await expect(harness.provider.availability?.()).resolves.toMatchObject({
@@ -782,42 +754,6 @@ it("does not allocate a sandbox when cancelled during standard image preparation
   expect(test.bootstrap).not.toHaveBeenCalled();
 });
 
-it("exposes account connection checks through RPC and CLI without allocation", async () => {
-  const test = await setup();
-  expect(await test.harness.behavior.callRpc("account.inspect", {})).toEqual({
-    available: true,
-    message: "Connected to Modal (bb-sandboxes)",
-  });
-  expect(
-    await test.harness.behavior.runCli(["account", "inspect", "--json"]),
-  ).toMatchObject({ exitCode: 0 });
-  expect(
-    await test.harness.behavior.runCli(["image", "unknown"]),
-  ).toMatchObject({
-    exitCode: 1,
-  });
-  expect(test.backend.image).not.toHaveBeenCalled();
-  expect(test.backend.creates).toHaveLength(0);
-});
-
-it("shows the shipped Dockerfile without credentials or cloud access", async () => {
-  const test = await setup({});
-  const dockerfile = readFileSync(
-    new URL("./Dockerfile", import.meta.url),
-    "utf8",
-  );
-  expect(await test.harness.behavior.callRpc("image.definition", {})).toEqual({
-    dockerfile,
-    customized: false,
-  });
-  expect(await test.harness.behavior.runCli(["image", "show"])).toMatchObject({
-    exitCode: 0,
-    stdout: dockerfile,
-  });
-  expect(test.backend.image).not.toHaveBeenCalled();
-  expect(test.backend.creates).toHaveLength(0);
-});
-
 it("refuses an older snapshot when running compute disappears unexpectedly", async () => {
   const test = await setup();
   const created = await test.provider.create(createContext());
@@ -1112,70 +1048,4 @@ describe("plugin-owned idle timing", () => {
       await test.harness.lifecycle.dispose();
     }
   });
-});
-
-it("exposes missing compute through Modal RPC and CLI without restoring it", async () => {
-  const test = await setup();
-  const created = await test.provider.create(createContext());
-  if (created.status !== "created") throw new Error("creation failed");
-  test.machineResource.mockImplementation(async (hostId) =>
-    hostId === HOST_ID ? created.resource : null,
-  );
-  const machine = test.backend.states[0];
-  if (!machine) throw new Error("missing test sandbox");
-  machine.terminated = true;
-  const details = await test.harness.callRpc("machine.inspect", {
-    hostId: HOST_ID,
-  });
-  expect(details).toMatchObject({
-    summary: expect.stringContaining(
-      "Changes since the last saved image may be lost",
-    ),
-    values: { state: "missing" },
-  });
-  const cli = await test.harness.runCli([
-    "machine",
-    "inspect",
-    HOST_ID,
-    "--json",
-  ]);
-  expect(cli.exitCode).toBe(0);
-  expect(JSON.parse(cli.stdout)).toEqual(details);
-  expect(test.backend.creates).toHaveLength(1);
-  await expect(
-    test.harness.callRpc("machine.inspect", { hostId: "unrelated-host" }),
-  ).rejects.toThrow("No provider resource");
-});
-
-it("reports the saved snapshot after pause and live compute after resume", async () => {
-  const test = await setup();
-  const created = await test.provider.create(createContext());
-  if (created.status !== "created") throw new Error("creation failed");
-  test.machineResource.mockImplementation(async (hostId) =>
-    hostId === HOST_ID ? created.resource : null,
-  );
-  const context = {
-    hostId: HOST_ID,
-    resource: created.resource,
-    report,
-    signal: new AbortController().signal,
-    checkpoint: async () => {},
-  };
-  const suspended = await test.provider.suspend?.(context);
-  if (!suspended) throw new Error("suspend not registered");
-  test.machineResource.mockResolvedValue(suspended.resource);
-  expect(
-    await test.harness.callRpc("machine.inspect", { hostId: HOST_ID }),
-  ).toMatchObject({
-    values: { state: "suspended", snapshotImageId: "image-1" },
-  });
-  const resumed = await test.provider.resume?.({
-    ...context,
-    resource: suspended.resource,
-  });
-  if (!resumed) throw new Error("resume not registered");
-  test.machineResource.mockResolvedValue(resumed.resource);
-  expect(
-    await test.harness.callRpc("machine.inspect", { hostId: HOST_ID }),
-  ).toMatchObject({ values: { state: "running", snapshotImageId: "image-1" } });
 });

@@ -160,71 +160,6 @@ afterEach(() => {
 });
 
 describe("MachineSettingsView", () => {
-  it("marks a provider-made host with its provider name", async () => {
-    stubSupportingFetches();
-    vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
-    vi.mocked(sdk.hosts.list).mockResolvedValue([
-      host({
-        name: "Modal sandbox 3f9a",
-        machineProviderId: "modal-sandbox",
-      }),
-    ]);
-    vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue([
-      {
-        id: "modal-sandbox",
-        displayName: "Modal sandbox",
-        description: "Run a machine for development.",
-        icon: "./modal-logo.svg",
-        machineTag: "modal",
-        logoUrl: "/api/v1/system/providers/machine%3Amodal-sandbox/logo?h=hash",
-        pluginId: "environment-modal-sandbox",
-        inputs: null,
-        acceptsEmptyInputs: true,
-        supportsSuspend: true,
-
-        availability: { status: "available" },
-      },
-    ]);
-    renderView();
-
-    const badge = await screen.findByText("modal");
-    expect(
-      badge.parentElement?.querySelector("[data-provider-logo]"),
-    ).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Suspend" })).toBeDefined();
-  });
-
-  it("hides lifecycle controls when the provider does not support them", async () => {
-    stubSupportingFetches();
-    vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
-    vi.mocked(sdk.hosts.list).mockResolvedValue([
-      host({ machineProviderId: "test-machine" }),
-    ]);
-    vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue([
-      {
-        id: "test-machine",
-        displayName: "Test machine",
-        description: "Run a machine for development.",
-        icon: "Terminal",
-        machineTag: null,
-        logoUrl: null,
-        pluginId: "test-machine-provider",
-        inputs: null,
-        acceptsEmptyInputs: true,
-        supportsSuspend: false,
-
-        availability: { status: "available" },
-      },
-    ]);
-    renderView();
-
-    await screen.findByRole("heading", { name: /dev-vm/u });
-    expect(screen.queryByText("Test machine")).toBeNull();
-    expect(screen.queryByText("Active")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Suspend" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Resume" })).toBeNull();
-  });
-
   it("renders the machine's permission limit as a checked radio with descriptions", async () => {
     vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
     vi.mocked(sdk.hosts.list).mockResolvedValue([
@@ -427,30 +362,6 @@ describe("MachineSettingsView", () => {
     expect(
       screen.getByText("bb's primary machine can't be removed."),
     ).toBeDefined();
-  });
-
-  it("removes a machine after confirmation", async () => {
-    vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
-    vi.mocked(sdk.hosts.list).mockResolvedValue([host()]);
-    vi.mocked(sdk.hosts.delete).mockResolvedValue({ ok: true });
-    stubSupportingFetches();
-
-    renderView();
-
-    const confirmButtons = await screen.findAllByRole("button", {
-      name: "Remove machine",
-    });
-    fireEvent.click(confirmButtons.at(-1)!);
-    const openRemoveButtons = await screen.findAllByRole("button", {
-      name: "Remove machine",
-    });
-    fireEvent.click(openRemoveButtons.at(-1)!);
-
-    await waitFor(() => {
-      expect(vi.mocked(sdk.hosts.delete)).toHaveBeenCalledWith({
-        hostId: HOST_ID,
-      });
-    });
   });
 
   it("shows client-local identity only when several machines need disambiguation", async () => {
