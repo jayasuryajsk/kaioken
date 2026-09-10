@@ -3,21 +3,21 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
-import type { AgentRuntime, AgentRuntimeOptions } from "@bb/agent-runtime";
-import type { ThreadEvent } from "@bb/domain";
-import { threadScope, turnScope } from "@bb/domain";
-import type { HostDaemonInjectedSkillSource } from "@bb/host-daemon-contract";
-import type { HostWatcher } from "@bb/host-watcher";
+import type { AgentRuntime, AgentRuntimeOptions } from "@kaioken/agent-runtime";
+import type { ThreadEvent } from "@kaioken/domain";
+import { threadScope, turnScope } from "@kaioken/domain";
+import type { HostDaemonInjectedSkillSource } from "@kaioken/host-daemon-contract";
+import type { HostWatcher } from "@kaioken/host-watcher";
 import {
   provisionWorkspace,
   type HostWorkspace,
   type ProvisionWorkspaceArgs,
-} from "@bb/host-workspace";
+} from "@kaioken/host-workspace";
 import {
   createDeferredPromise,
   makeWorkspaceMergeBase,
   makeWorkspaceStatus,
-} from "@bb/test-helpers";
+} from "@kaioken/test-helpers";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   RuntimeManager,
@@ -86,10 +86,10 @@ async function runGit(
 }
 
 async function initRepo(): Promise<string> {
-  const repoPath = await makeTempDir("bb-runtime-manager-repo-");
+  const repoPath = await makeTempDir("kaioken-runtime-manager-repo-");
   await runGit(["init", "-b", "main"], { cwd: repoPath });
-  await runGit(["config", "user.name", "BB Tests"], { cwd: repoPath });
-  await runGit(["config", "user.email", "bb@example.com"], { cwd: repoPath });
+  await runGit(["config", "user.name", "Kaioken Tests"], { cwd: repoPath });
+  await runGit(["config", "user.email", "kaioken@example.com"], { cwd: repoPath });
   await fs.writeFile(path.join(repoPath, "README.md"), "hello\n", "utf8");
   await runGit(["add", "."], { cwd: repoPath });
   await runGit(["commit", "-m", "Initial commit"], { cwd: repoPath });
@@ -481,7 +481,7 @@ describe("RuntimeManager", () => {
   });
 
   it("passes staged injected skill roots to created runtimes", async () => {
-    const dataDir = await makeTempDir("bb-runtime-manager-skills-");
+    const dataDir = await makeTempDir("kaioken-runtime-manager-skills-");
     const source = await writeInjectedSkillSource({
       dataDir,
       name: "release-notes",
@@ -526,7 +526,7 @@ describe("RuntimeManager", () => {
   });
 
   it("loads a thread command's skill catalog while that command retains an idle runtime", async () => {
-    const dataDir = await makeTempDir("bb-runtime-manager-command-skills-");
+    const dataDir = await makeTempDir("kaioken-runtime-manager-command-skills-");
     const source = await writeInjectedSkillSource({
       dataDir,
       name: "release-notes",
@@ -571,7 +571,7 @@ describe("RuntimeManager", () => {
   });
 
   it("does not reuse an idle runtime with a stale skill catalog hash", async () => {
-    const dataDir = await makeTempDir("bb-runtime-manager-skills-stale-");
+    const dataDir = await makeTempDir("kaioken-runtime-manager-skills-stale-");
     const source = await writeInjectedSkillSource({
       dataDir,
       name: "release-notes",
@@ -623,7 +623,7 @@ describe("RuntimeManager", () => {
   });
 
   it("reuses a busy runtime with a stale skill catalog and refreshes it once idle", async () => {
-    const dataDir = await makeTempDir("bb-runtime-manager-skills-defer-");
+    const dataDir = await makeTempDir("kaioken-runtime-manager-skills-defer-");
     const source = await writeInjectedSkillSource({
       dataDir,
       name: "release-notes",
@@ -683,7 +683,7 @@ describe("RuntimeManager", () => {
   });
 
   it("replaces an idle runtime that hosts the target thread and keeps the new staged catalog", async () => {
-    const dataDir = await makeTempDir("bb-runtime-manager-skills-idle-host-");
+    const dataDir = await makeTempDir("kaioken-runtime-manager-skills-idle-host-");
     const source = await writeInjectedSkillSource({
       dataDir,
       name: "release-notes",
@@ -733,7 +733,7 @@ describe("RuntimeManager", () => {
   });
 
   it("keeps the staged catalog of an environment still being created while another environment swaps catalogs", async () => {
-    const dataDir = await makeTempDir("bb-runtime-manager-skills-pending-");
+    const dataDir = await makeTempDir("kaioken-runtime-manager-skills-pending-");
     const sourceA = await writeInjectedSkillSource({
       dataDir,
       name: "release-notes",
@@ -801,7 +801,7 @@ describe("RuntimeManager", () => {
   });
 
   it("reuses a busy runtime for a target thread it does not host yet", async () => {
-    const dataDir = await makeTempDir("bb-runtime-manager-skills-unhosted-");
+    const dataDir = await makeTempDir("kaioken-runtime-manager-skills-unhosted-");
     const source = await writeInjectedSkillSource({
       dataDir,
       name: "release-notes",
@@ -841,7 +841,7 @@ describe("RuntimeManager", () => {
   });
 
   it("reuses a runtime pinned busy by a terminal when a thread brings skill sources", async () => {
-    const dataDir = await makeTempDir("bb-runtime-manager-skills-terminal-");
+    const dataDir = await makeTempDir("kaioken-runtime-manager-skills-terminal-");
     const source = await writeInjectedSkillSource({
       dataDir,
       name: "release-notes",
@@ -875,7 +875,7 @@ describe("RuntimeManager", () => {
   });
 
   it("rejects a stale skill catalog on a busy runtime when no thread targets it", async () => {
-    const dataDir = await makeTempDir("bb-runtime-manager-skills-conflict-");
+    const dataDir = await makeTempDir("kaioken-runtime-manager-skills-conflict-");
     const source = await writeInjectedSkillSource({
       dataDir,
       name: "release-notes",
@@ -915,9 +915,9 @@ describe("RuntimeManager", () => {
 
   it("passes unmanaged linked worktree git metadata roots to created runtimes", async () => {
     const repoPath = await initRepo();
-    const parentDir = await makeTempDir("bb-runtime-manager-unmanaged-wt-");
+    const parentDir = await makeTempDir("kaioken-runtime-manager-unmanaged-wt-");
     const worktreePath = path.join(parentDir, "env");
-    await runGit(["worktree", "add", "-B", "bb/unmanaged", worktreePath], {
+    await runGit(["worktree", "add", "-B", "kaioken/unmanaged", worktreePath], {
       cwd: repoPath,
     });
     const runtimeOptions: RuntimeOptionsRef = { current: null };
@@ -958,7 +958,7 @@ describe("RuntimeManager", () => {
     const runtimeOptions: RuntimeOptionsRef = { current: null };
     const manager = new RuntimeManager({
       provisionWorkspace,
-      threadStorageRootPath: "/tmp/bb-thread-storage",
+      threadStorageRootPath: "/tmp/kaioken-thread-storage",
       createRuntime: (options) => {
         runtimeOptions.current = options;
         return createFakeRuntime();
@@ -971,7 +971,7 @@ describe("RuntimeManager", () => {
     });
 
     expect(runtimeOptions.current?.additionalWorkspaceWriteRoots).toEqual([
-      "/tmp/bb-thread-storage",
+      "/tmp/kaioken-thread-storage",
     ]);
   });
 
@@ -982,8 +982,8 @@ describe("RuntimeManager", () => {
       provisionWorkspace,
       createRuntime,
       shellEnv: {
-        PATH: "/tmp/bb-bin:/usr/bin",
-        BB_SERVER_URL: "http://127.0.0.1:3334",
+        PATH: "/tmp/kaioken-bin:/usr/bin",
+        KAIOKEN_SERVER_URL: "http://127.0.0.1:3334",
       },
     });
 
@@ -995,22 +995,22 @@ describe("RuntimeManager", () => {
     expect(createRuntime).toHaveBeenCalledWith(
       expect.objectContaining({
         shellEnv: {
-          PATH: "/tmp/bb-bin:/usr/bin",
-          BB_SERVER_URL: "http://127.0.0.1:3334",
+          PATH: "/tmp/kaioken-bin:/usr/bin",
+          KAIOKEN_SERVER_URL: "http://127.0.0.1:3334",
         },
       }),
     );
   });
 
   it("forwards the bridge record-mode directory to provider processes but not the shell env", async () => {
-    vi.stubEnv("BB_PROVIDER_BRIDGE_RECORD_DIR", "/tmp/provider-recordings/raw");
+    vi.stubEnv("KAIOKEN_PROVIDER_BRIDGE_RECORD_DIR", "/tmp/provider-recordings/raw");
     const provisionWorkspace = createProvisionWorkspaceMock("/tmp/env-1");
     const createRuntime = vi.fn(() => createFakeRuntime());
     const manager = new RuntimeManager({
       provisionWorkspace,
       createRuntime,
       shellEnv: {
-        PATH: "/tmp/bb-bin:/usr/bin",
+        PATH: "/tmp/kaioken-bin:/usr/bin",
       },
     });
 
@@ -1022,10 +1022,10 @@ describe("RuntimeManager", () => {
     expect(createRuntime).toHaveBeenCalledWith(
       expect.objectContaining({
         env: {
-          PATH: "/tmp/bb-bin:/usr/bin",
-          BB_PROVIDER_BRIDGE_RECORD_DIR: "/tmp/provider-recordings/raw",
+          PATH: "/tmp/kaioken-bin:/usr/bin",
+          KAIOKEN_PROVIDER_BRIDGE_RECORD_DIR: "/tmp/provider-recordings/raw",
         },
-        shellEnv: { PATH: "/tmp/bb-bin:/usr/bin" },
+        shellEnv: { PATH: "/tmp/kaioken-bin:/usr/bin" },
       }),
     );
   });
@@ -1060,8 +1060,8 @@ describe("RuntimeManager", () => {
       provisionWorkspace,
       createRuntime,
       shellEnv: {
-        PATH: "/tmp/bb-bin:/home/me/.local/bin:/usr/bin",
-        BB_SERVER_URL: "http://127.0.0.1:3334",
+        PATH: "/tmp/kaioken-bin:/home/me/.local/bin:/usr/bin",
+        KAIOKEN_SERVER_URL: "http://127.0.0.1:3334",
         OPENAI_API_KEY: "test-openai-key",
       },
     });
@@ -1074,11 +1074,11 @@ describe("RuntimeManager", () => {
     expect(createRuntime).toHaveBeenCalledWith(
       expect.objectContaining({
         env: {
-          PATH: "/tmp/bb-bin:/home/me/.local/bin:/usr/bin",
+          PATH: "/tmp/kaioken-bin:/home/me/.local/bin:/usr/bin",
         },
         shellEnv: {
-          PATH: "/tmp/bb-bin:/home/me/.local/bin:/usr/bin",
-          BB_SERVER_URL: "http://127.0.0.1:3334",
+          PATH: "/tmp/kaioken-bin:/home/me/.local/bin:/usr/bin",
+          KAIOKEN_SERVER_URL: "http://127.0.0.1:3334",
           OPENAI_API_KEY: "test-openai-key",
         },
       }),
@@ -1086,7 +1086,7 @@ describe("RuntimeManager", () => {
   });
 
   it("recreates the provider maintenance runtime after base shell env changes", async () => {
-    const dataDir = await makeTempDir("bb-provider-maintenance-");
+    const dataDir = await makeTempDir("kaioken-provider-maintenance-");
     const firstRuntime = createFakeRuntime();
     const secondRuntime = createFakeRuntime();
     const createRuntime = vi
@@ -1105,7 +1105,7 @@ describe("RuntimeManager", () => {
     ).resolves.toBe(firstRuntime);
     await manager.replaceBaseShellEnv({
       PATH: "/new/bin:/usr/bin",
-      BB_SERVER_URL: "http://127.0.0.1:3334",
+      KAIOKEN_SERVER_URL: "http://127.0.0.1:3334",
     });
     await expect(
       manager.ensureProviderMaintenanceRuntime({ dataDir }),
@@ -1120,7 +1120,7 @@ describe("RuntimeManager", () => {
         },
         shellEnv: {
           PATH: "/new/bin:/usr/bin",
-          BB_SERVER_URL: "http://127.0.0.1:3334",
+          KAIOKEN_SERVER_URL: "http://127.0.0.1:3334",
         },
       }),
     );
@@ -1129,7 +1129,7 @@ describe("RuntimeManager", () => {
   it("shuts down provider maintenance workers after the request becomes idle", async () => {
     vi.useFakeTimers();
     try {
-      const dataDir = await makeTempDir("bb-provider-maintenance-idle-");
+      const dataDir = await makeTempDir("kaioken-provider-maintenance-idle-");
       const runtime = createFakeRuntime();
       const request = createDeferredPromise<void>();
       const requestStarted = createDeferredPromise<void>();
@@ -1161,7 +1161,7 @@ describe("RuntimeManager", () => {
   });
 
   it("does not let stale provider maintenance creation replace a newer runtime", async () => {
-    const dataDir = await makeTempDir("bb-provider-maintenance-race-");
+    const dataDir = await makeTempDir("kaioken-provider-maintenance-race-");
     const staleRuntime = createFakeRuntime();
     const currentRuntime = createFakeRuntime();
     const staleCreation = createDeferredPromise<AgentRuntime>();
@@ -1553,7 +1553,7 @@ describe("RuntimeManager", () => {
 
   it("leaves processes alone when an environment is only forgotten", async () => {
     const directory = await fs.realpath(
-      await fs.mkdtemp(path.join(os.tmpdir(), "bb-forget-env-")),
+      await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-forget-env-")),
     );
     const manager = new RuntimeManager({
       provisionWorkspace: createProvisionWorkspaceMock(directory),

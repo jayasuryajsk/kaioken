@@ -1,4 +1,4 @@
-import type { ProjectSource } from "@bb/domain";
+import type { ProjectSource } from "@kaioken/domain";
 import { EnvironmentPickerUI } from "./EnvironmentPicker";
 import { StoryCard, StoryRow } from "../../../.ladle/story-card";
 import {
@@ -38,7 +38,7 @@ function makeSource(id: string, hostId: string, path: string): ProjectSource {
 }
 
 const localProjectSources: readonly ProjectSource[] = [
-  makeSource("src_local", HOST_IDS.local, "/Users/michael/Projects/bb"),
+  makeSource("src_local", HOST_IDS.local, "/Users/michael/Projects/kaioken"),
 ];
 
 const noop = () => {};
@@ -186,8 +186,8 @@ const machineHosts = [
 ];
 
 const machineSources: readonly ProjectSource[] = [
-  makeSource("src_local", HOST_IDS.local, "/Users/michael/Projects/bb"),
-  makeSource("src_remote", HOST_IDS.remote, "/home/michael/bb"),
+  makeSource("src_local", HOST_IDS.local, "/Users/michael/Projects/kaioken"),
+  makeSource("src_remote", HOST_IDS.remote, "/home/michael/kaioken"),
 ];
 
 export function MachineMenu() {
@@ -225,7 +225,7 @@ export function ManyMachines() {
     <EnvironmentPickerUI
       value="provider:project-checkout"
       sources={hosts.map((host, index) =>
-        makeSource(`src_scroll_${index}`, host.id, "/projects/bb"),
+        makeSource(`src_scroll_${index}`, host.id, "/projects/kaioken"),
       )}
       host={hosts[0] ?? null}
       isLocal={false}

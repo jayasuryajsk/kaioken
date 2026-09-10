@@ -1,7 +1,7 @@
-import type { BbSdkTransport } from "../transport.js";
+import type { KaiokenSdkTransport } from "../transport.js";
 
 export interface CreateSdkAreaArgs {
-  transport: BbSdkTransport;
+  transport: KaiokenSdkTransport;
 }
 
 type SignalRequestOptions = { init: { signal: AbortSignal } };

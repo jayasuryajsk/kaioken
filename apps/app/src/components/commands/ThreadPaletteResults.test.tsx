@@ -2,11 +2,11 @@
 
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ThreadListEntry } from "@bb/domain";
+import type { ThreadListEntry } from "@kaioken/domain";
 import type {
   ThreadSearchMatch,
   ThreadSearchResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   useThreadSearch,
   type UseThreadSearchResult,
@@ -15,7 +15,7 @@ import {
   ThreadPaletteResults,
   type ThreadPaletteNavigationItem,
 } from "./ThreadPaletteResults";
-import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
+import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 
 vi.mock("@/hooks/queries/thread-queries", () => ({
   hasThreadSearchableQuery: (value: string) =>

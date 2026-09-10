@@ -16,11 +16,11 @@ import {
   experimental_rerecordCurrentBridgeLane as rerecordCurrentBridgeLane,
   experimental_resolveProviderBridgeLaunch as resolveProviderBridgeLaunch,
   experimental_withCurrentBridgeLane as withCurrentBridgeLane,
-} from "@get-bb/plugin-sdk/provider-bridge/testing";
+} from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 import type {
   CreateParityAssembler,
   RecordedCell,
-} from "@get-bb/plugin-sdk/provider-bridge/testing";
+} from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
 const RECORDINGS_ROOT = join(packageRoot, "recordings");
@@ -136,7 +136,7 @@ it.each(cells.map((cell) => [cellKey(cell), cell] as const))(
 
 it("re-records the bridge lane beside a copy of the recording and replays from it", async () => {
   const cell = cells[0]!;
-  const copy = mkdtempSync(join(tmpdir(), "bb-echo-rerecord-"));
+  const copy = mkdtempSync(join(tmpdir(), "kaioken-echo-rerecord-"));
   try {
     cpSync(cell.dir, copy, { recursive: true });
     const result = await rerecordCurrentBridgeLane({
@@ -161,7 +161,7 @@ it("re-records the bridge lane beside a copy of the recording and replays from i
       ) as { params: { cwd: string } }
     ).params.cwd;
     expect(lane).toContain(recordedCwd);
-    expect(lane).not.toContain("bb-parity-ws-");
+    expect(lane).not.toContain("kaioken-parity-ws-");
     const toolCallIds = lane
       .split("\n")
       .filter((raw) => raw.length > 0)

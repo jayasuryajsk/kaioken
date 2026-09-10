@@ -3215,5 +3215,5 @@
   "primaryHostId": "host_demo0000001",
   "primaryHostPlatform": "linux",
   "voiceTranscriptionEnabled": true,
-  "dataDir": "/home/demo/.bb"
+  "dataDir": "/home/demo/.kaioken"
 }

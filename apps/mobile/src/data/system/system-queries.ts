@@ -1,10 +1,10 @@
-import type { ProviderInfo } from "@bb/domain";
-import { BbHttpError } from "@bb/sdk/browser";
+import type { ProviderInfo } from "@kaioken/domain";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 import type {
   SystemConfigResponse,
   SystemExecutionOptionsResponse,
   SystemVersionResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { useQuery, type QueryKey } from "@tanstack/react-query";
 import { useProfileClient } from "@/app-shell/ProfilesProvider";
 import {
@@ -73,7 +73,7 @@ function shouldRetryExecutionOptions(
   error: unknown,
 ): boolean {
   if (failureCount >= 1) return false;
-  if (error instanceof BbHttpError) {
+  if (error instanceof KaiokenHttpError) {
     return error.status === 408 || error.status === 429 || error.status >= 500;
   }
   return isTransientReadError(error);

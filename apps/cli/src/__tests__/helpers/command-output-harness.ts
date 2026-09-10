@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, vi } from "vitest";
 import { Command } from "commander";
-import { createApiClient, type ApiClient } from "@bb/server-contract";
+import { createApiClient, type ApiClient } from "@kaioken/server-contract";
 
 const readlineState = vi.hoisted(() => ({
   question: vi.fn(),
@@ -15,9 +15,9 @@ vi.mock("../../client.js", async () => {
   const { cliFetch } =
     await vi.importActual<typeof import("../../client.js")>("../../client.js");
   const { createBbSdk } =
-    await vi.importActual<typeof import("@bb/sdk/core")>("@bb/sdk/core");
+    await vi.importActual<typeof import("@kaioken/sdk/core")>("@kaioken/sdk/core");
   const { createHttpTransport } =
-    await vi.importActual<typeof import("@bb/sdk/node")>("@bb/sdk/node");
+    await vi.importActual<typeof import("@kaioken/sdk/node")>("@kaioken/sdk/node");
   const toResponse = (resolved: MockTransportResolved): Response =>
     resolved instanceof Response
       ? resolved
@@ -104,8 +104,8 @@ export function setupCommandOutputTestEnvironment(): void {
     readlineState.question.mockReset();
     readlineState.close.mockReset();
 
-    vi.stubEnv("BB_PROJECT_ID", undefined);
-    vi.stubEnv("BB_THREAD_ID", undefined);
+    vi.stubEnv("KAIOKEN_PROJECT_ID", undefined);
+    vi.stubEnv("KAIOKEN_THREAD_ID", undefined);
   });
 
   afterEach(() => {
@@ -158,7 +158,7 @@ export async function runCommand(
 ): Promise<void> {
   const program = new Command();
   register(program);
-  await program.parseAsync(["node", "bb", ...args]);
+  await program.parseAsync(["node", "kaioken", ...args]);
 }
 
 export async function getHelpOutput(
@@ -175,7 +175,7 @@ export async function getHelpOutput(
   register(program);
 
   await expect(
-    program.parseAsync(["node", "bb", ...args, "--help"]),
+    program.parseAsync(["node", "kaioken", ...args, "--help"]),
   ).rejects.toMatchObject({
     code: "commander.helpDisplayed",
   });

@@ -3,17 +3,17 @@ import { gzipSync } from "node:zlib";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { decodeFrame, encodeFrame, type Frame } from "@bb/tunnel-contract";
+import { decodeFrame, encodeFrame, type Frame } from "@kaioken/tunnel-contract";
 
 const SHELL_CACHE_CONTROL = "no-cache";
 
 const BUILD_A = {
   etag: 'W/"build-a"',
-  html: `<!doctype html><title>bb</title>${"<p>build a</p>".repeat(40)}`,
+  html: `<!doctype html><title>kaioken</title>${"<p>build a</p>".repeat(40)}`,
 };
 const BUILD_B = {
   etag: 'W/"build-b"',
-  html: `<!doctype html><title>bb</title>${"<p>build b — new hashes</p>".repeat(40)}`,
+  html: `<!doctype html><title>kaioken</title>${"<p>build b — new hashes</p>".repeat(40)}`,
 };
 
 type ClientWebSocket = NonNullable<

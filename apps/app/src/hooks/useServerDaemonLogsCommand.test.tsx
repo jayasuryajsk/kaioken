@@ -4,7 +4,7 @@ import { cleanup, render, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { useEffect } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { defaultAppSettings, type AppDefaultKeybinding } from "@bb/domain";
+import { defaultAppSettings, type AppDefaultKeybinding } from "@kaioken/domain";
 import {
   AppCommandProvider,
   useAppCommandRunner,
@@ -31,7 +31,7 @@ vi.mock("@/hooks/queries/system-queries", () => ({
   }),
 }));
 
-vi.mock("@/lib/bb-desktop", () => ({
+vi.mock("@/lib/kaioken-desktop", () => ({
   getBbDesktopInfo: () => ({
     platform: "macos",
     getInfo: () =>

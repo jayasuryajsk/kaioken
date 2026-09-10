@@ -3,7 +3,7 @@ import {
   installTestPluginRuntime,
   loadPluginApp,
   renderSlot,
-} from "@get-bb/plugin-sdk/testing/app";
+} from "@get-kaioken/plugin-sdk/testing/app";
 import type { WorkflowRunView } from "./src/ui-contract.js";
 
 installTestPluginRuntime();

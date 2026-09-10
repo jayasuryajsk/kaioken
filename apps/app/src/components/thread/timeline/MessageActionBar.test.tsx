@@ -10,8 +10,8 @@ import {
   within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { COMPACT_VIEWPORT_QUERY } from "@bb/shared-ui/hooks/use-compact-viewport";
-import { POINTER_COARSE_QUERY } from "@bb/shared-ui/hooks/use-pointer-coarse";
+import { COMPACT_VIEWPORT_QUERY } from "@kaioken/shared-ui/hooks/use-compact-viewport";
+import { POINTER_COARSE_QUERY } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 import {
   computeMessageActionRowLayout,
   findMessageActionTooltipCollisionBoundary,
@@ -365,7 +365,7 @@ describe("MessageActionBar", () => {
     const content =
       document.body.querySelector<HTMLElement>('[data-side="top"]');
     expect(content).not.toBeNull();
-    expect(content!.getAttribute("data-bb-portaled-overlay")).toBe("");
+    expect(content!.getAttribute("data-kaioken-portaled-overlay")).toBe("");
     expect(document.body.querySelector("[data-vaul-drawer]")).toBeNull();
 
     fireEvent.click(

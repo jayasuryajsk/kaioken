@@ -18,8 +18,8 @@ describe("resolveSiteOrigin", () => {
   });
 
   it("keeps a non-default port (cloud dev tunnels use one)", () => {
-    expect(resolveSiteOrigin("http://bb.localhost:8787")).toBe(
-      "http://bb.localhost:8787",
+    expect(resolveSiteOrigin("http://kaioken.localhost:8787")).toBe(
+      "http://kaioken.localhost:8787",
     );
   });
 

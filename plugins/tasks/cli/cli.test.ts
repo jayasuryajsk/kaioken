@@ -13,7 +13,7 @@ import { dirname, join } from "node:path";
 import {
   createFakePluginHost,
   makeThreadResponse,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it, vi } from "vitest";
 
 import { createStore } from "../api";
@@ -81,7 +81,7 @@ function stdout(result: {
   return result.stdout;
 }
 
-describe("bb tasks CLI", () => {
+describe("kaioken tasks CLI", () => {
   it("lists seed-demo in help while retaining the explicit confirmation guard", async () => {
     const { bb, harness } = createFakePluginHost({ pluginId: "tasks" });
     await plugin(bb);
@@ -629,7 +629,7 @@ describe("bb tasks CLI", () => {
         "Linked",
         "--prefix",
         "LINK",
-        "--link-bb-project",
+        "--link-kaioken-project",
         context.projectId,
       ]),
     );
@@ -660,7 +660,7 @@ describe("bb tasks CLI", () => {
       exitCode: 1,
       stdout: "",
       stderr:
-        "no tracker project is linked to BB project proj_missing; pass --project or link one with bb tasks project update",
+        "no tracker project is linked to Kaioken project proj_missing; pass --project or link one with kaioken tasks project update",
     });
 
     await harness.dispose();
@@ -732,7 +732,7 @@ describe("bb tasks CLI", () => {
       "ATOM",
       "--rename-prefix",
       "NEXT",
-      "--link-bb-project",
+      "--link-kaioken-project",
       "not-a-project-id",
     ]);
     expect(invalidProjectUpdate).toMatchObject({ exitCode: 1, stdout: "" });
@@ -1066,7 +1066,7 @@ describe("bb tasks CLI", () => {
     await harness.dispose();
   });
 
-  it("self-attaches through BB_THREAD_ID and lists the live thread status", async () => {
+  it("self-attaches through KAIOKEN_THREAD_ID and lists the live thread status", async () => {
     const { bb, harness } = createFakePluginHost({
       pluginId: "tasks",
       sdk: {
@@ -1102,15 +1102,15 @@ describe("bb tasks CLI", () => {
       ]),
     );
 
-    const previousThreadId = process.env.BB_THREAD_ID;
-    process.env.BB_THREAD_ID = "thr_cli_self";
+    const previousThreadId = process.env.KAIOKEN_THREAD_ID;
+    process.env.KAIOKEN_THREAD_ID = "thr_cli_self";
     try {
       expect(
         JSON.parse(stdout(await harness.runCli(["attach", "ATT-1", "--json"]))),
       ).toMatchObject({ task: { key: "ATT-1" }, threadId: "thr_cli_self" });
     } finally {
-      if (previousThreadId === undefined) delete process.env.BB_THREAD_ID;
-      else process.env.BB_THREAD_ID = previousThreadId;
+      if (previousThreadId === undefined) delete process.env.KAIOKEN_THREAD_ID;
+      else process.env.KAIOKEN_THREAD_ID = previousThreadId;
     }
 
     const threads = JSON.parse(
@@ -1175,7 +1175,7 @@ describe("bb tasks CLI", () => {
     await harness.dispose();
   });
 
-  it("detaches a thread with `bb tasks detach` and lists live threads first", async () => {
+  it("detaches a thread with `kaioken tasks detach` and lists live threads first", async () => {
     const { bb, harness } = createFakePluginHost({
       pluginId: "tasks",
       sdk: {
@@ -1239,20 +1239,20 @@ describe("bb tasks CLI", () => {
       stderr: "Thread thr_dead_worker is not attached to DET-1",
     });
 
-    const previousThreadId = process.env.BB_THREAD_ID;
-    process.env.BB_THREAD_ID = "thr_live_worker";
+    const previousThreadId = process.env.KAIOKEN_THREAD_ID;
+    process.env.KAIOKEN_THREAD_ID = "thr_live_worker";
     try {
       expect(
         JSON.parse(stdout(await harness.runCli(["detach", "DET-1", "--json"]))),
       ).toMatchObject({ task: { key: "DET-1" }, threadId: "thr_live_worker" });
-      delete process.env.BB_THREAD_ID;
+      delete process.env.KAIOKEN_THREAD_ID;
       await expect(harness.runCli(["detach", "DET-1"])).resolves.toMatchObject({
         exitCode: 1,
-        stderr: "missing --thread and BB_THREAD_ID is not set",
+        stderr: "missing --thread and KAIOKEN_THREAD_ID is not set",
       });
     } finally {
-      if (previousThreadId === undefined) delete process.env.BB_THREAD_ID;
-      else process.env.BB_THREAD_ID = previousThreadId;
+      if (previousThreadId === undefined) delete process.env.KAIOKEN_THREAD_ID;
+      else process.env.KAIOKEN_THREAD_ID = previousThreadId;
     }
     expect(
       JSON.parse(stdout(await harness.runCli(["threads", "DET-1", "--json"])))
@@ -1263,7 +1263,7 @@ describe("bb tasks CLI", () => {
   });
 
   it("creates a task with --attach files after validating every source path", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "bb-tasks-cli-"));
+    const directory = await mkdtemp(join(tmpdir(), "kaioken-tasks-cli-"));
     const notesPath = join(directory, "notes.txt");
     const pngPath = join(directory, "pixel.png");
     await writeFile(notesPath, "attach me at create\n", "utf8");
@@ -1374,7 +1374,7 @@ describe("bb tasks CLI", () => {
   });
 
   it("attempts every --attach file after create and reports failures truthfully", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "bb-tasks-cli-"));
+    const directory = await mkdtemp(join(tmpdir(), "kaioken-tasks-cli-"));
     const firstPath = join(directory, "first.txt");
     const boomPath = join(directory, "boom.bin");
     const lastPath = join(directory, "last.txt");
@@ -1448,7 +1448,7 @@ describe("bb tasks CLI", () => {
         `Failed to attach ${boomPath}: simulated blob write failure`,
       );
       expect(human.stdout).toContain(
-        `Retry with: bb tasks attachment add MIX-2 --file ${boomPath}`,
+        `Retry with: kaioken tasks attachment add MIX-2 --file ${boomPath}`,
       );
     } finally {
       await rm(directory, { recursive: true, force: true });
@@ -1484,9 +1484,9 @@ describe("bb tasks CLI", () => {
                     number: 12,
                     title: "BB-15 Show PRs in tasks",
                     state: "draft",
-                    url: "https://github.com/acme/bb/pull/12",
+                    url: "https://github.com/acme/kaioken/pull/12",
                     baseRefName: "main",
-                    headRefName: "bb/bb-15",
+                    headRefName: "kaioken/kaioken-15",
                     updatedAt: "2026-07-16T10:00:00.000Z",
                     checks: {
                       state: "pending",
@@ -1540,7 +1540,7 @@ describe("bb tasks CLI", () => {
     const shown = stdout(await harness.runCli(["show", "PRS-1"]));
     expect(shown).toContain("Pull requests");
     expect(shown).toContain("#12  draft  BB-15 Show PRs in tasks");
-    expect(shown).toContain("https://github.com/acme/bb/pull/12");
+    expect(shown).toContain("https://github.com/acme/kaioken/pull/12");
     expect(shown).not.toContain("PR lookup unavailable");
 
     const payload = JSON.parse(
@@ -1548,7 +1548,7 @@ describe("bb tasks CLI", () => {
     );
     expect(payload.pullRequests).toEqual([
       {
-        url: "https://github.com/acme/bb/pull/12",
+        url: "https://github.com/acme/kaioken/pull/12",
         number: 12,
         title: "BB-15 Show PRs in tasks",
         state: "draft",
@@ -1613,7 +1613,7 @@ describe("bb tasks CLI", () => {
   });
 
   it("adds and downloads an attachment with an exact file round-trip", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "bb-tasks-cli-"));
+    const directory = await mkdtemp(join(tmpdir(), "kaioken-tasks-cli-"));
     const inputPath = join(directory, "input.txt");
     const pngPath = join(directory, "pixel.png");
     const outputPath = join(directory, "nested", "output.txt");
@@ -2028,7 +2028,7 @@ describe("bb tasks CLI", () => {
     expect(result).toEqual({
       exitCode: 1,
       stdout: "",
-      stderr: 'Task project "Unlinked CLI" is not linked to a bb project',
+      stderr: 'Task project "Unlinked CLI" is not linked to a kaioken project',
     });
     const aliased = await harness.runCli([
       "delegate",
@@ -2037,7 +2037,7 @@ describe("bb tasks CLI", () => {
       "CLI worker",
     ]);
     expect(aliased.stderr).toBe(
-      'Task project "Unlinked CLI" is not linked to a bb project',
+      'Task project "Unlinked CLI" is not linked to a kaioken project',
     );
     expect(harness.sdk.callsTo("threads.spawn")).toEqual([]);
 

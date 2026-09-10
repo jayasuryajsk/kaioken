@@ -7,7 +7,7 @@ import {
   type PreparedProviderCommandDispatch,
   type ProviderPostInitializeRequest,
   type ProviderRuntimeEvent,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import { z } from "zod";
 import {
   applyCodexRateLimitUpdate,
@@ -382,7 +382,7 @@ export function createCodexEventTranslator(
     string[]
   >();
   const workspaceWriteGitWritableRootsByThreadId = new Map<string, string[]>();
-  const bbThreadIdByProviderThreadId = new Map<string, string>();
+  const kaiokenThreadIdByProviderThreadId = new Map<string, string>();
   const rawCommandOutputStateByProviderThreadId = new Map<
     string,
     CodexRawCommandOutputState
@@ -431,7 +431,7 @@ export function createCodexEventTranslator(
     workspaceWriteGitWritableRootsByThreadId.set(args.threadId, [
       ...writableRoots,
     ]);
-    bbThreadIdByProviderThreadId.set(args.providerThreadId, args.threadId);
+    kaiokenThreadIdByProviderThreadId.set(args.providerThreadId, args.threadId);
   }
 
   function clearGitWritableRootsByBbThreadId(
@@ -439,9 +439,9 @@ export function createCodexEventTranslator(
   ): void {
     pendingWorkspaceWriteGitWritableRootsByThreadId.delete(args.threadId);
     workspaceWriteGitWritableRootsByThreadId.delete(args.threadId);
-    for (const [providerThreadId, threadId] of bbThreadIdByProviderThreadId) {
+    for (const [providerThreadId, threadId] of kaiokenThreadIdByProviderThreadId) {
       if (threadId === args.threadId) {
-        bbThreadIdByProviderThreadId.delete(providerThreadId);
+        kaiokenThreadIdByProviderThreadId.delete(providerThreadId);
       }
     }
   }
@@ -449,8 +449,8 @@ export function createCodexEventTranslator(
   function clearGitWritableRootsByProviderThreadId(
     args: ClearGitWritableRootsByProviderThreadIdArgs,
   ): void {
-    const threadId = bbThreadIdByProviderThreadId.get(args.providerThreadId);
-    bbThreadIdByProviderThreadId.delete(args.providerThreadId);
+    const threadId = kaiokenThreadIdByProviderThreadId.get(args.providerThreadId);
+    kaiokenThreadIdByProviderThreadId.delete(args.providerThreadId);
     if (!threadId) {
       return;
     }

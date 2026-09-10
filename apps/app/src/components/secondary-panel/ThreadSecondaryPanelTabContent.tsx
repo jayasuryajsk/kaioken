@@ -1,9 +1,9 @@
 import { useEffect, useMemo } from "react";
 import type { DiffPresentation } from "@/components/code/code-rendering";
-import type { WorkspaceDiffTarget } from "@bb/domain";
+import type { WorkspaceDiffTarget } from "@kaioken/domain";
 import type { MarkdownLinkRouting } from "@/components/ui/markdown-link-routing.js";
-import { Skeleton } from "@bb/shared-ui/skeleton";
-import { EmptyStatePanel } from "@bb/shared-ui/empty-state";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
+import { EmptyStatePanel } from "@kaioken/shared-ui/empty-state";
 import {
   useEnvironmentDiffFiles,
   useEnvironment,
@@ -26,8 +26,8 @@ import type {
   EnvironmentFilePreviewSource,
   FilePreviewLineRange,
   WorkspaceFilePreviewStatusLabel,
-} from "@bb/client-core";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/client-core";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { DiffFilesPanel } from "./git-diff/DiffFilesPanel";
 import { clearDiffFileCardStates } from "./git-diff/diffFilesStore";
 import { buildGitDiffIdentity } from "./git-diff/gitDiffPanelHelpers";

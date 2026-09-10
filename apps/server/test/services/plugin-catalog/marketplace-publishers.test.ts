@@ -1,4 +1,4 @@
-import { createConnection, migrate, upsertPluginMarketplace } from "@bb/db";
+import { createConnection, migrate, upsertPluginMarketplace } from "@kaioken/db";
 import { describe, expect, it } from "vitest";
 import {
   marketplacePublisherLabel,
@@ -77,7 +77,7 @@ describe("marketplace publisher labels", () => {
     ).toBe("Acme Plugins");
   });
 
-  it("refuses a reserved label to a marketplace that is not BB's", () => {
+  it("refuses a reserved label to a marketplace that is not Kaioken's", () => {
     const db = connect();
     register(
       db,
@@ -173,7 +173,7 @@ describe("marketplace publisher labels", () => {
     ).toBeNull();
   });
 
-  it("does not reuse BB Official for the marketplace bb curates", () => {
+  it("does not reuse BB Official for the marketplace kaioken curates", () => {
     expect(BUNDLED_CURATED_MARKETPLACE.displayName).toBe("BB Community");
   });
 });

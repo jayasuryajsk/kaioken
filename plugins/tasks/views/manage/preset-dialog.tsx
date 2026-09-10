@@ -3,7 +3,7 @@ import {
   experimental_PermissionModePicker as PermissionModePicker,
   experimental_ProviderModelPicker as ProviderModelPicker,
   type ExperimentalProviderModelPickerValue,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import type { Preset, PresetPermissionMode } from "../../shared/contract.js";
 import {
   PRESET_ENVIRONMENT_KINDS,
@@ -18,17 +18,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
+} from "@kaioken/shared-ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bb/shared-ui/select";
-import { Button } from "@bb/shared-ui/button";
-import { Input } from "@bb/shared-ui/input";
-import { Textarea } from "@bb/shared-ui/textarea";
+} from "@kaioken/shared-ui/select";
+import { Button } from "@kaioken/shared-ui/button";
+import { Input } from "@kaioken/shared-ui/input";
+import { Textarea } from "@kaioken/shared-ui/textarea";
 import { Field } from "./shared.js";
 
 export const PERMISSION_MODES = PRESET_PERMISSION_MODES;

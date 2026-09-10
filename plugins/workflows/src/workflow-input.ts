@@ -1,4 +1,4 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import {
   resolveWorkflowSource,
   type ResolvedWorkflowSource,
@@ -15,7 +15,7 @@ interface PreparedWorkflowSource extends ResolvedWorkflowSource {
 }
 
 export async function prepareWorkflowSource(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   context: WorkflowSourceContext,
   input: WorkflowSourceInput,
 ): Promise<PreparedWorkflowSource> {

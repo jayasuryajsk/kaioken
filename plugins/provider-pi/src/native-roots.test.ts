@@ -1,14 +1,14 @@
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { experimental_nativeRootsResolveOutputSchema } from "@get-bb/plugin-sdk/host";
+import { experimental_nativeRootsResolveOutputSchema } from "@get-kaioken/plugin-sdk/host";
 import { afterEach, beforeEach, expect, it } from "vitest";
 import { resolvePiNativeRoots } from "./native-roots.js";
 
 let homeDir: string;
 
 beforeEach(() => {
-  homeDir = mkdtempSync(join(tmpdir(), "bb-pi-native-roots-"));
+  homeDir = mkdtempSync(join(tmpdir(), "kaioken-pi-native-roots-"));
 });
 
 afterEach(() => {

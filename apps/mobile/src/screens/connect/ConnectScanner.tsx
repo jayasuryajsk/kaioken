@@ -34,7 +34,7 @@ export function ConnectScanner({ onScanned, active }: ConnectScannerProps) {
         testID="connect-scanner-permission"
       >
         <Text variant="bodyLarge" className="text-center">
-          bb needs the camera to scan the pairing QR code.
+          kaioken needs the camera to scan the pairing QR code.
         </Text>
         {permission.canAskAgain ? (
           <Button onPress={() => void requestPermission()} icon="Eye">
@@ -83,8 +83,8 @@ export function ConnectScanner({ onScanned, active }: ConnectScannerProps) {
       </View>
       <Text variant="footnote" tone="muted" className="px-4">
         {lastIgnored
-          ? `Not a bb pairing code: ${lastIgnored}`
-          : "Point the camera at the QR code from bb Settings → Remote access → Add mobile device."}
+          ? `Not a kaioken pairing code: ${lastIgnored}`
+          : "Point the camera at the QR code from kaioken Settings → Remote access → Add mobile device."}
       </Text>
     </View>
   );

@@ -13,7 +13,7 @@ import {
   schema,
   server,
   user,
-} from "@bb/connect-db";
+} from "@kaioken/connect-db";
 import {
   type Deps,
   checkAvailability,
@@ -65,10 +65,10 @@ describe("resolveServerUrlTemplate", () => {
     );
     expect(
       resolveServerUrlTemplate(
-        "http://{label}.bb.localhost:8787",
-        "bb.localhost",
+        "http://{label}.kaioken.localhost:8787",
+        "kaioken.localhost",
       ),
-    ).toBe("http://{label}.bb.localhost:8787");
+    ).toBe("http://{label}.kaioken.localhost:8787");
     expect(() =>
       resolveServerUrlTemplate("https://example.com/{label}", "example.com"),
     ).toThrow("under BASE_DOMAIN");
@@ -154,7 +154,7 @@ describe("checkAvailability", () => {
   });
 });
 
-describe("createServer (connect another bb)", () => {
+describe("createServer (connect another kaioken)", () => {
   it("claims a new label and holds it as an offline row", async () => {
     seedUser("u1");
     await claimHandle(deps, "u1", "sawyer");
@@ -322,7 +322,7 @@ describe("redeemConnectCode (multi-server routing label)", () => {
   });
 
   it("returns a ws tunnel URL for local Cloud", async () => {
-    deps.serverUrlTemplate = "http://{label}.bb.localhost:42745";
+    deps.serverUrlTemplate = "http://{label}.kaioken.localhost:42745";
     seedUser("u1");
     await claimHandle(deps, "u1", "sawyer");
     const primary = db
@@ -337,7 +337,7 @@ describe("redeemConnectCode (multi-server routing label)", () => {
 
     const result = await redeemConnectCode(deps, minted.code);
     if ("error" in result) throw new Error(result.error);
-    expect(result.tunnelUrl).toBe("ws://sawyer.bb.localhost:42745/__tunnel");
+    expect(result.tunnelUrl).toBe("ws://sawyer.kaioken.localhost:42745/__tunnel");
   });
 });
 

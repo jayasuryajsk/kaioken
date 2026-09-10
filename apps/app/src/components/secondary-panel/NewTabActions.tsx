@@ -5,16 +5,16 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { COARSE_POINTER_COMPACT_ICON_SIZE_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { COARSE_POINTER_COMPACT_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { AppCommandShortcutHint } from "@/components/commands/AppCommandShortcutHint";
 import { useAppCommandShortcut } from "@/components/commands/AppCommandProvider";
 import { PluginIcon } from "@/components/plugin/PluginIcon";
 import type { PluginPanelActionEntry } from "@/components/plugin/PluginPanelActions";
 import { useSidebarSortable } from "@/components/sidebar/sortableMotion";
 import { useReorderDnd } from "@/components/ui/useReorderDnd";
-import { isDesktopBrowserAvailable } from "@/lib/bb-desktop";
+import { isDesktopBrowserAvailable } from "@/lib/kaioken-desktop";
 import { arrangeByStoredOrder, reorderStoredOrder } from "@/lib/stored-order";
 import type { AppShortcutPresentation } from "@/lib/app-keybindings";
 import {

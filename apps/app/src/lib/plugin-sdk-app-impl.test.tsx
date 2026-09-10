@@ -54,7 +54,7 @@ describe("plugin SDK deprecated aliases", () => {
       );
       expect(warn).toHaveBeenCalledTimes(1);
       expect(warn).toHaveBeenCalledWith(
-        "experimental_UrlLink is deprecated; use UrlLink. Removed in bb 0.42",
+        "experimental_UrlLink is deprecated; use UrlLink. Removed in kaioken 0.42",
       );
     } finally {
       warn.mockRestore();
@@ -104,7 +104,7 @@ describe("plugin SDK deprecated aliases", () => {
       });
       expect(warn).toHaveBeenCalledTimes(1);
       expect(warn).toHaveBeenCalledWith(
-        "experimental_openUrl is deprecated; use openUrl. Removed in bb 0.42",
+        "experimental_openUrl is deprecated; use openUrl. Removed in kaioken 0.42",
       );
     } finally {
       warn.mockRestore();

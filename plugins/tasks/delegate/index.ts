@@ -1,4 +1,4 @@
-import type { BbPluginApi, PluginRpcHandlers } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi, PluginRpcHandlers } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import type {
   Attachment,
@@ -84,7 +84,7 @@ function formatAttachments(
     .map(
       (attachment) =>
         `- ${attachment.fileName} · ${attachment.id}\n` +
-        `  Fetch with: bb tasks attachment get ${attachment.id} --out <path>`,
+        `  Fetch with: kaioken tasks attachment get ${attachment.id} --out <path>`,
     )
     .join("\n");
 }
@@ -108,14 +108,14 @@ export function buildSeedPrompt(input: SeedPromptInput): string {
     ),
     markdownSection(
       "Project context",
-      `- Name: ${input.project.name}\n- Linked bb project: ${input.project.linkedBbProjectId ?? "Not linked"}`,
+      `- Name: ${input.project.name}\n- Linked kaioken project: ${input.project.linkedBbProjectId ?? "Not linked"}`,
     ),
     markdownSection("Sub-tasks", formatSubtasks(input.subtasks)),
     markdownSection("Attachments", formatAttachments(input.attachments)),
     markdownSection("Recent comments", formatComments(input.recentComments)),
     markdownSection(
       "Report-back contract",
-      `You are working on task ${input.task.key}. Use the bb tasks CLI: comment substantive updates (bb tasks comment ${input.task.key} --body ...), attach result artifacts, set status when done (bb tasks update ${input.task.key} --status in_review) or explain blockage in a comment. Your thread is already attached to the task.`,
+      `You are working on task ${input.task.key}. Use the kaioken tasks CLI: comment substantive updates (kaioken tasks comment ${input.task.key} --body ...), attach result artifacts, set status when done (kaioken tasks update ${input.task.key} --status in_review) or explain blockage in a comment. Your thread is already attached to the task.`,
     ),
   ];
 
@@ -165,7 +165,7 @@ function requireLinkedBbProject(project: Project): string {
   if (project.linkedBbProjectId) return project.linkedBbProjectId;
   throw new DelegationError(
     "project_not_linked",
-    `Task project "${project.name}" is not linked to a bb project`,
+    `Task project "${project.name}" is not linked to a kaioken project`,
   );
 }
 
@@ -187,11 +187,11 @@ function collectAttachments(
 }
 
 type SpawnEnvironment = Parameters<
-  BbPluginApi["sdk"]["threads"]["spawn"]
+  KaiokenPluginApi["sdk"]["threads"]["spawn"]
 >[0]["environment"];
 
 async function presetSpawnEnvironment(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   preset: Preset,
 ): Promise<SpawnEnvironment> {
   if (preset.environmentKind === "project-default") {
@@ -203,7 +203,7 @@ async function presetSpawnEnvironment(
   if (hostId === null) {
     throw new DelegationError(
       "spawn_target_invalid",
-      "Could not create a worktree because BB has no default machine",
+      "Could not create a worktree because Kaioken has no default machine",
     );
   }
   return {
@@ -278,12 +278,12 @@ export function createSystemComment(
   });
 }
 
-export function publishThreadsChanged(bb: BbPluginApi, taskId: string): void {
+export function publishThreadsChanged(bb: KaiokenPluginApi, taskId: string): void {
   const payload: ThreadsChangedEvent = { taskId };
   bb.realtime.publish("threads:changed", payload);
 }
 
-type SdkThread = Awaited<ReturnType<BbPluginApi["sdk"]["threads"]["get"]>>;
+type SdkThread = Awaited<ReturnType<KaiokenPluginApi["sdk"]["threads"]["get"]>>;
 
 function taskThreadLiveStatus(thread: SdkThread): TaskThreadLiveStatus {
   if (thread.deletedAt != null) return "completed";
@@ -304,7 +304,7 @@ function taskThreadLiveStatus(thread: SdkThread): TaskThreadLiveStatus {
 }
 
 export function handlers(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksApiStore,
 ): PluginRpcHandlers<typeof delegationRpcContract> {
   return {
@@ -441,7 +441,7 @@ export function handlers(
 }
 
 export function registerDelegation(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksApiStore,
 ): void {
   bb.rpc.register(delegationRpcContract, handlers(bb, store));

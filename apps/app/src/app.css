@@ -27,28 +27,28 @@
    * variable is the single switch both they and the shell root read.
    */
   :root {
-    --bb-app-chrome-row-height: 3rem;
-    --bb-shell-height: 100dvh;
+    --kaioken-app-chrome-row-height: 3rem;
+    --kaioken-shell-height: 100dvh;
     --secondary-panel-width-mobile: min(76vw, 320px);
   }
 
-  html.bb-app-shell-root {
-    height: var(--bb-shell-height);
+  html.kaioken-app-shell-root {
+    height: var(--kaioken-shell-height);
   }
 
-  body.bb-app-shell,
-  body.bb-app-shell #root {
+  body.kaioken-app-shell,
+  body.kaioken-app-shell #root {
     height: 100%;
   }
 
   @media (display-mode: standalone) {
     :root {
-      --bb-shell-height: 100lvh;
+      --kaioken-shell-height: 100lvh;
     }
   }
 
-  html.bb-app-shell-root,
-  body.bb-app-shell {
+  html.kaioken-app-shell-root,
+  body.kaioken-app-shell {
     overflow: hidden;
     /*
      * Suppress vertical rubber-banding without blocking the native horizontal
@@ -621,7 +621,7 @@
    * toast in the stack.
    */
   :where(
-    [data-sonner-toast].bb-app-toast[data-expanded="false"][data-front="false"]
+    [data-sonner-toast].kaioken-app-toast[data-expanded="false"][data-front="false"]
   ) {
     overflow: hidden;
     border-radius: var(--radius-md);
@@ -783,7 +783,7 @@
 
 /* Briefly highlight a conversation message that a thread-search result
  * deep-links to, then fade back to transparent. */
-@keyframes bb-search-flash {
+@keyframes kaioken-search-flash {
   from {
     background-color: color-mix(in oklch, var(--ring) 22%, transparent);
   }
@@ -792,23 +792,23 @@
   }
 }
 
-.bb-search-flash {
+.kaioken-search-flash {
   border-radius: var(--radius-lg, 0.5rem);
-  animation: bb-search-flash 1.6s ease-out;
+  animation: kaioken-search-flash 1.6s ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bb-search-flash {
+  .kaioken-search-flash {
     animation: none;
   }
 }
 
-/* Browse hero (Plugins → Browse plugins): the archetype chips orbiting the mini bb
+/* Browse hero (Plugins → Browse plugins): the archetype chips orbiting the mini kaioken
  * window drift slowly so the hero reads as alive without competing with the
  * composer sitting in the middle of it. Duration and delay are per-chip custom
  * properties so each chip drifts out of phase with its neighbours from one
  * shared rule. */
-@keyframes bb-hero-drift {
+@keyframes kaioken-hero-drift {
   0%,
   100% {
     transform: translate3d(0, 0, 0);
@@ -818,16 +818,16 @@
   }
 }
 
-.bb-hero-chip {
-  animation: bb-hero-drift var(--bb-hero-drift-duration, 6s) ease-in-out
+.kaioken-hero-chip {
+  animation: kaioken-hero-drift var(--kaioken-hero-drift-duration, 6s) ease-in-out
     infinite;
-  animation-delay: var(--bb-hero-drift-delay, 0s);
+  animation-delay: var(--kaioken-hero-drift-delay, 0s);
 }
 
 /* Autoplay progress for the active slide segment. The element is keyed by slide
  * in React, so a slide change remounts it and restarts the animation from zero
  * rather than needing an imperative reset. */
-@keyframes bb-hero-progress {
+@keyframes kaioken-hero-progress {
   from {
     transform: scaleX(0);
   }
@@ -836,23 +836,23 @@
   }
 }
 
-.bb-hero-progress-fill {
+.kaioken-hero-progress-fill {
   transform-origin: left center;
-  animation: bb-hero-progress var(--bb-hero-slide-duration, 5s) linear forwards;
+  animation: kaioken-hero-progress var(--kaioken-hero-slide-duration, 5s) linear forwards;
 }
 
-.bb-hero-progress-fill[data-paused="true"] {
+.kaioken-hero-progress-fill[data-paused="true"] {
   animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bb-hero-chip {
+  .kaioken-hero-chip {
     animation: none;
   }
 
   /* No autoplay under reduced motion, so the segment shows a resting full
    * state instead of an animation frozen at zero width. */
-  .bb-hero-progress-fill {
+  .kaioken-hero-progress-fill {
     animation: none;
     transform: scaleX(1);
   }

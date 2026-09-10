@@ -37,9 +37,9 @@ const MEMORY_ENTRY: PluginCatalogSearchEntry = {
   publisherLabel: "BB Official",
   official: true,
   author: {
-    name: "BB",
-    github: "get-bb",
-    url: "https://github.com/get-bb",
+    name: "Kaioken",
+    github: "get-kaioken",
+    url: "https://github.com/get-kaioken",
   },
   installed: false,
   installs: 4_210,
@@ -199,11 +199,11 @@ describe("BrowsePluginsTab", () => {
       onOpenPlugin,
     );
 
-    fireEvent.click(await screen.findByRole("link", { name: "BB" }));
+    fireEvent.click(await screen.findByRole("link", { name: "Kaioken" }));
     const params = new URLSearchParams(
       screen.getByTestId("location-search").textContent ?? "",
     );
-    expect(params.get("author")).toBe("11:bb-official:github:get-bb");
+    expect(params.get("author")).toBe("11:bb-official:github:get-kaioken");
     expect(params.getAll("category")).toEqual(["memory-and-context"]);
     expect(params.get("sort")).toBe("recently-added");
     expect(onOpenPlugin).not.toHaveBeenCalled();
@@ -491,7 +491,7 @@ describe("BrowsePluginsTab", () => {
       await screen.findByRole("button", { name: "Create a plugin" }),
     );
     expect((await screen.findByTestId("inline-composer")).textContent).toBe(
-      "Create a new bb plugin that ",
+      "Create a new kaioken plugin that ",
     );
     fireEvent.click(
       screen.getByText(

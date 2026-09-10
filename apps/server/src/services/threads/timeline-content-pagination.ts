@@ -1,4 +1,4 @@
-import type { TimelineRow } from "@bb/server-contract";
+import type { TimelineRow } from "@kaioken/server-contract";
 
 export interface TimelineContentPage {
   rows: TimelineRow[];

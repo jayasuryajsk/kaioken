@@ -3,13 +3,13 @@ import {
   runGit,
   WorkspaceError,
   type GitProcessOptions,
-} from "bb-environment-provider-host/git";
-import { tryWithCheckoutMutationLock } from "bb-environment-provider-host/locks";
+} from "kaioken-environment-provider-host/git";
+import { tryWithCheckoutMutationLock } from "kaioken-environment-provider-host/locks";
 import {
   emitStep,
   throwIfProvisionAborted,
   type ProgressCallback,
-} from "bb-environment-provider-host/transcript";
+} from "kaioken-environment-provider-host/transcript";
 import {
   getCheckoutRef,
   getWorkspaceGitOperation,

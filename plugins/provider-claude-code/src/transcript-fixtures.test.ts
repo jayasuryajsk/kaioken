@@ -1,14 +1,14 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ThreadEvent } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import { createClaudeDeltaHarness } from "./delta-test-harness.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TRANSCRIPTS = resolve(__dirname, "./__fixtures__/transcripts");
 const EXPECTED_PATH = resolve(TRANSCRIPTS, "expected.json");
-const THREAD_ID = "bb-thread-transcript";
+const THREAD_ID = "kaioken-thread-transcript";
 
 interface FixtureExpectation {
   items: Record<string, number>;

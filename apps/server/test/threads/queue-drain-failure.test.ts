@@ -3,8 +3,8 @@ import {
   getQueuedThreadMessage,
   listEvents,
   setQueuedThreadMessageFailureReason,
-} from "@bb/db";
-import type { PluginHookName } from "@get-bb/plugin-sdk";
+} from "@kaioken/db";
+import type { PluginHookName } from "@get-kaioken/plugin-sdk";
 import { describe, expect, it } from "vitest";
 import { ApiError } from "../../src/errors.js";
 import {

@@ -4,7 +4,7 @@ import {
   deriveConnectBaseUrl,
   redeemMachineCredential,
   type ConnectCredential,
-} from "@bb/connect-client";
+} from "@kaioken/connect-client";
 
 const CREATE_MACHINE_CODE_RPC = "createMachineCode";
 
@@ -89,7 +89,7 @@ export async function enrollDesktopMachine(
     const rejected = rpcFailureSchema.safeParse(body);
     const wireError = rejected.success ? rejected.data.error.message : "";
     if (wireError === "not_paired") {
-      return failure("not_paired", "this bb is not paired with bb Connect");
+      return failure("not_paired", "this kaioken is not paired with kaioken Connect");
     }
     if (wireError === "machine_limit") {
       return failure("machine_limit", "the account is at its machine limit");

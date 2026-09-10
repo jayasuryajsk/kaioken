@@ -16,8 +16,8 @@ import type {
   ProviderNativeRoot,
   ProviderNativeRootSet,
   ProviderNativeRoots,
-} from "@bb/domain";
-import type { DiscoveredSkill } from "@bb/host-daemon-contract";
+} from "@kaioken/domain";
+import type { DiscoveredSkill } from "@kaioken/host-daemon-contract";
 import { discoverSkills, type SkillScanRoot } from "../command-discovery.js";
 import { CommandDispatchError } from "../command-dispatch-support.js";
 import {
@@ -45,7 +45,7 @@ async function writeSkill(filePath: string, name: string): Promise<void> {
 
 async function makeWorkspaceFixture(): Promise<WorkspaceFixture> {
   const cwd = path.join(tempRoot, "workspace");
-  const dataDir = path.join(tempRoot, "bb-data");
+  const dataDir = path.join(tempRoot, "kaioken-data");
   const homeDir = path.join(tempRoot, "home");
   await mkdir(cwd, { recursive: true });
   await mkdir(dataDir, { recursive: true });
@@ -105,7 +105,7 @@ function byName(
 }
 
 beforeEach(async () => {
-  tempRoot = await mkdtemp(path.join(tmpdir(), "bb-list-skills-"));
+  tempRoot = await mkdtemp(path.join(tmpdir(), "kaioken-list-skills-"));
 });
 
 afterEach(async () => {
@@ -113,11 +113,11 @@ afterEach(async () => {
 });
 
 describe("resolveSkillScanRoots + discoverSkills", () => {
-  it("classifies the host-owned bb project root and the declared provider roots only", async () => {
+  it("classifies the host-owned kaioken project root and the declared provider roots only", async () => {
     const fixture = await makeWorkspaceFixture();
     const files = {
-      "proj-bb": path.join(fixture.cwd, ".bb", "skills", "proj-bb", "SKILL.md"),
-      "data-bb": path.join(fixture.dataDir, "skills", "data-bb", "SKILL.md"),
+      "proj-kaioken": path.join(fixture.cwd, ".kaioken", "skills", "proj-kaioken", "SKILL.md"),
+      "data-kaioken": path.join(fixture.dataDir, "skills", "data-kaioken", "SKILL.md"),
       "proj-agent": path.join(
         fixture.cwd,
         ".agent",
@@ -139,23 +139,23 @@ describe("resolveSkillScanRoots + discoverSkills", () => {
 
     const skills = await listSkills(fixture, fixture.cwd, AGENT_SKILL_ROOTS);
 
-    expect(byName(skills, "proj-bb")).toEqual({
+    expect(byName(skills, "proj-kaioken")).toEqual({
       id: expect.stringMatching(/^skill_[a-f0-9]{64}$/u),
-      name: "proj-bb",
-      description: "proj-bb skill",
-      filePath: files["proj-bb"],
-      rootKind: "bb-project",
+      name: "proj-kaioken",
+      description: "proj-kaioken skill",
+      filePath: files["proj-kaioken"],
+      rootKind: "kaioken-project",
       linked: false,
     });
-    expect(byName(skills, "data-bb")).toBeUndefined();
+    expect(byName(skills, "data-kaioken")).toBeUndefined();
     expect(byName(skills, "proj-agent")?.rootKind).toBe("provider-project");
     expect(byName(skills, "user-agent")?.rootKind).toBe("provider-user");
     expect(byName(skills, "user-agent")?.filePath).toBe(files["user-agent"]);
   });
 
   it("keeps native skill IDs stable when the workspace root moves", async () => {
-    const firstRoot = path.join(tempRoot, "checkout-a", ".bb", "skills");
-    const secondRoot = path.join(tempRoot, "checkout-b", ".bb", "skills");
+    const firstRoot = path.join(tempRoot, "checkout-a", ".kaioken", "skills");
+    const secondRoot = path.join(tempRoot, "checkout-b", ".kaioken", "skills");
     await writeSkill(path.join(firstRoot, "review", "SKILL.md"), "review");
     await writeSkill(path.join(secondRoot, "review", "SKILL.md"), "review");
 
@@ -167,8 +167,8 @@ describe("resolveSkillScanRoots + discoverSkills", () => {
           namePrefix: "",
           source: "skill",
           origin: "project",
-          identitySeed: "bb-project",
-          rootKind: "bb-project",
+          identitySeed: "kaioken-project",
+          rootKind: "kaioken-project",
         },
       ],
     });
@@ -180,8 +180,8 @@ describe("resolveSkillScanRoots + discoverSkills", () => {
           namePrefix: "",
           source: "skill",
           origin: "project",
-          identitySeed: "bb-project",
-          rootKind: "bb-project",
+          identitySeed: "kaioken-project",
+          rootKind: "kaioken-project",
         },
       ],
     });
@@ -212,8 +212,8 @@ describe("resolveSkillScanRoots + discoverSkills", () => {
   it("drops project roots when cwd is null", async () => {
     const fixture = await makeWorkspaceFixture();
     await writeSkill(
-      path.join(fixture.cwd, ".bb", "skills", "proj-bb", "SKILL.md"),
-      "proj-bb",
+      path.join(fixture.cwd, ".kaioken", "skills", "proj-kaioken", "SKILL.md"),
+      "proj-kaioken",
     );
     await writeSkill(
       path.join(fixture.cwd, ".agent", "skills", "proj-agent", "SKILL.md"),
@@ -351,7 +351,7 @@ describe("resolveSkillScanRoots + discoverSkills", () => {
         user: [declared(".agents/skills")],
         project: [declared(".agents/skills")],
       }),
-      "bb-shared",
+      "kaioken-shared",
     );
 
     expect(byName(skills, "project-shared")?.rootKind).toBe("shared-project");
@@ -375,7 +375,7 @@ describe("resolveSkillScanRoots + discoverSkills", () => {
       fixture,
       fixture.cwd,
       skillRoots({ project: [declared(".shared/skills")] }),
-      "bb-shared",
+      "kaioken-shared",
     );
 
     expect(byName(skills, "linked-root")).toMatchObject({
@@ -577,7 +577,7 @@ describe("discoverSkills marks the linked flag per root shape", () => {
 });
 
 describe("deleteHostSkill", () => {
-  it("deletes a bb-user skill directory", async () => {
+  it("deletes a kaioken-user skill directory", async () => {
     const fixture = await makeWorkspaceFixture();
     const skillDir = path.join(fixture.dataDir, "skills", "doomed");
     await writeSkill(path.join(skillDir, "SKILL.md"), "doomed");
@@ -585,7 +585,7 @@ describe("deleteHostSkill", () => {
     const result = await deleteHostSkill(
       {
         type: "host.delete_skill",
-        scope: "bb-user",
+        scope: "kaioken-user",
         name: "doomed",
         cwd: null,
         rootPath: null,
@@ -597,15 +597,15 @@ describe("deleteHostSkill", () => {
     expect(result.deletedPath).toContain("doomed");
   });
 
-  it("deletes a bb-project skill directory under cwd/.bb/skills", async () => {
+  it("deletes a kaioken-project skill directory under cwd/.kaioken/skills", async () => {
     const fixture = await makeWorkspaceFixture();
-    const skillDir = path.join(fixture.cwd, ".bb", "skills", "proj-doomed");
+    const skillDir = path.join(fixture.cwd, ".kaioken", "skills", "proj-doomed");
     await writeSkill(path.join(skillDir, "SKILL.md"), "proj-doomed");
 
     await deleteHostSkill(
       {
         type: "host.delete_skill",
-        scope: "bb-project",
+        scope: "kaioken-project",
         name: "proj-doomed",
         cwd: fixture.cwd,
         rootPath: null,
@@ -642,7 +642,7 @@ describe("deleteHostSkill", () => {
       deleteHostSkill(
         {
           type: "host.delete_skill",
-          scope: "bb-user",
+          scope: "kaioken-user",
           name: "../evil",
           cwd: null,
           rootPath: null,
@@ -652,7 +652,7 @@ describe("deleteHostSkill", () => {
     ).rejects.toMatchObject({ code: "invalid_skill_name" });
   });
 
-  it("refuses a skill symlinked outside the bb root after realpath", async () => {
+  it("refuses a skill symlinked outside the kaioken root after realpath", async () => {
     const fixture = await makeWorkspaceFixture();
     const outside = path.join(tempRoot, "outside", "secret");
     await writeSkill(path.join(outside, "SKILL.md"), "secret");
@@ -664,7 +664,7 @@ describe("deleteHostSkill", () => {
       deleteHostSkill(
         {
           type: "host.delete_skill",
-          scope: "bb-user",
+          scope: "kaioken-user",
           name: "link",
           cwd: null,
           rootPath: null,
@@ -690,7 +690,7 @@ describe("deleteHostSkill", () => {
       deleteHostSkill(
         {
           type: "host.delete_skill",
-          scope: "bb-user",
+          scope: "kaioken-user",
           name: "alias",
           cwd: null,
           rootPath: null,
@@ -710,7 +710,7 @@ describe("deleteHostSkill", () => {
       deleteHostSkill(
         {
           type: "host.delete_skill",
-          scope: "bb-user",
+          scope: "kaioken-user",
           name: "ghost",
           cwd: null,
           rootPath: null,
@@ -730,7 +730,7 @@ describe("deleteHostSkill", () => {
       deleteHostSkill(
         {
           type: "host.delete_skill",
-          scope: "bb-user",
+          scope: "kaioken-user",
           name: "plain",
           cwd: null,
           rootPath: null,
@@ -743,7 +743,7 @@ describe("deleteHostSkill", () => {
 });
 
 describe("writeHostSkill", () => {
-  it("atomically replaces a bb skill only at the expected revision", async () => {
+  it("atomically replaces a kaioken skill only at the expected revision", async () => {
     const fixture = await makeWorkspaceFixture();
     const filePath = path.join(fixture.dataDir, "skills", "review", "SKILL.md");
     const original = "---\nname: review\ndescription: Review\n---\n";
@@ -754,7 +754,7 @@ describe("writeHostSkill", () => {
     const written = await writeHostSkill(
       {
         type: "host.write_skill",
-        scope: "bb-user",
+        scope: "kaioken-user",
         name: "review",
         cwd: null,
         content: "# Updated",
@@ -773,7 +773,7 @@ describe("writeHostSkill", () => {
     const stale = await writeHostSkill(
       {
         type: "host.write_skill",
-        scope: "bb-user",
+        scope: "kaioken-user",
         name: "review",
         cwd: null,
         content: "# Stale overwrite",

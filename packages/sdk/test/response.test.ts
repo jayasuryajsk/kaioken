@@ -1,19 +1,19 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
 import {
-  BbHttpError,
+  KaiokenHttpError,
   createRequestTimeoutFetch,
-  DEFAULT_BB_REQUEST_TIMEOUT_MS,
+  DEFAULT_KAIOKEN_REQUEST_TIMEOUT_MS,
   readJsonResponse,
   readVoidResponse,
 } from "../src/response.js";
 import { createNodeTransport } from "../src/node.js";
 
-const REQUEST_TIMEOUT_ERROR_NAME = "BbRequestTimeoutError";
+const REQUEST_TIMEOUT_ERROR_NAME = "KaiokenRequestTimeoutError";
 const REQUEST_TIMEOUT_VALIDATION_MESSAGE =
-  "BB request timeout must be a non-negative finite number.";
+  "Kaioken request timeout must be a non-negative finite number.";
 
 function requestTimeoutMessage(duration: string): string {
-  return `BB request timed out after ${duration}.`;
+  return `Kaioken request timed out after ${duration}.`;
 }
 
 const IMMEDIATE_TIMEOUT_MS = 0;
@@ -197,7 +197,7 @@ describe("readJsonResponse()", () => {
     );
   });
 
-  it("throws BbHttpError carrying status and server code for non-ok response", async () => {
+  it("throws KaiokenHttpError carrying status and server code for non-ok response", async () => {
     const response = new Response(
       JSON.stringify({
         code: "thread_not_found",
@@ -218,9 +218,9 @@ describe("readJsonResponse()", () => {
       (caught: unknown) => caught,
     );
 
-    expect(error).toBeInstanceOf(BbHttpError);
-    if (!(error instanceof BbHttpError)) {
-      throw new Error("Expected a BbHttpError");
+    expect(error).toBeInstanceOf(KaiokenHttpError);
+    if (!(error instanceof KaiokenHttpError)) {
+      throw new Error("Expected a KaiokenHttpError");
     }
     expect(error.message).toBe("HTTP 404: Thread thread-1 not found");
     expect(error.status).toBe(404);
@@ -236,7 +236,7 @@ describe("readJsonResponse()", () => {
     await expect(readJson(response)).rejects.toMatchObject({
       code: null,
       message: "HTTP 502: plain failure",
-      name: "BbHttpError",
+      name: "KaiokenHttpError",
       status: 502,
     });
   });
@@ -274,7 +274,7 @@ describe("readJsonResponse()", () => {
         details: { reason: "provisioning" },
       },
       code: "environment_not_ready",
-      name: "BbHttpError",
+      name: "KaiokenHttpError",
     });
   });
 
@@ -291,7 +291,7 @@ describe("readJsonResponse()", () => {
     await expect(readJson(response)).rejects.toMatchObject({
       body: null,
       message: "HTTP 502: Bad Gateway",
-      name: "BbHttpError",
+      name: "KaiokenHttpError",
       status: 502,
     });
   });
@@ -313,7 +313,7 @@ describe("readJsonResponse()", () => {
     });
 
     await expect(readJsonResponse(Promise.reject(connError))).rejects.toThrow(
-      "Cannot connect to BB server. Ensure it is running and BB_SERVER_URL is correct.",
+      "Cannot connect to Kaioken server. Ensure it is running and KAIOKEN_SERVER_URL is correct.",
     );
   });
 
@@ -347,7 +347,7 @@ describe("createRequestTimeoutFetch()", () => {
 
   it("uses the default timeout when creating the node transport", async () => {
     useImmediateTimeoutSignalFor({
-      timeoutMs: DEFAULT_BB_REQUEST_TIMEOUT_MS,
+      timeoutMs: DEFAULT_KAIOKEN_REQUEST_TIMEOUT_MS,
     });
     mockPendingFetchUntilAbort();
     const transport = createNodeTransport({ baseUrl: "http://server" });

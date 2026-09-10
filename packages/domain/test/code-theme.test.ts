@@ -87,7 +87,7 @@ describe("code theme resolution", () => {
     expect(isCodeThemeFilePath("github-dark")).toBe(false);
   });
 
-  it("registers custom files under a stable bb: name", () => {
+  it("registers custom files under a stable kaioken: name", () => {
     expect(formatRegisteredCodeThemeName("midnight", "dark")).toBe(
       "bb:midnight:dark",
     );

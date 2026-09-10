@@ -3,11 +3,11 @@
   "name": "textarea",
   "type": "registry:ui",
   "title": "textarea",
-  "description": "BB ui \"textarea\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"textarea\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "registryDependencies": [
-    "@bb/coarse-pointer-sizing",
-    "@bb/motion",
-    "@bb/utils"
+    "@kaioken/coarse-pointer-sizing",
+    "@kaioken/motion",
+    "@kaioken/utils"
   ],
   "files": [
     {

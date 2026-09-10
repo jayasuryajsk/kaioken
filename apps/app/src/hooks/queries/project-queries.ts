@@ -6,12 +6,12 @@ import type {
   ProjectWithThreadsResponse,
   PromptHistoryResponse,
   WorkspacePathListResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   buildFilePreview,
   normalizeFilePreviewMimeType,
   type FilePreview,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { decodeBase64Bytes } from "@/lib/base64-bytes";
 import { buildProjectFileContentUrl } from "@/lib/file-content-urls";
 import { readProjectBranchOptions } from "@/lib/project-branch-options";

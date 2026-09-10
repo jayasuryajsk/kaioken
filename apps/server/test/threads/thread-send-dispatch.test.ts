@@ -7,15 +7,15 @@ import {
   markThreadDeleted,
   setQueuedThreadMessageFailureReason,
   setQueuedThreadMessageGroupBoundary,
-} from "@bb/db";
-import type { EnvironmentRow } from "@bb/db";
+} from "@kaioken/db";
+import type { EnvironmentRow } from "@kaioken/db";
 import {
   changedMessageSchema,
   turnScope,
   type Thread,
   type ThreadChangedMessage,
-} from "@bb/domain";
-import { groupHostDaemonEvents } from "@bb/host-daemon-contract";
+} from "@kaioken/domain";
+import { groupHostDaemonEvents } from "@kaioken/host-daemon-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TelemetryService } from "../../src/services/system/telemetry.js";
 import * as threadEvents from "../../src/services/threads/thread-events.js";

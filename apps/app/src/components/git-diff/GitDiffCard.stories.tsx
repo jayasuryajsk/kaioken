@@ -3,9 +3,9 @@ import {
   builtInThemes,
   defaultAppTheme,
   type BuiltInThemeId,
-} from "@bb/domain";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { Button } from "@bb/shared-ui/button";
+} from "@kaioken/domain";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Button } from "@kaioken/shared-ui/button";
 import { resolveAppThemeCss } from "@/lib/themes";
 import { GitDiffCard } from "@/components/git-diff/GitDiffCard";
 import type { DiffPresentation } from "@/components/code/code-rendering";

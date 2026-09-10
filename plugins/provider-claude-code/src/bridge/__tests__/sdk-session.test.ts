@@ -213,7 +213,7 @@ describe("SdkSession", () => {
     const session = new SdkSession(
       {
         ...defaultOptions,
-        plugins: [{ type: "local", path: "/tmp/bb-skills" }],
+        plugins: [{ type: "local", path: "/tmp/kaioken-skills" }],
       },
       onMessage,
       onDone,
@@ -224,7 +224,7 @@ describe("SdkSession", () => {
     expect(queryMock).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
-          plugins: [{ type: "local", path: "/tmp/bb-skills" }],
+          plugins: [{ type: "local", path: "/tmp/kaioken-skills" }],
         }),
       }),
     );

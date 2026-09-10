@@ -1,4 +1,4 @@
-import { createNodeBbSdk, type BbSdk } from "@bb/sdk/node";
+import { createNodeBbSdk, type KaiokenSdk } from "@kaioken/sdk/node";
 import type { Dispatcher } from "undici";
 
 type CliRequestInit = RequestInit & { dispatcher?: Dispatcher };
@@ -10,6 +10,6 @@ export function cliFetch(
   return fetch(input, init);
 }
 
-export function createCliBbSdk(baseUrl: string): BbSdk {
+export function createCliBbSdk(baseUrl: string): KaiokenSdk {
   return createNodeBbSdk({ baseUrl, fetch: cliFetch });
 }

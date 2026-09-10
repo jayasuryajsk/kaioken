@@ -1,13 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
-import { loadHostDaemonStartConfig } from "@bb/config/host-daemon";
-import type { HostType } from "@bb/domain";
+import { loadHostDaemonStartConfig } from "@kaioken/config/host-daemon";
+import type { HostType } from "@kaioken/domain";
 import {
   createHostWatcher,
   createSubprocessParcelWatcherBackend,
   setParcelWatcherBackend,
-} from "@bb/host-watcher";
-import { createLogger } from "@bb/logger";
+} from "@kaioken/host-watcher";
+import { createLogger } from "@kaioken/logger";
 import { createHostDaemonApp } from "./app.js";
 import {
   readHostAuthState,
@@ -35,7 +35,7 @@ interface StartHostDaemonOptions {
   enrollKey?: string;
   hostId?: string;
   hostName?: string;
-  bbExecutableDirectory?: string;
+  kaiokenExecutableDirectory?: string;
   bridgeBundleDir?: string;
   hostType?: HostType;
   machineCredential?: string;
@@ -82,7 +82,7 @@ export async function startHostDaemon(
     });
     const instanceId = randomUUID();
     const serverUrl = resolveServerUrl({
-      providedServerUrl: hostDaemonConfig.BB_SERVER_URL,
+      providedServerUrl: hostDaemonConfig.KAIOKEN_SERVER_URL,
     });
     if (!serverUrl) {
       throw new Error("Host daemon server URL is required");
@@ -120,7 +120,7 @@ export async function startHostDaemon(
             options.enrollKey ??
             (() => {
               throw new Error(
-                `Missing host bootstrap material. Provide BB_HOST_ENROLL_KEY or populate ${dataDir}/auth.json first.`,
+                `Missing host bootstrap material. Provide KAIOKEN_HOST_ENROLL_KEY or populate ${dataDir}/auth.json first.`,
               );
             })(),
         })
@@ -136,13 +136,13 @@ export async function startHostDaemon(
     }
 
     const localApiConfig = resolveHostDaemonLocalApiConfig({
-      hostDaemonPort: hostDaemonConfig.BB_HOST_DAEMON_PORT,
+      hostDaemonPort: hostDaemonConfig.KAIOKEN_HOST_DAEMON_PORT,
     });
-    const bbExecutablePath =
-      options.bbExecutableDirectory !== undefined
-        ? resolveBbExecutablePathInDirectory(options.bbExecutableDirectory)
+    const kaiokenExecutablePath =
+      options.kaiokenExecutableDirectory !== undefined
+        ? resolveBbExecutablePathInDirectory(options.kaiokenExecutableDirectory)
         : await resolveLocalBbExecutablePath();
-    const bbExecutableDirectory = dirname(bbExecutablePath);
+    const kaiokenExecutableDirectory = dirname(kaiokenExecutablePath);
     const logger = createLogger({
       component: "host-daemon",
       base: { serverUrl },
@@ -173,8 +173,8 @@ export async function startHostDaemon(
     const resolveUserShellPath = createUserShellPathResolver();
     const resolveRuntimeShellEnv = async () =>
       prepareRuntimeShellEnv({
-        bbExecutableDirectory,
-        bbExecutablePath,
+        kaiokenExecutableDirectory,
+        kaiokenExecutablePath,
         hostDaemonPort: localApiConfig.port,
         inheritedPath: (await resolveUserShellPath()) ?? process.env.PATH,
         serverUrl: machineAuthProxy?.serverUrl ?? serverUrl,
@@ -194,10 +194,10 @@ export async function startHostDaemon(
       hostName: identity.hostName,
       instanceId,
       appUrl:
-        hostDaemonConfig.BB_APP_URL === ""
+        hostDaemonConfig.KAIOKEN_APP_URL === ""
           ? undefined
-          : hostDaemonConfig.BB_APP_URL,
-      devAppPort: hostDaemonConfig.BB_DEV_APP_PORT,
+          : hostDaemonConfig.KAIOKEN_APP_URL,
+      devAppPort: hostDaemonConfig.KAIOKEN_DEV_APP_PORT,
       logger,
       releaseLock,
       localApiConfig,

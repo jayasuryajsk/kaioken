@@ -3,15 +3,15 @@
   "name": "icon",
   "type": "registry:ui",
   "title": "icon",
-  "description": "BB ui \"icon\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"icon\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@hugeicons/core-free-icons",
     "@hugeicons/react"
   ],
   "registryDependencies": [
-    "@bb/icon-extended",
-    "@bb/icon-registry",
-    "@bb/utils"
+    "@kaioken/icon-extended",
+    "@kaioken/icon-registry",
+    "@kaioken/utils"
   ],
   "files": [
     {

@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { initializeTasksSchema } from "./schema";
 import {
@@ -46,7 +46,7 @@ import type {
   UpsertTaskThreadInput,
 } from "./types";
 
-type PluginDatabase = ReturnType<BbPluginApi["storage"]["database"]>;
+type PluginDatabase = ReturnType<KaiokenPluginApi["storage"]["database"]>;
 type SqlParameter = string | number;
 
 const ULID_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -305,7 +305,7 @@ function validateDueDate(dueDate: string | null): string | null {
 
 function validateLinkedBbProjectId(id: string | null): string | null {
   if (id !== null && !id.startsWith("proj_")) {
-    throw new Error("linkedBbProjectId must be a bb proj_* id");
+    throw new Error("linkedBbProjectId must be a kaioken proj_* id");
   }
   return id;
 }
@@ -315,7 +315,7 @@ function validateThreadId(id: null): null;
 function validateThreadId(id: string | null): string | null;
 function validateThreadId(id: string | null): string | null {
   if (id !== null && !id.startsWith("thr_")) {
-    throw new Error("threadId must be a bb thr_* id");
+    throw new Error("threadId must be a kaioken thr_* id");
   }
   return id;
 }

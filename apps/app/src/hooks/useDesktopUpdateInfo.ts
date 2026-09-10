@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
-import type { BbDesktopApi, BbDesktopInfo } from "@bb/desktop-contract";
-import { getBbDesktopInfo } from "@/lib/bb-desktop";
+import type { KaiokenDesktopApi, KaiokenDesktopInfo } from "@kaioken/desktop-contract";
+import { getBbDesktopInfo } from "@/lib/kaioken-desktop";
 
 interface DesktopUpdateInfo {
-  desktopApi: BbDesktopApi | null;
-  desktopInfo: BbDesktopInfo | null;
+  desktopApi: KaiokenDesktopApi | null;
+  desktopInfo: KaiokenDesktopInfo | null;
   isDesktop: boolean;
 }
 
 export function useDesktopUpdateInfo(): DesktopUpdateInfo {
-  const [desktopApi] = useState<BbDesktopApi | null>(() => getBbDesktopInfo());
-  const [desktopInfo, setDesktopInfo] = useState<BbDesktopInfo | null>(null);
+  const [desktopApi] = useState<KaiokenDesktopApi | null>(() => getBbDesktopInfo());
+  const [desktopInfo, setDesktopInfo] = useState<KaiokenDesktopInfo | null>(null);
 
   useEffect(() => {
     const api = getBbDesktopInfo();

@@ -10,9 +10,9 @@ import {
   promptEditorValueFromDoc,
 } from "./prompt-editor-serialization";
 import { findUltracodeRanges } from "./prompt-decoration-extension";
-import { findActiveTrigger } from "@bb/client-core";
-import type { TypeaheadTrigger } from "@bb/client-core";
-import { serializePromptDraftStorage } from "@bb/client-core";
+import { findActiveTrigger } from "@kaioken/client-core";
+import type { TypeaheadTrigger } from "@kaioken/client-core";
+import { serializePromptDraftStorage } from "@kaioken/client-core";
 import { generateMinifiedJsFixture } from "@/test/fixtures/minified-js-paste-fixture";
 
 const PERF_ENABLED = process.env.PROMPTBOX_PERF === "1";

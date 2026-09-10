@@ -3,7 +3,7 @@ import {
   ConnectListError,
   fetchDesktopSession,
   type ConnectCredential,
-} from "@bb/connect-client";
+} from "@kaioken/connect-client";
 
 const rpcSuccessSchema = z.object({
   ok: z.literal(true),

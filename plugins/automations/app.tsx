@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { buildAutomationEditThreadPrompt } from "@bb/shared-ui/resource-edit-prompt";
+import { buildAutomationEditThreadPrompt } from "@kaioken/shared-ui/resource-edit-prompt";
 import {
   definePluginApp,
   useBbNavigate,
   useRealtime,
   useRpc,
   type PluginNavPanelProps,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import type { automationRpcContract } from "./src/rpc.js";
 import { toast } from "sonner";
 import type {
@@ -25,8 +25,8 @@ import {
   CREATE_AUTOMATION_PROMPT,
   type AutomationCollectionMode,
 } from "./overview-view";
-import { Button } from "@bb/shared-ui/button";
-import { DelayedLoading } from "@bb/shared-ui/delayed-loading";
+import { Button } from "@kaioken/shared-ui/button";
+import { DelayedLoading } from "@kaioken/shared-ui/delayed-loading";
 import {
   Dialog,
   DialogContent,
@@ -34,9 +34,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
-import { ResourceListState } from "@bb/shared-ui/resource-list";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/dialog";
+import { ResourceListState } from "@kaioken/shared-ui/resource-list";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 const PANEL_PATH = "automations";
 const PERSONAL_PROJECT_ID = "proj_personal";

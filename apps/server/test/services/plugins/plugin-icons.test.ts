@@ -2,7 +2,7 @@ import { mkdir, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { PLUGIN_ICON_MAX_BYTES } from "@bb/domain";
+import { PLUGIN_ICON_MAX_BYTES } from "@kaioken/domain";
 import {
   createTestAppHarness,
   type TestAppHarness,
@@ -98,10 +98,10 @@ describe("plugin-declared icons", () => {
     const rootDir = join(
       harness.config.dataDir,
       "fixtures",
-      "bb-plugin-iconed",
+      "kaioken-plugin-iconed",
     );
     await writeIconPluginFixture(rootDir, {
-      name: "bb-plugin-iconed",
+      name: "kaioken-plugin-iconed",
       icons: { receipt: "./icons/receipt.svg", mark: "./icons/mark.svg" },
       files: { "icons/receipt.svg": SVG, "icons/mark.svg": OTHER_SVG },
     });
@@ -221,10 +221,10 @@ describe("plugin-declared icons", () => {
       const rootDir = join(
         harness.config.dataDir,
         "fixtures",
-        "bb-plugin-badicon",
+        "kaioken-plugin-badicon",
       );
       await writeIconPluginFixture(rootDir, {
-        name: "bb-plugin-badicon",
+        name: "kaioken-plugin-badicon",
         icons,
         files,
       });
@@ -238,10 +238,10 @@ describe("plugin-declared icons", () => {
     const rootDir = join(
       harness.config.dataDir,
       "fixtures",
-      "bb-plugin-branded",
+      "kaioken-plugin-branded",
     );
     await writeIconPluginFixture(rootDir, {
-      name: "bb-plugin-branded",
+      name: "kaioken-plugin-branded",
       brandingIcon: "branded/logo",
       icons: { logo: "./icons/logo.svg" },
       files: { "icons/logo.svg": SVG },
@@ -255,16 +255,16 @@ describe("plugin-declared icons", () => {
   });
 
   it("fails the load for an icon reached through a symlink outside the plugin", async () => {
-    const outside = join(tmpdir(), `bb-plugin-icon-outside-${Date.now()}`);
+    const outside = join(tmpdir(), `kaioken-plugin-icon-outside-${Date.now()}`);
     await mkdir(outside, { recursive: true });
     await writeFile(join(outside, "receipt.svg"), SVG);
     const rootDir = join(
       harness.config.dataDir,
       "fixtures",
-      "bb-plugin-linked",
+      "kaioken-plugin-linked",
     );
     await writeIconPluginFixture(rootDir, {
-      name: "bb-plugin-linked",
+      name: "kaioken-plugin-linked",
       icons: { receipt: "./icons/receipt.svg" },
     });
     await mkdir(join(rootDir, "icons"), { recursive: true });
@@ -283,10 +283,10 @@ describe("plugin-declared icons", () => {
     const rootDir = join(
       harness.config.dataDir,
       "fixtures",
-      "bb-plugin-tooled",
+      "kaioken-plugin-tooled",
     );
     await writeIconPluginFixture(rootDir, {
-      name: "bb-plugin-tooled",
+      name: "kaioken-plugin-tooled",
       icons: { stamp: "./icons/stamp.svg" },
       files: { "icons/stamp.svg": SVG },
     });
@@ -335,10 +335,10 @@ describe("plugin-declared icons", () => {
     const rootDir = join(
       harness.config.dataDir,
       "fixtures",
-      "bb-plugin-marked",
+      "kaioken-plugin-marked",
     );
     await writeIconPluginFixture(rootDir, {
-      name: "bb-plugin-marked",
+      name: "kaioken-plugin-marked",
       icons: { agent: "./icons/agent.svg" },
       files: { "icons/agent.svg": SVG },
       serverSource: PROVIDER_SOURCE("marked/agent"),
@@ -387,10 +387,10 @@ describe("plugin-declared icons", () => {
     const rootDir = join(
       harness.config.dataDir,
       "fixtures",
-      "bb-plugin-unmarked",
+      "kaioken-plugin-unmarked",
     );
     await writeIconPluginFixture(rootDir, {
-      name: "bb-plugin-unmarked",
+      name: "kaioken-plugin-unmarked",
       icons: { agent: "./icons/agent.svg" },
       files: { "icons/agent.svg": SVG },
       serverSource: PROVIDER_SOURCE("unmarked/badge"),

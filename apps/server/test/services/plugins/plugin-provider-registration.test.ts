@@ -1,5 +1,5 @@
 import { setPluginEnvironmentProviderBridge } from "../../../src/services/plugins/plugin-environment-provider-registry.js";
-import { systemEnvironmentProvidersResponseSchema } from "@bb/server-contract";
+import { systemEnvironmentProvidersResponseSchema } from "@kaioken/server-contract";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -77,7 +77,7 @@ describe("bb.providers.register (server)", () => {
   let workDir: string;
 
   beforeEach(async () => {
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-provider-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-provider-test-"));
   });
 
   afterEach(async () => {
@@ -89,7 +89,7 @@ describe("bb.providers.register (server)", () => {
     await withTestHarness(async (harness) => {
       const notifySystem = vi.spyOn(harness.deps.hub, "notifySystem");
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-remote-agent",
+        name: "kaioken-plugin-remote-agent",
         serverSource: REGISTER_PROVIDER_SOURCE("my-remote-agent"),
       });
       const entry = await harness.pluginService.installPath(rootDir);
@@ -155,7 +155,7 @@ describe("bb.providers.register (server)", () => {
   it("keeps a failed provider in the listing as unavailable", async () => {
     await withTestHarness(async (harness) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-failed-agent",
+        name: "kaioken-plugin-failed-agent",
         serverSource: REGISTER_PROVIDER_SOURCE("failed-agent"),
         bridgeSource: 'import "missing-provider-runtime";\n',
       });
@@ -202,7 +202,7 @@ describe("bb.providers.register (server)", () => {
   it("makes the registered provider usable by thread policy end to end", async () => {
     await withTestHarness(async (harness) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-policy-agent",
+        name: "kaioken-plugin-policy-agent",
         serverSource: REGISTER_PROVIDER_SOURCE("policy-agent"),
       });
       const entry = await harness.pluginService.installPath(rootDir);
@@ -223,7 +223,7 @@ describe("bb.providers.register (server)", () => {
   it("re-registers wholesale on reload instead of colliding with itself", async () => {
     await withTestHarness(async (harness) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-reload-agent",
+        name: "kaioken-plugin-reload-agent",
         serverSource: REGISTER_PROVIDER_SOURCE("reload-agent"),
       });
       const entry = await harness.pluginService.installPath(rootDir);
@@ -248,7 +248,7 @@ describe("bb.providers.register (server)", () => {
     async (icon) => {
       await withTestHarness(async (harness) => {
         const rootDir = await writePlugin(workDir, {
-          name: "bb-plugin-marked-environment",
+          name: "kaioken-plugin-marked-environment",
           withBridge: false,
           icons: { mark: "./icons/agent.svg" },
           serverSource: `export default function plugin(bb) { bb.experimental_environments.register({ id: "marked-environment", displayName: "Marked", icon: ${JSON.stringify(icon)}, create: async () => ({ status: "failed", failure: "transient", message: "waiting" }), remove: async () => ({ status: "removed" }) }); }`,
@@ -291,7 +291,7 @@ describe("bb.providers.register (server)", () => {
   it("serves a path-shaped icon through the provider logo route with untrusted-image headers", async () => {
     await withTestHarness(async (harness) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-marked-agent",
+        name: "kaioken-plugin-marked-agent",
         serverSource: REGISTER_PROVIDER_SOURCE("marked-agent"),
       });
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><style>.a{fill:#f00}</style><path class="a" d="M0 0h4v4z"/></svg>`;
@@ -317,7 +317,7 @@ describe("bb.providers.register (server)", () => {
   it("serves a path-shaped icon as declared even when it carries an event handler", async () => {
     await withTestHarness(async (harness) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-scripted-agent",
+        name: "kaioken-plugin-scripted-agent",
         serverSource: REGISTER_PROVIDER_SOURCE("scripted-agent"),
       });
       const svg = `<svg xmlns="http://www.w3.org/2000/svg"><path onload="x()" d="M0 0"/></svg>`;
@@ -345,7 +345,7 @@ describe("bb.providers.register (server)", () => {
   it("refuses a declaration with no bridge to run on", async () => {
     await withTestHarness(async (harness) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-bridgeless-agent",
+        name: "kaioken-plugin-bridgeless-agent",
         serverSource: REGISTER_PROVIDER_SOURCE("bridgeless-agent"),
         withBridge: false,
       });
@@ -366,7 +366,7 @@ describe("bb.providers.register (server)", () => {
   it("rejects a live id claimed by another plugin as a load failure", async () => {
     await withTestHarness(async (harness) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-shadow-codex",
+        name: "kaioken-plugin-shadow-codex",
         serverSource: REGISTER_PROVIDER_SOURCE("codex"),
       });
       const entry = await harness.pluginService.installPath(rootDir);

@@ -2,8 +2,8 @@ import type {
   SystemProviderState,
   SystemProviderStatesResponse,
   SystemProvidersQuery,
-} from "@bb/server-contract";
-import type { ProviderInfo } from "@bb/domain";
+} from "@kaioken/server-contract";
+import type { ProviderInfo } from "@kaioken/domain";
 import type { AppDeps } from "../../types.js";
 import { COMMAND_TIMEOUT_MS } from "../../constants.js";
 import { callHostRetryableOnlineRpc } from "../hosts/online-rpc.js";

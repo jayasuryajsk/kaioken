@@ -1,13 +1,13 @@
 import type {
   PluginEnvironmentProviderCreateContext,
   PluginEnvironmentProviderProgress,
-} from "@get-bb/plugin-sdk/environment-provider";
+} from "@get-kaioken/plugin-sdk/environment-provider";
 import {
   createFakePluginHost,
   makeHostResponse,
   makeThreadResponse,
   type FakePluginHarness,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it, vi } from "vitest";
 import { worktreeHostContract } from "./contract.js";
 import { GIT_WORKTREE_ENVIRONMENT_PROVIDER_ID } from "./provider-id.js";
@@ -19,16 +19,16 @@ type HostRpcCall = FakePluginHarness["experimental_hostRpcCalls"][number];
 const HOST_ID = "host-a";
 const PROJECT_ID = "project-1";
 const THREAD_ID = "thr_1";
-const SOURCE_PATH = "/checkouts/bb";
+const SOURCE_PATH = "/checkouts/kaioken";
 const WORKTREE_PATH =
-  "/data/plugins/environment-git-worktree/worktrees/thr_1/bb";
+  "/data/plugins/environment-git-worktree/worktrees/thr_1/kaioken";
 
 const PROVISION_HOST = makeHostResponse({ id: HOST_ID, name: "Fake machine" });
 
 const PROJECT: Project = {
   id: PROJECT_ID,
   kind: "standard",
-  name: "bb",
+  name: "kaioken",
   gitRemoteUrl: null,
   createdAt: 1,
   updatedAt: 1,
@@ -69,7 +69,7 @@ async function setup(
     projectCheckout: { path: SOURCE_PATH },
     gitRemote: null,
     inputs: { branch: { kind: "default" } },
-    suggestedBranchName: "bb/test",
+    suggestedBranchName: "kaioken/test",
     attempt: 1,
     pathKey: THREAD_ID,
     rebuild: false,
@@ -103,7 +103,7 @@ describe("worktree resource operations", () => {
       hostId: HOST_ID,
       input: {
         operationId: `create#${THREAD_ID}#1`,
-        branchName: "bb/test",
+        branchName: "kaioken/test",
         pathKey: THREAD_ID,
         baseBranch: { kind: "default" },
         branchMode: "reset",
@@ -132,7 +132,7 @@ describe("worktree resource operations", () => {
     const fixture = await setup();
     await fixture.provider.create({
       ...fixture.context,
-      suggestedBranchName: "bb/renamed-thread",
+      suggestedBranchName: "kaioken/renamed-thread",
       rebuild: true,
       previous: {
         environment: {
@@ -143,7 +143,7 @@ describe("worktree resource operations", () => {
           path: WORKTREE_PATH,
           isGitRepo: true,
           isWorktree: true,
-          branchName: "bb/original-thread",
+          branchName: "kaioken/original-thread",
           baseBranch: "main",
           defaultBranch: "main",
           mergeBaseBranch: "main",
@@ -167,7 +167,7 @@ describe("worktree resource operations", () => {
       attempt: 2,
     });
     expect(fixture.harness.experimental_hostRpcCalls[0]?.input).toMatchObject({
-      branchName: "bb/original-thread",
+      branchName: "kaioken/original-thread",
       branchMode: "reuse-existing",
     });
   });

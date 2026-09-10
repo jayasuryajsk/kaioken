@@ -1,5 +1,5 @@
-import { reasoningLevelValues } from "@bb/domain";
-import type { AvailableModel, ReasoningLevel } from "@bb/domain";
+import { reasoningLevelValues } from "@kaioken/domain";
+import type { AvailableModel, ReasoningLevel } from "@kaioken/domain";
 import { agentModelFamilyId } from "./bridge/model-catalog.js";
 
 interface CursorParameterizedSelection {

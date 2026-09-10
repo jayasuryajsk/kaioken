@@ -3,7 +3,7 @@ import {
   definePluginApp,
   type PluginFileOpenerProps,
   type PluginThreadListProps,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 
 const LABEL = "Beta";
 
@@ -108,7 +108,7 @@ function LabHeader({
           checked={embedOriginal}
           onChange={(event) => onEmbedOriginalChange(event.target.checked)}
         />
-        Embed BB original
+        Embed Kaioken original
       </label>
       <button
         type="button"

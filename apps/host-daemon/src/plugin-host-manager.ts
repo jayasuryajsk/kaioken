@@ -8,14 +8,14 @@ import type { Readable } from "node:stream";
 import type {
   HostDaemonOnlineRpcCommand,
   HostDaemonOnlineRpcResult,
-} from "@bb/host-daemon-contract";
-import type { HostPathWatchChange, HostWatcher } from "@bb/host-watcher";
-import { jsonValueSchema, type JsonValue } from "@bb/domain";
+} from "@kaioken/host-daemon-contract";
+import type { HostPathWatchChange, HostWatcher } from "@kaioken/host-watcher";
+import { jsonValueSchema, type JsonValue } from "@kaioken/domain";
 import {
   createPluginProcessTempDir,
   ensurePluginProcessDataDir,
   sanitizeInheritedChildProcessEnv,
-} from "@bb/process-utils";
+} from "@kaioken/process-utils";
 import type { HostDaemonLogger } from "./logger.js";
 import { ensureCachedPluginHostArtifact } from "./plugin-host-artifact-cache.js";
 
@@ -149,7 +149,7 @@ function workerLogContext(worker: WorkerState): Record<string, unknown> {
 
 function defaultWorkerEntryPath(): string {
   const candidates = [
-    "./bb-plugin-host-worker.mjs",
+    "./kaioken-plugin-host-worker.mjs",
     "./plugin-host-worker.js",
     "./plugin-host-worker.ts",
   ];
@@ -442,7 +442,7 @@ export class PluginHostManager {
     });
     const tempDir = await createPluginProcessTempDir({
       pluginId: command.pluginId,
-      prefix: "bb-host",
+      prefix: "kaioken-host",
     });
     const shellPath = this.options.shellEnv?.().PATH;
     const startedAtMs = performance.now();

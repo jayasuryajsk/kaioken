@@ -9,7 +9,7 @@ import {
   CHROME_ROW_CLASS,
   CHROME_ROW_HEIGHT_CLASS,
   MACOS_COLLAPSED_TOP_LEFT_RESERVE_CLASS,
-} from "@/lib/bb-desktop";
+} from "@/lib/kaioken-desktop";
 import { SECONDARY_PANEL_TOP_CHROME_BACKGROUND_CLASS } from "./panelChromeClasses";
 
 describe("secondary panel surface tone", () => {

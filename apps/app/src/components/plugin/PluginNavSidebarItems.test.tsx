@@ -13,7 +13,7 @@ import { createStore, Provider } from "jotai";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { CompactViewportOverrideProvider } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { CompactViewportOverrideProvider } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import { SidebarProvider } from "@/components/ui/sidebar.js";
 import { SIDEBAR_CONTROL_STATE_CLASS } from "@/components/sidebar/sidebarRowClasses";
 import { useSidebarReorderDnd } from "@/components/sidebar/useSidebarReorderDnd";
@@ -414,7 +414,7 @@ describe("PluginNavSidebarItems", () => {
       screen.getByRole("button", { name: "Tasks" }).classList.contains("pr-18"),
     ).toBe(true);
     for (const className of [
-      "bb-sidebar-hover-actions-fade",
+      "kaioken-sidebar-hover-actions-fade",
       "right-1",
       "min-w-5",
       "max-h-5",

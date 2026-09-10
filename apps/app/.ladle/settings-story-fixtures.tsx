@@ -1,13 +1,13 @@
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { PERSONAL_PROJECT_ID, type ProviderInfo } from "@bb/domain";
-import { UPDATE_ACTION_ICON } from "@bb/domain/update-state";
+import { PERSONAL_PROJECT_ID, type ProviderInfo } from "@kaioken/domain";
+import { UPDATE_ACTION_ICON } from "@kaioken/domain/update-state";
 import type {
   SidebarBootstrapResponse,
   SystemVersionResponse,
-} from "@bb/server-contract";
-import type { ProviderCliStatusResponse } from "@bb/host-daemon-contract";
+} from "@kaioken/server-contract";
+import type { ProviderCliStatusResponse } from "@kaioken/host-daemon-contract";
 import {
   hostProviderCliStatusQueryKey,
   hostsQueryKey,
@@ -24,10 +24,10 @@ import {
 } from "../src/hooks/useUpdateInventory";
 import { createAppQueryClient } from "../src/lib/query-client";
 import { makeSystemConfig } from "../src/test/fixtures/system-config";
-import { makeProviderInfo } from "@bb/test-helpers/domain-fixtures";
+import { makeProviderInfo } from "@kaioken/test-helpers/domain-fixtures";
 import { getSettingsRoutePath } from "../src/lib/route-paths";
 import {
-  BbAppUpdateRows,
+  KaiokenAppUpdateRows,
   MachineUpdatesFleetSection,
   MachineUpdatesRows,
   MachineUpdatesSection,
@@ -181,7 +181,7 @@ const systemConfig = makeSystemConfig({
   primaryHostId: HOST_IDS.local,
   primaryHostPlatform: "darwin",
   voiceTranscriptionEnabled: true,
-  dataDir: "/Users/michael/.bb",
+  dataDir: "/Users/michael/.kaioken",
 });
 
 const systemVersion = {
@@ -190,7 +190,7 @@ const systemVersion = {
   source: "npm",
   updateAvailable: false,
   isDevelopment: false,
-  upgradeCommand: "npx bb-app@latest",
+  upgradeCommand: "npx kaioken-app@latest",
 } satisfies SystemVersionResponse;
 
 const systemProviders = [
@@ -246,7 +246,7 @@ export function SettingsUpdatesStory() {
         machine={settingsUpdateMachine}
         isThisMachine={false}
       >
-        <BbAppUpdateRows
+        <KaiokenAppUpdateRows
           systemVersion={systemVersion}
           desktopInfo={null}
           isDesktop={false}

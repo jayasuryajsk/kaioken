@@ -159,12 +159,12 @@ describe("experimental_ProviderModelPicker test runtime", () => {
       serviceTier: "fast",
     });
     expect(
-      picker.getByTestId("bb-provider-model-picker").dataset.routingKind,
+      picker.getByTestId("kaioken-provider-model-picker").dataset.routingKind,
     ).toBe("host");
     expect(
-      picker.getByTestId("bb-provider-model-picker").dataset.routingId,
+      picker.getByTestId("kaioken-provider-model-picker").dataset.routingId,
     ).toBe("host-test");
-    expect(picker.getByTestId("bb-provider-model-picker").dataset.align).toBe(
+    expect(picker.getByTestId("kaioken-provider-model-picker").dataset.align).toBe(
       "end",
     );
   });
@@ -190,15 +190,15 @@ describe("experimental_PermissionModePicker test runtime", () => {
 
     expect(onChange).toHaveBeenCalledWith("full");
     expect(
-      picker.getByTestId("bb-permission-mode-picker").dataset.providerId,
+      picker.getByTestId("kaioken-permission-mode-picker").dataset.providerId,
     ).toBe("codex");
     expect(
-      picker.getByTestId("bb-permission-mode-picker").dataset.routingKind,
+      picker.getByTestId("kaioken-permission-mode-picker").dataset.routingKind,
     ).toBe("environment");
     expect(
-      picker.getByTestId("bb-permission-mode-picker").dataset.routingId,
+      picker.getByTestId("kaioken-permission-mode-picker").dataset.routingId,
     ).toBe("env-test");
-    expect(picker.getByTestId("bb-permission-mode-picker").dataset.align).toBe(
+    expect(picker.getByTestId("kaioken-permission-mode-picker").dataset.align).toBe(
       "start",
     );
   });
@@ -1248,7 +1248,7 @@ describe("loadPluginApp", () => {
       loadPluginApp(
         definePluginApp((builder) => {
           builder.slots.experimental_providerIcon({
-            providerId: "bb-plugin-x/codex",
+            providerId: "kaioken-plugin-x/codex",
             icon: () => null,
           });
         }),
@@ -1297,7 +1297,7 @@ describe("loadPluginApp", () => {
   it("renders the ThreadChat stub with recorded props inside a slot", () => {
     const chatPanel = app.navPanels.find((panel) => panel.id === "chat")!;
     const slot = renderSlot(chatPanel, { subPath: "thr_42" });
-    const stub = slot.getByTestId("bb-thread-chat");
+    const stub = slot.getByTestId("kaioken-thread-chat");
     expect(stub.getAttribute("data-thread-id")).toBe("thr_42");
     expect(stub.getAttribute("data-variant")).toBe("compact");
     expect(stub.getAttribute("data-layout")).toBe("document");
@@ -1311,10 +1311,10 @@ describe("loadPluginApp", () => {
     const chatPanel = app.navPanels.find((panel) => panel.id === "chat")!;
     const slot = renderSlot(chatPanel, { subPath: "thr_42" });
     expect(
-      slot.getByTestId("bb-thread-chat-leading-content").textContent,
+      slot.getByTestId("kaioken-thread-chat-leading-content").textContent,
     ).toContain("Replying to something earlier");
 
-    const action = slot.getByTestId("bb-thread-chat-action-send-to-main");
+    const action = slot.getByTestId("kaioken-thread-chat-action-send-to-main");
     expect(action.getAttribute("data-roles")).toBe("assistant");
     fireEvent.click(action);
     expect(messageActionRuns).toEqual([

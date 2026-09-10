@@ -28,13 +28,13 @@ import {
   useBbNavigate,
   useRealtime,
   useRpc,
-} from "@get-bb/plugin-sdk/app";
-import { Button } from "@bb/shared-ui/button";
+} from "@get-kaioken/plugin-sdk/app";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@bb/shared-ui/collapsible";
+} from "@kaioken/shared-ui/collapsible";
 import {
   Dialog,
   DialogClose,
@@ -42,19 +42,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
+} from "@kaioken/shared-ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
-import { Icon } from "@bb/shared-ui/icon";
-import { Input } from "@bb/shared-ui/input";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { ResourceRowDetailChevron } from "@bb/shared-ui/resource-list";
-import { Switch } from "@bb/shared-ui/switch";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { Input } from "@kaioken/shared-ui/input";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { ResourceRowDetailChevron } from "@kaioken/shared-ui/resource-list";
+import { Switch } from "@kaioken/shared-ui/switch";
 import type {
   AccountSummary,
   AccountPoolConfig,

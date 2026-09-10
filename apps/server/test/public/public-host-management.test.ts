@@ -4,15 +4,15 @@ import {
   getSessionById,
   getThread,
   updateHost,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   createHostJoinCodeResponseSchema,
   type CreateHostJoinCodeResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   HOST_DAEMON_PROTOCOL_VERSION,
   hostDaemonSessionOpenResponseSchema,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { readJson } from "../helpers/json.js";
@@ -107,7 +107,7 @@ describe("public host management", () => {
           body: JSON.stringify({
             activeThreads: [],
             connectMachineId: "machine-cloud-2",
-            dataDir: "/tmp/remote-bb",
+            dataDir: "/tmp/remote-kaioken",
             hasMachineCredential: true,
             hostId: issued.hostId,
             hostName: "Build Machine",

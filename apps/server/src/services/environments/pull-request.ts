@@ -9,7 +9,7 @@ import type {
   ThreadPullRequestMergeabilityState,
   ThreadPullRequestReview,
   ThreadPullRequestReviewState,
-} from "@bb/domain";
+} from "@kaioken/domain";
 
 function isSameOrLaterCheck(
   candidate: GitHostPullRequestCheck,

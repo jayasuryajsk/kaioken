@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { ThreadQueuedMessage } from "@bb/domain";
+import type { ThreadQueuedMessage } from "@kaioken/domain";
 import {
   runCommand,
   setupCommandOutputTestEnvironment,
@@ -33,7 +33,7 @@ function queuedMessage(
   };
 }
 
-describe("bb thread organization commands", () => {
+describe("kaioken thread organization commands", () => {
   setupCommandOutputTestEnvironment();
 
   const register: CommandRegistrar = (program) =>

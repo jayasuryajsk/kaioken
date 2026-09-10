@@ -11,7 +11,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
-import { readBbAppVersion } from "./bb-app-version.js";
+import { readBbAppVersion } from "./kaioken-app-version.js";
 
 const execFileAsync = promisify(execFile);
 const testDir = dirname(fileURLToPath(import.meta.url));
@@ -55,7 +55,7 @@ describe("packaged CLI plugin build", () => {
     await writeFile(
       join(pluginRoot, "package.json"),
       JSON.stringify({
-        name: "bb-plugin-packaged-shim-fixture",
+        name: "kaioken-plugin-packaged-shim-fixture",
         version: "0.1.0",
         type: "module",
         bb: {
@@ -74,7 +74,7 @@ describe("packaged CLI plugin build", () => {
     await writeFile(
       join(pluginRoot, "app.ts"),
       [
-        'import { definePluginApp, experimental_useBranches, experimental_useCheckoutState, useComposerView } from "@get-bb/plugin-sdk/app";',
+        'import { definePluginApp, experimental_useBranches, experimental_useCheckoutState, useComposerView } from "@get-kaioken/plugin-sdk/app";',
         "function ComposerProbe() {",
         '  const branches = experimental_useBranches({ hostId: "host_fixture", projectId: "proj_fixture" });',
         '  const checkout = experimental_useCheckoutState({ hostId: "host_fixture", projectId: "proj_fixture" });',
@@ -95,10 +95,10 @@ describe("packaged CLI plugin build", () => {
 
     const childEnv: NodeJS.ProcessEnv = {
       ...process.env,
-      BB_CLI_REEXEC: "1",
+      KAIOKEN_CLI_REEXEC: "1",
     };
-    delete childEnv.BB_CLI;
-    delete childEnv.BB_APP_VERSION;
+    delete childEnv.KAIOKEN_CLI;
+    delete childEnv.KAIOKEN_APP_VERSION;
 
     expect(await readdir(join(tempRoot, "cli-chunks"))).not.toHaveLength(0);
     const { stdout: versionOutput } = await execFileAsync(

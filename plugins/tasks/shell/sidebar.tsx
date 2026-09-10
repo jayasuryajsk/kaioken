@@ -12,16 +12,16 @@ import {
   PresetDialog,
   savePresetDraft,
 } from "../views/manage/preset-dialog.js";
-import { Icon } from "@bb/shared-ui/icon";
-import { DelayedLoading } from "@bb/shared-ui/delayed-loading";
-import { Skeleton } from "@bb/shared-ui/skeleton";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { DelayedLoading } from "@kaioken/shared-ui/delayed-loading";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/tooltip";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 interface SidebarRowProps {
   active?: boolean;

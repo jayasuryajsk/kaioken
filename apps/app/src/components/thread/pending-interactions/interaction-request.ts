@@ -7,7 +7,7 @@ import {
   type PendingInteraction,
   type PendingInteractionApprovalSubject,
   type PendingInteractionUserQuestionQuestion,
-} from "@bb/domain";
+} from "@kaioken/domain";
 
 export type InteractionRequestView =
   | {

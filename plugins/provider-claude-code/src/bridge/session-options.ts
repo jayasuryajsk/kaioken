@@ -3,7 +3,7 @@ import {
   type PermissionEscalation,
   type ReasoningLevel,
   type RuntimePermissionScope,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import { accessSync, constants, statSync } from "node:fs";
 import { delimiter, join } from "node:path";
 import type { Options, Settings } from "@anthropic-ai/claude-agent-sdk";
@@ -59,12 +59,12 @@ const READONLY_ALLOWED_TOOLS = new Set([
 ]);
 const READONLY_BASH_TOOL_NAME = "Bash";
 const READONLY_ASK_REASON =
-  "bb readonly mode requires approval before using tools that can modify state, run commands, access network, or perform non-read actions.";
+  "kaioken readonly mode requires approval before using tools that can modify state, run commands, access network, or perform non-read actions.";
 const SUMMARIZED_ADAPTIVE_THINKING = {
   type: "adaptive",
   display: "summarized",
 } satisfies Exclude<Options["thinking"], undefined>;
-const CLAUDE_CODE_EXECUTABLE_ENV = "BB_CLAUDE_CODE_EXECUTABLE";
+const CLAUDE_CODE_EXECUTABLE_ENV = "KAIOKEN_CLAUDE_CODE_EXECUTABLE";
 
 export function toSdkEffort(
   reasoningLevel: ReasoningLevel,
@@ -105,11 +105,11 @@ export function buildMutableFlagSettings(args: {
 }
 
 export function buildReadonlyDenialMessage(): string {
-  return "bb readonly mode allows reading and analysis only. Continue with a read-only answer; do not modify files, run mutating shell commands, use network, or use mutating tools.";
+  return "kaioken readonly mode allows reading and analysis only. Continue with a read-only answer; do not modify files, run mutating shell commands, use network, or use mutating tools.";
 }
 
 export function buildWorkspaceWriteDenialMessage(): string {
-  return "bb's workspace sandbox allows work inside the current workspace only. Stay inside the workspace or explain why extra access is needed.";
+  return "kaioken's workspace sandbox allows work inside the current workspace only. Stay inside the workspace or explain why extra access is needed.";
 }
 
 function buildReadonlyHooks(

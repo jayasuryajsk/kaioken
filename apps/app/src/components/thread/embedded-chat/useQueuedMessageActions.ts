@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { PromptInput, ThreadQueuedMessage } from "@bb/domain";
-import type { SendQueuedMessageMode } from "@bb/server-contract";
+import type { PromptInput, ThreadQueuedMessage } from "@kaioken/domain";
+import type { SendQueuedMessageMode } from "@kaioken/server-contract";
 import type {
   QueuedMessageGroupBoundaryRequest,
   QueuedMessageProcessingAction,
@@ -14,7 +14,7 @@ import {
 } from "@/hooks/mutations/thread-runtime-mutations";
 import { showMutationErrorToast } from "@/lib/mutation-errors";
 import type { QueuedMessageReorderRequest } from "@/lib/queued-message-reorder";
-import { BbHttpError } from "@/lib/sdk";
+import { KaiokenHttpError } from "@/lib/sdk";
 import type { InlineQueuedMessageEditState } from "./useInlineQueuedMessageEditing";
 
 type QueuedMessageSendGuard = "current-head" | "exists" | "none";
@@ -163,7 +163,7 @@ export function useQueuedMessageActions({
       onSaveSuccess?.();
       dismissInlineQueuedMessageEditor();
     } catch (error) {
-      if (error instanceof BbHttpError && error.status === 404) {
+      if (error instanceof KaiokenHttpError && error.status === 404) {
         dismissInlineQueuedMessageEditor();
       }
       showMutationErrorToast({

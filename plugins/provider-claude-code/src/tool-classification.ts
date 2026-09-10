@@ -10,7 +10,7 @@ import {
   experimental_webSearchPresentation as webSearchPresentation,
   toOptionalRecord,
   toOptionalString,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import { z } from "zod";
 import {
   builtinToolPresentation,
@@ -38,9 +38,9 @@ export interface ClaudeInjectedTool {
   presentation?: DeltaPresentation;
 }
 
-export const BB_BRIDGE_MCP_SERVER_NAME = "bb-bridge";
+export const KAIOKEN_BRIDGE_MCP_SERVER_NAME = "kaioken-bridge";
 
-const BB_TOOL_SERVER = "bb";
+const KAIOKEN_TOOL_SERVER = "kaioken";
 
 const claudeBackgroundFlagSchema = z
   .object({ run_in_background: z.boolean().optional() })
@@ -325,7 +325,7 @@ function classifyDelegation(
   };
 }
 
-function bbTool(
+function kaiokenTool(
   tool: string,
   args: unknown,
   injected: ClaudeInjectedTool | undefined,
@@ -335,7 +335,7 @@ function bbTool(
     shape: {
       type: "tool",
       tool,
-      server: BB_TOOL_SERVER,
+      server: KAIOKEN_TOOL_SERVER,
       ...(toolArguments ? { args: toolArguments } : {}),
     },
     presentation: injected?.presentation ?? toolPresentation(tool),
@@ -455,8 +455,8 @@ export function classifyClaudeToolUse(args: {
       if (mcp === null) {
         return genericTool(toolName, input);
       }
-      if (mcp.server === BB_BRIDGE_MCP_SERVER_NAME) {
-        return bbTool(mcp.tool, input, args.injectedTools.get(mcp.tool));
+      if (mcp.server === KAIOKEN_BRIDGE_MCP_SERVER_NAME) {
+        return kaiokenTool(mcp.tool, input, args.injectedTools.get(mcp.tool));
       }
       return mcpTool(toolName, mcp.server, mcp.tool, input);
     }

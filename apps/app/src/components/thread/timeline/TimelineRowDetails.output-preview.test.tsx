@@ -9,7 +9,7 @@ import {
 } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { TimelineCommandWorkRow } from "@bb/server-contract";
+import type { TimelineCommandWorkRow } from "@kaioken/server-contract";
 import {
   commandRow,
   delegationRow,

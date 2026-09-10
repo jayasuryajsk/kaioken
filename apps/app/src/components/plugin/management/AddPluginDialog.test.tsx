@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
-import type { InstalledPlugin } from "@bb/server-contract";
+import type { InstalledPlugin } from "@kaioken/server-contract";
 import {
   pluginCatalogSearchQueryKey,
   pluginListQueryKey,
@@ -148,10 +148,10 @@ describe("AddPluginDialog", () => {
   it("leads with and submits a pasted GitHub repository URL", async () => {
     const requests = stubFetch();
     renderDialog();
-    const source = "https://github.com/acme/bb-plugin-usage";
+    const source = "https://github.com/acme/kaioken-plugin-usage";
     const input = screen.getByLabelText("Plugin source") as HTMLInputElement;
 
-    expect(input.placeholder).toBe("https://github.com/owner/bb-plugin-name");
+    expect(input.placeholder).toBe("https://github.com/owner/kaioken-plugin-name");
     expect(screen.getByText(/GitHub repository URL/)).toBeTruthy();
     fireEvent.change(input, { target: { value: source } });
     fireEvent.click(screen.getByRole("button", { name: /install plugin/i }));
@@ -236,7 +236,7 @@ describe("AddPluginDialog", () => {
       source: "builtin:linear",
     });
     expect(
-      screen.getByText("Install this plugin, bundled with BB."),
+      screen.getByText("Install this plugin, bundled with Kaioken."),
     ).not.toBeNull();
     unmount();
 
@@ -256,7 +256,7 @@ describe("AddPluginDialog", () => {
         "Install this BB Community plugin from its listed source repository.",
       ),
     ).not.toBeNull();
-    expect(screen.queryByText(/bundled with BB/)).toBeNull();
+    expect(screen.queryByText(/bundled with Kaioken/)).toBeNull();
     git.unmount();
 
     renderDialog({
@@ -268,7 +268,7 @@ describe("AddPluginDialog", () => {
       icon: "Zap",
       iconUrl: null,
       iconTinted: false,
-      source: "npm:bb-plugin-widgets@^1.0.0",
+      source: "npm:kaioken-plugin-widgets@^1.0.0",
     });
     expect(
       screen.getByText(
@@ -288,12 +288,12 @@ describe("AddPluginDialog", () => {
       iconTinted: false,
       marketplace: "bb-community",
       publisherLabel: "BB Community",
-      source: "npm:bb-plugin-widgets@^1.0.0 (registry https://npm.acme.test)",
+      source: "npm:kaioken-plugin-widgets@^1.0.0 (registry https://npm.acme.test)",
     });
 
     expect(
       screen.getByText(
-        "npm:bb-plugin-widgets@^1.0.0 (registry https://npm.acme.test)",
+        "npm:kaioken-plugin-widgets@^1.0.0 (registry https://npm.acme.test)",
       ),
     ).not.toBeNull();
   });
@@ -342,7 +342,7 @@ describe("AddPluginDialog", () => {
       icon: null,
       iconUrl,
       iconTinted: false,
-      source: "npm:bb-plugin-widgets@1.0.0",
+      source: "npm:kaioken-plugin-widgets@1.0.0",
     });
 
     expect(document.querySelector(`img[src="${iconUrl}"]`)).not.toBeNull();
@@ -392,7 +392,7 @@ describe("AddPluginDialog", () => {
   it("names and links a catalog plugin when installation fails", async () => {
     const errorToast = vi.spyOn(appToast, "error").mockReturnValue("toast");
     stubFetch(
-      { ok: false, error: "requires bb >= 0.15 — you have 0.14.1" },
+      { ok: false, error: "requires kaioken >= 0.15 — you have 0.14.1" },
       422,
     );
     renderDialog({
@@ -418,7 +418,7 @@ describe("AddPluginDialog", () => {
     const pluginLink = screen.getByRole("link", { name: "Linear" });
     expect(pluginLink.getAttribute("href")).toBe("/plugins/linear");
     expect(pluginLink.parentElement?.textContent).toBe(
-      "Linear — requires bb >= 0.15 — you have 0.14.1",
+      "Linear — requires kaioken >= 0.15 — you have 0.14.1",
     );
   });
 

@@ -1,4 +1,4 @@
-import { getEnvironment, getHost, getProject } from "@bb/db";
+import { getEnvironment, getHost, getProject } from "@kaioken/db";
 import type {
   DynamicTool,
   InstructionMode,
@@ -10,11 +10,11 @@ import type {
   ThreadExecutionSource,
   ThreadTurnInitiator,
   EnvironmentStatus,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   HostDaemonContributedEnvEntry,
   HostDaemonInjectedSkillSource,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { ApiError } from "../../errors.js";
 import type { AppDeps, LoggedWorkSessionDeps } from "../../types.js";
 import { throwEnvironmentNotReady } from "../lib/lifecycle-api-errors.js";
@@ -253,7 +253,7 @@ export async function resolveThreadRuntimeCommandConfig(
       instructionSections.push(contribution.instructions);
     } else {
       instructionSections.push(
-        `The following instructions come from the BB plugin "${contribution.pluginId}" for its tool "${contribution.tool.name}":`,
+        `The following instructions come from the Kaioken plugin "${contribution.pluginId}" for its tool "${contribution.tool.name}":`,
         contribution.instructions,
       );
     }
@@ -281,13 +281,13 @@ export async function resolveThreadRuntimeCommandConfig(
       text = text.slice(0, PLUGIN_INSTRUCTION_CONTRIBUTION_MAX_CHARS);
     }
     instructionSections.push(
-      `The following instructions come from the BB plugin "${contribution.pluginId}":`,
+      `The following instructions come from the Kaioken plugin "${contribution.pluginId}":`,
       text,
     );
   }
   for (const contribution of conditionalConfiguration.dynamicInstructions) {
     instructionSections.push(
-      `The following dynamic instructions come from the BB plugin "${contribution.pluginId}":`,
+      `The following dynamic instructions come from the Kaioken plugin "${contribution.pluginId}":`,
       contribution.text,
     );
   }

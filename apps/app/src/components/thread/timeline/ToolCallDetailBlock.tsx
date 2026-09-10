@@ -1,6 +1,6 @@
 import { Fragment, useRef, useState } from "react";
-import type { TimelineToolArgs } from "@bb/server-contract";
-import { cn } from "@bb/shared-ui/lib/utils";
+import type { TimelineToolArgs } from "@kaioken/server-contract";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   ConversationMessageInlineOverflowToggle,
   useIsOverflowing,

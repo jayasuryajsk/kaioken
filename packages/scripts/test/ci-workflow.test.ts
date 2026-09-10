@@ -26,7 +26,7 @@ it("limits concurrent Turbo test tasks to the CI runner CPU count", () => {
 });
 
 it("rejects a pnpm version that disagrees with the root manifest", () => {
-  const fixture = mkdtempSync(join(tmpdir(), "bb-pnpm-version-"));
+  const fixture = mkdtempSync(join(tmpdir(), "kaioken-pnpm-version-"));
   onTestFinished(() => rmSync(fixture, { force: true, recursive: true }));
   const fakeBin = resolve(fixture, "bin");
   mkdirSync(fakeBin);

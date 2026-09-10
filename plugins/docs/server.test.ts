@@ -3,12 +3,12 @@ import { createHash } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, expectTypeOf, it, vi } from "vitest";
-import { defineRpcContract } from "@get-bb/plugin-sdk";
-import type { PluginRpcClient, PluginRpcHandlers } from "@get-bb/plugin-sdk";
+import { defineRpcContract } from "@get-kaioken/plugin-sdk";
+import type { PluginRpcClient, PluginRpcHandlers } from "@get-kaioken/plugin-sdk";
 import {
   createFakePluginHost,
   makeHostResponse,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import simpleNotes, { docsRpcContract } from "./server";
 
 const temporaryDirectories: string[] = [];
@@ -29,7 +29,7 @@ async function loadNotebook(
   notes: Record<string, string>,
   watchVault?: NonNullable<Parameters<typeof simpleNotes>[1]>,
 ) {
-  const directory = await mkdtemp(path.join(os.tmpdir(), "bb-simple-notes-"));
+  const directory = await mkdtemp(path.join(os.tmpdir(), "kaioken-simple-notes-"));
   temporaryDirectories.push(directory);
   await Promise.all(
     Object.entries(notes).map(([name, content]) =>
@@ -640,7 +640,7 @@ describe("Docs vault operations", () => {
       content: "AP+AQA==",
       contentEncoding: "base64",
     });
-    expect(files.has("/work/sync/.bb-docs-state.json")).toBe(true);
+    expect(files.has("/work/sync/.kaioken-docs-state.json")).toBe(true);
 
     setUtf8("/work/sync/plans/plan.md", "# Plan\n\nEdited locally\n");
     const status = await harness.runCli(
@@ -879,7 +879,7 @@ describe("Docs vault operations", () => {
         modifiedAtMs: 1,
       },
     });
-    setUtf8("/work/sync/.bb-docs-state.json", "{not-json");
+    setUtf8("/work/sync/.kaioken-docs-state.json", "{not-json");
 
     const result = await harness.runCli(["push", "sync", "--json"], {
       cwd: "/work",
@@ -949,7 +949,7 @@ describe("Docs vault operations", () => {
     const statusHelp = await harness.runCli(["status", "--help"]);
     expect(statusHelp).toMatchObject({ exitCode: 0 });
     expect(statusHelp.stdout).toContain("Exit 4: changes present");
-    expect(statusHelp.stdout).toContain("run bb docs push separately");
+    expect(statusHelp.stdout).toContain("run kaioken docs push separately");
 
     const unsafePull = await harness.runCli(
       ["pull", "plan.md", "--into", "sync", "--dry-run", "--json"],
@@ -1317,8 +1317,8 @@ describe("Docs vault operations", () => {
   });
 
   it("opens and saves thread-storage Markdown files on the thread's host", async () => {
-    const storageRootPath = String.raw`C:\bb\thread-storage\thread_1`;
-    const openedPath = String.raw`C:\bb\thread-storage\thread_1\reports\plan.md`;
+    const storageRootPath = String.raw`C:\kaioken\thread-storage\thread_1`;
+    const openedPath = String.raw`C:\kaioken\thread-storage\thread_1\reports\plan.md`;
     const host = createFakePluginHost({
       pluginId: "simple-notes",
       sdk: {

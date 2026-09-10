@@ -2,20 +2,20 @@ import { WebSocket as NodeWebSocket } from "ws";
 import {
   PROTOCOL_VERSION,
   TUNNEL_PROTOCOL_QUERY_PARAM,
-} from "@bb/tunnel-contract";
+} from "@kaioken/tunnel-contract";
 import {
   humanizeTransportError,
   ReconnectBackoff,
   TunnelSession,
   type ReconnectBackoffOptions,
   type StreamOriginResult,
-} from "@bb/tunnel-client";
+} from "@kaioken/tunnel-client";
 import {
   hostDaemonConnectTunnelIdentitySchema,
   type HostDaemonConnectShares,
   type HostDaemonConnectTunnelIdentity,
-} from "@bb/host-daemon-contract";
-import { connectPublicProtocol } from "@bb/connect-client";
+} from "@kaioken/host-daemon-contract";
+import { connectPublicProtocol } from "@kaioken/connect-client";
 import type { HostDaemonLogger } from "../logger.js";
 
 type ConnectTunnelState = "connected" | "reconnecting" | "offline";
@@ -71,14 +71,14 @@ export function resolveTrustedConnectGate(
   const firstDot = parsed.hostname.indexOf(".");
   if (firstDot <= 0 || firstDot === parsed.hostname.length - 1) {
     throw new Error(
-      `cannot derive the bb connect gate base domain from enrollment server ${parsed.origin}`,
+      `cannot derive the kaioken connect gate base domain from enrollment server ${parsed.origin}`,
     );
   }
   const baseHostname = parsed.hostname.slice(firstDot + 1);
   const baseDomain = `${baseHostname}${parsed.port ? `:${parsed.port}` : ""}`;
   if (parsed.protocol !== connectPublicProtocol(baseDomain)) {
     throw new Error(
-      `bb connect machine credentials require HTTPS, or HTTP for a local *.localhost enrollment server, got ${parsed.origin}`,
+      `kaioken connect machine credentials require HTTPS, or HTTP for a local *.localhost enrollment server, got ${parsed.origin}`,
     );
   }
   return {
@@ -172,7 +172,7 @@ export class ConnectTunnelClient {
     if (!credential) {
       return Promise.reject(
         new Error(
-          "this host has no trusted bb connect machine enrollment; remove and re-add it from Settings > Machines",
+          "this host has no trusted kaioken connect machine enrollment; remove and re-add it from Settings > Machines",
         ),
       );
     }
@@ -185,7 +185,7 @@ export class ConnectTunnelClient {
     if (this.credentialRejected) {
       return Promise.reject(
         new ConnectTunnelCredentialRejectedError(
-          "the bb connect gate rejected this machine credential; re-add the machine from Settings > Machines",
+          "the kaioken connect gate rejected this machine credential; re-add the machine from Settings > Machines",
         ),
       );
     }

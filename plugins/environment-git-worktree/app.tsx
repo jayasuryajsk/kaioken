@@ -4,7 +4,7 @@ import {
   experimental_BranchPicker,
   type JsonValue,
   type PluginEnvironmentProviderInputsProps,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import { GIT_WORKTREE_ENVIRONMENT_PROVIDER_ID } from "./provider-id.js";
 import type { WorktreeInputs } from "./server.js";
 

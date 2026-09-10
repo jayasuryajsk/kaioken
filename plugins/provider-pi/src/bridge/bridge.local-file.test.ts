@@ -10,7 +10,7 @@ let harness: FakePiBridgeHarness;
 
 beforeEach(async () => {
   harness = await startFakePiBridge({
-    prefix: "bb-pi-local-file-",
+    prefix: "kaioken-pi-local-file-",
     initialize: true,
   });
 });

@@ -1,16 +1,16 @@
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import "@bb/shared-ui/icon-extended";
+import "@kaioken/shared-ui/icon-extended";
 import {
   findLocalPathProjectSourceForHost,
   type Host,
   type LocalPathProjectSource,
-} from "@bb/domain";
-import { Button } from "@bb/shared-ui/button";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { Pill } from "@bb/shared-ui/pill";
-import { ResourceOverflowMenu } from "@bb/shared-ui/resource-list";
+} from "@kaioken/domain";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Pill } from "@kaioken/shared-ui/pill";
+import { ResourceOverflowMenu } from "@kaioken/shared-ui/resource-list";
 import { ProjectPathDialog } from "@/components/dialogs/ProjectPathDialog";
 import {
   ProjectDeleteDialog,
@@ -70,7 +70,7 @@ const CHECKOUTS_DESCRIPTION =
   "Where this project lives on each machine. A machine needs a checkout before it can run threads for this project.";
 
 const DEFAULTS_DESCRIPTION =
-  "What new threads in this project start with. bb remembers the last options you used here.";
+  "What new threads in this project start with. kaioken remembers the last options you used here.";
 
 interface DetailRowProps {
   label: string;

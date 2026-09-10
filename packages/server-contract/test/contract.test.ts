@@ -1,12 +1,12 @@
 import {
   collectOptionalFieldPaths,
   makeWorkspaceStatus,
-} from "@bb/test-helpers";
-import type { WorkspaceResolutionFailure } from "@bb/host-daemon-contract";
+} from "@kaioken/test-helpers";
+import type { WorkspaceResolutionFailure } from "@kaioken/host-daemon-contract";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
-import { gitBranchSelectionSchema } from "@bb/domain";
+import { gitBranchSelectionSchema } from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import * as contract from "../src/index.js";
 import {
@@ -434,7 +434,7 @@ describe("git branch name contract", () => {
       "release/1.2",
       "feature.foo",
       "user_name",
-      "bb/thread-123",
+      "kaioken/thread-123",
     ];
 
     for (const name of validNames) {
@@ -933,7 +933,7 @@ describe("server-contract canonical schemas", () => {
           hasPendingInteraction: true,
           environmentHostId: "host_123",
           environmentName: null,
-          environmentBranchName: "bb/test",
+          environmentBranchName: "kaioken/test",
           environmentPath: null,
           environmentProviderId: "git-worktree",
           environmentIsWorktree: true,
@@ -947,7 +947,7 @@ describe("server-contract canonical schemas", () => {
         hasPendingInteraction: true,
         environmentHostId: "host_123",
         environmentName: null,
-        environmentBranchName: "bb/test",
+        environmentBranchName: "kaioken/test",
         environmentPath: null,
         environmentProviderId: "git-worktree",
         environmentIsWorktree: true,
@@ -1139,7 +1139,7 @@ describe("server-contract canonical schemas", () => {
     expect(() =>
       contract.updateProjectSourceRequestSchema.parse({
         type: "local_path",
-        path: " C:\\Users\\michael\\bb\\ ",
+        path: " C:\\Users\\michael\\kaioken\\ ",
       }),
     ).toThrow("Native Windows paths are not supported");
 

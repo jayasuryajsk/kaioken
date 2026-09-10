@@ -1,6 +1,6 @@
-import type { ThreadListEntry } from "@bb/domain";
-import { isSidebarProjectThread } from "@bb/client-core";
-import { isThreadRead, type ThreadReadState } from "@bb/client-core";
+import type { ThreadListEntry } from "@kaioken/domain";
+import { isSidebarProjectThread } from "@kaioken/client-core";
+import { isThreadRead, type ThreadReadState } from "@kaioken/client-core";
 
 type FaviconSidebarThread = ThreadReadState &
   Pick<

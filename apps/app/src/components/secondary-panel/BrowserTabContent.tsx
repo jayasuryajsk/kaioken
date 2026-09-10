@@ -9,25 +9,25 @@ import {
   type RefObject,
 } from "react";
 import type {
-  BbDesktopBrowserApi,
-  BbDesktopBrowserControl,
-  BbDesktopBrowserFindInPageRequest,
-  BbDesktopBrowserState,
-  BbDesktopBrowserViewportBounds,
-  BbDesktopBrowserViewBounds,
-} from "@bb/desktop-contract";
+  KaiokenDesktopBrowserApi,
+  KaiokenDesktopBrowserControl,
+  KaiokenDesktopBrowserFindInPageRequest,
+  KaiokenDesktopBrowserState,
+  KaiokenDesktopBrowserViewportBounds,
+  KaiokenDesktopBrowserViewBounds,
+} from "@kaioken/desktop-contract";
 import {
-  BB_DESKTOP_BROWSER_MAX_FIND_TEXT_LENGTH,
+  KAIOKEN_DESKTOP_BROWSER_MAX_FIND_TEXT_LENGTH,
   clampBbDesktopBrowserViewBounds,
-} from "@bb/desktop-contract";
+} from "@kaioken/desktop-contract";
 import {
   COARSE_POINTER_COMPACT_ICON_SIZE_SHRINK_CLASS,
   COARSE_POINTER_HEADER_ICON_BUTTON_CLASS,
   COARSE_POINTER_TEXT_SM_CLASS,
-} from "@bb/shared-ui/coarse-pointer-sizing";
-import { Icon } from "@bb/shared-ui/icon";
-import { getBbDesktopInfo, getDesktopBrowserApi } from "@/lib/bb-desktop";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { getBbDesktopInfo, getDesktopBrowserApi } from "@/lib/kaioken-desktop";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   getBrowserUrlSecurity,
   getBrowserUrlHost,
@@ -36,7 +36,7 @@ import {
 import { useBrowserHistory } from "@/lib/browser-history";
 import { BROWSER_VIEW_BOUNDS_SYNC_EVENT } from "@/lib/browser-view-bounds-sync";
 import { useIsBrowserDimmingModalOpen } from "@/hooks/useBrowserDimmingModal";
-import { usePointerCoarse } from "@bb/shared-ui/hooks/use-pointer-coarse";
+import { usePointerCoarse } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 import { BrowserFindBar, type BrowserFindMatches } from "./BrowserFindBar";
 import { BrowserNewTabScreen } from "./BrowserNewTabScreen";
 import {
@@ -50,7 +50,7 @@ import {
   useAppCommandShortcut,
 } from "@/components/commands/AppCommandProvider";
 import type { AppShortcutPresentation } from "@/lib/app-keybindings";
-import { CHROME_SUBTLE_ICON_BUTTON_FOREGROUND_CLASS } from "@bb/shared-ui/chrome-style-tokens";
+import { CHROME_SUBTLE_ICON_BUTTON_FOREGROUND_CLASS } from "@kaioken/shared-ui/chrome-style-tokens";
 import { isLocalOnlyUrl } from "@/lib/loopback-hostname";
 
 interface BrowserTabContentProps {
@@ -76,7 +76,7 @@ export interface BrowserAddressFocusRequest {
 interface BrowserChromeProps {
   addressDraft: string;
   isEditing: boolean;
-  state: BbDesktopBrowserState | null;
+  state: KaiokenDesktopBrowserState | null;
   currentUrl: string;
   addressInputRef: RefObject<HTMLInputElement | null>;
   onAddressChange: (value: string) => void;
@@ -104,8 +104,8 @@ interface BrowserViewBoundsFromElementArgs {
 }
 
 interface BrowserViewBoundsEqualArgs {
-  a: BbDesktopBrowserViewBounds;
-  b: BbDesktopBrowserViewBounds;
+  a: KaiokenDesktopBrowserViewBounds;
+  b: KaiokenDesktopBrowserViewBounds;
 }
 
 interface SyncBrowserViewPlacementArgs {
@@ -125,14 +125,14 @@ interface BrowserPageLoadErrorProps {
   url: string;
 }
 
-const EMPTY_BROWSER_VIEW_BOUNDS: BbDesktopBrowserViewBounds = {
+const EMPTY_BROWSER_VIEW_BOUNDS: KaiokenDesktopBrowserViewBounds = {
   x: 0,
   y: 0,
   width: 0,
   height: 0,
 };
 
-function roundedBoundsFromRect(rect: DOMRect): BbDesktopBrowserViewBounds {
+function roundedBoundsFromRect(rect: DOMRect): KaiokenDesktopBrowserViewBounds {
   return {
     x: Math.round(rect.left),
     y: Math.round(rect.top),
@@ -141,7 +141,7 @@ function roundedBoundsFromRect(rect: DOMRect): BbDesktopBrowserViewBounds {
   };
 }
 
-function browserViewportBounds(): BbDesktopBrowserViewportBounds {
+function browserViewportBounds(): KaiokenDesktopBrowserViewportBounds {
   return {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -150,7 +150,7 @@ function browserViewportBounds(): BbDesktopBrowserViewportBounds {
 
 function browserViewBoundsFromElement(
   args: BrowserViewBoundsFromElementArgs,
-): BbDesktopBrowserViewBounds {
+): KaiokenDesktopBrowserViewBounds {
   return clampBbDesktopBrowserViewBounds({
     bounds: roundedBoundsFromRect(args.element.getBoundingClientRect()),
     viewport: browserViewportBounds(),
@@ -345,7 +345,7 @@ function BrowserUnavailable() {
           COARSE_POINTER_TEXT_SM_CLASS,
         )}
       >
-        The in-app web browser runs in the bb desktop app. Open this thread
+        The in-app web browser runs in the kaioken desktop app. Open this thread
         there to browse the web.
       </p>
     </div>
@@ -424,7 +424,7 @@ export function BrowserTabContent({
   const locationShortcut = useAppCommandShortcut("browser.focusLocation");
   const reloadShortcut = useAppCommandShortcut("browser.reload");
   const findShortcut = useAppCommandShortcut("browser.find");
-  const desktopBrowser = useMemo<BbDesktopBrowserApi | null>(
+  const desktopBrowser = useMemo<KaiokenDesktopBrowserApi | null>(
     () => getDesktopBrowserApi(),
     [],
   );
@@ -438,8 +438,8 @@ export function BrowserTabContent({
     clear: clearRecent,
   } = useBrowserHistory(threadId);
 
-  const [state, setState] = useState<BbDesktopBrowserState | null>(null);
-  const [control, setControl] = useState<BbDesktopBrowserControl | null>(null);
+  const [state, setState] = useState<KaiokenDesktopBrowserState | null>(null);
+  const [control, setControl] = useState<KaiokenDesktopBrowserControl | null>(null);
   useEffect(() => {
     let current = true;
     let receivedEvent = false;
@@ -447,7 +447,7 @@ export function BrowserTabContent({
     const accept = (next: {
       tabId: string;
       threadId: string;
-      control: BbDesktopBrowserControl | null;
+      control: KaiokenDesktopBrowserControl | null;
     }) => {
       if (current && next.tabId === tabId && next.threadId === threadId)
         setControl(next.control);
@@ -503,7 +503,7 @@ export function BrowserTabContent({
   const pageLoadErrorText = state?.errorText ?? null;
   const hasPageLoadError = pageLoadErrorText !== null && hasPage;
   const isBrowserDimmingModalOpen = useIsBrowserDimmingModalOpen();
-  const lastSentBoundsRef = useRef<BbDesktopBrowserViewBounds | null>(null);
+  const lastSentBoundsRef = useRef<KaiokenDesktopBrowserViewBounds | null>(null);
 
   const readBounds = useCallback(() => {
     const element = contentRef.current;
@@ -514,7 +514,7 @@ export function BrowserTabContent({
   }, []);
 
   const sendBounds = useCallback(
-    (bounds: BbDesktopBrowserViewBounds) => {
+    (bounds: KaiokenDesktopBrowserViewBounds) => {
       if (desktopBrowser === null) {
         return;
       }
@@ -574,7 +574,7 @@ export function BrowserTabContent({
     });
     setAttachedBrowserViewIdentity({ environmentId, tabId, threadId });
 
-    let lastSeenState: BbDesktopBrowserState | null = null;
+    let lastSeenState: KaiokenDesktopBrowserState | null = null;
     const unsubscribe = desktopBrowser.onState((nextState) => {
       if (nextState.tabId !== tabId) {
         return;
@@ -797,7 +797,7 @@ export function BrowserTabContent({
     hasPage;
 
   const runFind = useCallback(
-    (args: Omit<BbDesktopBrowserFindInPageRequest, "tabId">) => {
+    (args: Omit<KaiokenDesktopBrowserFindInPageRequest, "tabId">) => {
       desktopBrowser?.findInPage?.({ tabId, ...args });
     },
     [desktopBrowser, tabId],
@@ -818,7 +818,7 @@ export function BrowserTabContent({
 
   const handleFindQueryChange = useCallback(
     (rawQuery: string) => {
-      const query = rawQuery.slice(0, BB_DESKTOP_BROWSER_MAX_FIND_TEXT_LENGTH);
+      const query = rawQuery.slice(0, KAIOKEN_DESKTOP_BROWSER_MAX_FIND_TEXT_LENGTH);
       setFindQuery(query);
       if (query.length === 0) {
         clearFind();

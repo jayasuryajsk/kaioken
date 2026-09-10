@@ -140,13 +140,13 @@ describe("resolveConfiguredAcpAgents", () => {
     const resolved = resolveConfiguredAcpAgents({
       settingValue: "",
       legacyEntries: [],
-      legacyProblem: "/home/u/.bb/config.json is not valid JSON",
+      legacyProblem: "/home/u/.kaioken/config.json is not valid JSON",
       reservedProviderIds: reserved,
       shippedAgents: KNOWN_ACP_AGENTS,
     });
 
     expect(resolved.warnings).toEqual([
-      "Deprecated ACP agent config: /home/u/.bb/config.json is not valid JSON",
+      "Deprecated ACP agent config: /home/u/.kaioken/config.json is not valid JSON",
     ]);
   });
 });
@@ -155,7 +155,7 @@ describe("a configured entry that replaces a shipped agent", () => {
   let tempRoot: string;
 
   beforeEach(async () => {
-    tempRoot = await mkdtemp(path.join(tmpdir(), "bb-acp-configured-agents-"));
+    tempRoot = await mkdtemp(path.join(tmpdir(), "kaioken-acp-configured-agents-"));
   });
 
   afterEach(async () => {

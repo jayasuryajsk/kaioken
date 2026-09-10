@@ -5,8 +5,8 @@ import {
   type ProviderCommandOrigin,
   type ProviderCommandSection,
   type ProviderCommandSource,
-} from "@bb/server-contract";
-import type { PromptMentionCommandTrigger } from "@bb/domain";
+} from "@kaioken/server-contract";
+import type { PromptMentionCommandTrigger } from "@kaioken/domain";
 import type { PluginMentionTrigger } from "./plugin-mention-triggers.js";
 import type { OrderedMentionSuggestions } from "./mention-candidates.js";
 

@@ -11,7 +11,7 @@ import {
   type HostDaemonOnlineRpcResult,
   type HostDaemonSettledCommandType,
   type ProviderCliInstallEvent,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import semver from "semver";
 import {
   ExpectedCommandDispatchError,
@@ -61,7 +61,7 @@ import {
 import type {
   ProviderInstallationStatus,
   ProviderInstallationVerification,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 import {
   discardThreadRewind,
   ensureThreadRuntime,
@@ -69,7 +69,7 @@ import {
   startThread,
   submitTurn,
 } from "./command-handlers/thread.js";
-import { WorkspaceError } from "@bb/host-workspace";
+import { WorkspaceError } from "@kaioken/host-workspace";
 import {
   cloneProject,
   inspectProjectPath,
@@ -588,7 +588,7 @@ const onlineRpcHandlers: OnlineRpcHandlerMap = {
   },
   "connect-tunnel.ensure-identity": async (_command, options) => {
     if (!options.ensureConnectTunnelIdentity) {
-      throw new Error("bb connect tunnel identity is unavailable");
+      throw new Error("kaioken connect tunnel identity is unavailable");
     }
     return options.ensureConnectTunnelIdentity();
   },

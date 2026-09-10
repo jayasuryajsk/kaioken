@@ -4,7 +4,7 @@ import {
   dynamicToolSchema,
   instructionModeSchema,
   promptInputSchema,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { z } from "zod";
 import { bridgeExecutionOptionsSchema } from "./execution-options.js";
 

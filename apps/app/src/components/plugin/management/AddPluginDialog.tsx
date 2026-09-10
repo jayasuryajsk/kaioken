@@ -5,8 +5,8 @@ import {
   type InstalledPlugin,
   type PluginCatalogInstallPlan,
   type PluginCatalogResolvedSource,
-} from "@bb/server-contract";
-import { Button } from "@bb/shared-ui/button";
+} from "@kaioken/server-contract";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,9 +14,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
-import { Icon } from "@bb/shared-ui/icon";
-import { Input } from "@bb/shared-ui/input";
+} from "@kaioken/shared-ui/dialog";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { Input } from "@kaioken/shared-ui/input";
 import { appToast } from "@/components/ui/app-toast.js";
 import { pluginToast } from "@/components/plugin/PluginNotificationDescription";
 import { pluginAdminErrorMessage } from "@/lib/plugin-admin-error";
@@ -49,7 +49,7 @@ function catalogInstallDescription(
   publisherLabel: string,
 ): string {
   if (source.startsWith("builtin:")) {
-    return "Install this plugin, bundled with BB.";
+    return "Install this plugin, bundled with Kaioken.";
   }
   if (source.startsWith("npm:")) {
     return `Install this ${publisherLabel} plugin from its listed npm package.`;
@@ -189,7 +189,7 @@ function ThirdPartySourceDisclosure({
       <p className="text-2xs text-subtle-foreground">
         Listed by{" "}
         <span className="text-foreground">{plan.marketplaceDisplayName}</span>,
-        a third-party marketplace that BB does not review.
+        a third-party marketplace that Kaioken does not review.
       </p>
       <dl className="space-y-0.5">
         <div className="flex gap-2">
@@ -323,7 +323,7 @@ function AddPluginDialogContent({
             <Input
               value={sourceText}
               autoFocus
-              placeholder="https://github.com/owner/bb-plugin-name"
+              placeholder="https://github.com/owner/kaioken-plugin-name"
               aria-label="Plugin source"
               className="h-8 font-mono text-xs"
               onChange={(event) => setSourceText(event.target.value)}

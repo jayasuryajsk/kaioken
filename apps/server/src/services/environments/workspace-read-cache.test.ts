@@ -1,5 +1,5 @@
-import type { ChangedMessage } from "@bb/domain";
-import { createDeferredPromise, type DeferredPromise } from "@bb/test-helpers";
+import type { ChangedMessage } from "@kaioken/domain";
+import { createDeferredPromise, type DeferredPromise } from "@kaioken/test-helpers";
 import { describe, expect, it } from "vitest";
 import {
   EnvironmentReadCache,

@@ -7,13 +7,13 @@ import {
   type PendingInteractionApprovalDecision,
   type ProviderPendingInteraction,
   type Thread,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   ThreadTimelineResponse,
   TimelineRow,
   TimelineRowBase,
   TimelineUserConversationRow,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 
 interface TimelineBaseArgs {
   id: string;
@@ -133,7 +133,7 @@ export function makeEnvironment(overrides: MakeEnvironmentArgs): Environment {
     path: "/tmp/environment",
     isGitRepo: true,
     isWorktree: false,
-    branchName: "bb/thread",
+    branchName: "kaioken/thread",
     defaultBranch: "main",
     baseBranch: null,
     mergeBaseBranch: null,

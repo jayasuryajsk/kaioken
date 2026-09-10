@@ -5,10 +5,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   ExperimentalPermissionModePickerProps,
   ExperimentalProviderModelPickerProps,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import type { AgentExecutionUpdate, AutomationResponse } from "./rpc-types.js";
 
-vi.mock("@get-bb/plugin-sdk/app", () => ({
+vi.mock("@get-kaioken/plugin-sdk/app", () => ({
   experimental_ProviderModelPicker: ({
     onChange,
     routing,

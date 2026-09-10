@@ -9,12 +9,12 @@ import {
   listEnvironments,
   listQueuedThreadMessages,
   threads,
-} from "@bb/db";
-import { threadScope, turnScope, type ToolCallResponse } from "@bb/domain";
+} from "@kaioken/db";
+import { threadScope, turnScope, type ToolCallResponse } from "@kaioken/domain";
 import {
   groupHostDaemonEvents,
   type HostDaemonEventEnvelope,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { describe, expect, it, vi } from "vitest";
 import { serve } from "@hono/node-server";
 import {
@@ -1364,7 +1364,7 @@ describe("internal event and tool-call routes", () => {
   it("refuses to switch into another project's managed worktree", async () => {
     await withTestHarness(async (harness) => {
       const { host, session } = seedHostSession(harness.deps);
-      const worktreePath = "/tmp/bb-worktrees/env_owner/repo";
+      const worktreePath = "/tmp/kaioken-worktrees/env_owner/repo";
       const { project: owner } = seedProjectWithSource(harness.deps, {
         hostId: host.id,
         name: "Owning Project",
@@ -1417,7 +1417,7 @@ describe("internal event and tool-call routes", () => {
           {
             type: "inputText",
             text: expect.stringContaining(
-              "bb-managed workspace owned by another project",
+              "kaioken-managed workspace owned by another project",
             ),
           },
         ],

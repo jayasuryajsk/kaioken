@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import type { BbDesktopBrowserApi } from "@bb/desktop-contract";
+import type { KaiokenDesktopBrowserApi } from "@kaioken/desktop-contract";
 import {
   DESKTOP_BROWSER_IMPORT_FAILURE_COPY,
   isRetryableDesktopBrowserImportReason,
   type DesktopBrowserImportOutcome,
   type DesktopBrowserImportSource,
-} from "@bb/host-daemon-contract";
-import { Button } from "@bb/shared-ui/button";
+} from "@kaioken/host-daemon-contract";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +14,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/dialog";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { BrowserSourceIcon } from "./BrowserSourceIcon";
 import {
   canCloseDialog,
@@ -29,7 +29,7 @@ import {
 
 export interface BrowserImportDialogProps {
   source: DesktopBrowserImportSource;
-  desktopBrowser: BbDesktopBrowserApi;
+  desktopBrowser: KaiokenDesktopBrowserApi;
   onClose: () => void;
   onImported: (
     source: DesktopBrowserImportSource,
@@ -154,7 +154,7 @@ export function BrowserImportDialog({
               {title(`Allow Full Disk Access for ${source.name}`)}
               <DialogDescription>
                 {source.name} keeps its cookies in a protected folder. Turn on
-                Full Disk Access for BB in System Settings → Privacy &amp;
+                Full Disk Access for Kaioken in System Settings → Privacy &amp;
                 Security, then come back. You can turn it off again after the
                 import.
               </DialogDescription>
@@ -162,7 +162,7 @@ export function BrowserImportDialog({
             {step.checked ? (
               <p className="text-xs text-destructive-text">
                 Full Disk Access is still off. macOS may require quitting and
-                reopening BB before the grant applies.
+                reopening Kaioken before the grant applies.
               </p>
             ) : null}
             <DialogFooter>
@@ -218,7 +218,7 @@ export function BrowserImportDialog({
             <DialogHeader>
               {title(`Import from ${source.name}`)}
               <DialogDescription>
-                Which profile's cookies should be copied into the BB browser?
+                Which profile's cookies should be copied into the Kaioken browser?
               </DialogDescription>
             </DialogHeader>
             <div

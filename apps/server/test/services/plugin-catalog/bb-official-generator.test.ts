@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
-import { PLUGIN_CATALOG_CATEGORIES } from "@bb/domain";
+import { PLUGIN_CATALOG_CATEGORIES } from "@kaioken/domain";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   generateBbOfficialMarketplace,
@@ -76,7 +76,7 @@ describe("bb-official marketplace generator", () => {
       );
       expect(entry?.id).toBe(plugin.pluginId);
       expect(entry?.screenshots).toEqual(fields[plugin.name]?.screenshots);
-      expect(entry?.author).toEqual({ name: "BB" });
+      expect(entry?.author).toEqual({ name: "Kaioken" });
     }
   });
 
@@ -118,7 +118,7 @@ describe("bb-official marketplace generator", () => {
 
     await writeFile(
       path.join(pluginDirectory, "PLUGIN_OVERVIEW.md"),
-      "Run `bb keep-awake hosts <host-id>`.\n\n```sh\n<not html>\n```\n",
+      "Run `kaioken keep-awake hosts <host-id>`.\n\n```sh\n<not html>\n```\n",
     );
     expect(
       await readBundledPluginOverview(pluginDirectory, "sample"),
@@ -142,7 +142,7 @@ describe("bb-official marketplace generator", () => {
     cleanup.push(root);
 
     expect(() => loadBundledMarketplace([], root)).toThrow(
-      "pnpm exec turbo run generate:bb-official-marketplace --filter=@bb/server",
+      "pnpm exec turbo run generate:bb-official-marketplace --filter=@kaioken/server",
     );
   });
 
@@ -199,7 +199,7 @@ describe("bb-official marketplace generator", () => {
     await writeFile(
       path.join(origin, "plugins", "sample", "package.json"),
       JSON.stringify({
-        name: "bb-plugin-sample",
+        name: "kaioken-plugin-sample",
         version: "1.0.0",
         bb: {
           name: "Sample",

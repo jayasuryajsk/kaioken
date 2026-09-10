@@ -6,7 +6,7 @@ import {
   resolveCurrentDevInstanceConfig,
   toDevProcessEnv,
   type DevInstanceConfig,
-} from "@bb/config/runtime";
+} from "@kaioken/config/runtime";
 import { migrateLegacyDevData } from "../lib/legacy-dev-data-migration.js";
 import { runScriptProcess } from "../lib/process-helpers.js";
 
@@ -35,9 +35,9 @@ export function createDevTurboCommand(): DevCommand {
       "turbo",
       "run",
       "dev",
-      "--filter=@bb/app",
-      "--filter=@bb/server",
-      "--filter=@bb/host-daemon",
+      "--filter=@kaioken/app",
+      "--filter=@kaioken/server",
+      "--filter=@kaioken/host-daemon",
       "--ui",
       "tui",
       "--concurrency",
@@ -54,7 +54,7 @@ export function createStartWorktreeCommand(): DevCommand {
       "--conditions=source",
       "--import",
       "tsx",
-      resolve(repoRoot, "scripts", "start-bb.mjs"),
+      resolve(repoRoot, "scripts", "start-kaioken.mjs"),
       "--worktree-runtime-policy",
     ],
     command: process.execPath,
@@ -86,8 +86,8 @@ export function toDevLaunchProcessEnv(args: {
     return env;
   }
 
-  delete env.BB_DEV_APP_PORT;
-  env.BB_TELEMETRY = "false";
+  delete env.KAIOKEN_DEV_APP_PORT;
+  env.KAIOKEN_TELEMETRY = "false";
   env.NODE_ENV = "production";
   return env;
 }
@@ -160,7 +160,7 @@ async function main(): Promise<void> {
   });
   if (migration.skippedReason === "legacy-dev-process-running") {
     throw new Error(
-      "[dev] Legacy ~/.bb-dev data was found, but an old dev server or host-daemon is still running. Stop the old dev process and rerun pnpm dev to migrate it.",
+      "[dev] Legacy ~/.kaioken-dev data was found, but an old dev server or host-daemon is still running. Stop the old dev process and rerun pnpm dev to migrate it.",
     );
   }
   await assertPortsAvailable(config, mode);

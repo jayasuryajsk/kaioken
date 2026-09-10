@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import type { MarkdownProps, PluginSdkApp } from "@get-bb/plugin-sdk";
+import type { MarkdownProps, PluginSdkApp } from "@get-kaioken/plugin-sdk";
 import { PluginDiff } from "@/components/plugin/PluginDiff";
 import { PluginBranchPicker } from "@/components/plugin/PluginBranchPicker";
 import {

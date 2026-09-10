@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { PermissionMode, PromptTextMention } from "@bb/domain";
-import type { SystemExecutionOptionsModelLoadError } from "@bb/server-contract";
+import type { PermissionMode, PromptTextMention } from "@kaioken/domain";
+import type { SystemExecutionOptionsModelLoadError } from "@kaioken/server-contract";
 import {
   NewThreadPromptBoxUI,
   type NewThreadEnvironmentConfig,
@@ -619,7 +619,7 @@ export function UnsupportedCodexCli() {
       <StoryCard>
         <StoryRow
           label="unsupported Codex CLI"
-          hint="Codex is installed but below bb's minimum supported version"
+          hint="Codex is installed but below kaioken's minimum supported version"
         >
           <UnsupportedCodexCliRow />
         </StoryRow>

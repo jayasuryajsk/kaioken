@@ -4,15 +4,15 @@ import { isUtf8 } from "node:buffer";
 import { lstatSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { eq } from "drizzle-orm";
-import { hostDaemonSessions } from "@bb/db";
+import { hostDaemonSessions } from "@kaioken/db";
 import {
   hostDaemonCommandSchema,
   hostDaemonOnlineRpcResponseMessageSchema,
   hostDaemonRpcCommandSchema,
   hostDaemonServerWsMessageSchema,
   parseHostDaemonRpcResultForCommand,
-} from "@bb/host-daemon-contract";
-import { type HostType, type ThreadEvent } from "@bb/domain";
+} from "@kaioken/host-daemon-contract";
+import { type HostType, type ThreadEvent } from "@kaioken/domain";
 import type {
   HostDaemonCommand,
   HostDaemonEventEnvelope,
@@ -20,7 +20,7 @@ import type {
   HostDaemonOnlineRpcRequestMessage,
   HostDaemonRpcCommand,
   HostDaemonRpcResultForCommand,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import type { TestAppHarness } from "./test-app.js";
 import { availableModelFixture } from "./available-models.js";
 import { createTestDaemonHostKey } from "./test-app.js";
@@ -130,12 +130,12 @@ export interface TestHostRpcSocket {
 
 function isRuntimeWorkspaceFileCommand(command: HostDaemonRpcCommand): boolean {
   if (command.type === "host.list_files") {
-    return command.path.endsWith(path.join(".bb", "skills"));
+    return command.path.endsWith(path.join(".kaioken", "skills"));
   }
   if (command.type !== "host.read_file") return false;
   return (
-    command.path.endsWith(path.join(".bb", "AGENTS.md")) ||
-    command.path.includes(`${path.sep}.bb${path.sep}skills${path.sep}`)
+    command.path.endsWith(path.join(".kaioken", "AGENTS.md")) ||
+    command.path.includes(`${path.sep}.kaioken${path.sep}skills${path.sep}`)
   );
 }
 

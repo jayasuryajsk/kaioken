@@ -1,7 +1,7 @@
-import type { JsonValue } from "@bb/domain";
-import type { HostDaemonOnlineRpcRequestMessage } from "@bb/host-daemon-contract";
-import type { PluginProviderDeclaration } from "@get-bb/plugin-sdk";
-import type { ExperimentalNativeRootsResolveAnswer } from "@get-bb/plugin-sdk/host";
+import type { JsonValue } from "@kaioken/domain";
+import type { HostDaemonOnlineRpcRequestMessage } from "@kaioken/host-daemon-contract";
+import type { PluginProviderDeclaration } from "@get-kaioken/plugin-sdk";
+import type { ExperimentalNativeRootsResolveAnswer } from "@get-kaioken/plugin-sdk/host";
 import { describe, expect, it, vi } from "vitest";
 import { COMMAND_TIMEOUT_MS } from "../../../src/constants.js";
 import { ApiError } from "../../../src/errors.js";

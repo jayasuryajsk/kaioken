@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { threadScope, turnScope } from "@bb/domain";
+import { threadScope, turnScope } from "@kaioken/domain";
 import type {
   ThreadEvent,
   ThreadEventBackgroundTaskItem,
   ThreadEventItem,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   TURN_1,
   TURN_2,
@@ -70,7 +70,7 @@ describe("claude-code background task translation", () => {
       advanceClock(PROGRESS_THROTTLE_MS + 1);
       allEvents.push(
         ...harness.translate(message, {
-          threadId: "bb-thread-1",
+          threadId: "kaioken-thread-1",
         }),
       );
     }
@@ -90,7 +90,7 @@ describe("claude-code background task translation", () => {
 
     const startedItem = backgroundTaskItem(started[0]!);
     expect(startedItem).toMatchObject({
-      id: harness.itemId("task:wu7ol9ras", "bb-thread-1"),
+      id: harness.itemId("task:wu7ol9ras", "kaioken-thread-1"),
       taskType: "local_workflow",
       workflowName: "fixture-mini",
       status: "pending",
@@ -98,7 +98,7 @@ describe("claude-code background task translation", () => {
       skipTranscript: false,
       parentToolCallId: harness.itemId(
         "toolu_012BkJCmbBgNqL6SXPKNfPvE",
-        "bb-thread-1",
+        "kaioken-thread-1",
       ),
     });
     expect(started[0]!.scope.kind).toBe("turn");
@@ -110,7 +110,7 @@ describe("claude-code background task translation", () => {
     expect(finalItem.status).toBe("completed");
     expect(finalItem.taskStatus).toBe("completed");
     expect(finalItem.summary).toBe(
-      'Dynamic workflow "Tiny fixture workflow for BB capture" completed',
+      'Dynamic workflow "Tiny fixture workflow for Kaioken capture" completed',
     );
     expect(finalItem.usage).toEqual({
       totalTokens: 26674,
@@ -135,7 +135,7 @@ describe("claude-code background task translation", () => {
 
   it("folds delta batches: agents from earlier batches survive later partial batches", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
 
     harness.translate(
       spawningToolUseFor(loadFixture("task-started-workflow.json")),
@@ -175,7 +175,7 @@ describe("claude-code background task translation", () => {
 
   it("throttles progress events but flushes status transitions immediately", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
 
     harness.translate(
       spawningToolUseFor(loadFixture("task-started-workflow.json")),
@@ -219,7 +219,7 @@ describe("claude-code background task translation", () => {
 
   it("maps killed to a failed item and stopped to an interrupted item", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
 
     harness.translate(
       spawningToolUseFor(loadFixture("task-started-workflow.json")),
@@ -271,7 +271,7 @@ describe("claude-code background task translation", () => {
       advanceClock(PROGRESS_THROTTLE_MS + 1);
       allEvents.push(
         ...harness.translate(message, {
-          threadId: "bb-thread-1",
+          threadId: "kaioken-thread-1",
         }),
       );
     }
@@ -281,7 +281,7 @@ describe("claude-code background task translation", () => {
       "item/started",
       "item/backgroundTask/completed",
     ]);
-    const taskItemId = harness.itemId("task:a35aa0d9e98a8e8e6", "bb-thread-1");
+    const taskItemId = harness.itemId("task:a35aa0d9e98a8e8e6", "kaioken-thread-1");
     expect(backgroundTaskItem(taskEvents[0]!)).toMatchObject({
       id: taskItemId,
       taskType: "local_agent",
@@ -290,7 +290,7 @@ describe("claude-code background task translation", () => {
       taskStatus: "running",
       parentToolCallId: harness.itemId(
         "toolu_01W1cLr7AsTRvbya9LM5LSAV",
-        "bb-thread-1",
+        "kaioken-thread-1",
       ),
     });
     expect(backgroundTaskItem(taskEvents[1]!)).toMatchObject({
@@ -312,14 +312,14 @@ describe("claude-code background task translation", () => {
     const harness = createClaudeDeltaHarness();
     const events = harness.translate(
       loadFixture("task-progress-workflow-batch1.json"),
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
     expect(events).toHaveLength(0);
   });
 
   it("tracks monitors as open work without timeline rows", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-monitor" };
+    const context = { threadId: "kaioken-thread-monitor" };
 
     const started = harness.translate(
       {
@@ -359,14 +359,14 @@ describe("claude-code background task translation", () => {
     const harness = createClaudeDeltaHarness();
     harness.translate(
       spawningToolUseFor(loadFixture("task-started-workflow.json")),
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
     const started = harness.translate(
       {
         ...loadFixture("task-started-workflow.json"),
         skip_transcript: true,
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
     const item = backgroundTaskItem(collectTaskEvents(started)[0]!);
     expect(item.skipTranscript).toBe(true);
@@ -374,7 +374,7 @@ describe("claude-code background task translation", () => {
 
   it("settles open tasks as interrupted when the thread resumes", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
 
     harness.translate(
       spawningToolUseFor(loadFixture("task-started-workflow.json")),
@@ -400,7 +400,7 @@ describe("claude-code background task translation", () => {
       context,
     );
 
-    const events = harness.settleSession("bb-thread-1");
+    const events = harness.settleSession("kaioken-thread-1");
 
     const completed = events.filter(
       (event) => event.type === "item/backgroundTask/completed",
@@ -408,7 +408,7 @@ describe("claude-code background task translation", () => {
     expect(completed).toHaveLength(1);
     const item = backgroundTaskItem(completed[0]!);
     expect(item).toMatchObject({
-      id: harness.itemId("task:wu7ol9ras", "bb-thread-1"),
+      id: harness.itemId("task:wu7ol9ras", "kaioken-thread-1"),
       status: "interrupted",
       taskStatus: "stopped",
     });
@@ -417,7 +417,7 @@ describe("claude-code background task translation", () => {
       status: "interrupted",
     });
 
-    const repeat = harness.settleSession("bb-thread-1");
+    const repeat = harness.settleSession("kaioken-thread-1");
     expect(
       repeat.filter((event) => event.type === "item/backgroundTask/completed"),
     ).toHaveLength(0);
@@ -425,7 +425,7 @@ describe("claude-code background task translation", () => {
 
   it("settling preserves an already-completed status reported before the terminal notification", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
 
     harness.translate(
       spawningToolUseFor(loadFixture("task-started-workflow.json")),
@@ -444,14 +444,14 @@ describe("claude-code background task translation", () => {
       context,
     );
 
-    const events = harness.settleSession("bb-thread-1");
+    const events = harness.settleSession("kaioken-thread-1");
 
     const completed = events.filter(
       (event) => event.type === "item/backgroundTask/completed",
     );
     expect(completed).toHaveLength(1);
     expect(backgroundTaskItem(completed[0]!)).toMatchObject({
-      id: harness.itemId("task:wu7ol9ras", "bb-thread-1"),
+      id: harness.itemId("task:wu7ol9ras", "kaioken-thread-1"),
       status: "completed",
       taskStatus: "completed",
     });
@@ -459,7 +459,7 @@ describe("claude-code background task translation", () => {
 
   it("settles open tasks as interrupted when the thread detaches (process exit)", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
 
     harness.translate(
       spawningToolUseFor(loadFixture("task-started-workflow.json")),
@@ -467,19 +467,19 @@ describe("claude-code background task translation", () => {
     );
     harness.translate(loadFixture("task-started-workflow.json"), context);
 
-    const events = harness.settleSession("bb-thread-1");
+    const events = harness.settleSession("kaioken-thread-1");
     const completed = events.filter(
       (event) => event.type === "item/backgroundTask/completed",
     );
     expect(completed).toHaveLength(1);
     expect(backgroundTaskItem(completed[0]!).status).toBe("interrupted");
 
-    expect(harness.settleSession("bb-thread-other")).toEqual([]);
+    expect(harness.settleSession("kaioken-thread-other")).toEqual([]);
   });
 
   it("preserves the parent link when a settled Claude task restarts", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
 
     harness.translate(
       spawningToolUseFor(loadFixture("task-started-workflow.json")),
@@ -508,22 +508,22 @@ describe("claude-code background task translation", () => {
     expect(reopenedStarted).toHaveLength(1);
     const secondGenerationId = harness.itemId(
       "task:wu7ol9ras#2",
-      "bb-thread-1",
+      "kaioken-thread-1",
     );
     expect(secondGenerationId).not.toBe("");
     expect(secondGenerationId).not.toBe(
-      harness.itemId("task:wu7ol9ras", "bb-thread-1"),
+      harness.itemId("task:wu7ol9ras", "kaioken-thread-1"),
     );
     expect(backgroundTaskItem(reopenedStarted[0]!)).toMatchObject({
       id: secondGenerationId,
       familyId: "wu7ol9ras",
-      parentToolCallId: harness.itemId("toolu_send_message_1", "bb-thread-1"),
+      parentToolCallId: harness.itemId("toolu_send_message_1", "kaioken-thread-1"),
     });
   });
 
   it("materializes a backgrounded shell command (task_type local_bash)", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
 
     harness.translate(
       spawningToolUseMessage({
@@ -554,14 +554,14 @@ describe("claude-code background task translation", () => {
     expect(startedTask[0]!.type).toBe("item/started");
     const startedItem = backgroundTaskItem(startedTask[0]!);
     expect(startedItem).toMatchObject({
-      id: harness.itemId("task:bmn5wv33k", "bb-thread-1"),
+      id: harness.itemId("task:bmn5wv33k", "kaioken-thread-1"),
       familyId: "bmn5wv33k",
       taskType: "local_bash",
       description: "Count ticks from 1 to 6 with 1 second delays",
       status: "pending",
       taskStatus: "running",
       skipTranscript: false,
-      parentToolCallId: harness.itemId("toolu_bash_1", "bb-thread-1"),
+      parentToolCallId: harness.itemId("toolu_bash_1", "kaioken-thread-1"),
     });
     expect(startedItem.workflow).toBeUndefined();
     expect(startedItem.workflowName).toBeUndefined();
@@ -586,7 +586,7 @@ describe("claude-code background task translation", () => {
     );
     expect(completed).toHaveLength(1);
     expect(backgroundTaskItem(completed[0]!)).toMatchObject({
-      id: harness.itemId("task:bmn5wv33k", "bb-thread-1"),
+      id: harness.itemId("task:bmn5wv33k", "kaioken-thread-1"),
       taskType: "local_bash",
       status: "completed",
       taskStatus: "completed",
@@ -597,7 +597,7 @@ describe("claude-code background task translation", () => {
 
   it("ignores tasks spawned by an unforwarded child (workflow agent)", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
 
     harness.translate(
       spawningToolUseFor(loadFixture("task-started-workflow.json")),
@@ -627,7 +627,7 @@ describe("claude-code background task translation", () => {
       context,
     );
     expect(childCommand).toEqual([]);
-    expect(harness.itemId("toolu_workflow_child_bash", "bb-thread-1")).toBe("");
+    expect(harness.itemId("toolu_workflow_child_bash", "kaioken-thread-1")).toBe("");
 
     const childAgent = harness.translate(
       {
@@ -688,7 +688,7 @@ describe("claude-code background task translation", () => {
       backgroundTaskItem(collectTaskEvents(parentCommand)[0]!),
     ).toMatchObject({
       taskType: "local_bash",
-      parentToolCallId: harness.itemId("toolu_parent_bash", "bb-thread-1"),
+      parentToolCallId: harness.itemId("toolu_parent_bash", "kaioken-thread-1"),
     });
   });
 
@@ -705,7 +705,7 @@ describe("claude-code background task translation", () => {
           run_in_background: true,
         },
       }),
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
     const events = harness.translate(
       {
@@ -719,24 +719,24 @@ describe("claude-code background task translation", () => {
         uuid: "u-1",
         session_id: "s-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     const taskEvents = collectTaskEvents(events);
     expect(taskEvents).toHaveLength(1);
     expect(backgroundTaskItem(taskEvents[0]!)).toMatchObject({
-      id: harness.itemId("task:sub-1", "bb-thread-1"),
+      id: harness.itemId("task:sub-1", "kaioken-thread-1"),
       taskType: "local_subagent",
       description: "background subagent",
       status: "pending",
       taskStatus: "running",
-      parentToolCallId: harness.itemId("toolu_sub_1", "bb-thread-1"),
+      parentToolCallId: harness.itemId("toolu_sub_1", "kaioken-thread-1"),
     });
   });
 
   it("keeps one logical turn open across Claude background-agent reinvocations", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
 
     harness.translate(
       {
@@ -827,7 +827,7 @@ describe("claude-code background task translation", () => {
 
     for (const [index, task] of blockingTasks.entries()) {
       const harness = createClaudeDeltaHarness();
-      const context = { threadId: `bb-thread-${index}` };
+      const context = { threadId: `kaioken-thread-${index}` };
       harness.translate(
         {
           type: "assistant",
@@ -871,7 +871,7 @@ describe("claude-code background task translation", () => {
       },
     ]) {
       const harness = createClaudeDeltaHarness();
-      const context = { threadId: `bb-thread-${task.task_id}` };
+      const context = { threadId: `kaioken-thread-${task.task_id}` };
       harness.translate(
         {
           type: "assistant",
@@ -919,7 +919,7 @@ describe("claude-code background task translation", () => {
 
   it("completes the turn while a workflow keeps running, leaving the task open", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-workflow" };
+    const context = { threadId: "kaioken-thread-workflow" };
     harness.translate(
       {
         type: "assistant",
@@ -970,7 +970,7 @@ describe("claude-code background task translation", () => {
 
   it("opens a fresh turn when a settled workflow reinvokes the model", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-workflow-settle" };
+    const context = { threadId: "kaioken-thread-workflow-settle" };
     harness.translate(
       {
         type: "assistant",
@@ -1027,7 +1027,7 @@ describe("claude-code background task translation", () => {
 
   it("closes a failed result even while a background agent is open", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
     harness.translate(
       {
         type: "assistant",

@@ -10,7 +10,7 @@ import {
 } from "../helpers/command-output-harness.js";
 import { registerThemeCommands } from "../../commands/theme.js";
 
-describe("bb theme commands", () => {
+describe("kaioken theme commands", () => {
   setupCommandOutputTestEnvironment();
 
   const register: CommandRegistrar = (program) =>

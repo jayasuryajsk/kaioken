@@ -11,8 +11,8 @@ import {
 import { MemoryRouter } from "react-router-dom";
 import type { ReactNode } from "react";
 import { createStore, Provider } from "jotai";
-import type { ThreadListEntry } from "@bb/domain";
-import type { PluginComposerThreadRowStatus } from "@get-bb/plugin-sdk";
+import type { ThreadListEntry } from "@kaioken/domain";
+import type { PluginComposerThreadRowStatus } from "@get-kaioken/plugin-sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   resetSidebarTitleDoubleClickForTest,
@@ -29,7 +29,7 @@ vi.mock("@/components/thread/ThreadActionsProvider", () => ({
     renameThread: mocks.renameThread,
   }),
 }));
-import { TooltipProvider } from "@bb/shared-ui/tooltip";
+import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
 import { ThreadTitleMentionResourcesProvider } from "@/components/thread/ThreadTitleMentions";
 import {
   SIDEBAR_SUCCESS_STATUS_COLOR_CLASS,
@@ -45,9 +45,9 @@ import {
 } from "@/lib/plugin-thread-row-status";
 import { splitLayoutAtom } from "@/lib/split-layout/atoms";
 import { SPLIT_LAYOUT_STORAGE_KEY } from "@/lib/split-layout/persistence";
-import { NO_COLLAPSED_CHILD_ACTIVITY } from "@bb/client-core";
+import { NO_COLLAPSED_CHILD_ACTIVITY } from "@kaioken/client-core";
 import { sdk } from "@/lib/sdk";
-import { makeThreadListEntry as makeThreadListEntryFixture } from "@bb/test-helpers/domain-fixtures";
+import { makeThreadListEntry as makeThreadListEntryFixture } from "@kaioken/test-helpers/domain-fixtures";
 
 vi.mock("@/components/thread/ThreadActionsMenu", () => ({
   ThreadActionsContextMenu: ({ children }: { children: ReactNode }) => (
@@ -954,7 +954,7 @@ describe("ThreadRow", () => {
       const toggle = screen.getByRole("button", {
         name: `${isCollapsed ? "Expand" : "Collapse"} Parent thread threads`,
       });
-      expect(toggle.classList.contains("bb-sidebar-hover-actions")).toBe(
+      expect(toggle.classList.contains("kaioken-sidebar-hover-actions")).toBe(
         expectedHoverReveal,
       );
     },

@@ -3,9 +3,9 @@ import { sql } from "drizzle-orm";
 import { betterAuth } from "better-auth";
 import { apiKey } from "@better-auth/api-key";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
-import { authApiKeys, authUsers, type DbConnection } from "@bb/db";
-import { hostTypeSchema, type HostType } from "@bb/domain";
-import { readOrCreateSecretFile } from "@bb/secret-storage";
+import { authApiKeys, authUsers, type DbConnection } from "@kaioken/db";
+import { hostTypeSchema, type HostType } from "@kaioken/domain";
+import { readOrCreateSecretFile } from "@kaioken/secret-storage";
 import { z } from "zod";
 import type { ServerLogger } from "../types.js";
 
@@ -13,8 +13,8 @@ const AUTH_SECRET_FILE_NAME = "auth-secret";
 const DAEMON_ENROLL_CONFIG_ID = "daemon-enroll";
 const DAEMON_HOST_CONFIG_ID = "daemon-host";
 const ENROLL_KEY_TTL_SECONDS = 60 * 15;
-const MACHINE_AUTH_SYSTEM_USER_ID = "bb-machine-auth-system-user";
-const MACHINE_AUTH_SYSTEM_USER_EMAIL = "machine-auth@bb.internal";
+const MACHINE_AUTH_SYSTEM_USER_ID = "kaioken-machine-auth-system-user";
+const MACHINE_AUTH_SYSTEM_USER_EMAIL = "machine-auth@kaioken.internal";
 const MACHINE_AUTH_SYSTEM_USER_NAME = "Machine Auth System";
 
 const machineAuthSchema = {

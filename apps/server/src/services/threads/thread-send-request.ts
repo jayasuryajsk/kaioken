@@ -1,8 +1,8 @@
-import { isStandaloneBuiltinClearCommand, type Thread } from "@bb/domain";
+import { isStandaloneBuiltinClearCommand, type Thread } from "@kaioken/domain";
 import type {
   SendMessageRequest,
   SendMessageResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type { LoggedPendingInteractionWorkSessionDeps } from "../../types.js";
 import { attemptDispatch } from "./dispatch-attempt.js";
 import { requireThreadCommandEnvironment } from "./thread-command-environment.js";

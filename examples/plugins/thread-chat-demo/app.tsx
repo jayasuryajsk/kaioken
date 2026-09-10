@@ -8,7 +8,7 @@ import {
   useBbNavigate,
   type PluginFixedTabRegistration,
   type JsonValue,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 
 type DemoThreadTarget = { kind: "thread"; threadId: string };
 

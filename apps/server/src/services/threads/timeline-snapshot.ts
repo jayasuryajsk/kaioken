@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { threadStatusSchema, type Thread } from "@bb/domain";
-import { getLatestThreadSequence, type DbConnection } from "@bb/db";
-import type { TimelinePaginationCursor } from "@bb/server-contract";
+import { threadStatusSchema, type Thread } from "@kaioken/domain";
+import { getLatestThreadSequence, type DbConnection } from "@kaioken/db";
+import type { TimelinePaginationCursor } from "@kaioken/server-contract";
 import { ApiError } from "../../errors.js";
 import type { ThreadTimelinePageRequest } from "./timeline-pagination.js";
 

@@ -1,4 +1,4 @@
-import type { FollowUpSubmitMode } from "@bb/client-core";
+import type { FollowUpSubmitMode } from "@kaioken/client-core";
 import {
   memo,
   useCallback,
@@ -17,8 +17,8 @@ import type {
   PromptTextMention,
   ThreadRuntimeDisplayStatus,
   ThreadTimelineActivePromptMode,
-} from "@bb/domain";
-import type { ComposerView, PluginComposerScope } from "@get-bb/plugin-sdk";
+} from "@kaioken/domain";
+import type { ComposerView, PluginComposerScope } from "@get-kaioken/plugin-sdk";
 import type { ComposerTextEffectSource } from "@/lib/composer-text-effects";
 import { modifierSubmitShortcutLabel } from "./modifier-submit-shortcut";
 import { isKeyboardFocusTarget } from "@/components/layout/useMobileVisualViewportHeight";
@@ -50,8 +50,8 @@ import {
   type ExecutionPermissionConfig,
 } from "@/components/promptbox/ExecutionControls";
 import { useBottomAnchoredScroll } from "@/components/ui/bottom-anchored-scroll-body.js";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
-import { usePointerCoarse } from "@bb/shared-ui/hooks/use-pointer-coarse";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
+import { usePointerCoarse } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 import { ThreadTimelineScrollToBottomButton } from "@/views/thread-detail/ThreadTimelineScrollToBottomButton";
 import { useOptionalPaneContext } from "@/views/thread-detail/PaneContext";
 import { ThreadContextWindowIndicator } from "@/components/thread/timeline";
@@ -62,7 +62,7 @@ import {
   permissionDisplayForActivePromptMode,
   permissionDisplayForPromptMode,
   shouldDisablePermissionPickerForActivePromptMode,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 type PromptBoxWithScrollAnchorProps = ComponentProps<
   typeof PromptBoxInternal
@@ -129,7 +129,7 @@ const DEFAULT_FOLLOW_UP_COMPOSER_SCOPE = {
 export type {
   FollowUpBlockedReason,
   FollowUpSubmitMode,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 export interface FollowUpComposerProps {
   history: HistoryConfig;

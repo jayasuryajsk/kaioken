@@ -1,12 +1,12 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Icon } from "@bb/shared-ui/icon";
-import { Skeleton } from "@bb/shared-ui/skeleton";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
 import {
   definePluginApp,
   Markdown,
   useRpc,
   type PluginMessageDirectiveProps,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import type { inlineVisRpcContract } from "./server.js";
 
 type PreviewSource = "workspace" | "thread-storage";

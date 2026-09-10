@@ -119,7 +119,7 @@ describe("marketplace routes", () => {
       </html>,
     );
     expect(html).toContain('<html class="dark">');
-    expect(html).toContain("Make bb yours.");
+    expect(html).toContain("Make kaioken yours.");
     expect(html).toContain("New &amp; notable");
     expect(html).toContain("marketplace-shelf-notable");
   });

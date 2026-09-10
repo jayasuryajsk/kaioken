@@ -50,7 +50,7 @@ export const RELEASE_META: Record<string, ReleaseMeta> = {
   },
   "0.0.30": {
     date: "July 14, 2026",
-    headline: "Multi-machine workflows and bb Connect",
+    headline: "Multi-machine workflows and kaioken Connect",
   },
   "0.0.29": {
     date: "July 9, 2026",

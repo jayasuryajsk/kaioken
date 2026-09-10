@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import {
   collectLogLines,
   getHelpOutput,
@@ -11,7 +11,7 @@ import type { CommandRegistrar } from "../helpers/command-output-harness.js";
 import * as fixtures from "../helpers/command-output-fixtures.js";
 import { registerThreadCommands } from "../../commands/thread/index.js";
 
-describe("bb thread fork command output", () => {
+describe("kaioken thread fork command output", () => {
   setupCommandOutputTestEnvironment();
 
   const register: CommandRegistrar = (program) =>

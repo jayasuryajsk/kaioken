@@ -14,11 +14,11 @@ import {
   activityRowClass,
   activityTextClass,
   type ActivityRowState,
-} from "@bb/shared-ui/activity-row-styles";
-import { Button } from "@bb/shared-ui/button";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { Skeleton } from "@bb/shared-ui/skeleton";
+} from "@kaioken/shared-ui/activity-row-styles";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
 import {
   WorkflowPhaseStrip,
   WorkflowProgress,
@@ -27,7 +27,7 @@ import {
   type WorkflowProgressAgentState,
   type WorkflowProgressSnapshot,
   type WorkflowStatusPillState,
-} from "@bb/shared-ui/workflow-progress";
+} from "@kaioken/shared-ui/workflow-progress";
 import {
   definePluginApp,
   useBbNavigate,
@@ -37,7 +37,7 @@ import {
   useRpc,
   type PluginMessageDirectiveProps,
   type PluginThreadPanelProps,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import {
   WORKFLOW_RUNS_REALTIME_CHANNEL,
   workflowRunsSignalThreadId,

@@ -8,7 +8,7 @@ import {
 const profiles = [
   { id: "p_bee", serverUrl: "https://bee.getbb.app" },
   { id: "p_lan", serverUrl: "http://10.0.0.7:38886" },
-  { id: "p_prefix", serverUrl: "https://box.example.ts.net/bb" },
+  { id: "p_prefix", serverUrl: "https://box.example.ts.net/kaioken" },
 ];
 
 const context = {
@@ -45,7 +45,7 @@ describe("isNativeOnlyShellPath", () => {
 
 describe("resolveShellIncomingLink", () => {
   it("sends a scheme link to the page", () => {
-    expect(resolveShellIncomingLink("bb://threads/thr_1", context)).toEqual({
+    expect(resolveShellIncomingLink("kaioken://threads/thr_1", context)).toEqual({
       kind: "navigate",
       path: "/webview?path=%2Fthreads%2Fthr_1",
       profileId: null,
@@ -54,7 +54,7 @@ describe("resolveShellIncomingLink", () => {
 
   it("keeps connect enrolment native", () => {
     expect(
-      resolveShellIncomingLink("bb://connect?code=ABCD-EFGH", context),
+      resolveShellIncomingLink("kaioken://connect?code=ABCD-EFGH", context),
     ).toEqual({
       kind: "navigate",
       path: "/connect?code=ABCD-EFGH",
@@ -64,7 +64,7 @@ describe("resolveShellIncomingLink", () => {
 
   it("keeps notification settings native", () => {
     expect(
-      resolveShellIncomingLink("bb://settings/notifications", context),
+      resolveShellIncomingLink("kaioken://settings/notifications", context),
     ).toEqual({
       kind: "navigate",
       path: "/settings/notifications",
@@ -73,11 +73,11 @@ describe("resolveShellIncomingLink", () => {
   });
 
   it("hides developer routes in a release bundle", () => {
-    expect(resolveShellIncomingLink("bb://dev/webview-spike", context)).toEqual(
+    expect(resolveShellIncomingLink("kaioken://dev/webview-spike", context)).toEqual(
       { kind: "navigate", path: "/", profileId: null },
     );
     expect(
-      resolveShellIncomingLink("bb://dev/webview-spike", {
+      resolveShellIncomingLink("kaioken://dev/webview-spike", {
         ...context,
         developerRoutesEnabled: true,
       }),
@@ -112,7 +112,7 @@ describe("resolveShellIncomingLink", () => {
 
   it("strips a profile's mount prefix from the page path", () => {
     const resolution = resolveShellIncomingLink(
-      "https://box.example.ts.net/bb/threads/x",
+      "https://box.example.ts.net/kaioken/threads/x",
       context,
     );
     expect(resolution).toEqual({
@@ -135,7 +135,7 @@ describe("resolveShellIncomingLink", () => {
 
   it("leaves a foreign scheme alone", () => {
     expect(
-      resolveShellIncomingLink("exp+bb-app://expo-development-client", context),
+      resolveShellIncomingLink("exp+kaioken-app://expo-development-client", context),
     ).toEqual({ kind: "passthrough" });
   });
 });

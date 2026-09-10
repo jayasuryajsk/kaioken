@@ -15,7 +15,7 @@ import {
   type AppCommandId,
   type AppDefaultKeybindings,
   type AppKeybindingOverrides,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { KeyboardSettingsSection } from "./KeyboardSettingsSection";
 
 const testState = vi.hoisted(() => {
@@ -160,8 +160,8 @@ vi.mock("@/hooks/mutations/settings-mutations", () => ({
   }),
 }));
 
-vi.mock("@bb/shared-ui/button", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@bb/shared-ui/button")>();
+vi.mock("@kaioken/shared-ui/button", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@kaioken/shared-ui/button")>();
   return {
     ...actual,
     Button: (props: ComponentProps<typeof actual.Button>) => {
@@ -195,7 +195,7 @@ vi.mock("@/lib/app-command-metadata", async (importOriginal) => {
   };
 });
 
-vi.mock("@/lib/bb-desktop", () => ({
+vi.mock("@/lib/kaioken-desktop", () => ({
   getBbDesktopInfo: () => (testState.isDesktop ? {} : null),
 }));
 

@@ -3,14 +3,14 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { experimental_createHostEntryHarness } from "@get-bb/plugin-sdk/testing/host";
+import { experimental_createHostEntryHarness } from "@get-kaioken/plugin-sdk/testing/host";
 import { afterEach, describe, expect, it } from "vitest";
 import { createPersonalWorkspaceHostEntry } from "./host.js";
 
 const temporaryRoots: string[] = [];
 
 async function createDataDir(): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), "bb-personal-workspace-plugin-"));
+  const root = await mkdtemp(join(tmpdir(), "kaioken-personal-workspace-plugin-"));
   temporaryRoots.push(root);
   return join(root, "plugin-data");
 }
@@ -140,7 +140,7 @@ describe("personal workspace host entry", () => {
   it("refuses a path outside the personal workspace roots", async () => {
     const dataDir = await createDataDir();
     const harness = createHarness(dataDir);
-    const outside = join(dataDir, "..", "checkouts", "bb");
+    const outside = join(dataDir, "..", "checkouts", "kaioken");
 
     await expect(
       harness.experimental_call("removeWorkspace", {

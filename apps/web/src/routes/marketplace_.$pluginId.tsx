@@ -17,9 +17,9 @@ export const Route = createFileRoute("/marketplace_/$pluginId")({
   head: ({ loaderData, params }) => {
     const entry = loaderData;
     const title = entry
-      ? `${entry.displayName} — bb Plugin Marketplace`
-      : "Plugin Marketplace — bb";
-    const description = entry?.description ?? "Find community plugins for bb.";
+      ? `${entry.displayName} — kaioken Plugin Marketplace`
+      : "Plugin Marketplace — kaioken";
+    const description = entry?.description ?? "Find community plugins for kaioken.";
     const path = `/marketplace/${encodeURIComponent(params.pluginId)}`;
     return {
       meta: [

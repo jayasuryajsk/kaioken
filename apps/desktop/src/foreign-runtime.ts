@@ -1,11 +1,11 @@
 import {
-  bbAppRuntimeVerifyTokens,
+  kaiokenAppRuntimeVerifyTokens,
   clearOwnBbAppRuntimeFile,
   readBbAppRuntimeFile,
-  type BbAppRuntimeFile,
-} from "@bb/config/app-runtime-file";
-import { stopVerifiedProcess } from "@bb/config/verified-process-stop";
-import type { VerifiedProcessOps } from "@bb/config/verified-process-stop";
+  type KaiokenAppRuntimeFile,
+} from "@kaioken/config/app-runtime-file";
+import { stopVerifiedProcess } from "@kaioken/config/verified-process-stop";
+import type { VerifiedProcessOps } from "@kaioken/config/verified-process-stop";
 
 export interface ForeignRuntimeDetails {
   dataDir: string;
@@ -36,7 +36,7 @@ type StopForeignRuntimeResult =
   | { kind: "unverified"; pid: number };
 
 function matchesProbedServer(
-  runtimeFile: BbAppRuntimeFile,
+  runtimeFile: KaiokenAppRuntimeFile,
   serverUrl: string,
 ): boolean {
   try {
@@ -90,7 +90,7 @@ export async function stopForeignRuntime(
     signal: "SIGTERM",
     startedAt: args.details.startedAt,
     timeoutMs: args.timeoutMs,
-    verifyTokens: bbAppRuntimeVerifyTokens(args.details.entryPath),
+    verifyTokens: kaiokenAppRuntimeVerifyTokens(args.details.entryPath),
   });
 
   if (stopResult.kind === "unverified") {

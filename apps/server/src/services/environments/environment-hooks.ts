@@ -1,5 +1,5 @@
-import type { EnvironmentHookProgressMessage } from "@bb/host-daemon-contract";
-import type { PluginEnvironmentProviderProgress } from "@get-bb/plugin-sdk/environment-provider";
+import type { EnvironmentHookProgressMessage } from "@kaioken/host-daemon-contract";
+import type { PluginEnvironmentProviderProgress } from "@get-kaioken/plugin-sdk/environment-provider";
 import type { WorkSessionDeps } from "../../types.js";
 import { callHostOnlineRpc } from "../hosts/online-rpc.js";
 

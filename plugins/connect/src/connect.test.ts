@@ -5,14 +5,14 @@ import { WebSocket as NodeWebSocket, WebSocketServer } from "ws";
 import {
   createFakePluginHost,
   type FakePluginHost,
-} from "@get-bb/plugin-sdk/testing";
-import { decodeFrame, encodeFrame, type Frame } from "@bb/tunnel-contract";
+} from "@get-kaioken/plugin-sdk/testing";
+import { decodeFrame, encodeFrame, type Frame } from "@kaioken/tunnel-contract";
 import {
   headersForLoopbackRequest,
   isBareBbRealtimeWs,
   TunnelSession,
-} from "@bb/tunnel-client";
-import { deriveConnectBaseUrl, serverUrlForHandle } from "@bb/connect-client";
+} from "@kaioken/tunnel-client";
+import { deriveConnectBaseUrl, serverUrlForHandle } from "@kaioken/connect-client";
 import {
   parseSharePort,
   machineSharePublicUrl,
@@ -99,13 +99,13 @@ describe("resolveDefaultConnectBaseUrl", () => {
     expect(
       resolveDefaultConnectBaseUrl({
         NODE_ENV: "development",
-        BB_DEV_CONNECT_BASE_URL: "http://bb.localhost:42745/",
+        KAIOKEN_DEV_CONNECT_BASE_URL: "http://kaioken.localhost:42745/",
       }),
-    ).toBe("http://bb.localhost:42745");
+    ).toBe("http://kaioken.localhost:42745");
     expect(
       resolveDefaultConnectBaseUrl({
         NODE_ENV: "production",
-        BB_DEV_CONNECT_BASE_URL: "http://bb.localhost:42745",
+        KAIOKEN_DEV_CONNECT_BASE_URL: "http://kaioken.localhost:42745",
       }),
     ).toBe(DEFAULT_CONNECT_BASE_URL);
     expect(resolveDefaultConnectBaseUrl({ NODE_ENV: "development" })).toBe(
@@ -115,18 +115,18 @@ describe("resolveDefaultConnectBaseUrl", () => {
 
   it("rejects non-local or non-origin development values", () => {
     for (const value of [
-      "https://bb.localhost:42745",
+      "https://kaioken.localhost:42745",
       "http://getbb.app:42745",
-      "http://bb.localhost:42745/dashboard",
+      "http://kaioken.localhost:42745/dashboard",
       "not a url",
     ]) {
       expect(() =>
         resolveDefaultConnectBaseUrl({
           NODE_ENV: "development",
-          BB_DEV_CONNECT_BASE_URL: value,
+          KAIOKEN_DEV_CONNECT_BASE_URL: value,
         }),
       ).toThrow(
-        "BB_DEV_CONNECT_BASE_URL must be an http://bb.localhost:<port> origin",
+        "KAIOKEN_DEV_CONNECT_BASE_URL must be an http://kaioken.localhost:<port> origin",
       );
     }
   });
@@ -214,10 +214,10 @@ describe("sharePublicUrl", () => {
   it("uses HTTP and the local port for machine shares in local Cloud", () => {
     expect(
       machineSharePublicUrl(
-        { label: "sawyer-air", baseDomain: "bb.localhost:42745" },
+        { label: "sawyer-air", baseDomain: "kaioken.localhost:42745" },
         8000,
       ),
-    ).toBe("http://sawyer-air--8000.bb.localhost:42745");
+    ).toBe("http://sawyer-air--8000.kaioken.localhost:42745");
   });
 });
 
@@ -231,7 +231,7 @@ describe("parseSharePort / serverOwnPort", () => {
     expect(() => parseSharePort("nope")).toThrow(SharePortError);
   });
 
-  it("reads the bb server port from the loopback base URL", () => {
+  it("reads the kaioken server port from the loopback base URL", () => {
     expect(serverOwnPort("http://127.0.0.1:38886")).toBe(38886);
     expect(serverOwnPort("http://127.0.0.1")).toBe(80);
   });
@@ -1368,7 +1368,7 @@ describe("connect plugin", () => {
 
   it("uses the worktree-local Cloud for unpaired development", async () => {
     vi.stubEnv("NODE_ENV", "development");
-    vi.stubEnv("BB_DEV_CONNECT_BASE_URL", "http://bb.localhost:59329");
+    vi.stubEnv("KAIOKEN_DEV_CONNECT_BASE_URL", "http://kaioken.localhost:59329");
     const fetchMock = vi.fn(
       async () =>
         new Response(
@@ -1380,21 +1380,21 @@ describe("connect plugin", () => {
     const { harness } = await loadPlugin();
 
     const before = (await harness.callRpc("status")) as ConnectStatus;
-    expect(before.dashboardUrl).toBe("http://bb.localhost:59329/dashboard");
+    expect(before.dashboardUrl).toBe("http://kaioken.localhost:59329/dashboard");
 
     const after = (await harness.callRpc("pair", {
       code: "ABCD",
     })) as ConnectStatus;
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://bb.localhost:59329/api/connect/redeem",
+      "http://kaioken.localhost:59329/api/connect/redeem",
       expect.objectContaining({ method: "POST" }),
     );
-    expect(after.url).toBe("http://sawyer.bb.localhost:59329");
+    expect(after.url).toBe("http://sawyer.kaioken.localhost:59329");
   });
 
   it("lets an explicit production server override the development default", async () => {
     vi.stubEnv("NODE_ENV", "development");
-    vi.stubEnv("BB_DEV_CONNECT_BASE_URL", "http://bb.localhost:59329");
+    vi.stubEnv("KAIOKEN_DEV_CONNECT_BASE_URL", "http://kaioken.localhost:59329");
     const fetchMock = vi.fn(
       async () =>
         new Response(JSON.stringify({ error: "invalid-code" }), {
@@ -1440,7 +1440,7 @@ describe("connect plugin", () => {
           threadId: "thr_test",
           projectId: "proj_test",
         });
-      expect(instructions()).toContain("bb connect expose");
+      expect(instructions()).toContain("kaioken connect expose");
       await harness.behavior.setSettings({ sendRemoteInstructions: false });
       expect(instructions()).toBeNull();
       await harness.behavior.setSettings({ sendRemoteInstructions: true });
@@ -1452,7 +1452,7 @@ describe("connect plugin", () => {
         remoteClients: 0,
         lastRemoteActivityAt: Date.now(),
       });
-      expect(instructions()).toContain("bb connect expose");
+      expect(instructions()).toContain("kaioken connect expose");
     } finally {
       statusSpy.mockRestore();
     }
@@ -2177,7 +2177,7 @@ describe("connect plugin", () => {
             cookie: {
               domain: ".getbb.app",
               expiresAt: 2_000_000,
-              name: "__Secure-bb-connect.desktop_session",
+              name: "__Secure-kaioken-connect.desktop_session",
               value: "short-lived-signed-cookie",
             },
           }),
@@ -2195,7 +2195,7 @@ describe("connect plugin", () => {
       cookie: {
         domain: ".getbb.app",
         expiresAt: 2_000_000,
-        name: "__Secure-bb-connect.desktop_session",
+        name: "__Secure-kaioken-connect.desktop_session",
         value: "short-lived-signed-cookie",
       },
     });
@@ -2313,14 +2313,14 @@ describe("connect plugin", () => {
           handle: "sawyer",
         });
       }
-      if (url === "http://bb.localhost:59330/api/connect/machine-code") {
+      if (url === "http://kaioken.localhost:59330/api/connect/machine-code") {
         return Response.json({
           code: "ABCD-EFGH",
           expiresInMs: 600_000,
-          serverUrl: "http://sawyer.bb.localhost:59330",
+          serverUrl: "http://sawyer.kaioken.localhost:59330",
         });
       }
-      if (url === "http://bb.localhost:59330/api/connect/revoke-machine") {
+      if (url === "http://kaioken.localhost:59330/api/connect/revoke-machine") {
         return Response.json({ ok: true });
       }
       return new Response("not found", { status: 404 });
@@ -2329,22 +2329,22 @@ describe("connect plugin", () => {
     const { harness } = await loadPlugin();
     await harness.callRpc("pair", {
       code: "ABCD",
-      server: "http://sawyer.bb.localhost:59330",
+      server: "http://sawyer.kaioken.localhost:59330",
     });
 
     await expect(harness.callRpc("createMachineCode")).resolves.toMatchObject({
       code: "ABCD-EFGH",
-      serverUrl: "http://sawyer.bb.localhost:59330",
+      serverUrl: "http://sawyer.kaioken.localhost:59330",
     });
     await expect(
       harness.callRpc("revokeMachine", { machineId: "machine-local" }),
     ).resolves.toEqual({ ok: true });
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://bb.localhost:59330/api/connect/machine-code",
+      "http://kaioken.localhost:59330/api/connect/machine-code",
       expect.objectContaining({ method: "POST" }),
     );
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://bb.localhost:59330/api/connect/revoke-machine",
+      "http://kaioken.localhost:59330/api/connect/revoke-machine",
       expect.objectContaining({ method: "POST" }),
     );
   });
@@ -2397,16 +2397,16 @@ describe("connect CLI", () => {
     return host;
   }
 
-  it("bare `bb connect` prints a how-to, not an argument error", async () => {
+  it("bare `kaioken connect` prints a how-to, not an argument error", async () => {
     const { harness } = await loadCli();
     const result = await harness.runCli([]);
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("getbb.app");
-    expect(result.stdout).toContain("bb connect status");
-    expect(result.stdout).toContain("bb connect expose");
+    expect(result.stdout).toContain("kaioken connect status");
+    expect(result.stdout).toContain("kaioken connect expose");
   });
 
-  it("`bb connect --code --server` pairs verbatim (the dashboard command)", async () => {
+  it("`kaioken connect --code --server` pairs verbatim (the dashboard command)", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(
@@ -2430,7 +2430,7 @@ describe("connect CLI", () => {
     );
   });
 
-  it("`bb connect status` and `bb connect off` round-trip", async () => {
+  it("`kaioken connect status` and `kaioken connect off` round-trip", async () => {
     const { harness } = await loadCli();
     const before = await harness.runCli(["status"]);
     expect(before.exitCode).toBe(0);
@@ -2543,7 +2543,7 @@ describe("connect CLI", () => {
     const result = await harness.runCli(["machine-code"]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('"Mobile app" experiment');
-    expect(result.stderr).toContain("bb settings experiment mobileApp true");
+    expect(result.stderr).toContain("kaioken settings experiment mobileApp true");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

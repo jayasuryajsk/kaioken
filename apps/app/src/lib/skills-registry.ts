@@ -1,5 +1,5 @@
-import { REGISTRY_ENTRY_BATCH_LIMIT } from "@bb/server-contract";
-import type { SkillSummary } from "@bb/server-contract";
+import { REGISTRY_ENTRY_BATCH_LIMIT } from "@kaioken/server-contract";
+import type { SkillSummary } from "@kaioken/server-contract";
 import type {
   RegistryPagination,
   RegistryRanking,
@@ -7,8 +7,8 @@ import type {
   RegistrySkillDetail,
   RegistrySkillFile,
   RegistrySkillsPage,
-} from "@bb/server-contract";
-import { RESOURCE_GRID_PAGE_SIZE } from "@bb/shared-ui/resource-pagination";
+} from "@kaioken/server-contract";
+import { RESOURCE_GRID_PAGE_SIZE } from "@kaioken/shared-ui/resource-pagination";
 import { sdk } from "@/lib/sdk";
 
 export type {
@@ -85,7 +85,7 @@ export function resolveInstalledRegistrySkill(
   return (
     installedSkills.find((installedSkill) => {
       return (
-        installedSkill.scope === "bb-user" &&
+        installedSkill.scope === "kaioken-user" &&
         installedSkill.provider === null &&
         installedSkill.manageable &&
         installedSkill.registrySkillId === registrySkill.id
@@ -98,7 +98,7 @@ export function buildRegistrySkillReferencePrompt(
   skill: RegistrySkill,
 ): string {
   return [
-    "Create a new, distinct bb skill using the skills.sh entry below as a reference.",
+    "Create a new, distinct kaioken skill using the skills.sh entry below as a reference.",
     "",
     `Reference name: ${JSON.stringify(skill.name)}`,
     `Reference skill ID: ${JSON.stringify(skill.id)}`,

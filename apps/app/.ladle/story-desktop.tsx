@@ -1,12 +1,12 @@
 import { useEffect, type ReactNode } from "react";
 import type {
-  BbDesktopApi,
-  BbDesktopBrowserApi,
-  BbDesktopBrowserState,
-  BbDesktopInfo,
-} from "@bb/desktop-contract";
+  KaiokenDesktopApi,
+  KaiokenDesktopBrowserApi,
+  KaiokenDesktopBrowserState,
+  KaiokenDesktopInfo,
+} from "@kaioken/desktop-contract";
 
-const STORY_DESKTOP_INFO: BbDesktopInfo = {
+const STORY_DESKTOP_INFO: KaiokenDesktopInfo = {
   lastCheckedAt: null,
   latestVersion: null,
   pendingVersion: null,
@@ -17,8 +17,8 @@ const STORY_DESKTOP_INFO: BbDesktopInfo = {
 };
 
 function createStoryDesktopBrowserApi(
-  initialState: BbDesktopBrowserState | null,
-): BbDesktopBrowserApi {
+  initialState: KaiokenDesktopBrowserState | null,
+): KaiokenDesktopBrowserApi {
   return {
     attach() {},
     detach() {},
@@ -47,8 +47,8 @@ function createStoryDesktopBrowserApi(
 }
 
 function createStoryDesktopApi(
-  browserState: BbDesktopBrowserState | null,
-): BbDesktopApi {
+  browserState: KaiokenDesktopBrowserState | null,
+): KaiokenDesktopApi {
   return {
     ...STORY_DESKTOP_INFO,
     browser: createStoryDesktopBrowserApi(browserState),
@@ -68,7 +68,7 @@ function createStoryDesktopApi(
 }
 
 interface WithDesktopBrowserProps {
-  browserState?: BbDesktopBrowserState | null;
+  browserState?: KaiokenDesktopBrowserState | null;
   children: ReactNode;
 }
 
@@ -76,13 +76,13 @@ export function WithDesktopBrowser({
   browserState = null,
   children,
 }: WithDesktopBrowserProps) {
-  if (typeof window !== "undefined" && window.bbDesktop === undefined) {
-    window.bbDesktop = createStoryDesktopApi(browserState);
+  if (typeof window !== "undefined" && window.kaiokenDesktop === undefined) {
+    window.kaiokenDesktop = createStoryDesktopApi(browserState);
   }
   useEffect(() => {
     return () => {
       if (typeof window !== "undefined") {
-        delete window.bbDesktop;
+        delete window.kaiokenDesktop;
       }
     };
   }, []);

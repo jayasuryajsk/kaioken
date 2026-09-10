@@ -4,9 +4,9 @@ import { StrictMode, type ReactNode } from "react";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
-import type { PromptTextMention } from "@bb/domain";
-import type { ThreadResponse } from "@bb/server-contract";
-import type { TimelineTitleLink } from "@bb/thread-view";
+import type { PromptTextMention } from "@kaioken/domain";
+import type { ThreadResponse } from "@kaioken/server-contract";
+import type { TimelineTitleLink } from "@kaioken/thread-view";
 import { RouteNavigationProvider } from "@/components/ui/app-route-anchor";
 import {
   ThreadTitleMentionResourcesProvider,
@@ -21,7 +21,7 @@ import { threadQueryKey } from "@/hooks/queries/query-keys";
 import { sdk } from "@/lib/sdk";
 import { setPreferredTheme } from "@/hooks/useTheme";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
-import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
+import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 import { makeThreadResponse } from "@/test/fixtures/thread-responses";
 
 vi.mock("@/lib/sdk", async (importOriginal) => {
@@ -266,7 +266,7 @@ describe("MarkdownPreview thread mentions", () => {
     const { container } = renderMarkdown(
       <MarkdownPreview
         content={[
-          "Run `bb thread show thr_dcwivn5n8w`.",
+          "Run `kaioken thread show thr_dcwivn5n8w`.",
           "",
           "```text",
           "thr_dcwivn5n8w",

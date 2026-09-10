@@ -1,9 +1,9 @@
 import { Buffer } from "node:buffer";
-import { jsonValueSchema, type JsonObject, type JsonValue } from "@bb/domain";
+import { jsonValueSchema, type JsonObject, type JsonValue } from "@kaioken/domain";
 import {
   parseProviderModelConfig,
   type ProviderModelInfo,
-} from "@bb/config/inference-model";
+} from "@kaioken/config/inference-model";
 import type { LoggedWorkSessionDeps } from "../../types.js";
 import { ApiError } from "../../errors.js";
 import { requireConnectedPrimaryHostId } from "../hosts/primary-host.js";
@@ -30,7 +30,7 @@ const voiceTranscriptionSchema = Type.Object({ text: Type.String() });
 
 function parseTranscriptionModel(model: string): ProviderModelInfo {
   return parseProviderModelConfig({
-    name: "BB_TRANSCRIPTION",
+    name: "KAIOKEN_TRANSCRIPTION",
     value: model,
   });
 }

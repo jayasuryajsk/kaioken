@@ -12,13 +12,13 @@ import type {
   ProviderUsage,
   ProviderUsageResult,
   ProviderUsageWindow,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 import {
   clampPercent,
   downloadedInstallerCommand,
   readCliVersion,
   resolveExecutablePath,
-} from "@bb/provider-bridge-protocol/bridge-kit";
+} from "@kaioken/provider-bridge-protocol/bridge-kit";
 import { z } from "zod";
 
 const execFileAsync = promisify(execFile);
@@ -365,7 +365,7 @@ function fetchDashboard(
       "Content-Type": "application/json",
       "Connect-Protocol-Version": "1",
       "x-cursor-client-type": "cli",
-      "x-cursor-client-version": "cli-bb-provider-acp",
+      "x-cursor-client-version": "cli-kaioken-provider-acp",
     },
     body: "{}",
     signal: AbortSignal.timeout(USAGE_FETCH_TIMEOUT_MS),

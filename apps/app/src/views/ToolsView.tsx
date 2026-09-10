@@ -7,9 +7,9 @@ import {
   type ReactNode,
 } from "react";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
-import "@bb/shared-ui/icon-extended";
+import "@kaioken/shared-ui/icon-extended";
 import { useMutation } from "@tanstack/react-query";
-import { buildPluginEditThreadPrompt } from "@bb/shared-ui/resource-edit-prompt";
+import { buildPluginEditThreadPrompt } from "@kaioken/shared-ui/resource-edit-prompt";
 import { appToast } from "@/components/ui/app-toast";
 import { OverflowFade } from "@/components/ui/overflow-fade";
 import { useScrollOverflowState } from "@/components/thread/timeline/useScrollOverflowState";
@@ -21,8 +21,8 @@ import { AddPluginDialog } from "@/components/plugin/management/AddPluginDialog"
 import {
   ResourceListState,
   useResourceRouteLabel,
-} from "@bb/shared-ui/resource-list";
-import { Skeleton } from "@bb/shared-ui/skeleton";
+} from "@kaioken/shared-ui/resource-list";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
 import { PluginsOverview } from "@/components/plugin/PluginsOverview";
 import {
   CatalogPluginDetail,
@@ -53,7 +53,7 @@ import {
   getRootComposeRoutePath,
 } from "@/lib/route-paths";
 import { getToolsOwnedCollectionRoutePath } from "@/components/tools/tools-navigation";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { SkillsLibrary } from "@/components/tools/SkillsLibrary";
 import { PluginIcon } from "@/components/plugin/PluginIcon";
 import { pluginToast } from "@/components/plugin/PluginNotificationDescription";
@@ -177,7 +177,7 @@ function PluginDetailToolView({ pluginId }: { pluginId: string }) {
     onSuccess: (_data, deletedPlugin) => {
       const isLocal = pluginIsLocalSource(deletedPlugin);
       pluginToast.success(
-        isLocal ? "Plugin removed from bb" : "Plugin uninstalled",
+        isLocal ? "Plugin removed from kaioken" : "Plugin uninstalled",
         deletedPlugin,
         "catalog",
       );
@@ -353,7 +353,7 @@ function PluginDetailToolView({ pluginId }: { pluginId: string }) {
               <ConfirmDeleteDialogContent
                 title={
                   pluginIsLocalSource(deleteTarget)
-                    ? "Remove plugin from bb?"
+                    ? "Remove plugin from kaioken?"
                     : "Uninstall plugin?"
                 }
                 description={pluginRemovalDescription(deleteTarget)}

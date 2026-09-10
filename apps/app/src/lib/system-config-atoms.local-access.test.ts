@@ -1,6 +1,6 @@
 import { createStore } from "jotai";
 import { QueryObserver } from "@tanstack/react-query";
-import type { ChangedMessage } from "@bb/domain";
+import type { ChangedMessage } from "@kaioken/domain";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -51,7 +51,7 @@ vi.mock("./sdk", () => ({
   },
 }));
 
-vi.mock("./bb-desktop", () => ({
+vi.mock("./kaioken-desktop", () => ({
   getBbDesktopInfo: () => null,
 }));
 

@@ -1,10 +1,10 @@
 import type {
   EnvironmentDisplayInfo,
   EnvironmentDisplayProviderLookup,
-} from "@bb/core-ui";
-import { resolveEnvironmentDisplayProvider } from "@bb/core-ui";
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
-import type { IconName } from "@bb/shared-ui/icon";
+} from "@kaioken/core-ui";
+import { resolveEnvironmentDisplayProvider } from "@kaioken/core-ui";
+import type { SystemEnvironmentProvider } from "@kaioken/server-contract";
+import type { IconName } from "@kaioken/shared-ui/icon";
 import { pluginIconName } from "@/components/plugin/PluginIcon";
 import { PersistentHostIconName } from "@/lib/host-display";
 

@@ -1,13 +1,13 @@
-import { getThread } from "@bb/db";
-import type { EnvironmentRow } from "@bb/db";
+import { getThread } from "@kaioken/db";
+import type { EnvironmentRow } from "@kaioken/db";
 import {
   encodeClientTurnRequestIdNumber,
   threadScope,
   turnScope,
   type ResolvedThreadExecutionOptions,
   type Thread,
-} from "@bb/domain";
-import { groupHostDaemonEvents } from "@bb/host-daemon-contract";
+} from "@kaioken/domain";
+import { groupHostDaemonEvents } from "@kaioken/host-daemon-contract";
 import { describe, expect, it } from "vitest";
 import {
   hasLiveThreadStartInFlight,

@@ -8,8 +8,8 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { DiffFileEntry } from "@bb/server-contract";
-import { POINTER_COARSE_QUERY } from "@bb/shared-ui/hooks/use-pointer-coarse";
+import type { DiffFileEntry } from "@kaioken/server-contract";
+import { POINTER_COARSE_QUERY } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 import type {
   DiffFileContentsResult,
   RequestDiffFileContents,

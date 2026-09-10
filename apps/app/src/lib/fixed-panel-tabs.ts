@@ -10,13 +10,13 @@ import { atom } from "jotai";
 import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { atomFamily } from "jotai-family";
-import type { TerminalCreateTarget } from "@bb/server-contract";
+import type { TerminalCreateTarget } from "@kaioken/server-contract";
 import { createLocalStorageSyncStorage } from "./browser-storage";
 import { useThreadTabs } from "@/hooks/queries/thread-tabs-query";
 import {
   closeSecondaryPanelTabInState,
   reconcileFixedPanelViewTabsInState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   EMPTY_FIXED_PANEL_TABS_STATE,
   createGitDiffFixedPanelTab,

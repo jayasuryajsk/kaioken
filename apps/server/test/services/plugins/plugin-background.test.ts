@@ -11,8 +11,8 @@ import {
   migrate,
   pluginSchedules,
   type DbConnection,
-} from "@bb/db";
-import type { Logger } from "@bb/logger";
+} from "@kaioken/db";
+import type { Logger } from "@kaioken/logger";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import {
   createPluginService,
@@ -73,7 +73,7 @@ describe("plugin background services", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-bg-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-bg-test-"));
     service = createPluginService({
       aiServices: createAiServiceRegistry(),
       telemetry: createNoopTelemetryService(),
@@ -99,7 +99,7 @@ describe("plugin background services", () => {
 
   it("starts services after load and aborts them on reload", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-connector",
+      name: "kaioken-plugin-connector",
       serverSource: `
         export default function plugin(bb: any) {
           const g = globalThis as any;
@@ -161,7 +161,7 @@ describe("plugin background services", () => {
     });
     try {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-dispose-request",
+        name: "kaioken-plugin-dispose-request",
         serverSource: `
           export default function plugin(bb: any) {
             const g = globalThis as any;
@@ -217,7 +217,7 @@ describe("plugin background services", () => {
     });
     try {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-slowstop",
+        name: "kaioken-plugin-slowstop",
         serverSource: `
           export default function plugin(bb: any) {
             const g = globalThis as any;
@@ -259,7 +259,7 @@ describe("plugin background services", () => {
 
   it("marks the plugin degraded when a service ignores its abort", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-stubborn",
+      name: "kaioken-plugin-stubborn",
       serverSource: `
         export default function plugin(bb: any) {
           bb.background.service("socket", {
@@ -292,7 +292,7 @@ describe("plugin background services", () => {
 
   it("reports a failed reload that kept the previous instance", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-keeper",
+      name: "kaioken-plugin-keeper",
       serverSource: `
         export default function plugin(bb: any) {
           bb.cli.register({ name: "keeper", summary: "keeper", run() { return { exitCode: 0, stdout: "ok" }; } });
@@ -332,7 +332,7 @@ describe("plugin background services", () => {
 
   it("restarts a crashed service with backoff", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-crashy",
+      name: "kaioken-plugin-crashy",
       serverSource: `
         export default function plugin(bb: any) {
           const g = globalThis as any;
@@ -364,7 +364,7 @@ describe("plugin background services", () => {
 
   it("routes an uncaught exception from a service's async context to the supervisor", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-emitter",
+      name: "kaioken-plugin-emitter",
       serverSource: `
         import { EventEmitter } from "node:events";
         export default function plugin(bb: any) {
@@ -422,7 +422,7 @@ describe("plugin background services", () => {
 
   it("NeedsConfigurationError maps to needs-configuration and stops restarts", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-needy",
+      name: "kaioken-plugin-needy",
       serverSource: `
         export default function plugin(bb: any) {
           const g = globalThis as any;
@@ -458,7 +458,7 @@ describe("plugin background services", () => {
 
   it("bb.status.needsConfiguration from the factory wins over running", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-unconfigured",
+      name: "kaioken-plugin-unconfigured",
       serverSource: `
         export default function plugin(bb: any) {
           bb.status.needsConfiguration("set the token first");
@@ -473,7 +473,7 @@ describe("plugin background services", () => {
 
   it("rejects an invalid cron at registration", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-badcron",
+      name: "kaioken-plugin-badcron",
       serverSource: `
         export default function plugin(bb: any) {
           bb.background.schedule("bad", "not a cron", async () => {});
@@ -495,7 +495,7 @@ describe("plugin schedules", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-sched-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-sched-test-"));
     service = createPluginService({
       aiServices: createAiServiceRegistry(),
       telemetry: createNoopTelemetryService(),
@@ -519,7 +519,7 @@ describe("plugin schedules", () => {
 
   async function installTicker(): Promise<void> {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-ticker",
+      name: "kaioken-plugin-ticker",
       serverSource: `
         export default function plugin(bb: any) {
           const g = globalThis as any;
@@ -587,7 +587,7 @@ describe("plugin schedules", () => {
 
   it("records last_error on failure and still advances the schedule", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-boomer",
+      name: "kaioken-plugin-boomer",
       serverSource: `
         export default function plugin(bb: any) {
           bb.background.schedule("boom", "*/5 * * * *", async () => {
@@ -625,7 +625,7 @@ describe("plugin schedules", () => {
 
   it("prunes rows for schedule names the plugin no longer registers", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-renamer",
+      name: "kaioken-plugin-renamer",
       serverSource: `
         export default function plugin(bb: any) {
           bb.background.schedule("old-name", "*/5 * * * *", async () => {});

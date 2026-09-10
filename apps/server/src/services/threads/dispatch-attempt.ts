@@ -8,7 +8,7 @@ import {
   setThreadPendingStartContext,
   type ClaimedQueuedThreadMessageRow,
   type RunningThreadRow,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   promptInputSchema,
   type PromptInput,
@@ -17,14 +17,14 @@ import {
   type ResolvedThreadExecutionOptions,
   type Thread,
   type ThreadQueuedMessage,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   SendMessageRequest,
   StartedOnBehalfOf,
   ThreadCreateOrigin,
-} from "@bb/server-contract";
-import { startedOnBehalfOfSchema } from "@bb/server-contract";
-import type { PluginDispatchEnvironmentIntent } from "@get-bb/plugin-sdk";
+} from "@kaioken/server-contract";
+import { startedOnBehalfOfSchema } from "@kaioken/server-contract";
+import type { PluginDispatchEnvironmentIntent } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { ApiError } from "../../errors.js";
 import type { LoggedPendingInteractionWorkSessionDeps } from "../../types.js";

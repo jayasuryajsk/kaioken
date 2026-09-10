@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { HOST_AUTH_FILE_NAME } from "@bb/host-daemon-contract";
+import { HOST_AUTH_FILE_NAME } from "@kaioken/host-daemon-contract";
 import {
   readHostAuthState,
   resolveServerUrl,
@@ -51,7 +51,7 @@ describe("auth state", () => {
   });
 
   it("writes auth state without server URL and reads it back", async () => {
-    const dataDir = await makeTempDir("bb-host-daemon-auth-state-");
+    const dataDir = await makeTempDir("kaioken-host-daemon-auth-state-");
 
     await writeHostAuthState(dataDir, {
       hostId: "host_auth_state",
@@ -75,7 +75,7 @@ describe("auth state", () => {
   });
 
   it("reads legacy auth state that still contains server URL", async () => {
-    const dataDir = await makeTempDir("bb-host-daemon-legacy-auth-state-");
+    const dataDir = await makeTempDir("kaioken-host-daemon-legacy-auth-state-");
     await fs.mkdir(dataDir, { recursive: true });
     await fs.writeFile(
       path.join(dataDir, HOST_AUTH_FILE_NAME),

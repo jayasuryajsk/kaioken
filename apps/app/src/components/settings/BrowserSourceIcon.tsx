@@ -1,6 +1,6 @@
-import type { DesktopBrowserImportSource } from "@bb/host-daemon-contract";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+import type { DesktopBrowserImportSource } from "@kaioken/host-daemon-contract";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 export function BrowserSourceIcon({
   source,

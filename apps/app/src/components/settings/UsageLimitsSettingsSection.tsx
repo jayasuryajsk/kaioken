@@ -1,12 +1,12 @@
 import { useId, useState } from "react";
-import type { Host, ProviderInfo } from "@bb/domain";
+import type { Host, ProviderInfo } from "@kaioken/domain";
 import type {
   ProviderUsage,
   ProviderUsageResponse,
   ProviderUsageWindow,
-} from "@bb/host-daemon-contract";
-import { Button } from "@bb/shared-ui/button";
-import { Icon } from "@bb/shared-ui/icon";
+} from "@kaioken/host-daemon-contract";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
 import {
   SettingsBadge,
   SettingsRowList,
@@ -18,8 +18,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@bb/shared-ui/tooltip";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@kaioken/shared-ui/tooltip";
 import {
   useSystemConfig,
   useSystemProviderUsageLimits,
@@ -29,7 +29,7 @@ import {
 import { selectPrimaryHost, useHosts } from "@/hooks/queries/host-queries";
 import { getProviderIconInfo } from "@/lib/provider-icon";
 import { ProviderIconMark } from "./ProviderIconMark";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 interface ProviderConfig {
   name: string;

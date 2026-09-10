@@ -3,8 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-bb/plugin-sdk/provider-bridge/testing";
-import type { BridgeJsonRpcOutputMessage } from "@get-bb/plugin-sdk/provider-bridge/testing";
+import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
+import type { BridgeJsonRpcOutputMessage } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 import { handleLine } from "./bridge.js";
 
 const THREAD_ID = "thr_archived_rebuild_1";
@@ -36,7 +36,7 @@ let archiveStatePath: string;
 let processLogPath: string;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "bb-codex-archived-rebuild-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "kaioken-codex-archived-rebuild-"));
   archiveStatePath = join(workspaceDir, "fake-codex-archived.json");
   processLogPath = join(workspaceDir, "app-server-processes.log");
   const scriptPath = join(workspaceDir, "fake-codex-script.json");
@@ -44,9 +44,9 @@ beforeEach(() => {
     scriptPath,
     JSON.stringify({ archiveStatePath, processLogPath }),
   );
-  vi.stubEnv("BB_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
+  vi.stubEnv("KAIOKEN_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
   vi.stubEnv(
-    "BB_CODEX_BRIDGE_APP_SERVER_ARGS",
+    "KAIOKEN_CODEX_BRIDGE_APP_SERVER_ARGS",
     JSON.stringify([fakeAppServerPath, scriptPath]),
   );
   harness = createBridgeJsonRpcTestHarness(handleLine);

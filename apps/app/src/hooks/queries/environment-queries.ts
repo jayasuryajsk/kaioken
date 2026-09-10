@@ -3,7 +3,7 @@ import type {
   Environment,
   ThreadPullRequest,
   WorkspaceDiffTarget,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   EnvironmentDiffFileQuery,
   EnvironmentDiffFileResponse,
@@ -12,14 +12,14 @@ import type {
   EnvironmentPullRequestResponse,
   EnvironmentStatusResponse,
   WorkspacePathListResponse,
-} from "@bb/server-contract";
-import type { EnvironmentDiffArgs } from "@bb/sdk/browser";
+} from "@kaioken/server-contract";
+import type { EnvironmentDiffArgs } from "@kaioken/sdk/browser";
 import {
   buildFilePreview,
   normalizeFilePreviewMimeType,
   type EnvironmentFilePreviewSource,
   type FilePreview,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { decodeBase64Bytes, encodeBase64Bytes } from "@/lib/base64-bytes";
 import { buildEnvironmentDiffFileContentUrl } from "@/lib/file-content-urls";
 import { sdk } from "@/lib/sdk";

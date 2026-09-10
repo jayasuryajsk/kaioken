@@ -19,18 +19,18 @@ import {
   upsertHost,
   type DbConnection,
   type ThreadWithPendingInteractionState,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   formatClientTurnRequestIdSuffix,
   threadScope,
   turnScope,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   ClientTurnRequestId,
   PromptInput,
   Thread,
   ThreadRuntimeState,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { DAEMON_ACTIVE_WORK_DISCONNECT_GRACE_MS } from "../../../src/constants.js";
 import {
   resolveThreadRuntimeState,

@@ -2,7 +2,7 @@ import type {
   PromptInput,
   ThreadOriginKind,
   ThreadVisibility,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   CreateThreadEnvironmentArgs,
   CreateThreadRequest,
@@ -10,7 +10,7 @@ import type {
   ProviderEnvironmentArgs,
   StartedOnBehalfOf,
   ThreadCreateOrigin,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 
 export interface ThreadCreateServiceRequestInput {
   environment: CreateThreadEnvironmentArgs;

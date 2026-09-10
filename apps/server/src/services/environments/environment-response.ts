@@ -1,9 +1,9 @@
-import type { EnvironmentRow } from "@bb/db";
+import type { EnvironmentRow } from "@kaioken/db";
 import type {
   Environment,
   EnvironmentWorkspaceDisplayKind,
   WorkspaceProvisionType,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { DEFAULT_ENVIRONMENT_PROVIDER_ID } from "./environment-provider-ids.js";
 
 const DEPRECATED_WORKSPACE_PROVISION_TYPE_BY_PROVIDER_ID = new Map<

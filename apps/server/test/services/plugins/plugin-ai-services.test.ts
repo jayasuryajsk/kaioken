@@ -2,9 +2,9 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createConnection, migrate, type DbConnection } from "@bb/db";
-import type { Logger } from "@bb/logger";
-import { experimental_aiServicesHostContract } from "@get-bb/plugin-sdk/ai-services";
+import { createConnection, migrate, type DbConnection } from "@kaioken/db";
+import type { Logger } from "@kaioken/logger";
+import { experimental_aiServicesHostContract } from "@get-kaioken/plugin-sdk/ai-services";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import { PluginHostArtifactRegistry } from "../../../src/services/plugins/plugin-host-artifact-registry.js";
 import {
@@ -103,7 +103,7 @@ describe("bb.experimental_aiServices.register (server)", () => {
   let workDir: string;
 
   beforeEach(async () => {
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-ai-service-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-ai-service-test-"));
   });
 
   afterEach(async () => {
@@ -113,7 +113,7 @@ describe("bb.experimental_aiServices.register (server)", () => {
   it("lands the service when the load commits and removes it when the plugin is disabled", async () => {
     await withTestHarness(async (harness) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-acme-ai",
+        name: "kaioken-plugin-acme-ai",
         serverSource: REGISTER_AI_SERVICE_SOURCE("acme-ai"),
       });
       const entry = await harness.pluginService.installPath(rootDir);
@@ -134,7 +134,7 @@ describe("bb.experimental_aiServices.register (server)", () => {
   it("fails the load of a plugin that registers a service without a bb.host entry", async () => {
     await withTestHarness(async (harness) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-hostless-ai",
+        name: "kaioken-plugin-hostless-ai",
         serverSource: REGISTER_AI_SERVICE_SOURCE("hostless-ai"),
         withHost: false,
       });
@@ -150,7 +150,7 @@ describe("bb.experimental_aiServices.register (server)", () => {
   it("fails the load on the host build error when a first install's bb.host entry does not build", async () => {
     await withTestHarness(async (harness) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-broken-host-ai",
+        name: "kaioken-plugin-broken-host-ai",
         serverSource: REGISTER_AI_SERVICE_SOURCE("broken-host-ai"),
       });
       await writeFile(
@@ -172,7 +172,7 @@ describe("bb.experimental_aiServices.register (server)", () => {
       await withTestHarness(async (harness) => {
         const id = `dual-${order}`;
         const rootDir = await writePlugin(workDir, {
-          name: `bb-plugin-${id}`,
+          name: `kaioken-plugin-${id}`,
           serverSource: REGISTER_AI_SERVICE_AND_PROVIDER_SOURCE(id, order),
         });
         await writeFile(
@@ -225,7 +225,7 @@ describe("bb.experimental_aiServices.register (server)", () => {
     async (id) => {
       await withTestHarness(async (harness) => {
         const rootDir = await writePlugin(workDir, {
-          name: `bb-plugin-shadow-${id}`,
+          name: `kaioken-plugin-shadow-${id}`,
           serverSource: REGISTER_AI_SERVICE_SOURCE(id),
         });
         const entry = await harness.pluginService.installPath(rootDir);
@@ -242,14 +242,14 @@ describe("bb.experimental_aiServices.register (server)", () => {
     await withTestHarness(async (harness) => {
       const first = await harness.pluginService.installPath(
         await writePlugin(workDir, {
-          name: "bb-plugin-first-ai",
+          name: "kaioken-plugin-first-ai",
           serverSource: REGISTER_AI_SERVICE_SOURCE("shared-ai"),
         }),
       );
       expect(first.status).toBe("running");
       const second = await harness.pluginService.installPath(
         await writePlugin(workDir, {
-          name: "bb-plugin-second-ai",
+          name: "kaioken-plugin-second-ai",
           serverSource: REGISTER_AI_SERVICE_SOURCE("shared-ai"),
         }),
       );
@@ -282,7 +282,7 @@ describe("the AI service host binding", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-ai-binding-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-ai-binding-test-"));
     callPluginHost.mockClear();
     aiServices = createAiServiceRegistry();
     service = createPluginService({
@@ -312,7 +312,7 @@ describe("the AI service host binding", () => {
   it("calls the plugin's host entry with the AI services contract, the caller's budget, and parses the answer", async () => {
     await service.installPath(
       await writePlugin(workDir, {
-        name: "bb-plugin-acme-ai",
+        name: "kaioken-plugin-acme-ai",
         serverSource: REGISTER_AI_SERVICE_SOURCE("acme-ai"),
       }),
     );
@@ -377,7 +377,7 @@ describe("the AI service host binding", () => {
 describe("server-direct AI service ids", () => {
   it("the SDK's static list matches pi-ai's builtin inference providers plus openai transcription", async () => {
     const { SERVER_DIRECT_AI_SERVICE_IDS } =
-      await import("@get-bb/plugin-sdk/internal/host-policy");
+      await import("@get-kaioken/plugin-sdk/internal/host-policy");
     const { builtinModels } =
       await import("@earendil-works/pi-ai/providers/all");
     const live = new Set<string>([

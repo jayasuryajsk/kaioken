@@ -1,4 +1,4 @@
-import type { ConnectCredential } from "@bb/connect-client";
+import type { ConnectCredential } from "@kaioken/connect-client";
 import { useState } from "react";
 import { View } from "react-native";
 import { useProfiles } from "@/app-shell";

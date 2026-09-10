@@ -5,7 +5,7 @@ import {
   type ReactNode,
 } from "react";
 import { createStore, Provider } from "jotai";
-import { PERSONAL_PROJECT_ID, type ThreadListEntry } from "@bb/domain";
+import { PERSONAL_PROJECT_ID, type ThreadListEntry } from "@kaioken/domain";
 import { makeThreadListEntry } from "../../../.ladle/story-fixtures";
 import { SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar.js";
 import { ThreadActionsProvider } from "@/components/thread/ThreadActionsProvider";
@@ -14,7 +14,7 @@ import { ThreadTitleMentionResourcesProvider } from "@/components/thread/ThreadT
 import {
   NO_COLLAPSED_CHILD_ACTIVITY,
   type CollapsedChildActivity,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { StoryCard, StoryRow } from "../../../.ladle/story-card";
 import { splitLayoutAtom } from "@/lib/split-layout/atoms";
 

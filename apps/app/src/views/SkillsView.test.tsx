@@ -17,11 +17,11 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { focusManager } from "@tanstack/react-query";
-import type { ProviderInfo } from "@bb/domain";
-import type { SkillSummary } from "@bb/server-contract";
+import type { ProviderInfo } from "@kaioken/domain";
+import type { SkillSummary } from "@kaioken/server-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
-import { makeProviderInfo } from "@bb/test-helpers/domain-fixtures";
+import { makeProviderInfo } from "@kaioken/test-helpers/domain-fixtures";
 import { sdk } from "@/lib/sdk";
 import {
   buildRegistrySkillReferencePrompt,
@@ -281,31 +281,31 @@ function NavigateButton({ to, label }: { to: string; label: string }) {
 }
 
 describe("SkillsOverview", () => {
-  it("defaults to BB skills and places BB Official skills first", () => {
+  it("defaults to Kaioken skills and places BB Official skills first", () => {
     const markup = render({
       skills: [
         makeSkill({ name: "claude-skill", provider: "claude-code" }),
         makeSkill({
           name: "aa-user-skill",
           provider: null,
-          scope: "bb-user",
+          scope: "kaioken-user",
         }),
         makeSkill({
           name: "zz-official-skill",
           provider: null,
-          scope: "bb-builtin",
+          scope: "kaioken-builtin",
           manageable: false,
         }),
       ],
     });
     expect(markup).not.toContain("claude-skill");
     expect(markup).toContain("Review the current diff.");
-    expect(markup).toContain('aria-label="Filters: Provider: bb"');
+    expect(markup).toContain('aria-label="Filters: Provider: kaioken"');
     expect(markup).not.toContain("Provider: 1 selected");
     expect(markup).toContain("Sort");
     expect(markup).not.toContain('role="tab"');
     expect(markup).toContain("BB Official");
-    expect(markup).toContain("New bb skill");
+    expect(markup).toContain("New kaioken skill");
     expect(markup).not.toContain('aria-label="Open zz-official-skill"');
     expect(markup.indexOf("zz-official-skill")).toBeLessThan(
       markup.indexOf("aa-user-skill"),
@@ -320,7 +320,7 @@ describe("SkillsOverview", () => {
           makeSkill({
             name: "official-skill",
             provider: null,
-            scope: "bb-builtin",
+            scope: "kaioken-builtin",
             manageable: false,
           }),
           makeSkill({
@@ -333,7 +333,7 @@ describe("SkillsOverview", () => {
           makeSkill({
             name: "user-skill",
             provider: null,
-            scope: "bb-user",
+            scope: "kaioken-user",
           }),
         ]}
         isLoading={false}
@@ -349,7 +349,7 @@ describe("SkillsOverview", () => {
     const typeTrigger = screen.getByRole("button", { name: /^Filters/ });
     focusWithKeyboard(typeTrigger);
     expect((await screen.findByRole("tooltip")).textContent).toBe(
-      "Provider: bb",
+      "Provider: kaioken",
     );
     fireEvent.blur(typeTrigger);
     fireEvent.pointerDown(typeTrigger);
@@ -369,7 +369,7 @@ describe("SkillsOverview", () => {
     expect(await screen.findByText("automations")).toBeTruthy();
     expect(
       screen.getByLabelText(
-        "automations is included with Automations (bb plugin)",
+        "automations is included with Automations (kaioken plugin)",
       ).textContent,
     ).toBe("Included");
     expect(screen.queryByText("official-skill")).toBeNull();
@@ -402,7 +402,7 @@ describe("SkillsOverview", () => {
           makeSkill({
             name: "official-skill",
             provider: null,
-            scope: "bb-builtin",
+            scope: "kaioken-builtin",
             manageable: false,
           }),
         ]}
@@ -415,7 +415,7 @@ describe("SkillsOverview", () => {
 
     const trigger = screen.getByRole("button", { name: /^Filters/ });
     fireEvent.pointerDown(trigger);
-    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "bb" }));
+    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "kaioken" }));
     fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "User" }));
 
     expect(await screen.findByText("claude-authored")).toBeTruthy();
@@ -442,7 +442,7 @@ describe("SkillsOverview", () => {
           makeSkill({
             name: "official-skill",
             provider: null,
-            scope: "bb-builtin",
+            scope: "kaioken-builtin",
             manageable: false,
           }),
           makeSkill({
@@ -494,7 +494,7 @@ describe("SkillsOverview", () => {
           makeSkill({
             name: "official-skill",
             provider: null,
-            scope: "bb-builtin",
+            scope: "kaioken-builtin",
             manageable: false,
           }),
         ]}
@@ -640,7 +640,7 @@ describe("SkillsOverview", () => {
     ).not.toBeNull();
     expect(
       screen
-        .getByRole("menuitemcheckbox", { name: "bb" })
+        .getByRole("menuitemcheckbox", { name: "kaioken" })
         .getAttribute("aria-disabled"),
     ).toBeNull();
   });
@@ -651,9 +651,9 @@ describe("SkillsOverview", () => {
         providerRoster={NO_PROVIDER_ROSTER}
         skills={[
           makeSkill({
-            name: "bb-skill",
+            name: "kaioken-skill",
             provider: null,
-            scope: "bb-user",
+            scope: "kaioken-user",
           }),
           makeSkill({ name: "claude-skill", provider: "claude-code" }),
         ]}
@@ -667,18 +667,18 @@ describe("SkillsOverview", () => {
     const providerTrigger = screen.getByRole("button", { name: /^Filters/ });
     focusWithKeyboard(providerTrigger);
     expect((await screen.findByRole("tooltip")).textContent?.trim()).toBe(
-      "Provider: bb",
+      "Provider: kaioken",
     );
     fireEvent.blur(providerTrigger);
 
     fireEvent.pointerDown(providerTrigger);
     expect(screen.getByText("Provider")).toBeTruthy();
     expect(
-      screen.getByRole("menuitemcheckbox", { name: "bb" }).querySelector("img"),
+      screen.getByRole("menuitemcheckbox", { name: "kaioken" }).querySelector("img"),
     ).not.toBeNull();
   });
 
-  it("keeps the default BB filter selected when only provider skills exist", async () => {
+  it("keeps the default Kaioken filter selected when only provider skills exist", async () => {
     renderDom(
       <SkillsOverview
         providerRoster={NO_PROVIDER_ROSTER}
@@ -702,11 +702,11 @@ describe("SkillsOverview", () => {
     });
 
     fireEvent.pointerDown(screen.getByRole("button", { name: /^Filters/ }));
-    const bbFilter = screen.getByRole("menuitemcheckbox", { name: "bb" });
-    expect(bbFilter.getAttribute("aria-checked")).toBe("true");
-    expect(bbFilter.getAttribute("aria-disabled")).toBeNull();
+    const kaiokenFilter = screen.getByRole("menuitemcheckbox", { name: "kaioken" });
+    expect(kaiokenFilter.getAttribute("aria-checked")).toBe("true");
+    expect(kaiokenFilter.getAttribute("aria-disabled")).toBeNull();
 
-    fireEvent.click(bbFilter);
+    fireEvent.click(kaiokenFilter);
 
     expect(await screen.findByText("codex-skill")).toBeTruthy();
   });
@@ -715,9 +715,9 @@ describe("SkillsOverview", () => {
     const initialSkills = [
       makeSkill({
         id: `skill_${"b".repeat(64)}`,
-        name: "bb-skill",
+        name: "kaioken-skill",
         provider: null,
-        scope: "bb-user",
+        scope: "kaioken-user",
       }),
       makeSkill({ name: "claude-skill", provider: "claude-code" }),
     ];
@@ -733,7 +733,7 @@ describe("SkillsOverview", () => {
     );
 
     fireEvent.pointerDown(screen.getByRole("button", { name: /^Filters/ }));
-    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "bb" }));
+    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "kaioken" }));
     fireEvent.click(
       screen.getByRole("menuitemcheckbox", { name: "Claude Code" }),
     );
@@ -741,7 +741,7 @@ describe("SkillsOverview", () => {
 
     await waitFor(() => {
       expect(screen.getByText("claude-skill")).toBeTruthy();
-      expect(screen.queryByText("bb-skill")).toBeNull();
+      expect(screen.queryByText("kaioken-skill")).toBeNull();
       expect(
         screen.getByRole("button", { name: /Provider: Claude Code/ }),
       ).toBeTruthy();
@@ -754,9 +754,9 @@ describe("SkillsOverview", () => {
           ...initialSkills,
           makeSkill({
             id: `skill_${"c".repeat(64)}`,
-            name: "new-bb-skill",
+            name: "new-kaioken-skill",
             provider: null,
-            scope: "bb-user",
+            scope: "kaioken-user",
           }),
         ]}
         isLoading={false}
@@ -767,23 +767,23 @@ describe("SkillsOverview", () => {
     );
 
     expect(screen.getByText("claude-skill")).toBeTruthy();
-    expect(screen.queryByText("new-bb-skill")).toBeNull();
+    expect(screen.queryByText("new-kaioken-skill")).toBeNull();
   });
 
   it("keeps edit and delete actions in detail rather than overview rows", () => {
     const markup = render({
       skills: [
         makeSkill({
-          name: "bb-skill",
+          name: "kaioken-skill",
           provider: null,
-          scope: "bb-user",
+          scope: "kaioken-user",
           manageable: true,
         }),
         makeSkill({ name: "provider-skill" }),
       ],
     });
-    expect(markup).not.toContain('aria-label="Edit bb-skill"');
-    expect(markup).not.toContain('aria-label="Delete bb-skill"');
+    expect(markup).not.toContain('aria-label="Edit kaioken-skill"');
+    expect(markup).not.toContain('aria-label="Delete kaioken-skill"');
     expect(markup).not.toContain('aria-label="Edit provider-skill"');
     expect(markup).not.toContain('aria-label="Delete provider-skill"');
   });
@@ -795,7 +795,7 @@ describe("SkillsOverview", () => {
       renderDom(
         <SkillsOverview
           providerRoster={NO_PROVIDER_ROSTER}
-          skills={[makeSkill({ provider: null, scope: "bb-user" })]}
+          skills={[makeSkill({ provider: null, scope: "kaioken-user" })]}
           isLoading={false}
           hasError={false}
           onCreateSkill={() => {}}
@@ -842,7 +842,7 @@ describe("SkillsLibrary library detail routing", () => {
     renderLibrarySkillRoute();
 
     expect(screen.getByText("Loading skill")).toBeTruthy();
-    expect(screen.queryByText("New bb skill")).toBeNull();
+    expect(screen.queryByText("New kaioken skill")).toBeNull();
   });
 
   it("shows a retryable detail error when the skill library fails to load", async () => {
@@ -854,7 +854,7 @@ describe("SkillsLibrary library detail routing", () => {
 
     expect(await screen.findByText("Couldn't load skill.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
-    expect(screen.queryByText("New bb skill")).toBeNull();
+    expect(screen.queryByText("New kaioken skill")).toBeNull();
   });
 
   it("shows not found on an unknown library skill detail route", async () => {
@@ -864,7 +864,7 @@ describe("SkillsLibrary library detail routing", () => {
 
     const notFound = await screen.findByText("Skill not found.");
     expect(notFound.closest("[data-resource-detail-state]")).not.toBeNull();
-    expect(screen.queryByText("New bb skill")).toBeNull();
+    expect(screen.queryByText("New kaioken skill")).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
@@ -912,7 +912,7 @@ describe("SkillsLibrary registry detail lifecycle", () => {
       );
 
       let forkButton = await screen.findByRole("button", {
-        name: "Fork Useful skill into a new bb skill",
+        name: "Fork Useful skill into a new kaioken skill",
       });
       expect(screen.queryByRole("tab")).toBeNull();
       const registryListRequests = () =>
@@ -931,7 +931,7 @@ describe("SkillsLibrary registry detail lifecycle", () => {
       ).toBeTruthy();
       fireEvent.click(screen.getByText("go-browse"));
       forkButton = await screen.findByRole("button", {
-        name: "Fork Useful skill into a new bb skill",
+        name: "Fork Useful skill into a new kaioken skill",
       });
       expect(registryListRequests()).toHaveLength(1);
 
@@ -1255,15 +1255,15 @@ describe("RegistrySkillsBrowsePage", () => {
     expect(screen.getAllByText("by owner/repo").length).toBeGreaterThan(0);
     expect(
       screen.getByRole("button", {
-        name: "Fork Alpha into a new bb skill",
+        name: "Fork Alpha into a new kaioken skill",
       }).textContent,
     ).toBe("");
     const zuluCreate = screen.getByRole("button", {
-      name: "Fork Zulu into a new bb skill",
+      name: "Fork Zulu into a new kaioken skill",
     });
     fireEvent.click(zuluCreate);
     expect(onFork).toHaveBeenCalledWith(zulu);
-    expect(screen.queryByRole("button", { name: /Save .* to bb/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Save .* to kaioken/ })).toBeNull();
 
     expect(screen.queryByRole("button", { name: "Sort" })).toBeNull();
     const alphaTitle = screen.getByText("Alpha");
@@ -1455,12 +1455,12 @@ describe("RegistrySkillDetailView reference creation", () => {
     const view = renderDom(<RegistrySkillDetailView {...props} />);
 
     const forkButton = screen.getByRole("button", {
-      name: "Fork Useful skill into a new bb skill",
+      name: "Fork Useful skill into a new kaioken skill",
     });
     expect(forkButton.textContent).toContain("Fork");
     fireEvent.click(forkButton);
     expect(onFork).toHaveBeenCalledWith(registrySkill);
-    expect(screen.queryByRole("button", { name: /Save .* to bb/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Save .* to kaioken/ })).toBeNull();
 
     view.rerender(
       <RegistrySkillDetailView
@@ -1468,15 +1468,15 @@ describe("RegistrySkillDetailView reference creation", () => {
         localSkill={makeSkill({
           name: registrySkill.skillId,
           provider: null,
-          scope: "bb-user",
+          scope: "kaioken-user",
           registrySkillId: registrySkill.id,
         })}
-        localPath="/home/u/.bb/skills/useful-skill/SKILL.md"
+        localPath="/home/u/.kaioken/skills/useful-skill/SKILL.md"
       />,
     );
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Fork Useful skill into a new bb skill",
+        name: "Fork Useful skill into a new kaioken skill",
       }),
     );
     expect(onFork).toHaveBeenCalledTimes(2);
@@ -1486,19 +1486,19 @@ describe("RegistrySkillDetailView reference creation", () => {
 describe("SkillDetailDialogView", () => {
   it("presents a built-in skill as BB Official without an actions menu", async () => {
     const skill = makeSkill({
-      name: "bb-cli",
+      name: "kaioken-cli",
       provider: null,
-      scope: "bb-builtin",
+      scope: "kaioken-builtin",
       manageable: false,
     });
     renderSkillDetailDialog(skill);
 
-    const official = screen.getByLabelText("bb-cli is BB Official");
+    const official = screen.getByLabelText("kaioken-cli is BB Official");
     expect(official.textContent).toBe("BB Official");
-    expect(screen.queryByRole("button", { name: "bb-cli actions" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "kaioken-cli actions" })).toBeNull();
     fireEvent.pointerMove(official);
     expect((await screen.findByRole("tooltip")).textContent).toBe(
-      "Ships with bb",
+      "Ships with kaioken",
     );
   });
 
@@ -1524,9 +1524,9 @@ describe("SkillDetailDialogView", () => {
         manageable: false,
       }),
       accessibleLabel:
-        "plugin-notes is included with Skill catalog fixture (bb plugin)",
+        "plugin-notes is included with Skill catalog fixture (kaioken plugin)",
       tooltipName: "Skill catalog fixture plugin.",
-      providerIcon: "bb",
+      providerIcon: "kaioken",
     },
   ])("presents $skill.name as plugin-provided", async (example) => {
     renderSkillDetailDialog(example.skill);
@@ -1575,11 +1575,11 @@ describe("SkillDetailDialogView", () => {
 
   it("uses a hoverable copy target and delegates editing to the thread flow", () => {
     const skill = makeSkill({
-      name: "bb-skill",
+      name: "kaioken-skill",
       provider: null,
-      scope: "bb-user",
+      scope: "kaioken-user",
       manageable: true,
-      filePath: "/home/u/.bb/skills/bb-skill/SKILL.md",
+      filePath: "/home/u/.kaioken/skills/kaioken-skill/SKILL.md",
     });
     const onEdit = vi.fn();
     renderSkillDetailDialog(skill, {
@@ -1589,15 +1589,15 @@ describe("SkillDetailDialogView", () => {
     });
 
     screen.getByRole("button", {
-      name: "Copy skill path: /home/u/.bb/skills/bb-skill",
+      name: "Copy skill path: /home/u/.kaioken/skills/kaioken-skill",
     });
-    expect(screen.getByText("~/.bb/skills/bb-skill")).toBeTruthy();
+    expect(screen.getByText("~/.kaioken/skills/kaioken-skill")).toBeTruthy();
     expect(screen.queryByText("BB Official", { exact: true })).toBeNull();
     expect(screen.queryByText("Included", { exact: true })).toBeNull();
     expect(screen.queryByText("Imported", { exact: true })).toBeNull();
     expect(screen.queryByText("Editable", { exact: true })).toBeNull();
     fireEvent.pointerDown(
-      screen.getByRole("button", { name: "bb-skill actions" }),
+      screen.getByRole("button", { name: "kaioken-skill actions" }),
     );
     fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
     expect(onEdit).toHaveBeenCalledOnce();

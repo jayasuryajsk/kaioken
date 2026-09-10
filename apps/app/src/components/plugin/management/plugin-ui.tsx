@@ -1,7 +1,7 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { ResourceIconFrame } from "@bb/shared-ui/resource-list";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { ResourceIconFrame } from "@kaioken/shared-ui/resource-list";
 import {
   PluginCompactIconMask,
   PluginIcon,
@@ -321,7 +321,7 @@ export function RollbackNote({
       <Icon name="RotateCcw" className="mt-0.5 size-3.5 shrink-0" />
       <span>
         Your plugin data is snapshotted first — if {toVersion} fails to start,
-        bb restores {fromVersion} and its data automatically.
+        kaioken restores {fromVersion} and its data automatically.
       </span>
     </div>
   );

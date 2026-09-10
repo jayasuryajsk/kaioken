@@ -3,7 +3,7 @@ import {
   UrlLink as UrlLink,
   useBbNavigate,
   useRpc,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import type { DelegationRpcContract } from "../../delegate/contract.js";
 import type {
   Preset,
@@ -19,16 +19,16 @@ import {
 import { PresetDialog, savePresetDraft } from "../manage/preset-dialog.js";
 import { ConfirmDialog } from "../../components/confirm-dialog.js";
 import { useTasksRpc } from "../../shell/data.js";
-import { Button } from "@bb/shared-ui/button";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 function ThreadPullRequestPill({
   pullRequest,
@@ -127,7 +127,7 @@ function ThreadCard({
   );
 }
 
-const LAST_PRESET_STORAGE_KEY = "bb-tasks:last-dispatch-preset";
+const LAST_PRESET_STORAGE_KEY = "kaioken-tasks:last-dispatch-preset";
 
 function loadLastPresetId(): string | null {
   try {
@@ -338,7 +338,7 @@ export function ThreadsSection({
         title="Detach thread?"
         description={
           confirm
-            ? `"${confirm.title}" will no longer be listed on this task. The thread itself is not deleted; re-attach it with bb tasks attach.`
+            ? `"${confirm.title}" will no longer be listed on this task. The thread itself is not deleted; re-attach it with kaioken tasks attach.`
             : ""
         }
         confirmLabel="Detach"

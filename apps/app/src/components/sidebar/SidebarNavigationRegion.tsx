@@ -9,9 +9,9 @@ import type {
   ExperimentalSidebarNavigationAction,
   ExperimentalSidebarNavigationActivationOptions,
   ExperimentalSidebarNavigationItem,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { useLocation, useNavigate } from "react-router-dom";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   useAppCommandRunner,
   useAppCommandShortcut,
@@ -247,7 +247,7 @@ export function SidebarNavigationRegion(props: BuiltInSidebarNavigationProps) {
         slotKind={SIDEBAR_NAVIGATION_SLOT_KIND}
         onCrash={(pluginId) => {
           appToast.error("Sidebar navigation plugin crashed", {
-            description: `${title} (${pluginId}) stopped working, so bb's own navigation is back.`,
+            description: `${title} (${pluginId}) stopped working, so kaioken's own navigation is back.`,
           });
         }}
       >

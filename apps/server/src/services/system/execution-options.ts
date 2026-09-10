@@ -4,16 +4,16 @@ import type {
   SystemExecutionOptionsQuery,
   SystemExecutionOptionsResponse,
   SystemProvidersQuery,
-} from "@bb/server-contract";
-import { type CustomProviderModel } from "@bb/config/bb-app-managed-config";
+} from "@kaioken/server-contract";
+import { type CustomProviderModel } from "@kaioken/config/kaioken-app-managed-config";
 import {
   providerModelCatalogDependsOnWorkspace,
   reasoningEffortsForLevels,
   type AvailableModel,
   type ProviderInfo,
-} from "@bb/domain";
-import { getAppSettings } from "@bb/db";
-import { type HostDaemonRetryableOnlineRpcCommand } from "@bb/host-daemon-contract";
+} from "@kaioken/domain";
+import { getAppSettings } from "@kaioken/db";
+import { type HostDaemonRetryableOnlineRpcCommand } from "@kaioken/host-daemon-contract";
 import type { ProviderModelListMemoValue } from "../../lifecycle-dedupers.js";
 import type { LoggedWorkSessionDeps } from "../../types.js";
 import { COMMAND_TIMEOUT_MS } from "../../constants.js";

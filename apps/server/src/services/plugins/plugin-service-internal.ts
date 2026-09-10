@@ -1,22 +1,22 @@
 import type { AiServiceRegistry } from "../ai/ai-service-registry.js";
-import type { DbConnection } from "@bb/db";
+import type { DbConnection } from "@kaioken/db";
 import type {
   DynamicTool,
   PendingInteraction,
   Thread,
   ThreadQueuedMessage,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   HostDaemonConnectTunnelIdentity,
   HostDaemonContributedEnvEntry,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   pluginUpdateCheckEntrySchema,
   type InstalledPlugin,
   type PluginApplyUpdateResult,
   type PluginRuntimeStatus,
   type PluginSourceDetail,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type { ServerLogger } from "../../types.js";
 import type { TelemetryService } from "../system/telemetry.js";
 import type { NotificationHub } from "../../ws/hub.js";
@@ -34,7 +34,7 @@ export type {
   PluginHandlerStats,
   PluginRuntimeStatus,
   PluginUpdateCheckEntry,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 
 type PluginServiceState = "running" | "backoff" | "stopped";
 
@@ -140,7 +140,7 @@ export interface PluginServiceDeps {
   onArtifactMaterialize?: (args: { path: string }) => void;
   callPluginHost?: (args: {
     pluginId: string;
-    contract: import("@get-bb/plugin-sdk").PluginRpcContract;
+    contract: import("@get-kaioken/plugin-sdk").PluginRpcContract;
     method: string;
     input: unknown;
     hostId: string;

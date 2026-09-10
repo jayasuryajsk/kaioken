@@ -1,13 +1,13 @@
-# @get-bb/plugin-sdk
+# @get-kaioken/plugin-sdk
 
-The typed facade BB plugin authors compile against. The root preserves the
-complete `BbPluginApi` and `BbSdk` contract; `./app` is the frontend runtime
-that `bb plugin build` replaces with BB's shared implementation.
+The typed facade Kaioken plugin authors compile against. The root preserves the
+complete `KaiokenPluginApi` and `KaiokenSdk` contract; `./app` is the frontend runtime
+that `kaioken plugin build` replaces with Kaioken's shared implementation.
 
 The authoritative contracts are the exported declarations in
 [`src/backend-contract.ts`](src/backend-contract.ts) and
 [`src/app-contract.ts`](src/app-contract.ts). Keep author-facing guidance in
-the built-in `bb-plugin-authoring` skill synchronized with those declarations.
+the built-in `kaioken-plugin-authoring` skill synchronized with those declarations.
 
 ## Environment providers
 
@@ -33,17 +33,17 @@ Any mounted plugin component can use
 same plugin's registered thread-panel actions; it returns false when the
 current surface has no thread side panel.
 
-Use `UrlLink` for a real anchor that applies BB's current
+Use `UrlLink` for a real anchor that applies Kaioken's current
 in-app/external-browser preference on ordinary HTTP(S) activation, or
 `useBbNavigate().openUrl(url)` for a button or menu. Internal app
 routes, modifier clicks, explicit anchor targets, and unsupported schemes stay
 browser-owned. A `_blank` or named target preserves supplied `rel` tokens but
 adds `noopener noreferrer` unless `rel` explicitly contains `opener`, so a
-newly opened page cannot control BB by accident. The frontend harness records
+newly opened page cannot control Kaioken by accident. The frontend harness records
 both forms in `navigateCalls` and accepts an `openUrl` behavior option.
 
 Use `experimental_FileLink` for an explicit live workspace, host, or
-thread-storage file. Ordinary activation opens the shared BB preview and its
+thread-storage file. Ordinary activation opens the shared Kaioken preview and its
 context menu exposes built-in/plugin viewers, preferred external opening, and
 copy actions. Valid targets expose an encoded, scheme-safe anchor href so
 modifier clicks, downloads, and copied links cannot reinterpret a file name as
@@ -78,7 +78,7 @@ a thrown error, so a plugin registering several kinds of action can share one
 open routine and branch on the result.
 
 Use `app.slots.experimental_appOverlay({ id, component })` for additive,
-app-wide floating React UI. BB mounts the component once per app window through
+app-wide floating React UI. Kaioken mounts the component once per app window through
 the normal plugin slot boundary, so SDK hooks and plugin CSS work and React
 context survives portals. This app-level boundary includes the sidebar thread
 data and action hooks. Hooks whose contract requires a particular surface,
@@ -96,7 +96,7 @@ controls to actions or the plus menu and larger content to banners.
 ## Trusted frontend content scripts
 
 Use `app.contentScripts.register({ id, mount })` for ordinary
-bundled TypeScript/JavaScript that enhances the bb app shell without rendering
+bundled TypeScript/JavaScript that enhances the kaioken app shell without rendering
 a React slot. The host supplies `{ pluginId, generation, signal }`, awaits
 mount setup, and owns abort plus exact-once reverse-order disposal across hash
 reload, disable, removal, failed replacement, and app-window teardown. The old
@@ -116,13 +116,13 @@ for a cleanup-safe editor enhancement.
 ## External plugin tests
 
 The packed package includes executable JavaScript and portable declarations
-for `@get-bb/plugin-sdk/testing` and `@get-bb/plugin-sdk/testing/app`; neither subpath
-imports BB workspace packages or source TypeScript at runtime. Install the SDK
+for `@get-kaioken/plugin-sdk/testing` and `@get-kaioken/plugin-sdk/testing/app`; neither subpath
+imports Kaioken workspace packages or source TypeScript at runtime. Install the SDK
 with the test stack used by your plugin (the peer dependencies are optional so
 headless plugins do not install a browser harness):
 
 ```sh
-npm install --save-dev @get-bb/plugin-sdk vitest better-sqlite3 zod cron-parser hono
+npm install --save-dev @get-kaioken/plugin-sdk vitest better-sqlite3 zod cron-parser hono
 npm install --save-dev react react-dom @testing-library/react jsdom # frontend tests
 ```
 
@@ -132,7 +132,7 @@ Backend example:
 import {
   createFakePluginHost,
   makePluginAgentConfigurationContext,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import plugin from "./server.js";
 
 const host = createFakePluginHost({ pluginId: "notes" });
@@ -171,7 +171,7 @@ import {
   loadPluginApp,
   mountPluginContentScripts,
   renderSlot,
-} from "@get-bb/plugin-sdk/testing/app";
+} from "@get-kaioken/plugin-sdk/testing/app";
 
 const app = await loadPluginApp(() => import("./app.js"));
 const scripts = await mountPluginContentScripts(app, { pluginId: "notes" });
@@ -203,7 +203,7 @@ import is unavoidable.
 The backend fake matches observable schema-RPC validation/errors and strict
 JSON results, additive events, keyed-registration failures, atomic reload,
 settings, KV/database storage, conditional agent configuration, request input,
-and disposal order. HTTP runs through Hono but does not enforce BB's local or
+and disposal order. HTTP runs through Hono but does not enforce Kaioken's local or
 token authentication. Background services and schedules run only when driven;
 there are no restart timers or cron sweeps. Storage is process-local in a
 temporary directory, secrets are kept in memory, `bb.sdk` is always bound and
@@ -213,20 +213,20 @@ fake host.
 The frontend harness matches registration validation, content-script mount and
 cleanup ordering, RPC/realtime JSON
 boundaries, panel and slot props, navigation recording, and composer text,
-scope, quote, mention, focus, and clear behavior. It does not reproduce BB
+scope, quote, mention, focus, and clear behavior. It does not reproduce Kaioken
 layout, CSS, persistence, routing, host authentication, crash boundaries, or
-multi-plugin arbitration; use a live BB test for those boundaries.
+multi-plugin arbitration; use a live Kaioken test for those boundaries.
 
 ## Declaration surface
 
-The complete root declaration flattens the unpublished BB workspace contracts.
-The testing declarations reuse that public `@get-bb/plugin-sdk` root instead of
-embedding a second copy, and no declaration depends on unpublished `@bb/*`
+The complete root declaration flattens the unpublished Kaioken workspace contracts.
+The testing declarations reuse that public `@get-kaioken/plugin-sdk` root instead of
+embedding a second copy, and no declaration depends on unpublished `@kaioken/*`
 packages. Genuine npm types (`hono`, `better-sqlite3`, `zod`, React, and Testing
 Library) remain peer imports. Scaffolded plugins depend on this package —
-`bb plugin new` pins it exactly in `devDependencies` — and read the root/app
-declarations straight from `node_modules/@get-bb/plugin-sdk/bundled-types/`,
+`kaioken plugin new` pins it exactly in `devDependencies` — and read the root/app
+declarations straight from `node_modules/@get-kaioken/plugin-sdk/bundled-types/`,
 the same files the testing subpaths reuse. Plugins scaffolded before that
 switch still vendor a copy of the root/app declarations in `types/` and map
-`@get-bb/plugin-sdk` onto them through their `tsconfig.json`; `bb plugin
+`@get-kaioken/plugin-sdk` onto them through their `tsconfig.json`; `kaioken plugin
 types` keeps those refreshed until they migrate.

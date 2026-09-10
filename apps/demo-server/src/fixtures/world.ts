@@ -3,14 +3,14 @@ import type {
   ResolvedThreadExecutionOptions,
   ThreadListEntry,
   ThreadQueuedMessage,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   ProjectWithThreadsResponse,
   SidebarBootstrapResponse,
   SystemVersionResponse,
   ThreadResponse,
   ThreadTabsResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   DEMO_HOST_ID,
   DEMO_PERSONAL_PROJECT_ID,
@@ -183,7 +183,7 @@ export const SYSTEM_VERSION: SystemVersionResponse = {
   source: "npm",
   updateAvailable: false,
   isDevelopment: false,
-  upgradeCommand: "npx bb-app@latest",
+  upgradeCommand: "npx kaioken-app@latest",
 };
 
 export const PLUGIN_CONTRIBUTIONS = { cliCommands: [], mentionProviders: [] };

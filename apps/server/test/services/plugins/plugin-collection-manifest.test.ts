@@ -19,7 +19,7 @@ function manifest(plugins: unknown): string {
 }
 
 function parse(plugins: unknown) {
-  return parsePluginCollectionManifest(manifest(plugins), ".bb/plugins.json");
+  return parsePluginCollectionManifest(manifest(plugins), ".kaioken/plugins.json");
 }
 
 describe("collection manifest schema", () => {
@@ -34,7 +34,7 @@ describe("collection manifest schema", () => {
           { name: "status", source: "./apps/status" },
         ],
       }),
-      ".bb/plugins.json",
+      ".kaioken/plugins.json",
     );
 
     expect(parsed.plugins).toHaveLength(2);
@@ -59,7 +59,7 @@ describe("collection manifest schema", () => {
       "./plugins\\sidebar",
     ]) {
       expect(() => parse([{ name: "sidebar", source }])).toThrowError(
-        /invalid \.bb\/plugins\.json/,
+        /invalid \.kaioken\/plugins\.json/,
       );
     }
   });
@@ -73,12 +73,12 @@ describe("collection manifest schema", () => {
     ).toThrowError(/duplicate plugin name "sidebar"/);
     expect(() =>
       parse([{ name: "sidebar", source: "./a", subdir: "./b" }]),
-    ).toThrowError(/invalid \.bb\/plugins\.json/);
+    ).toThrowError(/invalid \.kaioken\/plugins\.json/);
     expect(() =>
       parse([{ name: "sidebar", source: "./a", description: "Sidebar" }]),
-    ).toThrowError(/invalid \.bb\/plugins\.json/);
+    ).toThrowError(/invalid \.kaioken\/plugins\.json/);
     expect(() => parse([{ name: "Sidebar", source: "./a" }])).toThrowError(
-      /invalid \.bb\/plugins\.json/,
+      /invalid \.kaioken\/plugins\.json/,
     );
     expect(() =>
       parsePluginCollectionManifest(
@@ -87,11 +87,11 @@ describe("collection manifest schema", () => {
           name: "acme-plugins",
           plugins: [{ name: "a", source: "./a" }],
         }),
-        ".bb/plugins.json",
+        ".kaioken/plugins.json",
       ),
-    ).toThrowError(/invalid \.bb\/plugins\.json/);
+    ).toThrowError(/invalid \.kaioken\/plugins\.json/);
     expect(() =>
-      parsePluginCollectionManifest("{ nope", ".bb/plugins.json"),
+      parsePluginCollectionManifest("{ nope", ".kaioken/plugins.json"),
     ).toThrowError(/not valid JSON/);
     expect(() =>
       parsePluginCollectionManifest(
@@ -101,9 +101,9 @@ describe("collection manifest schema", () => {
           name: "acme-plugins",
           plugins: [{ name: "a", source: "./a" }],
         }),
-        ".bb/plugins.json",
+        ".kaioken/plugins.json",
       ),
-    ).toThrowError(/invalid \.bb\/plugins\.json/);
+    ).toThrowError(/invalid \.kaioken\/plugins\.json/);
   });
 
   it("names the available entries when a name is unknown", () => {
@@ -122,9 +122,9 @@ describe("collection manifest in a checkout", () => {
   let repoDir: string;
 
   beforeEach(async () => {
-    workDir = await mkdtemp(join(tmpdir(), "bb-collection-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-collection-"));
     repoDir = join(workDir, "repo");
-    await mkdir(join(repoDir, ".bb"), { recursive: true });
+    await mkdir(join(repoDir, ".kaioken"), { recursive: true });
   });
 
   afterEach(async () => {
@@ -132,14 +132,14 @@ describe("collection manifest in a checkout", () => {
   });
 
   async function writeCollection(plugins: unknown): Promise<void> {
-    await writeFile(join(repoDir, ".bb", "plugins.json"), manifest(plugins));
+    await writeFile(join(repoDir, ".kaioken", "plugins.json"), manifest(plugins));
   }
 
   async function writeRootPackage(): Promise<void> {
     await writeFile(
       join(repoDir, "package.json"),
       JSON.stringify({
-        name: "bb-plugin-root",
+        name: "kaioken-plugin-root",
         version: "0.1.0",
         bb: {
           name: "Root",
@@ -153,14 +153,14 @@ describe("collection manifest in a checkout", () => {
   }
 
   it("returns null when the repository has no collection manifest", async () => {
-    await rm(join(repoDir, ".bb"), { recursive: true });
+    await rm(join(repoDir, ".kaioken"), { recursive: true });
     expect(await readPluginCollectionManifest(repoDir)).toBeNull();
   });
 
   it("refuses a manifest symlinked out of the checkout", async () => {
     const outside = join(workDir, "outside.json");
     await writeFile(outside, manifest([{ name: "a", source: "./a" }]));
-    await symlink(outside, join(repoDir, ".bb", "plugins.json"));
+    await symlink(outside, join(repoDir, ".kaioken", "plugins.json"));
 
     await expect(readPluginCollectionManifest(repoDir)).rejects.toThrowError(
       /resolves outside its root/,
@@ -205,14 +205,14 @@ describe("collection manifest in a checkout", () => {
       }),
     ).toBe("plugins/sidebar");
 
-    await rm(join(repoDir, ".bb"), { recursive: true });
+    await rm(join(repoDir, ".kaioken"), { recursive: true });
     await expect(
       resolveSelectedSubdirectory({
         checkoutDir: repoDir,
         selection: { kind: "entry", name: "sidebar" },
         sourceLabel: "repo",
       }),
-    ).rejects.toThrowError(/no \.bb\/plugins\.json collection manifest/);
+    ).rejects.toThrowError(/no \.kaioken\/plugins\.json collection manifest/);
   });
 
   it("rejects a --subdirectory that escapes the checkout", async () => {

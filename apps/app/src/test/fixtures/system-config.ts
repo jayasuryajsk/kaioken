@@ -1,11 +1,11 @@
-import { DEFAULTS } from "@bb/config/defaults";
+import { DEFAULTS } from "@kaioken/config/defaults";
 import {
   defaultAppSettings,
   defaultAppTheme,
   defaultExperiments,
   defaultFeatureFlags,
-} from "@bb/domain";
-import type { SystemConfigResponse } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { SystemConfigResponse } from "@kaioken/server-contract";
 
 export function makeSystemConfig(
   overrides: Partial<SystemConfigResponse> = {},
@@ -32,7 +32,7 @@ export function makeSystemConfig(
       transcription: DEFAULTS.transcriptionModel,
       services: [],
     },
-    dataDir: "/tmp/bb-test",
+    dataDir: "/tmp/kaioken-test",
     ...overrides,
   };
 }

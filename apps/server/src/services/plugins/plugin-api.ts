@@ -9,14 +9,14 @@ import {
   listPluginKvKeys,
   setPluginKvValue,
   type DbConnection,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   PLUGIN_INTERACTION_MAX_PAYLOAD_BYTES,
   PLUGIN_INTERACTION_MAX_TITLE_LENGTH,
   type JsonValue,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
-  BbPluginApi,
+  KaiokenPluginApi,
   PluginAgentConfiguration,
   PluginAgentConfigurationContext,
   PluginAgentToolContext,
@@ -66,7 +66,7 @@ import type {
   PluginUi,
   StandardSchemaV1,
   PluginRpcContract,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import {
   AGENT_TOOL_NAME_PATTERN,
   assertNoRecursiveJsonSchemaReferences,
@@ -99,13 +99,13 @@ import {
   validatePluginAiServiceDeclaration,
   validatePluginProviderDeclaration,
   zodSchemaToJsonSchema,
-} from "@get-bb/plugin-sdk/internal/host-policy";
+} from "@get-kaioken/plugin-sdk/internal/host-policy";
 import type {
   AiServiceHostBinding,
   NormalizedPluginEnvironmentProvider,
   NormalizedPluginProviderDeclaration,
-} from "@get-bb/plugin-sdk/internal/host-policy";
-import type { BbSdk, ThreadForkArgs, ThreadSpawnArgs } from "@bb/sdk";
+} from "@get-kaioken/plugin-sdk/internal/host-policy";
+import type { KaiokenSdk, ThreadForkArgs, ThreadSpawnArgs } from "@kaioken/sdk";
 import { requestEnvironmentProviderRecheck } from "./plugin-environment-provider-registry.js";
 import type { ServerLogger } from "../../types.js";
 import type { PluginInteractionResult } from "../interactions/pending-interactions.js";
@@ -123,7 +123,7 @@ function migrationStatementHash(statement: string): string {
 }
 
 export type {
-  BbPluginApi,
+  KaiokenPluginApi,
   PluginAgentConfigurationContext,
   PluginAgentToolContext,
   PluginCliCommandInfo,
@@ -131,7 +131,7 @@ export type {
   PluginMentionTrigger,
   PluginThreadEventName,
   PluginThreadEventPayloads,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 
 class PluginContextStaleError extends Error {
   constructor(pluginId: string) {
@@ -239,7 +239,7 @@ type PluginSettingsListener = (
 ) => void;
 
 export interface PluginApiHandle {
-  api: BbPluginApi;
+  api: KaiokenPluginApi;
   disposeHooks: Array<() => void | Promise<void>>;
   settings: {
     descriptors: PluginSettingDescriptors;
@@ -309,7 +309,7 @@ export type PluginProviderEnvHealthResolver = (
   | null
   | Promise<ExperimentalPluginProviderEnvHealth | null>;
 
-function wrapSdkForPlugin(sdk: BbSdk, pluginId: string): BbSdk {
+function wrapSdkForPlugin(sdk: KaiokenSdk, pluginId: string): KaiokenSdk {
   return {
     ...sdk,
     threads: {
@@ -422,7 +422,7 @@ export function createPluginApi(options: {
   logger: ServerLogger;
   db: DbConnection;
   dataDir: string;
-  getSdk: () => BbSdk | undefined;
+  getSdk: () => KaiokenSdk | undefined;
   getAppUrl: () => string | null;
   getLoopbackBaseUrl: () => string | undefined;
   publishSignal: (channel: string, payload: unknown) => void;
@@ -518,7 +518,7 @@ export function createPluginApi(options: {
   } = options;
   let invalidated = false;
   let activated = false;
-  let wrappedSdk: BbSdk | undefined;
+  let wrappedSdk: KaiokenSdk | undefined;
   let pendingNeedsConfiguration: string | null = null;
   const pendingAgentToolProblems: string[] = [];
   const pendingSharedPorts = new Map<string, readonly number[]>();
@@ -1083,7 +1083,7 @@ export function createPluginApi(options: {
       }
       if (RESERVED_AGENT_TOOL_NAMES.includes(name)) {
         throw new Error(
-          `tool name "${name}" is a built-in bb tool — pick another name`,
+          `tool name "${name}" is a built-in kaioken tool — pick another name`,
         );
       }
       rejectStaleAgentToolFields(name, tool);
@@ -1553,7 +1553,7 @@ export function createPluginApi(options: {
     register: aiServiceRegistrations.register,
   };
 
-  const api: BbPluginApi = {
+  const api: KaiokenPluginApi = {
     pluginId,
     log,
     settings,
@@ -1573,7 +1573,7 @@ export function createPluginApi(options: {
     server,
     hosts,
     experimental_aiServices,
-    get sdk(): BbSdk {
+    get sdk(): KaiokenSdk {
       assertLive();
       const sdk = getSdk();
       if (!sdk) {

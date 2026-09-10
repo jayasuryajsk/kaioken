@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { posix, win32 } from "node:path";
-import type { BbPluginApi, PluginRpcHandlers } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi, PluginRpcHandlers } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import {
   hostContract,
@@ -37,7 +37,7 @@ const idleTimeoutMs = 5 * 60_000;
 const keyFor = (threadId: string, sessionId: string) =>
   `sessions/${encodeURIComponent(threadId)}/${sessionId}`;
 
-export default async function browserAutomationPlugin(bb: BbPluginApi) {
+export default async function browserAutomationPlugin(bb: KaiokenPluginApi) {
   const host = bb.hosts.experimental_client({ contract: hostContract });
   const desktop = bb.sdk.experimental_desktopBrowsers;
   const active = new Map<string, RecordEntry>();

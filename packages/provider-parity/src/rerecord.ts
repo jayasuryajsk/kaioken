@@ -7,7 +7,7 @@ import {
   firstPartyReplayBridge,
   readBridgeRecording,
   rerecordCurrentBridgeLane,
-} from "@bb/provider-bridge-protocol/testing/parity";
+} from "@kaioken/provider-bridge-protocol/testing/parity";
 import {
   RECORDINGS_ROOT,
   cellKey,
@@ -24,8 +24,8 @@ const REDACT_SCRIPT = resolve(
 );
 
 function redactInPlace(file: string): void {
-  const inDir = mkdtempSync(join(tmpdir(), "bb-rerecord-redact-in-"));
-  const outDir = mkdtempSync(join(tmpdir(), "bb-rerecord-redact-out-"));
+  const inDir = mkdtempSync(join(tmpdir(), "kaioken-rerecord-redact-in-"));
+  const outDir = mkdtempSync(join(tmpdir(), "kaioken-rerecord-redact-out-"));
   try {
     const staged = join(inDir, basename(file));
     writeFileSync(staged, readFileSync(file));

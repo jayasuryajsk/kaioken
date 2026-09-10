@@ -1,11 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
-import type { PromptMentionCommandTrigger } from "@bb/domain";
-import { usePointerCoarse } from "@bb/shared-ui/hooks/use-pointer-coarse";
+import type { PromptMentionCommandTrigger } from "@kaioken/domain";
+import { usePointerCoarse } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 import {
   toProviderCommandSuggestion,
   type ProviderCommandSuggestion,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   projectCommandsQueryOptions,
   useProjectCommands,

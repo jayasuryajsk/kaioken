@@ -1,13 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@bb/shared-ui/button";
-import { Icon } from "@bb/shared-ui/icon";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/tooltip";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { appToast } from "@/components/ui/app-toast";
 import { invalidatePluginList } from "@/hooks/cache-owners/plugin-cache-owner";
 import {

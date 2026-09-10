@@ -6,7 +6,7 @@ import {
   type PluginCatalogCategoryId,
   type PluginMarketplaceCollectionId,
   type PluginMarketplaceCollectionPluginId,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { z } from "zod";
 
 export { pluginCatalogCategoryIdSchema, type PluginCatalogCategoryId };
@@ -212,7 +212,7 @@ export const installedPluginSchema = z.object({
    * renders the per-kind fallback glyph. Identity-backed like `iconUrl`, so a
    * disabled plugin's icons still resolve. Empty for a plugin that declares
    * none; the server fills it for every plugin, with the same response-side
-   * tolerance as `providerIds` in @bb/sdk for servers older than the field.
+   * tolerance as `providerIds` in @kaioken/sdk for servers older than the field.
    */
   icons: z.record(z.string(), z.string()),
 });

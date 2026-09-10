@@ -55,7 +55,7 @@ function parseArgs(argv) {
   const output = resolve(values.get("output"));
   const load = values.get("load") ?? "idle";
   if (!existsSync(join(repo, "packages/db/src/index.ts"))) {
-    throw new Error(`--repo is not a bb checkout: ${repo}`);
+    throw new Error(`--repo is not a kaioken checkout: ${repo}`);
   }
   if (load !== "idle" && load !== "cpu") {
     throw new Error("--load must be idle or cpu");
@@ -257,7 +257,7 @@ function databaseSize(db, databasePath) {
 }
 
 function seedDatabase(api, root, args) {
-  const databasePath = join(root, "bb.db");
+  const databasePath = join(root, "kaioken.db");
   const db = api.createConnection(databasePath);
   api.migrate(db);
   const host = api.upsertHost(db, api.noopNotifier, {
@@ -674,7 +674,7 @@ async function main() {
     throw new Error("Target checkout has neither migration implementation");
   }
   const benchmarkRoot = mkdtempSync(
-    join(tmpdir(), "bb-completed-output-migration-"),
+    join(tmpdir(), "kaioken-completed-output-migration-"),
   );
   let cpuLoad = null;
   try {

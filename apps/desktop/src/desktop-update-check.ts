@@ -1,11 +1,11 @@
 import semver from "semver";
 import {
-  bbDesktopVersionFeedSchema,
-  type BbDesktopInfo,
-  type BbDesktopInfoChangeHandler,
-  type BbDesktopInfoUnsubscribe,
-  type BbDesktopVersionFeed,
-} from "@bb/desktop-contract";
+  kaiokenDesktopVersionFeedSchema,
+  type KaiokenDesktopInfo,
+  type KaiokenDesktopInfoChangeHandler,
+  type KaiokenDesktopInfoUnsubscribe,
+  type KaiokenDesktopVersionFeed,
+} from "@kaioken/desktop-contract";
 
 export { createDesktopUpdateFeedUrl } from "./desktop-update-provider.js";
 export const DESKTOP_UPDATE_CHECK_INTERVAL_MS = 60 * 60 * 1000;
@@ -19,16 +19,16 @@ interface DesktopUpdateLogger {
 }
 
 interface ParseDesktopVersionFeedArgs {
-  channel: BbDesktopVersionFeed["channel"];
+  channel: KaiokenDesktopVersionFeed["channel"];
   checkedAt: string;
   currentVersion: string;
   payloadText: string;
-  platform: BbDesktopInfo["platform"];
+  platform: KaiokenDesktopInfo["platform"];
 }
 
 interface ValidDesktopVersionFeedParseResult {
-  feed: BbDesktopVersionFeed;
-  info: BbDesktopInfo;
+  feed: KaiokenDesktopVersionFeed;
+  info: KaiokenDesktopInfo;
   kind: "valid";
 }
 
@@ -42,23 +42,23 @@ type DesktopVersionFeedParseResult =
   | ValidDesktopVersionFeedParseResult;
 
 interface CreateDesktopUpdateServiceArgs {
-  channel: BbDesktopVersionFeed["channel"];
+  channel: KaiokenDesktopVersionFeed["channel"];
   currentVersion: string;
   enabled: boolean;
   feedUrl: string;
   fetchImpl?: typeof fetch;
   logger?: DesktopUpdateLogger;
   now?: () => number;
-  platform: BbDesktopInfo["platform"];
+  platform: KaiokenDesktopInfo["platform"];
 }
 
 export interface DesktopUpdateService {
-  checkAfterActive(): Promise<BbDesktopInfo | null>;
-  checkForUpdates(): Promise<BbDesktopInfo>;
-  getInfo(): BbDesktopInfo;
+  checkAfterActive(): Promise<KaiokenDesktopInfo | null>;
+  checkForUpdates(): Promise<KaiokenDesktopInfo>;
+  getInfo(): KaiokenDesktopInfo;
   start(): void;
   stop(): void;
-  subscribe(listener: BbDesktopInfoChangeHandler): BbDesktopInfoUnsubscribe;
+  subscribe(listener: KaiokenDesktopInfoChangeHandler): KaiokenDesktopInfoUnsubscribe;
 }
 
 interface FetchDesktopVersionFeedArgs {
@@ -73,8 +73,8 @@ interface ApplyFailureArgs {
 
 function createBaseInfo(
   currentVersion: string,
-  platform: BbDesktopInfo["platform"],
-): BbDesktopInfo {
+  platform: KaiokenDesktopInfo["platform"],
+): KaiokenDesktopInfo {
   return {
     lastCheckedAt: null,
     latestVersion: null,
@@ -91,8 +91,8 @@ function formatErrorMessage(error: unknown): string {
 }
 
 function areDesktopInfoValuesEqual(
-  left: BbDesktopInfo,
-  right: BbDesktopInfo,
+  left: KaiokenDesktopInfo,
+  right: KaiokenDesktopInfo,
 ): boolean {
   return (
     left.lastCheckedAt === right.lastCheckedAt &&
@@ -120,7 +120,7 @@ export function parseDesktopVersionFeed(
     };
   }
 
-  const parsedFeed = bbDesktopVersionFeedSchema.safeParse(payload);
+  const parsedFeed = kaiokenDesktopVersionFeedSchema.safeParse(payload);
   if (!parsedFeed.success) {
     return {
       kind: "malformed",
@@ -196,12 +196,12 @@ export function createDesktopUpdateService(
   const now = args.now ?? (() => Date.now());
 
   let currentInfo = createBaseInfo(args.currentVersion, args.platform);
-  let inflight: Promise<BbDesktopInfo> | null = null;
+  let inflight: Promise<KaiokenDesktopInfo> | null = null;
   let intervalHandle: DesktopUpdateIntervalHandle | null = null;
   let lastAttemptedAt: number | null = null;
-  const listeners = new Set<BbDesktopInfoChangeHandler>();
+  const listeners = new Set<KaiokenDesktopInfoChangeHandler>();
 
-  function updateInfo(nextInfo: BbDesktopInfo): void {
+  function updateInfo(nextInfo: KaiokenDesktopInfo): void {
     if (areDesktopInfoValuesEqual(currentInfo, nextInfo)) {
       return;
     }
@@ -211,7 +211,7 @@ export function createDesktopUpdateService(
     }
   }
 
-  function applyFailure(failureArgs: ApplyFailureArgs): BbDesktopInfo {
+  function applyFailure(failureArgs: ApplyFailureArgs): KaiokenDesktopInfo {
     logger.warn(failureArgs.message);
     updateInfo({
       ...currentInfo,
@@ -220,7 +220,7 @@ export function createDesktopUpdateService(
     return currentInfo;
   }
 
-  async function checkForUpdates(): Promise<BbDesktopInfo> {
+  async function checkForUpdates(): Promise<KaiokenDesktopInfo> {
     if (!args.enabled) {
       return currentInfo;
     }
@@ -281,7 +281,7 @@ export function createDesktopUpdateService(
   }
 
   return {
-    async checkAfterActive(): Promise<BbDesktopInfo | null> {
+    async checkAfterActive(): Promise<KaiokenDesktopInfo | null> {
       if (!args.enabled) {
         return null;
       }
@@ -295,7 +295,7 @@ export function createDesktopUpdateService(
       return checkForUpdates();
     },
     checkForUpdates,
-    getInfo(): BbDesktopInfo {
+    getInfo(): KaiokenDesktopInfo {
       return currentInfo;
     },
     start(): void {
@@ -314,7 +314,7 @@ export function createDesktopUpdateService(
       clearInterval(intervalHandle);
       intervalHandle = null;
     },
-    subscribe(listener: BbDesktopInfoChangeHandler): BbDesktopInfoUnsubscribe {
+    subscribe(listener: KaiokenDesktopInfoChangeHandler): KaiokenDesktopInfoUnsubscribe {
       listeners.add(listener);
       return () => {
         listeners.delete(listener);

@@ -1,8 +1,8 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { encodeClientTurnRequestIdNumber } from "@bb/domain";
-import type { PromptInput } from "@bb/domain";
+import { encodeClientTurnRequestIdNumber } from "@kaioken/domain";
+import type { PromptInput } from "@kaioken/domain";
 import { buildThreadStartCommand } from "../../../src/services/threads/thread-commands.js";
 import { UPDATE_ENVIRONMENT_DIRECTORY_TOOL_NAME } from "../../../src/services/threads/thread-environment-directory.js";
 import { resolveExecutionOptions } from "../../../src/services/threads/thread-runtime-config.js";
@@ -103,7 +103,7 @@ describe("hero plugin: agent-enrichment (Phase 2 surfaces)", () => {
       required: ["query"],
     });
     expect(command.instructions).toContain(
-      'The following instructions come from the BB plugin "agent-enrichment" for its tool "docs_search":',
+      'The following instructions come from the Kaioken plugin "agent-enrichment" for its tool "docs_search":',
     );
     expect(command.instructions).toContain(
       "Use the docs_search tool to look up repo conventions",

@@ -1,6 +1,6 @@
-import { type LocalPathProjectSource, PERSONAL_PROJECT_ID } from "@bb/domain";
-import type { EnvironmentRow } from "@bb/db";
-import type { EnvironmentArgs } from "@bb/server-contract";
+import { type LocalPathProjectSource, PERSONAL_PROJECT_ID } from "@kaioken/domain";
+import type { EnvironmentRow } from "@kaioken/db";
+import type { EnvironmentArgs } from "@kaioken/server-contract";
 import { ApiError } from "../../errors.js";
 import type { AppDeps } from "../../types.js";
 import { requireEnvironment } from "../lib/entity-lookup.js";

@@ -1,5 +1,5 @@
-import type { PromptMentionResource } from "@bb/domain";
-import { Icon } from "@bb/shared-ui/icon";
+import type { PromptMentionResource } from "@kaioken/domain";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { PluginIcon } from "@/components/plugin/PluginIcon";
 import { promptMentionIconName } from "./prompt-mention-display";
 

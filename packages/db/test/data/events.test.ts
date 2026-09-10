@@ -8,7 +8,7 @@ import {
   threadScope,
   turnScope,
   type PromptInput,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { noopNotifier } from "../../src/notifier.js";
 import type { DbNotifier } from "../../src/notifier.js";
 import {

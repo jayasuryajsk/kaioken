@@ -8,7 +8,7 @@ import type {
   ThreadTimelineGoal,
   ThreadTimelineModelFallback,
   ThreadWithRuntime,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   cleanup,
   fireEvent,
@@ -18,17 +18,17 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import type { TimelineWorkflowWorkRow } from "@bb/server-contract";
-import { createDeferredPromise } from "@bb/test-helpers";
+import type { TimelineWorkflowWorkRow } from "@kaioken/server-contract";
+import { createDeferredPromise } from "@kaioken/test-helpers";
 import {
   makeThreadQueuedMessage as makeThreadQueuedMessageFixture,
   makeThreadWithRuntime as makeThreadWithRuntimeFixture,
-} from "@bb/test-helpers/domain-fixtures";
+} from "@kaioken/test-helpers/domain-fixtures";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { workflowRow } from "@/test/fixtures/thread-timeline-rows";
-import { THREAD_HANDOFF_CREATE_SEED_LOCATION_STATE_KEY } from "@bb/client-core";
-import { BbHttpError } from "@/lib/sdk";
+import { THREAD_HANDOFF_CREATE_SEED_LOCATION_STATE_KEY } from "@kaioken/client-core";
+import { KaiokenHttpError } from "@/lib/sdk";
 import type { PluginComposerHost } from "@/components/plugin/plugin-composer-host";
 import { setComposerTextEffect } from "@/lib/composer-text-effects";
 import {
@@ -1489,7 +1489,7 @@ describe("ThreadDetailPromptArea", () => {
   it("dismisses a missing queued message but keeps a stale edit recoverable", async () => {
     mocks.queuedMessages = [makeQueuedMessage()];
     mocks.updateQueuedMessageMutateAsync.mockRejectedValueOnce(
-      new BbHttpError({
+      new KaiokenHttpError({
         body: null,
         code: "invalid_request",
         status: 409,
@@ -1520,7 +1520,7 @@ describe("ThreadDetailPromptArea", () => {
     ).toBeTruthy();
 
     mocks.updateQueuedMessageMutateAsync.mockRejectedValueOnce(
-      new BbHttpError({
+      new KaiokenHttpError({
         body: null,
         code: "invalid_request",
         status: 404,

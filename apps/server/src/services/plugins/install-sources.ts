@@ -18,7 +18,7 @@ import semver from "semver";
 import {
   omitNpmScriptPolicyEnv,
   spawnPortableOutputProcess,
-} from "@bb/process-utils";
+} from "@kaioken/process-utils";
 
 type ParsedGitSelector =
   | { kind: "ref"; ref: string }

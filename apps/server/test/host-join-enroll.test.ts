@@ -1,10 +1,10 @@
-import { authApiKeys, getHost } from "@bb/db";
+import { authApiKeys, getHost } from "@kaioken/db";
 import { eq } from "drizzle-orm";
 import {
   hostDaemonEnrollKeyResponseSchema,
   hostDaemonEnrollResponseSchema,
   type HostDaemonEnrollKeyResponse,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { Hono } from "hono";
 import { describe, expect, it } from "vitest";
 import { errorToResponse } from "../src/errors.js";
@@ -59,7 +59,7 @@ async function requestHostEnrollKey(
 }
 
 describe("host enroll routes", () => {
-  it("creates local enroll-key material without BB_APP_URL", async () => {
+  it("creates local enroll-key material without KAIOKEN_APP_URL", async () => {
     const harness = await createTestAppHarness({ appUrl: undefined });
     const app = createInternalHostRouteApp({
       deps: harness.deps,

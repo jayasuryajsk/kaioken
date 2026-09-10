@@ -4,15 +4,15 @@ import {
   getPluginSettingsValues,
   setPluginSettingsValues,
   type DbConnection,
-} from "@bb/db";
+} from "@kaioken/db";
 import type {
   PluginSettingDescriptor,
   PluginSettingDescriptors,
   PluginSettingValue,
-} from "@get-bb/plugin-sdk";
-import type { PluginSettingDescriptor as PublicPluginSettingDescriptor } from "@bb/server-contract";
-import { validateSettingsUpdate } from "@get-bb/plugin-sdk/internal/host-policy";
-import { deleteSecretFile, writeSecretFile } from "@bb/secret-storage";
+} from "@get-kaioken/plugin-sdk";
+import type { PluginSettingDescriptor as PublicPluginSettingDescriptor } from "@kaioken/server-contract";
+import { validateSettingsUpdate } from "@get-kaioken/plugin-sdk/internal/host-policy";
+import { deleteSecretFile, writeSecretFile } from "@kaioken/secret-storage";
 
 export { validateSettingsUpdate as validatePluginSettingsUpdate };
 

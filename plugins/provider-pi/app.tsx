@@ -2,9 +2,9 @@ import { useMemo, useState, type FormEvent } from "react";
 import {
   definePluginApp,
   type PluginPendingInteractionProps,
-} from "@get-bb/plugin-sdk/app";
-import { Button } from "@bb/shared-ui/button";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@get-kaioken/plugin-sdk/app";
+import { Button } from "@kaioken/shared-ui/button";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   PI_EXTENSION_UI_RENDERER_ID,
   piExtensionUiPayloadDataSchema,

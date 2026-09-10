@@ -8,7 +8,7 @@ import type {
   ReasoningLevel,
   RuntimePermissionPolicy,
   ServiceTier,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   AgentRuntimeBridgeLaunch,
   AgentRuntimeSkillRoot,

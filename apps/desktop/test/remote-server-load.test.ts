@@ -28,7 +28,7 @@ function createHarness(
   overrides: Partial<LoadRemoteServerPageArgs> = {},
 ): TestHarness {
   const serverUrl =
-    overrides.serverUrl ?? "http://bb-host.tailnet.ts.net:38886";
+    overrides.serverUrl ?? "http://kaioken-host.tailnet.ts.net:38886";
   const shownErrors: StartupErrorView[] = [];
   const warnings: string[] = [];
   return {
@@ -57,8 +57,8 @@ describe("loadRemoteServerPage", () => {
 
     expect(harness.shownErrors).toHaveLength(1);
     const view = harness.shownErrors[0];
-    expect(view?.title).toBe("Could not reach this bb server");
-    expect(view?.details).toContain("http://bb-host.tailnet.ts.net:38886");
+    expect(view?.title).toBe("Could not reach this kaioken server");
+    expect(view?.details).toContain("http://kaioken-host.tailnet.ts.net:38886");
     expect(view?.details).toContain("Window ▸ Server");
     expect(view?.details).toContain("This Mac");
     expect(view?.details).not.toContain("rejectAndCleanup");
@@ -70,17 +70,17 @@ describe("loadRemoteServerPage", () => {
 
   it("keeps credentials and query tokens off the screen and out of the log", async () => {
     const harness = createHarness({
-      serverUrl: "https://user:hunter2@bb.example.com:8443/?token=s3cret",
+      serverUrl: "https://user:hunter2@kaioken.example.com:8443/?token=s3cret",
     });
 
     await expect(loadRemoteServerPage(harness)).resolves.toBe(false);
 
     const details = harness.shownErrors[0]?.details ?? "";
-    expect(details).toContain("https://bb.example.com:8443");
+    expect(details).toContain("https://kaioken.example.com:8443");
     expect(details).not.toContain("hunter2");
     expect(details).not.toContain("s3cret");
     const logged = harness.warnings[0] ?? "";
-    expect(logged).toContain("https://bb.example.com:8443");
+    expect(logged).toContain("https://kaioken.example.com:8443");
     expect(logged).not.toContain("hunter2");
     expect(logged).not.toContain("s3cret");
   });
@@ -108,10 +108,10 @@ describe("describeServerUrl", () => {
   it("names only the origin", () => {
     expect(
       describeServerUrl("http://user:pw@host.ts.net:38886/app?token=x#y"),
-    ).toBe("the bb server at http://host.ts.net:38886");
+    ).toBe("the kaioken server at http://host.ts.net:38886");
   });
 
   it("falls back to a generic label for an unparseable URL", () => {
-    expect(describeServerUrl("not a url")).toBe("the saved bb server");
+    expect(describeServerUrl("not a url")).toBe("the saved kaioken server");
   });
 });

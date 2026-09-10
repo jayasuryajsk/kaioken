@@ -1,8 +1,8 @@
 import { useState, type ComponentProps, type ReactNode } from "react";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
-import { Skeleton } from "@bb/shared-ui/skeleton";
-import { COARSE_POINTER_HEADER_ICON_BUTTON_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
+import { COARSE_POINTER_HEADER_ICON_BUTTON_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { PluginHomepageSections } from "@/components/plugin/PluginHomepageSections";
 import { usePluginComposerHost } from "@/components/plugin/plugin-composer-host";
 import { SecondaryPanelLayout } from "@/components/secondary-panel/SecondaryPanelLayout";
@@ -14,7 +14,7 @@ import {
   MACOS_APP_REGION_NO_DRAG_CLASS,
   MACOS_WINDOW_DRAG_CLASS,
   shouldUseMacosDesktopChrome,
-} from "@/lib/bb-desktop";
+} from "@/lib/kaioken-desktop";
 import { RootComposeCompactHome } from "./RootComposeCompactHome";
 import { useOptionalPaneContext } from "./thread-detail/PaneContext";
 import { getCompactPanelPresentation } from "@/components/secondary-panel/panelToggleControlState";

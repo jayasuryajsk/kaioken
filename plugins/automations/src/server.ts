@@ -1,4 +1,4 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { migrations } from "./data.js";
 import { ingestLegacyImport } from "./legacy-import.js";
 import { pluginDataDirFromDb } from "./path.js";
@@ -13,10 +13,10 @@ import { createAutomationService } from "./service.js";
 import { sleep, sweepDueAutomations, SWEEP_INTERVAL_MS } from "./sweep.js";
 
 function resolveServerUrl(): string {
-  return process.env.BB_SERVER_URL?.trim() || "http://127.0.0.1:38886";
+  return process.env.KAIOKEN_SERVER_URL?.trim() || "http://127.0.0.1:38886";
 }
 
-export default async function plugin(bb: BbPluginApi) {
+export default async function plugin(bb: KaiokenPluginApi) {
   const db = bb.storage.database();
   bb.storage.migrate(db, migrations);
   const pluginDataDir = pluginDataDirFromDb(db);

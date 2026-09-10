@@ -7,14 +7,14 @@ export default defineWorkspaceTestConfig({
   test: {
     silent: "passed-only",
     env: {
-      BB_DATA_DIR: "/tmp/bb-host-daemon-test",
-      BB_SERVER_URL: "http://127.0.0.1:49161",
-      BB_HOST_DAEMON_PORT: "49162",
+      KAIOKEN_DATA_DIR: "/tmp/kaioken-host-daemon-test",
+      KAIOKEN_SERVER_URL: "http://127.0.0.1:49161",
+      KAIOKEN_HOST_DAEMON_PORT: "49162",
     },
     testTimeout: 15_000,
     projects: sharedWorkerProjects({
       pkgDir: __dirname,
-      name: "@bb/host-daemon",
+      name: "@kaioken/host-daemon",
       include: ["src/**/*.test.ts", "test/**/*.test.ts"],
     }),
   },

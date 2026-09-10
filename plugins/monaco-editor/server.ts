@@ -1,7 +1,7 @@
 import path from "node:path";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
+import { defineRpcContract, type KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 
 const MAX_EDITABLE_BYTES = 8 * 1024 * 1024;
@@ -113,13 +113,13 @@ async function ensureMonacoBundleDir(
   );
   if (staged === undefined) {
     throw new Error(
-      "could not build the Monaco bundle; run `pnpm --filter bb-plugin-monaco-editor build:monaco`",
+      "could not build the Monaco bundle; run `pnpm --filter kaioken-plugin-monaco-editor build:monaco`",
     );
   }
   return staged;
 }
 
-export default async function plugin(bb: BbPluginApi) {
+export default async function plugin(bb: KaiokenPluginApi) {
   let assetLease: { baseUrl: string; expiresAtMs: number } | null = null;
 
   async function assets() {
@@ -140,7 +140,7 @@ export default async function plugin(bb: BbPluginApi) {
   }
 
   async function threadStorageRoot(): Promise<string> {
-    const override = process.env.BB_THREAD_STORAGE;
+    const override = process.env.KAIOKEN_THREAD_STORAGE;
     if (override && override.trim().length > 0) return path.resolve(override);
     const { dataDir } = await bb.sdk.system.config();
     return path.join(dataDir, "thread-storage");

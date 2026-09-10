@@ -1,11 +1,11 @@
-import type { CustomProviderModel } from "@bb/config/bb-app-managed-config";
-import type { DbConnection } from "@bb/db";
-import type { FeatureFlags, ProviderNativeSkillRoots } from "@bb/domain";
-import type { Logger } from "@bb/logger";
+import type { CustomProviderModel } from "@kaioken/config/kaioken-app-managed-config";
+import type { DbConnection } from "@kaioken/db";
+import type { FeatureFlags, ProviderNativeSkillRoots } from "@kaioken/domain";
+import type { Logger } from "@kaioken/logger";
 import type { PendingInteractionLifecycle } from "./services/interactions/pending-interactions.js";
 import type { MachineAuthService } from "./services/machine-auth.js";
 import type { AppVersionService } from "./services/system/app-version.js";
-import type { BbAppManagedConfigReloader } from "./services/system/bb-app-managed-config.js";
+import type { KaiokenAppManagedConfigReloader } from "./services/system/kaioken-app-managed-config.js";
 import type { TelemetryService } from "./services/system/telemetry.js";
 import type { TerminalSessionLifecycle } from "./services/terminals/terminal-session-lifecycle.js";
 import type { LifecycleDedupers } from "./lifecycle-dedupers.js";
@@ -64,7 +64,7 @@ export interface AppDeps {
 
 export interface ServerAppDeps extends AppDeps {
   appVersion: AppVersionService;
-  bbAppManagedConfig: BbAppManagedConfigReloader;
+  kaiokenAppManagedConfig: KaiokenAppManagedConfigReloader;
 }
 
 export type WorkSessionDeps = Pick<

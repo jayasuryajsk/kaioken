@@ -1,4 +1,4 @@
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import { createFakePluginHost } from "@get-kaioken/plugin-sdk/testing";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   type Db,
@@ -345,7 +345,7 @@ describe("workflow service policy integration", () => {
     const named = source("return { kind: 'named', args };", "named-child");
     const path = source("return { kind: 'path', args };", "path-child");
     const test = setup(DEFAULT_WORKFLOW_SETTINGS, {
-      "/workspace/.bb/workflows/named-child.js": named,
+      "/workspace/.kaioken/workflows/named-child.js": named,
       "/workspace/child.js": path,
     });
     harnesses.push(test.harness);
@@ -371,7 +371,7 @@ describe("workflow service policy integration", () => {
       [
         {
           hostId: "host-1",
-          path: "/workspace/.bb/workflows/named-child.js",
+          path: "/workspace/.kaioken/workflows/named-child.js",
           rootPath: "/workspace",
         },
       ],
@@ -392,7 +392,7 @@ describe("workflow service policy integration", () => {
     const named = source("return { kind: 'named', args };", "named-child");
     const path = source("return { kind: 'path', args };", "path-child");
     const test = setup(DEFAULT_WORKFLOW_SETTINGS, {
-      "/workspace/.bb/workflows/named-child.js": named,
+      "/workspace/.kaioken/workflows/named-child.js": named,
       "/workspace/child.js": path,
     });
     harnesses.push(test.harness);
@@ -420,7 +420,7 @@ describe("workflow service policy integration", () => {
       [
         {
           hostId: "host-1",
-          path: "/workspace/.bb/workflows/named-child.js",
+          path: "/workspace/.kaioken/workflows/named-child.js",
           rootPath: "/workspace",
         },
       ],
@@ -445,11 +445,11 @@ describe("workflow service policy integration", () => {
       releaseFirst = resolve;
     });
     const children: Record<string, string> = {
-      "/workspace/.bb/workflows/first.js": source(
+      "/workspace/.kaioken/workflows/first.js": source(
         `return await agent("first-agent");`,
         "first",
       ),
-      "/workspace/.bb/workflows/second.js": source(
+      "/workspace/.kaioken/workflows/second.js": source(
         `return await agent("second-agent");`,
         "second",
       ),
@@ -1444,7 +1444,7 @@ describe("workflow service policy integration", () => {
     expect(text).toContain(run.id);
     expect(text).toContain("failed");
     expect(text).toContain("[truncated]");
-    expect(text).toContain(`bb workflows status ${run.id}`);
+    expect(text).toContain(`kaioken workflows status ${run.id}`);
     expect(text).not.toContain("�");
   });
 });

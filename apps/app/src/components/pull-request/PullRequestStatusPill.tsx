@@ -1,6 +1,6 @@
-import type { PullRequestState, ThreadPullRequest } from "@bb/domain";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+import type { PullRequestState, ThreadPullRequest } from "@kaioken/domain";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { getPullRequestGithubCheckStatus } from "@/lib/pull-request-display";
 import { GithubFaviconIcon } from "./GithubFaviconIcon";
 

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import {
   turnStartParamsSchema,
   type PromptInput,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import { expect, it } from "vitest";
 import { extractPiPromptInput } from "./turn-input.js";
 
@@ -81,7 +81,7 @@ it("preserves argument boundary whitespace", () => {
 });
 
 it("preserves text chunks, local files, and local images", () => {
-  const workspaceDir = mkdtempSync(join(tmpdir(), "bb-pi-turn-input-"));
+  const workspaceDir = mkdtempSync(join(tmpdir(), "kaioken-pi-turn-input-"));
   try {
     const imagePath = join(workspaceDir, "screenshot.png");
     const filePath = join(workspaceDir, "context.txt");

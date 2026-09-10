@@ -1,5 +1,5 @@
 {
-  "name": "bb-plugin-scripted-echo-provider",
+  "name": "kaioken-plugin-scripted-echo-provider",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -9,7 +9,7 @@
   },
   "bb": {
     "name": "Scripted echo provider (test harness)",
-    "description": "The echo bridge plus the scripted directives bb's runtime and integration suites drive. Not a product plugin.",
+    "description": "The echo bridge plus the scripted directives kaioken's runtime and integration suites drive. Not a product plugin.",
     "branding": {
       "icon": "Zap"
     },
@@ -21,7 +21,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@get-bb/plugin-sdk": "workspace:*",
+    "@get-kaioken/plugin-sdk": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {

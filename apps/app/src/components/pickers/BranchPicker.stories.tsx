@@ -10,16 +10,16 @@ const branches = [
   "main",
   "develop",
   "staging",
-  "bb/feat/review-flow",
-  "bb/fix/timeline-pagination",
-  "bb/implement-server-daemon-protocol-simplification-thr_qfk8ksbxkk",
+  "kaioken/feat/review-flow",
+  "kaioken/fix/timeline-pagination",
+  "kaioken/implement-server-daemon-protocol-simplification-thr_qfk8ksbxkk",
 ] as const;
 
 const remoteBranches = [
   "origin/main",
   "origin/develop",
   "origin/release/1.3",
-  "origin/bb/feat/review-flow",
+  "origin/kaioken/feat/review-flow",
   "upstream/main",
 ] as const;
 
@@ -50,11 +50,11 @@ const mergeBasePicker: BranchPickerStoryConfig = {
 };
 
 const longBranchPicker: BranchPickerStoryConfig = {
-  value: "bb/implement-server-daemon-protocol-simplification-thr_qfk8ksbxkk",
+  value: "kaioken/implement-server-daemon-protocol-simplification-thr_qfk8ksbxkk",
   triggerLabel:
-    "bb/implement-server-daemon-protocol-simplification-thr_qfk8ksbxkk",
+    "kaioken/implement-server-daemon-protocol-simplification-thr_qfk8ksbxkk",
   triggerTitle:
-    "Branch: bb/implement-server-daemon-protocol-simplification-thr_qfk8ksbxkk",
+    "Branch: kaioken/implement-server-daemon-protocol-simplification-thr_qfk8ksbxkk",
   defaultOpen: true,
   modal: false,
 };

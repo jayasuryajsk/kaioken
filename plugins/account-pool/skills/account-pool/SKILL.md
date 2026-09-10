@@ -1,13 +1,13 @@
 ---
 name: account-pool
-description: "Configure or diagnose Account Pooler accounts, authentication, quota routing, and failover through bb pool."
+description: "Configure or diagnose Account Pooler accounts, authentication, quota routing, and failover through kaioken pool."
 ---
 
 # Account Pooler
 
-Use `bb pool` for this plugin's accounts and routes. Inspect current state with
-`bb pool status --json` and `bb pool account list --json` before changing routing.
-Use `bb pool --help` for available commands.
+Use `kaioken pool` for this plugin's accounts and routes. Inspect current state with
+`kaioken pool status --json` and `kaioken pool account list --json` before changing routing.
+Use `kaioken pool --help` for available commands.
 
 For account login/import, secret handling, quota refresh, routing settings,
 ordering, or failover, read

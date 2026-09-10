@@ -1,5 +1,5 @@
-import { createNodeBbSdk } from "@bb/sdk/node";
-import { createNodeWebsocketFactory } from "@bb/sdk/node-websocket";
+import { createNodeBbSdk } from "@kaioken/sdk/node";
+import { createNodeWebsocketFactory } from "@kaioken/sdk/node-websocket";
 import { afterEach, describe, expect, it } from "vitest";
 import WebSocket from "ws";
 import {
@@ -90,7 +90,7 @@ describe("browser WebSocket origin boundary", () => {
 
   it("accepts trusted browser origins for both browser-facing sockets", async () => {
     server = await startTestServer({
-      appUrl: "https://bb.example.test",
+      appUrl: "https://kaioken.example.test",
       devAppPort: 5173,
     });
     const realtimeUrl = websocketUrl(server.baseUrl, "/ws");
@@ -104,7 +104,7 @@ describe("browser WebSocket origin boundary", () => {
 
     const configuredApp = await openWebSocket(
       realtimeUrl,
-      "https://bb.example.test",
+      "https://kaioken.example.test",
     );
     await closeSocket(configuredApp);
 

@@ -3,13 +3,13 @@
   "name": "input-otp",
   "type": "registry:ui",
   "title": "input-otp",
-  "description": "BB ui \"input-otp\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"input-otp\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "input-otp",
     "lucide-react"
   ],
   "registryDependencies": [
-    "@bb/utils"
+    "@kaioken/utils"
   ],
   "files": [
     {

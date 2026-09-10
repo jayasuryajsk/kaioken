@@ -17,7 +17,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { threadQueryKey } from "@/hooks/queries/query-keys";
 import { splitLayoutAtom } from "@/lib/split-layout/atoms";

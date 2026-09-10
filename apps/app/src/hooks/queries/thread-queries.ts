@@ -1,4 +1,4 @@
-import { prependOlderTimelineRows } from "@bb/client-core";
+import { prependOlderTimelineRows } from "@kaioken/client-core";
 import {
   useInfiniteQuery,
   useQuery,
@@ -6,9 +6,9 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
-import { COMPACT_VIEWPORT_QUERY } from "@bb/shared-ui/hooks/use-compact-viewport";
-import { getMediaQuerySnapshot } from "@bb/shared-ui/hooks/use-media-query";
-import type { PendingInteraction, ThreadListEntry } from "@bb/domain";
+import { COMPACT_VIEWPORT_QUERY } from "@kaioken/shared-ui/hooks/use-compact-viewport";
+import { getMediaQuerySnapshot } from "@kaioken/shared-ui/hooks/use-media-query";
+import type { PendingInteraction, ThreadListEntry } from "@kaioken/domain";
 import type {
   PromptHistoryResponse,
   ThreadQueuedMessageListResponse,
@@ -23,11 +23,11 @@ import type {
   ThreadStoragePathListResponse,
   ThreadTimelineResponse,
   TimelineTurnSummaryDetailsResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { useDebouncedValue } from "../useDebouncedValue";
-import { applyTimelineDelta } from "@bb/server-contract";
-import type { ThreadListFilters } from "@bb/client-core";
-import type { FilePreview } from "@bb/client-core";
+import { applyTimelineDelta } from "@kaioken/server-contract";
+import type { ThreadListFilters } from "@kaioken/client-core";
+import type { FilePreview } from "@kaioken/client-core";
 import type { PathListOptions } from "@/lib/path-list-options";
 import type { ThreadStorageFileListOptions } from "@/lib/thread-storage-files";
 import * as api from "@/lib/api";

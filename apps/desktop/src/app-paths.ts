@@ -29,14 +29,14 @@ export function resolveDesktopBridgePath(
       return join(
         `${args.paths.appPath}.unpacked`,
         "dist",
-        "bb-app-bridge.mjs",
+        "kaioken-app-bridge.mjs",
       );
     }
 
-    return join(args.paths.resourcesPath, "app", "dist", "bb-app-bridge.mjs");
+    return join(args.paths.resourcesPath, "app", "dist", "kaioken-app-bridge.mjs");
   }
 
-  return join(args.paths.appPath, "dist", "bb-app-bridge.mjs");
+  return join(args.paths.appPath, "dist", "kaioken-app-bridge.mjs");
 }
 
 export function resolveDesktopIconPath(

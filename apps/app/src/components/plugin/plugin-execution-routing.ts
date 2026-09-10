@@ -1,5 +1,5 @@
-import type { SystemProvidersQuery } from "@bb/server-contract";
-import type { ExperimentalProviderModelPickerRouting } from "@get-bb/plugin-sdk";
+import type { SystemProvidersQuery } from "@kaioken/server-contract";
+import type { ExperimentalProviderModelPickerRouting } from "@get-kaioken/plugin-sdk";
 
 export interface ResolvedPluginExecutionRouting {
   key: string;

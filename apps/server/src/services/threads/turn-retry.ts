@@ -1,16 +1,16 @@
-import { hasQueuedRetryOfTurnRequest } from "@bb/db";
-import { permissionModeSchema } from "@bb/domain";
+import { hasQueuedRetryOfTurnRequest } from "@kaioken/db";
+import { permissionModeSchema } from "@kaioken/domain";
 import type {
   ClientTurnRequestId,
   PermissionMode,
   PromptInput,
   Thread,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   RetryTurnRequest,
   RetryTurnResponse,
   SendMessageRequest,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { ApiError } from "../../errors.js";
 import type { LoggedPendingInteractionWorkSessionDeps } from "../../types.js";
 import { attemptDispatch } from "./dispatch-attempt.js";

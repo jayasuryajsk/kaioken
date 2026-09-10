@@ -2,7 +2,7 @@ import type {
   ComposerCustomization,
   ComposerPlusMenuItem,
   PluginComposerScope,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import type {
   PluginComposerCustomizationSlot,
   PluginFileOpenerSlot,

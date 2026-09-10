@@ -2,8 +2,8 @@ export const CLOUD_DEV_HOST_HEADER = "x-bb-cloud-dev-host";
 export const SECURE_SESSION_COOKIE = "__Secure-better-auth.session_token";
 const LOCAL_SESSION_COOKIE = "better-auth.session_token";
 export const SECURE_DESKTOP_SESSION_COOKIE =
-  "__Secure-bb-connect.desktop_session";
-const LOCAL_DESKTOP_SESSION_COOKIE = "bb-connect.desktop_session";
+  "__Secure-kaioken-connect.desktop_session";
+const LOCAL_DESKTOP_SESSION_COOKIE = "kaioken-connect.desktop_session";
 
 interface ConnectRuntime {
   accountAppUrl: string;

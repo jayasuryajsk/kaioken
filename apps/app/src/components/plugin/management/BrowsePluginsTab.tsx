@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Button } from "@bb/shared-ui/button";
-import { PLUGIN_CATALOG_CATEGORIES, pluginCatalogCategory } from "@bb/domain";
+import { Button } from "@kaioken/shared-ui/button";
+import { PLUGIN_CATALOG_CATEGORIES, pluginCatalogCategory } from "@kaioken/domain";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   ResourceBrowseCard,
@@ -22,7 +22,7 @@ import {
   ResourceSortMenu,
   ResourceSourceShelf,
   ResourceToolbar,
-} from "@bb/shared-ui/resource-list";
+} from "@kaioken/shared-ui/resource-list";
 import { BrowseArchetypeCards } from "@/components/plugin/browse-hero/BrowseArchetypeCards";
 import { BrowseHeroCarousel } from "@/components/plugin/browse-hero/BrowseHeroCarousel";
 import { nextComposerRequestNonce } from "@/components/plugin/browse-hero/browse-hero-archetypes";

@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { JsonValue } from "@get-bb/plugin-sdk";
+import type { JsonValue } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { resolveCodexHome } from "../codex-home.js";
 import { AiServiceFailure } from "./failure.js";

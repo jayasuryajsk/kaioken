@@ -2,7 +2,7 @@ import {
   findForeignManagedEnvironmentAtHostPath,
   findProjectEnvironmentByHostPath,
   type DbConnection,
-} from "@bb/db";
+} from "@kaioken/db";
 import { isBbManagedWorkspacePath } from "./workspace-paths.js";
 
 interface ForeignProviderOwnedPathCheckArgs {
@@ -17,7 +17,7 @@ export function foreignProviderOwnedPathRefusal(
   args: ForeignProviderOwnedPathCheckArgs,
 ): string | null {
   const refusal =
-    "Workspace path is a bb-managed workspace owned by another project";
+    "Workspace path is a kaioken-managed workspace owned by another project";
 
   if (
     findForeignManagedEnvironmentAtHostPath(db, {

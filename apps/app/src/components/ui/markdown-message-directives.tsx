@@ -7,9 +7,9 @@ import {
 import type { Nodes, Parent, RootContent } from "mdast";
 import type {} from "mdast-util-to-hast";
 import type {
-  BbNavigate,
+  KaiokenNavigate,
   PluginMessageDirectiveProps,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { visit } from "unist-util-visit";
 import { PluginSlotMount } from "@/components/plugin/PluginSlotMount.js";
 import { PluginThreadPanelNavigationProvider } from "@/components/plugin/plugin-thread-panel-navigation.js";
@@ -21,7 +21,7 @@ import type { PluginMessageDirectiveSlot } from "@/lib/plugin-slots.js";
 
 export const MESSAGE_DIRECTIVE_MOUNT_LIMIT = 32;
 
-const MESSAGE_DIRECTIVE_HAST_NAME = "bb-message-directive";
+const MESSAGE_DIRECTIVE_HAST_NAME = "kaioken-message-directive";
 const MESSAGE_DIRECTIVE_INDEX_PROPERTY = "dataDirectiveIndex";
 
 type MessageDirectiveRegistryEntry = ResolvedMessageDirective;
@@ -46,7 +46,7 @@ export interface MarkdownMessageDirectives {
 }
 
 export type MarkdownMessageDirectiveOpenThreadPanel = (
-  options: Parameters<BbNavigate["openThreadPanel"]>[0] & {
+  options: Parameters<KaiokenNavigate["openThreadPanel"]>[0] & {
     pluginId: string;
   },
 ) => boolean;
@@ -80,7 +80,7 @@ interface MessageDirectiveElementProps {
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
-      "bb-message-directive": MessageDirectiveElementProps;
+      "kaioken-message-directive": MessageDirectiveElementProps;
     }
   }
 }

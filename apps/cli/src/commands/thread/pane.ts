@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { threadPaneActionSchema } from "@bb/server-contract";
+import { threadPaneActionSchema } from "@kaioken/server-contract";
 import { action } from "../../action.js";
 import { createCliBbSdk } from "../../client.js";
 import {
@@ -25,7 +25,7 @@ function resolveThreadPaneTarget(id: string | undefined): ResolvedId {
     return { id: context, source: "env" };
   }
   throw new Error(
-    "Missing thread ID. Pass <threadId> or run inside a BB thread.",
+    "Missing thread ID. Pass <threadId> or run inside a Kaioken thread.",
   );
 }
 
@@ -35,13 +35,13 @@ export function registerPaneCommand(
 ): void {
   parent
     .command("pane")
-    .description("Control an open thread pane in connected BB apps")
+    .description("Control an open thread pane in connected Kaioken apps")
     .usage("<maximize|restore|toggle|spotlight|clear-spotlight> [id] [options]")
     .argument(
       "<action>",
       "Pane action: maximize, restore, toggle, spotlight, or clear-spotlight",
     )
-    .argument("[id]", "Thread ID. Omit inside a BB thread.")
+    .argument("[id]", "Thread ID. Omit inside a Kaioken thread.")
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(
@@ -65,7 +65,7 @@ export function registerPaneCommand(
           ) {
             return;
           }
-          printContextLabel(target, "Thread", "BB_THREAD_ID", opts);
+          printContextLabel(target, "Thread", "KAIOKEN_THREAD_ID", opts);
           console.log(`Thread: ${target.id}`);
           console.log(`Pane action: ${paneAction}`);
           console.log(`Delivered: ${result.delivered}`);

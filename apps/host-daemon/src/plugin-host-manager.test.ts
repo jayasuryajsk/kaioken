@@ -10,9 +10,9 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { HostDaemonOnlineRpcCommand } from "@bb/host-daemon-contract";
-import type { WatchPathRootArgs } from "@bb/host-watcher";
-import { sanitizeInheritedChildProcessEnv } from "@bb/process-utils";
+import type { HostDaemonOnlineRpcCommand } from "@kaioken/host-daemon-contract";
+import type { WatchPathRootArgs } from "@kaioken/host-watcher";
+import { sanitizeInheritedChildProcessEnv } from "@kaioken/process-utils";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PluginHostManager } from "./plugin-host-manager.js";
 
@@ -140,7 +140,7 @@ describe("PluginHostManager", () => {
   async function createManagerFixture(
     overrides: Partial<ConstructorParameters<typeof PluginHostManager>[0]> = {},
   ): Promise<{ dataDir: string; manager: PluginHostManager }> {
-    const dataDir = await mkdtemp(join(tmpdir(), "bb-plugin-host-test-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-host-test-"));
     tempDirs.push(dataDir);
     const manager = new PluginHostManager({
       dataDir,
@@ -629,15 +629,15 @@ describe("PluginHostManager", () => {
 });
 
 describe("host plugin worker env", () => {
-  it("uses the login-shell PATH without forwarding daemon BB variables", () => {
+  it("uses the login-shell PATH without forwarding daemon Kaioken variables", () => {
     expect(
       sanitizeInheritedChildProcessEnv({
         env: {
           HOME: "/Users/test",
           PATH: "/usr/bin",
           GH_TOKEN: "user-token",
-          BB_CONNECT_MACHINE_CREDENTIAL: "daemon-secret",
-          BB_SERVER_URL: "http://daemon.internal",
+          KAIOKEN_CONNECT_MACHINE_CREDENTIAL: "daemon-secret",
+          KAIOKEN_SERVER_URL: "http://daemon.internal",
         },
         shellPath: "/Users/test/bin:/usr/bin",
       }),

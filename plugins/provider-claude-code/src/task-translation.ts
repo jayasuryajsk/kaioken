@@ -12,7 +12,7 @@ import {
   backgroundTaskItemStatus,
   isBackgroundAgentTaskType,
   isSettledBackgroundTaskStatus,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import {
   claudeTaskNotificationMessageSchema,
   claudeTaskProgressMessageSchema,

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { threadScope, turnScope, type ThreadEvent } from "@bb/domain";
-import type { ProviderRuntimeEvent } from "@bb/provider-bridge-protocol/bridge-kit";
-import { createDeltaAssembler } from "@bb/provider-bridge-protocol/assembler";
-import type { DeltaAssembler } from "@bb/provider-bridge-protocol/assembler";
+import { threadScope, turnScope, type ThreadEvent } from "@kaioken/domain";
+import type { ProviderRuntimeEvent } from "@kaioken/provider-bridge-protocol/bridge-kit";
+import { createDeltaAssembler } from "@kaioken/provider-bridge-protocol/assembler";
+import type { DeltaAssembler } from "@kaioken/provider-bridge-protocol/assembler";
 import {
   ACP_COMPACTION_COMPLETED_METHOD,
   ACP_COMPACTION_STARTED_METHOD,
@@ -2172,7 +2172,7 @@ describe("acp delta translation (raw payloads and real results)", () => {
 
     const bound = harness.translator.notePermissionToolCall(THREAD_ID, {
       toolCallId: "call-mcp",
-      title: "bb-bridge-AskUserQuestion: AskUserQuestion",
+      title: "kaioken-bridge-AskUserQuestion: AskUserQuestion",
       kind: "other",
       rawInput: { question: "Which one?" },
     });
@@ -2193,7 +2193,7 @@ describe("acp delta translation (raw payloads and real results)", () => {
         type: "toolCall",
         tool: "other",
         arguments: { question: "Which one?" },
-        presentation: { title: "bb-bridge-AskUserQuestion: AskUserQuestion" },
+        presentation: { title: "kaioken-bridge-AskUserQuestion: AskUserQuestion" },
       },
     });
   });
@@ -2538,7 +2538,7 @@ describe("acp delta translation (dialects)", () => {
     });
   });
 
-  it("keeps a bb-injected tool binding ahead of the dialect", () => {
+  it("keeps a kaioken-injected tool binding ahead of the dialect", () => {
     const harness = dialectHarness("cursor");
     harness.translator.configureInjectedTools([{ name: "AskUserQuestion" }]);
     harness.translator.noteInjectedToolCall(THREAD_ID, "AskUserQuestion");
@@ -2546,7 +2546,7 @@ describe("acp delta translation (dialects)", () => {
       harness.translate(
         updateEvent({
           sessionUpdate: "tool_call",
-          toolCallId: "call-bb",
+          toolCallId: "call-kaioken",
           title: "MCP: AskUserQuestion",
           kind: "other",
           status: "pending",
@@ -2555,12 +2555,12 @@ describe("acp delta translation (dialects)", () => {
       )[0],
     ).toMatchObject({
       type: "item/started",
-      item: { type: "toolCall", tool: "AskUserQuestion", server: "bb" },
+      item: { type: "toolCall", tool: "AskUserQuestion", server: "kaioken" },
     });
   });
 });
 
-describe("acp delta translation (bb-injected tools)", () => {
+describe("acp delta translation (kaioken-injected tools)", () => {
   const ASK_PRESENTATION = {
     label: { pending: "Asking a question", completed: "Asked a question" },
     icon: { glyph: "MessageQuestion" },
@@ -2584,7 +2584,7 @@ describe("acp delta translation (bb-injected tools)", () => {
     return { translate, translator };
   }
 
-  it("binds the agent's announced MCP call when the proxy forwards the bb tool call", () => {
+  it("binds the agent's announced MCP call when the proxy forwards the kaioken tool call", () => {
     const { translate, translator } = injectedHarness();
     const [started] = translate(
       updateEvent({
@@ -2613,7 +2613,7 @@ describe("acp delta translation (bb-injected tools)", () => {
     );
     expect(completed).toMatchObject({
       type: "toolCall",
-      server: "bb",
+      server: "kaioken",
       tool: "ask_user_question",
       status: "completed",
       presentation: ASK_PRESENTATION,
@@ -2637,7 +2637,7 @@ describe("acp delta translation (bb-injected tools)", () => {
     );
     expect(first[0]).toMatchObject({
       type: "toolCall",
-      server: "bb",
+      server: "kaioken",
       tool: "bb_workflow_run",
       presentation: {
         label: {
@@ -2660,7 +2660,7 @@ describe("acp delta translation (bb-injected tools)", () => {
     );
     expect(second[0]).toMatchObject({
       type: "toolCall",
-      server: "bb",
+      server: "kaioken",
       tool: "not_configured",
     });
   });
@@ -2681,14 +2681,14 @@ describe("acp delta translation (bb-injected tools)", () => {
       updateEvent({
         sessionUpdate: "tool_call",
         toolCallId: "mcp-4",
-        title: "ask_user_question (bb-bridge MCP Server)",
+        title: "ask_user_question (kaioken-bridge MCP Server)",
         kind: "other",
         status: "pending",
       }),
     );
     expect(named).toMatchObject({
       type: "item/started",
-      item: { type: "toolCall", server: "bb", tool: "ask_user_question" },
+      item: { type: "toolCall", server: "kaioken", tool: "ask_user_question" },
     });
 
     translator.noteInjectedToolCall(THREAD_ID, "bb_workflow_run");

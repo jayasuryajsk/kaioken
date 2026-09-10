@@ -1,5 +1,5 @@
 {
-  "name": "@bb/connect",
+  "name": "@kaioken/connect",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -10,12 +10,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@bb/connect-db": "workspace:*",
-    "@bb/tunnel-contract": "workspace:*",
+    "@kaioken/connect-db": "workspace:*",
+    "@kaioken/tunnel-contract": "workspace:*",
     "drizzle-orm": "^0.38.0"
   },
   "devDependencies": {
-    "@bb/tsconfig": "workspace:*",
+    "@kaioken/tsconfig": "workspace:*",
     "@better-auth/drizzle-adapter": "^1.6.23",
     "@cloudflare/workers-types": "^4.20260610.0",
     "@types/better-sqlite3": "^7.6.12",

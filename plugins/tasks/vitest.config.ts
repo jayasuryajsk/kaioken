@@ -20,7 +20,7 @@ export default defineWorkspaceTestConfig({
     },
     projects: sharedWorkerProjects({
       pkgDir: __dirname,
-      name: "bb-plugin-tasks",
+      name: "kaioken-plugin-tasks",
       include: ["**/*.test.{ts,tsx}"],
       exclude: ["node_modules/**"],
     }),

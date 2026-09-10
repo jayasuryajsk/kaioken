@@ -1,10 +1,10 @@
-import { Icon } from "@bb/shared-ui/icon";
-import { LIST_HOVER_TRANSITION } from "@bb/shared-ui/motion";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { LIST_HOVER_TRANSITION } from "@kaioken/shared-ui/motion";
 import {
   SIDEBAR_HOVER_ACTIONS_CLASS,
   SIDEBAR_HOVER_ACTIONS_MOBILE_ALWAYS_VALUE,
 } from "@/components/ui/sidebar-hover-actions.js";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { SIDEBAR_CONTROL_STATE_CLASS } from "./sidebarRowClasses";
 
 interface SidebarChildToggleChevronProps {

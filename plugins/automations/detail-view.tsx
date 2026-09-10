@@ -13,12 +13,12 @@ import {
   experimental_ProviderModelPicker as ProviderModelPicker,
   type ExperimentalProviderModelPickerRouting,
   type ExperimentalProviderModelPickerValue,
-} from "@get-bb/plugin-sdk/app";
-import { RUN_STATE_PRESENTATION } from "@bb/domain/update-state";
-import { Button } from "@bb/shared-ui/button";
-import { COARSE_POINTER_HOVER_REVEAL_VISIBLE_CLASS } from "@bb/shared-ui/coarse-pointer-visibility";
-import { DelayedLoading } from "@bb/shared-ui/delayed-loading";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
+} from "@get-kaioken/plugin-sdk/app";
+import { RUN_STATE_PRESENTATION } from "@kaioken/domain/update-state";
+import { Button } from "@kaioken/shared-ui/button";
+import { COARSE_POINTER_HOVER_REVEAL_VISIBLE_CLASS } from "@kaioken/shared-ui/coarse-pointer-visibility";
+import { DelayedLoading } from "@kaioken/shared-ui/delayed-loading";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
 import {
   ResourceActionButton,
   ResourceActivitySection,
@@ -31,18 +31,18 @@ import {
   ResourceMeta,
   ResourceOverflowMenu,
   useResourceRouteLabel,
-} from "@bb/shared-ui/resource-list";
-import { Switch } from "@bb/shared-ui/switch";
-import { Textarea } from "@bb/shared-ui/textarea";
-import { Skeleton } from "@bb/shared-ui/skeleton";
-import { OptionDisplay } from "@bb/shared-ui/option-display";
+} from "@kaioken/shared-ui/resource-list";
+import { Switch } from "@kaioken/shared-ui/switch";
+import { Textarea } from "@kaioken/shared-ui/textarea";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
+import { OptionDisplay } from "@kaioken/shared-ui/option-display";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
-import { cn, formatHomePathForDisplay } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/tooltip";
+import { cn, formatHomePathForDisplay } from "@kaioken/shared-ui/lib/utils";
 import {
   formatAutomationTrigger,
   formatDetailScheduleStatusLabel,

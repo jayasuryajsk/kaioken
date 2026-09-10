@@ -1,7 +1,7 @@
-import { getProjectSourceByHost } from "@bb/db";
-import { isLocalPathProjectSource, PERSONAL_PROJECT_ID } from "@bb/domain";
+import { getProjectSourceByHost } from "@kaioken/db";
+import { isLocalPathProjectSource, PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import { z } from "zod";
-import { jsonValueSchema } from "@bb/domain";
+import { jsonValueSchema } from "@kaioken/domain";
 import { COMMAND_TIMEOUT_MS } from "../../constants.js";
 import type { WorkSessionDeps } from "../../types.js";
 import { callHostRetryableOnlineRpc } from "../hosts/online-rpc.js";
@@ -18,7 +18,7 @@ import {
 import type {
   PluginEnvironmentProviderAvailability,
   PluginEnvironmentProviderAvailabilityContext,
-} from "@get-bb/plugin-sdk/environment-provider";
+} from "@get-kaioken/plugin-sdk/environment-provider";
 import { decideWithinBox } from "../threads/dispatch-hooks.js";
 
 type GitCheckoutAvailability =

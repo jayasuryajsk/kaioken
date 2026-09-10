@@ -9,14 +9,14 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import type { TimelineTitle } from "@bb/thread-view";
+import type { TimelineTitle } from "@kaioken/thread-view";
 import {
   COLLAPSIBLE_HEADER_STATIC_TONE_CLASS,
   ExpandablePanel,
   getCollapsibleHeaderToneClass,
 } from "../../ui/disclosure.js";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { useTimelineReasoningExpansion } from "./TimelineReasoningExpansion.js";
 import { PluginCompactIconMask } from "../../plugin/PluginIcon.js";
 import {

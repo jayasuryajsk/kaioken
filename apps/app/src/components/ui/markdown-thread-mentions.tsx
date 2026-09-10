@@ -6,8 +6,8 @@ import {
   isRawThreadId,
   RAW_THREAD_ID_PATTERN_SOURCE,
   type PromptTextMention,
-} from "@bb/domain";
-import type { TimelineTitleLink } from "@bb/thread-view";
+} from "@kaioken/domain";
+import type { TimelineTitleLink } from "@kaioken/thread-view";
 import {
   PromptMentionPill,
   resolveThreadMentionResource,
@@ -31,7 +31,7 @@ const RAW_THREAD_ID_PATTERN = new RegExp(RAW_THREAD_ID_PATTERN_SOURCE, "gu");
 const THREAD_MENTION_PREFIX = "@thread";
 const THREAD_MENTION_ID_PATTERN = /^[A-Za-z0-9_-]+$/u;
 
-const THREAD_MENTION_HAST_NAME = "bb-thread-mention";
+const THREAD_MENTION_HAST_NAME = "kaioken-thread-mention";
 const THREAD_MENTION_THREAD_ID_PROPERTY = "dataThreadId";
 const RAW_THREAD_ID_PROPERTY = "dataRawThreadId";
 const RAW_THREAD_INLINE_CODE_PROPERTY = "dataRawThreadInlineCode";
@@ -351,7 +351,7 @@ interface ThreadMentionElementProps {
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
-      "bb-thread-mention": ThreadMentionElementProps;
+      "kaioken-thread-mention": ThreadMentionElementProps;
     }
   }
 }

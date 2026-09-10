@@ -1,4 +1,4 @@
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import { PluginSlotMount } from "./PluginSlotMount";
 import { usePluginSlots } from "@/lib/plugin-slots";
 

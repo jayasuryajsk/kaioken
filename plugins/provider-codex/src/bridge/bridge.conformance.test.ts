@@ -7,8 +7,8 @@ import {
   experimental_captureBridgeJsonRpcOutput as captureBridgeJsonRpcOutput,
   experimental_formatConformanceReport as formatConformanceReport,
   experimental_runBridgeConformance as runBridgeConformance,
-} from "@get-bb/plugin-sdk/provider-bridge/testing";
-import type { CapturedBridgeJsonRpcOutput } from "@get-bb/plugin-sdk/provider-bridge/testing";
+} from "@get-kaioken/plugin-sdk/provider-bridge/testing";
+import type { CapturedBridgeJsonRpcOutput } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 
 import { handleLine } from "./bridge.js";
 
@@ -20,7 +20,7 @@ let output: CapturedBridgeJsonRpcOutput;
 let workspaceDir: string;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "bb-codex-conformance-ws-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "kaioken-codex-conformance-ws-"));
   const fakeScriptPath = join(workspaceDir, "fake-codex-script.json");
   writeFileSync(
     fakeScriptPath,
@@ -28,9 +28,9 @@ beforeEach(() => {
       archiveStatePath: join(workspaceDir, "fake-codex-archived.json"),
     }),
   );
-  vi.stubEnv("BB_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
+  vi.stubEnv("KAIOKEN_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
   vi.stubEnv(
-    "BB_CODEX_BRIDGE_APP_SERVER_ARGS",
+    "KAIOKEN_CODEX_BRIDGE_APP_SERVER_ARGS",
     JSON.stringify([fakeAppServerPath, fakeScriptPath]),
   );
   output = captureBridgeJsonRpcOutput();

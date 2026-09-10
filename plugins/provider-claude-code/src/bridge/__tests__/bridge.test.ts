@@ -20,7 +20,7 @@ import {
   type JsonValue,
   type RuntimePermissionPolicy,
   type ThreadEvent,
-} from "@bb/domain";
+} from "@kaioken/domain";
 
 const { forkSessionMock, queryMock } = vi.hoisted(() => ({
   forkSessionMock: vi.fn(),
@@ -47,10 +47,10 @@ import { listClaudeCodeBridgeModels } from "../model-list.js";
 import {
   experimental_assembleCapturedThreadEvents as assembleCapturedThreadEvents,
   experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness,
-} from "@get-bb/plugin-sdk/provider-bridge/testing";
-import type { BridgeJsonRpcOutputMessage } from "@get-bb/plugin-sdk/provider-bridge/testing";
+} from "@get-kaioken/plugin-sdk/provider-bridge/testing";
+import type { BridgeJsonRpcOutputMessage } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 
-import { BRIDGE_INBOUND_REQUEST_METHODS } from "@bb/provider-bridge-protocol";
+import { BRIDGE_INBOUND_REQUEST_METHODS } from "@kaioken/provider-bridge-protocol";
 
 type BridgeSessionOptions = ReturnType<typeof buildSessionOptions>;
 type BridgeSessionHooks = NonNullable<BridgeSessionOptions["hooks"]>;
@@ -540,7 +540,7 @@ function createAssistantToolUseMessage(
 }
 
 function createTempClaudeExecutable(): TempClaudeExecutable {
-  const binDir = mkdtempSync(join(tmpdir(), "bb-claude-path-"));
+  const binDir = mkdtempSync(join(tmpdir(), "kaioken-claude-path-"));
   tempDirs.push(binDir);
   const executablePath = join(binDir, "claude");
   writeFileSync(executablePath, "#!/bin/sh\nexit 0\n");
@@ -992,13 +992,13 @@ describe("bridge", () => {
         getPermissionEscalation: () => "ask",
         permissionMode: "default",
         permissionScope: "workspace",
-        plugins: [{ type: "local", path: "/tmp/bb-skills" }],
+        plugins: [{ type: "local", path: "/tmp/kaioken-skills" }],
       },
       {},
     );
 
     expect(options.plugins).toEqual([
-      { type: "local", path: "/tmp/bb-skills" },
+      { type: "local", path: "/tmp/kaioken-skills" },
     ]);
     expect(options).not.toHaveProperty("skills");
   });
@@ -1041,7 +1041,7 @@ describe("bridge", () => {
   });
 
   it("falls back to well-known install locations when PATH discovery fails", () => {
-    const homeDir = mkdtempSync(join(tmpdir(), "bb-claude-home-"));
+    const homeDir = mkdtempSync(join(tmpdir(), "kaioken-claude-home-"));
     tempDirs.push(homeDir);
     const localBinDir = join(homeDir, ".local", "bin");
     mkdirSync(localBinDir, { recursive: true });
@@ -1060,7 +1060,7 @@ describe("bridge", () => {
         permissionMode: "default",
         permissionScope: "workspace",
       },
-      { HOME: homeDir, PATH: "/nonexistent-bb-test-dir" },
+      { HOME: homeDir, PATH: "/nonexistent-kaioken-test-dir" },
     );
 
     expect(options.pathToClaudeCodeExecutable).toBe(executablePath);
@@ -1080,7 +1080,7 @@ describe("bridge", () => {
         permissionScope: "workspace",
       },
       {
-        BB_CLAUDE_CODE_EXECUTABLE: executablePath,
+        KAIOKEN_CLAUDE_CODE_EXECUTABLE: executablePath,
         PATH: "/usr/bin",
       },
     );
@@ -1102,7 +1102,7 @@ describe("bridge", () => {
         permissionScope: "workspace",
       },
       {
-        BB_CLAUDE_CODE_EXECUTABLE: `  ${executablePath}  `,
+        KAIOKEN_CLAUDE_CODE_EXECUTABLE: `  ${executablePath}  `,
         PATH: "/usr/bin",
       },
     );
@@ -1111,7 +1111,7 @@ describe("bridge", () => {
   });
 
   it("rejects explicit Claude executable overrides that are not executable", () => {
-    const binDir = mkdtempSync(join(tmpdir(), "bb-claude-path-"));
+    const binDir = mkdtempSync(join(tmpdir(), "kaioken-claude-path-"));
     tempDirs.push(binDir);
     const executablePath = join(binDir, "claude");
 
@@ -1128,11 +1128,11 @@ describe("bridge", () => {
           permissionScope: "workspace",
         },
         {
-          BB_CLAUDE_CODE_EXECUTABLE: executablePath,
+          KAIOKEN_CLAUDE_CODE_EXECUTABLE: executablePath,
           PATH: "/usr/bin",
         },
       ),
-    ).toThrow("BB_CLAUDE_CODE_EXECUTABLE must point to an executable");
+    ).toThrow("KAIOKEN_CLAUDE_CODE_EXECUTABLE must point to an executable");
   });
 
   it("configures acceptEdits and auto sessions with the same Claude sandbox", () => {
@@ -1334,8 +1334,8 @@ describe("bridge", () => {
         expectedCommand: "git --no-optional-locks branch --show-current",
       },
       {
-        command: "git branch --list bb/probe",
-        expectedCommand: "git --no-optional-locks branch --list bb/probe",
+        command: "git branch --list kaioken/probe",
+        expectedCommand: "git --no-optional-locks branch --list kaioken/probe",
       },
       {
         command: "git branch --merged main",
@@ -1391,7 +1391,7 @@ describe("bridge", () => {
       { command: "git fetch origin" },
       { command: "git pull" },
       { command: "git push" },
-      { command: "git branch bb-probe" },
+      { command: "git branch kaioken-probe" },
       { command: "git branch --merged main extra" },
       { command: "git -c core.pager=cat status --short" },
       { command: "git -C /tmp status" },
@@ -1503,7 +1503,7 @@ describe("bridge", () => {
         },
         expected: {
           behavior: "deny",
-          messageIncludes: "bb's workspace sandbox allows work inside",
+          messageIncludes: "kaioken's workspace sandbox allows work inside",
         },
       },
       {
@@ -1519,7 +1519,7 @@ describe("bridge", () => {
         },
         expected: {
           behavior: "deny",
-          messageIncludes: "bb's workspace sandbox allows work inside",
+          messageIncludes: "kaioken's workspace sandbox allows work inside",
         },
       },
       {
@@ -1615,7 +1615,7 @@ describe("bridge", () => {
     });
   });
 
-  it("forwards unresolved high-risk auto-mode asks to bb", async () => {
+  it("forwards unresolved high-risk auto-mode asks to kaioken", async () => {
     const bridge = createBridgeJsonRpcTestHarness(handleLine);
     const queries: ControlledClaudeQuery[] = [];
     queryMock.mockImplementation(() => {
@@ -2289,7 +2289,7 @@ describe("bridge", () => {
     }
   });
 
-  it("dispatches an inbound request whose id collides with a pending bb request", async () => {
+  it("dispatches an inbound request whose id collides with a pending kaioken request", async () => {
     const bridge = createBridgeJsonRpcTestHarness(handleLine);
     const queries: ControlledClaudeQuery[] = [];
     queryMock.mockImplementation(() => {
@@ -2384,7 +2384,7 @@ describe("bridge", () => {
     }
   });
 
-  it("denies invalid AskUserQuestion input before forwarding to bb", async () => {
+  it("denies invalid AskUserQuestion input before forwarding to kaioken", async () => {
     const bridge = createBridgeJsonRpcTestHarness(handleLine);
     const queries: ControlledClaudeQuery[] = [];
     queryMock.mockImplementation(() => {
@@ -2422,7 +2422,7 @@ describe("bridge", () => {
     }
   });
 
-  it("denies AskUserQuestion when bb returns an interactive request error", async () => {
+  it("denies AskUserQuestion when kaioken returns an interactive request error", async () => {
     const bridge = createBridgeJsonRpcTestHarness(handleLine);
     const queries: ControlledClaudeQuery[] = [];
     queryMock.mockImplementation(() => {
@@ -2463,7 +2463,7 @@ describe("bridge", () => {
     }
   });
 
-  it("denies AskUserQuestion when bb returns an invalid response payload", async () => {
+  it("denies AskUserQuestion when kaioken returns an invalid response payload", async () => {
     const bridge = createBridgeJsonRpcTestHarness(handleLine);
     const queries: ControlledClaudeQuery[] = [];
     queryMock.mockImplementation(() => {
@@ -2501,7 +2501,7 @@ describe("bridge", () => {
     }
   });
 
-  it("denies AskUserQuestion when bb returns a mismatched response kind", async () => {
+  it("denies AskUserQuestion when kaioken returns a mismatched response kind", async () => {
     const bridge = createBridgeJsonRpcTestHarness(handleLine);
     const queries: ControlledClaudeQuery[] = [];
     queryMock.mockImplementation(() => {
@@ -2627,7 +2627,7 @@ describe("bridge", () => {
     });
 
     const originalHome = process.env.HOME;
-    process.env.HOME = "/Users/test-bb";
+    process.env.HOME = "/Users/test-kaioken";
     try {
       bridge.sendRequest(1, "thread/start", {
         threadId: "thread-home-config",
@@ -2647,7 +2647,7 @@ describe("bridge", () => {
       await bridge.waitForResponse(1);
 
       const queryOptions = getLatestQueryOptions();
-      expect(queryOptions.env?.HOME).toBe("/Users/test-bb");
+      expect(queryOptions.env?.HOME).toBe("/Users/test-kaioken");
       expect(queryOptions.env?.CLAUDE_CODE_ENTRYPOINT).toBe("cli");
       expect(queryOptions.env?.CLAUDE_AGENT_SDK_CLIENT_APP).toBeUndefined();
       expect(queryOptions.settingSources).toEqual(["user", "project", "local"]);
@@ -4631,7 +4631,7 @@ describe("canonical skills/configure", () => {
       queries.push(query);
       return query;
     });
-    const stagedRoot = mkdtempSync(join(tmpdir(), "bb-claude-skill-roots-"));
+    const stagedRoot = mkdtempSync(join(tmpdir(), "kaioken-claude-skill-roots-"));
     const rootA = join(stagedRoot, "a", "skills");
     const rootB = join(stagedRoot, "b", "skills");
     for (const root of [rootA, rootB]) {

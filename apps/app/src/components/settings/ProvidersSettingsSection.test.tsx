@@ -2,9 +2,9 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ProviderInfo } from "@bb/domain";
-import { defaultAppSettings } from "@bb/domain";
-import { makeProviderInfo } from "@bb/test-helpers/domain-fixtures";
+import type { ProviderInfo } from "@kaioken/domain";
+import { defaultAppSettings } from "@kaioken/domain";
+import { makeProviderInfo } from "@kaioken/test-helpers/domain-fixtures";
 import {
   ProvidersSettingsSection,
   reorderProviderIds,

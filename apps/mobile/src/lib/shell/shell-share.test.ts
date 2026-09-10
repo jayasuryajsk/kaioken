@@ -23,11 +23,11 @@ describe("buildBridgeSharePayload", () => {
   it("gives Android one message, because it ignores url", () => {
     expect(
       buildBridgeSharePayload("android", {
-        title: "bb",
+        title: "kaioken",
         url: "https://bee.getbb.app/threads/thr_1",
       }).content,
     ).toEqual({
-      title: "bb",
+      title: "kaioken",
       message: "https://bee.getbb.app/threads/thr_1",
     });
   });

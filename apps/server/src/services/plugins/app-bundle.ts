@@ -2,11 +2,11 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import semver from "semver";
-import { PLUGIN_SDK_MAJOR } from "@bb/domain";
+import { PLUGIN_SDK_MAJOR } from "@kaioken/domain";
 import {
   assertValidPluginCompactIconSvg,
   assertValidPluginIconSvg,
-} from "@bb/plugin-build";
+} from "@kaioken/plugin-build";
 
 interface PluginArtifactMeta {
   sdkMajor: number;
@@ -15,7 +15,7 @@ interface PluginArtifactMeta {
   pluginId?: string;
   pluginVersion?: string;
   builtWith?: {
-    bbVersion: string;
+    kaiokenVersion: string;
     pluginSdkVersion: string;
   };
 }
@@ -213,15 +213,15 @@ function parsePluginArtifactMeta(raw: string): PluginArtifactMetaParseResult {
   }
   const builtWith = Object.fromEntries(Object.entries(meta.builtWith));
   if (
-    typeof builtWith.bbVersion !== "string" ||
-    builtWith.bbVersion.length === 0 ||
+    typeof builtWith.kaiokenVersion !== "string" ||
+    builtWith.kaiokenVersion.length === 0 ||
     typeof builtWith.pluginSdkVersion !== "string" ||
     semver.valid(builtWith.pluginSdkVersion) === null
   ) {
     return {
       meta: null,
       error:
-        "builtWith.bbVersion must be non-empty and builtWith.pluginSdkVersion must be a valid semver",
+        "builtWith.kaiokenVersion must be non-empty and builtWith.pluginSdkVersion must be a valid semver",
     };
   }
   if (builtWith.pluginSdkVersion !== meta.sdkVersion) {
@@ -238,7 +238,7 @@ function parsePluginArtifactMeta(raw: string): PluginArtifactMetaParseResult {
       pluginId: meta.pluginId,
       pluginVersion: meta.pluginVersion,
       builtWith: {
-        bbVersion: builtWith.bbVersion,
+        kaiokenVersion: builtWith.kaiokenVersion,
         pluginSdkVersion: builtWith.pluginSdkVersion,
       },
     },
@@ -264,7 +264,7 @@ export function validatePluginArtifactMeta(args: {
   }
   const meta = parsed.meta;
   if (meta.sdkMajor !== PLUGIN_SDK_MAJOR) {
-    return `${args.artifact} artifact for plugin "${args.pluginId}" was built for SDK major ${meta.sdkMajor}, running SDK major is ${PLUGIN_SDK_MAJOR}; rebuild the ${args.artifact} artifact with this bb version`;
+    return `${args.artifact} artifact for plugin "${args.pluginId}" was built for SDK major ${meta.sdkMajor}, running SDK major is ${PLUGIN_SDK_MAJOR}; rebuild the ${args.artifact} artifact with this kaioken version`;
   }
   if (meta.artifactFormatVersion !== 1) return null;
   if (meta.pluginId !== args.pluginId) {

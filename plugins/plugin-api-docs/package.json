@@ -1,16 +1,16 @@
 {
-  "name": "bb-plugin-plugin-api-docs",
+  "name": "kaioken-plugin-plugin-api-docs",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Browse the bb plugin API as an annotated map of the product.",
+  "description": "Browse the kaioken plugin API as an annotated map of the product.",
   "engines": {
     "bb": ">=0.0",
     "bbPluginSdk": ">=0.4.3"
   },
   "bb": {
     "name": "Plugin Guide",
-    "description": "Browse the bb plugin API as an annotated map of the product.",
+    "description": "Browse the kaioken plugin API as an annotated map of the product.",
     "branding": {
       "icon": "./icons/ai-generative.svg"
     },
@@ -19,16 +19,16 @@
     "skills": []
   },
   "keywords": [
-    "bb-plugin"
+    "kaioken-plugin"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@bb/plugin-api-map": "workspace:*"
+    "@kaioken/plugin-api-map": "workspace:*"
   },
   "devDependencies": {
-    "@get-bb/plugin-sdk": "workspace:*",
+    "@get-kaioken/plugin-sdk": "workspace:*",
     "@types/react": "^19.0.0",
     "react": "^19.0.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2",

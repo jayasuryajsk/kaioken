@@ -3,8 +3,8 @@ import { z } from "zod";
 import {
   normalizeProviderThreadNameEvent,
   toProviderExternalThreadName,
-} from "@bb/domain";
-import type { DynamicTool, InstructionMode, ThreadEvent } from "@bb/domain";
+} from "@kaioken/domain";
+import type { DynamicTool, InstructionMode, ThreadEvent } from "@kaioken/domain";
 import type { AdapterCommand } from "./provider-adapter.js";
 import {
   BRIDGE_JSON_RPC_ERRORS,
@@ -14,7 +14,7 @@ import {
   providerUsageResultSchema,
   ThreadEventGrammar,
   threadIdentityResultSchema,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 import {
   JsonRpcResponseError,
   getJsonRpcStringParam,
@@ -23,13 +23,13 @@ import {
   sendJsonRpcError,
   sendJsonRpcRequest,
   settleJsonRpcResponse,
-} from "@bb/provider-bridge-protocol/bridge-kit";
+} from "@kaioken/provider-bridge-protocol/bridge-kit";
 import type {
   JsonRpcObject,
   ProviderCommandPlan,
   ProviderRequestCommandPlan,
   SendJsonRpcRequestArgs,
-} from "@bb/provider-bridge-protocol/bridge-kit";
+} from "@kaioken/provider-bridge-protocol/bridge-kit";
 import {
   assertProviderSupportsExecutionOptions,
   toProviderExecutionContext,
@@ -646,7 +646,7 @@ export function createAgentRuntime(options: AgentRuntimeOptions): AgentRuntime {
       sendJsonRpcError({
         child: args.proc.child,
         id: args.parsedId,
-        message: `Unable to resolve BB thread id for ${args.requestKind} on provider thread "${args.providerThreadId}"`,
+        message: `Unable to resolve Kaioken thread id for ${args.requestKind} on provider thread "${args.providerThreadId}"`,
       });
       return null;
     }
@@ -654,7 +654,7 @@ export function createAgentRuntime(options: AgentRuntimeOptions): AgentRuntime {
       sendJsonRpcError({
         child: args.proc.child,
         id: args.parsedId,
-        message: `${formatProviderRequestKindForSentence(args.requestKind)} thread hint "${args.threadIdHint}" did not match resolved BB thread "${resolvedThreadId}" for provider thread "${args.providerThreadId}"`,
+        message: `${formatProviderRequestKindForSentence(args.requestKind)} thread hint "${args.threadIdHint}" did not match resolved Kaioken thread "${resolvedThreadId}" for provider thread "${args.providerThreadId}"`,
       });
       return null;
     }
@@ -1150,7 +1150,7 @@ export function createAgentRuntime(options: AgentRuntimeOptions): AgentRuntime {
         category: "config",
         summary: `Dropped environment variable "${contribution.name}" from plugin "${contribution.plugin}".`,
         details:
-          "BB_SERVER_URL is unavailable, so its serverPath contribution was not applied.",
+          "KAIOKEN_SERVER_URL is unavailable, so its serverPath contribution was not applied.",
         scope: { kind: "thread" },
       });
     }
@@ -1194,14 +1194,14 @@ export function createAgentRuntime(options: AgentRuntimeOptions): AgentRuntime {
         continue;
       }
 
-      const bbThreadId =
+      const kaiokenThreadId =
         threadIdentityRegistry.resolvePendingProviderThreadIdentity(
           args.proc.identity,
         );
-      if (bbThreadId) {
+      if (kaiokenThreadId) {
         recordProviderThreadIdentity(
           args.proc,
-          bbThreadId,
+          kaiokenThreadId,
           event.providerThreadId,
         );
       }
@@ -1217,7 +1217,7 @@ export function createAgentRuntime(options: AgentRuntimeOptions): AgentRuntime {
 
       if (!resolvedBbThreadId) {
         options.onStderr?.(
-          `Dropping unscoped provider event ${event.type}; no bb thread could be resolved`,
+          `Dropping unscoped provider event ${event.type}; no kaioken thread could be resolved`,
         );
         continue;
       }

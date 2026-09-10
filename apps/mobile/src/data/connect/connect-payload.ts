@@ -2,7 +2,7 @@ import {
   deriveConnectBaseUrl,
   parseMobilePairingPayload,
   serverUrlForHandle,
-} from "@bb/connect-client";
+} from "@kaioken/connect-client";
 
 export const DEFAULT_CONNECT_APEX_URL = "https://getbb.app";
 
@@ -145,7 +145,7 @@ export function resolveEnrollmentTarget(
       return {
         ok: false,
         field: "apexUrl",
-        message: "The bb connect address must be an http(s) URL.",
+        message: "The kaioken connect address must be an http(s) URL.",
       };
     }
   }

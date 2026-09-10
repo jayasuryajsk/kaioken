@@ -16,7 +16,7 @@ const REDACT_SCRIPT = new URL(
 );
 
 it("redacts every documented GitHub token prefix", () => {
-  const root = mkdtempSync(join(tmpdir(), "bb-recording-redact-"));
+  const root = mkdtempSync(join(tmpdir(), "kaioken-recording-redact-"));
   const inputDir = join(root, "input");
   const outputDir = join(root, "output");
   const tokens = [

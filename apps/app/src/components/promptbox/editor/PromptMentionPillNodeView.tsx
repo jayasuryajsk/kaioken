@@ -6,7 +6,7 @@ import {
 } from "@/components/promptbox/mentions/prompt-mention-display";
 import { PromptMentionIcon } from "@/components/promptbox/mentions/PromptMentionIcon";
 import { promptMentionClipboardDataAttributes } from "@/components/promptbox/mentions/prompt-mention-clipboard";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { PromptMentionLinkContext } from "./prompt-mention-link";
 import { parsePromptEditorMentionAttrs } from "./prompt-editor-serialization";
 

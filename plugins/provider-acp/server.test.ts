@@ -1,14 +1,14 @@
 import { getEventListeners } from "node:events";
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
-import { experimental_acpAgentProbeSchema } from "@get-bb/plugin-sdk/provider-bridge/acp";
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import { experimental_acpAgentProbeSchema } from "@get-kaioken/plugin-sdk/provider-bridge/acp";
+import { createFakePluginHost } from "@get-kaioken/plugin-sdk/testing";
 import { z } from "zod";
 import { acpHostContract } from "./src/contract.js";
 import { KNOWN_ACP_AGENTS } from "./src/known-agents.js";
 import acpProvidersPlugin from "./server.js";
 
-const NO_LEGACY_CONFIG = "/tmp/bb-acp-plugin-test-no-config";
+const NO_LEGACY_CONFIG = "/tmp/kaioken-acp-plugin-test-no-config";
 
 const PLUGIN_ID = "provider-acp";
 

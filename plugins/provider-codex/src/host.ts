@@ -1,15 +1,15 @@
 import os from "node:os";
-import { defineRpcContract } from "@get-bb/plugin-sdk";
+import { defineRpcContract } from "@get-kaioken/plugin-sdk";
 import {
   experimental_aiServicesHostContract,
   type ExperimentalAiInferenceCompleteOutput,
   type ExperimentalAiVoiceTranscribeOutput,
-} from "@get-bb/plugin-sdk/ai-services";
+} from "@get-kaioken/plugin-sdk/ai-services";
 import {
   experimental_defineHostEntry,
   experimental_nativeRootsHostContract,
   type ExperimentalNativeRootsResolveAnswer,
-} from "@get-bb/plugin-sdk/host";
+} from "@get-kaioken/plugin-sdk/host";
 import {
   completeCodexInference,
   transcribeCodexVoice,

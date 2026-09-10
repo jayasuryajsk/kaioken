@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import type {
   PluginSidebarSplitPane,
   PluginSidebarThreadSplit,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { usePaneContentSplitIndicator } from "@/components/sidebar/paneContentSplitIndicator";
 import { useThreadRowSplitDrag } from "@/components/sidebar/useThreadRowSplitDrag";
 import { getThreadDisplayTitle } from "./thread-title";

@@ -4,8 +4,8 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
-import type { PendingInteraction, PluginPendingInteraction } from "@bb/domain";
-import type { PluginPendingInteractionProps } from "@get-bb/plugin-sdk";
+import type { PendingInteraction, PluginPendingInteraction } from "@kaioken/domain";
+import type { PluginPendingInteractionProps } from "@get-kaioken/plugin-sdk";
 import {
   resetPluginSlotStoreForTest,
   setPluginSlotRegistrations,

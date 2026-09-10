@@ -1,7 +1,7 @@
 import {
   COARSE_POINTER_DOT_SIZE_CLASS,
   COARSE_POINTER_ROW_ACTION_SIZE_CLASS,
-} from "@bb/shared-ui/coarse-pointer-sizing";
+} from "@kaioken/shared-ui/coarse-pointer-sizing";
 import { CONTEXT_SELECTION_SURFACE_CLASS } from "@/components/ui/context-selection";
 
 export const SIDEBAR_ROW_BASE_CLASS =
@@ -57,10 +57,10 @@ export const SIDEBAR_ROW_INTERACTIVE_STATE_CLASS = `cursor-pointer ${SIDEBAR_ROW
 
 export const SIDEBAR_ROW_STATIC_STATE_CLASS = SIDEBAR_ROW_TEXT_CLASS;
 
-export const SIDEBAR_ROW_SELECTED_STATE_CLASS = `${CONTEXT_SELECTION_SURFACE_CLASS} bb-sidebar-selected-row ${SIDEBAR_ROW_TEXT_CLASS}`;
+export const SIDEBAR_ROW_SELECTED_STATE_CLASS = `${CONTEXT_SELECTION_SURFACE_CLASS} kaioken-sidebar-selected-row ${SIDEBAR_ROW_TEXT_CLASS}`;
 
 export const SIDEBAR_ROW_OPEN_IN_SPLIT_STATE_CLASS =
-  "bb-sidebar-open-in-split-row";
+  "kaioken-sidebar-open-in-split-row";
 
 export const SIDEBAR_MORE_ACTION_TRIGGER_CLASS =
   "relative m-1 h-5 w-5 after:absolute after:left-1/2 after:top-1/2 after:h-7 after:w-7 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] max-md:pointer-coarse:m-0 max-md:pointer-coarse:h-9 max-md:pointer-coarse:w-9 max-md:pointer-coarse:after:hidden";

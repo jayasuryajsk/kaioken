@@ -1,5 +1,5 @@
 import { Suspense, lazy, useMemo, type ReactNode } from "react";
-import type { ExperimentalDiffFullFileContents } from "@get-bb/plugin-sdk";
+import type { ExperimentalDiffFullFileContents } from "@get-kaioken/plugin-sdk";
 import { PluginReplacementSlot } from "@/components/plugin/PluginReplacementSlot";
 import { deprecatedOriginalAlias } from "@/lib/plugin-sdk-deprecated-aliases";
 import type { ParsedGitDiffFile } from "@/components/git-diff/git-diff-parsing";
@@ -13,7 +13,7 @@ import {
 
 const DIFF_RENDERER_SLOT_KIND = "diffRenderer";
 
-const BbDiff = lazy(() => import("./BbDiff"));
+const KaiokenDiff = lazy(() => import("./KaiokenDiff"));
 
 interface DiffHostProps extends Partial<DiffPresentation> {
   file: ParsedGitDiffFile;
@@ -44,7 +44,7 @@ export function DiffHost({
 
   const original = (
     <Suspense fallback={fallback}>
-      <BbDiff
+      <KaiokenDiff
         file={file}
         patchText={patchText}
         fullFileContents={fullFileContents}

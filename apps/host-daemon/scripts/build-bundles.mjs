@@ -18,7 +18,7 @@ const workspaceRoot = resolve(packageRoot, "..", "..");
 /**
  * esbuild `define` that inlines the SDK declaration bundles for
  * packages/templates/src/plugin-sdk-dts.ts. Read from the
- * @get-bb/plugin-sdk#build:types output, a turbo dependency of this build.
+ * @get-kaioken/plugin-sdk#build:types output, a turbo dependency of this build.
  */
 function pluginSdkDeclarationsDefine() {
   const typesDir = resolve(
@@ -28,11 +28,11 @@ function pluginSdkDeclarationsDefine() {
     "bundled-types",
   );
   const declarations = {
-    root: readFileSync(resolve(typesDir, "bb-plugin-sdk.d.ts"), "utf8"),
-    app: readFileSync(resolve(typesDir, "bb-plugin-sdk-app.d.ts"), "utf8"),
+    root: readFileSync(resolve(typesDir, "kaioken-plugin-sdk.d.ts"), "utf8"),
+    app: readFileSync(resolve(typesDir, "kaioken-plugin-sdk-app.d.ts"), "utf8"),
   };
   return {
-    __BB_PLUGIN_SDK_DTS_JSON__: JSON.stringify(JSON.stringify(declarations)),
+    __KAIOKEN_PLUGIN_SDK_DTS_JSON__: JSON.stringify(JSON.stringify(declarations)),
   };
 }
 

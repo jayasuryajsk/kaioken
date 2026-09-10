@@ -10,21 +10,21 @@ import {
   hasRootStoredTurnStarted,
   listActiveBackgroundTaskCountsByThreadIds,
   type DbQueryConnection,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   threadScope,
   type PromptInput,
   type Thread,
   type ThreadEvent,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   EditMessageRequest,
   EditMessageResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type {
   HostDaemonCommand,
   HostDaemonCommandResult,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import type { LoggedPendingInteractionWorkSessionDeps } from "../../types.js";
 import { ApiError } from "../../errors.js";
 import {

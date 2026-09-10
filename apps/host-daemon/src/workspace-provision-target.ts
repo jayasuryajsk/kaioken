@@ -1,5 +1,5 @@
-import type { WorkspaceContext } from "@bb/host-daemon-contract";
-import type { ProvisionWorkspaceArgs } from "@bb/host-workspace";
+import type { WorkspaceContext } from "@kaioken/host-daemon-contract";
+import type { ProvisionWorkspaceArgs } from "@kaioken/host-workspace";
 
 interface ReconnectProvisionArgs {
   workspacePath: string;

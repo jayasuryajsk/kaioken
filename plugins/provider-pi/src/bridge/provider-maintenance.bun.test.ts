@@ -8,9 +8,9 @@ const probeState = vi.hoisted(() => ({
   executablePath: "",
 }));
 
-vi.mock("@get-bb/plugin-sdk/provider-bridge", async (importOriginal) => {
+vi.mock("@get-kaioken/plugin-sdk/provider-bridge", async (importOriginal) => {
   const original =
-    await importOriginal<typeof import("@get-bb/plugin-sdk/provider-bridge")>();
+    await importOriginal<typeof import("@get-kaioken/plugin-sdk/provider-bridge")>();
   return {
     ...original,
     experimental_commandOutput: vi.fn(async () => probeState.bunBin),
@@ -46,7 +46,7 @@ afterEach(async () => {
 
 describe("Pi provider maintenance with a Bun-managed executable", () => {
   it("updates through Bun when the resolved Pi command is a wrapper around Bun's global binary", async () => {
-    const root = await mkdtemp(path.join(os.tmpdir(), "bb-pi-bun-update-"));
+    const root = await mkdtemp(path.join(os.tmpdir(), "kaioken-pi-bun-update-"));
     temporaryDirectories.push(root);
     probeState.bunBin = path.join(root, ".bun", "bin");
     const bunPi = path.join(probeState.bunBin, "pi");

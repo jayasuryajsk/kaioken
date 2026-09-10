@@ -5,7 +5,7 @@ const warnedNames = new Set<string>();
 function warnDeprecatedMember(oldName: string, newName: string): void {
   if (warnedNames.has(oldName)) return;
   warnedNames.add(oldName);
-  console.warn(`${oldName} is deprecated; use ${newName}. Removed in bb 0.42`);
+  console.warn(`${oldName} is deprecated; use ${newName}. Removed in kaioken 0.42`);
 }
 
 const componentAliases = new Map<string, ComponentType<never>>();

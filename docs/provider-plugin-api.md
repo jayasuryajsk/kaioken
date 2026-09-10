@@ -1,16 +1,16 @@
 # Provider plugin API
 
-This document is the reference for BB's provider plugin surface — what "a
+This document is the reference for Kaioken's provider plugin surface — what "a
 provider is a plugin" means. It has no phases: every change that touches this
 surface keeps it true, and a test (`packages/plugin-sdk/src/__tests__/
 provider-plugin-doc.test.ts`) checks its code blocks against the real types.
 Members that still carry the `experimental_` prefix are named with it here;
 each has an entry in [api_to_audit.md](api_to_audit.md) saying why.
 
-A "provider" is a coding agent BB can run a thread on (Claude Code, Codex, Pi,
+A "provider" is a coding agent Kaioken can run a thread on (Claude Code, Codex, Pi,
 ACP agents such as Cursor or Amp). The design goal is that **everything a
 provider touches is owned by its plugin** — translating the agent's native
-output into BB's data model, projecting that data onto the timeline, and how
+output into Kaioken's data model, projecting that data onto the timeline, and how
 its tools are represented — with the smallest possible provider-agnostic core.
 
 ## Principles
@@ -77,7 +77,7 @@ bb.providers.register({
   models: { fallback: [], scope: "host" }, // cold-cache placeholder; scope is
                                  // "host" | "workspace" (default): how far one
                                  // model/list answer travels
-  env: { passthrough: ["BB_CLAUDE_CODE_EXECUTABLE"] },
+  env: { passthrough: ["KAIOKEN_CLAUDE_CODE_EXECUTABLE"] },
   deriveProviderOptions(ctx) {   // called on every command
     // ctx: { threadId, projectId, model, permissionMode, promptMode?, settings }
     return {};                   // opaque JSON handed to this plugin's bridge
@@ -96,7 +96,7 @@ namePrefix?, skipIfManifest? }`, where `recursive` scans nested skill
 directories, `ancestors` (project roots only) also scans the same relative
 directory in every ancestor of the workspace up to the repository root,
 `namePrefix` is prepended to every name under the root, and `skipIfManifest`
-names the marker file whose presence makes bb skip a directory as a vendor
+names the marker file whose presence makes kaioken skip a directory as a vendor
 plugin rather than a skill; a symlink out of a project root is followed
 within the workspace for a plain root and within the repository root for a
 root that walks ancestors or that the plugin resolved) and
@@ -104,10 +104,10 @@ root that walks ancestors or that the plugin resolved) and
 entry answers `resolveNativeRoots({ providerId, cwd })` with the roots only
 that host and workspace know: a moved config directory, installed vendor
 plugins, config-file entries; an answer lists each path once per side, and
-the `@get-bb/plugin-sdk/host` vendor-plugin readers keep the first root per
+the `@get-kaioken/plugin-sdk/host` vendor-plugin readers keep the first root per
 path in answer order). Declared roots are relative to the host home
 (`user`) or the workspace (`project`) only; a host-absolute directory is
-always the resolver's answer. bb scans each absolute path once per provider
+always the resolver's answer. kaioken scans each absolute path once per provider
 across the declared and resolved roots: the first root in declaration order
 wins — declared skills (project, then user), declared commands, then the
 resolved skills and commands, each in the order given — and a later root with
@@ -197,8 +197,8 @@ the `provider/recovery` notification; never both for one event).
 
 The delta assembler stays in the daemon, is generic for extension kinds, and
 ships with the conformance kit and JSON-RPC harness as
-`@get-bb/plugin-sdk/provider-bridge/testing`. The ACP bridge ships as
-`@get-bb/plugin-sdk/provider-bridge/acp`; the first-party ACP plugin consumes
+`@get-kaioken/plugin-sdk/provider-bridge/testing`. The ACP bridge ships as
+`@get-kaioken/plugin-sdk/provider-bridge/acp`; the first-party ACP plugin consumes
 the same kit.
 
 ## 3. Vocabulary
@@ -247,7 +247,7 @@ or one of the plugin's own declared icons by its namespaced glyph
 `bb.branding.experimental_icons` map of name → plugin-relative SVG). The
 server rejects at ingest a namespaced glyph that is not the emitting
 plugin's declared icon (`provider/unhandled`, reason naming the glyph); for
-a `server: "bb"` tool row the emitting plugin is the one that registered
+a `server: "kaioken"` tool row the emitting plugin is the one that registered
 the tool, whose presentation the bridge stamps as handed to it. Clients
 resolve the name against the plugin inventory they hold and draw
 the SVG tinted with `currentColor`. If the plugin is gone or the name
@@ -291,7 +291,7 @@ provider-native tool). Its `presentation` — the same label, glyph, tint,
 headline, and detail its timeline row carries — is the whole description
 of the ask: the app, mobile, CLI, and the child-thread blocker summary render
 it from `presentation` alone (`describePendingInteractionToolUse` in
-`@bb/core-ui`), never from a tool-name table. `detail` is agent-authored
+`@kaioken/core-ui`), never from a tool-name table. `detail` is agent-authored
 Markdown on every surface it reaches (the row body, the approval banner, on
 the web and on mobile): an image in it renders as its alt text, never as a
 fetch the user did not decide on.
@@ -303,7 +303,7 @@ interaction-lifecycle event type; the server fabricates no placeholder items.
 
 The one event is `system/interaction/lifecycle`. Every status change of every
 interaction — any approval subject, a user question, a plugin request —
-appends one, carrying the interaction's lifecycle record (`@bb/domain`
+appends one, carrying the interaction's lifecycle record (`@kaioken/domain`
 `interactionLifecycleSchema`): id, status, origin, the ask, and the answer,
 with the payload and the resolution paired by kind so the event cannot hold
 an approval subject beside a user answer. The record keeps what a reader
@@ -331,7 +331,7 @@ the id of the plugin's `pendingInteraction` slot registration and `data` is
 whatever that form reads (the kind grammar is lowercase `[a-z0-9-]`, so a
 form a bridge can address must register a lowercase id). No permission mode
 answers a request: it reaches the user through the plugin's form on the web
-app (`bb thread interactions respond <id> --value '<json>'` from the CLI;
+app (`kaioken thread interactions respond <id> --value '<json>'` from the CLI;
 the phone shows a card that points at the desktop app), and the answer comes
 back as `{ kind: "request_answer", value }` — the form's submitted value,
 capped at 64 KiB (`PLUGIN_INTERACTION_MAX_PAYLOAD_BYTES`, the same cap on the
@@ -394,13 +394,13 @@ trust, identical to every other plugin.
 
 ## 7. AI services
 
-bb's helper inference (thread titles, commit messages) and voice transcription
+kaioken's helper inference (thread titles, commit messages) and voice transcription
 are plugin-served too. A plugin registers
 `bb.experimental_aiServices.register({ id, displayName, kinds })` and
 implements `experimental_aiServicesHostContract`
-(`@get-bb/plugin-sdk/ai-services`: `ai.inference.complete`,
+(`@get-kaioken/plugin-sdk/ai-services`: `ai.inference.complete`,
 `ai.voice.transcribe`, each carrying `serviceId`) in its `bb.host` entry. The
-user chooses with `BB_INFERENCE` / `BB_TRANSCRIPTION` = `<serviceId>/<model>`;
+user chooses with `KAIOKEN_INFERENCE` / `KAIOKEN_TRANSCRIPTION` = `<serviceId>/<model>`;
 core calls the registered plugin on the primary host and applies its own
 retry/fallback policy to the `{ ok: false, code }` results. The codex plugin
 serves `codex` from the codex CLI's own credentials; there is no daemon-bundled

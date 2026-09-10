@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import { afterEach, describe, expect, it } from "vitest";
-import { WorkspaceError, type HostWorkspace } from "@bb/host-workspace";
+import { WorkspaceError, type HostWorkspace } from "@kaioken/host-workspace";
 import { dispatchCommand } from "../../src/command-dispatch.js";
 import type { EventSinkInput } from "../../src/event-sink.js";
 import {
@@ -26,7 +26,7 @@ function streamedEntries(emitted: EventSinkInput[]) {
 describe("environment command dispatch", () => {
   it("covers environment.attach in unmanaged mode", async () => {
     const harness = createHarness({ workspacePath: "/tmp/unmanaged" });
-    const sourcePath = await makeTempDir("bb-dispatch-unmanaged-");
+    const sourcePath = await makeTempDir("kaioken-dispatch-unmanaged-");
 
     const result = await dispatchCommand(
       {
@@ -56,10 +56,10 @@ describe("environment command dispatch", () => {
 
   it("runs setup before attaching a provider-owned workspace", async () => {
     const harness = createHarness({ workspacePath: "/tmp/provider-owned" });
-    const sourcePath = await makeTempDir("bb-dispatch-provider-owned-");
+    const sourcePath = await makeTempDir("kaioken-dispatch-provider-owned-");
     const markerPath = `${sourcePath}/setup-marker`;
     await fs.writeFile(
-      `${sourcePath}/.bb-env-setup.sh`,
+      `${sourcePath}/.kaioken-env-setup.sh`,
       `printf '%s' ready > '${markerPath}'\n`,
     );
     const emittedEvents: EventSinkInput[] = [];
@@ -89,7 +89,7 @@ describe("environment command dispatch", () => {
       expect.arrayContaining([
         expect.objectContaining({
           key: "setup-started",
-          text: "Running .bb-env-setup.sh",
+          text: "Running .kaioken-env-setup.sh",
         }),
         expect.objectContaining({ key: "setup-completed" }),
         expect.objectContaining({ key: "workspace-path" }),
@@ -99,9 +99,9 @@ describe("environment command dispatch", () => {
 
   it("fails attachment when the setup script fails", async () => {
     const harness = createHarness({ workspacePath: "/tmp/setup-failure" });
-    const sourcePath = await makeTempDir("bb-dispatch-setup-failure-");
+    const sourcePath = await makeTempDir("kaioken-dispatch-setup-failure-");
     await fs.writeFile(
-      `${sourcePath}/.bb-env-setup.sh`,
+      `${sourcePath}/.kaioken-env-setup.sh`,
       "printf 'script diagnostic\\n'\nexit 7\n",
     );
 
@@ -244,7 +244,7 @@ describe("environment command dispatch", () => {
 
   it("streams live events and flushes when initiator is provided", async () => {
     const harness = createHarness({ workspacePath: "/tmp/live-stream" });
-    const sourcePath = await makeTempDir("bb-dispatch-stream-");
+    const sourcePath = await makeTempDir("kaioken-dispatch-stream-");
     const emittedEvents: EventSinkInput[] = [];
     let flushCount = 0;
 
@@ -376,7 +376,7 @@ describe("environment command dispatch", () => {
         options.onProgress?.({
           type: "step",
           key: "git-checkout-started",
-          text: "Switching to branch bb/failure",
+          text: "Switching to branch kaioken/failure",
           status: "started",
           startedAt: Date.now(),
         });
@@ -422,7 +422,7 @@ describe("environment command dispatch", () => {
 
   it("streams the workspace steps when a re-provision of an existing environment does no work", async () => {
     const harness = createHarness({ workspacePath: "/tmp/idempotent" });
-    const sourcePath = await makeTempDir("bb-dispatch-idempotent-");
+    const sourcePath = await makeTempDir("kaioken-dispatch-idempotent-");
     const emittedEvents: EventSinkInput[] = [];
 
     await dispatchCommand(

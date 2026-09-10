@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { permissionModeValues } from "@bb/domain";
+import { permissionModeValues } from "@kaioken/domain";
 
 const qaRoot = path.resolve(import.meta.dirname, "../../../qa");
 const publicPermissionModes = new Set<string>(permissionModeValues);
@@ -30,10 +30,10 @@ describe("QA runbook contracts", () => {
     const runbook = await readRunbook("manual-runbook.md");
 
     expect(runbook).toContain(
-      'mktemp -d "${HOME:?}/.bb-approval-smoke.XXXXXX"',
+      'mktemp -d "${HOME:?}/.kaioken-approval-smoke.XXXXXX"',
     );
-    expect(runbook).toContain('mktemp -d "${HOME:?}/.bb-denial-smoke.XXXXXX"');
-    expect(runbook).not.toMatch(/mktemp -d \/tmp\/bb-(?:approval|denial)/);
+    expect(runbook).toContain('mktemp -d "${HOME:?}/.kaioken-denial-smoke.XXXXXX"');
+    expect(runbook).not.toMatch(/mktemp -d \/tmp\/kaioken-(?:approval|denial)/);
   });
 
   it("documents provisioning retry only after a completed failure", async () => {
@@ -41,10 +41,10 @@ describe("QA runbook contracts", () => {
 
     expect(runbook).toContain("Provisioning failure and next-message retry");
     expect(runbook).toContain(
-      'bb thread wait "$PROVISION_RETRY_THREAD_ID" --status error',
+      'kaioken thread wait "$PROVISION_RETRY_THREAD_ID" --status error',
     );
     expect(runbook).toContain(
-      'bb thread tell "$PROVISION_RETRY_THREAD_ID" "Say exactly: provisioning retry ok" --mode auto',
+      'kaioken thread tell "$PROVISION_RETRY_THREAD_ID" "Say exactly: provisioning retry ok" --mode auto',
     );
     expect(runbook).not.toContain(
       "Server restart during environment provisioning",
@@ -56,10 +56,10 @@ describe("QA runbook contracts", () => {
     const runbook = await readRunbook("manual-runbook.md");
 
     expect(runbook).toContain(
-      'bb thread wait "$SMOKE_THREAD_ID" --status idle --timeout 180 || true',
+      'kaioken thread wait "$SMOKE_THREAD_ID" --status idle --timeout 180 || true',
     );
     expect(runbook).toContain(
-      'if [ "$THREAD_STATE" != "idle" ]; then\n  bb thread tell "$SMOKE_THREAD_ID" "Say exactly: recovery ok" --mode auto',
+      'if [ "$THREAD_STATE" != "idle" ]; then\n  kaioken thread tell "$SMOKE_THREAD_ID" "Say exactly: recovery ok" --mode auto',
     );
   });
 });

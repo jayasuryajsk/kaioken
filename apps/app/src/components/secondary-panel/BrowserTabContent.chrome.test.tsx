@@ -9,14 +9,14 @@ import {
   waitFor,
 } from "@testing-library/react";
 import type {
-  BbDesktopBrowserApi,
-  BbDesktopBrowserState,
-} from "@bb/desktop-contract";
+  KaiokenDesktopBrowserApi,
+  KaiokenDesktopBrowserState,
+} from "@kaioken/desktop-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createBbDesktopApi,
   createNoopDesktopBrowserApi,
-} from "@/test/bb-desktop-test-utils";
+} from "@/test/kaioken-desktop-test-utils";
 import { BrowserTabContent } from "./BrowserTabContent";
 
 const desktopInfo = {
@@ -30,8 +30,8 @@ const desktopInfo = {
 };
 
 interface BrowserChromeHarness {
-  api: BbDesktopBrowserApi;
-  emitState: (state: BbDesktopBrowserState) => void;
+  api: KaiokenDesktopBrowserApi;
+  emitState: (state: KaiokenDesktopBrowserState) => void;
   emitNativeFocus: (tabId: string) => void;
   focus: ReturnType<typeof vi.fn>;
   goBack: ReturnType<typeof vi.fn>;
@@ -39,12 +39,12 @@ interface BrowserChromeHarness {
 }
 
 function createBrowserChromeHarness(): BrowserChromeHarness {
-  const stateListeners = new Set<(state: BbDesktopBrowserState) => void>();
+  const stateListeners = new Set<(state: KaiokenDesktopBrowserState) => void>();
   const focusListeners = new Set<(tabId: string) => void>();
   const focus = vi.fn();
   const goBack = vi.fn();
   const stop = vi.fn();
-  const api: BbDesktopBrowserApi = {
+  const api: KaiokenDesktopBrowserApi = {
     ...createNoopDesktopBrowserApi(),
     goBack,
     focus,
@@ -73,8 +73,8 @@ function createBrowserChromeHarness(): BrowserChromeHarness {
 }
 
 function browserState(
-  overrides: Partial<BbDesktopBrowserState> = {},
-): BbDesktopBrowserState {
+  overrides: Partial<KaiokenDesktopBrowserState> = {},
+): KaiokenDesktopBrowserState {
   return {
     tabId: "browser:test",
     url: "https://example.com/docs",
@@ -96,7 +96,7 @@ function renderBrowserChrome(
     onNativeFocus?: () => void;
   } = {},
 ) {
-  window.bbDesktop = createBbDesktopApi(desktopInfo, harness.api);
+  window.kaiokenDesktop = createBbDesktopApi(desktopInfo, harness.api);
   return render(
     <>
       <BrowserTabContent
@@ -127,7 +127,7 @@ describe("BrowserTabContent persistent navigation", () => {
     cleanup();
     vi.restoreAllMocks();
     window.localStorage.clear();
-    delete window.bbDesktop;
+    delete window.kaiokenDesktop;
   });
 
   it("keeps the top navigation visible through pointer and focus changes", () => {

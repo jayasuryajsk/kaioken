@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   installTestPluginRuntime,
   renderSlot,
-} from "@get-bb/plugin-sdk/testing/app";
+} from "@get-kaioken/plugin-sdk/testing/app";
 import { makeTask } from "../../test-fixtures.js";
 
 if (!window.matchMedia) {
@@ -36,7 +36,7 @@ function RailHarness(props: ComponentProps<typeof PropertiesRail>) {
 afterEach(cleanup);
 
 const PROJECT_ID = "01HZZZZZZZZZZZZZZZZZZZZZP1";
-const BB_PROJECT_ID = "proj_bb0000000000000000000001";
+const KAIOKEN_PROJECT_ID = "proj_bb0000000000000000000001";
 
 function projectRow(linkedBbProjectId: string | null) {
   return {
@@ -73,12 +73,12 @@ function railProps(linkedBbProjectId: string | null) {
 }
 
 describe("dispatch target rail control", () => {
-  it("links a discovered bb project", async () => {
+  it("links a discovered kaioken project", async () => {
     const updateCalls: Array<Record<string, unknown>> = [];
     const slot = renderSlot({ component: RailHarness }, railProps(null), {
       rpc: {
         listBbProjects: () => ({
-          bbProjects: [{ id: BB_PROJECT_ID, name: "bb monorepo" }],
+          kaiokenProjects: [{ id: KAIOKEN_PROJECT_ID, name: "kaioken monorepo" }],
         }),
         updateProject: (input: Record<string, unknown>) => {
           updateCalls.push(input);
@@ -91,25 +91,25 @@ describe("dispatch target rail control", () => {
       },
     });
     fireEvent.click(slot.getByRole("button", { name: "Edit dispatch target" }));
-    fireEvent.click(await slot.findByLabelText("Linked bb project"));
-    fireEvent.click(await slot.findByRole("option", { name: "bb monorepo" }));
+    fireEvent.click(await slot.findByLabelText("Linked kaioken project"));
+    fireEvent.click(await slot.findByRole("option", { name: "kaioken monorepo" }));
     fireEvent.click(slot.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(updateCalls).toHaveLength(1));
     expect(updateCalls[0]).toEqual({
       projectId: PROJECT_ID,
-      linkedBbProjectId: BB_PROJECT_ID,
+      linkedBbProjectId: KAIOKEN_PROJECT_ID,
     });
   });
 
-  it("shows the linked bb project's name and unlinks it", async () => {
+  it("shows the linked kaioken project's name and unlinks it", async () => {
     const updateCalls: Array<Record<string, unknown>> = [];
     const slot = renderSlot(
       { component: RailHarness },
-      railProps(BB_PROJECT_ID),
+      railProps(KAIOKEN_PROJECT_ID),
       {
         rpc: {
           listBbProjects: () => ({
-            bbProjects: [{ id: BB_PROJECT_ID, name: "bb monorepo" }],
+            kaiokenProjects: [{ id: KAIOKEN_PROJECT_ID, name: "kaioken monorepo" }],
           }),
           updateProject: (input: Record<string, unknown>) => {
             updateCalls.push(input);
@@ -125,7 +125,7 @@ describe("dispatch target rail control", () => {
     const trigger = slot.getByRole("button", {
       name: "Edit dispatch target",
     });
-    await slot.findByText("bb monorepo");
+    await slot.findByText("kaioken monorepo");
 
     fireEvent.click(trigger);
     fireEvent.click(await slot.findByRole("button", { name: "Unlink" }));

@@ -3,12 +3,12 @@
   "name": "progress",
   "type": "registry:ui",
   "title": "progress",
-  "description": "BB ui \"progress\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"progress\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-progress"
   ],
   "registryDependencies": [
-    "@bb/utils"
+    "@kaioken/utils"
   ],
   "files": [
     {

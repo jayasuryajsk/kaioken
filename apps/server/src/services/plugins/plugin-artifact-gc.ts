@@ -9,7 +9,7 @@ import {
   listPluginArtifactsUnderPath,
   type DbConnection,
   type PluginArtifactRow,
-} from "@bb/db";
+} from "@kaioken/db";
 
 export function pluginArtifactStorageRoot(
   artifact: PluginArtifactRow,

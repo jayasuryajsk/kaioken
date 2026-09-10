@@ -6,8 +6,8 @@ import { createInterface } from "node:readline/promises";
 import { setTimeout as sleep } from "node:timers/promises";
 import { Command } from "commander";
 import { z } from "zod";
-import { derivePluginId } from "@bb/domain";
-import { pluginCliCall, RESERVED_BB_CLI_COMMANDS } from "@bb/domain/plugin-cli";
+import { derivePluginId } from "@kaioken/domain";
+import { pluginCliCall, RESERVED_KAIOKEN_CLI_COMMANDS } from "@kaioken/domain/plugin-cli";
 import type {
   InstalledPlugin as PluginEntry,
   PluginApplyUpdateResult,
@@ -15,10 +15,10 @@ import type {
   PluginCatalogResolvedSource,
   PluginCatalogSearchResult,
   PluginUpdateCheckEntry as PluginUpdateResult,
-} from "@bb/server-contract";
-import { PLUGIN_SDK_VERSION } from "@bb/domain";
-import { BbHttpError, pluginMutationResponseSchema } from "@bb/sdk";
-import { parseDataDirEnvValue, resolveProdDataDir } from "@bb/config/runtime";
+} from "@kaioken/server-contract";
+import { PLUGIN_SDK_VERSION } from "@kaioken/domain";
+import { KaiokenHttpError, pluginMutationResponseSchema } from "@kaioken/sdk";
+import { parseDataDirEnvValue, resolveProdDataDir } from "@kaioken/config/runtime";
 import {
   migratePluginToPackageLayout,
   resolvePluginSdkLayout,
@@ -26,7 +26,7 @@ import {
   setPluginSdkPin,
   syncPluginTypes,
   type PluginPackageLayoutMigration,
-} from "@bb/templates/plugin-scaffold";
+} from "@kaioken/templates/plugin-scaffold";
 import { action } from "../action.js";
 import { cliFetch, createCliBbSdk } from "../client.js";
 import {
@@ -37,7 +37,7 @@ import {
   PLUGIN_TOOLCHAIN_PINS,
   resolvePluginBuildToolchain,
   type PluginBuildToolchain,
-} from "@bb/plugin-build";
+} from "@kaioken/plugin-build";
 import { runPluginCliCommand } from "../plugin-cli-proxy.js";
 import { resolveBbCliVersion } from "../version.js";
 
@@ -52,26 +52,26 @@ interface NewPluginTarget {
 export function resolveNewPluginTarget(name: string): NewPluginTarget | null {
   const packageName = name.startsWith("@")
     ? name
-    : name.startsWith("bb-plugin-")
+    : name.startsWith("kaioken-plugin-")
       ? name
-      : `bb-plugin-${name}`;
+      : `kaioken-plugin-${name}`;
   if (
-    !/^(?:@[a-z0-9][a-z0-9-]*\/)?bb-plugin-[a-z0-9][a-z0-9-]*$/.test(
+    !/^(?:@[a-z0-9][a-z0-9-]*\/)?kaioken-plugin-[a-z0-9][a-z0-9-]*$/.test(
       packageName,
     )
   ) {
     return null;
   }
   const pluginId = derivePluginId(packageName);
-  if (RESERVED_BB_CLI_COMMANDS.includes(pluginId)) return null;
+  if (RESERVED_KAIOKEN_CLI_COMMANDS.includes(pluginId)) return null;
   return {
     packageName,
-    directoryName: `bb-plugin-${pluginId}`,
+    directoryName: `kaioken-plugin-${pluginId}`,
   };
 }
 
 function toolchainBaseDir(): string {
-  const configured = process.env.BB_DATA_DIR;
+  const configured = process.env.KAIOKEN_DATA_DIR;
   const dataDir =
     configured === undefined || configured.trim().length === 0
       ? resolveProdDataDir({ homeDir: homedir() })
@@ -181,7 +181,7 @@ async function refreshPluginTypes(
     );
   }
   console.log(
-    "This plugin vendors types/ — `bb plugin migrate` switches it to the @get-bb/plugin-sdk npm package.",
+    "This plugin vendors types/ — `kaioken plugin migrate` switches it to the @get-kaioken/plugin-sdk npm package.",
   );
 }
 
@@ -191,19 +191,19 @@ function warnIfSdkPinIsStale(pin: string | null): void {
   if (pin === null || !EXACT_VERSION_PATTERN.test(pin)) return;
   if (pin === PLUGIN_SDK_VERSION) return;
   console.warn(
-    `This plugin pins @get-bb/plugin-sdk ${pin}; this bb's SDK is ${PLUGIN_SDK_VERSION} — \`bb plugin types\` updates the pin.`,
+    `This plugin pins @get-kaioken/plugin-sdk ${pin}; this kaioken's SDK is ${PLUGIN_SDK_VERSION} — \`kaioken plugin types\` updates the pin.`,
   );
 }
 
 function printMigrationPlan(plan: PluginPackageLayoutMigration): void {
   if (plan.pin !== null) {
     console.log(
-      `  package.json   devDependencies "@get-bb/plugin-sdk": ${plan.pin.from ?? "(none)"} → ${plan.pin.to}`,
+      `  package.json   devDependencies "@get-kaioken/plugin-sdk": ${plan.pin.from ?? "(none)"} → ${plan.pin.to}`,
     );
   }
   if (plan.movedFromDependencies) {
     console.log(
-      '  package.json   move "@get-bb/plugin-sdk" from dependencies to devDependencies',
+      '  package.json   move "@get-kaioken/plugin-sdk" from dependencies to devDependencies',
     );
   }
   if (plan.enginesFloor !== null) {
@@ -225,7 +225,7 @@ function printMigrationPlan(plan: PluginPackageLayoutMigration): void {
   }
   for (const file of plan.rewrittenImports) {
     console.log(
-      `  rewrite        ${file.path} (${file.imports} import${file.imports === 1 ? "" : "s"} of "@bb/plugin-sdk" → "@get-bb/plugin-sdk")`,
+      `  rewrite        ${file.path} (${file.imports} import${file.imports === 1 ? "" : "s"} of "@get-bb/plugin-sdk" → "@get-kaioken/plugin-sdk")`,
     );
   }
 }
@@ -249,7 +249,7 @@ async function requirePluginManifest(
   }
   if (typeof manifest.bb?.server !== "string") {
     console.error(
-      `${rootDir} is not a bb plugin — package.json has no "bb.server" entry.`,
+      `${rootDir} is not a kaioken plugin — package.json has no "bb.server" entry.`,
     );
     process.exit(1);
   }
@@ -310,7 +310,7 @@ async function warnIfSdkVersionUnpublished(): Promise<void> {
   if (status === "published") return;
   if (status === "unknown") {
     console.warn(
-      `Warning: could not reach the npm registry to verify that @get-bb/plugin-sdk ${PLUGIN_SDK_VERSION} — this bb's SDK version — is published.`,
+      `Warning: could not reach the npm registry to verify that @get-kaioken/plugin-sdk ${PLUGIN_SDK_VERSION} — this kaioken's SDK version — is published.`,
     );
     console.warn(
       "  If `npm install` fails to resolve it, the version may not be on your registry yet.",
@@ -318,18 +318,18 @@ async function warnIfSdkVersionUnpublished(): Promise<void> {
     return;
   }
   console.warn(
-    `Warning: @get-bb/plugin-sdk ${PLUGIN_SDK_VERSION} — this bb's SDK version — was not found on npm.`,
+    `Warning: @get-kaioken/plugin-sdk ${PLUGIN_SDK_VERSION} — this kaioken's SDK version — was not found on npm.`,
   );
   console.warn(
     "  `npm install` in the new plugin will fail until that version publishes.",
   );
   console.warn(
-    "  To work around it, pack the SDK from a bb checkout and point the",
+    "  To work around it, pack the SDK from a kaioken checkout and point the",
   );
   console.warn("  devDependency at the tarball:");
-  console.warn("    (cd <bb-repo>/packages/plugin-sdk && npm pack)");
+  console.warn("    (cd <kaioken-repo>/packages/plugin-sdk && npm pack)");
   console.warn(
-    '    npm pkg set devDependencies.@get-bb/plugin-sdk="file:/abs/path/to/get-bb-plugin-sdk-' +
+    '    npm pkg set devDependencies.@get-kaioken/plugin-sdk="file:/abs/path/to/get-kaioken-plugin-sdk-' +
       `${PLUGIN_SDK_VERSION}.tgz"`,
   );
 }
@@ -342,7 +342,7 @@ async function probeSdkVersionPublished(): Promise<
   try {
     const { stdout } = await promisify(execFile)(
       "npm",
-      ["view", `@get-bb/plugin-sdk@${PLUGIN_SDK_VERSION}`, "version", "--json"],
+      ["view", `@get-kaioken/plugin-sdk@${PLUGIN_SDK_VERSION}`, "version", "--json"],
       { timeout: 5_000, killSignal: "SIGKILL" },
     );
     return stdout.trim().length === 0 ? "missing" : "published";
@@ -392,14 +392,14 @@ async function installScaffoldDependencies(
     );
   } catch (cause) {
     console.warn(
-      `Could not run npm install — run it in the plugin directory before \`bb plugin build\`.${npmFailureDetail(cause)}`,
+      `Could not run npm install — run it in the plugin directory before \`kaioken plugin build\`.${npmFailureDetail(cause)}`,
     );
     return false;
   }
   const problem = await unresolvedScaffoldPackages(targetDir);
   if (problem !== null) {
     console.warn(
-      `npm install reported success but ${problem} — run \`npm install --include=dev\` in the plugin directory before \`bb plugin build\`.`,
+      `npm install reported success but ${problem} — run \`npm install --include=dev\` in the plugin directory before \`kaioken plugin build\`.`,
     );
     return false;
   }
@@ -642,10 +642,10 @@ function resolvedSourceLines(source: PluginCatalogResolvedSource): string[] {
 
 function installPlanSummary(plan: PluginCatalogInstallPlan): string {
   if (plan.kind === "bundled") {
-    return `Installing ${plan.displayName}, bundled with BB (${plan.source})`;
+    return `Installing ${plan.displayName}, bundled with Kaioken (${plan.source})`;
   }
   if (plan.official) {
-    return `Installing ${plan.displayName} from the ${plan.marketplaceDisplayName} marketplace, reviewed by BB (${plan.source})`;
+    return `Installing ${plan.displayName} from the ${plan.marketplaceDisplayName} marketplace, reviewed by Kaioken (${plan.source})`;
   }
   const author =
     plan.author.url === null
@@ -653,7 +653,7 @@ function installPlanSummary(plan: PluginCatalogInstallPlan): string {
       : `${plan.author.name} (${plan.author.url})`;
   return [
     `Installing ${plan.displayName} (${plan.entryId}@${plan.marketplace})`,
-    `  marketplace: ${plan.marketplaceDisplayName} — a third-party marketplace, not reviewed by BB`,
+    `  marketplace: ${plan.marketplaceDisplayName} — a third-party marketplace, not reviewed by Kaioken`,
     `  author: ${author}`,
     ...resolvedSourceLines(plan.resolvedSource),
   ].join("\n");
@@ -682,10 +682,10 @@ function printPlugin(plugin: PluginEntry): void {
     );
   }
   if (plugin.cliCommand) {
-    const collisionNote = RESERVED_BB_CLI_COMMANDS.includes(
+    const collisionNote = RESERVED_KAIOKEN_CLI_COMMANDS.includes(
       plugin.cliCommand.name,
     )
-      ? ` (core command "bb ${plugin.cliCommand.name}" takes precedence)`
+      ? ` (core command "kaioken ${plugin.cliCommand.name}" takes precedence)`
       : "";
     console.log(
       `  command: ${pluginCliCall(plugin.id, plugin.cliCommand.name)} — ${plugin.cliCommand.summary}${collisionNote}`,
@@ -699,7 +699,7 @@ function exitWithError(result: { error?: string }): never {
 }
 
 function sdkErrorMessage(error: unknown): string {
-  if (error instanceof BbHttpError) {
+  if (error instanceof KaiokenHttpError) {
     return error.message.replace(/^HTTP \d+: /u, "");
   }
   return error instanceof Error ? error.message : String(error);
@@ -775,13 +775,13 @@ export function registerPluginCommands(
 ): void {
   const plugin = program
     .command("plugin")
-    .description("Manage BB plugins")
+    .description("Manage Kaioken plugins")
     .enablePositionalOptions();
 
   plugin
     .command("search <query>")
     .description(
-      "Search every plugin the store lists: the plugins bundled with the app, the reserved bb-community marketplace catalog BB reviews, and any third-party marketplace added on this host. The Marketplace column names the source; only bb-community is reviewed by BB",
+      "Search every plugin the store lists: the plugins bundled with the app, the reserved bb-community marketplace catalog Kaioken reviews, and any third-party marketplace added on this host. The Marketplace column names the source; only bb-community is reviewed by Kaioken",
     )
     .option("--json", "Output JSON")
     .action(
@@ -809,7 +809,7 @@ export function registerPluginCommands(
             ? "✓ installed"
             : result.compatible
               ? "compatible"
-              : `requires newer bb${result.incompatibleReason ? `: ${result.incompatibleReason}` : ""}`,
+              : `requires newer kaioken${result.incompatibleReason ? `: ${result.incompatibleReason}` : ""}`,
         ]);
         console.log(
           renderBorderlessTable(
@@ -912,7 +912,7 @@ export function registerPluginCommands(
   plugin
     .command("install <source>")
     .description(
-      "Install a catalog entry by name or <entry>@<marketplace>, a Git repository URL, a local path, builtin:<name>, git:<url>[@<ref|semver-range>], or npm:<name>@<version>. A catalog entry from a third-party marketplace is not reviewed by BB, so its confirmation names the marketplace, the author, and the exact resolved source (managed sources validate engines ranges and build artifacts; bundled plugin ids are reserved)",
+      "Install a catalog entry by name or <entry>@<marketplace>, a Git repository URL, a local path, builtin:<name>, git:<url>[@<ref|semver-range>], or npm:<name>@<version>. A catalog entry from a third-party marketplace is not reviewed by Kaioken, so its confirmation names the marketplace, the author, and the exact resolved source (managed sources validate engines ranges and build artifacts; bundled plugin ids are reserved)",
     )
     .option(
       "--subdirectory <path>",
@@ -920,7 +920,7 @@ export function registerPluginCommands(
     )
     .option(
       "--plugin <name>",
-      "Install the .bb/plugins.json entry with this name (git:/path: repositories)",
+      "Install the .kaioken/plugins.json entry with this name (git:/path: repositories)",
     )
     .option(
       "--tag-prefix <prefix>",
@@ -941,7 +941,7 @@ export function registerPluginCommands(
         ) => {
           if (opts.subdirectory !== undefined && opts.plugin !== undefined) {
             throw new Error(
-              "Use --subdirectory or --plugin, not both: --plugin resolves a name from .bb/plugins.json to a subdirectory.",
+              "Use --subdirectory or --plugin, not both: --plugin resolves a name from .kaioken/plugins.json to a subdirectory.",
             );
           }
           const requested =
@@ -998,8 +998,8 @@ export function registerPluginCommands(
           if (!opts.json) {
             console.log(summary);
             console.log(
-              "Plugins are full-trust code running inside the BB server. " +
-                "They can read all local BB data, including other plugins' secrets.",
+              "Plugins are full-trust code running inside the Kaioken server. " +
+                "They can read all local Kaioken data, including other plugins' secrets.",
             );
           }
           if (!opts.yes) {
@@ -1127,7 +1127,7 @@ export function registerPluginCommands(
             if (!shouldAttempt) {
               if (result.outcome === "pinned") {
                 console.log(
-                  `${result.id}: skipped — pinned${detail ? ` (${detail})` : ""}; remove and reinstall with a tracking npm range, git branch, or git semver range to receive updates (remove deletes the plugin's settings, secrets, and schedules). A local path plugin updates with \`bb plugin reload\`; move it with \`bb plugin install path:<new directory>\`.`,
+                  `${result.id}: skipped — pinned${detail ? ` (${detail})` : ""}; remove and reinstall with a tracking npm range, git branch, or git semver range to receive updates (remove deletes the plugin's settings, secrets, and schedules). A local path plugin updates with \`kaioken plugin reload\`; move it with \`kaioken plugin install path:<new directory>\`.`,
                 );
               } else if (result.outcome === "incompatible") {
                 console.log(
@@ -1180,14 +1180,14 @@ export function registerPluginCommands(
   plugin
     .command("new <name>")
     .description(
-      "Scaffold a plugin in ./bb-plugin-<name>; accepts @scope/bb-plugin-<name>",
+      "Scaffold a plugin in ./kaioken-plugin-<name>; accepts @scope/kaioken-plugin-<name>",
     )
     .action(
       action(async (name: string) => {
         const target = resolveNewPluginTarget(name);
         if (target === null) {
           console.error(
-            `Invalid or reserved plugin name "${name}" — use a non-core name, bb-plugin-name, or @scope/bb-plugin-name.`,
+            `Invalid or reserved plugin name "${name}" — use a non-core name, kaioken-plugin-name, or @scope/kaioken-plugin-name.`,
           );
           process.exit(1);
         }
@@ -1196,7 +1196,7 @@ export function registerPluginCommands(
         await scaffoldPlugin({
           targetDir,
           packageName,
-          bbVersion: resolveBbCliVersion(),
+          kaiokenVersion: resolveBbCliVersion(),
         });
         console.log(`Created ${directoryName}/ (${packageName}).`);
         await warnIfSdkVersionUnpublished();
@@ -1206,14 +1206,14 @@ export function registerPluginCommands(
         if (!installed) {
           console.log("  npm install --include=dev");
         }
-        console.log("  bb plugin install .");
+        console.log("  kaioken plugin install .");
       }),
     );
 
   plugin
     .command("types [path]")
     .description(
-      "Sync a plugin's @get-bb/plugin-sdk surface to the running bb (default: cwd): repin the npm devDependency and the type-only devDependencies of the packages bb shims at runtime (sonner, vaul, the portal radix families, ...) for plugins that depend on the package, or rewrite the vendored types/ declarations for plugins that still carry them",
+      "Sync a plugin's @get-kaioken/plugin-sdk surface to the running kaioken (default: cwd): repin the npm devDependency and the type-only devDependencies of the packages kaioken shims at runtime (sonner, vaul, the portal radix families, ...) for plugins that depend on the package, or rewrite the vendored types/ declarations for plugins that still carry them",
     )
     .option(
       "--check",
@@ -1228,7 +1228,7 @@ export function registerPluginCommands(
         if (layout.kind === "package") {
           if (opts.check) {
             console.log(
-              `This plugin uses the npm package @get-bb/plugin-sdk; pin is ${layout.pin ?? "not declared"}, host is ${PLUGIN_SDK_VERSION}.`,
+              `This plugin uses the npm package @get-kaioken/plugin-sdk; pin is ${layout.pin ?? "not declared"}, host is ${PLUGIN_SDK_VERSION}.`,
             );
             const pending = await setPluginSdkPin({
               rootDir,
@@ -1238,22 +1238,22 @@ export function registerPluginCommands(
             });
             if (pending === null) {
               console.log(
-                "The declarations are in node_modules/@get-bb/plugin-sdk/bundled-types/ — read them for exact signatures.",
+                "The declarations are in node_modules/@get-kaioken/plugin-sdk/bundled-types/ — read them for exact signatures.",
               );
               return;
             }
             if (pending.pin !== null || pending.movedFromDependencies) {
               console.error(
                 pending.pin === null
-                  ? 'Move "@get-bb/plugin-sdk" from dependencies to devDependencies — bb provides its runtime (`bb plugin types` does it for you).'
-                  : `Set "@get-bb/plugin-sdk" to ${PLUGIN_SDK_VERSION} in devDependencies and re-run npm install (\`bb plugin types\` does it for you).`,
+                  ? 'Move "@get-kaioken/plugin-sdk" from dependencies to devDependencies — kaioken provides its runtime (`kaioken plugin types` does it for you).'
+                  : `Set "@get-kaioken/plugin-sdk" to ${PLUGIN_SDK_VERSION} in devDependencies and re-run npm install (\`kaioken plugin types\` does it for you).`,
               );
             }
             for (const shim of pending.shimmedTypePins) {
               console.error(
                 shim.movedFromDependencies
-                  ? `Move "${shim.name}" from dependencies to devDependencies at ${shim.to} — bb shims it at runtime and never bundles it (\`bb plugin types\` does it for you).`
-                  : `Set "${shim.name}" to ${shim.to} in devDependencies — the version this bb shims at runtime (\`bb plugin types\` does it for you).`,
+                  ? `Move "${shim.name}" from dependencies to devDependencies at ${shim.to} — kaioken shims it at runtime and never bundles it (\`kaioken plugin types\` does it for you).`
+                  : `Set "${shim.name}" to ${shim.to} in devDependencies — the version this kaioken shims at runtime (\`kaioken plugin types\` does it for you).`,
               );
             }
             process.exit(1);
@@ -1265,21 +1265,21 @@ export function registerPluginCommands(
           });
           if (changed === null) {
             console.log(
-              `@get-bb/plugin-sdk is already pinned to ${PLUGIN_SDK_VERSION} — this bb's SDK version${hasApp ? ", and the runtime-shimmed packages are at this bb's versions" : ""}.`,
+              `@get-kaioken/plugin-sdk is already pinned to ${PLUGIN_SDK_VERSION} — this kaioken's SDK version${hasApp ? ", and the runtime-shimmed packages are at this kaioken's versions" : ""}.`,
             );
             console.log(
-              "The declarations are in node_modules/@get-bb/plugin-sdk/bundled-types/ — read them for exact signatures.",
+              "The declarations are in node_modules/@get-kaioken/plugin-sdk/bundled-types/ — read them for exact signatures.",
             );
             return;
           }
           if (changed.pin !== null) {
             console.log(
-              `@get-bb/plugin-sdk: ${changed.pin.from ?? "(not declared)"} → ${changed.pin.to} in devDependencies.`,
+              `@get-kaioken/plugin-sdk: ${changed.pin.from ?? "(not declared)"} → ${changed.pin.to} in devDependencies.`,
             );
           }
           if (changed.movedFromDependencies) {
             console.log(
-              "Moved @get-bb/plugin-sdk from dependencies to devDependencies.",
+              "Moved @get-kaioken/plugin-sdk from dependencies to devDependencies.",
             );
           }
           for (const shim of changed.shimmedTypePins) {
@@ -1304,7 +1304,7 @@ export function registerPluginCommands(
         if (opts.check) {
           if (files.some((file) => file.outcome === "stale")) {
             console.error(
-              "Declarations are out of date — run `bb plugin types` to refresh them.",
+              "Declarations are out of date — run `kaioken plugin types` to refresh them.",
             );
             process.exit(1);
           }
@@ -1319,7 +1319,7 @@ export function registerPluginCommands(
   plugin
     .command("migrate [path]")
     .description(
-      "Switch a plugin that vendors types/ to the @get-bb/plugin-sdk npm package (default: cwd): pin the devDependency, drop the tsconfig path map, delete the vendored declarations, and rewrite pre-rename @bb/plugin-sdk imports in the plugin's sources; prints the plan and asks first",
+      "Switch a plugin that vendors types/ to the @get-kaioken/plugin-sdk npm package (default: cwd): pin the devDependency, drop the tsconfig path map, delete the vendored declarations, and rewrite pre-rename @get-bb/plugin-sdk imports in the plugin's sources; prints the plan and asks first",
     )
     .option("--yes", "Skip the confirmation prompt")
     .action(
@@ -1334,14 +1334,14 @@ export function registerPluginCommands(
         });
         if (!plan.changed) {
           console.log(
-            `Already migrated: this plugin uses the @get-bb/plugin-sdk npm package (pin ${layout.pin ?? "not declared"}).`,
+            `Already migrated: this plugin uses the @get-kaioken/plugin-sdk npm package (pin ${layout.pin ?? "not declared"}).`,
           );
           return;
         }
         console.log(
           layout.kind === "vendored"
-            ? `${rootDir} vendors its SDK declarations. Migrating to the @get-bb/plugin-sdk npm package will:`
-            : `${rootDir} is missing part of the @get-bb/plugin-sdk npm package layout. Completing the migration will:`,
+            ? `${rootDir} vendors its SDK declarations. Migrating to the @get-kaioken/plugin-sdk npm package will:`
+            : `${rootDir} is missing part of the @get-kaioken/plugin-sdk npm package layout. Completing the migration will:`,
         );
         printMigrationPlan(plan);
         await confirmPluginAction(
@@ -1356,7 +1356,7 @@ export function registerPluginCommands(
         });
         if (!samePlan(plan, confirmedPlan)) {
           console.error(
-            "The plugin changed while awaiting confirmation — nothing was written. Re-run `bb plugin migrate` to see the current plan.",
+            "The plugin changed while awaiting confirmation — nothing was written. Re-run `kaioken plugin migrate` to see the current plan.",
           );
           process.exit(1);
         }
@@ -1364,7 +1364,7 @@ export function registerPluginCommands(
           rootDir,
           sdkVersion: PLUGIN_SDK_VERSION,
         });
-        console.log("Migrated to the @get-bb/plugin-sdk npm package.");
+        console.log("Migrated to the @get-kaioken/plugin-sdk npm package.");
         if (plan.removedTypesDir && !applied.removedTypesDir) {
           console.warn(
             `Warning: ${join(rootDir, "types")} still exists — a file appeared in it during the migration, so it was left in place along with the tsconfig "types" include.`,
@@ -1385,7 +1385,7 @@ export function registerPluginCommands(
     .action(
       action(async (path: string | undefined) => {
         const rootDir = resolve(process.cwd(), path ?? ".");
-        const bbVersion = resolveBbCliVersion();
+        const kaiokenVersion = resolveBbCliVersion();
         const manifest = await readPluginManifest(rootDir);
         const hasApp = typeof manifest?.bb?.app === "string";
         const hasHost = typeof manifest?.bb?.host === "string";
@@ -1393,14 +1393,14 @@ export function registerPluginCommands(
           await refreshPluginTypes(rootDir, hasApp);
         }
         const toolchain = await cliBuildToolchain();
-        const server = await buildPluginServer(rootDir, bbVersion, toolchain);
+        const server = await buildPluginServer(rootDir, kaiokenVersion, toolchain);
         const files = [server.jsPath, server.mapPath, server.metaPath];
         if (hasApp) {
-          const app = await buildPluginApp(rootDir, bbVersion, toolchain);
+          const app = await buildPluginApp(rootDir, kaiokenVersion, toolchain);
           files.push(app.jsPath, app.cssPath, app.metaPath);
         }
         if (hasHost) {
-          const host = await buildPluginHost(rootDir, bbVersion, toolchain);
+          const host = await buildPluginHost(rootDir, kaiokenVersion, toolchain);
           files.push(host.jsPath, host.mapPath, host.metaPath);
         }
         for (const file of files) {
@@ -1429,7 +1429,7 @@ export function registerPluginCommands(
         );
         if (!entry) {
           console.error(
-            `This directory is not installed as a plugin — run \`bb plugin install ${path ?? "."}\` first, then re-run \`bb plugin dev\`.`,
+            `This directory is not installed as a plugin — run \`kaioken plugin install ${path ?? "."}\` first, then re-run \`kaioken plugin dev\`.`,
           );
           process.exit(1);
         }
@@ -1620,15 +1620,15 @@ export function registerPluginCommands(
           ) {
             console.error(
               actionName === "set"
-                ? "Usage: bb plugin config <id> set <key> <value>"
-                : "Usage: bb plugin config <id> unset <key>",
+                ? "Usage: kaioken plugin config <id> set <key> <value>"
+                : "Usage: kaioken plugin config <id> unset <key>",
             );
             process.exit(1);
           }
           let parsedValue: string | number | boolean | null = null;
           if (actionName === "set") {
             if (value === undefined) {
-              console.error("Usage: bb plugin config <id> set <key> <value>");
+              console.error("Usage: kaioken plugin config <id> set <key> <value>");
               process.exit(1);
             }
             const current = pluginSettingsResultSchema.parse(
@@ -1696,7 +1696,7 @@ export function registerPluginCommands(
   plugin
     .command("run <id> [args...]")
     .description(
-      "Run a plugin's CLI command (explicit form of `bb <command> ...`)",
+      "Run a plugin's CLI command (explicit form of `kaioken <command> ...`)",
     )
     .passThroughOptions()
     .allowUnknownOption()

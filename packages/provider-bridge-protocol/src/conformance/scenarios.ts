@@ -1,10 +1,10 @@
-import type { PromptInput, ThreadEvent } from "@bb/domain";
+import type { PromptInput, ThreadEvent } from "@kaioken/domain";
 import {
   getThreadEventScopeTurnId,
   isThreadEventWithItem,
   parseNamespacedGlyph,
   threadEventSchema,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { z } from "zod";
 import {
   BRIDGE_JSON_RPC_ERRORS,
@@ -40,7 +40,7 @@ interface ScenarioContext {
   fixture: ConformanceSessionFixture;
   resolveProviderTurnId: (
     threadId: string,
-    bbTurnId: string,
+    kaiokenTurnId: string,
   ) => string | undefined;
   fork: BridgeCapabilities["fork"];
   providerThreadId?: string;
@@ -154,7 +154,7 @@ export function checkPresentationIconsDeclared(
     if (!isThreadEventWithItem(event)) {
       continue;
     }
-    if (event.item.type === "toolCall" && event.item.server === "bb") {
+    if (event.item.type === "toolCall" && event.item.server === "kaioken") {
       continue;
     }
     const glyph =
@@ -199,7 +199,7 @@ export async function runRpcHygieneScenarios(
 
   let unknownMethodsAnswered = false;
   {
-    const id = client.request("bb/conformance/definitely-unknown-method", {});
+    const id = client.request("kaioken/conformance/definitely-unknown-method", {});
     const response = await client.waitForResponse(id);
     const title = "unknown method answers METHOD_NOT_FOUND";
     if (response === null) {
@@ -256,7 +256,7 @@ export async function runRpcHygieneScenarios(
       );
     } else {
       client.sendRaw("this is { not json");
-      const probe = client.request("bb/conformance/alive-probe", {});
+      const probe = client.request("kaioken/conformance/alive-probe", {});
       const response = await client.waitForResponse(probe);
       results.push(
         response === null
@@ -280,7 +280,7 @@ export async function runRpcHygieneScenarios(
       client.sendRaw(
         JSON.stringify({ jsonrpc: "2.0", id: 999_999, result: {} }),
       );
-      const probe = client.request("bb/conformance/alive-probe", {});
+      const probe = client.request("kaioken/conformance/alive-probe", {});
       const response = await client.waitForResponse(probe);
       const echoed = client
         .responsesFor(999_999)
@@ -316,7 +316,7 @@ export async function runHandshakeScenario(
 ): Promise<HandshakeScenarioOutcome> {
   const id = client.request(BRIDGE_REQUEST_METHODS.initialize, {
     protocolVersion: PROVIDER_BRIDGE_PROTOCOL_VERSION,
-    client: { name: "bb-conformance", version: "0.0.1" },
+    client: { name: "kaioken-conformance", version: "0.0.1" },
     grammarVersions: ASSEMBLER_GRAMMAR_VERSIONS,
   });
   const response = await client.waitForResponse(id);
@@ -963,9 +963,9 @@ async function runInterruptStopScenario(
       ),
     ];
   }
-  const bbTurnId = started.scope.turnId;
+  const kaiokenTurnId = started.scope.turnId;
   const providerTurnId =
-    context.resolveProviderTurnId(threadId, bbTurnId) ?? bbTurnId;
+    context.resolveProviderTurnId(threadId, kaiokenTurnId) ?? kaiokenTurnId;
 
   const stopId = client.request(BRIDGE_REQUEST_METHODS.threadStop, {
     threadId,
@@ -998,7 +998,7 @@ async function runInterruptStopScenario(
       (entry) =>
         entry.threadId === threadId &&
         entry.event.type === "turn/completed" &&
-        getThreadEventScopeTurnId(entry.event.scope) === bbTurnId,
+        getThreadEventScopeTurnId(entry.event.scope) === kaiokenTurnId,
     )?.logIndex ?? -1;
   if (completedIndex === -1) {
     return [

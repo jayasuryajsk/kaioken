@@ -1,5 +1,5 @@
-import { extractErrorMessage, toRecord } from "@bb/core-ui";
-import { BbHttpError } from "@bb/sdk/browser";
+import { extractErrorMessage, toRecord } from "@kaioken/core-ui";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 import { isTransientReadError } from "./query-client";
 
 const HTTP_STATUS_PREFIX_PATTERN = /^HTTP \d{3}:\s*/u;
@@ -43,7 +43,7 @@ function getMutationErrorMeta(
   };
 }
 
-function getHttpErrorMessage(error: BbHttpError): string | null {
+function getHttpErrorMessage(error: KaiokenHttpError): string | null {
   const bodyMessage = extractErrorMessage(error.body);
   if (bodyMessage) return normalizeMessage(bodyMessage);
   const stripped = stripHttpStatusPrefix(normalizeMessage(error.message));
@@ -57,7 +57,7 @@ export function getMutationErrorMessage({
   error: unknown;
   fallbackMessage: string;
 }): string {
-  if (error instanceof BbHttpError) {
+  if (error instanceof KaiokenHttpError) {
     return getHttpErrorMessage(error) ?? fallbackMessage;
   }
   if (!isAbortLikeError(error) && isTransientReadError(error)) {

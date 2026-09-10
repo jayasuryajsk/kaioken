@@ -3,7 +3,7 @@ import {
   type MentionCandidate,
   type OrderedMentionSuggestions,
   type PromptMentionSuggestion,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 type ThreadMentionSuggestion = Extract<
   PromptMentionSuggestion,

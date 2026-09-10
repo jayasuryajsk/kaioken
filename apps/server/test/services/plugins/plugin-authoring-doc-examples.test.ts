@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 const SKILL_ROOT = fileURLToPath(
   new URL(
-    "../../../../../plugins/bb-guide/skills/bb-plugin-authoring/",
+    "../../../../../plugins/kaioken-guide/skills/kaioken-plugin-authoring/",
     import.meta.url,
   ),
 );
@@ -93,15 +93,15 @@ function probeSource(
   fences: readonly SdkFence[],
 ): string {
   return [
-    `import type { BbPluginApi } from "@get-bb/plugin-sdk";`,
-    `type Sdk = BbPluginApi["sdk"];`,
+    `import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";`,
+    `type Sdk = KaiokenPluginApi["sdk"];`,
     `type Callable = (...args: never[]) => unknown;`,
     `type AssertCallable<F extends Callable> = F;`,
     ...references.map(
       (reference) =>
         `type SdkReferenceAtLine${reference.line} = AssertCallable<Sdk${typeIndex(reference.path)}>;`,
     ),
-    `declare const bb: BbPluginApi;`,
+    `declare const bb: KaiokenPluginApi;`,
     `type SpawnArgs = Parameters<Sdk["threads"]["spawn"]>[0];`,
     `declare const projectId: SpawnArgs["projectId"];`,
     `declare const threadId: Parameters<Sdk["threads"]["get"]>[0]["threadId"];`,
@@ -131,16 +131,16 @@ const PROBE_TSCONFIG = {
     noEmit: true,
     skipLibCheck: true,
     types: [],
-    paths: { "@get-bb/plugin-sdk": [pluginSdkEntry] },
+    paths: { "@get-kaioken/plugin-sdk": [pluginSdkEntry] },
   },
   files: ["probe.ts"],
 };
 
-describe("bb-plugin-authoring skill examples", () => {
+describe("kaioken-plugin-authoring skill examples", () => {
   let workDir: string;
 
   beforeEach(async () => {
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-doc-examples-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-doc-examples-"));
   });
 
   afterEach(async () => {

@@ -2,7 +2,7 @@ import {
   readDefaultBranchRefs,
   type DefaultBranchRelation,
   type GitProcessOptions,
-} from "bb-environment-provider-host/git";
+} from "kaioken-environment-provider-host/git";
 
 export type BaseBranchSpec =
   | { kind: "named"; name: string }

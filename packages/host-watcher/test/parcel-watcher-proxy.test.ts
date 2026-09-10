@@ -580,7 +580,7 @@ describe("createParcelWatcherProxy", () => {
   });
 });
 
-if (process.env.BB_WATCHER_RECOVERY_BENCHMARK === "1") {
+if (process.env.KAIOKEN_WATCHER_RECOVERY_BENCHMARK === "1") {
   describe("watcher recovery count harness", () => {
     it("reports two-subscription and fan-out recovery work", async () => {
       const result = {

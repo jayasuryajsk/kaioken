@@ -4,7 +4,7 @@ import {
   ResourceInfiniteScrollSentinel,
   useResourceInfiniteItems,
   useResourceViewportPageSize,
-} from "@bb/shared-ui/resource-pagination";
+} from "@kaioken/shared-ui/resource-pagination";
 import {
   ResourceCollectionPage,
   ResourceCollectionViewport,
@@ -12,10 +12,10 @@ import {
   ResourceMultiSelectMenu,
   ResourceSortMenu,
   ResourceToolbar,
-} from "@bb/shared-ui/resource-list";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/resource-list";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { CreateWithTemplatesButton } from "@/components/create-via-prompt-examples";
-import { CREATE_PLUGIN_PROMPT } from "@bb/client-core";
+import { CREATE_PLUGIN_PROMPT } from "@kaioken/client-core";
 import { TOOLS_PAGE_BAND_CLASSES } from "@/components/tools/tools-navigation";
 import {
   AddPluginDialog,

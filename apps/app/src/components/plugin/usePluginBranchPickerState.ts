@@ -5,7 +5,7 @@ import type {
   CheckoutState,
   UseBranchesArgs,
   UseCheckoutStateArgs,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 
 export function usePluginBranches({
   hostId,

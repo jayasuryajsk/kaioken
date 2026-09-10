@@ -4,7 +4,7 @@ import {
   threadOpenSplitSchema,
   type PanelFileSource,
   type ThreadOpenFile,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { action } from "../../action.js";
 import { createCliBbSdk } from "../../client.js";
 import {
@@ -38,9 +38,9 @@ export function registerOpenCommand(
 ): void {
   parent
     .command("open")
-    .description("Open a BB thread, optionally with a file in its panel")
+    .description("Open a Kaioken thread, optionally with a file in its panel")
     .usage("[id] [path] [options]")
-    .argument("[id]", "Thread ID. Omit inside a BB thread.")
+    .argument("[id]", "Thread ID. Omit inside a Kaioken thread.")
     .argument("[path]", "Thread-relative or absolute file path to open")
     .option("--line <number>", "Line number to focus")
     .option(
@@ -99,7 +99,7 @@ export function registerOpenCommand(
             return;
           }
 
-          printContextLabel(target.resolved, "Thread", "BB_THREAD_ID", opts);
+          printContextLabel(target.resolved, "Thread", "KAIOKEN_THREAD_ID", opts);
           console.log(`Thread: ${target.threadId}`);
           console.log(`Split: ${split}`);
           if (file !== null) {
@@ -140,7 +140,7 @@ function resolveThreadOpenTarget(
       }
       if (explicitThreadId !== contextThreadId && !allowsExplicitThreadTarget) {
         throw new Error(
-          "BB_THREAD_ID is set, so bb thread open targets the current thread. Omit the thread ID.",
+          "KAIOKEN_THREAD_ID is set, so kaioken thread open targets the current thread. Omit the thread ID.",
         );
       }
       return {
@@ -178,7 +178,7 @@ function resolveThreadOpenTarget(
 
   if (first === undefined) {
     throw new Error(
-      "Missing thread ID. Pass <threadId> [path], or run inside a BB thread.",
+      "Missing thread ID. Pass <threadId> [path], or run inside a Kaioken thread.",
     );
   }
 
@@ -250,7 +250,7 @@ async function resolveThreadOpenFileRequest(args: {
   }
 
   const acceptedRoots = threadStorageRoot
-    ? "the target thread workspace or BB_THREAD_STORAGE"
+    ? "the target thread workspace or KAIOKEN_THREAD_STORAGE"
     : "the target thread workspace";
   throw new Error(`Absolute path must be inside ${acceptedRoots}.`);
 }
@@ -274,7 +274,7 @@ async function resolveThreadWorkspaceRoot(
 
 function resolveThreadStorageRoot(threadId: string): string | undefined {
   if (resolveContextThreadId() !== threadId) return undefined;
-  const rawRoot = process.env.BB_THREAD_STORAGE?.trim();
+  const rawRoot = process.env.KAIOKEN_THREAD_STORAGE?.trim();
   if (!rawRoot) return undefined;
   return path.resolve(rawRoot);
 }

@@ -2,9 +2,9 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createConnection, migrate, type DbConnection } from "@bb/db";
-import { type PromptInput } from "@bb/domain";
-import type { Logger } from "@bb/logger";
+import { createConnection, migrate, type DbConnection } from "@kaioken/db";
+import { type PromptInput } from "@kaioken/domain";
+import type { Logger } from "@kaioken/logger";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import {
   createPluginService,
@@ -168,7 +168,7 @@ describe("plugin mention providers (bb.ui.registerMentionProvider)", () => {
     harness = await createTestAppHarness();
     const rootDir = await writePlugin(
       join(harness.config.dataDir, "fixtures"),
-      { name: "bb-plugin-mentions", serverSource: MENTION_SOURCE },
+      { name: "kaioken-plugin-mentions", serverSource: MENTION_SOURCE },
     );
     const entry = await harness.pluginService.installPath(rootDir);
     expect(entry.status).toBe("running");
@@ -541,7 +541,7 @@ describe("plugin mention providers (bb.ui.registerMentionProvider)", () => {
     const dupeDir = await writePlugin(
       join(harness.config.dataDir, "fixtures"),
       {
-        name: "bb-plugin-dupe-mentions",
+        name: "kaioken-plugin-dupe-mentions",
         serverSource: `
           export default function plugin(bb: any) {
             bb.ui.registerMentionProvider({
@@ -563,7 +563,7 @@ describe("plugin mention providers (bb.ui.registerMentionProvider)", () => {
     const badIdDir = await writePlugin(
       join(harness.config.dataDir, "fixtures"),
       {
-        name: "bb-plugin-bad-mention-id",
+        name: "kaioken-plugin-bad-mention-id",
         serverSource: `
           export default function plugin(bb: any) {
             bb.ui.registerMentionProvider({
@@ -580,7 +580,7 @@ describe("plugin mention providers (bb.ui.registerMentionProvider)", () => {
     const badTriggerDir = await writePlugin(
       join(harness.config.dataDir, "fixtures"),
       {
-        name: "bb-plugin-bad-mention-trigger",
+        name: "kaioken-plugin-bad-mention-trigger",
         serverSource: `
           export default function plugin(bb: any) {
             bb.ui.registerMentionProvider({
@@ -606,7 +606,7 @@ describe("mention search time box", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-mention-timeout-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-mention-timeout-"));
     service = createPluginService({
       aiServices: createAiServiceRegistry(),
       telemetry: createNoopTelemetryService(),
@@ -631,7 +631,7 @@ describe("mention search time box", () => {
 
   it("drops a slow provider after the time box and keeps fast providers", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-slow-mentions",
+      name: "kaioken-plugin-slow-mentions",
       serverSource: `
         export default function plugin(bb: any) {
           bb.ui.registerMentionProvider({
@@ -685,7 +685,7 @@ describe("mention resolve time box", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-resolve-timeout-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-resolve-timeout-"));
     service = createPluginService({
       aiServices: createAiServiceRegistry(),
       telemetry: createNoopTelemetryService(),
@@ -710,7 +710,7 @@ describe("mention resolve time box", () => {
 
   it("fails the resolve after the time box instead of hanging the send", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-slow-resolve",
+      name: "kaioken-plugin-slow-resolve",
       serverSource: `
         export default function plugin(bb: any) {
           bb.ui.registerMentionProvider({

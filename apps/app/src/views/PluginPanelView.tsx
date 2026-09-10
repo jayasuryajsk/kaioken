@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { PageShell } from "@/components/ui/page-shell.js";
-import { EmptyStatePanel } from "@bb/shared-ui/empty-state";
+import { EmptyStatePanel } from "@kaioken/shared-ui/empty-state";
 import { PluginSlotMount } from "@/components/plugin/PluginSlotMount";
 import { usePluginFrontendsSettled } from "@/lib/plugin-frontend-boot-state";
 import { usePluginSlots } from "@/lib/plugin-slots";

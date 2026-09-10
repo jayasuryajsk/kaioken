@@ -26,7 +26,7 @@ const handshake: NativeShellHandshake = {
 
 interface FakeWindow {
   ReactNativeWebView: { postMessage(raw: string): void };
-  bb?: { native?: NativeShellApi };
+  kaioken?: { native?: NativeShellApi };
 }
 
 function installBridge(overrides: Partial<NativeShellHandshake> = {}) {
@@ -43,7 +43,7 @@ function installBridge(overrides: Partial<NativeShellHandshake> = {}) {
     new Function("window", script)(fakeWindow);
   };
   run(buildBridgeInjectionScript({ ...handshake, ...overrides }));
-  const native = fakeWindow.bb?.native;
+  const native = fakeWindow.kaioken?.native;
   if (native === undefined) throw new Error("bridge did not install");
   return { native, posted, run, fakeWindow };
 }
@@ -140,7 +140,7 @@ describe("buildBridgeInjectionScript", () => {
         safeArea: { top: 10, right: 0, bottom: 0, left: 0 },
       }),
     );
-    expect(fakeWindow.bb?.native).toBe(native);
+    expect(fakeWindow.kaioken?.native).toBe(native);
     expect(native.appVersion).toBe("0.40.0");
     run(buildBridgeEventScript({ type: "resume" }));
     expect(seen).toHaveLength(1);
@@ -158,7 +158,7 @@ describe("buildBridgeInjectionScript", () => {
     const fakeWindow: Record<string, unknown> = {};
     // eslint-disable-next-line no-new-func
     new Function("window", buildBridgeInjectionScript(handshake))(fakeWindow);
-    const native = (fakeWindow.bb as { native: NativeShellApi }).native;
+    const native = (fakeWindow.kaioken as { native: NativeShellApi }).native;
     expect(() => native.post({ type: "ready", path: "/" })).not.toThrow();
   });
 });

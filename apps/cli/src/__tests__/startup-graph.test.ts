@@ -7,7 +7,7 @@ import { promisify } from "node:util";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { CORE_COMMAND_GROUPS } from "../command-groups.js";
-import { readBbAppVersion } from "./bb-app-version.js";
+import { readBbAppVersion } from "./kaioken-app-version.js";
 
 const execFileAsync = promisify(execFile);
 const cliRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -29,11 +29,11 @@ export async function resolve(specifier, context, nextResolve) {
 const REGISTER_HOOKS_SOURCE = `
 import { register } from "node:module";
 register(new URL("./resolve-hooks.mjs", import.meta.url), {
-  data: { logPath: process.env.BB_STARTUP_GRAPH_LOG },
+  data: { logPath: process.env.KAIOKEN_STARTUP_GRAPH_LOG },
 });
 `;
 
-const STRIPPED_ENV_KEYS = new Set(["BB_CLI", "BB_APP_VERSION"]);
+const STRIPPED_ENV_KEYS = new Set(["KAIOKEN_CLI", "KAIOKEN_APP_VERSION"]);
 
 const cliPackageJsonSchema = z.object({
   scripts: z.object({ build: z.string() }),
@@ -46,7 +46,7 @@ interface CliRun {
   urls: string[];
 }
 
-describe("bb startup module graph", () => {
+describe("kaioken startup module graph", () => {
   let tempDir: string;
   let registerHooksPath: string;
   let distEntry: string;
@@ -80,9 +80,9 @@ describe("bb startup module graph", () => {
         ([key]) => !STRIPPED_ENV_KEYS.has(key),
       ),
     );
-    env.BB_CLI_REEXEC = "1";
-    env.BB_STARTUP_GRAPH_LOG = logPath;
-    if (serverUrl !== undefined) env.BB_SERVER_URL = serverUrl;
+    env.KAIOKEN_CLI_REEXEC = "1";
+    env.KAIOKEN_STARTUP_GRAPH_LOG = logPath;
+    if (serverUrl !== undefined) env.KAIOKEN_SERVER_URL = serverUrl;
     const entryArgs =
       entry === "source"
         ? [
@@ -136,10 +136,10 @@ describe("bb startup module graph", () => {
     }
   }, 30_000);
 
-  it("loads only the named command group for `bb thread`", async () => {
+  it("loads only the named command group for `kaioken thread`", async () => {
     const run = await runCli("source", ["thread", "--help"]);
 
-    expect(run.stdout).toContain("Usage: bb thread");
+    expect(run.stdout).toContain("Usage: kaioken thread");
     expect(loaded(run, "/apps/cli/src/commands/thread/index.ts")).toHaveLength(
       1,
     );
@@ -191,7 +191,7 @@ describe("bb startup module graph", () => {
       );
     }, 60_000);
 
-    it("is how @bb/cli#build builds the shipped CLI", async () => {
+    it("is how @kaioken/cli#build builds the shipped CLI", async () => {
       const packageJson = cliPackageJsonSchema.parse(
         JSON.parse(await readFile(join(cliRoot, "package.json"), "utf8")),
       );
@@ -211,10 +211,10 @@ describe("bb startup module graph", () => {
       }
     }, 30_000);
 
-    it("loads only the thread chunk for `bb thread`", async () => {
+    it("loads only the thread chunk for `kaioken thread`", async () => {
       const run = await runCli("dist", ["thread", "--help"]);
 
-      expect(run.stdout).toContain("Usage: bb thread");
+      expect(run.stdout).toContain("Usage: kaioken thread");
       expect(loaded(run, `${chunkDirUrl}thread-`)).toHaveLength(1);
 
       const otherGroups = CORE_COMMAND_GROUPS.map((group) => group.name).filter(
@@ -241,7 +241,7 @@ describe("bb startup module graph", () => {
                     {
                       name: "inspect",
                       summary: "Inspect a fixture",
-                      usage: "bb fixture inspect <id>",
+                      usage: "kaioken fixture inspect <id>",
                     },
                   ],
                 },
@@ -285,7 +285,7 @@ describe("bb startup module graph", () => {
             ["fixture", "inspect", helpFlag],
             serverUrl,
           );
-          expect(run.stdout).toBe("bb fixture inspect <id>\n");
+          expect(run.stdout).toBe("kaioken fixture inspect <id>\n");
         }
         expect(pluginCalls).toBe(0);
 

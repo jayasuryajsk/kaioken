@@ -1,4 +1,4 @@
-import type { TypeaheadMenuState } from "@bb/client-core";
+import type { TypeaheadMenuState } from "@kaioken/client-core";
 
 const COMMAND_LOAD_MORE_DISTANCE_PX = 48;
 

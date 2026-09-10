@@ -1,5 +1,5 @@
-import { experimental_defineHostEntry } from "@get-bb/plugin-sdk/host";
-import { createHostProgress } from "bb-environment-provider-host/progress";
+import { experimental_defineHostEntry } from "@get-kaioken/plugin-sdk/host";
+import { createHostProgress } from "kaioken-environment-provider-host/progress";
 import { checkoutHostContract, checkoutHostSignals } from "./contract.js";
 import { attachCheckout, inspectCheckout } from "./host/checkout.js";
 

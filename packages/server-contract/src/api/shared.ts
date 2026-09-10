@@ -6,15 +6,15 @@ import {
   gitBranchNameSchema,
   gitBranchSelectionSchema,
   jsonValueSchema,
-} from "@bb/domain";
-import type { GitBranchName } from "@bb/domain";
+} from "@kaioken/domain";
+import type { GitBranchName } from "@kaioken/domain";
 
 export {
   BRANCH_LIST_LIMIT_MAX,
   BRANCH_LIST_QUERY_MAX_LENGTH,
   FILE_LIST_LIMIT_MAX,
   FILE_LIST_QUERY_MAX_LENGTH,
-} from "@bb/domain";
+} from "@kaioken/domain";
 
 interface IncludeQueryValidationArgs {
   allowedValues: readonly string[];

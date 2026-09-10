@@ -1,32 +1,32 @@
 import {
   createBbSdk,
   createBuiltinPlanCommandTextInput,
-  type BbSdk,
-  type BbSdkAreas,
+  type KaiokenSdk,
+  type KaiokenSdkAreas,
 } from "./core.js";
 import { createHttpTransport } from "./transport-http.js";
 import type {
-  BbRealtimeSocketFactory,
-  BbSdkContext,
-  BbSdkTransport,
+  KaiokenRealtimeSocketFactory,
+  KaiokenSdkContext,
+  KaiokenSdkTransport,
 } from "./transport.js";
 
 export interface CreateBrowserTransportArgs {
   baseUrl?: string;
   fetch?: typeof fetch;
   realtimeUrl?: string;
-  websocket?: BbRealtimeSocketFactory;
+  websocket?: KaiokenRealtimeSocketFactory;
 }
 
 export interface CreateBrowserBbSdkArgs extends CreateBrowserTransportArgs {
-  context?: BbSdkContext;
+  context?: KaiokenSdkContext;
 }
 
-export type BrowserBbSdk = BbSdkAreas;
+export type BrowserBbSdk = KaiokenSdkAreas;
 
 export function createBrowserTransport(
   args: CreateBrowserTransportArgs = {},
-): BbSdkTransport {
+): KaiokenSdkTransport {
   return createHttpTransport({
     baseUrl: args.baseUrl,
     fetch: args.fetch,
@@ -47,9 +47,9 @@ export function createBrowserBbSdk(
 
 export const bb = createBrowserBbSdk();
 
-export { BbHttpError, BbRequestTimeoutError } from "./response.js";
-export type { BbHttpErrorArgs } from "./response.js";
+export { KaiokenHttpError, KaiokenRequestTimeoutError } from "./response.js";
+export type { KaiokenHttpErrorArgs } from "./response.js";
 export { createBbSdk, createBuiltinPlanCommandTextInput, createHttpTransport };
-export type { BbSdk, BbSdkAreas, BbSdkContext, BbSdkTransport };
+export type { KaiokenSdk, KaiokenSdkAreas, KaiokenSdkContext, KaiokenSdkTransport };
 export type * from "./areas/skills.js";
 export type * from "./public-types.js";

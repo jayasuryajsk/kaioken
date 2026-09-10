@@ -46,7 +46,7 @@ vi.mock("@/hooks/queries/system-queries", () => ({
   }),
 }));
 
-vi.mock("@/lib/bb-desktop", () => ({
+vi.mock("@/lib/kaioken-desktop", () => ({
   getBbDesktopInfo: () => null,
 }));
 

@@ -6,14 +6,14 @@ import type {
   EnvironmentChangedMessage,
   ProjectChangedMessage,
   ThreadChangedMessage,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   destroyPersistedBrowserViewsForEnvironment,
   destroyPersistedBrowserViewsForThread,
 } from "@/components/secondary-panel/browserViewVisibilityCoordinator";
 import { collapsedProjectIdsAtom } from "@/components/sidebar/sidebarCollapsedAtoms";
 import { getRootComposeRoutePath } from "@/lib/route-paths";
-import { getDesktopBrowserApi } from "@/lib/bb-desktop";
+import { getDesktopBrowserApi } from "@/lib/kaioken-desktop";
 import { useRouteState } from "../useRouteState";
 
 type DeletedResourceRouteChangeHandler = (message: ChangedMessage) => void;

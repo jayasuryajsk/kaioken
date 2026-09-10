@@ -62,7 +62,7 @@ export const TYPE_SPECIMENS = [
 export const RHYTHM_SPECIMENS = [
   { id: "density", title: "Density", token: "spacing", unit: "px" },
   { id: "tracking", title: "Tracking", token: "tracking-normal", unit: "em" },
-  { id: "row-height", title: "Sidebar row", token: "bb-sidebar-row-height", unit: "px" },
+  { id: "row-height", title: "Sidebar row", token: "kaioken-sidebar-row-height", unit: "px" },
   { id: "icon-stroke", title: "Icon stroke", token: "icon-stroke-width", unit: "" },
 ] as const;
 
@@ -84,19 +84,19 @@ export const SHADOW_SPECIMENS = [
 ] as const;
 
 export const COMPONENT_SPECIMENS = [
-  { id: "buttons", title: "Buttons", vendored: "@bb/shared-ui/button" },
-  { id: "badges", title: "Badges", vendored: "@bb/shared-ui/badge" },
-  { id: "inputs", title: "Inputs", vendored: "@bb/shared-ui/input" },
-  { id: "switch", title: "Switch", vendored: "@bb/shared-ui/switch" },
-  { id: "checkbox", title: "Checkbox", vendored: "@bb/shared-ui/checkbox" },
+  { id: "buttons", title: "Buttons", vendored: "@kaioken/shared-ui/button" },
+  { id: "badges", title: "Badges", vendored: "@kaioken/shared-ui/badge" },
+  { id: "inputs", title: "Inputs", vendored: "@kaioken/shared-ui/input" },
+  { id: "switch", title: "Switch", vendored: "@kaioken/shared-ui/switch" },
+  { id: "checkbox", title: "Checkbox", vendored: "@kaioken/shared-ui/checkbox" },
 ] as const;
 
 export const OVERLAY_SPECIMENS = [
-  { id: "menu", label: "Menu", vendored: "@bb/shared-ui/dropdown-menu" },
-  { id: "dialog", label: "Dialog", vendored: "@bb/shared-ui/dialog" },
-  { id: "popover", label: "Popover", vendored: "@bb/shared-ui/popover" },
-  { id: "tooltip", label: "Tooltip", vendored: "@bb/shared-ui/tooltip" },
-  { id: "hover-card", label: "Hover card", vendored: "@bb/shared-ui/hover-card" },
+  { id: "menu", label: "Menu", vendored: "@kaioken/shared-ui/dropdown-menu" },
+  { id: "dialog", label: "Dialog", vendored: "@kaioken/shared-ui/dialog" },
+  { id: "popover", label: "Popover", vendored: "@kaioken/shared-ui/popover" },
+  { id: "tooltip", label: "Tooltip", vendored: "@kaioken/shared-ui/tooltip" },
+  { id: "hover-card", label: "Hover card", vendored: "@kaioken/shared-ui/hover-card" },
   { id: "toast", label: "Toast", vendored: "sonner via the app-mounted Toaster" },
 ] as const;
 

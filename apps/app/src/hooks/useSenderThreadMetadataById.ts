@@ -9,7 +9,7 @@ import type {
   ThreadOriginKind,
   ThreadVisibility,
   ThreadWithRuntime,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   allThreadQueryKeyPrefix,
   SIDEBAR_NAVIGATION_QUERY_KEY,

@@ -3,15 +3,15 @@
   "name": "select",
   "type": "registry:ui",
   "title": "select",
-  "description": "BB ui \"select\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"select\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-select"
   ],
   "registryDependencies": [
-    "@bb/icon",
-    "@bb/motion",
-    "@bb/portal-scope",
-    "@bb/utils"
+    "@kaioken/icon",
+    "@kaioken/motion",
+    "@kaioken/portal-scope",
+    "@kaioken/utils"
   ],
   "files": [
     {

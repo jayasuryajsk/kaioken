@@ -11,34 +11,34 @@ import {
   type WebPreferences,
 } from "electron";
 import {
-  BB_DESKTOP_BROWSER_MAX_TITLE_LENGTH,
-  BB_DESKTOP_BROWSER_MAX_URL_LENGTH,
+  KAIOKEN_DESKTOP_BROWSER_MAX_TITLE_LENGTH,
+  KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH,
   clampBbDesktopBrowserViewBounds,
-  type BbDesktopBrowserAttachRequest,
-  type BbDesktopBrowserFindInPageRequest,
-  type BbDesktopBrowserFindResult,
-  type BbDesktopBrowserNavigateRequest,
-  type BbDesktopBrowserOpenTabRequest,
-  type BbDesktopBrowserScopedOpenTabRequest,
-  type BbDesktopBrowserSetBoundsRequest,
-  type BbDesktopBrowserSetVisibleRequest,
-  type BbDesktopBrowserSnapshot,
-  type BbDesktopBrowserState,
-  type BbDesktopBrowserControlState,
-  type BbDesktopBrowserRevealRequest,
-  type BbDesktopBrowserTabRef,
-  type BbDesktopBrowserStopFindInPageRequest,
-  type BbDesktopBrowserViewportBounds,
-  type BbDesktopBrowserViewBounds,
-} from "@bb/desktop-contract";
-import type { AppCommandId, AppShortcutInput } from "@bb/domain";
+  type KaiokenDesktopBrowserAttachRequest,
+  type KaiokenDesktopBrowserFindInPageRequest,
+  type KaiokenDesktopBrowserFindResult,
+  type KaiokenDesktopBrowserNavigateRequest,
+  type KaiokenDesktopBrowserOpenTabRequest,
+  type KaiokenDesktopBrowserScopedOpenTabRequest,
+  type KaiokenDesktopBrowserSetBoundsRequest,
+  type KaiokenDesktopBrowserSetVisibleRequest,
+  type KaiokenDesktopBrowserSnapshot,
+  type KaiokenDesktopBrowserState,
+  type KaiokenDesktopBrowserControlState,
+  type KaiokenDesktopBrowserRevealRequest,
+  type KaiokenDesktopBrowserTabRef,
+  type KaiokenDesktopBrowserStopFindInPageRequest,
+  type KaiokenDesktopBrowserViewportBounds,
+  type KaiokenDesktopBrowserViewBounds,
+} from "@kaioken/desktop-contract";
+import type { AppCommandId, AppShortcutInput } from "@kaioken/domain";
 import {
-  BB_DESKTOP_BROWSER_FIND_RESULT_CHANNEL,
-  BB_DESKTOP_BROWSER_OPEN_TAB_CHANNEL,
-  BB_DESKTOP_BROWSER_FOCUSED_CHANNEL,
-  BB_DESKTOP_BROWSER_SCOPED_OPEN_TAB_CHANNEL,
-  BB_DESKTOP_BROWSER_SNAPSHOT_CHANNEL,
-  BB_DESKTOP_BROWSER_STATE_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_FIND_RESULT_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_OPEN_TAB_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_FOCUSED_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_SCOPED_OPEN_TAB_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_SNAPSHOT_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_STATE_CHANNEL,
 } from "./desktop-browser-ipc.js";
 import {
   evaluatePopupRate,
@@ -104,12 +104,12 @@ function isAllowedPopupNavigationUrl(url: string): boolean {
 
 function popupWindowTitle(url: string | null): string {
   if (url === null || url === "about:blank" || url.length === 0) {
-    return "bb browser popup";
+    return "kaioken browser popup";
   }
   try {
-    return `bb browser — ${new URL(url).origin}`;
+    return `kaioken browser — ${new URL(url).origin}`;
   } catch {
-    return "bb browser popup";
+    return "kaioken browser popup";
   }
 }
 
@@ -133,7 +133,7 @@ function guardMainFrameNavigation(
   });
 }
 
-const BB_BROWSER_PARTITION = "persist:bb-browser";
+const KAIOKEN_BROWSER_PARTITION = "persist:kaioken-browser";
 
 const ERR_ABORTED = -3;
 
@@ -141,7 +141,7 @@ export type DesktopBrowserTabProfile =
   | { kind: "personal" }
   | { kind: "automation"; id: string };
 
-export interface DesktopBrowserNativeTab extends BbDesktopBrowserState {
+export interface DesktopBrowserNativeTab extends KaiokenDesktopBrowserState {
   threadId: string;
   generation: string;
   profile: DesktopBrowserTabProfile;
@@ -167,7 +167,7 @@ interface BrowserViewEntry {
   profile: DesktopBrowserTabProfile;
   partition: string;
   lastErrorText: string | null;
-  desiredBounds: BbDesktopBrowserViewBounds;
+  desiredBounds: KaiokenDesktopBrowserViewBounds;
   popupTimestamps: number[];
   popupWindows: Set<BrowserWindow>;
   rendererRecoveryAttempts: number;
@@ -179,14 +179,14 @@ interface BrowserViewEntry {
 }
 
 export type DesktopBrowserHostWebContentsPayload =
-  | BbDesktopBrowserControlState
-  | BbDesktopBrowserRevealRequest
-  | BbDesktopBrowserState
-  | BbDesktopBrowserOpenTabRequest
-  | BbDesktopBrowserScopedOpenTabRequest
-  | BbDesktopBrowserSnapshot
-  | BbDesktopBrowserTabRef
-  | BbDesktopBrowserFindResult;
+  | KaiokenDesktopBrowserControlState
+  | KaiokenDesktopBrowserRevealRequest
+  | KaiokenDesktopBrowserState
+  | KaiokenDesktopBrowserOpenTabRequest
+  | KaiokenDesktopBrowserScopedOpenTabRequest
+  | KaiokenDesktopBrowserSnapshot
+  | KaiokenDesktopBrowserTabRef
+  | KaiokenDesktopBrowserFindResult;
 
 export interface DesktopBrowserHostContentBounds {
   height: number;
@@ -234,7 +234,7 @@ interface HostScopedTabArgs {
 }
 
 interface CreateEntryArgs {
-  desiredBounds: BbDesktopBrowserViewBounds;
+  desiredBounds: KaiokenDesktopBrowserViewBounds;
   hostWindow: DesktopBrowserHostWindow;
   tabId: string;
   threadId: string;
@@ -246,7 +246,7 @@ interface HostWindowViewportBoundsArgs {
 }
 
 interface SetEntryDesiredBoundsArgs {
-  bounds: BbDesktopBrowserViewBounds;
+  bounds: KaiokenDesktopBrowserViewBounds;
   entry: BrowserViewEntry;
   hostWindow: DesktopBrowserHostWindow;
 }
@@ -258,7 +258,7 @@ export interface DesktopBrowserViewManager {
     threadId: string;
     url: string;
     profile: DesktopBrowserTabProfile;
-    viewport: BbDesktopBrowserViewportBounds;
+    viewport: KaiokenDesktopBrowserViewportBounds;
   }): DesktopBrowserNativeTab;
   listTabs(args: NativeTabScope): DesktopBrowserNativeTab[];
   closeTab(args: NativeTabRef): void;
@@ -275,28 +275,28 @@ export interface DesktopBrowserViewManager {
   }): Array<{ tabId: string; webContents: WebContents }>;
   subscribeAutomationTabs(listener: () => void): () => void;
   profileSession(profile: DesktopBrowserTabProfile): Session;
-  attach(args: HostScopedRequestArgs<BbDesktopBrowserAttachRequest>): void;
+  attach(args: HostScopedRequestArgs<KaiokenDesktopBrowserAttachRequest>): void;
   detach(args: HostScopedTabArgs): void;
   focus(args: HostScopedTabArgs): void;
-  navigate(args: HostScopedRequestArgs<BbDesktopBrowserNavigateRequest>): void;
+  navigate(args: HostScopedRequestArgs<KaiokenDesktopBrowserNavigateRequest>): void;
   goBack(args: HostScopedTabArgs): void;
   goForward(args: HostScopedTabArgs): void;
   reload(args: HostScopedTabArgs): void;
   stop(args: HostScopedTabArgs): void;
   setBounds(
-    args: HostScopedRequestArgs<BbDesktopBrowserSetBoundsRequest>,
+    args: HostScopedRequestArgs<KaiokenDesktopBrowserSetBoundsRequest>,
   ): void;
   setVisible(
-    args: HostScopedRequestArgs<BbDesktopBrowserSetVisibleRequest>,
+    args: HostScopedRequestArgs<KaiokenDesktopBrowserSetVisibleRequest>,
   ): void;
   setVisibleWithoutFocus(
-    args: HostScopedRequestArgs<BbDesktopBrowserSetVisibleRequest>,
+    args: HostScopedRequestArgs<KaiokenDesktopBrowserSetVisibleRequest>,
   ): void;
   findInPage(
-    args: HostScopedRequestArgs<BbDesktopBrowserFindInPageRequest>,
+    args: HostScopedRequestArgs<KaiokenDesktopBrowserFindInPageRequest>,
   ): void;
   stopFindInPage(
-    args: HostScopedRequestArgs<BbDesktopBrowserStopFindInPageRequest>,
+    args: HostScopedRequestArgs<KaiokenDesktopBrowserStopFindInPageRequest>,
   ): void;
   beginWindowResize(hostWindow: DesktopBrowserHostWindow): void;
   endWindowResize(hostWindow: DesktopBrowserHostWindow): void;
@@ -325,7 +325,7 @@ function send(
 
 function hostWindowViewportBounds(
   args: HostWindowViewportBoundsArgs,
-): BbDesktopBrowserViewportBounds {
+): KaiokenDesktopBrowserViewportBounds {
   const contentBounds = args.hostWindow.getContentBounds();
   return {
     width: contentBounds.width,
@@ -353,25 +353,25 @@ function setEntryDesiredBounds(args: SetEntryDesiredBoundsArgs): void {
 function buildBrowserState(
   tabId: string,
   entry: BrowserViewEntry,
-): BbDesktopBrowserState {
+): KaiokenDesktopBrowserState {
   const webContents = entry.view.webContents;
   const url = webContents.getURL();
   const rawTitle = webContents.getTitle();
   const title = rawTitle.length > 0 && rawTitle !== url ? rawTitle : null;
   return {
     tabId,
-    url: truncate(url, BB_DESKTOP_BROWSER_MAX_URL_LENGTH),
+    url: truncate(url, KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH),
     title:
       title === null
         ? null
-        : truncate(title, BB_DESKTOP_BROWSER_MAX_TITLE_LENGTH),
+        : truncate(title, KAIOKEN_DESKTOP_BROWSER_MAX_TITLE_LENGTH),
     isLoading: webContents.isLoadingMainFrame(),
     canGoBack: webContents.navigationHistory.canGoBack(),
     canGoForward: webContents.navigationHistory.canGoForward(),
     errorText:
       entry.lastErrorText === null
         ? null
-        : truncate(entry.lastErrorText, BB_DESKTOP_BROWSER_MAX_TITLE_LENGTH),
+        : truncate(entry.lastErrorText, KAIOKEN_DESKTOP_BROWSER_MAX_TITLE_LENGTH),
   };
 }
 
@@ -382,7 +382,7 @@ export function isAllowedBrowserPermission(permission: string): boolean {
 export function createDesktopBrowserViewManager(
   args: CreateDesktopBrowserViewManagerArgs,
 ): DesktopBrowserViewManager {
-  const partition = args.partition ?? BB_BROWSER_PARTITION;
+  const partition = args.partition ?? KAIOKEN_BROWSER_PARTITION;
   const entries = new Map<string, BrowserViewEntry>();
   const entriesByWebContentsId = new Map<number, BrowserViewEntry>();
   const automationTabListeners = new Set<() => void>();
@@ -480,7 +480,7 @@ export function createDesktopBrowserViewManager(
         const dataUrl = `data:image/jpeg;base64,${image
           .toJPEG(RESIZE_SNAPSHOT_JPEG_QUALITY)
           .toString("base64")}`;
-        send(hostWindow, BB_DESKTOP_BROWSER_SNAPSHOT_CHANNEL, {
+        send(hostWindow, KAIOKEN_DESKTOP_BROWSER_SNAPSHOT_CHANNEL, {
           tabId,
           dataUrl,
         });
@@ -495,7 +495,7 @@ export function createDesktopBrowserViewManager(
   function partitionForProfile(profile: DesktopBrowserTabProfile): string {
     return profile.kind === "personal"
       ? partition
-      : `persist:bb-browser-automation-${createHash("sha256").update(profile.id).digest("hex")}`;
+      : `persist:kaioken-browser-automation-${createHash("sha256").update(profile.id).digest("hex")}`;
   }
 
   function ensureHardenedSession(tabPartition: string): Session {
@@ -527,7 +527,7 @@ export function createDesktopBrowserViewManager(
     }
     send(
       hostWindow,
-      BB_DESKTOP_BROWSER_STATE_CHANNEL,
+      KAIOKEN_DESKTOP_BROWSER_STATE_CHANNEL,
       buildBrowserState(tabId, entry),
     );
   }
@@ -619,7 +619,7 @@ export function createDesktopBrowserViewManager(
         entry.suppressNextFocusNotification = false;
         return;
       }
-      send(hostWindow, BB_DESKTOP_BROWSER_FOCUSED_CHANNEL, { tabId });
+      send(hostWindow, KAIOKEN_DESKTOP_BROWSER_FOCUSED_CHANNEL, { tabId });
     });
 
     webContents.on("before-input-event", (event, input) => {
@@ -676,10 +676,10 @@ export function createDesktopBrowserViewManager(
             createPopupWindow(options, details.url, entry),
         };
       }
-      send(hostWindow, BB_DESKTOP_BROWSER_OPEN_TAB_CHANNEL, {
+      send(hostWindow, KAIOKEN_DESKTOP_BROWSER_OPEN_TAB_CHANNEL, {
         url: details.url,
       });
-      send(hostWindow, BB_DESKTOP_BROWSER_SCOPED_OPEN_TAB_CHANNEL, {
+      send(hostWindow, KAIOKEN_DESKTOP_BROWSER_SCOPED_OPEN_TAB_CHANNEL, {
         tabId,
         url: details.url,
       });
@@ -717,7 +717,7 @@ export function createDesktopBrowserViewManager(
       if (result.requestId !== entry.activeFindRequestId) {
         return;
       }
-      send(hostWindow, BB_DESKTOP_BROWSER_FIND_RESULT_CHANNEL, {
+      send(hostWindow, KAIOKEN_DESKTOP_BROWSER_FIND_RESULT_CHANNEL, {
         tabId,
         requestId: result.requestId,
         activeMatchOrdinal: result.activeMatchOrdinal,
@@ -917,7 +917,7 @@ export function createDesktopBrowserViewManager(
     {
       hostWindow,
       request,
-    }: HostScopedRequestArgs<BbDesktopBrowserSetVisibleRequest>,
+    }: HostScopedRequestArgs<KaiokenDesktopBrowserSetVisibleRequest>,
     focusOnShow: boolean,
   ): void {
     withEntry({ hostWindow, tabId: request.tabId }, (entry) => {
@@ -1175,7 +1175,7 @@ export function createDesktopBrowserViewManager(
           applyEntryDesiredBounds(entry, hostWindow);
         }
         applyEntryVisibility(entry, hostWindow);
-        send(hostWindow, BB_DESKTOP_BROWSER_SNAPSHOT_CHANNEL, {
+        send(hostWindow, KAIOKEN_DESKTOP_BROWSER_SNAPSHOT_CHANNEL, {
           tabId: key.slice(prefix.length),
           dataUrl: null,
         });

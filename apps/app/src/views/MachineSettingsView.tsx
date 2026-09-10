@@ -1,14 +1,14 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import type { Host, PermissionMode } from "@bb/domain";
-import type { HostPlatform } from "@bb/host-daemon-contract";
-import { Button } from "@bb/shared-ui/button";
-import { DialogFooter, DialogHeader, DialogTitle } from "@bb/shared-ui/dialog";
-import { DialogDescription } from "@bb/shared-ui/dialog";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { Pill } from "@bb/shared-ui/pill";
-import { ResourceOverflowMenu } from "@bb/shared-ui/resource-list";
+import type { Host, PermissionMode } from "@kaioken/domain";
+import type { HostPlatform } from "@kaioken/host-daemon-contract";
+import { Button } from "@kaioken/shared-ui/button";
+import { DialogFooter, DialogHeader, DialogTitle } from "@kaioken/shared-ui/dialog";
+import { DialogDescription } from "@kaioken/shared-ui/dialog";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Pill } from "@kaioken/shared-ui/pill";
+import { ResourceOverflowMenu } from "@kaioken/shared-ui/resource-list";
 import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
 import { PageShell } from "@/components/ui/page-shell.js";
@@ -52,7 +52,7 @@ import {
   getSettingsRoutePath,
 } from "@/lib/route-paths";
 
-const PRIMARY_REMOVE_DISABLED_REASON = "bb's primary machine can't be removed.";
+const PRIMARY_REMOVE_DISABLED_REASON = "kaioken's primary machine can't be removed.";
 
 const PERMISSION_LIMIT_DESCRIPTION =
   "Highest permission mode any thread on the selected machine may run with. Threads that ask for more resolve down to it, and a provider that supports nothing this low can't run here.";

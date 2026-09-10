@@ -3,8 +3,8 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getLatestThreadSequence, getThread } from "@bb/db";
-import { turnScope } from "@bb/domain";
+import { getLatestThreadSequence, getThread } from "@kaioken/db";
+import { turnScope } from "@kaioken/domain";
 import {
   generatedSkillsRootPath,
   pluginCommandsSkillDir,
@@ -91,7 +91,7 @@ describe("hero plugin: agent-enrichment", () => {
     };
   }
 
-  it("bb docs search returns excerpts from the bundled docs via the CLI endpoint", async () => {
+  it("kaioken docs search returns excerpts from the bundled docs via the CLI endpoint", async () => {
     const result = await runDocs(["search", "conventional commits"]);
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("conventions.md");
@@ -120,8 +120,8 @@ describe("hero plugin: agent-enrichment", () => {
       "SKILL.md",
     );
     const content = await readFile(skillFile, "utf8");
-    expect(content).toContain("## bb docs —");
-    expect(content).toContain("bb docs search <query...>");
+    expect(content).toContain("## kaioken docs —");
+    expect(content).toContain("kaioken docs search <query...>");
 
     const sources = resolveInjectedSkillSources(testLogger, {
       additionalSkillsRootPaths: [
@@ -211,7 +211,7 @@ describe("hero plugin: slack-bot", () => {
       );
       expect(entry.id).toBe("slack-bot");
       expect(entry.status).toBe("needs-configuration");
-      expect(entry.statusDetail).toContain("bb plugin config slack-bot");
+      expect(entry.statusDetail).toContain("kaioken plugin config slack-bot");
 
       const signingSecret = "test-signing-secret";
       await server.pluginService.updateSettings("slack-bot", {

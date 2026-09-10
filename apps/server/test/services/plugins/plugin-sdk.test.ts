@@ -8,16 +8,16 @@ import {
   getThread,
   migrate,
   type DbConnection,
-} from "@bb/db";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
-import type { Logger } from "@bb/logger";
+} from "@kaioken/db";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
+import type { Logger } from "@kaioken/logger";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import {
   createPluginService,
   type PluginServiceDeps,
   type PluginService,
 } from "../../../src/services/plugins/plugin-service.js";
-import type { BbPluginApi } from "../../../src/services/plugins/plugin-api.js";
+import type { KaiokenPluginApi } from "../../../src/services/plugins/plugin-api.js";
 import {
   seedHostSession,
   seedEnvironment,
@@ -32,7 +32,7 @@ import {
 } from "../../helpers/commands.js";
 import { PluginHostArtifactRegistry } from "../../../src/services/plugins/plugin-host-artifact-registry.js";
 import { startTestServer, testLogger } from "../../helpers/test-app.js";
-import { defineRpcContract } from "@get-bb/plugin-sdk";
+import { defineRpcContract } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { createNoopTelemetryService } from "../../../src/services/system/telemetry.js";
 
@@ -65,7 +65,7 @@ async function writePlugin(
   return rootDir;
 }
 
-function requireApi(service: PluginService, pluginId: string): BbPluginApi {
+function requireApi(service: PluginService, pluginId: string): KaiokenPluginApi {
   const api = service.getApi(pluginId);
   if (!api) throw new Error(`plugin ${pluginId} is not running`);
   return api;
@@ -98,7 +98,7 @@ describe("plugin bb.sdk bind gate", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-sdk-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-sdk-test-"));
     sharedPorts.declareSharedPorts.mockClear();
     sharedPorts.validateSharedPortDeclaration.mockClear();
     sharedPorts.replaceDeclarationsForOwner.mockClear();
@@ -106,7 +106,7 @@ describe("plugin bb.sdk bind gate", () => {
     ensureSharedPortTunnel.mockClear();
     callPluginHost.mockClear();
     disposePluginHost.mockClear();
-    appUrl = "https://bb.example.test";
+    appUrl = "https://kaioken.example.test";
     pluginHostArtifacts = new PluginHostArtifactRegistry();
     service = createPluginService({
       aiServices: createAiServiceRegistry(),
@@ -137,7 +137,7 @@ describe("plugin bb.sdk bind gate", () => {
 
   it("throws a descriptive error before bindSdk and resolves after", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-gate",
+      name: "kaioken-plugin-gate",
       serverSource: `export default function plugin() {}`,
     });
     await service.installPath(rootDir);
@@ -154,20 +154,20 @@ describe("plugin bb.sdk bind gate", () => {
 
   it("serves the current public app URL without the SDK bind gate", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-app-url",
+      name: "kaioken-plugin-app-url",
       serverSource: `export default function plugin() {}`,
     });
     await service.installPath(rootDir);
     const api = requireApi(service, "app-url");
 
-    expect(api.server.experimental_appUrl).toBe("https://bb.example.test");
+    expect(api.server.experimental_appUrl).toBe("https://kaioken.example.test");
     appUrl = null;
     expect(api.server.experimental_appUrl).toBeNull();
   });
 
   it("marks a plugin error when its factory touches bb.sdk at load time", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-eager",
+      name: "kaioken-plugin-eager",
       serverSource: `
         export default function plugin(bb: any) {
           bb.sdk.threads.spawn({});
@@ -183,7 +183,7 @@ describe("plugin bb.sdk bind gate", () => {
 
   it("delivers shared-port declarations through the server control plane", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-shares",
+      name: "kaioken-plugin-shares",
       serverSource: `export default function plugin() {}`,
     });
     await service.installPath(rootDir);
@@ -211,7 +211,7 @@ describe("plugin bb.sdk bind gate", () => {
 
   it("binds typed host calls and ignores worker exits from stale generations", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-host-client",
+      name: "kaioken-plugin-host-client",
       serverSource: `export default function plugin() {}`,
       hostSource: `
         const schema = { "~standard": { validate(value) { return { value }; } } };
@@ -312,9 +312,9 @@ describe("plugin bb.sdk bind gate", () => {
 
   it("rejects host calls during candidate factory registration", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-eager-host-client",
+      name: "kaioken-plugin-eager-host-client",
       serverSource: `
-        import { defineRpcContract } from "@get-bb/plugin-sdk";
+        import { defineRpcContract } from "@get-kaioken/plugin-sdk";
         const schema = { "~standard": { validate(value: unknown) { return { value }; } } };
         const contract = defineRpcContract({ ping: { input: schema, output: schema } });
         export default async function plugin(bb: any) {
@@ -345,7 +345,7 @@ describe("plugin bb.sdk bind gate", () => {
 
   it("does not publish candidate host declarations when reload fails", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-atomic-shares",
+      name: "kaioken-plugin-atomic-shares",
       serverSource: `
         export default function plugin(bb: any) {
           bb.hosts.declareSharedPorts("host-1", [3000]);
@@ -379,13 +379,13 @@ describe("plugin bb.sdk bind gate", () => {
 describe("plugin bb.sdk against a running server", () => {
   it("returns the server-side Standard Schema output after the host JSON wire", async () => {
     const server = await startTestServer();
-    const workDir = await mkdtemp(join(tmpdir(), "bb-plugin-host-transform-"));
+    const workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-host-transform-"));
     try {
       const { host } = seedHostSession(server.deps, {
         id: "host-plugin-transform",
       });
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-host-transform",
+        name: "kaioken-plugin-host-transform",
         serverSource: `export default function plugin() {}`,
         hostSource: `
           const schema = { "~standard": { validate(value) { return { value }; } } };
@@ -440,7 +440,7 @@ describe("plugin bb.sdk against a running server", () => {
 
   it("keeps hidden plugin threads attributed and directly operable by id", async () => {
     const server = await startTestServer();
-    const workDir = await mkdtemp(join(tmpdir(), "bb-plugin-sdk-live-"));
+    const workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-sdk-live-"));
     try {
       const { host } = seedHostSession(server.deps);
       seedPrimaryHost(server.deps, host.id);
@@ -456,7 +456,7 @@ describe("plugin bb.sdk against a running server", () => {
 
       server.pluginService.bindSdk({ baseUrl: server.baseUrl });
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-spawner",
+        name: "kaioken-plugin-spawner",
         serverSource: `export default function plugin() {}`,
       });
       const entry = await server.pluginService.installPath(rootDir);

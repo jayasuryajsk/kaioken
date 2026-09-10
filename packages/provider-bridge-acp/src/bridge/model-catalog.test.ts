@@ -448,7 +448,7 @@ describe("acp configOptions model catalog", () => {
     });
   });
 
-  it("returns no reasoning control for declared values that bb cannot map", () => {
+  it("returns no reasoning control for declared values that kaioken cannot map", () => {
     expect(
       buildAcpNativeReasoningSupport({
         id: "mode",
@@ -499,7 +499,7 @@ describe("acp configOptions model catalog", () => {
     expect(acpNativeReasoningLevelToValue("max", thoughtLevel)).toBe("max");
   });
 
-  it("uses Hermes minimal as bb low when ACP does not advertise low", () => {
+  it("uses Hermes minimal as kaioken low when ACP does not advertise low", () => {
     const thoughtLevel = {
       id: "reasoning_effort",
       category: "thought_level",

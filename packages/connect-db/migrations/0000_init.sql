@@ -1,4 +1,4 @@
--- bb connect cloud — initial D1 schema.
+-- kaioken connect cloud — initial D1 schema.
 -- Applied via `wrangler d1 migrations apply` (M1). Kept in sync by hand with
 -- src/schema.ts; the schema test asserts every table/column here matches the
 -- drizzle definition, so drift fails CI.

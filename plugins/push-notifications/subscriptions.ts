@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import {
   pushSubscriptionSchema,
   type AddPushSubscriptionInput,
@@ -17,7 +17,7 @@ export interface PushSubscriptionStore {
 }
 
 export function createPushSubscriptionStore(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   options: { now?: () => number; createId?: () => string } = {},
 ): PushSubscriptionStore {
   const now = options.now ?? Date.now;

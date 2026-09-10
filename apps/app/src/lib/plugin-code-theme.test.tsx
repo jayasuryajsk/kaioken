@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, render, waitFor } from "@testing-library/react";
-import { defaultResolvedCodeTheme } from "@bb/domain";
-import type { PluginCodeThemeState } from "@get-bb/plugin-sdk";
+import { defaultResolvedCodeTheme } from "@kaioken/domain";
+import type { PluginCodeThemeState } from "@get-kaioken/plugin-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 import { applyResolvedCodeTheme } from "./code-theme";
 import { useCodeTheme } from "./plugin-code-theme";
@@ -24,7 +24,7 @@ afterEach(() => {
 });
 
 describe("useCodeTheme", () => {
-  it("serves the document behind the name BB is rendering with", async () => {
+  it("serves the document behind the name Kaioken is rendering with", async () => {
     applyResolvedCodeTheme({
       dark: "nord",
       light: "gruvbox-light-medium",

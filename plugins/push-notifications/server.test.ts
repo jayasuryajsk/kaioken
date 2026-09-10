@@ -1,11 +1,11 @@
 import type {
-  BbPluginApi,
+  KaiokenPluginApi,
   PluginThreadEventPayloads,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import {
   createFakePluginHost,
   makeThreadResponse,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { EnvHttpProxyAgent } from "undici";
 import { describe, expect, it, vi } from "vitest";
 import { listPushSubscriptionsOutputSchema } from "./contract.js";
@@ -315,7 +315,7 @@ describe("push sender", () => {
   });
 
   it("includes the configured public server URL", async () => {
-    const host = await setup({ appUrl: "https://bb.example.test" });
+    const host = await setup({ appUrl: "https://kaioken.example.test" });
     try {
       await host.addSubscription();
       const thread = host.setThread();
@@ -329,7 +329,7 @@ describe("push sender", () => {
       expect(host.expo.requests[0]?.[0]?.data).toEqual({
         kind: "turn-finished",
         projectId: "project-1",
-        serverUrl: "https://bb.example.test",
+        serverUrl: "https://kaioken.example.test",
         threadId: thread.id,
       });
     } finally {

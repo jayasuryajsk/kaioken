@@ -14,7 +14,7 @@ let harness: FakePiBridgeHarness;
 
 beforeEach(async () => {
   harness = await startFakePiBridge({
-    prefix: "bb-pi-framing-",
+    prefix: "kaioken-pi-framing-",
     sessionDir: (workspaceDir) =>
       join(workspaceDir, `sessions${LINE_SEPARATOR}dir`),
     initialize: true,
@@ -35,7 +35,7 @@ it("carries U+2028/U+2029 through stdout events, RPC responses, and both channel
     dynamicTools: [
       {
         name: "bb_probe",
-        description: "A bb tool.",
+        description: "A kaioken tool.",
         inputSchema: {
           type: "object",
           properties: { value: { type: "string" } },

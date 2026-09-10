@@ -1,4 +1,4 @@
-import { reasoningLevelValues, type ReasoningLevel } from "@bb/domain";
+import { reasoningLevelValues, type ReasoningLevel } from "@kaioken/domain";
 import type { PickerOption } from "./OptionPicker";
 
 export function nextCycleValue<T extends string>(

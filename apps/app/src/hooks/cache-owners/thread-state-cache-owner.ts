@@ -1,11 +1,11 @@
 import type { QueryClient } from "@tanstack/react-query";
-import type { ThreadListEntry, ThreadWithRuntime } from "@bb/domain";
+import type { ThreadListEntry, ThreadWithRuntime } from "@kaioken/domain";
 import type {
   ProjectResponse,
   ReorderPinnedThreadRequest,
   ThreadArchiveAllResponse,
-} from "@bb/server-contract";
-import { applyNeighborReorder } from "@bb/client-core";
+} from "@kaioken/server-contract";
+import { applyNeighborReorder } from "@kaioken/client-core";
 import {
   projectsQueryKey,
   sidebarNavigationQueryKey,

@@ -1,19 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
-  BB_DESKTOP_BROWSER_MAX_URL_LENGTH,
-  bbDesktopBrowserAttachRequestSchema,
-  bbDesktopBrowserSetBoundsRequestSchema,
-  bbDesktopBrowserStateSchema,
+  KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH,
+  kaiokenDesktopBrowserAttachRequestSchema,
+  kaiokenDesktopBrowserSetBoundsRequestSchema,
+  kaiokenDesktopBrowserStateSchema,
   clampBbDesktopBrowserViewBounds,
-  type BbDesktopBrowserViewBounds,
-  type BbDesktopBrowserViewportBounds,
+  type KaiokenDesktopBrowserViewBounds,
+  type KaiokenDesktopBrowserViewportBounds,
 } from "../src/index.js";
 
 interface BrowserBoundsClampTestCase {
-  bounds: BbDesktopBrowserViewBounds;
-  expected: BbDesktopBrowserViewBounds;
+  bounds: KaiokenDesktopBrowserViewBounds;
+  expected: KaiokenDesktopBrowserViewBounds;
   label: string;
-  viewport: BbDesktopBrowserViewportBounds;
+  viewport: KaiokenDesktopBrowserViewportBounds;
 }
 
 const browserBoundsClampTestCases: BrowserBoundsClampTestCase[] = [
@@ -59,7 +59,7 @@ describe("desktop browser IPC schemas", () => {
     "rejects invalid attach ownership: %s",
     (threadId) => {
       expect(
-        bbDesktopBrowserAttachRequestSchema.safeParse({
+        kaiokenDesktopBrowserAttachRequestSchema.safeParse({
           tabId: "browser:abc",
           threadId,
           url: "",
@@ -72,7 +72,7 @@ describe("desktop browser IPC schemas", () => {
 
   it("accepts a well-formed attach request and rejects bad shapes", () => {
     expect(
-      bbDesktopBrowserAttachRequestSchema.safeParse({
+      kaiokenDesktopBrowserAttachRequestSchema.safeParse({
         threadId: "thread-1",
         tabId: "browser:abc",
         url: "",
@@ -82,7 +82,7 @@ describe("desktop browser IPC schemas", () => {
     ).toBe(true);
 
     expect(
-      bbDesktopBrowserAttachRequestSchema.safeParse({
+      kaiokenDesktopBrowserAttachRequestSchema.safeParse({
         threadId: "thread-1",
         tabId: "",
         url: "",
@@ -91,13 +91,13 @@ describe("desktop browser IPC schemas", () => {
       }).success,
     ).toBe(false);
     expect(
-      bbDesktopBrowserSetBoundsRequestSchema.safeParse({
+      kaiokenDesktopBrowserSetBoundsRequestSchema.safeParse({
         tabId: "browser:abc",
         bounds: { x: 0, y: 0, width: -1, height: 600 },
       }).success,
     ).toBe(false);
     expect(
-      bbDesktopBrowserAttachRequestSchema.safeParse({
+      kaiokenDesktopBrowserAttachRequestSchema.safeParse({
         threadId: "thread-1",
         tabId: "browser:abc",
         url: "",
@@ -110,7 +110,7 @@ describe("desktop browser IPC schemas", () => {
 
   it("accepts a well-formed state push and rejects non-integer bounds", () => {
     expect(
-      bbDesktopBrowserStateSchema.safeParse({
+      kaiokenDesktopBrowserStateSchema.safeParse({
         tabId: "browser:abc",
         url: "https://example.com",
         title: "Example",
@@ -122,7 +122,7 @@ describe("desktop browser IPC schemas", () => {
     ).toBe(true);
 
     expect(
-      bbDesktopBrowserSetBoundsRequestSchema.safeParse({
+      kaiokenDesktopBrowserSetBoundsRequestSchema.safeParse({
         tabId: "browser:abc",
         bounds: { x: 0.5, y: 0, width: 800, height: 600 },
       }).success,
@@ -131,10 +131,10 @@ describe("desktop browser IPC schemas", () => {
 
   it("rejects oversized URLs beyond the length cap", () => {
     const longUrl = `https://example.com/${"a".repeat(
-      BB_DESKTOP_BROWSER_MAX_URL_LENGTH,
+      KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH,
     )}`;
     expect(
-      bbDesktopBrowserAttachRequestSchema.safeParse({
+      kaiokenDesktopBrowserAttachRequestSchema.safeParse({
         threadId: "thread-1",
         tabId: "browser:abc",
         url: longUrl,

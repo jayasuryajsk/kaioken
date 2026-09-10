@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { DEFAULT_ENV_SETUP_SCRIPT_NAME } from "@bb/domain";
+import { DEFAULT_ENV_SETUP_SCRIPT_NAME } from "@kaioken/domain";
 import { provisionWorkspace } from "../src/index.js";
 import { listBranches, runGit } from "../src/git.js";
 
@@ -15,10 +15,10 @@ async function makeTempDir(prefix: string): Promise<string> {
 }
 
 async function initRepo(opts?: { setupScript?: string }): Promise<string> {
-  const repoPath = await makeTempDir("bb-provision-repo-");
+  const repoPath = await makeTempDir("kaioken-provision-repo-");
   await runGit(["init", "-b", "main"], { cwd: repoPath });
-  await runGit(["config", "user.name", "BB Tests"], { cwd: repoPath });
-  await runGit(["config", "user.email", "bb@example.com"], { cwd: repoPath });
+  await runGit(["config", "user.name", "Kaioken Tests"], { cwd: repoPath });
+  await runGit(["config", "user.email", "kaioken@example.com"], { cwd: repoPath });
   await fs.writeFile(path.join(repoPath, "README.md"), "hello\n", "utf8");
   if (opts?.setupScript) {
     await fs.writeFile(
@@ -56,7 +56,7 @@ describe("provisionWorkspace", () => {
     });
 
     it("provisions an unmanaged non-git directory", async () => {
-      const dirPath = await makeTempDir("bb-provision-nongit-");
+      const dirPath = await makeTempDir("kaioken-provision-nongit-");
 
       const ws = await provisionWorkspace({
         path: dirPath,
@@ -68,7 +68,7 @@ describe("provisionWorkspace", () => {
 
     it("detects a worktree as isWorktree=true", async () => {
       const repoPath = await initRepo();
-      const parentDir = await makeTempDir("bb-provision-wt-parent-");
+      const parentDir = await makeTempDir("kaioken-provision-wt-parent-");
       const wtPath = path.join(parentDir, "wt");
       await runGit(["worktree", "add", "-B", "feature", wtPath], {
         cwd: repoPath,
@@ -84,7 +84,7 @@ describe("provisionWorkspace", () => {
 
     it("resolves external git metadata roots for unmanaged worktrees", async () => {
       const repoPath = await initRepo();
-      const parentDir = await makeTempDir("bb-provision-unmanaged-wt-roots-");
+      const parentDir = await makeTempDir("kaioken-provision-unmanaged-wt-roots-");
       const wtPath = path.join(parentDir, "wt");
       await runGit(["worktree", "add", "-B", "feature", wtPath], {
         cwd: repoPath,
@@ -113,7 +113,7 @@ describe("provisionWorkspace", () => {
     it("throws for non-existent path", async () => {
       await expect(
         provisionWorkspace({
-          path: "/tmp/does-not-exist-bb",
+          path: "/tmp/does-not-exist-kaioken",
         }),
       ).rejects.toThrow(/does not exist/u);
     });

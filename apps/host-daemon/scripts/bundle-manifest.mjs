@@ -34,7 +34,7 @@ export const bundleTargets = [
       "bridge-worker-entry.ts",
     ),
     label: "provider bridge worker",
-    outfile: resolve(packageRoot, "dist", "bb-provider-bridge-worker.mjs"),
+    outfile: resolve(packageRoot, "dist", "kaioken-provider-bridge-worker.mjs"),
   },
   {
     // Forked child that runs a plugin's `bb.host` entry (plugin-host-manager.ts).
@@ -43,25 +43,25 @@ export const bundleTargets = [
     banner: NODE_ESM_REQUIRE_BANNER,
     entryPoint: resolve(packageRoot, "src", "plugin-host-worker.ts"),
     label: "plugin host worker",
-    outfile: resolve(packageRoot, "dist", "bb-plugin-host-worker.mjs"),
+    outfile: resolve(packageRoot, "dist", "kaioken-plugin-host-worker.mjs"),
   },
   {
     banner: NODE_ESM_REQUIRE_BANNER,
     entryPoint: resolve(workspaceRoot, "apps", "cli", "src", "index.ts"),
     executable: true,
-    label: "bb cli",
-    outfile: resolve(packageRoot, "dist", "bb"),
+    label: "kaioken cli",
+    outfile: resolve(packageRoot, "dist", "kaioken"),
     // The CLI `import()`s each command group on demand; chunks land in
-    // dist/bb-chunks, which packages/bb-app ships next to this entry.
+    // dist/kaioken-chunks, which packages/kaioken-app ships next to this entry.
     splitting: true,
-    // The packaged CLI has no workspace on disk, so `bb plugin types` for a
+    // The packaged CLI has no workspace on disk, so `kaioken plugin types` for a
     // vendored-layout plugin gets the SDK declarations inlined (see
     // packages/templates/src/plugin-sdk-dts.ts). Dev bundles read them from
     // packages/plugin-sdk/bundled-types instead.
     inlinePluginSdkDeclarations: true,
   },
   {
-    // Forked child that runs @parcel/watcher in isolation (BB_WATCHER_SUBPROCESS=1).
+    // Forked child that runs @parcel/watcher in isolation (KAIOKEN_WATCHER_SUBPROCESS=1).
     // Emitted next to the daemon bundle so fork-channel resolves it as a sibling.
     banner: NODE_ESM_REQUIRE_BANNER,
     entryPoint: resolve(
@@ -73,6 +73,6 @@ export const bundleTargets = [
       "parcel-child-entry.ts",
     ),
     label: "parcel watcher child",
-    outfile: resolve(packageRoot, "dist", "bb-parcel-watcher-child.mjs"),
+    outfile: resolve(packageRoot, "dist", "kaioken-parcel-watcher-child.mjs"),
   },
 ];

@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
+import { defineRpcContract, type KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 
 const SYNC_INTERVAL_MS = 5 * 60_000;
@@ -11,7 +11,7 @@ const CLOSED_PR_PAGE = 30;
 
 const GH_HINT =
   "Install the GitHub CLI (https://cli.github.com) and run `gh auth login`, " +
-  "then `bb plugin reload github`.";
+  "then `kaioken plugin reload github`.";
 
 const repoNameSchema = z.string().regex(/^[\w.-]+\/[\w.-]+$/);
 const itemNumberSchema = z.number().int().positive();
@@ -283,7 +283,7 @@ interface ThreadLink {
   createdAt: string;
 }
 
-interface BbProjectSummary {
+interface KaiokenProjectSummary {
   id: string;
   sources?: Array<{ type: string; path: string }>;
 }
@@ -513,13 +513,13 @@ export async function fetchRepoItems(
   ];
 }
 
-export default async function plugin(bb: BbPluginApi) {
+export default async function plugin(bb: KaiokenPluginApi) {
   const settings = bb.settings.define({
     extraRepos: {
       type: "string",
       label: "Extra repositories",
       description:
-        'Comma-separated "owner/repo" list to track in addition to repos discovered from BB projects.',
+        'Comma-separated "owner/repo" list to track in addition to repos discovered from Kaioken projects.',
       experimental_schema: z.string().superRefine((value, context) => {
         const { ignored } = parseExtraRepos(value);
         if (ignored.length > 0) {
@@ -533,9 +533,9 @@ export default async function plugin(bb: BbPluginApi) {
     },
     defaultProject: {
       type: "project",
-      label: "Default BB project",
+      label: "Default Kaioken project",
       description:
-        "Where agent threads spawn for repos that are not attached to a BB project.",
+        "Where agent threads spawn for repos that are not attached to a Kaioken project.",
     },
   });
 
@@ -619,7 +619,7 @@ export default async function plugin(bb: BbPluginApi) {
     const byRepo = new Map<string, RepoInfo>();
     try {
       const projects =
-        (await bb.sdk.projects.list()) as unknown as BbProjectSummary[];
+        (await bb.sdk.projects.list()) as unknown as KaiokenProjectSummary[];
       for (const project of projects) {
         for (const source of project.sources ?? []) {
           if (source.type !== "local_path") continue;
@@ -933,7 +933,7 @@ export default async function plugin(bb: BbPluginApi) {
     const { defaultProject } = await settings.get();
     if (defaultProject) return defaultProject;
     throw new Error(
-      `No BB project is attached to ${repo}. Create a project whose checkout has ` +
+      `No Kaioken project is attached to ${repo}. Create a project whose checkout has ` +
         "that origin remote, or set the defaultProject plugin setting.",
     );
   }
@@ -1617,10 +1617,10 @@ export default async function plugin(bb: BbPluginApi) {
 
   const USAGE = [
     "Usage:",
-    "  bb github repos              List tracked repositories",
-    "  bb github issues [repo]      List cached open issues",
-    "  bb github prs [repo]         List cached open pull requests",
-    "  bb github sync               Refresh the cache from GitHub now",
+    "  kaioken github repos              List tracked repositories",
+    "  kaioken github issues [repo]      List cached open issues",
+    "  kaioken github prs [repo]         List cached open pull requests",
+    "  kaioken github sync               Refresh the cache from GitHub now",
   ].join("\n");
 
   bb.cli.register({
@@ -1630,22 +1630,22 @@ export default async function plugin(bb: BbPluginApi) {
       {
         name: "repos",
         summary: "List tracked repositories",
-        usage: "bb github repos",
+        usage: "kaioken github repos",
       },
       {
         name: "issues",
         summary: "List cached open issues",
-        usage: "bb github issues [owner/repo]",
+        usage: "kaioken github issues [owner/repo]",
       },
       {
         name: "prs",
         summary: "List cached open pull requests",
-        usage: "bb github prs [owner/repo]",
+        usage: "kaioken github prs [owner/repo]",
       },
       {
         name: "sync",
         summary: "Refresh the cache from GitHub now",
-        usage: "bb github sync",
+        usage: "kaioken github sync",
       },
     ],
     async run(argv) {
@@ -1692,7 +1692,7 @@ export default async function plugin(bb: BbPluginApi) {
           if (items.length === 0) {
             return {
               exitCode: 0,
-              stdout: "Nothing cached. Run `bb github sync` first.",
+              stdout: "Nothing cached. Run `kaioken github sync` first.",
             };
           }
           return {

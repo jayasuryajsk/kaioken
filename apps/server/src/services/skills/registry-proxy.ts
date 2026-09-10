@@ -6,7 +6,7 @@ import type {
   RegistrySkillDetail,
   RegistrySkillFile,
   RegistrySkillsPage,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   githubRepoForSource,
   hasLoadableSkillContent,
@@ -139,7 +139,7 @@ async function fetchGithubMarkdown(
       .join("/");
     const response = await registryFetch(
       `https://raw.githubusercontent.com/${repo}/HEAD/${encodedPath}`,
-      { headers: { "user-agent": "bb-skills-registry" } },
+      { headers: { "user-agent": "kaioken-skills-registry" } },
     );
     if (!response.ok) return null;
     const contents = await response.text();
@@ -222,7 +222,7 @@ async function fetchGithubSkillPaths(repo: string): Promise<string[] | null> {
         {
           headers: {
             accept: "application/vnd.github+json",
-            "user-agent": "bb-skills-registry",
+            "user-agent": "kaioken-skills-registry",
           },
         },
       );
@@ -282,7 +282,7 @@ export async function fetchRegistryRepositoryStars(
         {
           headers: {
             accept: "application/vnd.github+json",
-            "user-agent": "bb-skills-registry",
+            "user-agent": "kaioken-skills-registry",
           },
         },
       );

@@ -1,6 +1,6 @@
-import type { ToolCallResponse } from "@bb/domain";
-import type { HostDaemonContributedEnvEntry } from "@bb/host-daemon-contract";
-import type { ExperimentalPluginProviderEnvContext } from "@get-bb/plugin-sdk";
+import type { ToolCallResponse } from "@kaioken/domain";
+import type { HostDaemonContributedEnvEntry } from "@kaioken/host-daemon-contract";
+import type { ExperimentalPluginProviderEnvContext } from "@get-kaioken/plugin-sdk";
 import type {
   PluginAgentConfigurationContext,
   PluginAgentToolContext,

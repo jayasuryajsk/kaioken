@@ -7,7 +7,7 @@ import {
   loadPluginApp,
   renderSlot,
   type PluginRpcTestHandlers,
-} from "@get-bb/plugin-sdk/testing/app";
+} from "@get-kaioken/plugin-sdk/testing/app";
 
 import type { rpcContract } from "./server";
 import {
@@ -99,7 +99,7 @@ beforeAll(async () => {
     "border-hairline": "#eeeeee", "border-seam": "#dddddd", "sidebar-border": "#cccccc",
     input: "#aaaaaa", ring: "#4779a8",
     "font-mono": "Menlo, monospace", "text-sm": "13px", "text-sm--line-height": "20px", spacing: "4px", "tracking-normal": "0em",
-    "bb-sidebar-row-height": "28px", "icon-stroke-width": "1.75", radius: "8px", "shadow-x": "0px",
+    "kaioken-sidebar-row-height": "28px", "icon-stroke-width": "1.75", radius: "8px", "shadow-x": "0px",
     "shadow-y": "2px", "shadow-blur": "0px", "shadow-spread": "0px", "shadow-color": "#333333",
     "shadow-opacity": "0.15",
   };
@@ -171,7 +171,7 @@ describe("Theme Preview", () => {
     }
   });
 
-  it("navigates views with bb's tabs and offers themes with bb's select", async () => {
+  it("navigates views with kaioken's tabs and offers themes with kaioken's select", async () => {
     renderPreview({
       themeCatalog: () => DEFAULT_CATALOG,
       setTheme: () => DEFAULT_CATALOG,
@@ -217,7 +217,7 @@ describe("Theme Preview", () => {
     }
   });
 
-  it("projects every mock view from its current BB screen anatomy", async () => {
+  it("projects every mock view from its current Kaioken screen anatomy", async () => {
     const width = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(1280);
     const rpc = {
       themeCatalog: () => DEFAULT_CATALOG,
@@ -248,7 +248,7 @@ describe("Theme Preview", () => {
       ).toBeDefined();
       expect(
         within(welcome).getByRole("button", {
-          name: /Learn what bb can do\s*Get a tour/i,
+          name: /Learn what kaioken can do\s*Get a tour/i,
         }),
       ).toBeDefined();
       expect(within(welcome).queryByText("What are we building?")).toBeNull();
@@ -502,7 +502,7 @@ describe("Theme Preview", () => {
       expect(container?.style.boxSizing).toBe("border-box");
       expect(container?.style.padding).toBe("16px");
       // At a phone-width pane the sidebar and info panel stay out.
-      expect(screen.queryByText("bb-plugins")).toBeNull();
+      expect(screen.queryByText("kaioken-plugins")).toBeNull();
       expect(screen.queryByText("Pull request")).toBeNull();
     } finally {
       width.mockRestore();
@@ -533,7 +533,7 @@ describe("Theme Preview", () => {
         setTheme: () => DEFAULT_CATALOG,
       });
 
-      await waitFor(() => expect(screen.queryByText("bb-plugins")).not.toBeNull());
+      await waitFor(() => expect(screen.queryByText("kaioken-plugins")).not.toBeNull());
       expect(screen.getByText("Pull request")).toBeDefined();
       expect(document.querySelector("[data-tp-mock-sidebar=left]")).not.toBeNull();
       expect(document.querySelector("[data-tp-mock-sidebar=right]")).not.toBeNull();
@@ -543,7 +543,7 @@ describe("Theme Preview", () => {
     }
   });
 
-  it("keeps the transient bb surfaces deliberately inspectable in the overlays block", async () => {
+  it("keeps the transient kaioken surfaces deliberately inspectable in the overlays block", async () => {
     renderPreview({
       themeCatalog: () => DEFAULT_CATALOG,
       setTheme: () => DEFAULT_CATALOG,
@@ -554,14 +554,14 @@ describe("Theme Preview", () => {
       expect(screen.getByRole("button", { name })).toBeDefined();
     }
 
-    // The dialog opens as a real bb dialog with its scrim and footer actions.
+    // The dialog opens as a real kaioken dialog with its scrim and footer actions.
     fireEvent.click(screen.getByRole("button", { name: "Dialog" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Archive thread?")).toBeDefined();
     fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 
-    // One at a time: the menu opens as a real bb dropdown menu.
+    // One at a time: the menu opens as a real kaioken dropdown menu.
     fireEvent.pointerDown(screen.getByRole("button", { name: "Menu" }), { button: 0, ctrlKey: false });
     const menu = await screen.findByRole("menu");
     expect(within(menu).getAllByRole("menuitem").map((item) => item.textContent)).toEqual([

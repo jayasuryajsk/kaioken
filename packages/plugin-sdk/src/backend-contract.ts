@@ -16,15 +16,15 @@ import type {
   ServiceTier,
   ThreadQueuedMessage,
   WorkspaceProvisionType,
-} from "@bb/domain";
-import type { ProviderFork } from "@bb/domain/provider-fork";
-import type { BbSdk } from "@bb/sdk";
+} from "@kaioken/domain";
+import type { ProviderFork } from "@kaioken/domain/provider-fork";
+import type { KaiokenSdk } from "@kaioken/sdk";
 import type {
   ExecutionInputFieldSource,
   StartedOnBehalfOf,
   ThreadCreateOrigin,
   ThreadResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type { JsonValue } from "./json-value.js";
 import type {
   PluginRpcContract,
@@ -37,14 +37,14 @@ import type {
 } from "./host-contract.js";
 
 /**
- * The backend plugin API contract — the `bb` object handed to a plugin's
- * `server.ts` factory (`export default function plugin(bb: BbPluginApi)`).
+ * The backend plugin API contract — the `kaioken` object handed to a plugin's
+ * `server.ts` factory (`export default function plugin(bb: KaiokenPluginApi)`).
  *
- * Types only: the implementation lives in the BB server
+ * Types only: the implementation lives in the Kaioken server
  * (apps/server/src/services/plugins/plugin-api.ts), which imports these
  * shapes so the contract and the implementation cannot drift. Plugin authors
- * import them type-only (`import type { BbPluginApi } from
- * "@get-bb/plugin-sdk"`); the import is erased when BB loads the file.
+ * import them type-only (`import type { KaiokenPluginApi } from
+ * "@get-kaioken/plugin-sdk"`); the import is erased when Kaioken loads the file.
  *
  * Runtime classes stay host-side. NeedsConfigurationError in particular is
  * matched by NAME, so plugin code needs no runtime import:
@@ -170,7 +170,7 @@ export interface PluginKvStorage {
 }
 
 export interface PluginStorage {
-  /** Namespaced JSON key-value rows in bb.db; values ≤256KB each. */
+  /** Namespaced JSON key-value rows in kaioken.db; values ≤256KB each. */
   kv: PluginKvStorage;
   /**
    * The plugin's own SQLite database at <dataDir>/plugins/<id>/data.db — the
@@ -317,7 +317,7 @@ export interface PluginThreadEventPayloads {
   "turn.failed": PluginTurnFailedEvent;
   /**
    * Fired after a queued row is removed before it ever dispatched — the user
-   * deleted it from the queued card or `bb thread queue`. This is the only
+   * deleted it from the queued card or `kaioken thread queue`. This is the only
    * signal for that removal: a plugin holding external resources for a
    * waiting message (a sandbox mid-provision, a reserved slot) releases them
    * here. Rows that dispatch fire `message.dispatched` instead, and rows that
@@ -695,9 +695,9 @@ export interface PluginHttp {
   /**
    * Register an HTTP route, mounted at
    * `/api/v1/plugins/<id>/http/<path>`. Auth modes (default "local"):
-   * - "local": Origin/Host must be a local BB app origin; non-GET requires
+   * - "local": Origin/Host must be a local Kaioken app origin; non-GET requires
    *   content-type application/json (forces a CORS preflight).
-   * - "token": requires the per-plugin token (`bb plugin token <id>`) via
+   * - "token": requires the per-plugin token (`kaioken plugin token <id>`) via
    *   the x-bb-plugin-token header or ?token=.
    * - "none": no checks — only for signature-verified webhooks.
    */
@@ -769,7 +769,7 @@ export interface PluginBackground {
    * durable row keyed (pluginId, name) is upserted at load; the periodic
    * sweep claims due rows with a CAS on next_run_at, but only while this
    * plugin is loaded. Failures land in last_status/last_error, visible in
-   * `bb plugin list`.
+   * `kaioken plugin list`.
    */
   schedule(name: string, cron: string, fn: () => void | Promise<void>): void;
 }
@@ -845,9 +845,9 @@ export interface PluginCliExecutionResult {
 }
 
 export interface PluginCliRegistration {
-  /** Preferred top-level command name (`bb <name> …`): lowercase [a-z0-9-]+.
+  /** Preferred top-level command name (`kaioken <name> …`): lowercase [a-z0-9-]+.
    * A core collision logs an activation warning and remains available through
-   * `bb plugin run <plugin-id>`. */
+   * `kaioken plugin run <plugin-id>`. */
   name: string;
   summary: string;
   /** Subcommand metadata rendered in help and the plugin-commands skill
@@ -861,8 +861,8 @@ export interface PluginCliRegistration {
 
 export interface PluginCli {
   /**
-   * Register this plugin's `bb` subcommand. One registration per factory
-   * execution; a repeated call is rejected. Core bb commands always win
+   * Register this plugin's `kaioken` subcommand. One registration per factory
+   * execution; a repeated call is rejected. Core kaioken commands always win
    * name collisions; the plugin is warned and remains explicitly callable by id.
    */
   register(registration: PluginCliRegistration): void;
@@ -941,9 +941,9 @@ export interface PluginAgentToolRegistrationBase {
   instructions?: string;
   /**
    * How calls to this tool read as a timeline row (grammar v3). When omitted,
-   * BB shows the standard tool name (`Running <name>` / `Ran <name>`) and the
+   * Kaioken shows the standard tool name (`Running <name>` / `Ran <name>`) and the
    * plugin's branding glyph. Approval, error, and interruption states keep
-   * BB's standard rendering. See docs/api_to_audit.md.
+   * Kaioken's standard rendering. See docs/api_to_audit.md.
    */
   presentation?: PluginAgentToolPresentation;
 }
@@ -984,7 +984,7 @@ export interface PluginAgentConfigurationContext {
      */
     capabilities: {
       /**
-       * The provider ships its own user-question affordance and bb routes it
+       * The provider ships its own user-question affordance and kaioken routes it
        * into the pending-interaction path. A plugin offering the same thing
        * should withhold it here, or the model gets two ways to ask once.
        */
@@ -1032,7 +1032,7 @@ export interface PluginAgentConfiguration {
 // ---------------------------------------------------------------------------
 
 /**
- * Permission modes a provider can run a session in — BB's own permission
+ * Permission modes a provider can run a session in — Kaioken's own permission
  * vocabulary, ordered least ("accept-edits") to most ("full") privileged.
  */
 export type PluginProviderPermissionMode = "accept-edits" | "auto" | "full";
@@ -1054,7 +1054,7 @@ export type PluginProviderReasoningLevel =
 
 /**
  * Composer actions a provider supports, by name only. The skills
- * slash-command typeahead is universal — BB injects skills into every
+ * slash-command typeahead is universal — Kaioken injects skills into every
  * provider — so it is implicit and never declared, and the composer owns the
  * trigger syntax (`/plan `, `/goal `) rather than each declaration repeating
  * it.
@@ -1092,10 +1092,10 @@ export interface PluginProviderCapabilities {
   /** The provider accepts an explicit context-compaction request — gates the
    * compact affordance. */
   supportsManualCompaction: boolean;
-  /** The provider keeps its own thread archive, so BB mirrors archive and
-   * unarchive onto it instead of tracking the state only in bb's own rows. */
+  /** The provider keeps its own thread archive, so Kaioken mirrors archive and
+   * unarchive onto it instead of tracking the state only in kaioken's own rows. */
   supportsThreadArchive: boolean;
-  /** The provider stores a thread name of its own, so BB forwards renames to
+  /** The provider stores a thread name of its own, so Kaioken forwards renames to
    * it. */
   supportsThreadRename: boolean;
   /** Permission modes the provider can actually run in. Non-empty, no
@@ -1110,7 +1110,7 @@ export interface PluginProviderCapabilities {
  * Provider copy core surfaces render from per-provider tables today (usage
  * banners, sign-in hints, the mobile picker, the agent guide). Declared once
  * here so no core surface keys copy on a provider id. Mirrors
- * `ProviderStrings` in `@bb/domain`, which is the client projection.
+ * `ProviderStrings` in `@kaioken/domain`, which is the client projection.
  */
 export interface PluginProviderStrings {
   /** How to sign in on the host ("Run `claude` on the machine to sign in."). */
@@ -1163,12 +1163,12 @@ export interface PluginProviderOptionsContext {
   projectId: string;
   /** The resolved model id for this command. */
   model: string;
-  /** BB's permission mode for this command (already clamped to the host). */
+  /** Kaioken's permission mode for this command (already clamped to the host). */
   permissionMode: PluginProviderPermissionMode;
   /**
    * `"plan"` when the prompt entered plan mode through this provider's
    * declared `plan` composer action. Absent for an ordinary prompt — plan
-   * mode is a BB prompt mode, so the bridge maps it onto whatever the agent
+   * mode is a Kaioken prompt mode, so the bridge maps it onto whatever the agent
    * calls it natively.
    */
   promptMode?: "plan";
@@ -1230,7 +1230,7 @@ export type PluginProviderNativeRootEntry = ProviderNativeRootInput;
 export type PluginProviderNativeRoots = ProviderNativeRootsInputLike;
 
 /**
- * One provider this plugin contributes to BB's provider registry.
+ * One provider this plugin contributes to Kaioken's provider registry.
  *
  * Ids are stable public identifiers — thread rows and routes reference them —
  * and are collision-rejected: a declaration whose id matches another plugin's
@@ -1242,7 +1242,7 @@ export type PluginProviderNativeRoots = ProviderNativeRootsInputLike;
  * executable implementation is the plugin's own provider bridge: the
  * `experimental_providerBridge` export of the `bb.host` artifact the manifest
  * names (`PROVIDER_BRIDGE_EXPORT_NAME` in the bridge kit), built into the
- * artifact BB ships to hosts. Declaring a provider in a plugin with no
+ * artifact Kaioken ships to hosts. Declaring a provider in a plugin with no
  * `bb.host` entry is refused, because the picker entry would exist and no
  * turn on it could ever run; a `bb.host` entry whose artifact failed to
  * build still stages the declaration so the provider is listed as
@@ -1333,9 +1333,9 @@ export interface PluginProviderDeclaration {
     /**
      * How far one `model/list` answer travels. `"host"` means the catalog is
      * the same everywhere on a machine — the bridge answers from account or
-     * agent state and ignores the workspace path — so bb probes once per host
+     * agent state and ignores the workspace path — so kaioken probes once per host
      * and reuses the answer for every environment on it. `"workspace"` (the
-     * default) means project configuration can change the answer, so bb
+     * default) means project configuration can change the answer, so kaioken
      * probes per workspace and sends the path.
      *
      * Declaring `"host"` wrongly is a stale catalog in a workspace that
@@ -1346,7 +1346,7 @@ export interface PluginProviderDeclaration {
   };
   /**
    * Daemon environment variables this provider's bridge may read. Provider
-   * processes are spawned with every inherited `BB_*` variable stripped, so a
+   * processes are spawned with every inherited `KAIOKEN_*` variable stripped, so a
    * bridge that honors an operator override (a CLI path, say) names it here
    * and the daemon forwards exactly those variables. Names are
    * `[A-Z_][A-Z0-9_]*`, at most 32.
@@ -1358,7 +1358,7 @@ export interface PluginProviderDeclaration {
    * Directories this provider's agent reads its own skills from, relative to
    * the target host's home directory (`user`) or to the workspace
    * (`project`). An agent with skills of its own — an ACP agent pointed at
-   * `.cursor/skills`, say — names them here so bb can list them beside its
+   * `.cursor/skills`, say — names them here so kaioken can list them beside its
    * own; core never guesses a provider's skill layout. Paths are relative
    * and may not contain dot segments; each side holds at most 32 roots. One
    * declaration is global, so a directory only one host can name (an agent's
@@ -1369,13 +1369,13 @@ export interface PluginProviderDeclaration {
   /**
    * Directories this provider's agent reads its own slash commands from —
    * flat directories of `*.md` prompt files (`.claude/commands`, say) — in
-   * the same two-sided shape as `experimental_nativeSkillRoots`. bb offers
+   * the same two-sided shape as `experimental_nativeSkillRoots`. kaioken offers
    * them in the composer beside the agent's skills.
    */
   experimental_nativeCommandRoots?: PluginProviderNativeRoots;
   /**
    * This plugin's `bb.host` entry implements
-   * `experimental_nativeRootsHostContract` (`@get-bb/plugin-sdk/host`): core
+   * `experimental_nativeRootsHostContract` (`@get-kaioken/plugin-sdk/host`): core
    * calls `resolveNativeRoots({ cwd })` on the workspace host when it lists
    * commands or skills, and scans what comes back beside the declared roots.
    * This is where a provider's host-only knowledge goes — a config-moved
@@ -1413,7 +1413,7 @@ export interface PluginAgents {
    * an already-running session is not hot-mutated. Instructions follow the
    * same boundary: a live provider session keeps the instructions it was
    * constructed with, and a changed selection applies when the session is
-   * next constructed. Skill changes follow BB's environment runtime policy:
+   * next constructed. Skill changes follow Kaioken's environment runtime policy:
    * a busy runtime keeps its current catalog until a safe relaunch. Side chats
    * are ordinary plugin-owned forks here — read `origin` to detect them — and
    * their returned tool, skill, and dynamic-instruction selections apply at the
@@ -1623,13 +1623,13 @@ export interface PluginEvents {
 
 export interface PluginServerApi {
   /**
-   * The operator-configured public app URL from `BB_APP_URL`, or `null` when
+   * The operator-configured public app URL from `KAIOKEN_APP_URL`, or `null` when
    * the operator has not configured one. This value is not bind-gated.
    */
   readonly experimental_appUrl: string | null;
 
   /**
-   * This BB server's own loopback base URL (e.g. "http://127.0.0.1:38886"),
+   * This Kaioken server's own loopback base URL (e.g. "http://127.0.0.1:38886"),
    * which serves the SPA + /api + /ws. For plugins that proxy or relay
    * traffic back to the server itself (e.g. a tunnel). Bind-gated like
    * `bb.sdk`: reading it before the server is listening throws, so prefer
@@ -1638,12 +1638,12 @@ export interface PluginServerApi {
   readonly loopbackBaseUrl: string;
 
   /**
-   * This server's data directory — the one holding `config.json`, `bb.db` and
+   * This server's data directory — the one holding `config.json`, `kaioken.db` and
    * `plugins/<id>/`. A plugin cannot compute it: a dev server derives it from
-   * its repo root and instance id, so a plugin that guesses `~/.bb` reads the
+   * its repo root and instance id, so a plugin that guesses `~/.kaioken` reads the
    * production file while the dev server reads another one.
    *
-   * For reading bb-managed files a plugin is migrating away from. A plugin's
+   * For reading kaioken-managed files a plugin is migrating away from. A plugin's
    * OWN storage is `bb.storage`, which is scoped for it; this is deliberately
    * not a place to write.
    */
@@ -1655,7 +1655,7 @@ export interface PluginServerApi {
 // ---------------------------------------------------------------------------
 
 /**
- * What a plugin's AI service does. `inference` answers bb's server-side helper
+ * What a plugin's AI service does. `inference` answers kaioken's server-side helper
  * completions (thread titles, commit messages: a prompt and a JSON Schema in,
  * a structured value out); `voice` transcribes recorded speech.
  */
@@ -1663,8 +1663,8 @@ export type PluginAiServiceKind = "inference" | "voice";
 
 /**
  * An AI service a plugin offers from its `bb.host` entry, which implements
- * `experimental_aiServicesHostContract` (`@get-bb/plugin-sdk/ai-services`).
- * The user selects it with `BB_INFERENCE` / `BB_TRANSCRIPTION` set to
+ * `experimental_aiServicesHostContract` (`@get-kaioken/plugin-sdk/ai-services`).
+ * The user selects it with `KAIOKEN_INFERENCE` / `KAIOKEN_TRANSCRIPTION` set to
  * `<id>/<model>`; core calls the plugin's host entry on the primary host with
  * the `id` on every request, so one entry can serve several services.
  */
@@ -1738,20 +1738,20 @@ export interface PluginHosts {
 export interface PluginStatusApi {
   /**
    * Mark this plugin `needs-configuration` (with a message shown in
-   * `bb plugin list` and the UI) instead of failing — e.g. a factory or
+   * `kaioken plugin list` and the UI) instead of failing — e.g. a factory or
    * service that finds no API key configured. Cleared on the next load;
    * saving settings does not auto-reload in V1, so ask the user to
-   * `bb plugin reload <id>` after configuring.
+   * `kaioken plugin reload <id>` after configuring.
    */
   needsConfiguration(message: string): void;
 }
 
 /**
  * The API object handed to a plugin's factory (design §4). Implemented by
- * the BB server; this contract is what plugin `server.ts` files compile
+ * the Kaioken server; this contract is what plugin `server.ts` files compile
  * against.
  */
-export interface BbPluginApi {
+export interface KaiokenPluginApi {
   /** The plugin's own id (namespaces storage, routes, commands). */
   readonly pluginId: string;
   /** Leveled, plugin-scoped logger. */
@@ -1768,7 +1768,7 @@ export interface BbPluginApi {
   readonly realtime: PluginRealtime;
   /** Long-lived services + cron schedules (design §4.8). */
   readonly background: PluginBackground;
-  /** Agent-facing `bb` CLI subcommand (design §4.4). */
+  /** Agent-facing `kaioken` CLI subcommand (design §4.4). */
   readonly cli: PluginCli;
   /** Per-turn agent context contributions (design §4.4). */
   readonly agents: PluginAgents;
@@ -1802,11 +1802,11 @@ export interface BbPluginApi {
   readonly hosts: PluginHosts;
   /**
    * AI services this plugin serves from its `bb.host` entry (helper
-   * inference, voice transcription). See `@get-bb/plugin-sdk/ai-services`.
+   * inference, voice transcription). See `@get-kaioken/plugin-sdk/ai-services`.
    */
   readonly experimental_aiServices: PluginAiServices;
   /**
-   * The full BB SDK, bound to this server over loopback (design §4.1).
+   * The full Kaioken SDK, bound to this server over loopback (design §4.1).
    * Bind-gated: reading this before the host binds the SDK throws. The real
    * server binds it before loading plugins, so it is available from the
    * moment factories run there — but isolated harnesses may not, so prefer
@@ -1814,7 +1814,7 @@ export interface BbPluginApi {
    * `threads.spawn` defaults `origin` to "plugin" and `originPluginId` to
    * this plugin's id so spawned threads are attributed automatically.
    */
-  readonly sdk: BbSdk;
+  readonly sdk: KaiokenSdk;
   /**
    * Register cleanup to run on reload/disable/shutdown. Hooks run LIFO.
    * The sanctioned place to clear timers and close connections.

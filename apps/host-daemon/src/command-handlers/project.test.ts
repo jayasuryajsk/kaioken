@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { runGit } from "@bb/host-workspace";
+import { runGit } from "@kaioken/host-workspace";
 import { afterEach, describe, expect, it } from "vitest";
 import { isExpectedCommandDispatchError } from "../command-dispatch-support.js";
 import { cloneProject, resolveProjectCloneDefaultPath } from "./project.js";
@@ -9,7 +9,7 @@ import { cloneProject, resolveProjectCloneDefaultPath } from "./project.js";
 const tempDirs: string[] = [];
 
 async function tempDir(): Promise<string> {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "bb-project-clone-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-project-clone-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -24,9 +24,9 @@ async function createRemoteRepo(root: string): Promise<string> {
   await runGit(
     [
       "-c",
-      "user.name=BB Test",
+      "user.name=Kaioken Test",
       "-c",
-      "user.email=bb@example.test",
+      "user.email=kaioken@example.test",
       "commit",
       "-m",
       "initial",

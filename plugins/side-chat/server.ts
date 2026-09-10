@@ -1,4 +1,4 @@
-import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
+import { defineRpcContract, type KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 
 export const REPLY_SEED_PREFIX =
@@ -88,7 +88,7 @@ export const sideChatRpcContract = defineRpcContract({
   },
 });
 
-export default async function plugin(bb: BbPluginApi) {
+export default async function plugin(bb: KaiokenPluginApi) {
   bb.rpc.register(sideChatRpcContract, {
     async createSideChat({ sourceThreadId, sourceSeqEnd, anchorText }) {
       const seedText = resolveReplySeedText(anchorText);

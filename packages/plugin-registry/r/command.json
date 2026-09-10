@@ -3,15 +3,15 @@
   "name": "command",
   "type": "registry:ui",
   "title": "command",
-  "description": "BB ui \"command\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"command\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-dialog",
     "cmdk",
     "lucide-react"
   ],
   "registryDependencies": [
-    "@bb/dialog",
-    "@bb/utils"
+    "@kaioken/dialog",
+    "@kaioken/utils"
   ],
   "files": [
     {

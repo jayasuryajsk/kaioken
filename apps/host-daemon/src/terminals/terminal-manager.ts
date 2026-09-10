@@ -4,12 +4,12 @@ import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
 import { spawn as spawnPty } from "node-pty";
-import type { TerminalSessionCloseReason } from "@bb/domain";
-import type { HostDaemonDaemonWsMessage } from "@bb/host-daemon-contract";
+import type { TerminalSessionCloseReason } from "@kaioken/domain";
+import type { HostDaemonDaemonWsMessage } from "@kaioken/host-daemon-contract";
 import {
   killProcessGroup,
   sanitizeInheritedChildProcessEnv,
-} from "@bb/process-utils";
+} from "@kaioken/process-utils";
 import type { HostDaemonServerTerminalMessage } from "../server-connection-support.js";
 import type { HostDaemonLogger } from "../logger.js";
 import { RuntimeManager } from "../runtime-manager.js";
@@ -348,7 +348,7 @@ function buildTerminalEnv(args: BuildTerminalEnvArgs): NodeJS.ProcessEnv {
   return {
     ...sanitizeInheritedChildProcessEnv({ env: process.env }),
     ...args.shellEnv,
-    BB_TERMINAL_SESSION_ID: args.terminalId,
+    KAIOKEN_TERMINAL_SESSION_ID: args.terminalId,
     COLORTERM: "truecolor",
     DISABLE_AUTO_TITLE: "true",
     FORCE_HYPERLINK: "1",

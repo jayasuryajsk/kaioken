@@ -40,14 +40,14 @@ import type {
   ResolvedThreadExecutionOptions,
   ThreadEventRow,
   ThreadQueuedMessage,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   appSettingsUpdateSchema,
   appKeybindingOverridesSchema,
   appThemeSelectionSchema,
   experimentsSchema,
-} from "@bb/domain";
-import type { ProviderUsageResponse } from "@bb/host-daemon-contract";
+} from "@kaioken/domain";
+import type { ProviderUsageResponse } from "@kaioken/host-daemon-contract";
 import {
   binaryResponse,
   defineRoute,
@@ -59,7 +59,7 @@ import {
   queryRequest,
   textResponse,
   type ApiSchemaFromRouteDescriptors,
-} from "@bb/hono-typed-routes";
+} from "@kaioken/hono-typed-routes";
 import type {
   EmptyInput,
   PathId,
@@ -1509,7 +1509,7 @@ export const publicApiRoutes = {
     /**
      * Every live queued row, optionally narrowed to one thread or one
      * wait holder. Cross-thread because "what is queued right now" is a
-     * whole-workspace question (`bb thread queue list` with no thread, a
+     * whole-workspace question (`kaioken thread queue list` with no thread, a
      * limiter plugin's own bookkeeping, a router recovering its rows after a
      * restart) that no single thread's list can answer.
      */
@@ -1604,7 +1604,7 @@ export const publicApiRoutes = {
     /**
      * Resolve a built-in, custom, or plugin theme exactly as activating it
      * would, without persisting anything. The Settings palette hover preview
-     * and `bb theme show <id>` read it; `faviconColor` echoes the stored
+     * and `kaioken theme show <id>` read it; `faviconColor` echoes the stored
      * appearance because the response is a full `AppTheme`.
      */
     resolveTheme: defineRoute({

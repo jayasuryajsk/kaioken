@@ -3,11 +3,11 @@
   "name": "input",
   "type": "registry:ui",
   "title": "input",
-  "description": "BB ui \"input\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"input\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "registryDependencies": [
-    "@bb/coarse-pointer-sizing",
-    "@bb/motion",
-    "@bb/utils"
+    "@kaioken/coarse-pointer-sizing",
+    "@kaioken/motion",
+    "@kaioken/utils"
   ],
   "files": [
     {

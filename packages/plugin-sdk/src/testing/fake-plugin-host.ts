@@ -5,7 +5,7 @@ import { join } from "node:path";
 import Database from "better-sqlite3";
 import { CronExpressionParser } from "cron-parser";
 import { Hono } from "hono";
-import { PLUGIN_INTERACTION_MAX_TITLE_LENGTH } from "@bb/domain/plugin-interaction-limits";
+import { PLUGIN_INTERACTION_MAX_TITLE_LENGTH } from "@kaioken/domain/plugin-interaction-limits";
 import {
   adoptHttpRouteResponse,
   AGENT_TOOL_NAME_PATTERN,
@@ -50,7 +50,7 @@ import {
   type NormalizedPluginProviderDeclaration,
 } from "../internal/host-policy.js";
 import type {
-  BbPluginApi,
+  KaiokenPluginApi,
   PluginAgentConfiguration,
   PluginAgentConfigurationContext,
   PluginAgentToolContext,
@@ -110,7 +110,7 @@ import type {
   StandardSchemaV1Issue,
   StandardSchemaV1Result,
   JsonValue,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import {
   createFakeSdk,
   type FakeSdkHarness,
@@ -124,9 +124,9 @@ function migrationStatementHash(statement: string): string {
 }
 
 /**
- * `createFakePluginHost` — an in-process stand-in for the BB server's plugin
+ * `createFakePluginHost` — an in-process stand-in for the Kaioken server's plugin
  * runtime (apps/server/src/services/plugins/plugin-api.ts), for unit-testing
- * a plugin's `server.ts` without a server. `bb` satisfies {@link BbPluginApi};
+ * a plugin's `server.ts` without a server. `kaioken` satisfies {@link KaiokenPluginApi};
  * `harness` drives and inspects it.
  *
  * Faithful where a plugin can observe it: registration name validation and
@@ -221,7 +221,7 @@ export interface FakeAgentToolRecord {
   /**
    * The plugin's declared row presentation, null when it declared none.
    * Parsed by the shared `parsePluginAgentToolPresentation`, so the record
-   * holds exactly what the production host stores and a presentation bb
+   * holds exactly what the production host stores and a presentation kaioken
    * rejects is rejected here with the same message.
    */
   presentation: PluginAgentToolPresentation | null;
@@ -343,7 +343,7 @@ export interface FakePluginInspectionState {
   })[];
 }
 
-/** Deterministic inputs that stand in for behavior normally driven by BB. */
+/** Deterministic inputs that stand in for behavior normally driven by Kaioken. */
 export interface FakePluginBehaviorDrivers {
   /** Deliver an unexpected host-worker exit to every registered client. */
   experimental_emitHostWorkerExit(hostId: string): Promise<void>;
@@ -371,7 +371,7 @@ export interface FakePluginBehaviorDrivers {
   /**
    * Invoke the plugin's CLI command with host semantics: the result's
    * exitCode must be a number, stdout/stderr default to "", and a throwing
-   * run() becomes `{ exitCode: 1, stderr: "bb <name> failed: …" }`.
+   * run() becomes `{ exitCode: 1, stderr: "kaioken <name> failed: …" }`.
    */
   runCli(
     argv: string[],
@@ -452,12 +452,12 @@ export interface FakePluginLifecycleControls {
    * services/hooks are disposed and the returned host becomes current.
    */
   reload(
-    factory: (bb: BbPluginApi) => void | Promise<void>,
+    factory: (bb: KaiokenPluginApi) => void | Promise<void>,
   ): Promise<FakePluginHost>;
   /**
    * Dispose like a host reload/disable: abort services started via
    * runService, run onDispose hooks LIFO (isolated), close database handles,
-   * then poison the `bb` handle (further use throws
+   * then poison the `kaioken` handle (further use throws
    * PluginContextStaleError). Idempotent.
    */
   dispose(): Promise<void>;
@@ -491,7 +491,7 @@ export interface CreateFakePluginHostOptions {
   loopbackBaseUrl?: string;
   /**
    * Value served by `bb.server.experimental_dataDir`. Defaults to
-   * "/tmp/bb-fake-data-dir".
+   * "/tmp/kaioken-fake-data-dir".
    */
   dataDir?: string;
   /**
@@ -532,7 +532,7 @@ export interface CreateFakePluginHostOptions {
 }
 
 export interface FakePluginHost {
-  bb: BbPluginApi;
+  bb: KaiokenPluginApi;
   harness: FakePluginHarness;
 }
 
@@ -974,7 +974,7 @@ function createFakePluginHostInternal(
     sharedState ??
     ({
       kvRows: new Map<string, string>(),
-      storageRoot: mkdtempSync(join(tmpdir(), "bb-fake-plugin-host-")),
+      storageRoot: mkdtempSync(join(tmpdir(), "kaioken-fake-plugin-host-")),
       storedSettings: new Map<string, PluginSettingValue>(
         Object.entries(options.settings ?? {}),
       ),
@@ -1585,7 +1585,7 @@ function createFakePluginHostInternal(
       }
       if (RESERVED_AGENT_TOOL_NAMES.includes(name)) {
         throw new Error(
-          `tool name "${name}" is a built-in bb tool — pick another name`,
+          `tool name "${name}" is a built-in kaioken tool — pick another name`,
         );
       }
       rejectStaleAgentToolFields(name, tool);
@@ -1753,7 +1753,7 @@ function createFakePluginHostInternal(
   // --- server ---
   const appUrl = options.appUrl ?? null;
   const loopbackBaseUrl = options.loopbackBaseUrl ?? "http://127.0.0.1:38886";
-  const dataDir = options.dataDir ?? "/tmp/bb-fake-data-dir";
+  const dataDir = options.dataDir ?? "/tmp/kaioken-fake-data-dir";
   const server: PluginServerApi = {
     get experimental_appUrl(): string | null {
       assertLive();
@@ -2129,7 +2129,7 @@ function createFakePluginHostInternal(
     },
   };
 
-  const bb: BbPluginApi = {
+  const bb: KaiokenPluginApi = {
     pluginId,
     log,
     settings,
@@ -2415,7 +2415,7 @@ function createFakePluginHostInternal(
           {
             exitCode: 1,
             stdout: "",
-            stderr: `bb ${registration.name} failed: ${errorMessage(error)}`,
+            stderr: `kaioken ${registration.name} failed: ${errorMessage(error)}`,
           },
           argv.includes("--json"),
         );

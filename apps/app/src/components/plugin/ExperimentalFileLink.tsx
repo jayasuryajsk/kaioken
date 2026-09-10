@@ -6,13 +6,13 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import type { ExperimentalFileLinkProps } from "@get-bb/plugin-sdk";
+import type { ExperimentalFileLinkProps } from "@get-kaioken/plugin-sdk";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from "@bb/shared-ui/context-menu";
+} from "@kaioken/shared-ui/context-menu";
 import { RouteAnchor } from "@/components/ui/app-route-anchor";
 import { useAppNavigationHost } from "@/lib/app-navigation-host";
 import { normalizeExperimentalFileOpenOptions } from "@/lib/live-file-navigation";

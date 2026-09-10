@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Workspace } from "../src/workspace.js";
 import { runGit } from "../src/git.js";
-import type { RawDiffFileStat, WorkspaceDiffTarget } from "@bb/domain";
+import type { RawDiffFileStat, WorkspaceDiffTarget } from "@kaioken/domain";
 
 const tempDirs: string[] = [];
 
@@ -15,10 +15,10 @@ async function makeTempDir(prefix: string): Promise<string> {
 }
 
 async function initRepo(): Promise<string> {
-  const repoPath = await makeTempDir("bb-diff-repo-");
+  const repoPath = await makeTempDir("kaioken-diff-repo-");
   await runGit(["init", "-b", "main"], { cwd: repoPath });
-  await runGit(["config", "user.name", "BB Tests"], { cwd: repoPath });
-  await runGit(["config", "user.email", "bb@example.com"], { cwd: repoPath });
+  await runGit(["config", "user.name", "Kaioken Tests"], { cwd: repoPath });
+  await runGit(["config", "user.email", "kaioken@example.com"], { cwd: repoPath });
   await runGit(["config", "core.autocrlf", "false"], { cwd: repoPath });
   return repoPath;
 }

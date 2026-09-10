@@ -1,4 +1,4 @@
-# Demo server end-to-end: first run → add the bb demo server by Direct URL →
+# Demo server end-to-end: first run → add the kaioken demo server by Direct URL →
 # thread list → open a thread → send a message → "Working…" → the scripted
 # reply arrives and the indicator clears.
 #
@@ -7,8 +7,8 @@
 # `pnpm e2e:ios` (e2e/flows) because it needs the demo worker, not the
 # harness backend:
 #
-#   pnpm --filter @bb/demo-server dev        # the worker on 8799
-#   EXPO_PUBLIC_BB_E2E=1 pnpm --filter @bb/mobile start --port 8082
+#   pnpm --filter @kaioken/demo-server dev        # the worker on 8799
+#   EXPO_PUBLIC_KAIOKEN_E2E=1 pnpm --filter @kaioken/mobile start --port 8082
 #   cd apps/mobile && maestro test e2e/manual/demo-server.yaml
 #
 # To rehearse against the deployed worker, set SERVER_URL to its https URL.
@@ -18,7 +18,7 @@ env:
   SERVER_URL: "http://127.0.0.1:8799"
 ---
 # The E2E build wipes profiles on launch, so the shared subflow lands on
-# "Connect to a bb server" and adds SERVER_URL as a Direct URL. The probe
+# "Connect to a kaioken server" and adds SERVER_URL as a Direct URL. The probe
 # (/health + /system/config) must pass against the worker.
 #
 # Launch is inlined rather than `runFlow: ../subflows/launch-to-home.yaml`
@@ -39,7 +39,7 @@ env:
 # evaluates immediately and skips while Metro is still serving. The E2E build
 # wipes profiles on launch, so first run is guaranteed here.
 - extendedWaitUntil:
-    visible: "Connect to a bb server"
+    visible: "Connect to a kaioken server"
     timeout: 60000
 - tapOn:
     id: "server-url-input"

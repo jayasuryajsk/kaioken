@@ -8,10 +8,10 @@ interface PluginSdkDeclarations {
   app: string;
 }
 
-declare const __BB_PLUGIN_SDK_DTS_JSON__: string | undefined;
+declare const __KAIOKEN_PLUGIN_SDK_DTS_JSON__: string | undefined;
 
-const ROOT_FILE = "bb-plugin-sdk.d.ts";
-const APP_FILE = "bb-plugin-sdk-app.d.ts";
+const ROOT_FILE = "kaioken-plugin-sdk.d.ts";
+const APP_FILE = "kaioken-plugin-sdk-app.d.ts";
 const BUNDLED_TYPES_RELATIVE = join("packages", "plugin-sdk", "bundled-types");
 
 let cached: Promise<PluginSdkDeclarations> | null = null;
@@ -22,15 +22,15 @@ export function loadPluginSdkDeclarations(): Promise<PluginSdkDeclarations> {
 }
 
 async function loadUncached(): Promise<PluginSdkDeclarations> {
-  if (typeof __BB_PLUGIN_SDK_DTS_JSON__ === "string") {
-    return parseDeclarations(__BB_PLUGIN_SDK_DTS_JSON__);
+  if (typeof __KAIOKEN_PLUGIN_SDK_DTS_JSON__ === "string") {
+    return parseDeclarations(__KAIOKEN_PLUGIN_SDK_DTS_JSON__);
   }
   const typesDir = findWorkspaceBundledTypesDir();
   if (typesDir === null) {
     throw new Error(
       `Could not find ${BUNDLED_TYPES_RELATIVE} above ${moduleDir()}. ` +
         "Build the plugin SDK declarations first: " +
-        "pnpm exec turbo run build:types --filter=@get-bb/plugin-sdk",
+        "pnpm exec turbo run build:types --filter=@get-kaioken/plugin-sdk",
     );
   }
   const [root, app] = await Promise.all([

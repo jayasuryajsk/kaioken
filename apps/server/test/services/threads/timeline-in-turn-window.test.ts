@@ -1,11 +1,11 @@
-import { prependOlderTimelineRows } from "@bb/client-core";
+import { prependOlderTimelineRows } from "@kaioken/client-core";
 import { describe, expect, it } from "vitest";
 import {
   encodeClientTurnRequestIdNumber,
   threadScope,
   turnScope,
-} from "@bb/domain";
-import type { ClientTurnRequestId, Thread } from "@bb/domain";
+} from "@kaioken/domain";
+import type { ClientTurnRequestId, Thread } from "@kaioken/domain";
 import {
   createConnection,
   createProject,
@@ -16,13 +16,13 @@ import {
   migrateNextLegacyImageGenerationOutput,
   noopNotifier,
   upsertHost,
-} from "@bb/db";
-import { LOCAL_WORKFLOW_TASK_TYPE } from "@bb/domain";
-import type { DbConnection } from "@bb/db";
+} from "@kaioken/db";
+import { LOCAL_WORKFLOW_TASK_TYPE } from "@kaioken/domain";
+import type { DbConnection } from "@kaioken/db";
 import type {
   TimelinePaginationCursor,
   TimelineRow,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   buildThreadTimeline,
   buildTimelineTurnSummaryDetails as buildTurnDetailsPage,

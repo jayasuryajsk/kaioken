@@ -1,13 +1,13 @@
 import type {
   PluginEnvironmentProviderCreateContext,
   PluginEnvironmentProviderProgress,
-} from "@get-bb/plugin-sdk/environment-provider";
+} from "@get-kaioken/plugin-sdk/environment-provider";
 import {
   createFakePluginHost,
   makeHostResponse,
   makeThreadResponse,
   type FakePluginHarness,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it } from "vitest";
 import plugin from "./server.js";
 type Project = PluginEnvironmentProviderCreateContext["project"];
@@ -92,7 +92,7 @@ async function setup() {
     projectCheckout: null,
     gitRemote: null,
     inputs: null,
-    suggestedBranchName: "bb/test",
+    suggestedBranchName: "kaioken/test",
     attempt: 1,
     pathKey: THREAD_ID,
     rebuild: false,

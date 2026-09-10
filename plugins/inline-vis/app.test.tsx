@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { loadPluginApp, renderSlot } from "@get-bb/plugin-sdk/testing/app";
+import { loadPluginApp, renderSlot } from "@get-kaioken/plugin-sdk/testing/app";
 
 const app = await loadPluginApp(() => import("./app"));
 
@@ -308,7 +308,7 @@ describe("InlineVisDirective", () => {
       },
     );
 
-    const markdown = await slot.findByTestId("bb-markdown");
+    const markdown = await slot.findByTestId("kaioken-markdown");
     expect(markdown.textContent).toBe("# Notes\n\nReady for review.");
     expect(slot.container.querySelector("iframe")).toBeNull();
     expect(markdown.parentElement?.style.height).toBe("224px");
@@ -344,7 +344,7 @@ describe("InlineVisDirective", () => {
       },
     );
 
-    const markdown = await slot.findByTestId("bb-markdown");
+    const markdown = await slot.findByTestId("kaioken-markdown");
     expect(markdown.textContent).toBe("# Notes");
     expect(slot.container.querySelector("iframe")).toBeNull();
     expect(
@@ -374,7 +374,7 @@ describe("InlineVisDirective", () => {
       },
     );
 
-    const markdown = await slot.findByTestId("bb-markdown");
+    const markdown = await slot.findByTestId("kaioken-markdown");
     expect(markdown.parentElement?.style.height).toBe("480px");
   });
 
@@ -421,7 +421,7 @@ describe("InlineVisDirective", () => {
       content: "# Notes",
     });
 
-    const markdown = await slot.findByTestId("bb-markdown");
+    const markdown = await slot.findByTestId("kaioken-markdown");
     const markdownBody = markdown.parentElement!;
     expect(markdownBody.style.height).toBe("480px");
     expect(slot.queryByRole("status")).toBeNull();

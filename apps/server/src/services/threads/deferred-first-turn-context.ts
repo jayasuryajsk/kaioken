@@ -2,9 +2,9 @@ import {
   findStoredEventRow,
   getLastStoredTurnRequestEvent,
   getThread,
-} from "@bb/db";
-import type { DbQueryConnection } from "@bb/db";
-import type { PromptInput } from "@bb/domain";
+} from "@kaioken/db";
+import type { DbQueryConnection } from "@kaioken/db";
+import type { PromptInput } from "@kaioken/domain";
 import { ApiError } from "../../errors.js";
 import { parseStoredTurnRequestEvent } from "./thread-events.js";
 

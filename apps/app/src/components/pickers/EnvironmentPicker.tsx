@@ -1,13 +1,13 @@
 import { EnvironmentProviderIcon } from "@/components/plugin/EnvironmentProviderIcon";
 import { useMemo } from "react";
-import type { Host, ProjectSource } from "@bb/domain";
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { findLocalPathProjectSourceForHost } from "@bb/domain";
+import type { Host, ProjectSource } from "@kaioken/domain";
+import type { SystemEnvironmentProvider } from "@kaioken/server-contract";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { findLocalPathProjectSourceForHost } from "@kaioken/domain";
 import { pluginIconName } from "@/components/plugin/PluginIcon";
-import { Button } from "@bb/shared-ui/button";
-import { Skeleton } from "@bb/shared-ui/skeleton";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { Button } from "@kaioken/shared-ui/button";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,25 +15,25 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
+} from "@kaioken/shared-ui/dropdown-menu";
 import {
   COARSE_POINTER_COMPACT_ICON_SIZE_CLASS,
   COARSE_POINTER_COMPACT_ICON_SIZE_SHRINK_CLASS,
   COARSE_POINTER_ICON_SIZE_CLASS,
-} from "@bb/shared-ui/coarse-pointer-sizing";
-import { LIST_HOVER_TRANSITION } from "@bb/shared-ui/motion";
+} from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { LIST_HOVER_TRANSITION } from "@kaioken/shared-ui/motion";
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
 import { REUSE_ENVIRONMENT_ICON_NAME } from "@/lib/environment-workspace-display";
 import { formatRelativeTime } from "@/lib/relative-time";
 import { formatHostUpdateStatus } from "@/lib/host-update-status";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   OPTION_BASE_CLASS_NAME,
   OPTION_INTERACTIVE_CLASS_NAME,
   OPTION_MENU_CONTENT_CLASS_NAME,
   OPTION_MUTED_CLASS_NAME,
   OPTION_TRIGGER_CONTENT_CLASS_NAME,
-} from "@bb/shared-ui/option-display";
+} from "@kaioken/shared-ui/option-display";
 import {
   encodeProviderValue,
   parseEnvironmentValue,

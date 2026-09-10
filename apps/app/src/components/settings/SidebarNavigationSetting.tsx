@@ -1,14 +1,14 @@
 import { useAtom } from "jotai";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { COARSE_POINTER_ICON_SIZE_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { Button } from "@bb/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { COARSE_POINTER_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
+} from "@kaioken/shared-ui/dropdown-menu";
 import { SettingsWithControl } from "@/components/ui/settings-section";
 import { sidebarNavigationProviderAtom } from "@/components/sidebar/sidebarNavigationProvider";
 import {
@@ -20,7 +20,7 @@ import { usePluginSlots } from "@/lib/plugin-slots";
 
 const BUILT_IN_OPTION = {
   key: BUILT_IN_REPLACEMENT_PROVIDER,
-  title: "bb (built-in)",
+  title: "kaioken (built-in)",
   description: "Native New thread, Search, Plugins, Skills, and plugin panels.",
 } as const;
 

@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { createInterface } from "node:readline";
-import { experimental_recordProviderChildIo } from "@bb/provider-bridge-protocol/bridge-kit";
+import { experimental_recordProviderChildIo } from "@kaioken/provider-bridge-protocol/bridge-kit";
 import type { z } from "zod";
 
 const STDERR_TAIL_MAX_CHUNKS = 40;

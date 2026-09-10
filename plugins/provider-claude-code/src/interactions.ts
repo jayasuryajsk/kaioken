@@ -12,7 +12,7 @@ import {
   isApprovalInteractionOutcome,
   userQuestionInteractionOutcomeSchema,
   ProviderResponseEncodeError,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import { z } from "zod";
 
 export const claudeInteractionOutcomeSchema = z.union([

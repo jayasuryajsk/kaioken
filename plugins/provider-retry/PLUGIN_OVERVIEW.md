@@ -17,6 +17,6 @@ The plugin reacts to each failed turn. It only retries overload errors and subsc
 
 ## CLI
 
-- `bb provider-retry status [thread-id] [--json]`: show pending retries.
-- `bb provider-retry retry <thread-id>`: send a pending retry now.
-- `bb provider-retry cancel <thread-id>`: cancel a pending retry.
+- `kaioken provider-retry status [thread-id] [--json]`: show pending retries.
+- `kaioken provider-retry retry <thread-id>`: send a pending retry now.
+- `kaioken provider-retry cancel <thread-id>`: cancel a pending retry.

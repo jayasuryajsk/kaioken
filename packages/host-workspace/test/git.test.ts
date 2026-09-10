@@ -25,12 +25,12 @@ const tempDirs: string[] = [];
 
 async function initReadGitBlobRepo() {
   const repoPath = await fs.mkdtemp(
-    path.join(os.tmpdir(), "bb-read-git-blob-"),
+    path.join(os.tmpdir(), "kaioken-read-git-blob-"),
   );
   tempDirs.push(repoPath);
   await runGit(["init", "-b", "main"], { cwd: repoPath });
-  await runGit(["config", "user.name", "BB Tests"], { cwd: repoPath });
-  await runGit(["config", "user.email", "bb@example.com"], { cwd: repoPath });
+  await runGit(["config", "user.name", "Kaioken Tests"], { cwd: repoPath });
+  await runGit(["config", "user.email", "kaioken@example.com"], { cwd: repoPath });
   await fs.mkdir(path.join(repoPath, "docs"));
   await fs.writeFile(path.join(repoPath, "README.md"), "hello\n", "utf8");
   await fs.writeFile(path.join(repoPath, "docs", "index.md"), "docs\n", "utf8");
@@ -41,18 +41,18 @@ async function initReadGitBlobRepo() {
 }
 
 async function initEmptyRepo() {
-  const repoPath = await fs.mkdtemp(path.join(os.tmpdir(), "bb-empty-git-"));
+  const repoPath = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-empty-git-"));
   tempDirs.push(repoPath);
   await runGit(["init", "-b", "main"], { cwd: repoPath });
   return repoPath;
 }
 
 async function initConflictRepo() {
-  const repoPath = await fs.mkdtemp(path.join(os.tmpdir(), "bb-git-conflict-"));
+  const repoPath = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-git-conflict-"));
   tempDirs.push(repoPath);
   await runGit(["init", "-b", "main"], { cwd: repoPath });
-  await runGit(["config", "user.name", "BB Tests"], { cwd: repoPath });
-  await runGit(["config", "user.email", "bb@example.com"], { cwd: repoPath });
+  await runGit(["config", "user.name", "Kaioken Tests"], { cwd: repoPath });
+  await runGit(["config", "user.email", "kaioken@example.com"], { cwd: repoPath });
   await fs.writeFile(path.join(repoPath, "README.md"), "base\n", "utf8");
   await runGit(["add", "."], { cwd: repoPath });
   await runGit(["commit", "-m", "Initial commit"], { cwd: repoPath });
@@ -67,7 +67,7 @@ async function initConflictRepo() {
 
 async function initDefaultBranchRemoteRepo() {
   const repoPath = await initReadGitBlobRepo();
-  const remotePath = await fs.mkdtemp(path.join(os.tmpdir(), "bb-git-remote-"));
+  const remotePath = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-git-remote-"));
   tempDirs.push(remotePath);
   await runGit(["init", "--bare"], { cwd: remotePath });
   await runGit(["remote", "add", "origin", remotePath], { cwd: repoPath });
@@ -78,15 +78,15 @@ async function initDefaultBranchRemoteRepo() {
 
 async function pushRemoteMainCommit(remotePath: string) {
   const cloneParent = await fs.mkdtemp(
-    path.join(os.tmpdir(), "bb-git-remote-clone-"),
+    path.join(os.tmpdir(), "kaioken-git-remote-clone-"),
   );
   tempDirs.push(cloneParent);
   const clonePath = path.join(cloneParent, "repo");
   await runGit(["clone", "--branch", "main", remotePath, clonePath], {
     cwd: cloneParent,
   });
-  await runGit(["config", "user.name", "BB Tests"], { cwd: clonePath });
-  await runGit(["config", "user.email", "bb@example.com"], {
+  await runGit(["config", "user.name", "Kaioken Tests"], { cwd: clonePath });
+  await runGit(["config", "user.email", "kaioken@example.com"], {
     cwd: clonePath,
   });
   await fs.writeFile(path.join(clonePath, "remote.txt"), "remote\n", "utf8");
@@ -114,7 +114,7 @@ async function initSshRemoteRepo() {
 async function initBareWorktreeLayout() {
   const origin = await initReadGitBlobRepo();
   await runGit(["branch", "feature-a"], { cwd: origin });
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "bb-bare-layout-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-bare-layout-"));
   tempDirs.push(root);
   await runGit(["clone", "--bare", origin, ".bare"], { cwd: root });
   await fs.writeFile(path.join(root, ".git"), "gitdir: ./.bare\n", "utf8");
@@ -132,14 +132,14 @@ afterEach(async () => {
 });
 
 describe("runShellPipeline", () => {
-  it("scrubs inherited bb runtime env vars and node mode", async () => {
+  it("scrubs inherited kaioken runtime env vars and node mode", async () => {
     const repoPath = await initEmptyRepo();
-    vi.stubEnv("BB_DATA_DIR", "/tmp/leaked-bb-data");
+    vi.stubEnv("KAIOKEN_DATA_DIR", "/tmp/leaked-kaioken-data");
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("OPENAI_API_KEY", "external-secret");
 
     const result = await runShellPipeline(
-      `printf '%s|%s|%s' "\${BB_DATA_DIR-missing}" "\${NODE_ENV-missing}" "\${OPENAI_API_KEY-missing}"`,
+      `printf '%s|%s|%s' "\${KAIOKEN_DATA_DIR-missing}" "\${NODE_ENV-missing}" "\${OPENAI_API_KEY-missing}"`,
       [],
       { cwd: repoPath },
     );
@@ -235,7 +235,7 @@ describe("runGitWithNullRecordLimit", () => {
 describe("detectGitRepoKind", () => {
   it("tells a bare repository root apart from its worktrees and plain directories", async () => {
     const { root, worktreePath } = await initBareWorktreeLayout();
-    const plainDir = await fs.mkdtemp(path.join(os.tmpdir(), "bb-plain-dir-"));
+    const plainDir = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-plain-dir-"));
     tempDirs.push(plainDir);
 
     await expect(detectGitRepoKind(root)).resolves.toBe("bare");
@@ -249,7 +249,7 @@ describe("detectGitRepoKind", () => {
   it("tells a linked worktree apart from an ordinary checkout", async () => {
     const { worktreePath } = await initBareWorktreeLayout();
     const ordinaryCheckout = await initReadGitBlobRepo();
-    const plainDir = await fs.mkdtemp(path.join(os.tmpdir(), "bb-plain-wt-"));
+    const plainDir = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-plain-wt-"));
     tempDirs.push(plainDir);
 
     await expect(detectLinkedWorktree(worktreePath)).resolves.toBe(true);
@@ -423,7 +423,7 @@ describe("command timeouts", () => {
     const repoPath = await initEmptyRepo();
 
     await expect(
-      runGit(["-c", "alias.bb-sleep=!sleep 5", "bb-sleep"], {
+      runGit(["-c", "alias.kaioken-sleep=!sleep 5", "kaioken-sleep"], {
         cwd: repoPath,
         allowFailure: true,
         timeoutMs: 10,
@@ -479,10 +479,10 @@ describe("fetchRemoteBranches", () => {
 describe("user-shell Git resolution", () => {
   it("uses the resolved shell PATH for Git commands and Git pipelines", async () => {
     const workspacePath = await fs.mkdtemp(
-      path.join(os.tmpdir(), "bb-git-shell-path-workspace-"),
+      path.join(os.tmpdir(), "kaioken-git-shell-path-workspace-"),
     );
     const binPath = await fs.mkdtemp(
-      path.join(os.tmpdir(), "bb-git-shell-path-bin-"),
+      path.join(os.tmpdir(), "kaioken-git-shell-path-bin-"),
     );
     tempDirs.push(workspacePath, binPath);
     const gitPath = path.join(binPath, "git");

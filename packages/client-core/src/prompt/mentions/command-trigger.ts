@@ -2,7 +2,7 @@ import type {
   ProviderComposerCommand,
   PromptMentionCommandTrigger,
   ProviderComposerAction,
-} from "@bb/domain";
+} from "@kaioken/domain";
 
 export type ProviderPromptActionCommand = ProviderComposerCommand;
 

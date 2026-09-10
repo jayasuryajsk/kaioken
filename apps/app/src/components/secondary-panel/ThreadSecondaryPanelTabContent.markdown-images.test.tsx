@@ -9,7 +9,7 @@ import {
   ThreadStorageFilePreviewTabContent,
   WorkspaceFilePreviewTabContent,
 } from "./ThreadSecondaryPanelTabContent";
-import type { FilePreview } from "@bb/client-core";
+import type { FilePreview } from "@kaioken/client-core";
 
 function markdownPreview(path: string, url = `/content/${path}`): FilePreview {
   return {

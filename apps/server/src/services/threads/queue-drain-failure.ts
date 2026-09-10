@@ -1,11 +1,11 @@
 import {
   setQueuedThreadMessageFailureReason,
   setQueuedThreadMessageWaitingOn,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   QUEUED_MESSAGE_FAILURE_REASON_MAX_LENGTH,
   type Thread,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { ApiError } from "../../errors.js";
 import type { AppDeps } from "../../types.js";
 import { dispatchEnvironmentAndHost } from "./dispatch-hooks.js";

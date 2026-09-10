@@ -24,8 +24,8 @@ describe("LatestRequest", () => {
   });
 });
 
-describe("bb theme preference integration", () => {
-  it("leaves color-scheme ownership with bb's theme CSS", () => {
+describe("kaioken theme preference integration", () => {
+  it("leaves color-scheme ownership with kaioken's theme CSS", () => {
     const source = readFileSync(new URL("./app.tsx", import.meta.url), "utf8");
     expect(source.match(/MODE_KEY/g)).toHaveLength(4);
     expect(source).not.toContain("style.colorScheme");

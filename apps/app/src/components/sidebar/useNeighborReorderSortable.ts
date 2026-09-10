@@ -5,7 +5,7 @@ import {
   applyNeighborReorder,
   buildNeighborReorderRequest,
   type NeighborReorderRequest,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 interface NeighborReorderSortableCallbacks {
   onSettled: () => void;

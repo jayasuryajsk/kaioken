@@ -1,4 +1,4 @@
-// getbb.app site — marketing page + bb connect auth/dashboard, TanStack Start on Workers.
+// getbb.app site — marketing page + kaioken connect auth/dashboard, TanStack Start on Workers.
 //
 // Top level = staging (vibecodethis.site); env.production = prod (getbb.app).
 // The @cloudflare/vite-plugin resolves the environment at BUILD time via
@@ -6,14 +6,14 @@
 // config to dist/server/wrangler.json and a plain `wrangler deploy` follows
 // the .wrangler/deploy/config.json redirect to it.
 //
-// Deploy staging: pnpm --filter @bb/web build && pnpm --filter @bb/web exec wrangler deploy
-// Deploy prod:    CLOUDFLARE_ENV=production pnpm --filter @bb/web build
-//                 && pnpm --filter @bb/web exec wrangler deploy
-// Secrets (per worker): wrangler secret put [--name bb-web] GITHUB_CLIENT_ID /
+// Deploy staging: pnpm --filter @kaioken/web build && pnpm --filter @kaioken/web exec wrangler deploy
+// Deploy prod:    CLOUDFLARE_ENV=production pnpm --filter @kaioken/web build
+//                 && pnpm --filter @kaioken/web exec wrangler deploy
+// Secrets (per worker): wrangler secret put [--name kaioken-web] GITHUB_CLIENT_ID /
 //   GITHUB_CLIENT_SECRET / BETTER_AUTH_SECRET / LANDING_POSTHOG_KEY / RESEND_API_KEY
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "bb-web-staging",
+  "name": "kaioken-web-staging",
   "compatibility_date": "2026-06-11",
   "compatibility_flags": ["nodejs_compat"],
   "main": "./src/server-entry.ts",
@@ -22,7 +22,7 @@
   "vars": {
     "BASE_DOMAIN": "vibecodethis.site",
     "APP_URL": "https://vibecodethis.site",
-    // Resend audience that /api/subscribe adds emails to ("bb users").
+    // Resend audience that /api/subscribe adds emails to ("kaioken users").
     // Not a secret — only the API key is.
     "RESEND_AUDIENCE_ID": "299db4ee-f3db-476d-9847-0bf4344d9c44",
   },
@@ -38,7 +38,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "bb-connect-staging",
+      "database_name": "kaioken-connect-staging",
       "database_id": "1aaa5562-457d-43a7-b11f-18b4f19bd62c",
     },
   ],
@@ -47,7 +47,7 @@
       {
         "name": "TUNNEL_DO",
         "class_name": "TunnelDO",
-        "script_name": "bb-connect-staging",
+        "script_name": "kaioken-connect-staging",
       },
     ],
   },
@@ -58,21 +58,21 @@
   "r2_buckets": [
     {
       "binding": "MARKETPLACE",
-      "bucket_name": "bb-marketplace-staging",
+      "bucket_name": "kaioken-marketplace-staging",
     },
   ],
   "routes": [{ "pattern": "vibecodethis.site", "custom_domain": true }],
   "env": {
     // Production (getbb.app). Cutover note: the getbb.app + www custom domains
-    // move here from the old bb-landing worker; until then workers_dev gives a
+    // move here from the old kaioken-landing worker; until then workers_dev gives a
     // preview URL. `www` is handled by the gate's reserved-handle redirect.
     "production": {
-      "name": "bb-web",
+      "name": "kaioken-web",
       "workers_dev": true,
       "observability": { "enabled": true },
       // Override the inherited staging custom domain; prod domains attach at
       // cutover. Never leave this to inheritance — a prod deploy would steal
-      // vibecodethis.site from bb-web-staging.
+      // vibecodethis.site from kaioken-web-staging.
       "routes": [],
       "secrets": {
         "required": [
@@ -91,7 +91,7 @@
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "bb-connect-prod",
+          "database_name": "kaioken-connect-prod",
           "database_id": "5e37a076-93e9-4dcf-933f-761c22f7cf8b",
         },
       ],
@@ -100,14 +100,14 @@
           {
             "name": "TUNNEL_DO",
             "class_name": "TunnelDO",
-            "script_name": "bb-connect",
+            "script_name": "kaioken-connect",
           },
         ],
       },
       "r2_buckets": [
         {
           "binding": "MARKETPLACE",
-          "bucket_name": "bb-marketplace",
+          "bucket_name": "kaioken-marketplace",
         },
       ],
     },

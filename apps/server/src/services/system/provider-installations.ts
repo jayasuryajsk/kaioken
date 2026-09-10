@@ -1,8 +1,8 @@
 import type {
   ProviderCliStatus,
   ProviderCliStatusResponse,
-} from "@bb/host-daemon-contract";
-import type { ProviderInfo } from "@bb/domain";
+} from "@kaioken/host-daemon-contract";
+import type { ProviderInfo } from "@kaioken/domain";
 import { ZodError } from "zod";
 import type { AppDeps } from "../../types.js";
 import { COMMAND_TIMEOUT_MS } from "../../constants.js";

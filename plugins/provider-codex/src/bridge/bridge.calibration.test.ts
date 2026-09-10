@@ -3,24 +3,24 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import type { PromptInput, ThreadEvent } from "@bb/domain";
+import type { PromptInput, ThreadEvent } from "@kaioken/domain";
 import {
   BRIDGE_INBOUND_REQUEST_METHODS,
   BRIDGE_JSON_RPC_ERRORS,
   THREAD_DELTA_NOTIFICATION_METHOD,
   interactionRequestParamsSchema,
   type InteractionRequestParams,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 import {
   experimental_createBridgeDeltaEventCollector as createBridgeDeltaEventCollector,
   experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness,
   experimental_describeCalibrationEvents as describeCalibrationEvents,
   experimental_normalizeCalibrationEvents as normalizeCalibrationEvents,
-} from "@get-bb/plugin-sdk/provider-bridge/testing";
+} from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 import type {
   BridgeDeltaEventCollector,
   BridgeJsonRpcTestHarness,
-} from "@get-bb/plugin-sdk/provider-bridge/testing";
+} from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 import type { ServerNotification as CodexEvent } from "../generated/codex-app-server/schema/ServerNotification.js";
 import type { Turn } from "../generated/codex-app-server/schema/v2/Turn.js";
 import { handleLine } from "./bridge.js";
@@ -363,11 +363,11 @@ async function replayCanonical(workspaceDir: string): Promise<ReplayResult> {
     });
     await settle(2);
 
-    const bbTurnId = firstTurnId(events);
+    const kaiokenTurnId = firstTurnId(events);
     const expectedTurnId =
-      bbTurnId === undefined
+      kaiokenTurnId === undefined
         ? undefined
-        : collector.assembler.getProviderTurnId(THREAD_ID, bbTurnId);
+        : collector.assembler.getProviderTurnId(THREAD_ID, kaiokenTurnId);
     if (expectedTurnId === undefined) {
       throw new Error("Expected a codex-native turn id to steer against");
     }
@@ -439,12 +439,12 @@ const GOLDEN_EVENT_STREAM: string[] = [
 let workspaceDir: string;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "bb-codex-calibration-ws-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "kaioken-codex-calibration-ws-"));
   const scriptPath = join(workspaceDir, "calibration-script.json");
   writeFileSync(scriptPath, JSON.stringify({ turns: SCRIPT }), "utf8");
-  vi.stubEnv("BB_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
+  vi.stubEnv("KAIOKEN_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
   vi.stubEnv(
-    "BB_CODEX_BRIDGE_APP_SERVER_ARGS",
+    "KAIOKEN_CODEX_BRIDGE_APP_SERVER_ARGS",
     JSON.stringify([fakeAppServerPath, scriptPath]),
   );
 });

@@ -16,8 +16,8 @@ import type {
   ProviderNativeRoots,
   ProviderResolvedNativeRoot,
   ProviderResolvedNativeRoots,
-} from "@bb/domain";
-import type { HostProviderCommand } from "@bb/host-daemon-contract";
+} from "@kaioken/domain";
+import type { HostProviderCommand } from "@kaioken/host-daemon-contract";
 import {
   type CommandScanRoot,
   discoverProviderCommands,
@@ -145,7 +145,7 @@ function skillFile(name: string, description = name): string {
 }
 
 beforeEach(async () => {
-  tempRoot = await mkdtemp(path.join(tmpdir(), "bb-command-discovery-"));
+  tempRoot = await mkdtemp(path.join(tmpdir(), "kaioken-command-discovery-"));
 });
 
 afterEach(async () => {

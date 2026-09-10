@@ -3,7 +3,7 @@ import type {
   ProjectResponse,
   ProjectWithThreadsResponse,
   SidebarBootstrapResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   projectsQueryKey,
   sidebarNavigationQueryKey,

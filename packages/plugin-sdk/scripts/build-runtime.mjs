@@ -10,7 +10,7 @@ const packageRoot = path.resolve(
 );
 
 // A node program bundled from CommonJS dependencies (the bootstrap pulls
-// cross-spawn through @bb/process-utils) needs `require` in ESM scope; the
+// cross-spawn through @kaioken/process-utils) needs `require` in ESM scope; the
 // daemon's bundles carry the same banner (apps/host-daemon/scripts/bundle-manifest.mjs).
 const NODE_ESM_REQUIRE_BANNER = [
   'import { createRequire as __createRequire } from "node:module";',
@@ -170,5 +170,5 @@ try {
 }
 
 process.stdout.write(
-  `Built ${entries.length} @get-bb/plugin-sdk runtime entries.\n`,
+  `Built ${entries.length} @get-kaioken/plugin-sdk runtime entries.\n`,
 );

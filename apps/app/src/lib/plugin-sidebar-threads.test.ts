@@ -1,7 +1,7 @@
-import type { ThreadListEntry } from "@bb/domain";
+import type { ThreadListEntry } from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import { toPluginSidebarThread } from "./plugin-sidebar-threads";
-import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
+import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 
 function makeThread(overrides: Partial<ThreadListEntry> = {}): ThreadListEntry {
   return makeThreadListEntry({
@@ -121,7 +121,7 @@ describe("toPluginSidebarThread", () => {
         archivedAt: 13,
         environmentId: "env_1",
         environmentName: "Worktree",
-        environmentBranchName: "bb/feature",
+        environmentBranchName: "kaioken/feature",
         environmentProviderId: "git-worktree",
         environmentWorkspaceDisplayKind: "managed-worktree",
         queuedWork: "none",
@@ -132,7 +132,7 @@ describe("toPluginSidebarThread", () => {
     expect(mapped.environment).toEqual({
       id: "env_1",
       name: "Worktree",
-      branchName: "bb/feature",
+      branchName: "kaioken/feature",
       providerId: "git-worktree",
       workspaceDisplayKind: "managed-worktree",
     });

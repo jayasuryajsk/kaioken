@@ -8,7 +8,7 @@ export default defineWorkspaceTestConfig({
     silent: "passed-only",
     projects: sharedWorkerProjects({
       pkgDir: __dirname,
-      name: "bb-plugin-provider-codex",
+      name: "kaioken-plugin-provider-codex",
       include: ["src/**/*.test.ts"],
     }),
   },

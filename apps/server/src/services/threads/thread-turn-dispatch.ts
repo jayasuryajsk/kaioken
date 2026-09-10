@@ -5,8 +5,8 @@ import type {
   SystemMessageSubject,
   Thread,
   ThreadTurnInitiator,
-} from "@bb/domain";
-import type { DbTransaction, EnvironmentRow } from "@bb/db";
+} from "@kaioken/domain";
+import type { DbTransaction, EnvironmentRow } from "@kaioken/db";
 import type { LoggedPendingInteractionWorkSessionDeps } from "../../types.js";
 import {
   goneThreadEnvironmentDetails,

@@ -1,9 +1,9 @@
 {
-  "name": "bb-plugin-monaco-editor",
+  "name": "kaioken-plugin-monaco-editor",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Edit files in BB with the Monaco editor instead of the read-only preview.",
+  "description": "Edit files in Kaioken with the Monaco editor instead of the read-only preview.",
   "license": "MIT",
   "homepage": "https://github.com/get-bb/bb#readme",
   "bugs": {
@@ -28,7 +28,7 @@
   },
   "bb": {
     "name": "File Editor",
-    "description": "Edit files in BB with the Monaco editor instead of the read-only preview.",
+    "description": "Edit files in Kaioken with the Monaco editor instead of the read-only preview.",
     "branding": {
       "icon": "Code"
     },
@@ -36,7 +36,7 @@
     "app": "./app.tsx"
   },
   "keywords": [
-    "bb-plugin"
+    "kaioken-plugin"
   ],
   "scripts": {
     "test": "vitest run --config vitest.config.ts",
@@ -44,12 +44,12 @@
     "build:monaco": "node scripts/stage-assets.mjs"
   },
   "dependencies": {
-    "@bb/shared-ui": "workspace:*",
+    "@kaioken/shared-ui": "workspace:*",
     "monaco-editor": "^0.56.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@get-bb/plugin-sdk": "workspace:*",
+    "@get-kaioken/plugin-sdk": "workspace:*",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",

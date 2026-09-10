@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useRealtime,
   useRealtimeConnectionState,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import { useTasksRpc } from "./data.js";
 
 export function TasksSidebarAccessory() {

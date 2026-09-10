@@ -5,8 +5,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "@hono/node-server";
-import type { DbConnection } from "@bb/db";
-import { defaultFeatureFlags } from "@bb/domain";
+import type { DbConnection } from "@kaioken/db";
+import { defaultFeatureFlags } from "@kaioken/domain";
 import {
   acquireDaemonLock,
   createHostDaemonApp,
@@ -14,8 +14,8 @@ import {
   persistHostId,
   type HostDaemon,
   type HostDaemonApp,
-} from "@bb/host-daemon/test";
-import { createHostDaemonClient } from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon/test";
+import { createHostDaemonClient } from "@kaioken/host-daemon-contract";
 import { initDb } from "../../../apps/server/src/db.js";
 import { createLifecycleDedupers } from "../../../apps/server/src/lifecycle-dedupers.js";
 import { createApp } from "../../../apps/server/src/server.js";
@@ -39,7 +39,7 @@ import { SkillTreeRegistry } from "../../../apps/server/src/services/skills/inje
 import { PluginHostArtifactRegistry } from "../../../apps/server/src/services/plugins/plugin-host-artifact-registry.js";
 import { createAppVersionService } from "../../../apps/server/src/services/system/app-version.js";
 import { createProviderNativeRootsCache } from "../../../apps/server/src/services/providers/native-roots.js";
-import { createBbAppManagedConfigReloader } from "../../../apps/server/src/services/system/bb-app-managed-config.js";
+import { createBbAppManagedConfigReloader } from "../../../apps/server/src/services/system/kaioken-app-managed-config.js";
 import { createNoopTelemetryService } from "../../../apps/server/src/services/system/telemetry.js";
 import { TerminalSessionLifecycle } from "../../../apps/server/src/services/terminals/terminal-session-lifecycle.js";
 import type {
@@ -50,7 +50,7 @@ import { HostSharedPortCoordinator } from "../../../apps/server/src/ws/host-shar
 import { NotificationHub } from "../../../apps/server/src/ws/hub.js";
 import { WatchInterestCoordinator } from "../../../apps/server/src/ws/watch-interests.js";
 import { WorkspaceReadCaches } from "../../../apps/server/src/services/environments/workspace-read-cache.js";
-import { createPublicApiClient } from "@bb/server-contract";
+import { createPublicApiClient } from "@kaioken/server-contract";
 import { waitForHostConnected } from "./assertions.js";
 import { createIntegrationFetch } from "./fetch.js";
 import { isNodeError, removePathWithRetry } from "./remove-path.js";
@@ -230,7 +230,7 @@ async function startIntegrationServer(
     inheritedSkillsRootPaths: [],
     marketplaceUrl: "https://marketplace.invalid/marketplace.json",
     openAiApiKey: process.env.OPENAI_API_KEY ?? "test-openai-key",
-    appUrl: "https://bb.example.test",
+    appUrl: "https://kaioken.example.test",
     serverPort: 0,
     sharedSkillRoots: { user: [], project: [] },
     transcriptionModel: "test/mock-transcription",
@@ -251,7 +251,7 @@ async function startIntegrationServer(
   });
   await machineAuth.ensureReady();
   const lifecycleDedupers = createLifecycleDedupers();
-  const bbAppManagedConfig = await createBbAppManagedConfigReloader({
+  const kaiokenAppManagedConfig = await createBbAppManagedConfigReloader({
     config,
     hub,
     logger: testLogger,
@@ -285,7 +285,7 @@ async function startIntegrationServer(
   });
   const serverDeps = {
     appVersion,
-    bbAppManagedConfig,
+    kaiokenAppManagedConfig,
     providerRegistry,
     providerNativeRoots: createProviderNativeRootsCache(),
     pluginHostArtifacts,
@@ -434,7 +434,7 @@ export async function createIntegrationHarness(
   options: CreateHarnessOptions = {},
 ): Promise<IntegrationHarness> {
   await loadProjectEnvFile();
-  const tmpRoot = await fs.mkdtemp(path.join(tmpdir(), "bb-integration-"));
+  const tmpRoot = await fs.mkdtemp(path.join(tmpdir(), "kaioken-integration-"));
   await fs.writeFile(
     path.join(tmpRoot, "parent.pid"),
     `${process.pid}\n`,

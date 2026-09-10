@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import { act } from "react";
-import { loadPluginApp, renderSlot } from "@get-bb/plugin-sdk/testing/app";
+import { loadPluginApp, renderSlot } from "@get-kaioken/plugin-sdk/testing/app";
 
 const app = await loadPluginApp(() => import("./app"));
 
@@ -156,7 +156,7 @@ describe("GitHub app navigation", () => {
       "Expand removed.ts diff",
     );
     await act(async () => diffToggle.click());
-    const diff = slot.getByTestId("bb-diff");
+    const diff = slot.getByTestId("kaioken-diff");
     expect(diff.getAttribute("data-path")).toBe("removed.ts");
     expect(diffToggle.getAttribute("aria-label")).toBe(
       "Collapse removed.ts diff",

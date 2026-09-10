@@ -1,4 +1,4 @@
-import { listPluginMarketplaces, type DbQueryConnection } from "@bb/db";
+import { listPluginMarketplaces, type DbQueryConnection } from "@kaioken/db";
 import {
   BUNDLED_MARKETPLACE_NAME,
   BUILTIN_PUBLISHER_LABEL,

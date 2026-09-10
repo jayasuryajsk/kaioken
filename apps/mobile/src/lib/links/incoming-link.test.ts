@@ -8,20 +8,20 @@ import {
 
 const sawyer = { id: "p1", serverUrl: "https://sawyer.getbb.app" };
 const lan = { id: "p2", serverUrl: "http://192.168.1.20:3000" };
-const prefixed = { id: "p3", serverUrl: "https://home.example.com/bb" };
+const prefixed = { id: "p3", serverUrl: "https://home.example.com/kaioken" };
 
 describe("parseIncomingLink", () => {
-  it("treats the first segment of a bb:// link as a path segment, not a host", () => {
-    expect(parseIncomingLink("bb://threads/thr_1?x=1#frag")).toEqual({
+  it("treats the first segment of a kaioken:// link as a path segment, not a host", () => {
+    expect(parseIncomingLink("kaioken://threads/thr_1?x=1#frag")).toEqual({
       kind: "scheme",
       path: "/threads/thr_1?x=1",
     });
-    expect(parseIncomingLink("bb:///settings/servers/")).toEqual({
+    expect(parseIncomingLink("kaioken:///settings/servers/")).toEqual({
       kind: "scheme",
       path: "/settings/servers",
     });
-    expect(parseIncomingLink("bb://")).toEqual({ kind: "scheme", path: "/" });
-    expect(parseIncomingLink("BB://e2e/reset")).toEqual({
+    expect(parseIncomingLink("kaioken://")).toEqual({ kind: "scheme", path: "/" });
+    expect(parseIncomingLink("Kaioken://e2e/reset")).toEqual({
       kind: "scheme",
       path: "/e2e/reset",
     });
@@ -41,7 +41,7 @@ describe("parseIncomingLink", () => {
   it("leaves dev-client and other schemes alone", () => {
     expect(
       parseIncomingLink(
-        "exp+bb-app://expo-development-client/?url=http://127.0.0.1:8082",
+        "exp+kaioken-app://expo-development-client/?url=http://127.0.0.1:8082",
       ),
     ).toEqual({ kind: "foreign" });
     expect(parseIncomingLink("mailto:x@y.z")).toEqual({ kind: "foreign" });
@@ -72,11 +72,11 @@ describe("matchProfileForWebLink", () => {
     const match = matchProfileForWebLink(
       [prefixed],
       "https://home.example.com",
-      "/bb/threads/thr_9",
+      "/kaioken/threads/thr_9",
     );
     expect(match).toEqual({ profile: prefixed, pathname: "/threads/thr_9" });
     expect(
-      matchProfileForWebLink([prefixed], "https://home.example.com", "/bb"),
+      matchProfileForWebLink([prefixed], "https://home.example.com", "/kaioken"),
     ).toEqual({ profile: prefixed, pathname: "/" });
     expect(
       matchProfileForWebLink(

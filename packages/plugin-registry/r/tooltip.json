@@ -3,14 +3,14 @@
   "name": "tooltip",
   "type": "registry:ui",
   "title": "tooltip",
-  "description": "BB ui \"tooltip\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"tooltip\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-tooltip"
   ],
   "registryDependencies": [
-    "@bb/overlay-trigger",
-    "@bb/portal-scope",
-    "@bb/utils"
+    "@kaioken/overlay-trigger",
+    "@kaioken/portal-scope",
+    "@kaioken/utils"
   ],
   "files": [
     {

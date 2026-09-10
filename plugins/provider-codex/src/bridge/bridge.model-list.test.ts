@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-bb/plugin-sdk/provider-bridge/testing";
+import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 import { experimental_killAllChildrenForTests, handleLine } from "./bridge.js";
 
 const fakeAppServerPath = fileURLToPath(
@@ -14,9 +14,9 @@ let harness: ReturnType<typeof createBridgeJsonRpcTestHarness>;
 const temporaryDirectories: string[] = [];
 
 beforeEach(() => {
-  vi.stubEnv("BB_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
+  vi.stubEnv("KAIOKEN_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
   vi.stubEnv(
-    "BB_CODEX_BRIDGE_APP_SERVER_ARGS",
+    "KAIOKEN_CODEX_BRIDGE_APP_SERVER_ARGS",
     JSON.stringify([fakeAppServerPath]),
   );
   harness = createBridgeJsonRpcTestHarness(handleLine);
@@ -45,7 +45,7 @@ it("reuses one initialized app-server across model catalog requests", async () =
 });
 
 it("replaces the cached app-server after a model catalog failure", async () => {
-  const workDir = await mkdtemp(join(tmpdir(), "bb-codex-model-list-"));
+  const workDir = await mkdtemp(join(tmpdir(), "kaioken-codex-model-list-"));
   temporaryDirectories.push(workDir);
   const scriptPath = join(workDir, "script.json");
   await writeFile(
@@ -56,7 +56,7 @@ it("replaces the cached app-server after a model catalog failure", async () => {
     }),
   );
   vi.stubEnv(
-    "BB_CODEX_BRIDGE_APP_SERVER_ARGS",
+    "KAIOKEN_CODEX_BRIDGE_APP_SERVER_ARGS",
     JSON.stringify([fakeAppServerPath, scriptPath]),
   );
 

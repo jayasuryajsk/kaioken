@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
-import type { Host, ProviderInfo } from "@bb/domain";
-import { makeHost, makeProviderInfo } from "@bb/test-helpers/domain-fixtures";
+import type { Host, ProviderInfo } from "@kaioken/domain";
+import { makeHost, makeProviderInfo } from "@kaioken/test-helpers/domain-fixtures";
 import { StoryCard, StoryRow } from "../../../.ladle/story-card";
 import {
   UsageLimitsSettingsSectionContent,

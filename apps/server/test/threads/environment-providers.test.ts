@@ -1,4 +1,4 @@
-import { createDeferredPromise } from "@bb/test-helpers";
+import { createDeferredPromise } from "@kaioken/test-helpers";
 import { resolveGitCheckoutAvailability } from "../../src/services/environments/provider-availability.js";
 import { invalidateEnvironmentProviderMachineAvailability } from "../../src/services/environments/provider-machine-availability.js";
 import {
@@ -16,16 +16,16 @@ import {
   getThread,
   listEnvironments,
   listEvents,
-} from "@bb/db";
-import { PERSONAL_PROJECT_ID, type JsonValue } from "@bb/domain";
+} from "@kaioken/db";
+import { PERSONAL_PROJECT_ID, type JsonValue } from "@kaioken/domain";
 import type {
   PluginDispatchEnvironmentIntent,
   PluginEnvironmentProviderDeclaration,
   PluginEnvironmentValidateDecision,
   PluginHookName,
-} from "@get-bb/plugin-sdk";
-import type { PluginEnvironmentProviderValidateContext } from "@get-bb/plugin-sdk/environment-provider";
-import { validatePluginEnvironmentProviderDeclaration } from "@get-bb/plugin-sdk/internal/host-policy";
+} from "@get-kaioken/plugin-sdk";
+import type { PluginEnvironmentProviderValidateContext } from "@get-kaioken/plugin-sdk/environment-provider";
+import { validatePluginEnvironmentProviderDeclaration } from "@get-kaioken/plugin-sdk/internal/host-policy";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { ApiError } from "../../src/errors.js";
@@ -470,7 +470,7 @@ describe("environment providers are asked inside provisioning", () => {
 
       await reportQueuedCommandError(harness, queued, {
         errorCode: "setup_script_failed",
-        errorMessage: ".bb-env-setup.sh failed with exit code 7",
+        errorMessage: ".kaioken-env-setup.sh failed with exit code 7",
       });
       await vi.waitFor(() => {
         expect(getThread(harness.db, created.id)).toMatchObject({

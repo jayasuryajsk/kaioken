@@ -1,9 +1,9 @@
 import { Toaster, type ToasterProps } from "sonner";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import { usePreferredTheme } from "@/hooks/useTheme";
 
 const COMPACT_TOAST_TOP_OFFSET =
-  "calc(env(safe-area-inset-top) + var(--bb-app-chrome-row-height) + 16px)";
+  "calc(env(safe-area-inset-top) + var(--kaioken-app-chrome-row-height) + 16px)";
 const COMPACT_TOAST_SWIPE_DIRECTIONS: NonNullable<
   ToasterProps["swipeDirections"]
 > = ["top", "left", "right"];

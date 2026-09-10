@@ -5,14 +5,14 @@ import {
   render as renderReact,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { QuestionForm } from "@bb/shared-ui/question-form";
+import { QuestionForm } from "@kaioken/shared-ui/question-form";
 import type {
   Question,
   QuestionAnswer,
-} from "@bb/shared-ui/question-form-state";
+} from "@kaioken/shared-ui/question-form-state";
 import { ThreadQuestionFormHost } from "./ThreadQuestionFormHost";
 import { AppCommandProvider } from "@/components/commands/AppCommandProvider";
-import { defaultAppSettings } from "@bb/domain";
+import { defaultAppSettings } from "@kaioken/domain";
 type InteractionPayload = { questions: Question[] };
 type InteractionResponse = { answers: Record<string, QuestionAnswer> };
 
@@ -36,7 +36,7 @@ vi.mock("@/hooks/queries/system-queries", () => ({
     },
   }),
 }));
-vi.mock("@/lib/bb-desktop", () => ({ getBbDesktopInfo: () => null }));
+vi.mock("@/lib/kaioken-desktop", () => ({ getBbDesktopInfo: () => null }));
 const pane = vi.hoisted(() => ({ isFocused: true }));
 vi.mock("@/views/thread-detail/PaneContext", () => ({
   useOptionalPaneContext: () => pane,

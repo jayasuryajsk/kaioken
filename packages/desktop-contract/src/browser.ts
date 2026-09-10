@@ -4,54 +4,54 @@ import {
   desktopBrowserProfileSchema,
   type DesktopBrowserImportOutcome,
   type DesktopBrowserImportSource,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 
-export const BB_DESKTOP_BROWSER_MAX_URL_LENGTH = 4096;
-export const BB_DESKTOP_BROWSER_MAX_TITLE_LENGTH = 1024;
+export const KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH = 4096;
+export const KAIOKEN_DESKTOP_BROWSER_MAX_TITLE_LENGTH = 1024;
 
-export const bbDesktopBrowserTargetSchema = z
+export const kaiokenDesktopBrowserTargetSchema = z
   .object({
     hostId: z.string().min(1),
     instanceId: z.string().min(1),
     generation: z.string().min(1),
   })
   .strict();
-export type BbDesktopBrowserTarget = z.infer<
-  typeof bbDesktopBrowserTargetSchema
+export type KaiokenDesktopBrowserTarget = z.infer<
+  typeof kaiokenDesktopBrowserTargetSchema
 >;
 
-export const bbDesktopBrowserControlSchema = z
+export const kaiokenDesktopBrowserControlSchema = z
   .object({
     leaseId: z.string().min(1),
     controllerLabel: z.string().min(1),
     expiresAt: z.number().int().positive(),
   })
   .strict();
-export type BbDesktopBrowserControl = z.infer<
-  typeof bbDesktopBrowserControlSchema
+export type KaiokenDesktopBrowserControl = z.infer<
+  typeof kaiokenDesktopBrowserControlSchema
 >;
-export const bbDesktopBrowserControlStateSchema = z
+export const kaiokenDesktopBrowserControlStateSchema = z
   .object({
     tabId: z.string().min(1),
     threadId: z.string().min(1),
-    control: bbDesktopBrowserControlSchema.nullable(),
+    control: kaiokenDesktopBrowserControlSchema.nullable(),
   })
   .strict();
-export type BbDesktopBrowserControlState = z.infer<
-  typeof bbDesktopBrowserControlStateSchema
+export type KaiokenDesktopBrowserControlState = z.infer<
+  typeof kaiokenDesktopBrowserControlStateSchema
 >;
-export const bbDesktopBrowserRevealRequestSchema = z
+export const kaiokenDesktopBrowserRevealRequestSchema = z
   .object({
     tabId: z.string().min(1),
     threadId: z.string().min(1),
-    desktopTarget: bbDesktopBrowserTargetSchema,
+    desktopTarget: kaiokenDesktopBrowserTargetSchema,
   })
   .strict();
-export type BbDesktopBrowserRevealRequest = z.infer<
-  typeof bbDesktopBrowserRevealRequestSchema
+export type KaiokenDesktopBrowserRevealRequest = z.infer<
+  typeof kaiokenDesktopBrowserRevealRequestSchema
 >;
 
-const bbDesktopBrowserViewBoundsSchema = z
+const kaiokenDesktopBrowserViewBoundsSchema = z
   .object({
     x: z.number().int(),
     y: z.number().int(),
@@ -59,11 +59,11 @@ const bbDesktopBrowserViewBoundsSchema = z
     height: z.number().int().nonnegative(),
   })
   .strict();
-export type BbDesktopBrowserViewBounds = z.infer<
-  typeof bbDesktopBrowserViewBoundsSchema
+export type KaiokenDesktopBrowserViewBounds = z.infer<
+  typeof kaiokenDesktopBrowserViewBoundsSchema
 >;
 
-export interface BbDesktopBrowserViewportBounds {
+export interface KaiokenDesktopBrowserViewportBounds {
   width: number;
   height: number;
 }
@@ -75,8 +75,8 @@ interface ClampIntegerToRangeArgs {
 }
 
 interface ClampBbDesktopBrowserViewBoundsArgs {
-  bounds: BbDesktopBrowserViewBounds;
-  viewport: BbDesktopBrowserViewportBounds;
+  bounds: KaiokenDesktopBrowserViewBounds;
+  viewport: KaiokenDesktopBrowserViewportBounds;
 }
 
 function clampIntegerToRange(args: ClampIntegerToRangeArgs): number {
@@ -85,7 +85,7 @@ function clampIntegerToRange(args: ClampIntegerToRangeArgs): number {
 
 export function clampBbDesktopBrowserViewBounds(
   args: ClampBbDesktopBrowserViewBoundsArgs,
-): BbDesktopBrowserViewBounds {
+): KaiokenDesktopBrowserViewBounds {
   const viewportRight = Math.max(0, Math.round(args.viewport.width));
   const viewportBottom = Math.max(0, Math.round(args.viewport.height));
   const x = clampIntegerToRange({
@@ -117,131 +117,131 @@ export function clampBbDesktopBrowserViewBounds(
   };
 }
 
-export const bbDesktopBrowserAttachRequestSchema = z
+export const kaiokenDesktopBrowserAttachRequestSchema = z
   .object({
     tabId: z.string().min(1),
     threadId: z.string().min(1),
-    url: z.string().max(BB_DESKTOP_BROWSER_MAX_URL_LENGTH),
+    url: z.string().max(KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH),
     existingOnly: z.literal(true).optional(),
-    bounds: bbDesktopBrowserViewBoundsSchema,
+    bounds: kaiokenDesktopBrowserViewBoundsSchema,
     visible: z.boolean(),
   })
   .strict();
-export type BbDesktopBrowserAttachRequest = z.infer<
-  typeof bbDesktopBrowserAttachRequestSchema
+export type KaiokenDesktopBrowserAttachRequest = z.infer<
+  typeof kaiokenDesktopBrowserAttachRequestSchema
 >;
 
-export const bbDesktopBrowserNavigateRequestSchema = z
+export const kaiokenDesktopBrowserNavigateRequestSchema = z
   .object({
     tabId: z.string().min(1),
-    url: z.string().min(1).max(BB_DESKTOP_BROWSER_MAX_URL_LENGTH),
+    url: z.string().min(1).max(KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH),
   })
   .strict();
-export type BbDesktopBrowserNavigateRequest = z.infer<
-  typeof bbDesktopBrowserNavigateRequestSchema
+export type KaiokenDesktopBrowserNavigateRequest = z.infer<
+  typeof kaiokenDesktopBrowserNavigateRequestSchema
 >;
 
-export const bbDesktopBrowserSetBoundsRequestSchema = z
+export const kaiokenDesktopBrowserSetBoundsRequestSchema = z
   .object({
     tabId: z.string().min(1),
-    bounds: bbDesktopBrowserViewBoundsSchema,
+    bounds: kaiokenDesktopBrowserViewBoundsSchema,
   })
   .strict();
-export type BbDesktopBrowserSetBoundsRequest = z.infer<
-  typeof bbDesktopBrowserSetBoundsRequestSchema
+export type KaiokenDesktopBrowserSetBoundsRequest = z.infer<
+  typeof kaiokenDesktopBrowserSetBoundsRequestSchema
 >;
 
-export const bbDesktopBrowserSetVisibleRequestSchema = z
+export const kaiokenDesktopBrowserSetVisibleRequestSchema = z
   .object({
     tabId: z.string().min(1),
     visible: z.boolean(),
   })
   .strict();
-export type BbDesktopBrowserSetVisibleRequest = z.infer<
-  typeof bbDesktopBrowserSetVisibleRequestSchema
+export type KaiokenDesktopBrowserSetVisibleRequest = z.infer<
+  typeof kaiokenDesktopBrowserSetVisibleRequestSchema
 >;
 
-export const bbDesktopBrowserTabRefSchema = z
+export const kaiokenDesktopBrowserTabRefSchema = z
   .object({
     tabId: z.string().min(1),
   })
   .strict();
-export type BbDesktopBrowserTabRef = z.infer<
-  typeof bbDesktopBrowserTabRefSchema
+export type KaiokenDesktopBrowserTabRef = z.infer<
+  typeof kaiokenDesktopBrowserTabRefSchema
 >;
 
-export const bbDesktopBrowserStateSchema = z
+export const kaiokenDesktopBrowserStateSchema = z
   .object({
     tabId: z.string().min(1),
-    url: z.string().max(BB_DESKTOP_BROWSER_MAX_URL_LENGTH),
-    title: z.string().max(BB_DESKTOP_BROWSER_MAX_TITLE_LENGTH).nullable(),
+    url: z.string().max(KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH),
+    title: z.string().max(KAIOKEN_DESKTOP_BROWSER_MAX_TITLE_LENGTH).nullable(),
     isLoading: z.boolean(),
     canGoBack: z.boolean(),
     canGoForward: z.boolean(),
-    errorText: z.string().max(BB_DESKTOP_BROWSER_MAX_TITLE_LENGTH).nullable(),
+    errorText: z.string().max(KAIOKEN_DESKTOP_BROWSER_MAX_TITLE_LENGTH).nullable(),
   })
   .strict();
-export type BbDesktopBrowserState = z.infer<typeof bbDesktopBrowserStateSchema>;
+export type KaiokenDesktopBrowserState = z.infer<typeof kaiokenDesktopBrowserStateSchema>;
 
-export const bbDesktopBrowserOpenTabRequestSchema = z
+export const kaiokenDesktopBrowserOpenTabRequestSchema = z
   .object({
-    url: z.string().min(1).max(BB_DESKTOP_BROWSER_MAX_URL_LENGTH),
+    url: z.string().min(1).max(KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH),
   })
   .strict();
-export type BbDesktopBrowserOpenTabRequest = z.infer<
-  typeof bbDesktopBrowserOpenTabRequestSchema
+export type KaiokenDesktopBrowserOpenTabRequest = z.infer<
+  typeof kaiokenDesktopBrowserOpenTabRequestSchema
 >;
 
-export const bbDesktopBrowserScopedOpenTabRequestSchema = z
+export const kaiokenDesktopBrowserScopedOpenTabRequestSchema = z
   .object({
     tabId: z.string().min(1),
-    url: z.string().min(1).max(BB_DESKTOP_BROWSER_MAX_URL_LENGTH),
+    url: z.string().min(1).max(KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH),
   })
   .strict();
-export type BbDesktopBrowserScopedOpenTabRequest = z.infer<
-  typeof bbDesktopBrowserScopedOpenTabRequestSchema
+export type KaiokenDesktopBrowserScopedOpenTabRequest = z.infer<
+  typeof kaiokenDesktopBrowserScopedOpenTabRequestSchema
 >;
 
-const BB_DESKTOP_BROWSER_MAX_SNAPSHOT_DATA_URL_LENGTH = 8_388_608;
+const KAIOKEN_DESKTOP_BROWSER_MAX_SNAPSHOT_DATA_URL_LENGTH = 8_388_608;
 
-export const bbDesktopBrowserSnapshotSchema = z
+export const kaiokenDesktopBrowserSnapshotSchema = z
   .object({
     tabId: z.string().min(1),
     dataUrl: z
       .string()
-      .max(BB_DESKTOP_BROWSER_MAX_SNAPSHOT_DATA_URL_LENGTH)
+      .max(KAIOKEN_DESKTOP_BROWSER_MAX_SNAPSHOT_DATA_URL_LENGTH)
       .nullable(),
   })
   .strict();
-export type BbDesktopBrowserSnapshot = z.infer<
-  typeof bbDesktopBrowserSnapshotSchema
+export type KaiokenDesktopBrowserSnapshot = z.infer<
+  typeof kaiokenDesktopBrowserSnapshotSchema
 >;
 
-export const BB_DESKTOP_BROWSER_MAX_FIND_TEXT_LENGTH = 1024;
+export const KAIOKEN_DESKTOP_BROWSER_MAX_FIND_TEXT_LENGTH = 1024;
 
-export const bbDesktopBrowserFindInPageRequestSchema = z
+export const kaiokenDesktopBrowserFindInPageRequestSchema = z
   .object({
     tabId: z.string().min(1),
-    text: z.string().min(1).max(BB_DESKTOP_BROWSER_MAX_FIND_TEXT_LENGTH),
+    text: z.string().min(1).max(KAIOKEN_DESKTOP_BROWSER_MAX_FIND_TEXT_LENGTH),
     forward: z.boolean(),
     newSession: z.boolean(),
   })
   .strict();
-export type BbDesktopBrowserFindInPageRequest = z.infer<
-  typeof bbDesktopBrowserFindInPageRequestSchema
+export type KaiokenDesktopBrowserFindInPageRequest = z.infer<
+  typeof kaiokenDesktopBrowserFindInPageRequestSchema
 >;
 
-export const bbDesktopBrowserStopFindInPageRequestSchema = z
+export const kaiokenDesktopBrowserStopFindInPageRequestSchema = z
   .object({
     tabId: z.string().min(1),
     action: z.enum(["clearSelection", "keepSelection", "activateSelection"]),
   })
   .strict();
-export type BbDesktopBrowserStopFindInPageRequest = z.infer<
-  typeof bbDesktopBrowserStopFindInPageRequestSchema
+export type KaiokenDesktopBrowserStopFindInPageRequest = z.infer<
+  typeof kaiokenDesktopBrowserStopFindInPageRequestSchema
 >;
 
-export const bbDesktopBrowserFindResultSchema = z
+export const kaiokenDesktopBrowserFindResultSchema = z
   .object({
     tabId: z.string().min(1),
     requestId: z.number().int(),
@@ -250,80 +250,80 @@ export const bbDesktopBrowserFindResultSchema = z
     finalUpdate: z.boolean(),
   })
   .strict();
-export type BbDesktopBrowserFindResult = z.infer<
-  typeof bbDesktopBrowserFindResultSchema
+export type KaiokenDesktopBrowserFindResult = z.infer<
+  typeof kaiokenDesktopBrowserFindResultSchema
 >;
 
-export type BbDesktopBrowserStateHandler = (
-  state: BbDesktopBrowserState,
+export type KaiokenDesktopBrowserStateHandler = (
+  state: KaiokenDesktopBrowserState,
 ) => void;
-export type BbDesktopBrowserOpenTabHandler = (
-  request: BbDesktopBrowserOpenTabRequest,
+export type KaiokenDesktopBrowserOpenTabHandler = (
+  request: KaiokenDesktopBrowserOpenTabRequest,
 ) => void;
-export type BbDesktopBrowserScopedOpenTabHandler = (
-  request: BbDesktopBrowserScopedOpenTabRequest,
+export type KaiokenDesktopBrowserScopedOpenTabHandler = (
+  request: KaiokenDesktopBrowserScopedOpenTabRequest,
 ) => void;
-export type BbDesktopBrowserSnapshotHandler = (
-  snapshot: BbDesktopBrowserSnapshot,
+export type KaiokenDesktopBrowserSnapshotHandler = (
+  snapshot: KaiokenDesktopBrowserSnapshot,
 ) => void;
-export type BbDesktopBrowserFocusHandler = (tabId: string) => void;
-export type BbDesktopBrowserFindResultHandler = (
-  result: BbDesktopBrowserFindResult,
+export type KaiokenDesktopBrowserFocusHandler = (tabId: string) => void;
+export type KaiokenDesktopBrowserFindResultHandler = (
+  result: KaiokenDesktopBrowserFindResult,
 ) => void;
-export type BbDesktopBrowserUnsubscribe = () => void;
+export type KaiokenDesktopBrowserUnsubscribe = () => void;
 
-export const bbDesktopBrowserImportCookiesRequestSchema =
+export const kaiokenDesktopBrowserImportCookiesRequestSchema =
   desktopBrowserImportSelectionSchema
     .extend({ profile: desktopBrowserProfileSchema })
     .strict();
-export type BbDesktopBrowserImportCookiesRequest = z.infer<
-  typeof bbDesktopBrowserImportCookiesRequestSchema
+export type KaiokenDesktopBrowserImportCookiesRequest = z.infer<
+  typeof kaiokenDesktopBrowserImportCookiesRequestSchema
 >;
-export type BbDesktopBrowserImportSourcesResult = {
+export type KaiokenDesktopBrowserImportSourcesResult = {
   sources: DesktopBrowserImportSource[];
 };
-export type BbDesktopBrowserImportCookiesResult = DesktopBrowserImportOutcome;
+export type KaiokenDesktopBrowserImportCookiesResult = DesktopBrowserImportOutcome;
 
-export interface BbDesktopBrowserApi {
-  listImportSources?(): Promise<BbDesktopBrowserImportSourcesResult>;
+export interface KaiokenDesktopBrowserApi {
+  listImportSources?(): Promise<KaiokenDesktopBrowserImportSourcesResult>;
   importCookies?(
-    request: BbDesktopBrowserImportCookiesRequest,
-  ): Promise<BbDesktopBrowserImportCookiesResult>;
+    request: KaiokenDesktopBrowserImportCookiesRequest,
+  ): Promise<KaiokenDesktopBrowserImportCookiesResult>;
   openFullDiskAccessSettings?(): void;
-  getTarget?(): Promise<BbDesktopBrowserTarget | null>;
-  getControl?(tabId: string): Promise<BbDesktopBrowserControlState | null>;
+  getTarget?(): Promise<KaiokenDesktopBrowserTarget | null>;
+  getControl?(tabId: string): Promise<KaiokenDesktopBrowserControlState | null>;
   releaseControl?(tabId: string): void;
   onControl?(
-    listener: (state: BbDesktopBrowserControlState) => void,
-  ): BbDesktopBrowserUnsubscribe;
+    listener: (state: KaiokenDesktopBrowserControlState) => void,
+  ): KaiokenDesktopBrowserUnsubscribe;
   onReveal?(
-    listener: (request: BbDesktopBrowserRevealRequest) => void,
-  ): BbDesktopBrowserUnsubscribe;
-  attach(request: BbDesktopBrowserAttachRequest): void;
+    listener: (request: KaiokenDesktopBrowserRevealRequest) => void,
+  ): KaiokenDesktopBrowserUnsubscribe;
+  attach(request: KaiokenDesktopBrowserAttachRequest): void;
   detach(tabId: string): void;
-  navigate(request: BbDesktopBrowserNavigateRequest): void;
+  navigate(request: KaiokenDesktopBrowserNavigateRequest): void;
   goBack(tabId: string): void;
   goForward(tabId: string): void;
   reload(tabId: string): void;
   stop(tabId: string): void;
   focus?(tabId: string): void;
-  setBounds(request: BbDesktopBrowserSetBoundsRequest): void;
-  setVisible(request: BbDesktopBrowserSetVisibleRequest): void;
-  setVisibleWithoutFocus?(request: BbDesktopBrowserSetVisibleRequest): void;
-  onState(listener: BbDesktopBrowserStateHandler): BbDesktopBrowserUnsubscribe;
+  setBounds(request: KaiokenDesktopBrowserSetBoundsRequest): void;
+  setVisible(request: KaiokenDesktopBrowserSetVisibleRequest): void;
+  setVisibleWithoutFocus?(request: KaiokenDesktopBrowserSetVisibleRequest): void;
+  onState(listener: KaiokenDesktopBrowserStateHandler): KaiokenDesktopBrowserUnsubscribe;
   onOpenTab(
-    listener: BbDesktopBrowserOpenTabHandler,
-  ): BbDesktopBrowserUnsubscribe;
+    listener: KaiokenDesktopBrowserOpenTabHandler,
+  ): KaiokenDesktopBrowserUnsubscribe;
   onScopedOpenTab?(
-    listener: BbDesktopBrowserScopedOpenTabHandler,
-  ): BbDesktopBrowserUnsubscribe;
-  onFocus?(listener: BbDesktopBrowserFocusHandler): BbDesktopBrowserUnsubscribe;
+    listener: KaiokenDesktopBrowserScopedOpenTabHandler,
+  ): KaiokenDesktopBrowserUnsubscribe;
+  onFocus?(listener: KaiokenDesktopBrowserFocusHandler): KaiokenDesktopBrowserUnsubscribe;
   onSnapshot?(
-    listener: BbDesktopBrowserSnapshotHandler,
-  ): BbDesktopBrowserUnsubscribe;
-  findInPage?(request: BbDesktopBrowserFindInPageRequest): void;
-  stopFindInPage?(request: BbDesktopBrowserStopFindInPageRequest): void;
+    listener: KaiokenDesktopBrowserSnapshotHandler,
+  ): KaiokenDesktopBrowserUnsubscribe;
+  findInPage?(request: KaiokenDesktopBrowserFindInPageRequest): void;
+  stopFindInPage?(request: KaiokenDesktopBrowserStopFindInPageRequest): void;
   onFindResult?(
-    listener: BbDesktopBrowserFindResultHandler,
-  ): BbDesktopBrowserUnsubscribe;
+    listener: KaiokenDesktopBrowserFindResultHandler,
+  ): KaiokenDesktopBrowserUnsubscribe;
 }

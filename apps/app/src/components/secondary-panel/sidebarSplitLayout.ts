@@ -30,7 +30,7 @@ const SIDEBAR_SPLIT_LAYOUT_STORAGE_PREFIX =
 export const SIDEBAR_FIXED_INFO_TAB_ID = createThreadInfoFixedPanelTab().id;
 export const SIDEBAR_FIXED_DIFF_TAB_ID = createGitDiffFixedPanelTab().id;
 
-const SIDEBAR_SPLIT_PLUGIN_ID = "bb-secondary-panel-split";
+const SIDEBAR_SPLIT_PLUGIN_ID = "kaioken-secondary-panel-split";
 const NORMALIZED_SPLIT_SIZE_EPSILON = 1e-9;
 
 export interface SidebarSplitStorage {

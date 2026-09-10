@@ -3,12 +3,12 @@ import {
   definePluginApp,
   useRpc,
   type PluginRpcResult,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import type { memoryRpcContract } from "./server.js";
-import { Button } from "@bb/shared-ui/button";
-import { Input } from "@bb/shared-ui/input";
-import { Switch } from "@bb/shared-ui/switch";
-import { Textarea } from "@bb/shared-ui/textarea";
+import { Button } from "@kaioken/shared-ui/button";
+import { Input } from "@kaioken/shared-ui/input";
+import { Switch } from "@kaioken/shared-ui/switch";
+import { Textarea } from "@kaioken/shared-ui/textarea";
 
 const MEMORY_KINDS = [
   "fact",

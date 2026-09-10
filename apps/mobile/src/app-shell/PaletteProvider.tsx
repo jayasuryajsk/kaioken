@@ -1,4 +1,4 @@
-import { isBuiltInThemeId, type BuiltInThemeId } from "@bb/domain";
+import { isBuiltInThemeId, type BuiltInThemeId } from "@kaioken/domain";
 import {
   createContext,
   useContext,

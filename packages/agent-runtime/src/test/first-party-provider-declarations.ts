@@ -1,10 +1,10 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { pluginPackageJsonSchema } from "@bb/domain";
-import type { PluginSettingValue } from "@get-bb/plugin-sdk";
-import type { NormalizedPluginProviderDeclaration } from "@get-bb/plugin-sdk/internal/host-policy";
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import { pluginPackageJsonSchema } from "@kaioken/domain";
+import type { PluginSettingValue } from "@get-kaioken/plugin-sdk";
+import type { NormalizedPluginProviderDeclaration } from "@get-kaioken/plugin-sdk/internal/host-policy";
+import { createFakePluginHost } from "@get-kaioken/plugin-sdk/testing";
 
 export function firstPartyPluginRootDir(pluginId: string): string {
   return fileURLToPath(

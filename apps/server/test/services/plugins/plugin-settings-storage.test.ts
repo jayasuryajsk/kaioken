@@ -19,8 +19,8 @@ import {
   migrate,
   setPluginSettingsValues,
   type DbConnection,
-} from "@bb/db";
-import type { Logger } from "@bb/logger";
+} from "@kaioken/db";
+import type { Logger } from "@kaioken/logger";
 import { registerPluginRoutes } from "../../../src/routes/plugins.js";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import {
@@ -81,7 +81,7 @@ describe("plugin settings + storage", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-storage-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-storage-test-"));
     dataDir = join(workDir, "data");
     systemBroadcasts = [];
     service = createPluginService({
@@ -110,7 +110,7 @@ describe("plugin settings + storage", () => {
   describe("settings", () => {
     async function installConfigurable(): Promise<void> {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-configurable",
+        name: "kaioken-plugin-configurable",
         serverSource: `
           export default async function plugin(bb: any) {
             const settings = bb.settings.define({
@@ -238,7 +238,7 @@ describe("plugin settings + storage", () => {
 
     it("lets plugin server code validate and persist its own settings", async () => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-self-configuring",
+        name: "kaioken-plugin-self-configuring",
         dependencies: { zod: "^4.3.6" },
         serverSource: `
           import { z } from "zod";
@@ -400,7 +400,7 @@ describe("plugin settings + storage", () => {
 
     it("marks a plugin error when it defines an invalid descriptor", async () => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-bad-schema",
+        name: "kaioken-plugin-bad-schema",
         serverSource: `
           export default function plugin(bb: any) {
             bb.settings.define({ broken: { type: "select", label: "Broken", options: [] } });
@@ -417,7 +417,7 @@ describe("plugin settings + storage", () => {
   describe("kv storage", () => {
     it("round-trips JSON values, lists by prefix, and caps value size", async () => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-kver",
+        name: "kaioken-plugin-kver",
         serverSource: `export default function plugin() {}`,
       });
       await service.installPath(rootDir);
@@ -472,7 +472,7 @@ describe("plugin settings + storage", () => {
 
     it("vends a WAL handle, applies migrations once, and closes handles on reload", async () => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-sqler",
+        name: "kaioken-plugin-sqler",
         serverSource: sqlerSource,
       });
       await service.installPath(rootDir);
@@ -501,7 +501,7 @@ describe("plugin settings + storage", () => {
 
     it("rejects a changed migration statement at an applied index", async () => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-migration-collision",
+        name: "kaioken-plugin-migration-collision",
         serverSource: `
           export default function plugin(bb: any) {
             const db = bb.storage.database();
@@ -526,7 +526,7 @@ describe("plugin settings + storage", () => {
 
     it("reserves unknown legacy indexes before later statements can reuse them", async () => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-legacy-migrations",
+        name: "kaioken-plugin-legacy-migrations",
         serverSource: `export default function plugin() {}`,
       });
       await service.installPath(rootDir);
@@ -561,7 +561,7 @@ describe("plugin settings + storage", () => {
     it("returns one reused handle per plugin load instead of a connection per call", async () => {
       const CALLS = 200;
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-chatty",
+        name: "kaioken-plugin-chatty",
         serverSource: `
           export default function plugin(bb: any) {
             const g = globalThis as any;
@@ -606,7 +606,7 @@ describe("plugin settings + storage", () => {
 
   it("saving settings auto-reloads a needs-configuration plugin (regression: pasting the key in Settings must take effect)", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-needs-key",
+      name: "kaioken-plugin-needs-key",
       serverSource: `
         export default async function plugin(bb: any) {
           const g = globalThis as any;
@@ -638,7 +638,7 @@ describe("plugin settings + storage", () => {
 
   it("saving settings does NOT reload a healthy running plugin", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-healthy",
+      name: "kaioken-plugin-healthy",
       serverSource: `
         export default function plugin(bb: any) {
           const g = globalThis as any;

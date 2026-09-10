@@ -14,7 +14,7 @@ const BASE = "http://127.0.0.1:3334";
 const EVIL_ORIGIN = "https://evil.example";
 
 const WIRE_SOURCE = `
-  import { defineRpcContract } from "@get-bb/plugin-sdk";
+  import { defineRpcContract } from "@get-kaioken/plugin-sdk";
   import { z } from "zod";
   const rpcContract = defineRpcContract({
     echo: {
@@ -197,7 +197,7 @@ describe("plugin wire surfaces (http/rpc dispatcher + realtime)", () => {
   beforeEach(async () => {
     harness = await createTestAppHarness({ devAppPort: 5173 });
     rootDir = await writePlugin(join(harness.config.dataDir, "fixtures"), {
-      name: "bb-plugin-wire",
+      name: "kaioken-plugin-wire",
       serverSource: WIRE_SOURCE,
     });
     const entry = await harness.pluginService.installPath(rootDir);
@@ -224,7 +224,7 @@ describe("plugin wire surfaces (http/rpc dispatcher + realtime)", () => {
 
     const appOrigin = await harness.app.request(
       `${BASE}/api/v1/plugins/wire/http/hello`,
-      { headers: { origin: "https://bb.example.test" } },
+      { headers: { origin: "https://kaioken.example.test" } },
     );
     expect(appOrigin.status).toBe(200);
   });
@@ -237,7 +237,7 @@ describe("plugin wire surfaces (http/rpc dispatcher + realtime)", () => {
     expect(foreignOrigin.status).toBe(403);
     expect(await foreignOrigin.json()).toMatchObject({
       ok: false,
-      error: expect.stringContaining("not a local BB app origin"),
+      error: expect.stringContaining("not a local Kaioken app origin"),
     });
 
     const copiedPort = await harness.app.request(
@@ -693,9 +693,9 @@ describe("plugin wire surfaces (http/rpc dispatcher + realtime)", () => {
 
   it("rpc resolves the handler after the body arrives, so a reload during the body read never runs a stale handler", async () => {
     const genDir = await writePlugin(join(harness.config.dataDir, "fixtures"), {
-      name: "bb-plugin-gen",
+      name: "kaioken-plugin-gen",
       serverSource: `
-        import { defineRpcContract } from "@get-bb/plugin-sdk";
+        import { defineRpcContract } from "@get-kaioken/plugin-sdk";
         import { z } from "zod";
         const rpcContract = defineRpcContract({ gen: { input: z.record(z.string(), z.unknown()), output: z.object({ gen: z.number() }) } });
         export default function plugin(bb: any) {
@@ -822,7 +822,7 @@ describe("plugin WebSocket routes", () => {
   beforeEach(async () => {
     server = await startTestServer({ devAppPort: 5173 });
     rootDir = await writePlugin(join(server.config.dataDir, "fixtures"), {
-      name: "bb-plugin-wire",
+      name: "kaioken-plugin-wire",
       serverSource: WIRE_SOURCE,
     });
     const entry = await server.pluginService.installPath(rootDir);

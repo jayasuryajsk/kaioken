@@ -21,9 +21,9 @@ import {
   type PluginBuildToolchain,
 } from "./toolchain.js";
 
-const PLUGIN_SDK_SPECIFIER = "@get-bb/plugin-sdk";
+const PLUGIN_SDK_SPECIFIER = "@get-kaioken/plugin-sdk";
 
-const LEGACY_PLUGIN_SDK_SPECIFIER = "@bb/plugin-sdk";
+const LEGACY_PLUGIN_SDK_SPECIFIER = "@get-bb/plugin-sdk";
 
 export const PLUGIN_SERVER_EXTERNALS: readonly string[] = [
   PLUGIN_SDK_SPECIFIER,
@@ -31,16 +31,16 @@ export const PLUGIN_SERVER_EXTERNALS: readonly string[] = [
   "better-sqlite3",
 ];
 
-const PLUGIN_SDK_ROOT_FILTER = /^@get-bb\/plugin-sdk$|^@bb\/plugin-sdk$/;
-const PLUGIN_SDK_SUBPATH_FILTER = /^@get-bb\/plugin-sdk\//;
-const PLUGIN_SDK_SUBPATH_RESOLVE_MARK = "bb-server-sdk-subpath";
+const PLUGIN_SDK_ROOT_FILTER = /^@get-kaioken\/plugin-sdk$|^@get-bb\/plugin-sdk$/;
+const PLUGIN_SDK_SUBPATH_FILTER = /^@get-kaioken\/plugin-sdk\//;
+const PLUGIN_SDK_SUBPATH_RESOLVE_MARK = "kaioken-server-sdk-subpath";
 
 async function unresolvedSdkSubpathError(args: {
   specifier: string;
   resolveDir: string;
   esbuildErrors: readonly { text: string }[];
 }): Promise<string> {
-  const need = `a server entry's "${args.specifier}" import is bundled from the plugin's own SDK install (bb serves only the bare "${PLUGIN_SDK_SPECIFIER}" at load time), so the plugin needs`;
+  const need = `a server entry's "${args.specifier}" import is bundled from the plugin's own SDK install (kaioken serves only the bare "${PLUGIN_SDK_SPECIFIER}" at load time), so the plugin needs`;
   const packageDir = await installedPluginSdkDirectory(args.resolveDir);
   if (packageDir === null) {
     return `"${args.specifier}" is not installed for this plugin (no node_modules/${PLUGIN_SDK_PACKAGE_NAME}); ${need} the SDK as a dependency`;
@@ -119,7 +119,7 @@ interface PluginServerBuildResult {
 
 export async function buildPluginServer(
   rootDir: string,
-  bbVersion: string,
+  kaiokenVersion: string,
   toolchain: PluginBuildToolchain,
 ): Promise<PluginServerBuildResult> {
   const { serverEntry, packageName, pluginVersion } =
@@ -152,7 +152,7 @@ export async function buildPluginServer(
       ),
       plugins: [
         {
-          name: "bb-plugin-sdk-resolution",
+          name: "kaioken-plugin-sdk-resolution",
           setup(build) {
             build.onResolve({ filter: PLUGIN_SDK_ROOT_FILTER }, (args) => ({
               path: args.path,
@@ -194,7 +194,7 @@ export async function buildPluginServer(
     await writeFile(
       stagedMetaPath,
       JSON.stringify(
-        createPluginArtifactMeta({ packageName, pluginVersion, bbVersion }),
+        createPluginArtifactMeta({ packageName, pluginVersion, kaiokenVersion }),
         null,
         2,
       ) + "\n",

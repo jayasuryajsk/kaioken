@@ -150,7 +150,7 @@ export function ServersScreen() {
                     : profile.serverUrl
                 }
                 leading={profile.mode === "connect" ? "Globe" : "Laptop"}
-                value={profile.mode === "connect" ? "bb connect" : "Direct"}
+                value={profile.mode === "connect" ? "kaioken connect" : "Direct"}
                 trailing={
                   profile.id === activeProfile?.id ? "checkmark" : undefined
                 }

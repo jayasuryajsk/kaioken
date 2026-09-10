@@ -3,13 +3,13 @@ import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createConnection, migrate } from "@bb/db";
+import { createConnection, migrate } from "@kaioken/db";
 import {
   resolveCurrentDevInstanceConfig,
   resolveDataDirDatabasePath,
   resolveProdDataDir,
-} from "@bb/config/runtime";
-import { HOST_ID_FILE_NAME } from "@bb/host-daemon-contract";
+} from "@kaioken/config/runtime";
+import { HOST_ID_FILE_NAME } from "@kaioken/host-daemon-contract";
 import { seedPerfFixture } from "../lib/seed-perf-fixture.js";
 import { bold, cyan, dim, green, log, endStep } from "../lib/script-helpers.js";
 
@@ -27,9 +27,9 @@ interface SeedCommandArgs {
 
 function renderHelpText(): string {
   return `
-  ${bold("bb seed-perf-db")}
+  ${bold("kaioken seed-perf-db")}
 
-  Seed a large, realistic BB database for performance testing.
+  Seed a large, realistic Kaioken database for performance testing.
 
   ${dim("Usage")}
     pnpm seed:perf [-- options]
@@ -141,7 +141,7 @@ async function main(argv: string[] = process.argv.slice(2)): Promise<void> {
     );
   }
 
-  process.stdout.write(`\n  ${bold("bb seed-perf-db")}\n\n`);
+  process.stdout.write(`\n  ${bold("kaioken seed-perf-db")}\n\n`);
   log(dim("●"), `data dir ${cyan(dataDir)}`);
 
   mkdirSync(dataDir, { recursive: true });

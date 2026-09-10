@@ -1,7 +1,7 @@
 import {
   createFakePluginHost,
   makePluginAgentConfigurationContext,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { afterEach, describe, expect, it } from "vitest";
 import { getCall, getRunRequired, migrations } from "./data.js";
 import plugin from "./server.js";
@@ -338,7 +338,7 @@ describe("workflows plugin", () => {
           {
             type: "text",
             text: expect.stringContaining(
-              `[BB workflow finished · ${started.runId}]`,
+              `[Kaioken workflow finished · ${started.runId}]`,
             ),
             visibility: "agent-only",
           },

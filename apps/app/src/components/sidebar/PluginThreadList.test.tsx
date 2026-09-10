@@ -2,7 +2,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { PluginThreadListProps } from "@get-bb/plugin-sdk";
+import type { PluginThreadListProps } from "@get-kaioken/plugin-sdk";
 import { resetAllCrashedPluginSlotsForTest } from "@/components/plugin/PluginSlotMount";
 import { SidebarProvider } from "@/components/ui/sidebar.js";
 import { resetDeprecatedAliasWarningsForTests } from "@/lib/plugin-sdk-deprecated-aliases";
@@ -34,7 +34,7 @@ function renderList(
       <SidebarProvider>
         <PluginThreadList
           replacement={replacement}
-          original={<div data-testid="bb-thread-list">bb thread list</div>}
+          original={<div data-testid="kaioken-thread-list">kaioken thread list</div>}
           searchQuery={query}
           onNavigate={() => {}}
         />
@@ -59,7 +59,7 @@ afterEach(() => {
 });
 
 describe("PluginThreadList experimental_Original alias", () => {
-  it("delegates to BB's list through the alias and warns once across renders", () => {
+  it("delegates to Kaioken's list through the alias and warns once across renders", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const seen: string[] = [];
     const { rerenderWith } = renderList(
@@ -75,13 +75,13 @@ describe("PluginThreadList experimental_Original alias", () => {
       ),
     );
 
-    expect(screen.getByTestId("bb-thread-list")).toBeDefined();
+    expect(screen.getByTestId("kaioken-thread-list")).toBeDefined();
     rerenderWith("needle");
-    expect(screen.getByTestId("bb-thread-list")).toBeDefined();
+    expect(screen.getByTestId("kaioken-thread-list")).toBeDefined();
     expect(seen).toEqual(["", "needle"]);
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith(
-      "experimental_Original is deprecated; use Original. Removed in bb 0.42",
+      "experimental_Original is deprecated; use Original. Removed in kaioken 0.42",
     );
   });
 
@@ -89,7 +89,7 @@ describe("PluginThreadList experimental_Original alias", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     renderList(pluginReplacement(({ Original }) => <Original />));
 
-    expect(screen.getByTestId("bb-thread-list")).toBeDefined();
+    expect(screen.getByTestId("kaioken-thread-list")).toBeDefined();
     expect(warn).not.toHaveBeenCalled();
   });
 });

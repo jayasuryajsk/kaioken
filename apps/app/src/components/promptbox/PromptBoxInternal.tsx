@@ -1,8 +1,8 @@
 import type {
   PromptMentionCommandTrigger,
   PromptTextMention,
-} from "@bb/domain";
-import type { ComposerView } from "@get-bb/plugin-sdk";
+} from "@kaioken/domain";
+import type { ComposerView } from "@get-kaioken/plugin-sdk";
 import type { Node as ProseMirrorNode, Slice } from "@tiptap/pm/model";
 import { TextSelection } from "@tiptap/pm/state";
 import { useEditor, type Editor } from "@tiptap/react";
@@ -35,7 +35,7 @@ import {
   type PromptMentionSuggestion,
   type TypeaheadMenuState,
   type TypeaheadTrigger,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { AppCommandShortcutHint } from "@/components/commands/AppCommandShortcutHint";
 import {
   useAppCommandKeyDispatch,
@@ -46,14 +46,14 @@ import {
   voiceUnsupportedMessage,
   type VoiceUnsupportedReason,
 } from "@/hooks/voice-input-support";
-import { Button } from "@bb/shared-ui/button";
-import { Icon } from "@bb/shared-ui/icon";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
+} from "@kaioken/shared-ui/tooltip";
 import { ComposerActionsSlot } from "@/components/plugin/PluginComposerActions";
 import { useResolvedComposerEditor } from "@/components/plugin/composer-slot-hooks";
 import {
@@ -67,26 +67,26 @@ import { useComposerInputLock } from "@/lib/plugin-sdk-hooks";
 import {
   COARSE_POINTER_PROMPT_ACTION_BUTTON_CLASS,
   COARSE_POINTER_PROMPT_ICON_ACTION_BUTTON_CLASS,
-} from "@bb/shared-ui/coarse-pointer-sizing";
-import { CHROME_SUBTLE_ICON_BUTTON_FOREGROUND_CLASS } from "@bb/shared-ui/chrome-style-tokens";
-import { usePointerCoarse } from "@bb/shared-ui/hooks/use-pointer-coarse";
+} from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { CHROME_SUBTLE_ICON_BUTTON_FOREGROUND_CLASS } from "@kaioken/shared-ui/chrome-style-tokens";
+import { usePointerCoarse } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 import {
   getMediaQuerySnapshot,
   REDUCED_MOTION_QUERY,
-} from "@bb/shared-ui/hooks/use-media-query";
-import { blurActiveKeyboardInputWithin } from "@bb/shared-ui/overlay-trigger";
+} from "@kaioken/shared-ui/hooks/use-media-query";
+import { blurActiveKeyboardInputWithin } from "@kaioken/shared-ui/overlay-trigger";
 import {
   DEFAULT_PLUGIN_MENTION_TRIGGER,
   type PluginMentionTrigger,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { useRichTextEditingPreference } from "@/lib/rich-text-editing-preference";
 import {
   arePromptDraftStatesEqual,
   isPromptDraftEmpty,
   type PromptDraftAttachment,
   type PromptDraftState,
-} from "@bb/client-core";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/client-core";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { PROMPT_STACK_EDGE_CARET_BUTTON_WIDTH_CLASS } from "./banner/PromptStackCard";
 import { AttachmentPreview } from "./AttachmentPreview";
 import { VoiceRecordingBar } from "./VoiceRecordingBar";

@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
-import { EmptyState } from "@bb/shared-ui/empty-state";
-import { Switch } from "@bb/shared-ui/switch";
+import { EmptyState } from "@kaioken/shared-ui/empty-state";
+import { Switch } from "@kaioken/shared-ui/switch";
 import {
   ResourceListPanel,
   ResourceRow,
   ResourceRowDetailChevron,
-} from "@bb/shared-ui/resource-list";
+} from "@kaioken/shared-ui/resource-list";
 import { ProvenancePill } from "@/components/tools/ProvenancePill";
 import { appToast } from "@/components/ui/app-toast.js";
 import { invalidatePluginList } from "@/hooks/cache-owners/plugin-cache-owner";
@@ -16,7 +16,7 @@ import {
   type PluginListItem,
 } from "@/hooks/queries/plugin-settings-queries";
 import { pluginNeedsAttention } from "@/hooks/usePluginAttention";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   getPluginDetailRoutePath,
   isPluginsRoutePath,
@@ -42,7 +42,7 @@ export function InstalledPluginsTab({
 
   if (plugins.length === 0) {
     return (
-      <EmptyState message="No plugins installed. Browse the catalog, create a plugin, or run bb plugin install <source>." />
+      <EmptyState message="No plugins installed. Browse the catalog, create a plugin, or run kaioken plugin install <source>." />
     );
   }
 

@@ -7,15 +7,15 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { defaultAppSettings, type PromptInput } from "@bb/domain";
-import type { SendMessageDelivery } from "@bb/server-contract";
+import { defaultAppSettings, type PromptInput } from "@kaioken/domain";
+import type { SendMessageDelivery } from "@kaioken/server-contract";
 import type {
   AttachmentsConfig,
   HistoryConfig,
 } from "@/components/promptbox/PromptBoxInternal";
 import type { PromptMentionLinkResolver } from "@/components/promptbox/editor/prompt-mention-link";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { Button } from "@bb/shared-ui/button";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Button } from "@kaioken/shared-ui/button";
 import { BottomAnchoredScrollBody } from "@/components/ui/bottom-anchored-scroll-body";
 import { PageShell } from "@/components/ui/page-shell.js";
 import {
@@ -70,7 +70,7 @@ import {
   buildSideChatSubmitMode,
   canSubmitFollowUpShortcut,
   shouldQueueFollowUpMessage,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { useActiveComposerDraft } from "./useActiveComposerDraft";
 import { useComposerAttachmentUploads } from "./useComposerAttachmentUploads";
 import { useLatestRef } from "@/hooks/useLatestRef";

@@ -34,18 +34,18 @@ import {
   resolveEnvironmentMergeBaseBranch,
   type ThreadListEntry,
   type ThreadWithRuntime,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   PullRequestMergeMethod,
   TerminalSession,
   TimelineRow,
-} from "@bb/server-contract";
-import type { WorkspaceOpenTarget } from "@bb/host-daemon-contract";
+} from "@kaioken/server-contract";
+import type { WorkspaceOpenTarget } from "@kaioken/host-daemon-contract";
 import { appToast } from "@/components/ui/app-toast";
 import { copyToClipboardWithToast } from "@/lib/clipboard";
 import type { ThreadSecondaryPanel as ThreadSecondaryPanelTab } from "@/lib/thread-secondary-panel";
 import { useForkThreadFromMessage } from "@/hooks/useForkThreadFromMessage";
-import { isThreadForkable } from "@bb/client-core";
+import { isThreadForkable } from "@kaioken/client-core";
 import { useRequestEnvironmentAction } from "../../hooks/mutations/environment-mutations";
 import {
   useMarkThreadRead,
@@ -95,8 +95,8 @@ import { ThreadWorkspaceOpenButton } from "@/components/thread/ThreadWorkspaceOp
 import {
   formatEnvironmentDisplay,
   type EnvironmentDisplayHostContext,
-} from "@bb/core-ui";
-import { assertNever } from "@bb/thread-view";
+} from "@kaioken/core-ui";
+import { assertNever } from "@kaioken/thread-view";
 import { useCreateThreadInEnvironment } from "@/hooks/useCreateThreadInEnvironment";
 import { useHostDaemon } from "@/hooks/useHostDaemon";
 import { useLocalOpenTargets } from "@/hooks/useLocalOpenTargets";
@@ -135,7 +135,7 @@ import {
   promptInputToDraft,
   type PromptDraftAttachment,
   type PromptDraftState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { createLocalStorageEnumStorage } from "@/lib/browser-storage";
 import {
   getProjectComposeRoutePath,
@@ -193,7 +193,7 @@ import {
   SIDE_CHAT_PLUGIN_PANEL_ACTION_ID,
 } from "@/lib/side-chat-plugin";
 import { RightPanelFileTabIcon } from "@/components/secondary-panel/RightPanelFileTabIcon";
-import { COARSE_POINTER_COMPACT_ICON_SIZE_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
+import { COARSE_POINTER_COMPACT_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
 import { PluginIcon } from "@/components/plugin/PluginIcon";
 import {
   PluginPanelTabContent,
@@ -207,12 +207,12 @@ import {
 import { ThreadTimelineNavigationProvider } from "@/components/thread/timeline/ThreadTimelineNavigationContext";
 import { usePluginSlots } from "@/lib/plugin-slots";
 import { getFileExtension } from "@/lib/plugin-slot-resolvers";
-import { Icon } from "@bb/shared-ui/icon";
+import { Icon } from "@kaioken/shared-ui/icon";
 import {
   getBbDesktopInfo,
   getDesktopBrowserApi,
   isDesktopBrowserAvailable,
-} from "@/lib/bb-desktop";
+} from "@/lib/kaioken-desktop";
 import {
   openUrlByPreference,
   useOpenLinksInAppBrowserPreference,
@@ -232,7 +232,7 @@ import {
   normalizeExperimentalFileOpenOptions,
   toFilePreviewLineRange,
 } from "@/lib/live-file-navigation";
-import { getFilePreviewLineRangeStart } from "@bb/client-core";
+import { getFilePreviewLineRangeStart } from "@kaioken/client-core";
 import { getBrowserUrlHost } from "@/lib/browser-url";
 import {
   useThreadStorageBrowser,
@@ -242,7 +242,7 @@ import {
   useThreadFileTabs,
   type FileSearchSelection,
 } from "@/components/secondary-panel/useThreadFileTabs";
-import { isSecondaryFileTab } from "@bb/client-core";
+import { isSecondaryFileTab } from "@kaioken/client-core";
 import { useThreadOpenFileSignal } from "@/components/secondary-panel/useThreadOpenFileSignal";
 import type { PromptMentionLinkResolver } from "@/components/promptbox/editor/prompt-mention-link";
 import type {
@@ -290,7 +290,7 @@ import {
 } from "@/lib/fixed-panel-tabs-state";
 import { resolveGitDiffTabStatus } from "@/components/secondary-panel/gitDiffTabEligibility";
 import { isRootThread } from "./threadParentSelectorOptions";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import {
   DEFAULT_TERMINAL_COLS,
   DEFAULT_TERMINAL_ROWS,

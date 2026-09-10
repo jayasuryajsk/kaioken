@@ -1,5 +1,5 @@
-import type { ThreadListEntry } from "@bb/domain";
-import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
+import type { ThreadListEntry } from "@kaioken/domain";
+import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 import { describe, expect, it } from "vitest";
 import {
   buildChronologicalThreadList,

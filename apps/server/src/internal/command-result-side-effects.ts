@@ -1,9 +1,9 @@
-import type { DbNotifier, DbTransaction } from "@bb/db";
+import type { DbNotifier, DbTransaction } from "@kaioken/db";
 import type {
   HostDaemonCommand,
   HostDaemonCommandResult,
   HostDaemonSettledCommandType,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import type { LoggedPendingInteractionWorkSessionDeps } from "../types.js";
 
 export type CommandResultSideEffectsDeps =

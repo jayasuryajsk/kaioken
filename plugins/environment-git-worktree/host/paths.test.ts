@@ -1,4 +1,4 @@
-import { WorkspaceError } from "bb-environment-provider-host/git";
+import { WorkspaceError } from "kaioken-environment-provider-host/git";
 import { describe, expect, it } from "vitest";
 import { deriveRepoDirName } from "./paths.js";
 

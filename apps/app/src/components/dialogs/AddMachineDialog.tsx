@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import type { Host } from "@bb/domain";
+import type { Host } from "@kaioken/domain";
 import { z } from "zod";
-import { Button } from "@bb/shared-ui/button";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,8 +11,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
-import { Icon } from "@bb/shared-ui/icon";
+} from "@kaioken/shared-ui/dialog";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
 import { useHosts } from "@/hooks/queries/host-queries";
 import { useClipboardCopy } from "@/lib/clipboard";
@@ -21,7 +21,7 @@ import {
   getPluginConfigurationRoutePath,
   getPluginDetailRoutePath,
 } from "@/lib/route-paths";
-import { BbHttpError, sdk } from "@/lib/sdk";
+import { KaiokenHttpError, sdk } from "@/lib/sdk";
 import { getMutationErrorMessage } from "@/lib/mutation-errors";
 
 interface AddMachineDialogProps {
@@ -42,7 +42,7 @@ const pluginRpcErrorEnvelopeSchema = z.object({
 
 type ConnectMachineCode = z.infer<typeof connectMachineCodeSchema>;
 
-function isNotPairedRpcError(error: BbHttpError): boolean {
+function isNotPairedRpcError(error: KaiokenHttpError): boolean {
   const envelope = pluginRpcErrorEnvelopeSchema.safeParse(error.body);
   return envelope.success && envelope.data.error.message === "not_paired";
 }
@@ -73,7 +73,7 @@ async function createConnectMachineCode(): Promise<ConnectMachineCodeResult> {
     });
     return { kind: "issued", code };
   } catch (error) {
-    if (!(error instanceof BbHttpError)) throw error;
+    if (!(error instanceof KaiokenHttpError)) throw error;
     if (
       error.code === "not_paired" ||
       isNotPairedRpcError(error) ||
@@ -159,7 +159,7 @@ function UnreachableServerNotice({
       <p className="text-xs text-subtle-foreground">
         The pairing command would target{" "}
         <span className="font-mono">{serverUrl}</span>, which points to the
-        machine that runs it, not to this bb.{" "}
+        machine that runs it, not to this kaioken.{" "}
         {reason === "disabled"
           ? "The Connect plugin is disabled, so remote access is off. Enable it, then come back here to get a pairing command that works from anywhere."
           : "Set up remote access first, then come back here to get a pairing command that works from anywhere."}
@@ -275,7 +275,7 @@ function AddMachineDialogContent({
         <DialogDescription>
           {unreachable !== null
             ? "Pair a machine to run projects and threads on it."
-            : "Run this command on the machine you want to add. It installs bb and keeps the machine connected to this server."}
+            : "Run this command on the machine you want to add. It installs kaioken and keeps the machine connected to this server."}
         </DialogDescription>
       </DialogHeader>
       <div className="space-y-3">

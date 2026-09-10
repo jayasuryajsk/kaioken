@@ -83,7 +83,7 @@ vi.mock("@/lib/iframe-drag-guard", () => ({
   IframeDragGuardOverlay: () => null,
 }));
 
-vi.mock("@/lib/bb-desktop", () => ({
+vi.mock("@/lib/kaioken-desktop", () => ({
   BROWSER_SIDEBAR_TRIGGER_INSET_CLASS: "",
   CHROME_ROW_CLASS: "",
   DEFAULT_DESKTOP_WINDOW_STATE: { isFullScreen: false },

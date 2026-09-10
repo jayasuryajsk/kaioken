@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bbDesktopBrowserAttachRequestSchema } from "@bb/desktop-contract";
+import { kaiokenDesktopBrowserAttachRequestSchema } from "@kaioken/desktop-contract";
 import {
   evaluatePopupRate,
   isAllowedBrowserUrl,
@@ -28,7 +28,7 @@ describe("isAllowedBrowserUrl", () => {
 describe("browser IPC payload schemas", () => {
   it("rejects legacy layout fields in attach requests", () => {
     expect(
-      bbDesktopBrowserAttachRequestSchema.safeParse({
+      kaiokenDesktopBrowserAttachRequestSchema.safeParse({
         threadId: "thread-1",
         tabId: "browser:abc",
         url: "",

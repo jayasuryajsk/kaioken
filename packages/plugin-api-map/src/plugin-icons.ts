@@ -75,7 +75,7 @@ const SURFACE_ICONS: Record<string, IconSvgElement> = {
   storage: DatabaseIcon,
   "thread-events": Activity03Icon,
   "host-workers": ComputerIcon,
-  "bb-sdk": SourceCodeIcon,
+  "kaioken-sdk": SourceCodeIcon,
   "host-components": Layers01Icon,
   testing: TestTubeIcon,
 };

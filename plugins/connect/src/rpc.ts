@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { defineRpcContract, type PluginRpcHandlers } from "@get-bb/plugin-sdk";
+import { defineRpcContract, type PluginRpcHandlers } from "@get-kaioken/plugin-sdk";
 import {
   ConnectListError,
   type DesktopSession,
   type ListAccountServersResult,
-} from "@bb/connect-client";
+} from "@kaioken/connect-client";
 import { ConnectPairError } from "./redeem.js";
 import type { ConnectTunnel } from "./tunnel.js";
 import type { ConnectStatus } from "./types.js";

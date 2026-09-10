@@ -5,9 +5,9 @@ import {
   listEvents,
   listQueuedThreadMessages,
   setThreadExecutionOverride,
-} from "@bb/db";
-import type { ThreadQueuedMessage } from "@bb/domain";
-import type { PluginHookName } from "@get-bb/plugin-sdk";
+} from "@kaioken/db";
+import type { ThreadQueuedMessage } from "@kaioken/domain";
+import type { PluginHookName } from "@get-kaioken/plugin-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   setPluginHookProvider,

@@ -1,4 +1,4 @@
-import type { PluginHookHandler, PluginHookName } from "@get-bb/plugin-sdk";
+import type { PluginHookHandler, PluginHookName } from "@get-kaioken/plugin-sdk";
 
 /** One plugin's handler for one hook. */
 export interface PluginHookRegistration<K extends PluginHookName> {

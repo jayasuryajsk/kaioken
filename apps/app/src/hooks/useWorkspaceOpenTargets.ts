@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import type {
   OpenInTargetRequest,
   WorkspaceOpenTarget,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   hostDaemonPortAtom,
   localHostDaemonReachableAtom,

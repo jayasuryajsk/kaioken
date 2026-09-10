@@ -1,9 +1,9 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 
 type AutomationSignalKind = "automations-changed" | "automation-runs-changed";
 
 export function publishAutomationChange(
-  bb: Pick<BbPluginApi, "realtime">,
+  bb: Pick<KaiokenPluginApi, "realtime">,
   projectId: string,
   kinds: AutomationSignalKind | AutomationSignalKind[],
 ): void {

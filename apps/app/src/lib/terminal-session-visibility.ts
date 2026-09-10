@@ -1,5 +1,5 @@
-import { isActiveTerminalSessionStatus } from "@bb/domain";
-import type { TerminalSession } from "@bb/server-contract";
+import { isActiveTerminalSessionStatus } from "@kaioken/domain";
+import type { TerminalSession } from "@kaioken/server-contract";
 
 interface RetainedTerminalSessionArgs {
   retainedTerminalId: string | null;

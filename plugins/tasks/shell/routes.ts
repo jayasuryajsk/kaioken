@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useBbNavigate } from "@get-bb/plugin-sdk/app";
+import { useBbNavigate } from "@get-kaioken/plugin-sdk/app";
 
 export const PANEL_PATH = "tasks";
 

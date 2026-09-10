@@ -1,7 +1,7 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { getThread, listEvents } from "@bb/db";
-import type { EnvironmentRow } from "@bb/db";
-import type { Thread } from "@bb/domain";
+import { getThread, listEvents } from "@kaioken/db";
+import type { EnvironmentRow } from "@kaioken/db";
+import type { Thread } from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import {
   finalizeStoppedThread,

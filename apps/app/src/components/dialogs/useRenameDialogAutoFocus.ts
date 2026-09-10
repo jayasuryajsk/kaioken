@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import { usePointerCoarse } from "@bb/shared-ui/hooks/use-pointer-coarse";
+import { usePointerCoarse } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 
 interface RenameDialogAutoFocus {
   inputRef: React.RefObject<HTMLInputElement | null>;

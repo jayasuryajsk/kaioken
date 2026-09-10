@@ -11,7 +11,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const BRIDGE_MODULE = resolve(here, "bridge.ts");
 const FAKE_AGENT_PATH = resolve(here, "fake-acp-agent.mjs");
 const WORKER_ENTRY = fileURLToPath(
-  import.meta.resolve("@bb/provider-bridge-protocol/bridge-worker-entry"),
+  import.meta.resolve("@kaioken/provider-bridge-protocol/bridge-worker-entry"),
 );
 const TSX_LOADER = import.meta.resolve("tsx");
 
@@ -229,7 +229,7 @@ async function runMcpInitialize(config: AdvertisedMcpServer): Promise<{
       params: {
         protocolVersion: "2024-11-05",
         capabilities: {},
-        clientInfo: { name: "bb-test", version: "0" },
+        clientInfo: { name: "kaioken-test", version: "0" },
       },
     })}\n`,
   );
@@ -252,10 +252,10 @@ afterEach(() => {
   bridgeStderr = "";
 });
 
-describe("bb-bridge MCP server entry point (#1918)", () => {
+describe("kaioken-bridge MCP server entry point (#1918)", () => {
   it("advertises an MCP server command that answers MCP initialize when the bridge runs under the bootstrap", async () => {
-    const dataDir = makeTempDir("bb-acp-mcp-entry-data-");
-    const workspaceDir = makeTempDir("bb-acp-mcp-entry-ws-");
+    const dataDir = makeTempDir("kaioken-acp-mcp-entry-data-");
+    const workspaceDir = makeTempDir("kaioken-acp-mcp-entry-ws-");
     const bridge = spawnBridgeLikeTheAgentRuntime(dataDir);
 
     const config = await readAdvertisedMcpServer(bridge, workspaceDir);

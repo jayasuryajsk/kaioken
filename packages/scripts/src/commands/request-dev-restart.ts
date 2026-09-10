@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
-import { statusResponseSchema } from "@bb/host-daemon-contract/local";
+import { HOST_DAEMON_PROTOCOL_VERSION } from "@kaioken/host-daemon-contract";
+import { statusResponseSchema } from "@kaioken/host-daemon-contract/local";
 import {
   createTurboBuildCommand,
   resolveDevHostDaemonPort,
@@ -41,17 +41,17 @@ interface ReadRunningSupervisorPidArgs {
 
 const restartTargets: Record<RestartTarget, RestartTargetConfig> = {
   both: {
-    filters: ["@bb/server", "@bb/host-daemon"],
+    filters: ["@kaioken/server", "@kaioken/host-daemon"],
     label: "server and host-daemon",
     services: ["server", "host-daemon"],
   },
   "host-daemon": {
-    filters: ["@bb/host-daemon"],
+    filters: ["@kaioken/host-daemon"],
     label: "host-daemon",
     services: ["host-daemon"],
   },
   server: {
-    filters: ["@bb/server"],
+    filters: ["@kaioken/server"],
     label: "server",
     services: ["server"],
   },

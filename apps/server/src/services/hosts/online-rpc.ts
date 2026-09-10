@@ -6,7 +6,7 @@ import {
   parseHostDaemonRpcResultForCommand,
   type HostDaemonRpcCommand,
   type HostDaemonRpcResultForCommand,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { ApiError } from "../../errors.js";
 import type { WorkSessionDeps } from "../../types.js";
 import {

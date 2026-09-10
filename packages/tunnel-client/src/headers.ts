@@ -1,4 +1,4 @@
-import type { HeaderPair } from "@bb/tunnel-contract";
+import type { HeaderPair } from "@kaioken/tunnel-contract";
 
 const SKIP_REQUEST_HEADERS = new Set(["host", "content-length", "connection"]);
 

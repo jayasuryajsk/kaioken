@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { ThreadListEntry } from "@bb/domain";
+import type { ThreadListEntry } from "@kaioken/domain";
 import {
   PROJECT_IDS,
   makeThreadListEntry,
@@ -16,7 +16,7 @@ import {
   buildSidebarEntitySectionId,
   compareStandardThreads,
   type SidebarSectionDefinition,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 export default {
   title: "sidebar/Section grouping",
@@ -89,7 +89,7 @@ const sectionThreads: ThreadListEntry[] = [
     sectionId: "sec_build",
     environmentId: "env_story_section",
     environmentName: "Section build",
-    environmentBranchName: "bb/sidebar-sections",
+    environmentBranchName: "kaioken/sidebar-sections",
     environmentProviderId: "git-worktree",
     queuedWork: "none",
     latestAttentionAt: 40,
@@ -101,7 +101,7 @@ const sectionThreads: ThreadListEntry[] = [
     sectionId: "sec_build",
     environmentId: "env_story_section",
     environmentName: "Section build",
-    environmentBranchName: "bb/sidebar-sections",
+    environmentBranchName: "kaioken/sidebar-sections",
     environmentProviderId: "git-worktree",
     queuedWork: "none",
     hasPendingInteraction: true,

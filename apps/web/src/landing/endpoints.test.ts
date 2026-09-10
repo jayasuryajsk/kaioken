@@ -18,8 +18,8 @@ describe("marketing download redirect", () => {
       return new Response(
         JSON.stringify({
           files: [
-            { url: "bb-0.0.26-arm64.zip" },
-            { url: "bb-0.0.26-arm64.dmg" },
+            { url: "kaioken-0.0.26-arm64.zip" },
+            { url: "kaioken-0.0.26-arm64.dmg" },
           ],
         }),
       );
@@ -39,7 +39,7 @@ describe("marketing download redirect", () => {
     );
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toBe(
-      `${DOWNLOAD_RELEASE_ASSET_BASE_URL}/bb-0.0.26-arm64.dmg`,
+      `${DOWNLOAD_RELEASE_ASSET_BASE_URL}/kaioken-0.0.26-arm64.dmg`,
     );
   });
 
@@ -48,8 +48,8 @@ describe("marketing download redirect", () => {
       return new Response(
         JSON.stringify({
           files: [
-            { url: "bb-0.42.1-x86_64.AppImage" },
-            { url: "bb-0.42.1-x86_64.AppImage.blockmap" },
+            { url: "kaioken-0.42.1-x86_64.AppImage" },
+            { url: "kaioken-0.42.1-x86_64.AppImage.blockmap" },
           ],
         }),
       );
@@ -69,7 +69,7 @@ describe("marketing download redirect", () => {
     );
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toBe(
-      `${DOWNLOAD_RELEASE_ASSET_BASE_URL}/bb-0.42.1-x86_64.AppImage`,
+      `${DOWNLOAD_RELEASE_ASSET_BASE_URL}/kaioken-0.42.1-x86_64.AppImage`,
     );
   });
 
@@ -78,7 +78,7 @@ describe("marketing download redirect", () => {
       "fetch",
       vi.fn(async () => {
         return new Response(
-          JSON.stringify({ files: [{ url: "bb-0.42.1-arm64.dmg" }] }),
+          JSON.stringify({ files: [{ url: "kaioken-0.42.1-arm64.dmg" }] }),
         );
       }),
     );

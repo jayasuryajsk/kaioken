@@ -2,14 +2,14 @@ import { Buffer } from "node:buffer";
 import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { resolveDataDirSkillsRootPath } from "@bb/config/skill-storage-paths";
-import type { DiscoveredSkill, SkillRootKind } from "@bb/host-daemon-contract";
+import { resolveDataDirSkillsRootPath } from "@kaioken/config/skill-storage-paths";
+import type { DiscoveredSkill, SkillRootKind } from "@kaioken/host-daemon-contract";
 import type {
   SkillProvider,
   SkillScope,
   SkillSummary,
-} from "@bb/server-contract";
-import { editableSkillScopeSchema } from "@bb/server-contract";
+} from "@kaioken/server-contract";
+import { editableSkillScopeSchema } from "@kaioken/server-contract";
 import { COMMAND_TIMEOUT_MS } from "../../constants.js";
 import { ApiError } from "../../errors.js";
 import type { AppDeps } from "../../types.js";
@@ -36,9 +36,9 @@ const SERVER_SKILL_FILE_LIMIT = 200;
 const SERVER_SKILL_CONTENT_LIMIT_BYTES = 25 * 1024 * 1024;
 
 const SKILL_SCOPE_ORDER: readonly SkillScope[] = [
-  "bb-project",
-  "bb-user",
-  "bb-builtin",
+  "kaioken-project",
+  "kaioken-user",
+  "kaioken-builtin",
   "shared-project",
   "shared-user",
   "provider-project",
@@ -68,12 +68,12 @@ export function mapSkillScope(
   filePath: string,
 ): MappedScope {
   switch (rootKind) {
-    case "bb-project":
-      return { scope: "bb-project", provider: null, manageable: true };
-    case "bb-data-dir":
-      return { scope: "bb-user", provider: null, manageable: true };
-    case "bb-builtin":
-      return { scope: "bb-builtin", provider: null, manageable: false };
+    case "kaioken-project":
+      return { scope: "kaioken-project", provider: null, manageable: true };
+    case "kaioken-data-dir":
+      return { scope: "kaioken-user", provider: null, manageable: true };
+    case "kaioken-builtin":
+      return { scope: "kaioken-builtin", provider: null, manageable: false };
     case "provider-project":
       return { scope: "provider-project", provider, manageable: true };
     case "provider-user":
@@ -172,11 +172,11 @@ function listServerOwnedSkills(deps: AppDeps): SkillSummary[] {
       );
       const logicalPath = `${runtimeSource.name}/${runtimeSource.entryPath}`;
       return {
-        id: skillId(builtin ? "bb-builtin" : "bb-data-dir", logicalPath),
+        id: skillId(builtin ? "kaioken-builtin" : "kaioken-data-dir", logicalPath),
         name: runtimeSource.name,
         description: runtimeSource.description,
         provider: null,
-        scope: builtin ? "bb-builtin" : "bb-user",
+        scope: builtin ? "kaioken-builtin" : "kaioken-user",
         pluginId: null,
         filePath: path.join(rootPath, runtimeSource.entryPath),
         manageable: !builtin,
@@ -197,7 +197,7 @@ function listBbPluginSkills(deps: AppDeps): SkillSummary[] {
       if (rootPath === undefined) return null;
       const logicalPath = `${runtimeSource.name}/${runtimeSource.entryPath}`;
       return {
-        id: skillId(`bb-plugin:${provenance.pluginId}`, logicalPath),
+        id: skillId(`kaioken-plugin:${provenance.pluginId}`, logicalPath),
         name: runtimeSource.name,
         description: runtimeSource.description,
         provider: null,
@@ -255,14 +255,14 @@ function isServerOwnedSkill(deps: AppDeps, skill: SkillSummary): boolean {
   ) {
     return true;
   }
-  if (skill.scope === "bb-user") {
+  if (skill.scope === "kaioken-user") {
     return (
       path.dirname(skillDirectoryPath) ===
       resolveDataDirSkillsRootPath(deps.config.dataDir)
     );
   }
   return (
-    skill.scope === "bb-builtin" &&
+    skill.scope === "kaioken-builtin" &&
     path.dirname(skillDirectoryPath) === deps.config.builtinSkillsRootPath
   );
 }
@@ -466,17 +466,17 @@ export async function writeProjectSkill(
     throw new ApiError(
       403,
       "forbidden",
-      "Bundled skills cannot be edited in bb",
+      "Bundled skills cannot be edited in kaioken",
     );
   }
-  if (editableScope.data === "bb-project" && args.workspace.cwd === null) {
+  if (editableScope.data === "kaioken-project" && args.workspace.cwd === null) {
     throw new ApiError(
       409,
       "invalid_request",
       "No workspace resolved for this project's skills",
     );
   }
-  if (editableScope.data === "bb-user" && isServerOwnedSkill(deps, skill)) {
+  if (editableScope.data === "kaioken-user" && isServerOwnedSkill(deps, skill)) {
     const skillFilePath = await resolveServerSkillFile(skill, SKILL_FILE_NAME);
     const currentContents = await fs.readFile(skillFilePath);
     const currentRevision = createHash("sha256")
@@ -486,7 +486,7 @@ export async function writeProjectSkill(
       throw new ApiError(409, "conflict", "Skill changed before it was saved");
     }
     const currentMode = (await fs.stat(skillFilePath)).mode & 0o777;
-    const temporaryPath = `${skillFilePath}.bb-write-${randomUUID()}`;
+    const temporaryPath = `${skillFilePath}.kaioken-write-${randomUUID()}`;
     try {
       const handle = await fs.open(temporaryPath, "wx", currentMode);
       try {
@@ -513,7 +513,7 @@ export async function writeProjectSkill(
     const revision = createHash("sha256").update(args.content).digest("hex");
     return { filePath: skillFilePath, revision };
   }
-  if (editableScope.data !== "bb-user" && editableScope.data !== "bb-project") {
+  if (editableScope.data !== "kaioken-user" && editableScope.data !== "kaioken-project") {
     const result = await callHostOnlineRpc(deps, {
       hostId: args.workspace.hostId,
       timeoutMs: COMMAND_TIMEOUT_MS,
@@ -563,17 +563,17 @@ export async function deleteProjectSkill(
     throw new ApiError(
       403,
       "forbidden",
-      "Bundled skills cannot be deleted in bb",
+      "Bundled skills cannot be deleted in kaioken",
     );
   }
-  if (editableScope.data === "bb-project" && args.workspace.cwd === null) {
+  if (editableScope.data === "kaioken-project" && args.workspace.cwd === null) {
     throw new ApiError(
       409,
       "invalid_request",
       "No workspace resolved for this project's skills",
     );
   }
-  if (editableScope.data === "bb-user" && isServerOwnedSkill(deps, skill)) {
+  if (editableScope.data === "kaioken-user" && isServerOwnedSkill(deps, skill)) {
     const skillsRootPath = resolveDataDirSkillsRootPath(deps.config.dataDir);
     const skillDirectoryPath = path.dirname(skill.filePath);
     const [realRootPath, realSkillPath] = await Promise.all([
@@ -603,7 +603,7 @@ export async function deleteProjectSkill(
   }
   let daemonName = skill.name;
   let rootPath: string | null = null;
-  if (editableScope.data !== "bb-user" && editableScope.data !== "bb-project") {
+  if (editableScope.data !== "kaioken-user" && editableScope.data !== "kaioken-project") {
     const skillDirPath = hostPathDirname(skill.filePath);
     daemonName = hostPathBasename(skillDirPath);
     rootPath = hostPathDirname(skillDirPath);

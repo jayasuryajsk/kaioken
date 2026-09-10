@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import {
   createAutomation,
@@ -57,11 +57,11 @@ import {
 } from "./script-files.js";
 import { executeAgentRun, executeScriptRun } from "./run.js";
 
-type ServiceApi = Pick<BbPluginApi, "realtime" | "log"> & {
+type ServiceApi = Pick<KaiokenPluginApi, "realtime" | "log"> & {
   sdk: {
-    projects: Pick<BbPluginApi["sdk"]["projects"], "get" | "list">;
-    providers: Pick<BbPluginApi["sdk"]["providers"], "list">;
-    threads: Pick<BbPluginApi["sdk"]["threads"], "get" | "send" | "spawn">;
+    projects: Pick<KaiokenPluginApi["sdk"]["projects"], "get" | "list">;
+    providers: Pick<KaiokenPluginApi["sdk"]["providers"], "list">;
+    threads: Pick<KaiokenPluginApi["sdk"]["threads"], "get" | "send" | "spawn">;
   };
 };
 

@@ -1,8 +1,8 @@
-import type { ThreadListEntry } from "@bb/domain";
+import type { ThreadListEntry } from "@kaioken/domain";
 import type {
   PluginSidebarThread,
   PluginSidebarThreadIndicator,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import {
   getThreadListIndicatorLabel,
   hasActiveBackgroundAgentActivity,
@@ -13,8 +13,8 @@ import {
   isRuntimeBusyThread,
   isUnreadDoneThread,
   resolveThreadListIndicator,
-} from "@bb/client-core";
-import { isThreadRead } from "@bb/client-core";
+} from "@kaioken/client-core";
+import { isThreadRead } from "@kaioken/client-core";
 
 export function toPluginSidebarThread(
   entry: ThreadListEntry,

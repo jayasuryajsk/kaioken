@@ -1,8 +1,8 @@
 import { withEnvironmentCleanupSlot } from "../../../src/services/environments/cleanup-concurrency.js";
 import { registerTestHostRpcCapture } from "../../helpers/commands.js";
-import { recordProvisionedEnvironmentWorkspace } from "@bb/db/internal-environment-lifecycle";
+import { recordProvisionedEnvironmentWorkspace } from "@kaioken/db/internal-environment-lifecycle";
 import { createThreadFromRequest } from "../../../src/services/threads/thread-create.js";
-import { encodeClientTurnRequestIdNumber } from "@bb/domain";
+import { encodeClientTurnRequestIdNumber } from "@kaioken/domain";
 import { requireThreadCommandEnvironment } from "../../../src/services/threads/thread-command-environment.js";
 import { ensureThreadProvisionEnvironmentReady } from "../../../src/services/threads/thread-provisioning-environment.js";
 import {
@@ -10,8 +10,8 @@ import {
   createEnvironmentPendingContext,
 } from "../../../src/services/threads/thread-provisioning-context.js";
 import { z } from "zod";
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
+import { createFakePluginHost } from "@get-kaioken/plugin-sdk/testing";
 import { handleUpdateEnvironmentDirectoryToolCall } from "../../../src/services/threads/thread-environment-directory.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
@@ -27,11 +27,11 @@ import {
   saveEnvironmentLaunch,
   threads,
   updateThread,
-} from "@bb/db";
-import type { JsonValue } from "@bb/domain";
-import { makeHost } from "@bb/test-helpers/domain-fixtures";
-import type { PluginEnvironmentProviderDeclaration } from "@get-bb/plugin-sdk";
-import { validatePluginEnvironmentProviderDeclaration } from "@get-bb/plugin-sdk/internal/host-policy";
+} from "@kaioken/db";
+import type { JsonValue } from "@kaioken/domain";
+import { makeHost } from "@kaioken/test-helpers/domain-fixtures";
+import type { PluginEnvironmentProviderDeclaration } from "@get-kaioken/plugin-sdk";
+import { validatePluginEnvironmentProviderDeclaration } from "@get-kaioken/plugin-sdk/internal/host-policy";
 import {
   askProviderLaunch,
   attachProviderLaunch,
@@ -105,7 +105,7 @@ function setup(
     projectCheckout: null,
     gitRemote: null,
     inputs: null,
-    suggestedBranchName: "bb/test",
+    suggestedBranchName: "kaioken/test",
     environment: null,
   };
   const row = () => {
@@ -653,7 +653,7 @@ describe("core environment orchestration", () => {
       });
       const module = z
         .object({
-          default: z.custom<(bb: BbPluginApi) => Promise<void>>(
+          default: z.custom<(bb: KaiokenPluginApi) => Promise<void>>(
             (value) => typeof value === "function",
           ),
         })
@@ -712,7 +712,7 @@ describe("core environment orchestration", () => {
       });
       const module = z
         .object({
-          default: z.custom<(bb: BbPluginApi) => Promise<void>>(
+          default: z.custom<(bb: KaiokenPluginApi) => Promise<void>>(
             (value) => typeof value === "function",
           ),
         })

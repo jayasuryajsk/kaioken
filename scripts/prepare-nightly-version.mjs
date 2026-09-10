@@ -7,7 +7,7 @@ import { compareSemver } from "./lib/semver.mjs";
 const scriptPath = fileURLToPath(import.meta.url);
 const defaultRepoRoot = resolve(dirname(scriptPath), "..");
 const packagePaths = [
-  "packages/bb-app/package.json",
+  "packages/kaioken-app/package.json",
   "apps/desktop/package.json",
 ];
 const semverCorePattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)/u;
@@ -77,7 +77,7 @@ export async function prepareNightlyVersion(options) {
 }
 
 async function main() {
-  const repoRoot = process.env.BB_NIGHTLY_VERSION_REPO_ROOT ?? defaultRepoRoot;
+  const repoRoot = process.env.KAIOKEN_NIGHTLY_VERSION_REPO_ROOT ?? defaultRepoRoot;
   const runId = process.env.GITHUB_RUN_ID ?? "";
   const runAttempt = process.env.GITHUB_RUN_ATTEMPT ?? "";
   const nightlyVersion = await prepareNightlyVersion({

@@ -1,5 +1,5 @@
-import { formatDiffCount } from "@bb/thread-view";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { formatDiffCount } from "@kaioken/thread-view";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 interface DiffStatsTallyProps {
   insertions: number;

@@ -1,4 +1,4 @@
-# Phase 7 plugins against the checkout's dev server (`scripts/bb-dev-app
+# Phase 7 plugins against the checkout's dev server (`scripts/kaioken-dev-app
 # current`; server port 20304 for this worktree — edit SERVER_URL for another
 # checkout), which runs the real builtin plugins. Read-mostly: opens the
 # Automations detail (settings-less builtin → "no settings" state, Updates →
@@ -12,16 +12,16 @@ env:
 ---
 # Wipe any saved profile first (dev builds accept the reset deep link) so the
 # launch subflow adds the dev server instead of reusing a harness profile.
-# The app must already be running from Metro (a cold `bb://` link lands on
+# The app must already be running from Metro (a cold `kaioken://` link lands on
 # the dev-client launcher) and sitting on a screen that survives losing the
 # profile (home), so: launch, reset, launch again → first run → add server.
 - runFlow: ../subflows/launch-app.yaml
 - runFlow:
-    file: ../subflows/open-bb-link.yaml
+    file: ../subflows/open-kaioken-link.yaml
     env:
-      LINK: "bb://e2e/reset"
+      LINK: "kaioken://e2e/reset"
 - extendedWaitUntil:
-    visible: ".*Connect to a bb server.*"
+    visible: ".*Connect to a kaioken server.*"
     timeout: 60000
 - runFlow: ../subflows/launch-to-home.yaml
 - runFlow: ../subflows/open-settings.yaml
@@ -133,9 +133,9 @@ env:
 # Leave the simulator at first run again for the harness flows.
 - runFlow: ../subflows/launch-app.yaml
 - runFlow:
-    file: ../subflows/open-bb-link.yaml
+    file: ../subflows/open-kaioken-link.yaml
     env:
-      LINK: "bb://e2e/reset"
+      LINK: "kaioken://e2e/reset"
 - extendedWaitUntil:
-    visible: ".*Connect to a bb server.*"
+    visible: ".*Connect to a kaioken server.*"
     timeout: 60000

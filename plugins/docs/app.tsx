@@ -17,7 +17,7 @@ import {
   type PluginNavPanelProps,
   type PluginThreadPanelProps,
   type ExperimentalLiveFileTarget,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import type { docsRpcContract } from "./server.js";
 import { parseMarkdownDocument } from "./markdown-document.js";
 import {
@@ -57,8 +57,8 @@ import {
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@bb/shared-ui/button";
-import { DelayedLoading } from "@bb/shared-ui/delayed-loading";
+import { Button } from "@kaioken/shared-ui/button";
+import { DelayedLoading } from "@kaioken/shared-ui/delayed-loading";
 import {
   Dialog,
   DialogContent,
@@ -66,18 +66,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
-import { Input } from "@bb/shared-ui/input";
-import { Skeleton } from "@bb/shared-ui/skeleton";
+} from "@kaioken/shared-ui/dialog";
+import { Input } from "@kaioken/shared-ui/input";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bb/shared-ui/select";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { usePortalScopeProps } from "@bb/shared-ui/lib/portal-scope";
+} from "@kaioken/shared-ui/select";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { usePortalScopeProps } from "@kaioken/shared-ui/lib/portal-scope";
 
 interface Vault {
   id: string;
@@ -301,73 +301,73 @@ const MarkdownTaskInput = Extension.create({
   },
 });
 
-const STYLE_MARKER = "data-bb-simple-notes-styles";
+const STYLE_MARKER = "data-kaioken-simple-notes-styles";
 const EDITOR_CSS = `
-.bb-simple-notes-editor .tiptap {
+.kaioken-simple-notes-editor .tiptap {
   outline: none; width: 100%; max-width: 48em; margin: 0 auto; padding: 3rem 1.5rem 40vh;
   font-size: 15px; line-height: 1.75; color: var(--foreground); caret-color: var(--foreground);
   overflow-wrap: break-word; -webkit-font-smoothing: antialiased;
 }
-.bb-simple-notes-editor .tiptap > :first-child,
-.bb-simple-notes-editor .tiptap li > :first-child,
-.bb-simple-notes-editor .tiptap blockquote > :first-child { margin-top: 0; }
-.bb-simple-notes-editor .tiptap p { margin: 1.25em 0 0; }
-.bb-simple-notes-editor .tiptap h1,
-.bb-simple-notes-editor .tiptap h2,
-.bb-simple-notes-editor .tiptap h3,
-.bb-simple-notes-editor .tiptap h4,
-.bb-simple-notes-editor .tiptap h5,
-.bb-simple-notes-editor .tiptap h6 { margin-bottom: 0; color: var(--foreground); font-weight: 600; }
-.bb-simple-notes-editor .tiptap h1 { font-size: 1.75em; line-height: 1.3; margin-top: 1.25em; }
-.bb-simple-notes-editor .tiptap h2 { font-size: 1.25em; line-height: 1.4; margin-top: 1.75em; }
-.bb-simple-notes-editor .tiptap h3 { font-size: 1.125em; line-height: 1.45; margin-top: 1.25em; }
-.bb-simple-notes-editor .tiptap h4 { font-size: 1em; line-height: 1.5; margin-top: 1.25em; }
-.bb-simple-notes-editor .tiptap h5 { font-size: 0.875em; line-height: 1.5; font-weight: 500; color: var(--muted-foreground); margin-top: 1.43em; }
-.bb-simple-notes-editor .tiptap h6 { font-size: 0.8125em; line-height: 1.5; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); margin-top: 1.54em; }
-.bb-simple-notes-editor .tiptap :is(h1, h2, h3, h4, h5, h6) + * { margin-top: 1em; }
-.bb-simple-notes-editor .tiptap ul, .bb-simple-notes-editor .tiptap ol { margin: 1.25em 0 0; padding-left: 1.5em; }
-.bb-simple-notes-editor .tiptap ul { list-style: disc; }
-.bb-simple-notes-editor .tiptap ol { list-style: decimal; }
-.bb-simple-notes-editor .tiptap li { margin-top: 0.5em; padding-left: 0.4em; }
-.bb-simple-notes-editor .tiptap li > p, .bb-simple-notes-editor .tiptap li > ul, .bb-simple-notes-editor .tiptap li > ol { margin-top: 0.5em; }
-.bb-simple-notes-editor .tiptap li::marker { color: var(--muted-foreground); }
-.bb-simple-notes-editor .tiptap a { color: inherit; font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in oklab, currentColor 30%, transparent); cursor: pointer; }
-.bb-simple-notes-editor .tiptap a:hover { text-decoration-color: currentColor; }
-.bb-simple-notes-editor .tiptap a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 0.125em; }
-.bb-simple-notes-editor .tiptap strong { font-weight: 600; }
-.bb-simple-notes-editor .tiptap code { background: var(--muted); border-radius: min(calc(var(--radius) * 0.6), 0.35em); padding: 0.125em 0.3em; font-size: 0.85em; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace); }
-.bb-simple-notes-editor .tiptap pre { background: var(--muted); border-radius: var(--radius); padding: 0.75em 1em; overflow-x: auto; font-size: 0.875em; line-height: 1.5; margin: 1.43em 0 0; tab-size: 2; }
-.bb-simple-notes-editor .tiptap pre code { background: none; padding: 0; font-size: inherit; }
-.bb-simple-notes-editor .tiptap blockquote { border-left: 2px solid var(--border); padding-left: 1em; margin: 1.25em 0 0; }
-.bb-simple-notes-editor .tiptap hr { border: none; border-top: 1px solid var(--border); margin: 3em 0 0; }
-.bb-simple-notes-editor .tiptap hr + :is(h1, h2, h3, h4) { margin-top: 1.25em; }
-.bb-simple-notes-editor .tiptap img { display: block; max-width: 100%; max-height: 38rem; margin: 1.5em auto 0; border-radius: var(--radius); border: 1px solid var(--border); }
-.bb-simple-notes-editor .tiptap .tableWrapper { margin: 1.5em 0 0; overflow-x: auto; }
-.bb-simple-notes-editor .tiptap table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.bb-simple-notes-editor .tiptap th,
-.bb-simple-notes-editor .tiptap td { position: relative; min-width: 6rem; border: 1px solid var(--border); padding: 0.5em 0.65em; text-align: left; vertical-align: top; }
-.bb-simple-notes-editor .tiptap th { background: var(--muted); font-weight: 600; }
-.bb-simple-notes-editor .tiptap :is(th, td) > p { margin-top: 0; }
-.bb-simple-notes-editor .tiptap :is(th, td) > p + p { margin-top: 0.65em; }
-.bb-simple-notes-editor .tiptap .selectedCell::after { position: absolute; inset: 0; z-index: 2; pointer-events: none; content: ""; background: color-mix(in oklab, var(--primary) 14%, transparent); }
-.bb-simple-notes-editor .tiptap .column-resize-handle { position: absolute; top: 0; right: -2px; bottom: -1px; width: 4px; z-index: 3; pointer-events: none; background: var(--primary); }
-.bb-simple-notes-editor .tiptap.resize-cursor { cursor: col-resize; }
-.bb-simple-notes-editor .tiptap ul[data-type="taskList"] { list-style: none; padding-left: 0.25em; }
-.bb-simple-notes-editor .tiptap ul[data-type="taskList"] ul[data-type="taskList"] { margin-top: 0; }
-.bb-simple-notes-editor .tiptap ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.5em; margin-top: 0.5em; padding-left: 0; }
-.bb-simple-notes-editor .tiptap ul[data-type="taskList"] li > label { flex: 0 0 auto; display: inline-flex; align-items: center; height: 1.7em; user-select: none; }
-.bb-simple-notes-editor .tiptap ul[data-type="taskList"] li > div { flex: 1 1 auto; min-width: 0; }
-.bb-simple-notes-editor .tiptap ul[data-type="taskList"] li > div > p { line-height: 1.75; }
-.bb-simple-notes-editor .tiptap ul[data-type="taskList"] li > div > p:first-child { margin-top: 0; }
-.bb-simple-notes-editor .tiptap ul[data-type="taskList"] input[type="checkbox"] { display: block; width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer; margin: 0; }
-.bb-simple-notes-editor .tiptap ul[data-type="taskList"] li[data-checked="true"] > div { color: var(--muted-foreground); text-decoration: line-through; }
-.bb-simple-notes-editor .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; pointer-events: none; color: var(--muted-foreground); }
-.bb-simple-notes-editor .tiptap ::selection { background: color-mix(in oklab, var(--primary) 22%, transparent); }
+.kaioken-simple-notes-editor .tiptap > :first-child,
+.kaioken-simple-notes-editor .tiptap li > :first-child,
+.kaioken-simple-notes-editor .tiptap blockquote > :first-child { margin-top: 0; }
+.kaioken-simple-notes-editor .tiptap p { margin: 1.25em 0 0; }
+.kaioken-simple-notes-editor .tiptap h1,
+.kaioken-simple-notes-editor .tiptap h2,
+.kaioken-simple-notes-editor .tiptap h3,
+.kaioken-simple-notes-editor .tiptap h4,
+.kaioken-simple-notes-editor .tiptap h5,
+.kaioken-simple-notes-editor .tiptap h6 { margin-bottom: 0; color: var(--foreground); font-weight: 600; }
+.kaioken-simple-notes-editor .tiptap h1 { font-size: 1.75em; line-height: 1.3; margin-top: 1.25em; }
+.kaioken-simple-notes-editor .tiptap h2 { font-size: 1.25em; line-height: 1.4; margin-top: 1.75em; }
+.kaioken-simple-notes-editor .tiptap h3 { font-size: 1.125em; line-height: 1.45; margin-top: 1.25em; }
+.kaioken-simple-notes-editor .tiptap h4 { font-size: 1em; line-height: 1.5; margin-top: 1.25em; }
+.kaioken-simple-notes-editor .tiptap h5 { font-size: 0.875em; line-height: 1.5; font-weight: 500; color: var(--muted-foreground); margin-top: 1.43em; }
+.kaioken-simple-notes-editor .tiptap h6 { font-size: 0.8125em; line-height: 1.5; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); margin-top: 1.54em; }
+.kaioken-simple-notes-editor .tiptap :is(h1, h2, h3, h4, h5, h6) + * { margin-top: 1em; }
+.kaioken-simple-notes-editor .tiptap ul, .kaioken-simple-notes-editor .tiptap ol { margin: 1.25em 0 0; padding-left: 1.5em; }
+.kaioken-simple-notes-editor .tiptap ul { list-style: disc; }
+.kaioken-simple-notes-editor .tiptap ol { list-style: decimal; }
+.kaioken-simple-notes-editor .tiptap li { margin-top: 0.5em; padding-left: 0.4em; }
+.kaioken-simple-notes-editor .tiptap li > p, .kaioken-simple-notes-editor .tiptap li > ul, .kaioken-simple-notes-editor .tiptap li > ol { margin-top: 0.5em; }
+.kaioken-simple-notes-editor .tiptap li::marker { color: var(--muted-foreground); }
+.kaioken-simple-notes-editor .tiptap a { color: inherit; font-weight: 500; text-decoration: underline; text-decoration-color: color-mix(in oklab, currentColor 30%, transparent); cursor: pointer; }
+.kaioken-simple-notes-editor .tiptap a:hover { text-decoration-color: currentColor; }
+.kaioken-simple-notes-editor .tiptap a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 0.125em; }
+.kaioken-simple-notes-editor .tiptap strong { font-weight: 600; }
+.kaioken-simple-notes-editor .tiptap code { background: var(--muted); border-radius: min(calc(var(--radius) * 0.6), 0.35em); padding: 0.125em 0.3em; font-size: 0.85em; font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace); }
+.kaioken-simple-notes-editor .tiptap pre { background: var(--muted); border-radius: var(--radius); padding: 0.75em 1em; overflow-x: auto; font-size: 0.875em; line-height: 1.5; margin: 1.43em 0 0; tab-size: 2; }
+.kaioken-simple-notes-editor .tiptap pre code { background: none; padding: 0; font-size: inherit; }
+.kaioken-simple-notes-editor .tiptap blockquote { border-left: 2px solid var(--border); padding-left: 1em; margin: 1.25em 0 0; }
+.kaioken-simple-notes-editor .tiptap hr { border: none; border-top: 1px solid var(--border); margin: 3em 0 0; }
+.kaioken-simple-notes-editor .tiptap hr + :is(h1, h2, h3, h4) { margin-top: 1.25em; }
+.kaioken-simple-notes-editor .tiptap img { display: block; max-width: 100%; max-height: 38rem; margin: 1.5em auto 0; border-radius: var(--radius); border: 1px solid var(--border); }
+.kaioken-simple-notes-editor .tiptap .tableWrapper { margin: 1.5em 0 0; overflow-x: auto; }
+.kaioken-simple-notes-editor .tiptap table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.kaioken-simple-notes-editor .tiptap th,
+.kaioken-simple-notes-editor .tiptap td { position: relative; min-width: 6rem; border: 1px solid var(--border); padding: 0.5em 0.65em; text-align: left; vertical-align: top; }
+.kaioken-simple-notes-editor .tiptap th { background: var(--muted); font-weight: 600; }
+.kaioken-simple-notes-editor .tiptap :is(th, td) > p { margin-top: 0; }
+.kaioken-simple-notes-editor .tiptap :is(th, td) > p + p { margin-top: 0.65em; }
+.kaioken-simple-notes-editor .tiptap .selectedCell::after { position: absolute; inset: 0; z-index: 2; pointer-events: none; content: ""; background: color-mix(in oklab, var(--primary) 14%, transparent); }
+.kaioken-simple-notes-editor .tiptap .column-resize-handle { position: absolute; top: 0; right: -2px; bottom: -1px; width: 4px; z-index: 3; pointer-events: none; background: var(--primary); }
+.kaioken-simple-notes-editor .tiptap.resize-cursor { cursor: col-resize; }
+.kaioken-simple-notes-editor .tiptap ul[data-type="taskList"] { list-style: none; padding-left: 0.25em; }
+.kaioken-simple-notes-editor .tiptap ul[data-type="taskList"] ul[data-type="taskList"] { margin-top: 0; }
+.kaioken-simple-notes-editor .tiptap ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.5em; margin-top: 0.5em; padding-left: 0; }
+.kaioken-simple-notes-editor .tiptap ul[data-type="taskList"] li > label { flex: 0 0 auto; display: inline-flex; align-items: center; height: 1.7em; user-select: none; }
+.kaioken-simple-notes-editor .tiptap ul[data-type="taskList"] li > div { flex: 1 1 auto; min-width: 0; }
+.kaioken-simple-notes-editor .tiptap ul[data-type="taskList"] li > div > p { line-height: 1.75; }
+.kaioken-simple-notes-editor .tiptap ul[data-type="taskList"] li > div > p:first-child { margin-top: 0; }
+.kaioken-simple-notes-editor .tiptap ul[data-type="taskList"] input[type="checkbox"] { display: block; width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer; margin: 0; }
+.kaioken-simple-notes-editor .tiptap ul[data-type="taskList"] li[data-checked="true"] > div { color: var(--muted-foreground); text-decoration: line-through; }
+.kaioken-simple-notes-editor .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; pointer-events: none; color: var(--muted-foreground); }
+.kaioken-simple-notes-editor .tiptap ::selection { background: color-mix(in oklab, var(--primary) 22%, transparent); }
 .simple-html-embed { margin:1.5em 0 0; overflow:hidden; border:1px solid var(--border); border-radius:var(--radius); background:var(--background); }
 .simple-html-embed-header { border-bottom:1px solid var(--border); background:var(--muted); padding:.45rem .7rem; color:var(--muted-foreground); font:11px var(--font-mono,monospace); }
 .simple-html-embed iframe { display:block; width:100%; border:0; background:white; }
-.bb-docs-panel .tiptap { max-width: none; padding: 1rem 0 3rem; font-size: 14px; }
-@media (max-width: 47.999rem) { .bb-simple-notes-editor .tiptap { padding-inline: 1.25rem; font-size: 16.875px; } }
+.kaioken-docs-panel .tiptap { max-width: none; padding: 1rem 0 3rem; font-size: 14px; }
+@media (max-width: 47.999rem) { .kaioken-simple-notes-editor .tiptap { padding-inline: 1.25rem; font-size: 16.875px; } }
 `;
 
 function ensureEditorStyles(): void {
@@ -503,7 +503,7 @@ function TiptapEditor({
   return (
     <div
       ref={rootRef}
-      className="bb-simple-notes-editor min-h-0 flex-1 overflow-y-auto"
+      className="kaioken-simple-notes-editor min-h-0 flex-1 overflow-y-auto"
     />
   );
 }

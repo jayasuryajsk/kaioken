@@ -13,9 +13,9 @@ async function workspace(
   kind: "setup" | "teardown",
   script: string,
 ): Promise<string> {
-  const directory = await mkdtemp(join(tmpdir(), "bb-core-hooks-"));
+  const directory = await mkdtemp(join(tmpdir(), "kaioken-core-hooks-"));
   directories.push(directory);
-  await writeFile(join(directory, `.bb-env-${kind}.sh`), script);
+  await writeFile(join(directory, `.kaioken-env-${kind}.sh`), script);
   return directory;
 }
 
@@ -46,7 +46,7 @@ describe("core environment scripts", () => {
     );
     expect(output).toContain("second");
     expect(output).toContain("stderr");
-    expect(output).toContain("Running .bb-env-setup.sh");
+    expect(output).toContain("Running .kaioken-env-setup.sh");
   });
 
   it("surfaces output before setup failure", async () => {
@@ -124,7 +124,7 @@ describe("core environment scripts", () => {
     expect(() =>
       buildSetupScriptCommand({
         platform: "win32",
-        scriptPath: ".bb-env-setup.sh",
+        scriptPath: ".kaioken-env-setup.sh",
       }),
     ).toThrow("POSIX shell setup scripts are not supported on Windows");
     const workspacePath = await workspace("teardown", "exit 0\n");

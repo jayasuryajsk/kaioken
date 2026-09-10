@@ -53,7 +53,7 @@ function mentionIconSpec(icon: IconSvgElement): DOMOutputSpec {
     {
       viewBox: "0 0 24 24",
       fill: "none",
-      class: "bb-tasks-mention-icon",
+      class: "kaioken-tasks-mention-icon",
       "aria-hidden": "true",
     },
     ...icon.map(([tag, attrs]): DOMOutputSpec => [
@@ -227,7 +227,7 @@ const TaskMention = Node.create({
       "span",
       {
         "data-task-mention": String(node.attrs.key),
-        class: "bb-tasks-mention",
+        class: "kaioken-tasks-mention",
       },
       String(node.attrs.label || node.attrs.key),
     ];
@@ -292,7 +292,7 @@ const ThreadMention = Node.create({
       "span",
       {
         "data-thread-mention": String(node.attrs.threadId),
-        class: "bb-tasks-mention bb-tasks-thread-mention",
+        class: "kaioken-tasks-mention kaioken-tasks-thread-mention",
         role: "link",
       },
       mentionIconSpec(BubbleChatIcon),

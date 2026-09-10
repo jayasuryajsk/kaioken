@@ -2,7 +2,7 @@ import type {
   SystemExecutionOptionsResponse,
   SystemProviderInfo,
   SystemProvidersQuery,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { signalRequestArgs, type CreateSdkAreaArgs } from "./common.js";
 
 export type ProviderHostRoutingArgs =

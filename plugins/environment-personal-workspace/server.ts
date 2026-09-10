@@ -1,9 +1,9 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { personalWorkspaceHostContract } from "./contract.js";
 import { PERSONAL_WORKSPACE_ENVIRONMENT_PROVIDER_ID } from "./provider-id.js";
 
 export default async function personalWorkspacePlugin(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
 ): Promise<void> {
   const host = bb.hosts.experimental_client({
     contract: personalWorkspaceHostContract,

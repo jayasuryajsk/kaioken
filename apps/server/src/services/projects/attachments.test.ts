@@ -11,7 +11,7 @@ import {
 const tempDirs: string[] = [];
 
 async function makeTempDir(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), "bb-attachments-"));
+  const dir = await mkdtemp(join(tmpdir(), "kaioken-attachments-"));
   tempDirs.push(dir);
   return dir;
 }

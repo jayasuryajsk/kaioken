@@ -1,7 +1,7 @@
 import type {
   AvailableModel,
   ModelReasoningEffort,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import {
   CLAUDE_CODE_ACTIVE_CATALOG_DATA,
   CLAUDE_XHIGH_CAPABLE_REASONING_EFFORT_DATA,

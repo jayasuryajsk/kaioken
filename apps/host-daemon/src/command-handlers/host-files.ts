@@ -5,7 +5,7 @@ import type {
   DirectoryEntry,
   HostDaemonOnlineRpcResult,
   HostPathEntryKind,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   CommandDispatchError,
   type CommandDispatchOptions,

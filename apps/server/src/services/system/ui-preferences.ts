@@ -3,7 +3,7 @@ import {
   overwriteStoredUiPreference,
   replaceStoredUiPreference,
   type StoredUiPreference,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   UI_PREFERENCE_KEYS,
   getUiPreferenceDefault,
@@ -13,7 +13,7 @@ import {
   type UiPreferenceEntry,
   type UiPreferenceKey,
   type UiPreferenceValue,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { AppDeps } from "../../types.js";
 
 function parseStoredJson(text: string): unknown {

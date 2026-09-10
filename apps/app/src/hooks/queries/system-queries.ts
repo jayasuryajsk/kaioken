@@ -9,23 +9,23 @@ import type {
   PermissionMode,
   ProviderInfo,
   ProviderModelCatalogScope,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { SYSTEM_EXECUTION_OPTIONS_QUERY_KEY } from "@/hooks/queries/query-keys";
-import { permissionModeValues } from "@bb/domain";
-import { toRecord } from "@bb/core-ui";
+import { permissionModeValues } from "@kaioken/domain";
+import { toRecord } from "@kaioken/core-ui";
 import type {
   SystemCliSkillsStatusResponse,
   SystemExecutionOptionsResponse,
   SystemProvidersQuery,
   SystemProviderStatesResponse,
   SystemVersionResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type {
   ProviderCliStatusResponse,
   ProviderUsage,
   ProviderUsageResponse,
-} from "@bb/host-daemon-contract";
-import { BbHttpError, sdk } from "@/lib/sdk";
+} from "@kaioken/host-daemon-contract";
+import { KaiokenHttpError, sdk } from "@/lib/sdk";
 import {
   modelCatalogCacheKey,
   readCachedModelCatalog,
@@ -177,7 +177,7 @@ function shouldRetrySystemExecutionOptions(
     return false;
   }
 
-  if (error instanceof BbHttpError) {
+  if (error instanceof KaiokenHttpError) {
     return error.status === 408 || error.status === 429 || error.status >= 500;
   }
 

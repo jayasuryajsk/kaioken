@@ -6,7 +6,7 @@ import {
   stopVerifiedProcess,
   type VerifiedProcessOps,
   type WaitForProcessExitArgs,
-} from "@bb/config/verified-process-stop";
+} from "@kaioken/config/verified-process-stop";
 import { z } from "zod";
 
 const OWNED_RUNTIME_PID_FILE_NAME = "owned-runtime.json";

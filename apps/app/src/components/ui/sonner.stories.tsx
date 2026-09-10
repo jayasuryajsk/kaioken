@@ -2,7 +2,7 @@ import { appToast, AppToastContent, type AppToastTone } from "./app-toast";
 import { AppToastCommitDescription } from "./app-toast-descriptions";
 import { ArchivedThreadToastDescription } from "../thread/ArchivedThreadToastDescription";
 import { pluginNotificationDescription } from "../plugin/PluginNotificationDescription";
-import { Button } from "@bb/shared-ui/button";
+import { Button } from "@kaioken/shared-ui/button";
 import { StoryCard, StoryRow } from "../../../.ladle/story-card";
 import { useState, type ReactNode } from "react";
 import { toast as sonnerToast } from "sonner";
@@ -122,7 +122,7 @@ const TOAST_EXAMPLES: readonly ToastExample[] = [
       description: pluginNotificationDescription(
         { id: "usage", name: "Usage" },
         "installed",
-        "bb connect: timed out waiting for the tunnel client.",
+        "kaioken connect: timed out waiting for the tunnel client.",
       ),
     },
   },
@@ -388,7 +388,7 @@ function showToastExample(example: ToastExample): void {
       />
     ),
     {
-      className: "bb-app-toast",
+      className: "kaioken-app-toast",
       dismissible: current.dismissible ?? true,
       duration: LIVE_TOAST_DURATION,
       id,

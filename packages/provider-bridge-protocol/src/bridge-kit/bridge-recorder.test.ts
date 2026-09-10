@@ -25,7 +25,7 @@ function readLane(scope: string, direction: string): BridgeRecordingEntry[] {
 
 describe("bridge recorder", () => {
   it("routes responses to the scope of the request they answer", () => {
-    dir = mkdtempSync(join(tmpdir(), "bb-bridge-recorder-"));
+    dir = mkdtempSync(join(tmpdir(), "kaioken-bridge-recorder-"));
     const recorder = createBridgeRecorder({ dir });
 
     recorder.recordRuntimeLine(
@@ -122,7 +122,7 @@ describe("bridge recorder", () => {
   });
 
   it("tees a child's stdout and stdin writes as provider lanes", () => {
-    dir = mkdtempSync(join(tmpdir(), "bb-bridge-recorder-"));
+    dir = mkdtempSync(join(tmpdir(), "kaioken-bridge-recorder-"));
     const recorder = createBridgeRecorder({ dir });
     const stdin = new PassThrough();
     const stdout = new PassThrough();

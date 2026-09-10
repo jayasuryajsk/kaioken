@@ -1,10 +1,10 @@
-import { createConnection, ensurePersonalProject, migrate } from "@bb/db";
+import { createConnection, ensurePersonalProject, migrate } from "@kaioken/db";
 import type {
   DbConnection,
   MigrationWarningLogger,
   SlowDbQueryLogger,
-} from "@bb/db";
-import type { Logger } from "@bb/logger";
+} from "@kaioken/db";
+import type { Logger } from "@kaioken/logger";
 import {
   exportLegacyAutomationsForPluginImport,
   hasLegacyAutomationsToExport,

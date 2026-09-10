@@ -3,7 +3,7 @@ import {
   ConnectMachineRedeemError,
   redeemMachineCredential,
   type ConnectCredential,
-} from "@bb/connect-client";
+} from "@kaioken/connect-client";
 import {
   PROFILE_LABEL_MAX_LENGTH,
   type NewServerProfile,
@@ -32,7 +32,7 @@ export function describeEnrollmentError(error: unknown): EnrollmentFailure {
           code: "invalid_code",
           title: "Code not recognized",
           message:
-            "Check the pairing code and the bb connect address. Codes come from bb Settings → Remote access or `bb connect machine-code`.",
+            "Check the pairing code and the kaioken connect address. Codes come from kaioken Settings → Remote access or `kaioken connect machine-code`.",
         };
       case "expired":
         return {
@@ -58,13 +58,13 @@ export function describeEnrollmentError(error: unknown): EnrollmentFailure {
       case "network":
         return {
           code: "network",
-          title: "Could not reach bb connect",
+          title: "Could not reach kaioken connect",
           message: `Check your connection and try again. (${error.message})`,
         };
       case "invalid_response":
         return {
           code: "invalid_response",
-          title: "Unexpected answer from bb connect",
+          title: "Unexpected answer from kaioken connect",
           message: error.message,
         };
     }
@@ -75,12 +75,12 @@ export function describeEnrollmentError(error: unknown): EnrollmentFailure {
         code: "unauthorized",
         title: "Device not authorized",
         message:
-          "bb connect rejected this device's credential. It may have been revoked in the dashboard; pair again with a fresh code.",
+          "kaioken connect rejected this device's credential. It may have been revoked in the dashboard; pair again with a fresh code.",
       };
     }
     return {
       code: "network",
-      title: "Could not reach bb connect",
+      title: "Could not reach kaioken connect",
       message: `Check your connection and try again. (${error.message})`,
     };
   }
@@ -89,7 +89,7 @@ export function describeEnrollmentError(error: unknown): EnrollmentFailure {
   if (kind === "network") {
     return {
       code: "network",
-      title: "Could not reach bb connect",
+      title: "Could not reach kaioken connect",
       message: `Check your connection and try again. (${detail})`,
     };
   }

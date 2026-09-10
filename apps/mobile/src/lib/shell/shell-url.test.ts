@@ -7,7 +7,7 @@ import {
 } from "./shell-url";
 
 const ROOT = "https://bee.getbb.app";
-const PREFIXED = "https://box.example.ts.net/bb";
+const PREFIXED = "https://box.example.ts.net/kaioken";
 
 describe("buildShellUrl", () => {
   it("joins a page path onto a server mounted at the root", () => {
@@ -21,9 +21,9 @@ describe("buildShellUrl", () => {
   });
 
   it("keeps a server's path prefix", () => {
-    expect(buildShellUrl(PREFIXED, "/")).toBe("https://box.example.ts.net/bb/");
+    expect(buildShellUrl(PREFIXED, "/")).toBe("https://box.example.ts.net/kaioken/");
     expect(buildShellUrl(PREFIXED, "/threads/thr_1")).toBe(
-      "https://box.example.ts.net/bb/threads/thr_1",
+      "https://box.example.ts.net/kaioken/threads/thr_1",
     );
   });
 
@@ -49,7 +49,7 @@ describe("isShellNavigation", () => {
   });
 
   it("does not let a sibling path escape a prefixed mount", () => {
-    expect(isShellNavigation("https://box.example.ts.net/bb/x", PREFIXED)).toBe(
+    expect(isShellNavigation("https://box.example.ts.net/kaioken/x", PREFIXED)).toBe(
       true,
     );
     expect(
@@ -75,9 +75,9 @@ describe("shellPathFromUrl", () => {
     );
     expect(shellPathFromUrl("https://bee.getbb.app/", ROOT)).toBe("/");
     expect(
-      shellPathFromUrl("https://box.example.ts.net/bb/threads/x", PREFIXED),
+      shellPathFromUrl("https://box.example.ts.net/kaioken/threads/x", PREFIXED),
     ).toBe("/threads/x");
-    expect(shellPathFromUrl("https://box.example.ts.net/bb", PREFIXED)).toBe(
+    expect(shellPathFromUrl("https://box.example.ts.net/kaioken", PREFIXED)).toBe(
       "/",
     );
   });

@@ -1,10 +1,10 @@
 import { memo } from "react";
-import { OptionDisplay } from "@bb/shared-ui/option-display";
+import { OptionDisplay } from "@kaioken/shared-ui/option-display";
 import { copyToClipboardWithToast } from "@/lib/clipboard";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@bb/shared-ui/tooltip";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { CHROME_SUBTLE_ICON_BUTTON_FOREGROUND_CLASS } from "@bb/shared-ui/chrome-style-tokens";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@kaioken/shared-ui/tooltip";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { CHROME_SUBTLE_ICON_BUTTON_FOREGROUND_CLASS } from "@kaioken/shared-ui/chrome-style-tokens";
 import type { WorkspaceCheckoutDisplay } from "@/lib/workspace-checkout-display";
 
 const CHECKOUT_CHIP_BASE_CLASS_NAME =

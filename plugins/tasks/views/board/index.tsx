@@ -28,11 +28,11 @@ import {
 } from "./drop-position.js";
 import { PriorityIcon, StatusIcon } from "./icons.js";
 import { STATUS_LABELS } from "../list/lib.js";
-import { Button } from "@bb/shared-ui/button";
-import { DelayedLoading } from "@bb/shared-ui/delayed-loading";
-import { Icon } from "@bb/shared-ui/icon";
-import { Skeleton } from "@bb/shared-ui/skeleton";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { Button } from "@kaioken/shared-ui/button";
+import { DelayedLoading } from "@kaioken/shared-ui/delayed-loading";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 const DRAG_THRESHOLD_PX = 5;
 

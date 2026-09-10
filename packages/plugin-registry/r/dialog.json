@@ -3,18 +3,18 @@
   "name": "dialog",
   "type": "registry:ui",
   "title": "dialog",
-  "description": "BB ui \"dialog\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"dialog\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-dialog",
     "@radix-ui/react-slot"
   ],
   "registryDependencies": [
-    "@bb/icon",
-    "@bb/overlay-trigger",
-    "@bb/portal-scope",
-    "@bb/responsive-overlay",
-    "@bb/use-browser-dimming-modal",
-    "@bb/utils"
+    "@kaioken/icon",
+    "@kaioken/overlay-trigger",
+    "@kaioken/portal-scope",
+    "@kaioken/responsive-overlay",
+    "@kaioken/use-browser-dimming-modal",
+    "@kaioken/utils"
   ],
   "files": [
     {

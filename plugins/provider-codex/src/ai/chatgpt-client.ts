@@ -4,8 +4,8 @@ import type {
   ExperimentalAiServiceErrorCode,
   ExperimentalAiVoiceTranscribeInput,
   ExperimentalAiVoiceTranscribeOutput,
-} from "@get-bb/plugin-sdk/ai-services";
-import type { JsonValue } from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk/ai-services";
+import type { JsonValue } from "@get-kaioken/plugin-sdk";
 import { fetchChatGpt, isCloudflareChallenge } from "./chatgpt-fetch.js";
 import {
   parseJsonValue,
@@ -165,7 +165,7 @@ function createChatGptHeaders(auth: CodexChatGptAuthCredentials): Headers {
   headers.set("Authorization", `Bearer ${auth.accessToken}`);
   headers.set("chatgpt-account-id", auth.accountId);
   headers.set("originator", "bb");
-  headers.set("User-Agent", "bb-host-daemon");
+  headers.set("User-Agent", "kaioken-host-daemon");
   if (auth.isFedrampAccount) {
     headers.set("X-OpenAI-Fedramp", "true");
   }
@@ -175,7 +175,7 @@ function createChatGptHeaders(auth: CodexChatGptAuthCredentials): Headers {
 function createOpenAiHeaders(auth: CodexOpenAiApiKeyCredentials): Headers {
   const headers = new Headers();
   headers.set("Authorization", `Bearer ${auth.apiKey}`);
-  headers.set("User-Agent", "bb-host-daemon");
+  headers.set("User-Agent", "kaioken-host-daemon");
   return headers;
 }
 
@@ -428,8 +428,8 @@ function isHtmlResponse(response: Response): boolean {
 }
 
 const CODEX_API_KEY_ROUTE_HINT: Record<CodexRequestOperation, string> = {
-  inference: "BB_INFERENCE",
-  transcription: "BB_TRANSCRIPTION",
+  inference: "KAIOKEN_INFERENCE",
+  transcription: "KAIOKEN_TRANSCRIPTION",
 };
 
 async function createCodexHttpError({
@@ -442,7 +442,7 @@ async function createCodexHttpError({
     return new AiServiceFailure(
       "service_unavailable",
       "codex_service_unavailable",
-      `${prefix}: chatgpt.com answered with a Cloudflare challenge that bb cannot solve. Retry, or set ${CODEX_API_KEY_ROUTE_HINT[operation]} to an openai/ model with OPENAI_API_KEY.`,
+      `${prefix}: chatgpt.com answered with a Cloudflare challenge that kaioken cannot solve. Retry, or set ${CODEX_API_KEY_ROUTE_HINT[operation]} to an openai/ model with OPENAI_API_KEY.`,
     );
   }
   const providerMessage = isHtmlResponse(response)

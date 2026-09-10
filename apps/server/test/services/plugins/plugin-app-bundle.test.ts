@@ -7,8 +7,8 @@ import { join } from "node:path";
 import { promisify } from "node:util";
 import { brotliDecompressSync, gunzipSync } from "node:zlib";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { upsertInstalledPlugin } from "@bb/db";
-import { PLUGIN_SDK_MAJOR, PLUGIN_SDK_VERSION } from "@bb/domain";
+import { upsertInstalledPlugin } from "@kaioken/db";
+import { PLUGIN_SDK_MAJOR, PLUGIN_SDK_VERSION } from "@kaioken/domain";
 import {
   createTestAppHarness,
   type TestAppHarness,
@@ -106,9 +106,9 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
   });
 
   it("builds path installs at install time and serves hash-cached assets", async () => {
-    const rootDir = join(harness.config.dataDir, "fixtures", "bb-plugin-appy");
+    const rootDir = join(harness.config.dataDir, "fixtures", "kaioken-plugin-appy");
     await writeAppPluginFixture(rootDir, {
-      name: "bb-plugin-appy",
+      name: "kaioken-plugin-appy",
       appSource: COMPRESSIBLE_APP_SOURCE,
     });
 
@@ -184,7 +184,7 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
     const cssText = await css.text();
     expect(cssText).toContain("line-clamp-2");
     const scope =
-      ":where([data-bb-plugin=appy],[data-bb-plugin-root]:not([data-bb-plugin]))";
+      ":where([data-kaioken-plugin=appy],[data-kaioken-plugin-root]:not([data-kaioken-plugin]))";
     expect(cssText).toContain(`${scope} .line-clamp-2`);
     expect(cssText).toContain(`${scope}.line-clamp-2`);
     expect(cssText).not.toMatch(/@layer utilities\{\./);
@@ -222,10 +222,10 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
     const rootDir = join(
       harness.config.dataDir,
       "fixtures",
-      "bb-plugin-headless",
+      "kaioken-plugin-headless",
     );
     await writeAppPluginFixture(rootDir, {
-      name: "bb-plugin-headless",
+      name: "kaioken-plugin-headless",
       app: false,
     });
     const entry = await harness.pluginService.installPath(rootDir);
@@ -242,12 +242,12 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
     const rootDir = join(
       harness.config.dataDir,
       "fixtures",
-      "bb-plugin-typed-rpc",
+      "kaioken-plugin-typed-rpc",
     );
     await writeAppPluginFixture(rootDir, {
-      name: "bb-plugin-typed-rpc",
+      name: "kaioken-plugin-typed-rpc",
       serverSource: `
-        import { defineRpcContract } from "@get-bb/plugin-sdk";
+        import { defineRpcContract } from "@get-kaioken/plugin-sdk";
         import { z } from "zod";
         const BACKEND_ONLY_SENTINEL = "backend-contract-must-not-bundle";
         export const rpcContract = defineRpcContract({
@@ -262,7 +262,7 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
         }
       `,
       appSource: `
-        import { definePluginApp, useRpc } from "@get-bb/plugin-sdk/app";
+        import { definePluginApp, useRpc } from "@get-kaioken/plugin-sdk/app";
         import type { rpcContract } from "./server";
         function Panel() {
           const rpc = useRpc<typeof rpcContract>();
@@ -284,9 +284,9 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
   }, 60_000);
 
   it("fails the install when the frontend build fails", async () => {
-    const rootDir = join(harness.config.dataDir, "fixtures", "bb-plugin-bad");
+    const rootDir = join(harness.config.dataDir, "fixtures", "kaioken-plugin-bad");
     await writeAppPluginFixture(rootDir, {
-      name: "bb-plugin-bad",
+      name: "kaioken-plugin-bad",
       appSource: "export default function App( {\n",
     });
     await expect(
@@ -296,8 +296,8 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
   }, 60_000);
 
   it("rebuilds a path plugin at load when the recorded SDK version is stale", async () => {
-    const rootDir = join(harness.config.dataDir, "fixtures", "bb-plugin-aged");
-    await writeAppPluginFixture(rootDir, { name: "bb-plugin-aged" });
+    const rootDir = join(harness.config.dataDir, "fixtures", "kaioken-plugin-aged");
+    await writeAppPluginFixture(rootDir, { name: "kaioken-plugin-aged" });
     await harness.pluginService.installPath(rootDir);
 
     const metaPath = join(rootDir, "dist", "app.meta.json");
@@ -317,8 +317,8 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
   }, 120_000);
 
   it("keeps an npm plugin's backend running with compatible:false on a major mismatch (no rebuild)", async () => {
-    const rootDir = join(harness.config.dataDir, "fixtures", "bb-plugin-oldie");
-    await writeAppPluginFixture(rootDir, { name: "bb-plugin-oldie" });
+    const rootDir = join(harness.config.dataDir, "fixtures", "kaioken-plugin-oldie");
+    await writeAppPluginFixture(rootDir, { name: "kaioken-plugin-oldie" });
     const staleMajor = PLUGIN_SDK_MAJOR + 1;
     await mkdir(join(rootDir, "dist"), { recursive: true });
     await writeFile(join(rootDir, "dist", "app.js"), "export default {};\n");
@@ -327,9 +327,9 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
       JSON.stringify({ sdkMajor: staleMajor, sdkVersion: `${staleMajor}.0.0` }),
     );
     upsertInstalledPlugin(harness.db, {
-      ...npmPersistence("bb-plugin-oldie", "0.1.0"),
+      ...npmPersistence("kaioken-plugin-oldie", "0.1.0"),
       id: "oldie",
-      source: "npm:bb-plugin-oldie@0.1.0",
+      source: "npm:kaioken-plugin-oldie@0.1.0",
       rootDir,
       version: "0.1.0",
       enabled: true,
@@ -356,9 +356,9 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
     expect(js.status).toBe(200);
   });
 
-  it("refreshes the served bundle hash on reload-by-id after dist changes (bb plugin dev cycle)", async () => {
-    const rootDir = join(harness.config.dataDir, "fixtures", "bb-plugin-devy");
-    await writeAppPluginFixture(rootDir, { name: "bb-plugin-devy" });
+  it("refreshes the served bundle hash on reload-by-id after dist changes (kaioken plugin dev cycle)", async () => {
+    const rootDir = join(harness.config.dataDir, "fixtures", "kaioken-plugin-devy");
+    await writeAppPluginFixture(rootDir, { name: "kaioken-plugin-devy" });
     await mkdir(join(rootDir, "dist"), { recursive: true });
     await writeFile(join(rootDir, "dist", "app.js"), "export default 1;\n");
     await writeFile(
@@ -369,9 +369,9 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
       }),
     );
     upsertInstalledPlugin(harness.db, {
-      ...npmPersistence("bb-plugin-devy", "0.1.0"),
+      ...npmPersistence("kaioken-plugin-devy", "0.1.0"),
       id: "devy",
-      source: "npm:bb-plugin-devy@0.1.0",
+      source: "npm:kaioken-plugin-devy@0.1.0",
       rootDir,
       version: "0.1.0",
       enabled: true,
@@ -406,9 +406,9 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
     const rootDir = join(
       harness.config.dataDir,
       "fixtures",
-      "bb-plugin-brittle",
+      "kaioken-plugin-brittle",
     );
-    await writeAppPluginFixture(rootDir, { name: "bb-plugin-brittle" });
+    await writeAppPluginFixture(rootDir, { name: "kaioken-plugin-brittle" });
     await harness.pluginService.installPath(rootDir);
     const before = harness.pluginService
       .list()
@@ -438,8 +438,8 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
   }, 120_000);
 
   it("re-keys the bundle hash when only the meta changes (same js/css)", async () => {
-    const rootDir = join(harness.config.dataDir, "fixtures", "bb-plugin-meta");
-    await writeAppPluginFixture(rootDir, { name: "bb-plugin-meta" });
+    const rootDir = join(harness.config.dataDir, "fixtures", "kaioken-plugin-meta");
+    await writeAppPluginFixture(rootDir, { name: "kaioken-plugin-meta" });
     await mkdir(join(rootDir, "dist"), { recursive: true });
     await writeFile(join(rootDir, "dist", "app.js"), "export default 1;\n");
     await writeFile(
@@ -450,9 +450,9 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
       }),
     );
     upsertInstalledPlugin(harness.db, {
-      ...npmPersistence("bb-plugin-meta", "0.1.0"),
+      ...npmPersistence("kaioken-plugin-meta", "0.1.0"),
       id: "meta",
-      source: "npm:bb-plugin-meta@0.1.0",
+      source: "npm:kaioken-plugin-meta@0.1.0",
       rootDir,
       version: "0.1.0",
       enabled: true,
@@ -480,15 +480,15 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
     const rootDir = join(
       harness.config.dataDir,
       "fixtures",
-      "bb-plugin-malformed",
+      "kaioken-plugin-malformed",
     );
-    await writeAppPluginFixture(rootDir, { name: "bb-plugin-malformed" });
+    await writeAppPluginFixture(rootDir, { name: "kaioken-plugin-malformed" });
     await mkdir(join(rootDir, "dist"), { recursive: true });
     await writeFile(join(rootDir, "dist", "app.js"), "export default 1;\n");
     upsertInstalledPlugin(harness.db, {
-      ...npmPersistence("bb-plugin-malformed", "0.1.0"),
+      ...npmPersistence("kaioken-plugin-malformed", "0.1.0"),
       id: "malformed",
-      source: "npm:bb-plugin-malformed@0.1.0",
+      source: "npm:kaioken-plugin-malformed@0.1.0",
       rootDir,
       version: "0.1.0",
       enabled: true,
@@ -516,8 +516,8 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
   });
 
   it("stops serving assets when the plugin is disabled", async () => {
-    const rootDir = join(harness.config.dataDir, "fixtures", "bb-plugin-gated");
-    await writeAppPluginFixture(rootDir, { name: "bb-plugin-gated" });
+    const rootDir = join(harness.config.dataDir, "fixtures", "kaioken-plugin-gated");
+    await writeAppPluginFixture(rootDir, { name: "kaioken-plugin-gated" });
     await mkdir(join(rootDir, "dist"), { recursive: true });
     await writeFile(join(rootDir, "dist", "app.js"), "export default 1;\n");
     await writeFile(
@@ -528,9 +528,9 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
       }),
     );
     upsertInstalledPlugin(harness.db, {
-      ...npmPersistence("bb-plugin-gated", "0.1.0"),
+      ...npmPersistence("kaioken-plugin-gated", "0.1.0"),
       id: "gated",
-      source: "npm:bb-plugin-gated@0.1.0",
+      source: "npm:kaioken-plugin-gated@0.1.0",
       rootDir,
       version: "0.1.0",
       enabled: true,
@@ -551,12 +551,12 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
   });
 
   it("reports bundle:null when an npm plugin's dist is missing at load", async () => {
-    const rootDir = join(harness.config.dataDir, "fixtures", "bb-plugin-bare");
-    await writeAppPluginFixture(rootDir, { name: "bb-plugin-bare" });
+    const rootDir = join(harness.config.dataDir, "fixtures", "kaioken-plugin-bare");
+    await writeAppPluginFixture(rootDir, { name: "kaioken-plugin-bare" });
     upsertInstalledPlugin(harness.db, {
-      ...npmPersistence("bb-plugin-bare", "0.1.0"),
+      ...npmPersistence("kaioken-plugin-bare", "0.1.0"),
       id: "bare",
-      source: "npm:bb-plugin-bare@0.1.0",
+      source: "npm:kaioken-plugin-bare@0.1.0",
       rootDir,
       version: "0.1.0",
       enabled: true,
@@ -582,11 +582,11 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
         const workDir = join(harness.config.dataDir, "npm-work");
 
         const noDistDir = join(workDir, "no-dist");
-        await writeAppPluginFixture(noDistDir, { name: "bb-plugin-nodist" });
+        await writeAppPluginFixture(noDistDir, { name: "kaioken-plugin-nodist" });
 
         const prebuiltDir = join(workDir, "prebuilt");
         await writeAppPluginFixture(prebuiltDir, {
-          name: "bb-plugin-prebuilt",
+          name: "kaioken-plugin-prebuilt",
         });
         await mkdir(join(prebuiltDir, "dist"), { recursive: true });
         await writeFile(
@@ -603,7 +603,7 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
 
         const partialDir = join(workDir, "partial");
         await writeAppPluginFixture(partialDir, {
-          name: "bb-plugin-partial",
+          name: "kaioken-plugin-partial",
         });
         await mkdir(join(partialDir, "dist"), { recursive: true });
         await writeFile(
@@ -630,9 +630,9 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
         await mkdir(packDir, { recursive: true });
         const tarballs = new Map<string, Buffer>();
         for (const [name, dir] of [
-          ["bb-plugin-nodist", noDistDir],
-          ["bb-plugin-prebuilt", prebuiltDir],
-          ["bb-plugin-partial", partialDir],
+          ["kaioken-plugin-nodist", noDistDir],
+          ["kaioken-plugin-prebuilt", prebuiltDir],
+          ["kaioken-plugin-partial", partialDir],
         ] as const) {
           await run("npm", ["pack", "--pack-destination", packDir], {
             cwd: dir,
@@ -695,7 +695,7 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
         process.env.npm_config_cache = join(workDir, "npm-cache");
         try {
           await expect(
-            harness.pluginService.install("npm:bb-plugin-nodist@0.1.0", {
+            harness.pluginService.install("npm:kaioken-plugin-nodist@0.1.0", {
               kind: "root",
             }),
           ).rejects.toThrowError(/must publish a prebuilt bundle/);
@@ -704,12 +704,12 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
             harness.config.dataDir,
             "plugins",
             "npm",
-            "bb-plugin-nodist@0.1.0",
+            "kaioken-plugin-nodist@0.1.0",
           );
           await expect(stat(prefix)).rejects.toThrowError();
 
           await expect(
-            harness.pluginService.install("npm:bb-plugin-partial@0.1.0", {
+            harness.pluginService.install("npm:kaioken-plugin-partial@0.1.0", {
               kind: "root",
             }),
           ).rejects.toThrowError(
@@ -719,14 +719,14 @@ describe("plugin app bundles (build policy, inventory, asset routes)", () => {
             harness.config.dataDir,
             "plugins",
             "npm",
-            "bb-plugin-partial@0.1.0",
+            "kaioken-plugin-partial@0.1.0",
           );
           await expect(stat(partialPrefix)).rejects.toThrowError();
           await expect(stat(`${partialPrefix}.staging`)).rejects.toThrowError();
           expect(harness.pluginService.list()).toHaveLength(0);
 
           const entry = await harness.pluginService.install(
-            "npm:bb-plugin-prebuilt@0.1.0",
+            "npm:kaioken-plugin-prebuilt@0.1.0",
             { kind: "root" },
           );
           expect(entry.status).toBe("running");

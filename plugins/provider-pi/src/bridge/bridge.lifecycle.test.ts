@@ -22,7 +22,7 @@ let harness: FakePiBridgeHarness;
 
 beforeEach(async () => {
   harness = await startFakePiBridge({
-    prefix: "bb-pi-lifecycle-",
+    prefix: "kaioken-pi-lifecycle-",
     initialize: true,
     processLog: true,
   });
@@ -68,7 +68,7 @@ async function startThread(threadId: string): Promise<void> {
     dynamicTools: [
       {
         name: "bb_probe",
-        description: "A bb tool.",
+        description: "A kaioken tool.",
         inputSchema: {
           type: "object",
           properties: { value: { type: "string" } },
@@ -205,7 +205,7 @@ it("the fork helper child exits once the fork is done", async () => {
 
 function scratchFiles(): string[] {
   return readdirSync(experimental_scratchDirForTests())
-    .filter((name) => name !== "bb-pi-extension.mjs")
+    .filter((name) => name !== "kaioken-pi-extension.mjs")
     .sort();
 }
 
@@ -250,7 +250,7 @@ it("a child's tool and prompt files go with the child after release and failed c
     dynamicTools: [
       {
         name: "bb_probe",
-        description: "A bb tool.",
+        description: "A kaioken tool.",
         inputSchema: { type: "object" },
       },
     ],

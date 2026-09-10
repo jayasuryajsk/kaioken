@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import type { ThreadTimelinePendingTodos } from "@bb/domain";
+import type { ThreadTimelinePendingTodos } from "@kaioken/domain";
 import { action } from "../action.js";
 import {
   resolveContextSnapshot,
@@ -189,13 +189,13 @@ export function registerStatusCommand(
         if (attention.length > 0) {
           console.log("");
           console.log(
-            `${attention.length} plugin${attention.length === 1 ? "" : "s"} not running (${attention.map((p) => `${p.id}: ${p.status}`).join(", ")}). Run bb plugin list.`,
+            `${attention.length} plugin${attention.length === 1 ? "" : "s"} not running (${attention.map((p) => `${p.id}: ${p.status}`).join(", ")}). Run kaioken plugin list.`,
           );
         }
 
         if (!context.projectId && !context.threadId) {
           console.log("");
-          console.log("Tip: run bb guide for help getting started.");
+          console.log("Tip: run kaioken guide for help getting started.");
         }
       }),
     );

@@ -24,10 +24,10 @@ describe("connect return-to URLs", () => {
   it("accepts local Cloud handles under the shared cookie domain", () => {
     expect(
       connectReturnTo(
-        "http://sawyer.bb.localhost:42745/threads/thr_1",
-        "http://bb.localhost:42745",
+        "http://sawyer.kaioken.localhost:42745/threads/thr_1",
+        "http://kaioken.localhost:42745",
       ),
-    ).toBe("http://sawyer.bb.localhost:42745/threads/thr_1");
+    ).toBe("http://sawyer.kaioken.localhost:42745/threads/thr_1");
   });
 
   it("rejects nested subdomains and off-domain return targets", () => {

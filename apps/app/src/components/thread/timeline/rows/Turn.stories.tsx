@@ -1,4 +1,4 @@
-import type { TimelineRow, TimelineTurnRow } from "@bb/server-contract";
+import type { TimelineRow, TimelineTurnRow } from "@kaioken/server-contract";
 import { ThreadTimelineRows } from "@/components/thread/timeline";
 import {
   commandRow,
@@ -50,7 +50,7 @@ const commandSedAssistantStream: TimelineRow = commandRow({
   callId: "call_YrdwFQNVKDsaBvwc98oQ9qP4",
   command:
     "/bin/zsh -lc \"sed -n '1,260p' packages/core-ui/src/assistant-stream-projection.ts\"",
-  cwd: "/Users/michael/.bb-dev/worktrees/env_33i22gvcqe/bb",
+  cwd: "/Users/michael/.kaioken-dev/worktrees/env_33i22gvcqe/kaioken",
   source: null,
   output: "",
   exitCode: 0,
@@ -78,7 +78,7 @@ const commandSedTimelineHelpers: TimelineRow = commandRow({
   callId: "call_XF7ZEgp9XUvdErfdDi9zKDX6",
   command:
     "/bin/zsh -lc \"sed -n '1,200p' packages/core-ui/src/timeline-message-helpers.ts\"",
-  cwd: "/Users/michael/.bb-dev/worktrees/env_33i22gvcqe/bb",
+  cwd: "/Users/michael/.kaioken-dev/worktrees/env_33i22gvcqe/kaioken",
   source: null,
   output: "",
   exitCode: 0,
@@ -106,7 +106,7 @@ const commandSedVisibleText: TimelineRow = commandRow({
   callId: "call_AcUMKIrd6rllJWdPYubsSTjL",
   command:
     "/bin/zsh -lc \"sed -n '1,220p' packages/core-ui/src/visible-text-buffer.ts\"",
-  cwd: "/Users/michael/.bb-dev/worktrees/env_33i22gvcqe/bb",
+  cwd: "/Users/michael/.kaioken-dev/worktrees/env_33i22gvcqe/kaioken",
   source: null,
   output: "",
   exitCode: 0,
@@ -146,7 +146,7 @@ const fileChangeAssistantStream: TimelineRow = fileChangeRow({
   status: "completed",
   callId: "call_fjGvl1fFJU7cAcw46FcSnbjJ",
   change: {
-    path: "/Users/michael/.bb-dev/worktrees/env_33i22gvcqe/bb/packages/core-ui/src/assistant-stream-projection.ts",
+    path: "/Users/michael/.kaioken-dev/worktrees/env_33i22gvcqe/kaioken/packages/core-ui/src/assistant-stream-projection.ts",
     kind: "update",
     movePath: null,
     diff: `@@ -24,3 +24,3 @@
@@ -177,7 +177,7 @@ const fileChangeIndex: TimelineRow = fileChangeRow({
   status: "completed",
   callId: "call_BXK77XTyviYmWUVNOpPG5nwJ",
   change: {
-    path: "/Users/michael/.bb-dev/worktrees/env_33i22gvcqe/bb/packages/core-ui/src/index.ts",
+    path: "/Users/michael/.kaioken-dev/worktrees/env_33i22gvcqe/kaioken/packages/core-ui/src/index.ts",
     kind: "update",
     movePath: null,
     diff: `@@ -110,3 +110,2 @@
@@ -211,7 +211,7 @@ const fileChangeTimelineService: TimelineRow = fileChangeRow({
   status: "completed",
   callId: "call_v3QQJnCbGh2ErXIJdCf4hX4N",
   change: {
-    path: "/Users/michael/.bb-dev/worktrees/env_33i22gvcqe/bb/apps/server/src/services/threads/timeline.ts",
+    path: "/Users/michael/.kaioken-dev/worktrees/env_33i22gvcqe/kaioken/apps/server/src/services/threads/timeline.ts",
     kind: "update",
     movePath: null,
     diff: `@@ -6,2 +6,3 @@
@@ -258,7 +258,7 @@ const fileChangeActiveThinkingDelete: TimelineRow = fileChangeRow({
   status: "completed",
   callId: "call_1JWzaNZyTpVIrB8reX73YYUN",
   change: {
-    path: "/Users/michael/.bb-dev/worktrees/env_33i22gvcqe/bb/packages/core-ui/src/active-thinking.ts",
+    path: "/Users/michael/.kaioken-dev/worktrees/env_33i22gvcqe/kaioken/packages/core-ui/src/active-thinking.ts",
     kind: "delete",
     movePath: null,
     diff: null,
@@ -280,7 +280,7 @@ const fileChangeToViewMessages: TimelineRow = fileChangeRow({
   status: "completed",
   callId: "call_3qZxJB5I3kVdSM4pPiBCTm92",
   change: {
-    path: "/Users/michael/.bb-dev/worktrees/env_33i22gvcqe/bb/packages/core-ui/src/to-view-messages.ts",
+    path: "/Users/michael/.kaioken-dev/worktrees/env_33i22gvcqe/kaioken/packages/core-ui/src/to-view-messages.ts",
     kind: "update",
     movePath: null,
     diff: `@@ -497,2 +497,12 @@

@@ -9,7 +9,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import { createFakePluginHost } from "@get-kaioken/plugin-sdk/testing";
 import plugin from "./server";
 
 let binDir: string;
@@ -22,7 +22,7 @@ function ghCalls(): string[] {
 }
 
 beforeEach(() => {
-  binDir = mkdtempSync(join(tmpdir(), "bb-github-rpc-"));
+  binDir = mkdtempSync(join(tmpdir(), "kaioken-github-rpc-"));
   callLog = join(binDir, "gh-calls.log");
   const openIssue = JSON.stringify([
     {

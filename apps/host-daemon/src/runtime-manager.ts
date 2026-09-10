@@ -7,31 +7,31 @@ import {
   type AgentRuntimeSkillRoot,
   type AgentRuntimeProcessExitInfo,
   type ReapedIdleProviderSession,
-} from "@bb/agent-runtime";
-import type { Logger } from "@bb/logger";
+} from "@kaioken/agent-runtime";
+import type { Logger } from "@kaioken/logger";
 import type {
   PendingInteractionCreate,
   PendingInteractionResolution,
   ThreadEvent,
-} from "@bb/domain";
-import { threadScope, turnScope } from "@bb/domain";
+} from "@kaioken/domain";
+import { threadScope, turnScope } from "@kaioken/domain";
 import type {
   HostDaemonActiveThread,
   HostDaemonEnvironmentChange,
   HostDaemonLoadedEnvironment,
   HostDaemonInjectedSkillSource,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import type {
   DataDirSkillsWatchError,
   HostWatcher,
   InjectedSkillsObservedChange,
-} from "@bb/host-watcher";
+} from "@kaioken/host-watcher";
 import {
   provisionWorkspace,
   WorkspaceError,
   type HostWorkspace,
   type ProvisionWorkspaceArgs,
-} from "@bb/host-workspace";
+} from "@kaioken/host-workspace";
 import {
   cleanupInjectedSkillStagingDirs,
   EMPTY_SKILL_CATALOG_HASH,
@@ -248,9 +248,9 @@ function providerProcessEnvFromShellEnv(
   if (shellEnv.PATH) {
     env.PATH = shellEnv.PATH;
   }
-  const recordDir = process.env.BB_PROVIDER_BRIDGE_RECORD_DIR;
+  const recordDir = process.env.KAIOKEN_PROVIDER_BRIDGE_RECORD_DIR;
   if (recordDir) {
-    env.BB_PROVIDER_BRIDGE_RECORD_DIR = recordDir;
+    env.KAIOKEN_PROVIDER_BRIDGE_RECORD_DIR = recordDir;
   }
   return Object.keys(env).length > 0 ? env : null;
 }

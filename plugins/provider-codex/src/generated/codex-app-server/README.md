@@ -46,15 +46,15 @@ imports to `.js` specifiers, delete everything not reachable from the
 importers listed above (and the barrels), then verify:
 
 ```bash
-pnpm exec turbo run typecheck --filter=bb-plugin-provider-codex
+pnpm exec turbo run typecheck --filter=kaioken-plugin-provider-codex
 ```
 
 TypeScript reports any over-deletion as a missing-module error; a green
-typecheck plus `pnpm exec turbo run test --filter=bb-plugin-provider-codex` confirms
+typecheck plus `pnpm exec turbo run test --filter=kaioken-plugin-provider-codex` confirms
 the kept subset is complete. Keep it pruned to avoid re-vendoring dead types.
 
 ## Source of truth
 
 - `schema/*.ts`: generated from Codex app-server, pruned to the reachable subset (see above).
 - `index.ts` / barrels: intentionally **not** committed; the adapter imports concrete `schema/**` files directly.
-- `plugins/provider-codex/src/event-translation.ts`: translates Codex app-server events into bb thread events.
+- `plugins/provider-codex/src/event-translation.ts`: translates Codex app-server events into kaioken thread events.

@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import {
   definePluginApp,
   type PluginPendingInteractionProps,
-} from "@get-bb/plugin-sdk/app";
-import { Button } from "@bb/shared-ui/button";
-import { Input } from "@bb/shared-ui/input";
-import { Label } from "@bb/shared-ui/label";
+} from "@get-kaioken/plugin-sdk/app";
+import { Button } from "@kaioken/shared-ui/button";
+import { Input } from "@kaioken/shared-ui/input";
+import { Label } from "@kaioken/shared-ui/label";
 import {
   DashedLineCircleIcon,
   ViewIcon,
@@ -16,7 +16,7 @@ import {
   SECRET_REQUEST_RENDERER_ID,
   secretRequestPayloadSchema,
   secretRequestResponseSchema,
-} from "@bb/plugin-interaction-contracts";
+} from "@kaioken/plugin-interaction-contracts";
 import { reconcileDotenv } from "./src/dotenv.js";
 
 function SecretRequestInteraction({

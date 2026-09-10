@@ -2,9 +2,9 @@ import { useMemo, useState } from "react";
 import {
   definePluginApp,
   type PluginPendingInteractionProps,
-} from "@get-bb/plugin-sdk/app";
-import { Button } from "@bb/shared-ui/button";
-import { QuestionForm } from "@bb/shared-ui/question-form";
+} from "@get-kaioken/plugin-sdk/app";
+import { Button } from "@kaioken/shared-ui/button";
+import { QuestionForm } from "@kaioken/shared-ui/question-form";
 import {
   ASK_USER_QUESTION_RENDERER_ID,
   interactionPayloadSchema,

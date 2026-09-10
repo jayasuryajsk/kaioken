@@ -1,6 +1,6 @@
-import { connectCredentialSchema } from "@bb/connect-client";
-import type { ConnectCredential } from "@bb/connect-client";
-import type { PluginKvStorage } from "@get-bb/plugin-sdk";
+import { connectCredentialSchema } from "@kaioken/connect-client";
+import type { ConnectCredential } from "@kaioken/connect-client";
+import type { PluginKvStorage } from "@get-kaioken/plugin-sdk";
 
 export const CREDENTIAL_KV_KEY = "credential";
 

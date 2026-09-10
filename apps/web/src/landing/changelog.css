@@ -1,4 +1,4 @@
-/* bb changelog — loads alongside landing.css and reuses its tokens (--ink,
+/* kaioken changelog — loads alongside landing.css and reuses its tokens (--ink,
    --border-soft, …) plus the hero mock's sidebar classes (.side-label, .trow,
    .thread-kids, .tstatus, .trun) for the release visuals. Layout follows the
    Cursor-changelog shape: a sticky version rail beside each release body. */

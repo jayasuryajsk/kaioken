@@ -1,7 +1,7 @@
 import { useInsertionEffect } from "react";
 
-const CSS_MARKER = "data-bb-plugin-css";
-const CSS_PRELOAD_MARKER = "data-bb-plugin-css-preload";
+const CSS_MARKER = "data-kaioken-plugin-css";
+const CSS_PRELOAD_MARKER = "data-kaioken-plugin-css-preload";
 const CSS_RELEASE_GRACE_MS = 1_500;
 
 interface PluginCssRecord {
@@ -43,7 +43,7 @@ function removeLink(link: HTMLLinkElement | null): void {
 }
 
 function warnLoadFailure(pluginId: string, url: string): void {
-  console.warn(`bb plugin "${pluginId}": failed to load stylesheet ${url}`);
+  console.warn(`kaioken plugin "${pluginId}": failed to load stylesheet ${url}`);
 }
 
 function startPreload(

@@ -22,12 +22,12 @@ describe("applyAcpAgentProbe", () => {
     expect(applied?.reason).toContain("does not advertise session/fork");
   });
 
-  it("changes nothing when the agent answers what bb declared", () => {
+  it("changes nothing when the agent answers what kaioken declared", () => {
     expect(applyAcpAgentProbe(agent("tip"), reachable(true))).toBeNull();
     expect(applyAcpAgentProbe(agent("none"), reachable(false))).toBeNull();
   });
 
-  it("does not offer a fork bb never declared", () => {
+  it("does not offer a fork kaioken never declared", () => {
     expect(applyAcpAgentProbe(agent("none"), reachable(true))).toBeNull();
     expect(applyAcpAgentProbe(agent(), reachable(true))).toBeNull();
   });

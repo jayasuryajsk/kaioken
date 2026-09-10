@@ -1,9 +1,9 @@
-import type { ThreadListEntry } from "@bb/domain";
+import type { ThreadListEntry } from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import {
   buildSectionThreadList,
   CHRONOLOGICAL_CONTAINER_ID,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   collectSectionThreadDndLookup,
   PINNED_THREAD_PARENT_KEY,
@@ -12,7 +12,7 @@ import {
   resolveSectionThreadSectionOverId,
   resolveProjectedSectionThreadDropTarget,
 } from "./useSectionThreadDnd";
-import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
+import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 
 function createThread(overrides: Partial<ThreadListEntry>): ThreadListEntry {
   return makeThreadListEntry({

@@ -19,17 +19,17 @@ const TOGGLE_DEVELOPER_TOOLS_ACCELERATOR = "Command+Option+I";
 const RELOAD_ACCELERATOR = "CommandOrControl+R";
 const FORCE_RELOAD_ACCELERATOR = "CommandOrControl+Shift+R";
 const SERVER_MENU_LABEL = "Server";
-const SERVER_MENU_ITEM_ID = "bb-server-menu";
+const SERVER_MENU_ITEM_ID = "kaioken-server-menu";
 export const SET_SERVER_URL_MENU_LABEL = "Set Server URL…";
 export const CONNECT_SERVERS_SKIPPED_MENU_LABELS: Record<
   ConnectServerSyncSkipReason,
   string
 > = {
-  "no-credential": "No Connect servers — sign in to bb Connect",
+  "no-credential": "No Connect servers — sign in to kaioken Connect",
   "not-paired": "No Connect servers — Connect not paired on This Mac",
   "plugin-disabled": "No Connect servers — Connect plugin disabled",
-  unauthorized: "No Connect servers — sign in to bb Connect again",
-  unavailable: "No Connect servers — could not reach bb Connect",
+  unauthorized: "No Connect servers — sign in to kaioken Connect again",
+  unavailable: "No Connect servers — could not reach kaioken Connect",
 };
 
 interface ApplicationMenuServerItem {

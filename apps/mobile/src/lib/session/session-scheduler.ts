@@ -2,7 +2,7 @@ import {
   fetchDesktopSession,
   type ConnectCredential,
   type DesktopSession,
-} from "@bb/connect-client";
+} from "@kaioken/connect-client";
 import type { ConnectServerProfile } from "../profiles/profile";
 import { mapAuthError } from "./auth-error";
 import { installSessionCookie, type CookieStoreLike } from "./cookie-store";

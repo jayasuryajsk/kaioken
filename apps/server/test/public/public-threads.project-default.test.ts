@@ -1,9 +1,9 @@
-import { getThread } from "@bb/db";
+import { getThread } from "@kaioken/db";
 import {
   PERSONAL_PROJECT_ID,
   threadSchema,
   type GitSourceInspection,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { describe, expect, it, vi } from "vitest";
 import { resolveProjectDefaultThreadEnvironment } from "../../src/services/threads/thread-default-policy.js";
 import { getActiveThreadProvisionContext } from "../../src/services/threads/thread-provisioning-active-context.js";

@@ -7,12 +7,12 @@ import type {
   DefaultBranchRelation,
   GitCheckoutRef,
   WorkspaceGitOperation,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   killProcessGroup,
   sanitizeInheritedChildProcessEnv,
   supportsProcessGroups,
-} from "@bb/process-utils";
+} from "@kaioken/process-utils";
 
 const execFileAsync = promisify(execFile);
 const DEFAULT_BUFFER_BYTES = 16 * 1024 * 1024;

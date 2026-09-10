@@ -3,9 +3,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createConnection, migrate, type DbConnection } from "@bb/db";
-import { encodeClientTurnRequestIdNumber } from "@bb/domain";
-import type { Logger } from "@bb/logger";
+import { createConnection, migrate, type DbConnection } from "@kaioken/db";
+import { encodeClientTurnRequestIdNumber } from "@kaioken/domain";
+import type { Logger } from "@kaioken/logger";
 import { RESERVED_AGENT_TOOL_NAMES } from "../../../src/services/plugins/plugin-api.js";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import {
@@ -68,7 +68,7 @@ describe("bb.agents.registerTool", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-tools-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-tools-test-"));
     service = createPluginService({
       aiServices: createAiServiceRegistry(),
       telemetry: createNoopTelemetryService(),
@@ -92,7 +92,7 @@ describe("bb.agents.registerTool", () => {
 
   it("rejects duplicate tool names within one factory execution", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-replacer",
+      name: "kaioken-plugin-replacer",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.registerTool({
@@ -121,7 +121,7 @@ describe("bb.agents.registerTool", () => {
 
   it("rejects duplicate configure registrations within one factory execution", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-double-configure",
+      name: "kaioken-plugin-double-configure",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.configure(() => ({ tools: [], skills: [] }));
@@ -138,7 +138,7 @@ describe("bb.agents.registerTool", () => {
 
   it("two tools from different plugins dispatch by name (design §9 regression)", async () => {
     const a = await writePlugin(workDir, {
-      name: "bb-plugin-tool-a",
+      name: "kaioken-plugin-tool-a",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.registerTool({
@@ -151,7 +151,7 @@ describe("bb.agents.registerTool", () => {
       `,
     });
     const b = await writePlugin(workDir, {
-      name: "bb-plugin-tool-b",
+      name: "kaioken-plugin-tool-b",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.registerTool({
@@ -197,7 +197,7 @@ describe("bb.agents.registerTool", () => {
 
   it("zod parameters: converted to JSON schema, validated per call, bad input is not a plugin error", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-zodded",
+      name: "kaioken-plugin-zodded",
       serverSource: "export default function plugin() {}",
     });
     await service.installPath(rootDir);
@@ -273,7 +273,7 @@ describe("bb.agents.registerTool", () => {
 
   it("uses a foreign zod schema's own JSON Schema converter", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-foreign-zod",
+      name: "kaioken-plugin-foreign-zod",
       serverSource: "export default function plugin() {}",
     });
     await service.installPath(rootDir);
@@ -310,7 +310,7 @@ describe("bb.agents.registerTool", () => {
 
   it("rejects recursive tool schemas before they reach a provider", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-schema-refs",
+      name: "kaioken-plugin-schema-refs",
       serverSource: "export default function plugin() {}",
     });
     await service.installPath(rootDir);
@@ -363,7 +363,7 @@ describe("bb.agents.registerTool", () => {
 
   it("resolves one full row presentation per injected tool", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-presented-tools",
+      name: "kaioken-plugin-presented-tools",
       serverSource: "export default function plugin() {}",
     });
     await service.installPath(rootDir);
@@ -417,7 +417,7 @@ describe("bb.agents.registerTool", () => {
 
   it("cross-plugin name collision drops the later registration with a status detail", async () => {
     const first = await writePlugin(workDir, {
-      name: "bb-plugin-collide-a",
+      name: "kaioken-plugin-collide-a",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.registerTool({
@@ -430,7 +430,7 @@ describe("bb.agents.registerTool", () => {
       `,
     });
     const second = await writePlugin(workDir, {
-      name: "bb-plugin-collide-b",
+      name: "kaioken-plugin-collide-b",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.registerTool({
@@ -466,7 +466,7 @@ describe("bb.agents.registerTool", () => {
 
   it("fails a plugin's load when its environment provider id is already registered", async () => {
     const first = await writePlugin(workDir, {
-      name: "bb-plugin-env-a",
+      name: "kaioken-plugin-env-a",
       serverSource: `
         export default function plugin(bb: any) {
           bb.experimental_environments.register({
@@ -478,7 +478,7 @@ describe("bb.agents.registerTool", () => {
       `,
     });
     const second = await writePlugin(workDir, {
-      name: "bb-plugin-env-b",
+      name: "kaioken-plugin-env-b",
       serverSource: `
         export default function plugin(bb: any) {
           bb.experimental_environments.register({
@@ -503,7 +503,7 @@ describe("bb.agents.registerTool", () => {
       UPDATE_ENVIRONMENT_DIRECTORY_TOOL_NAME,
     );
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-shadower",
+      name: "kaioken-plugin-shadower",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.registerTool({
@@ -517,7 +517,7 @@ describe("bb.agents.registerTool", () => {
     });
     const entry = await service.installPath(rootDir);
     expect(entry.status).toBe("error");
-    expect(entry.statusDetail).toContain("built-in bb tool");
+    expect(entry.statusDetail).toContain("built-in kaioken tool");
     expect(service.listAgentTools()).toEqual([]);
   });
 
@@ -538,7 +538,7 @@ describe("bb.agents.registerTool", () => {
     "rejects a registration built against SDK <0.4.16 that carries %s",
     async (field, message) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-stale-field",
+        name: "kaioken-plugin-stale-field",
         serverSource: `
         export default function plugin(bb: any) {
           bb.agents.registerTool({
@@ -567,7 +567,7 @@ describe("bb.agents.experimental_registerProvider (removed in SDK 0.4.16)", () =
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-old-provider-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-old-provider-test-"));
     service = createPluginService({
       aiServices: createAiServiceRegistry(),
       telemetry: createNoopTelemetryService(),
@@ -594,7 +594,7 @@ describe("bb.agents.experimental_registerProvider (removed in SDK 0.4.16)", () =
 
   it("fails the plugin at factory time with a message naming the replacement", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-old-provider",
+      name: "kaioken-plugin-old-provider",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.experimental_registerProvider({ id: "old" });
@@ -608,7 +608,7 @@ describe("bb.agents.experimental_registerProvider (removed in SDK 0.4.16)", () =
 
   it("is invisible to enumeration and leaves the rest of bb.agents working", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-current-agents",
+      name: "kaioken-plugin-current-agents",
       serverSource: "export default function plugin() {}",
     });
     await service.installPath(rootDir);
@@ -646,7 +646,7 @@ describe("bb.agents.contributeInstructions", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-instr-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-instr-test-"));
     service = createPluginService({
       aiServices: createAiServiceRegistry(),
       telemetry: createNoopTelemetryService(),
@@ -670,7 +670,7 @@ describe("bb.agents.contributeInstructions", () => {
 
   it("rejects duplicate instruction providers within one factory execution", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-advisor",
+      name: "kaioken-plugin-advisor",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.contributeInstructions(() => "first");
@@ -688,7 +688,7 @@ describe("bb.agents.contributeInstructions", () => {
 
   it("two plugins each contribute one provider, ordered by plugin id", async () => {
     const zebra = await writePlugin(workDir, {
-      name: "bb-plugin-zebra",
+      name: "kaioken-plugin-zebra",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.contributeInstructions(() => "from zebra");
@@ -696,7 +696,7 @@ describe("bb.agents.contributeInstructions", () => {
       `,
     });
     const alpha = await writePlugin(workDir, {
-      name: "bb-plugin-alpha",
+      name: "kaioken-plugin-alpha",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.contributeInstructions(() => "from alpha");
@@ -715,7 +715,7 @@ describe("bb.agents.contributeInstructions", () => {
 
   it("reload without contributeInstructions clears the previous provider", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-transient",
+      name: "kaioken-plugin-transient",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.contributeInstructions(() => "present");
@@ -740,7 +740,7 @@ describe("plugin tools reach thread runtime config", () => {
 
   beforeEach(async () => {
     harness = await createTestAppHarness();
-    pluginsDir = await mkdtemp(join(tmpdir(), "bb-plugin-tools-runtime-"));
+    pluginsDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-tools-runtime-"));
   });
 
   afterEach(async () => {
@@ -751,7 +751,7 @@ describe("plugin tools reach thread runtime config", () => {
 
   it("thread.start dynamicTools include plugin tools with per-tool instructions", async () => {
     const rootDir = await writePlugin(pluginsDir, {
-      name: "bb-plugin-tooldemo",
+      name: "kaioken-plugin-tooldemo",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.registerTool({
@@ -819,7 +819,7 @@ describe("plugin tools reach thread runtime config", () => {
     ).toMatchObject({ type: "object" });
     expect(command.instructions).toContain("update_environment_directory");
     expect(command.instructions).toContain(
-      'The following instructions come from the BB plugin "tooldemo" for its tool "demo_lookup":',
+      'The following instructions come from the Kaioken plugin "tooldemo" for its tool "demo_lookup":',
     );
     expect(command.instructions).toContain(
       "Call demo_lookup before guessing demo data.",
@@ -829,7 +829,7 @@ describe("plugin tools reach thread runtime config", () => {
 
   it("resolves different conditional tools, skills, instructions, and context without rebuilding static registrations", async () => {
     const rootDir = await writePlugin(pluginsDir, {
-      name: "bb-plugin-conditional",
+      name: "kaioken-plugin-conditional",
       serverSource: `
         globalThis.__bbConditionalFactoryCount =
           (globalThis.__bbConditionalFactoryCount ?? 0) + 1;
@@ -887,7 +887,7 @@ describe("plugin tools reach thread runtime config", () => {
       );
     }
     const brokenRoot = await writePlugin(pluginsDir, {
-      name: "bb-plugin-broken-conditional",
+      name: "kaioken-plugin-broken-conditional",
       serverSource: `
         export default function plugin(bb: any) {
           bb.agents.registerTool({
@@ -1077,7 +1077,7 @@ describe("plugin tools reach thread runtime config", () => {
       sideCommand.injectedSkillSources.map((skill) => skill.name),
     ).not.toContain("beta-skill");
     expect(sideCommand.instructions).toContain(
-      'The following dynamic instructions come from the BB plugin "conditional":',
+      'The following dynamic instructions come from the Kaioken plugin "conditional":',
     );
     expect(
       harness.pluginService.list().find((plugin) => plugin.id === "conditional")
@@ -1117,10 +1117,10 @@ describe("plugin tools reach thread runtime config", () => {
 describe("internal tool-call dispatch to plugin tools", () => {
   it("dispatches by name to plugin tools and keeps update_environment_directory working", async () => {
     await withTestHarness(async (harness) => {
-      const pluginsDir = await mkdtemp(join(tmpdir(), "bb-plugin-tools-wire-"));
+      const pluginsDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-tools-wire-"));
       try {
         const rootDir = await writePlugin(pluginsDir, {
-          name: "bb-plugin-wired",
+          name: "kaioken-plugin-wired",
           serverSource: `
             export default function plugin(bb: any) {
               bb.agents.registerTool({

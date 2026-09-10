@@ -92,7 +92,7 @@ interface Fixture {
 }
 
 async function writeFixture(budget: unknown): Promise<Fixture> {
-  const root = await mkdtemp(resolve(tmpdir(), "bb-bundle-budget-test-"));
+  const root = await mkdtemp(resolve(tmpdir(), "kaioken-bundle-budget-test-"));
   const distDir = resolve(root, "dist");
   await mkdir(resolve(distDir, "assets"), { recursive: true });
   const stats = computeBundleStats(

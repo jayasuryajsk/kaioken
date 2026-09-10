@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   orderCommandSuggestions,
   type ComposerCommandSuggestion,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 function skill(
   name: string,

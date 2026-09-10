@@ -5,10 +5,10 @@ import type {
   UpdateInfo,
 } from "electron-updater";
 import type {
-  BbDesktopInfo,
-  BbDesktopInfoChangeHandler,
-  BbDesktopInfoUnsubscribe,
-} from "@bb/desktop-contract";
+  KaiokenDesktopInfo,
+  KaiokenDesktopInfoChangeHandler,
+  KaiokenDesktopInfoUnsubscribe,
+} from "@kaioken/desktop-contract";
 import {
   DESKTOP_UPDATE_ACTIVE_MIN_INTERVAL_MS,
   DESKTOP_UPDATE_CHECK_INTERVAL_MS,
@@ -61,7 +61,7 @@ interface CreateDesktopAutoUpdateServiceArgs {
   forceDevUpdateConfig: boolean;
   logger?: DesktopAutoUpdateLogger;
   now?: () => number;
-  platform: BbDesktopInfo["platform"];
+  platform: KaiokenDesktopInfo["platform"];
   updater: DesktopAutoUpdaterAdapter;
 }
 
@@ -93,8 +93,8 @@ export interface DesktopAutoUpdateService extends DesktopUpdateService {
 
 function createBaseInfo(
   currentVersion: string,
-  platform: BbDesktopInfo["platform"],
-): BbDesktopInfo {
+  platform: KaiokenDesktopInfo["platform"],
+): KaiokenDesktopInfo {
   return {
     downloadState: "idle",
     lastCheckedAt: null,
@@ -128,8 +128,8 @@ function createDefaultLogger(): DesktopAutoUpdateLogger {
 }
 
 function areDesktopInfoValuesEqual(
-  left: BbDesktopInfo,
-  right: BbDesktopInfo,
+  left: KaiokenDesktopInfo,
+  right: KaiokenDesktopInfo,
 ): boolean {
   return (
     left.lastCheckedAt === right.lastCheckedAt &&
@@ -150,7 +150,7 @@ function formatCheckedAt(now: () => number): string {
 export function shouldEnableDesktopAutoUpdate(
   args: ShouldEnableDesktopAutoUpdateArgs,
 ): boolean {
-  return args.isPackaged || args.env.BB_DESKTOP_AUTO_UPDATE === "1";
+  return args.isPackaged || args.env.KAIOKEN_DESKTOP_AUTO_UPDATE === "1";
 }
 
 export function createElectronAutoUpdaterAdapter(
@@ -205,13 +205,13 @@ export function createDesktopAutoUpdateService(
   const now = args.now ?? (() => Date.now());
 
   let currentInfo = createBaseInfo(args.currentVersion, args.platform);
-  let inflight: Promise<BbDesktopInfo> | null = null;
+  let inflight: Promise<KaiokenDesktopInfo> | null = null;
   let intervalHandle: DesktopUpdateIntervalHandle | null = null;
   let lastAttemptedAt: number | null = null;
   let downloadInFlight: Promise<Array<string>> | null = null;
-  const listeners = new Set<BbDesktopInfoChangeHandler>();
+  const listeners = new Set<KaiokenDesktopInfoChangeHandler>();
 
-  function updateInfo(nextInfo: BbDesktopInfo): void {
+  function updateInfo(nextInfo: KaiokenDesktopInfo): void {
     if (areDesktopInfoValuesEqual(currentInfo, nextInfo)) {
       return;
     }
@@ -223,7 +223,7 @@ export function createDesktopAutoUpdateService(
 
   function applyUpdateAvailable(
     applyArgs: ApplyUpdateAvailableArgs,
-  ): BbDesktopInfo {
+  ): KaiokenDesktopInfo {
     updateInfo({
       ...currentInfo,
       lastCheckedAt: applyArgs.checkedAt,
@@ -235,7 +235,7 @@ export function createDesktopAutoUpdateService(
 
   function applyUpdateDownloaded(
     applyArgs: ApplyUpdateDownloadedArgs,
-  ): BbDesktopInfo {
+  ): KaiokenDesktopInfo {
     updateInfo({
       ...currentInfo,
       downloadState: "downloaded",
@@ -250,7 +250,7 @@ export function createDesktopAutoUpdateService(
 
   function applyUpdateNotAvailable(
     applyArgs: ApplyUpdateNotAvailableArgs,
-  ): BbDesktopInfo {
+  ): KaiokenDesktopInfo {
     updateInfo({
       ...currentInfo,
       downloadState: "idle",
@@ -302,7 +302,7 @@ export function createDesktopAutoUpdateService(
       });
   }
 
-  async function checkForUpdates(): Promise<BbDesktopInfo> {
+  async function checkForUpdates(): Promise<KaiokenDesktopInfo> {
     if (!args.enabled) {
       return currentInfo;
     }
@@ -407,7 +407,7 @@ export function createDesktopAutoUpdateService(
   }
 
   return {
-    async checkAfterActive(): Promise<BbDesktopInfo | null> {
+    async checkAfterActive(): Promise<KaiokenDesktopInfo | null> {
       if (!args.enabled) {
         return null;
       }
@@ -421,7 +421,7 @@ export function createDesktopAutoUpdateService(
       return checkForUpdates();
     },
     checkForUpdates,
-    getInfo(): BbDesktopInfo {
+    getInfo(): KaiokenDesktopInfo {
       return currentInfo;
     },
     installUpdate(): void {
@@ -449,7 +449,7 @@ export function createDesktopAutoUpdateService(
       clearInterval(intervalHandle);
       intervalHandle = null;
     },
-    subscribe(listener: BbDesktopInfoChangeHandler): BbDesktopInfoUnsubscribe {
+    subscribe(listener: KaiokenDesktopInfoChangeHandler): KaiokenDesktopInfoUnsubscribe {
       listeners.add(listener);
       return () => {
         listeners.delete(listener);

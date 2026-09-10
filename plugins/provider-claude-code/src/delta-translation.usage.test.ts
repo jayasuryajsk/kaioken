@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { turnScope } from "@bb/domain";
+import { turnScope } from "@kaioken/domain";
 import {
   TURN_1,
   createClaudeDeltaHarness,
@@ -253,10 +253,10 @@ describe("claude usage and fixture translation (delta path)", () => {
     const harness = createClaudeDeltaHarness();
 
     harness.translate(loadFixture("assistant-text.json"), {
-      threadId: "bb-thread-1",
+      threadId: "kaioken-thread-1",
     });
     harness.translate(loadFixture("result-success.json"), {
-      threadId: "bb-thread-1",
+      threadId: "kaioken-thread-1",
     });
     harness.translate(
       {
@@ -266,7 +266,7 @@ describe("claude usage and fixture translation (delta path)", () => {
         session_id: "session-1",
       },
       {
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
       },
     );
 
@@ -290,7 +290,7 @@ describe("claude usage and fixture translation (delta path)", () => {
         session_id: "session-1",
       },
       {
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
       },
     );
 
@@ -357,11 +357,11 @@ describe("claude usage and fixture translation (delta path)", () => {
     const harness = createClaudeDeltaHarness();
 
     harness.translator.setClaudeModelContextWindowHint(
-      "bb-thread-1",
+      "kaioken-thread-1",
       "claude-opus-4-7[1m]",
     );
     harness.translate(loadFixture("assistant-text.json"), {
-      threadId: "bb-thread-1",
+      threadId: "kaioken-thread-1",
     });
 
     const events = harness.translate(
@@ -384,7 +384,7 @@ describe("claude usage and fixture translation (delta path)", () => {
         session_id: "session-1",
       },
       {
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
       },
     );
 
@@ -404,7 +404,7 @@ describe("claude usage and fixture translation (delta path)", () => {
     const harness = createClaudeDeltaHarness();
 
     harness.translate(loadFixture("assistant-text.json"), {
-      threadId: "bb-thread-unknown",
+      threadId: "kaioken-thread-unknown",
     });
 
     const events = harness.translate(
@@ -427,7 +427,7 @@ describe("claude usage and fixture translation (delta path)", () => {
         session_id: "session-1",
       },
       {
-        threadId: "bb-thread-unknown",
+        threadId: "kaioken-thread-unknown",
       },
     );
 
@@ -447,11 +447,11 @@ describe("claude usage and fixture translation (delta path)", () => {
     const harness = createClaudeDeltaHarness();
 
     harness.translator.setClaudeModelContextWindowHint(
-      "bb-thread-default",
+      "kaioken-thread-default",
       "default",
     );
     harness.translate(loadFixture("assistant-text.json"), {
-      threadId: "bb-thread-default",
+      threadId: "kaioken-thread-default",
     });
 
     const events = harness.translate(
@@ -474,7 +474,7 @@ describe("claude usage and fixture translation (delta path)", () => {
         session_id: "session-1",
       },
       {
-        threadId: "bb-thread-default",
+        threadId: "kaioken-thread-default",
       },
     );
 
@@ -494,14 +494,14 @@ describe("claude usage and fixture translation (delta path)", () => {
     const harness = createClaudeDeltaHarness();
 
     harness.translate(loadFixture("assistant-text.json"), {
-      threadId: "bb-thread-1",
+      threadId: "kaioken-thread-1",
     });
     harness.translate(loadFixture("result-success.json"), {
-      threadId: "bb-thread-1",
+      threadId: "kaioken-thread-1",
     });
 
     harness.translate(loadFixture("assistant-text.json"), {
-      threadId: "bb-thread-1",
+      threadId: "kaioken-thread-1",
     });
 
     const events = harness.translate(
@@ -524,7 +524,7 @@ describe("claude usage and fixture translation (delta path)", () => {
         session_id: "session-1",
       },
       {
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
       },
     );
 

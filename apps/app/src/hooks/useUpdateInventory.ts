@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
-import type { Host } from "@bb/domain";
-import type { ProviderCliStatusResponse } from "@bb/host-daemon-contract";
-import type { SystemVersionResponse } from "@bb/server-contract";
-import type { BbDesktopInfo } from "@bb/desktop-contract";
+import type { Host } from "@kaioken/domain";
+import type { ProviderCliStatusResponse } from "@kaioken/host-daemon-contract";
+import type { SystemVersionResponse } from "@kaioken/server-contract";
+import type { KaiokenDesktopInfo } from "@kaioken/desktop-contract";
 import {
   buildProviderCliIssue,
   isProviderCliIssue,
@@ -38,7 +38,7 @@ export interface UpdateInventoryMachine {
 export interface UpdateInventory {
   isLoading: boolean;
   systemVersion: SystemVersionResponse | undefined;
-  desktopInfo: BbDesktopInfo | null;
+  desktopInfo: KaiokenDesktopInfo | null;
   appUpdateAvailable: boolean;
   desktopUpdateReady: boolean;
   machines: UpdateInventoryMachine[];

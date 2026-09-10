@@ -1,4 +1,4 @@
-import type { ConnectCredential } from "@bb/connect-client";
+import type { ConnectCredential } from "@kaioken/connect-client";
 import {
   Stack,
   useLocalSearchParams,
@@ -168,7 +168,7 @@ export function ConnectEnrollScreen() {
       <>
         <Stack.Screen
           options={{
-            title: reauth ? "Paired again" : "Paired with bb connect",
+            title: reauth ? "Paired again" : "Paired with kaioken connect",
           }}
         />
         {IS_IOS ? (
@@ -229,7 +229,7 @@ export function ConnectEnrollScreen() {
             ? `Sign in again to ${reauth.label}`
             : firstRun
               ? "Connect to getbb.app"
-              : "Pair with bb connect",
+              : "Pair with kaioken connect",
         }}
       />
       {IS_IOS ? (
@@ -250,7 +250,7 @@ export function ConnectEnrollScreen() {
             footnote={
               reauth
                 ? "This phone's access was revoked or has expired. Generate a new pairing code on the server and enter it here; your saved server keeps its place."
-                : "Pair this phone with your bb server through getbb.app. Generate a code in bb Settings → Remote access → Add mobile device, or run `bb connect machine-code`."
+                : "Pair this phone with your kaioken server through getbb.app. Generate a code in kaioken Settings → Remote access → Add mobile device, or run `kaioken connect machine-code`."
             }
           >
             <GroupedRow
@@ -309,7 +309,7 @@ export function ConnectEnrollScreen() {
               ) : reauth ? (
                 "The server is fixed when signing in again."
               ) : (
-                "Optional: the code already names the server. A URL also sets the bb connect address for self-hosted gates."
+                "Optional: the code already names the server. A URL also sets the kaioken connect address for self-hosted gates."
               )
             }
           >
@@ -334,14 +334,14 @@ export function ConnectEnrollScreen() {
 
           {showAdvanced ? (
             <SettingsSection
-              title="bb connect address"
+              title="kaioken connect address"
               footnote={
                 fieldError?.field === "apexUrl" ? (
                   <Text variant="footnote" tone="destructive">
                     {fieldError.message}
                   </Text>
                 ) : (
-                  "The self-hosted bb connect gate this phone pairs through."
+                  "The self-hosted kaioken connect gate this phone pairs through."
                 )
               }
             >
@@ -369,7 +369,7 @@ export function ConnectEnrollScreen() {
               onPress={() => setShowAdvanced(true)}
               testID="connect-advanced-toggle"
             >
-              Self-hosted bb connect…
+              Self-hosted kaioken connect…
             </Button>
           )}
 
@@ -468,7 +468,7 @@ function SessionStatusLine({ session }: { session: SessionState | null }) {
           selectable
           testID="connect-session-auth-required"
         >
-          bb connect rejected the new credential: {session.detail}
+          kaioken connect rejected the new credential: {session.detail}
         </Text>
       );
     case "error":

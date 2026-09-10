@@ -9,9 +9,9 @@ import {
   listThreads,
   setExperiments,
   upsertProjectExecutionDefaults,
-} from "@bb/db";
-import { defaultExperiments, threadSchema } from "@bb/domain";
-import { sidebarBootstrapResponseSchema } from "@bb/server-contract";
+} from "@kaioken/db";
+import { defaultExperiments, threadSchema } from "@kaioken/domain";
+import { sidebarBootstrapResponseSchema } from "@kaioken/server-contract";
 import { waitForQueuedCommand } from "../helpers/commands.js";
 import { availableModelFixture } from "../helpers/available-models.js";
 import { registerProviderHostRpcResponder } from "../helpers/host-rpc.js";

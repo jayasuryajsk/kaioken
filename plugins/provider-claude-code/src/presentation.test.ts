@@ -1,4 +1,4 @@
-import type { ThreadEvent } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import {
   createClaudeDeltaHarness,
@@ -280,7 +280,7 @@ describe("claude item presentation", () => {
     ]);
   });
 
-  it("emits a bb-injected tool call as server:bb with the definition's presentation", () => {
+  it("emits a kaioken-injected tool call as server:bb with the definition's presentation", () => {
     const translator = createClaudeDeltaTranslator({ sandboxEnabled: false });
     translator.configureInjectedTools([
       {
@@ -304,19 +304,19 @@ describe("claude item presentation", () => {
           content: [
             {
               type: "tool_use",
-              id: "bb-1",
+              id: "kaioken-1",
               name: "mcp__bb-bridge__bb_workflow_result",
               input: { runId: "wfr_1" },
             },
             {
               type: "tool_use",
-              id: "bb-2",
+              id: "kaioken-2",
               name: "mcp__bb-bridge__bb_thread_list",
               input: {},
             },
             {
               type: "tool_use",
-              id: "bb-3",
+              id: "kaioken-3",
               name: "mcp__bb-bridge__not_in_session",
               input: {},
             },
@@ -332,7 +332,7 @@ describe("claude item presentation", () => {
         item: {
           type: "tool",
           tool: "bb_workflow_result",
-          server: "bb",
+          server: "kaioken",
           args: { runId: "wfr_1" },
         },
         presentation: {
@@ -345,7 +345,7 @@ describe("claude item presentation", () => {
         },
       }),
       expect.objectContaining({
-        item: { type: "tool", tool: "bb_thread_list", server: "bb", args: {} },
+        item: { type: "tool", tool: "bb_thread_list", server: "kaioken", args: {} },
         presentation: {
           label: {
             pending: "Running bb_thread_list",
@@ -355,7 +355,7 @@ describe("claude item presentation", () => {
         },
       }),
       expect.objectContaining({
-        item: { type: "tool", tool: "not_in_session", server: "bb", args: {} },
+        item: { type: "tool", tool: "not_in_session", server: "kaioken", args: {} },
       }),
     ]);
   });

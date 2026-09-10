@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { providerInteractionOutcomeSchema } from "@bb/domain";
+import { providerInteractionOutcomeSchema } from "@kaioken/domain";
 import type {
   PendingInteractionResolution,
   UserQuestionPendingInteractionPayload,
   UserQuestionPendingInteractionResolution,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   buildClaudeApprovalInteractionPayload,
   buildClaudeInteractiveResponse,

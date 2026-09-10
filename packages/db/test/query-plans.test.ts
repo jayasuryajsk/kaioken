@@ -1,6 +1,6 @@
 import { findEnvironmentLaunchPathClaim } from "../src/data/environment-launches.js";
 import { describe, expect, it } from "vitest";
-import { threadScope, turnScope } from "@bb/domain";
+import { threadScope, turnScope } from "@kaioken/domain";
 import {
   createConnection,
   type DbConnection,

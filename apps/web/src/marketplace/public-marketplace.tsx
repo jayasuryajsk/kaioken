@@ -413,7 +413,7 @@ export function PublicMarketplaceUnavailablePage() {
       <main className="marketplace-main">
         <header className="plugin-page-head marketplace-page-head">
           <h1>Plugin Marketplace</h1>
-          <p>Find plugins that add new features to bb.</p>
+          <p>Find plugins that add new features to kaioken.</p>
         </header>
         <MarketplaceState
           title="The Marketplace is not available"
@@ -516,7 +516,7 @@ function MarketplaceToolbar({
     <>
       {hero ? (
         <header className="marketplace-hero">
-          <h1>Make bb yours.</h1>
+          <h1>Make kaioken yours.</h1>
           <p>
             Themes, providers, workflows, and tools, installed with one command.
           </p>

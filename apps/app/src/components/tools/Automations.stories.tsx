@@ -1,15 +1,15 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
-import { AutomationDetailView } from "bb-plugin-automations/detail-view";
+import { AutomationDetailView } from "kaioken-plugin-automations/detail-view";
 import {
   AutomationOverviewView,
   type AutomationCollectionMode,
-} from "bb-plugin-automations/overview-view";
+} from "kaioken-plugin-automations/overview-view";
 import type {
   AutomationResponse,
   AutomationRunResponse,
   AutomationsOverviewResponse,
-} from "bb-plugin-automations/rpc-types";
-import { ResourceListState } from "@bb/shared-ui/resource-list";
+} from "kaioken-plugin-automations/rpc-types";
+import { ResourceListState } from "@kaioken/shared-ui/resource-list";
 
 export default {
   title: "Automations",
@@ -67,7 +67,7 @@ const OVERVIEW_ENTRIES: AutomationsOverviewResponse["automations"] = [
       lastRunStatus: "running",
       nextRunAt: now + 3_600_000,
     }),
-    project: { id: "proj_bb", name: "bb" },
+    project: { id: "proj_bb", name: "kaioken" },
   },
   {
     automation: automation("pending-reminder", "A pending launch reminder", {
@@ -75,7 +75,7 @@ const OVERVIEW_ENTRIES: AutomationsOverviewResponse["automations"] = [
       trigger: { triggerType: "once", runAt: now + 86_400_000 },
       nextRunAt: now + 86_400_000,
     }),
-    project: { id: "proj_bb", name: "bb" },
+    project: { id: "proj_bb", name: "kaioken" },
   },
   {
     automation: automation("dependencies", "Dependency drift", {
@@ -83,7 +83,7 @@ const OVERVIEW_ENTRIES: AutomationsOverviewResponse["automations"] = [
       enabled: false,
       nextRunAt: null,
     }),
-    project: { id: "proj_bb", name: "bb" },
+    project: { id: "proj_bb", name: "kaioken" },
   },
   {
     automation: automation("one-shot", "Prepare launch notes", {
@@ -215,7 +215,7 @@ const PROJECT_AUTOMATION: AutomationResponse = {
       hostId: "host_local",
       workspace: {
         type: "unmanaged",
-        path: "/Users/you/Code/bb",
+        path: "/Users/you/Code/kaioken",
         branch: { kind: "existing", name: "agent/tools-hub-schedules" },
       },
     },
@@ -306,13 +306,13 @@ mkdir -p "$output_dir"
 for repository in api app docs integrations; do
   echo "Collecting $repository activity for $report_date"
   gh pr list \\
-    --repo "bb/$repository" \\
+    --repo "kaioken/$repository" \\
     --state all \\
     --json number,title,state,updatedAt \\
     > "$output_dir/$repository-$report_date.json"
 
   gh issue list \\
-    --repo "bb/$repository" \\
+    --repo "kaioken/$repository" \\
     --state all \\
     --json number,title,state,updatedAt \\
     > "$output_dir/$repository-issues-$report_date.json"
@@ -327,7 +327,7 @@ echo "Reports written to $output_dir"`,
     interpreter: "bash",
     timeoutMs: 60_000,
     env: {
-      REPORT_OUTPUT: "/tmp/bb-reports",
+      REPORT_OUTPUT: "/tmp/kaioken-reports",
       GH_HOST: "github.com",
     },
   },
@@ -494,7 +494,7 @@ export function DetailStates() {
         >
           <AutomationDetail
             value={PROJECT_AUTOMATION}
-            projectLabel="bb"
+            projectLabel="kaioken"
             runs={PROJECT_RUNS}
           />
         </DetailState>

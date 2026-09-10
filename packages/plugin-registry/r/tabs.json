@@ -3,12 +3,12 @@
   "name": "tabs",
   "type": "registry:ui",
   "title": "tabs",
-  "description": "BB ui \"tabs\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"tabs\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-tabs"
   ],
   "registryDependencies": [
-    "@bb/utils"
+    "@kaioken/utils"
   ],
   "files": [
     {

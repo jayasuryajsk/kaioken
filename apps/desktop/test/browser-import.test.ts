@@ -315,7 +315,7 @@ describe("resolveChromiumKeys", () => {
 describe("browser cookie readers", () => {
   let directory: string;
   beforeEach(async () => {
-    directory = await mkdtemp(join(tmpdir(), "bb-browser-import-"));
+    directory = await mkdtemp(join(tmpdir(), "kaioken-browser-import-"));
   });
   afterEach(async () => {
     await rm(directory, { recursive: true, force: true });
@@ -762,7 +762,7 @@ describe("browser cookie readers", () => {
   });
 
   it("detects a running Firefox through the parentlock owner", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "bb-ff-lock-"));
+    const directory = await mkdtemp(join(tmpdir(), "kaioken-ff-lock-"));
     try {
       const lock = join(directory, ".parentlock");
       await writeFile(lock, "");
@@ -838,7 +838,7 @@ describe("macOS app icons", () => {
   });
 
   it("converts the bundle icon with sips and returns a PNG data URL", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "bb-icon-"));
+    const directory = await mkdtemp(join(tmpdir(), "kaioken-icon-"));
     try {
       const appPath = join(directory, "Arc.app");
       await mkdir(join(appPath, "Contents", "Resources"), { recursive: true });

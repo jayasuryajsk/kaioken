@@ -51,17 +51,17 @@ function createDesktopVersionFeed(platform, version) {
     platform,
     version,
     releaseDate: new Date(0).toISOString(),
-    releaseName: `bb desktop ${version}`,
+    releaseName: `kaioken desktop ${version}`,
     releaseNotes: null,
     minimumSystemVersion: null,
     files: [
       {
-        url: "https://example.invalid/bb.zip",
+        url: "https://example.invalid/kaioken.zip",
         sha512: "smoke",
         size: 0,
       },
     ],
-    path: "bb.zip",
+    path: "kaioken.zip",
     sha512: "smoke",
     stagingPercentage: null,
   };
@@ -70,24 +70,24 @@ function createDesktopVersionFeed(platform, version) {
 function renderSmokePage(expectedDesktopPlatform, expectedDesktopVersion) {
   return `<!doctype html>
 <meta charset="utf-8">
-<title>bb packaged desktop smoke</title>
+<title>kaioken packaged desktop smoke</title>
 <main>packaged desktop smoke</main>
 <script>
 (async () => {
   let ok = false;
   let reason = "";
   try {
-    if (typeof window.bbDesktop !== "object" || window.bbDesktop === null) {
-      reason = "missing window.bbDesktop";
-    } else if (typeof window.bbDesktop.getInfo !== "function") {
-      reason = "missing window.bbDesktop.getInfo";
+    if (typeof window.kaiokenDesktop !== "object" || window.kaiokenDesktop === null) {
+      reason = "missing window.kaiokenDesktop";
+    } else if (typeof window.kaiokenDesktop.getInfo !== "function") {
+      reason = "missing window.kaiokenDesktop.getInfo";
     } else {
-      const info = await window.bbDesktop.getInfo();
+      const info = await window.kaiokenDesktop.getInfo();
       const expectedPlatform = ${JSON.stringify(expectedDesktopPlatform)};
       const expectedVersion = ${JSON.stringify(expectedDesktopVersion)};
       ok =
-        window.bbDesktop.platform === expectedPlatform &&
-        window.bbDesktop.version === expectedVersion &&
+        window.kaiokenDesktop.platform === expectedPlatform &&
+        window.kaiokenDesktop.version === expectedVersion &&
         info.version === expectedVersion;
       reason = ok ? "" : "unexpected desktop bridge info";
     }
@@ -347,7 +347,7 @@ async function smokePackagedApp() {
     productName: releaseConfig.applicationName,
     releaseDir,
   });
-  const smokeRoot = await mkdtemp(join(tmpdir(), "bb-desktop-packaged-smoke-"));
+  const smokeRoot = await mkdtemp(join(tmpdir(), "kaioken-desktop-packaged-smoke-"));
   const dataDir = join(smokeRoot, "data");
   const userDataDir = join(smokeRoot, "user-data");
   const smokeServer = await startSmokeServer({
@@ -360,17 +360,17 @@ async function smokePackagedApp() {
   const stderr = [];
   const childEnv = {
     ...process.env,
-    BB_DATA_DIR: dataDir,
-    // The smoke server answers the bb probe, so a packaged build treats it as a
-    // foreign bb and asks before attaching. No one is here to click, so opt out
+    KAIOKEN_DATA_DIR: dataDir,
+    // The smoke server answers the kaioken probe, so a packaged build treats it as a
+    // foreign kaioken and asks before attaching. No one is here to click, so opt out
     // and keep exercising the real attach path.
-    BB_DESKTOP_ATTACH_WITHOUT_PROMPT: "1",
-    BB_DESKTOP_OPEN_DEVTOOLS: "0",
-    BB_DESKTOP_VERSION_FEED_URL: `${serverUrl}/desktop-version.json`,
-    BB_SERVER_PORT: String(smokeServer.port),
+    KAIOKEN_DESKTOP_ATTACH_WITHOUT_PROMPT: "1",
+    KAIOKEN_DESKTOP_OPEN_DEVTOOLS: "0",
+    KAIOKEN_DESKTOP_VERSION_FEED_URL: `${serverUrl}/desktop-version.json`,
+    KAIOKEN_SERVER_PORT: String(smokeServer.port),
   };
-  delete childEnv.BB_DESKTOP_APP_URL;
-  delete childEnv.BB_DESKTOP_NODE_EXEC_PATH;
+  delete childEnv.KAIOKEN_DESKTOP_APP_URL;
+  delete childEnv.KAIOKEN_DESKTOP_NODE_EXEC_PATH;
   delete childEnv.ELECTRON_RUN_AS_NODE;
 
   const child = spawn(

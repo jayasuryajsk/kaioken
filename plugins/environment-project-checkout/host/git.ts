@@ -2,7 +2,7 @@ import {
   detectGitRepo,
   runGit,
   type GitProcessOptions,
-} from "bb-environment-provider-host/git";
+} from "kaioken-environment-provider-host/git";
 import fs from "node:fs/promises";
 import path from "node:path";
 

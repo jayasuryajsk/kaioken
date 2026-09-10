@@ -2,13 +2,13 @@ import {
   PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID,
   PERSONAL_WORKSPACE_ENVIRONMENT_PROVIDER_ID,
   GIT_WORKTREE_ENVIRONMENT_PROVIDER_ID,
-} from "@bb/client-core";
-import type { EnvironmentMachineSelection, JsonValue } from "@bb/domain";
+} from "@kaioken/client-core";
+import type { EnvironmentMachineSelection, JsonValue } from "@kaioken/domain";
 import type {
   CreateThreadEnvironmentArgs,
   ProviderEnvironmentArgs,
   WorkspaceArgs,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   encodeReuseValue,
   encodeProviderValue,

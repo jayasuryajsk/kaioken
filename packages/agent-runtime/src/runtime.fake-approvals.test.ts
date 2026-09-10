@@ -6,7 +6,7 @@ import type {
   PendingInteractionCreate,
   PendingInteractionResolution,
   ThreadEvent,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { promptTextInput } from "./test/prompt-input.js";
 import {
   createScriptedEchoRuntime,
@@ -20,7 +20,7 @@ describe("scripted echo provider approve:<kind> directive", () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), "bb-runtime-fake-approval-"));
+    tmpDir = mkdtempSync(join(tmpdir(), "kaioken-runtime-fake-approval-"));
   });
 
   afterEach(() => {

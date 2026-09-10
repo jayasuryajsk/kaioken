@@ -6,7 +6,7 @@ import {
   type RuntimePermissionPolicy,
   type ServiceTier,
   buildShellEnvOverrides,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import fs from "node:fs";
 import path from "node:path";
 import type { ReasoningEffort as CodexReasoningEffort } from "./generated/codex-app-server/schema/ReasoningEffort.js";
@@ -43,12 +43,12 @@ export interface CodexThreadPermissionSettings {
   sandbox: CodexSandboxMode;
 }
 
-export type BbThreadStartParams = ThreadStartParams & {
+export type KaiokenThreadStartParams = ThreadStartParams & {
   experimentalRawEvents?: boolean;
   dynamicTools?: DynamicToolSpec[];
 };
 
-export type BbThreadForkParams = {
+export type KaiokenThreadForkParams = {
   threadId: string;
   lastTurnId?: string | null;
   model?: string | null;
@@ -607,7 +607,7 @@ export function buildCodexConfig(
 ): { [key in string]?: JsonValue } | undefined {
   const config: { [key in string]?: JsonValue } = {};
   if (args.threadId) {
-    config["shell_environment_policy.set.BB_THREAD_ID"] = args.threadId;
+    config["shell_environment_policy.set.KAIOKEN_THREAD_ID"] = args.threadId;
   }
   const shellEnvironmentConfig = buildShellEnvironmentPolicyConfig(
     args.options?.envVars,

@@ -15,14 +15,14 @@ import {
   reorderQueuedThreadMessage,
   setQueuedThreadMessageGroupBoundary,
   setThreadExecutionOverride,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   encodeClientTurnRequestIdNumber,
   threadQueuedMessageSchema,
   threadScope,
   threadSchema,
   turnScope,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   type TimelineRow,
   sidebarBootstrapResponseSchema,
@@ -35,8 +35,8 @@ import {
   threadWithIncludesResponseSchema,
   timelineTurnSummaryDetailsResponseSchema,
   uploadedPromptAttachmentSchema,
-} from "@bb/server-contract";
-import { renderTemplate } from "@bb/templates";
+} from "@kaioken/server-contract";
+import { renderTemplate } from "@kaioken/templates";
 import { z } from "zod";
 import { describe, expect, it, vi } from "vitest";
 import type { TelemetryService } from "../../src/services/system/telemetry.js";
@@ -3479,7 +3479,8 @@ describe("public thread data routes", () => {
         path: "/tmp/queued-message-reprovision",
         status: "error",
         environmentProviderId: "personal-workspace",
-        environmentProviderPluginId: "bb-plugin-environment-personal-workspace",
+        environmentProviderPluginId:
+          "kaioken-plugin-environment-personal-workspace",
         isGitRepo: false,
       });
       const thread = seedThread(harness.deps, {
@@ -3488,7 +3489,7 @@ describe("public thread data routes", () => {
       });
       installFakeEnvironmentProvider({
         id: "personal-workspace",
-        pluginId: "bb-plugin-environment-personal-workspace",
+        pluginId: "kaioken-plugin-environment-personal-workspace",
         displayName: "Personal workspace",
         requires: {
           projectCheckout: false,
@@ -3656,7 +3657,8 @@ describe("public thread data routes", () => {
         path: "/tmp/queued-message-immediate-reprovision",
         status: "error",
         environmentProviderId: "personal-workspace",
-        environmentProviderPluginId: "bb-plugin-environment-personal-workspace",
+        environmentProviderPluginId:
+          "kaioken-plugin-environment-personal-workspace",
         isGitRepo: false,
       });
       const thread = seedThread(harness.deps, {
@@ -3669,7 +3671,7 @@ describe("public thread data routes", () => {
       });
       installFakeEnvironmentProvider({
         id: "personal-workspace",
-        pluginId: "bb-plugin-environment-personal-workspace",
+        pluginId: "kaioken-plugin-environment-personal-workspace",
         displayName: "Personal workspace",
         requires: {
           projectCheckout: false,
@@ -3720,7 +3722,7 @@ describe("public thread data routes", () => {
                 path: request.command.path,
                 isGitRepo: true,
                 isWorktree: false,
-                branchName: `bb/${thread.id}`,
+                branchName: `kaioken/${thread.id}`,
                 defaultBranch: "main",
                 transcript: [],
               },
@@ -3792,7 +3794,8 @@ describe("public thread data routes", () => {
         path: "/tmp/grouped-queued-message-reprovision",
         status: "error",
         environmentProviderId: "personal-workspace",
-        environmentProviderPluginId: "bb-plugin-environment-personal-workspace",
+        environmentProviderPluginId:
+          "kaioken-plugin-environment-personal-workspace",
         isGitRepo: false,
       });
       const thread = seedThread(harness.deps, {
@@ -3809,7 +3812,7 @@ describe("public thread data routes", () => {
       });
       installFakeEnvironmentProvider({
         id: "personal-workspace",
-        pluginId: "bb-plugin-environment-personal-workspace",
+        pluginId: "kaioken-plugin-environment-personal-workspace",
         displayName: "Personal workspace",
         requires: {
           projectCheckout: false,
@@ -4139,7 +4142,7 @@ describe("public thread data routes", () => {
         projectId: project.id,
         environmentId: environment.id,
       });
-      const threadStoragePath = `/tmp/bb-host-data/${host.id}/thread-storage/${thread.id}`;
+      const threadStoragePath = `/tmp/kaioken-host-data/${host.id}/thread-storage/${thread.id}`;
 
       const filesPromise = harness.app.request(
         `/api/v1/threads/${thread.id}/thread-storage/files?query=notes`,
@@ -4201,7 +4204,7 @@ describe("public thread data routes", () => {
         threadStorageLocationResponseSchema.parse(await readJson(response)),
       ).toEqual({
         hostId: host.id,
-        storageRootPath: `/tmp/bb-host-data/${host.id}/thread-storage/${thread.id}`,
+        storageRootPath: `/tmp/kaioken-host-data/${host.id}/thread-storage/${thread.id}`,
       });
     });
   });
@@ -4222,7 +4225,7 @@ describe("public thread data routes", () => {
         projectId: project.id,
         environmentId: environment.id,
       });
-      const threadStoragePath = `/tmp/bb-host-data/${host.id}/thread-storage/${thread.id}`;
+      const threadStoragePath = `/tmp/kaioken-host-data/${host.id}/thread-storage/${thread.id}`;
 
       const pathsPromise = harness.app.request(
         `/api/v1/threads/${thread.id}/thread-storage/paths?query=notes&includeFiles=true&includeDirectories=true`,
@@ -4302,7 +4305,7 @@ describe("public thread data routes", () => {
         projectId: project.id,
         environmentId: environment.id,
       });
-      const threadStoragePath = `/tmp/bb-host-data/${host.id}/thread-storage/${thread.id}`;
+      const threadStoragePath = `/tmp/kaioken-host-data/${host.id}/thread-storage/${thread.id}`;
 
       const filesPromise = harness.app.request(
         `/api/v1/threads/${thread.id}/thread-storage/files`,
@@ -4355,7 +4358,7 @@ describe("public thread data routes", () => {
         environmentId: environment.id,
         status: "starting",
       });
-      const threadStoragePath = `/tmp/bb-host-data/${host.id}/thread-storage/${thread.id}`;
+      const threadStoragePath = `/tmp/kaioken-host-data/${host.id}/thread-storage/${thread.id}`;
 
       const filesPromise = harness.app.request(
         `/api/v1/threads/${thread.id}/thread-storage/files`,
@@ -4398,7 +4401,7 @@ describe("public thread data routes", () => {
         environmentId: environment.id,
       });
       const pngBytes = Uint8Array.from([137, 80, 78, 71]);
-      const threadStorageRoot = `/tmp/bb-host-data/${host.id}/thread-storage/${thread.id}`;
+      const threadStorageRoot = `/tmp/kaioken-host-data/${host.id}/thread-storage/${thread.id}`;
       const threadStorageFilePath = `${threadStorageRoot}/images/diagram.png`;
 
       const filePromise = harness.app.request(
@@ -4524,7 +4527,7 @@ describe("public thread data routes", () => {
       expect(fileResponse.headers.get("cache-control")).toBe("no-store");
       const body = await fileResponse.text();
       expect(body).toBe(html);
-      expect(body).not.toContain("window.bb");
+      expect(body).not.toContain("window.kaioken");
     });
   });
 
@@ -4544,7 +4547,7 @@ describe("public thread data routes", () => {
         projectId: project.id,
         environmentId: environment.id,
       });
-      const threadStorageRoot = `/tmp/bb-host-data/${host.id}/thread-storage/${thread.id}`;
+      const threadStorageRoot = `/tmp/kaioken-host-data/${host.id}/thread-storage/${thread.id}`;
       const html = "<!doctype html><h1>Preview</h1>";
 
       const filePromise = harness.app.request(
@@ -4886,7 +4889,7 @@ describe("public thread data routes", () => {
   it("maps thread storage root-escape failures to invalid_path", async () => {
     await withTestHarness(async (harness) => {
       const { host, thread } = seedThreadFixture(harness);
-      const threadStorageRoot = `/tmp/bb-host-data/${host.id}/thread-storage/${thread.id}`;
+      const threadStorageRoot = `/tmp/kaioken-host-data/${host.id}/thread-storage/${thread.id}`;
 
       const filePromise = harness.app.request(
         `/api/v1/threads/${thread.id}/thread-storage/content?path=${encodeURIComponent("notes/secrets")}`,
@@ -4924,7 +4927,7 @@ describe("public thread data routes", () => {
   it("returns an empty thread storage file list when the durable storage is absent", async () => {
     await withTestHarness(async (harness) => {
       const { host, thread } = seedThreadFixture(harness);
-      const threadStoragePath = `/tmp/bb-host-data/${host.id}/thread-storage/${thread.id}`;
+      const threadStoragePath = `/tmp/kaioken-host-data/${host.id}/thread-storage/${thread.id}`;
 
       const filesPromise = harness.app.request(
         `/api/v1/threads/${thread.id}/thread-storage/files`,

@@ -1,4 +1,4 @@
-import { ConnectMachineRedeemError } from "@bb/connect-client";
+import { ConnectMachineRedeemError } from "@kaioken/connect-client";
 import { describe, expect, it, vi } from "vitest";
 import {
   accountServerProfile,

@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { networkInterfaces } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { PendingInteraction } from "@bb/domain";
+import type { PendingInteraction } from "@kaioken/domain";
 import { createIntegrationHarness } from "../helpers/harness.js";
 import type { IntegrationHarness } from "../helpers/harness.js";
 import {
@@ -21,31 +21,31 @@ const DEFAULT_PORT = 41999;
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
 function readStaticDir(): string | undefined {
-  if (process.env.BB_MOBILE_E2E_SERVE_APP !== "1") return undefined;
+  if (process.env.KAIOKEN_MOBILE_E2E_SERVE_APP !== "1") return undefined;
   const dist = resolve(repoRoot, "apps/app/dist");
   if (!existsSync(resolve(dist, "index.html"))) {
     throw new Error(
-      `BB_MOBILE_E2E_SERVE_APP=1 but ${dist}/index.html is missing. Run: pnpm exec turbo run build --filter=@bb/app`,
+      `KAIOKEN_MOBILE_E2E_SERVE_APP=1 but ${dist}/index.html is missing. Run: pnpm exec turbo run build --filter=@kaioken/app`,
     );
   }
   return dist;
 }
 
 function readPort(): number {
-  const raw = process.env.BB_MOBILE_E2E_PORT;
+  const raw = process.env.KAIOKEN_MOBILE_E2E_PORT;
   if (!raw) return DEFAULT_PORT;
   const parsed = Number.parseInt(raw, 10);
   if (!Number.isInteger(parsed) || parsed <= 0 || parsed > 65535) {
-    throw new Error(`Invalid BB_MOBILE_E2E_PORT: ${raw}`);
+    throw new Error(`Invalid KAIOKEN_MOBILE_E2E_PORT: ${raw}`);
   }
   return parsed;
 }
 
 function readBindHost(): "127.0.0.1" | "0.0.0.0" {
-  const raw = process.env.BB_MOBILE_E2E_BIND_HOST;
+  const raw = process.env.KAIOKEN_MOBILE_E2E_BIND_HOST;
   if (raw === undefined || raw === "127.0.0.1") return "127.0.0.1";
   if (raw === "0.0.0.0") return "0.0.0.0";
-  throw new Error(`Invalid BB_MOBILE_E2E_BIND_HOST: ${raw}`);
+  throw new Error(`Invalid KAIOKEN_MOBILE_E2E_BIND_HOST: ${raw}`);
 }
 
 function listLanIpv4Addresses(): string[] {
@@ -64,7 +64,7 @@ function warnWildcardBind(port: number): void {
       "mobile-e2e backend: SECURITY WARNING: binding on 0.0.0.0. The harness",
       "server is unauthenticated and runs a real host daemon that permits",
       "command execution (terminal sessions) and file reads as your user.",
-      "Use BB_MOBILE_E2E_BIND_HOST=0.0.0.0 only behind a trusted network",
+      "Use KAIOKEN_MOBILE_E2E_BIND_HOST=0.0.0.0 only behind a trusted network",
       "boundary and stop the backend when you are done.",
     ].join(" ") +
       "\n" +
@@ -131,7 +131,7 @@ const LONG_MARKDOWN_MESSAGE = [
   "## Commands",
   "",
   "```bash",
-  "pnpm exec turbo run typecheck lint test --filter=@bb/mobile",
+  "pnpm exec turbo run typecheck lint test --filter=@kaioken/mobile",
   "cd apps/mobile && pnpm e2e:ios",
   "xcrun simctl io booted screenshot /tmp/timeline.png",
   "```",
@@ -147,8 +147,8 @@ const LONG_MARKDOWN_MESSAGE = [
   "",
   "## Reference",
   "",
-  "See the [bb docs](https://docs.getbb.app) for the server contract and the",
-  "plan in `plans/bb-mobile-expo.md` for the phase breakdown.",
+  "See the [kaioken docs](https://docs.getbb.app) for the server contract and the",
+  "plan in `plans/kaioken-mobile-expo.md` for the phase breakdown.",
   "",
   "## Notes",
   "",

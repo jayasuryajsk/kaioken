@@ -16,13 +16,13 @@ import type {
   PromptInput,
   ThreadOriginKind,
   ThreadRuntimeDisplayStatus,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   TimelineParentChange,
   TimelineRow,
   TimelineSystemOperationKind,
-} from "@bb/server-contract";
-import type { ThreadChatMessageReference } from "@get-bb/plugin-sdk";
+} from "@kaioken/server-contract";
+import type { ThreadChatMessageReference } from "@get-kaioken/plugin-sdk";
 import {
   activityIntentTitleGlyph,
   assertNever,
@@ -41,15 +41,15 @@ import {
   type TimelineTitle,
   type TimelineViewTurnRow,
   type TimelineViewWorkRow,
-} from "@bb/thread-view";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
+} from "@kaioken/thread-view";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import {
   collectTimelineAutoExpansionRowIds,
   isNonExpandableSummary,
   isRowExpandable,
-} from "@bb/client-core";
-import { isRunningThreadRuntimeDisplayStatus } from "@bb/client-core";
+} from "@kaioken/client-core";
+import { isRunningThreadRuntimeDisplayStatus } from "@kaioken/client-core";
 import type {
   ThreadTimelineAddToChatHandler,
   ThreadTimelineEditMessageHandler,
@@ -85,9 +85,9 @@ import {
 } from "./TimelineTitleView.js";
 import { WorkRowBody } from "./TimelineRowDetails.js";
 import { TimelineDetailScroll } from "./TimelineDetailScroll.js";
-import { Button } from "@bb/shared-ui/button";
+import { Button } from "@kaioken/shared-ui/button";
 import { AutoHeightContainer } from "../../ui/height-transition.js";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
 import { isIconName, presentationTintStyle } from "./presentation-display.js";
 import { PluginCompactIconMask } from "../../plugin/PluginIcon.js";
 import { usePluginIconUrl } from "@/lib/plugin-logos";
@@ -110,7 +110,7 @@ import {
   joinSignatureParts,
   timelineRowRenderSignature,
   timelineRowsSignature,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   TOP_LEVEL_TIMELINE_ROW_INTRINSIC_SIZE_CLASS_NAME,
   timelineRowContainmentStyle,

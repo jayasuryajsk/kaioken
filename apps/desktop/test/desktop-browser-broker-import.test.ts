@@ -179,7 +179,7 @@ describe("desktop browser reveal", () => {
         threadId: "thread-a",
         tabId: "tab-a",
       });
-      expect(send).toHaveBeenCalledWith("bb-desktop:browser:reveal", {
+      expect(send).toHaveBeenCalledWith("kaioken-desktop:browser:reveal", {
         threadId: "thread-a",
         tabId: "tab-a",
         desktopTarget: {

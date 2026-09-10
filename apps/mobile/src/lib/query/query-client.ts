@@ -1,5 +1,5 @@
-import { toRecord } from "@bb/core-ui";
-import { BbHttpError } from "@bb/sdk/browser";
+import { toRecord } from "@kaioken/core-ui";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 import {
   MutationCache,
   QueryClient,
@@ -12,7 +12,7 @@ export const TRANSIENT_READ_RETRY_DELAY_MS = 250;
 const DEFAULT_QUERY_STALE_TIME_MS = 2000;
 
 export function isTransientReadError(error: unknown): boolean {
-  if (error instanceof BbHttpError) return false;
+  if (error instanceof KaiokenHttpError) return false;
   const record = toRecord(error);
   if (!record) return false;
   if (record.name === "AbortError" || record.name === "TimeoutError") {

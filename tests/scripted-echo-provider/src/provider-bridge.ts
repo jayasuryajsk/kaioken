@@ -29,7 +29,7 @@ import {
   providerRecoveryKindSchema,
   runBridgeRequest,
   type ProviderRecoveryHint,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import { appendFileSync } from "node:fs";
 import { z } from "zod";
 

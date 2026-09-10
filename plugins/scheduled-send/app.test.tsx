@@ -3,8 +3,8 @@
 // dialog → composer-submit → clear flow that is the whole interaction.
 import { cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadPluginApp, renderSlot } from "@get-bb/plugin-sdk/testing/app";
-import type { ComposerView, PluginComposerScope } from "@get-bb/plugin-sdk/app";
+import { loadPluginApp, renderSlot } from "@get-kaioken/plugin-sdk/testing/app";
+import type { ComposerView, PluginComposerScope } from "@get-kaioken/plugin-sdk/app";
 
 // jsdom omits this browser method; Radix uses it when opening the time picker.
 if (!Element.prototype.scrollIntoView) {

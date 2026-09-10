@@ -1,12 +1,12 @@
 ---
 name: docs
-description: "Read, edit, or save documents in BB Docs vaults, including documents supplied through Docs mentions."
+description: "Read, edit, or save documents in Kaioken Docs vaults, including documents supplied through Docs mentions."
 ---
 
 # Docs
 
 Docs is the user's filesystem-first document library. Documents can live on
-the primary machine or another connected host, but the `bb docs` command
+the primary machine or another connected host, but the `kaioken docs` command
 handles that routing through named vaults.
 
 ## Access documents
@@ -14,13 +14,13 @@ handles that routing through named vaults.
 Start with the smallest useful lookup:
 
 ```sh
-bb docs vaults --json
-bb docs list --vault <vault-id> --json
-bb docs read <path> --vault <vault-id>
+kaioken docs vaults --json
+kaioken docs list --vault <vault-id> --json
+kaioken docs read <path> --vault <vault-id>
 ```
 
 Use the path and vault exactly as returned. Paths are relative to the vault;
-do not guess an absolute host path or inspect the vault outside `bb docs`.
+do not guess an absolute host path or inspect the vault outside `kaioken docs`.
 
 ## Docs @-mentions
 
@@ -41,27 +41,27 @@ Docs is a good destination for durable plans, specifications, write-ups, and
 HTML artifacts the user should be able to reopen.
 
 ```sh
-bb docs pull plans/release-plan.md --vault personal --into ./docs-work
+kaioken docs pull plans/release-plan.md --vault personal --into ./docs-work
 # Edit ./docs-work/plans/release-plan.md with normal file tools.
-bb docs status ./docs-work --diff
-bb docs push ./docs-work
+kaioken docs status ./docs-work --diff
+kaioken docs push ./docs-work
 ```
 
-`bb docs status` exits 0 when no changes exist. It exits 4 when it finds
+`kaioken docs status` exits 0 when no changes exist. It exits 4 when it finds
 changes that the output describes. Exit 4 is a successful status result.
-Review that output, then run `bb docs push` as a separate command. Do not
+Review that output, then run `kaioken docs push` as a separate command. Do not
 connect the status and push commands with `&&`.
 
 Pull a folder subtree with `--folder`, or the whole selected vault with
 `--all`:
 
 ```sh
-bb docs pull plans --folder --vault personal --into ./docs-work
-bb docs pull --all --vault personal --into ./docs-work
+kaioken docs pull plans --folder --vault personal --into ./docs-work
+kaioken docs pull --all --vault personal --into ./docs-work
 ```
 
 Always edit the pulled files with ordinary workspace tools, then run `status`
-before `push`. The manifest in `.bb-docs-state.json` records stable vault paths
+before `push`. The manifest in `.kaioken-docs-state.json` records stable vault paths
 and remote SHA-256 versions; do not edit it. Pull and push fail closed when both
 the local and vault copies changed. Resolve the content manually, then pull or
 push again. `push --dry-run --diff` previews without writing.

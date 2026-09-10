@@ -28,7 +28,7 @@ import {
   type DbTransaction,
   type EnvironmentLaunchRow,
   type EnvironmentRow,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   jsonValueSchema,
   type Environment,
@@ -36,12 +36,12 @@ import {
   type Host,
   type JsonValue,
   type Project,
-} from "@bb/domain";
-import type { ThreadResponse } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { ThreadResponse } from "@kaioken/server-contract";
 import type {
   PluginEnvironmentProviderCreateResult,
   PluginEnvironmentProviderProgress,
-} from "@get-bb/plugin-sdk/environment-provider";
+} from "@get-kaioken/plugin-sdk/environment-provider";
 import type { ThreadProvisioningDeps } from "../threads/thread-provisioning-environment.js";
 import { toEnvironmentResponse } from "./environment-response.js";
 import {

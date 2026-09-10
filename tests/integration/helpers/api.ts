@@ -7,7 +7,7 @@ import type {
   ThreadExecutionOptions,
   ThreadEventRow,
   ThreadGitDiffResponse,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   environmentSchema,
   hostSchema,
@@ -15,8 +15,8 @@ import {
   resolveEnvironmentMergeBaseBranch,
   threadEventRowSchema,
   threadSchema,
-} from "@bb/domain";
-import { listPreferredTestModels } from "@bb/test-helpers";
+} from "@kaioken/domain";
+import { listPreferredTestModels } from "@kaioken/test-helpers";
 import type {
   CreateProjectRequest,
   CreateThreadRequest,
@@ -34,7 +34,7 @@ import type {
   ThreadResponse,
   UpdateThreadRequest,
   WorkspaceArgs,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   createPublicApiClient,
   environmentActionResponseSchema,
@@ -49,7 +49,7 @@ import {
   threadResponseSchema,
   threadTimelineResponseSchema,
   THREAD_EVENT_LIST_PAGE_SIZE,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 
 export interface CreateHostThreadOptions {
   execution?: ThreadExecutionRequestOptions;

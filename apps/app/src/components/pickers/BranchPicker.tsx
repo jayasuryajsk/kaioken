@@ -6,31 +6,31 @@ import {
   useState,
   type RefObject,
 } from "react";
-import { Button } from "@bb/shared-ui/button";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { LIST_HOVER_TRANSITION } from "@bb/shared-ui/motion";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { LIST_HOVER_TRANSITION } from "@kaioken/shared-ui/motion";
 import {
   MENU_ITEM_LAST_HOVERED_CLASS,
   MenuHoverProvider,
   useMenuItemHover,
-} from "@bb/shared-ui/menu-item-hover";
+} from "@kaioken/shared-ui/menu-item-hover";
 import {
   COARSE_POINTER_COMPACT_ICON_SIZE_CLASS,
   COARSE_POINTER_COMPACT_ICON_SIZE_SHRINK_CLASS,
   COARSE_POINTER_ICON_SIZE_SHRINK_CLASS,
-} from "@bb/shared-ui/coarse-pointer-sizing";
-import { Input } from "@bb/shared-ui/input";
-import { blurActiveKeyboardInputWithin } from "@bb/shared-ui/overlay-trigger";
-import { Popover, PopoverContent, PopoverTrigger } from "@bb/shared-ui/popover";
+} from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { Input } from "@kaioken/shared-ui/input";
+import { blurActiveKeyboardInputWithin } from "@kaioken/shared-ui/overlay-trigger";
+import { Popover, PopoverContent, PopoverTrigger } from "@kaioken/shared-ui/popover";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   OPTION_BASE_CLASS_NAME,
   OPTION_INTERACTIVE_CLASS_NAME,
   OPTION_MUTED_CLASS_NAME,
   OPTION_TRIGGER_CONTENT_CLASS_NAME,
-} from "@bb/shared-ui/option-display";
-import { cn } from "@bb/shared-ui/lib/utils";
-import type { GitBranchRefClassification } from "@bb/domain";
+} from "@kaioken/shared-ui/option-display";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import type { GitBranchRefClassification } from "@kaioken/domain";
 import { searchPickerOptions } from "./picker-search";
 import { useResetPickerScroll } from "./useResetPickerScroll";
 

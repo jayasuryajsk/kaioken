@@ -9,16 +9,16 @@ import {
   ResourceListState,
   ResourceOverflowMenu,
   type ResourceOverflowMenuItem,
-} from "@bb/shared-ui/resource-list";
-import { Switch } from "@bb/shared-ui/switch";
+} from "@kaioken/shared-ui/resource-list";
+import { Switch } from "@kaioken/shared-ui/switch";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
-import { formatHomePathForDisplay } from "@bb/shared-ui/lib/utils";
-import { Icon } from "@bb/shared-ui/icon";
+} from "@kaioken/shared-ui/tooltip";
+import { formatHomePathForDisplay } from "@kaioken/shared-ui/lib/utils";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { Link } from "react-router-dom";
 import { getPluginConfigurationRoutePath } from "@/lib/route-paths";
 import { CheckPluginUpdatesButton } from "@/components/plugin/management/CheckPluginUpdatesButton";
@@ -76,12 +76,12 @@ export function pluginIsLocalSource(plugin: PluginListItem): boolean {
 }
 
 export function pluginRemovalLabel(plugin: PluginListItem): string {
-  return pluginIsLocalSource(plugin) ? "Remove from bb" : "Uninstall";
+  return pluginIsLocalSource(plugin) ? "Remove from kaioken" : "Uninstall";
 }
 
 export function pluginRemovalDescription(plugin: PluginListItem): string {
   return pluginIsLocalSource(plugin)
-    ? `Remove "${plugin.id}" from bb and delete its settings, secrets, and schedules? Its source files stay on disk. To move it to another directory, install the new path instead; that keeps its settings.`
+    ? `Remove "${plugin.id}" from kaioken and delete its settings, secrets, and schedules? Its source files stay on disk. To move it to another directory, install the new path instead; that keeps its settings.`
     : `Uninstall "${plugin.id}" and delete its managed files, settings, secrets, and schedules?`;
 }
 
@@ -174,7 +174,7 @@ export function CatalogPluginDetailBanner({
     <PluginBannerBar
       tone="warning"
       icon="AlertTriangle"
-      title="Update bb to install this plugin"
+      title="Update kaioken to install this plugin"
       detail={entry.incompatibleReason}
     />
   );
@@ -278,7 +278,7 @@ export function PluginDetail({
   const updatesWithBb = plugin.source.startsWith("builtin:");
   const installedAt = sourceQuery.data?.installedAt ?? null;
   const installedValue = updatesWithBb
-    ? "Updates with bb"
+    ? "Updates with kaioken"
     : installedAt !== null
       ? formatAbsoluteDate(installedAt)
       : sourceQuery.isPending
@@ -323,7 +323,7 @@ export function PluginDetail({
       disabled: pending || plugin.provenance === "builtin",
       disabledReason:
         plugin.provenance === "builtin"
-          ? "Included with BB; disable this plugin instead."
+          ? "Included with Kaioken; disable this plugin instead."
           : undefined,
       onSelect: () => onDelete(plugin),
     },

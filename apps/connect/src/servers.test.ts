@@ -14,7 +14,7 @@ import {
   server,
   session,
   user,
-} from "@bb/connect-db";
+} from "@kaioken/connect-db";
 
 import {
   createDesktopSessionCookie,
@@ -356,7 +356,7 @@ describe("verifyServerCredential / resolveAccountUserId", () => {
     ).toBe("acct-a");
 
     const localRequest = new Request(
-      "http://sawyer.bb.localhost:8787/api/connect/servers",
+      "http://sawyer.kaioken.localhost:8787/api/connect/servers",
       {
         headers: { cookie: `better-auth.session_token=${cookieValue}` },
       },

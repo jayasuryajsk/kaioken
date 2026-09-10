@@ -7,7 +7,7 @@ import {
   type DbNotifier,
   type DbQueryConnection,
   type QueuedThreadMessageRow,
-} from "@bb/db";
+} from "@kaioken/db";
 import type {
   PromptInput,
   QueuedMessagePayload,
@@ -16,7 +16,7 @@ import type {
   ResolvedThreadExecutionOptions,
   Thread,
   ThreadQueuedMessage,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   emitPluginMessageDispatched,
   emitPluginMessageQueued,

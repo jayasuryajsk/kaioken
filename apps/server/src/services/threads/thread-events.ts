@@ -11,7 +11,7 @@ import {
   noopNotifier,
   updateThread,
   type StoredTurnRequestEventRow,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   CLIENT_TURN_REQUEST_ID_ALPHABET,
   CLIENT_TURN_REQUEST_ID_SUFFIX_LENGTH,
@@ -23,7 +23,7 @@ import {
   threadScope,
   turnRequestEventDataSchema,
   WORKSPACE_PROVISIONING_STEP_KEYS,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { randomBytes } from "node:crypto";
 import type {
   ClientTurnRequestId,
@@ -45,11 +45,11 @@ import type {
   ThreadChangeKind,
   ThreadChangeMetadata,
   Thread,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { ApiError, TurnStartGuardError } from "../../errors.js";
 import type { AppDeps } from "../../types.js";
-import type { DbNotifier, DbQueryConnection, DbTransaction } from "@bb/db";
-import type { AppendStoredThreadEventArgs as AppendThreadEventArgs } from "@bb/db";
+import type { DbNotifier, DbQueryConnection, DbTransaction } from "@kaioken/db";
+import type { AppendStoredThreadEventArgs as AppendThreadEventArgs } from "@kaioken/db";
 
 interface ThreadEventReadDeps {
   db: DbQueryConnection;

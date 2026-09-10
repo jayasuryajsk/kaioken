@@ -1,7 +1,7 @@
-import type { TimelineConversationTurnRequest } from "@bb/server-contract";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { turnRequestLabel } from "@bb/client-core";
+import type { TimelineConversationTurnRequest } from "@kaioken/server-contract";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { turnRequestLabel } from "@kaioken/client-core";
 
 interface TurnRequestLabelProps {
   turnRequest: TimelineConversationTurnRequest;

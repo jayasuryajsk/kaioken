@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rm, stat } from "node:fs/promises";
 import { dirname, join, relative, sep } from "node:path";
-import { derivePluginId } from "@bb/domain";
+import { derivePluginId } from "@kaioken/domain";
 import {
   createPluginArtifact,
   getInstalledPlugin,
@@ -15,12 +15,12 @@ import {
   type PluginGitSelector,
   type PluginProvenance,
   type PluginSourceIntent,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   buildPluginApp,
   buildPluginHost,
   buildPluginServer,
-} from "@bb/plugin-build";
+} from "@kaioken/plugin-build";
 import {
   assertPublicMarketplaceUrl,
   boundedResponseJson,
@@ -30,7 +30,7 @@ import {
 } from "../plugin-catalog/marketplace-http.js";
 import { getPluginBuildToolchain } from "./build-toolchain.js";
 import { validatePluginArtifactMeta } from "./app-bundle.js";
-import type { PluginSourceSelection } from "@bb/server-contract";
+import type { PluginSourceSelection } from "@kaioken/server-contract";
 import { resolveSelectedSubdirectory } from "./collection-manifest.js";
 import {
   gitArtifactCacheDir,
@@ -579,7 +579,7 @@ export function createManagedPluginArtifacts(
       const manifest = await readPluginManifest(realRoot);
       assertExpectedPluginId(args.context, manifest.id, args.source);
       const compatibility = evaluateCompatibility({
-        bbRange: manifest.bbEngineRange,
+        kaiokenRange: manifest.kaiokenEngineRange,
         sdkRange: manifest.bbPluginSdkRange,
         appVersion: deps.appVersion,
       });
@@ -1197,7 +1197,7 @@ export function createManagedPluginArtifacts(
       );
       const manifest = await readPluginManifest(targetRealRoot);
       const compatibility = evaluateCompatibility({
-        bbRange: manifest.bbEngineRange,
+        kaiokenRange: manifest.kaiokenEngineRange,
         sdkRange: manifest.bbPluginSdkRange,
         appVersion: deps.appVersion,
       });
@@ -1287,7 +1287,7 @@ export function createManagedPluginArtifacts(
         };
       }
       const compatibility = evaluateCompatibility({
-        bbRange: manifest.bbEngineRange,
+        kaiokenRange: manifest.kaiokenEngineRange,
         sdkRange: manifest.bbPluginSdkRange,
         appVersion: deps.appVersion,
       });

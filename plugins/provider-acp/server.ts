@@ -1,7 +1,7 @@
 import type {
-  BbPluginApi,
+  KaiokenPluginApi,
   PluginProviderDeclaration,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { type AcpAgentDefinition } from "./src/agents.js";
 import { resolveConfiguredAcpAgents } from "./src/configured-agents.js";
@@ -40,7 +40,7 @@ async function sleepUntilAbort(ms: number, signal: AbortSignal): Promise<void> {
 }
 
 export default async function acpProvidersPlugin(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
 ): Promise<void> {
   const host = bb.hosts.experimental_client({ contract: acpHostContract });
   const settings = bb.settings.define({

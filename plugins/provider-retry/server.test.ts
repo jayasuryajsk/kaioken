@@ -4,8 +4,8 @@ import {
   makeQueueEntry,
   makeTurnFailedEvent,
   type CreateFakePluginHostOptions,
-} from "@get-bb/plugin-sdk/testing";
-import type { PluginTurnFailedEvent } from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk/testing";
+import type { PluginTurnFailedEvent } from "@get-kaioken/plugin-sdk";
 import plugin from "./server.js";
 import {
   MAX_RETRY_ATTEMPTS,

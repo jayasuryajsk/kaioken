@@ -2,7 +2,7 @@ import {
   ActionMenuItem,
   ActionMenuSeparator,
 } from "@/components/ui/action-menu-items";
-import type { Thread } from "@bb/domain";
+import type { Thread } from "@kaioken/domain";
 import { useCallback, useState, type ReactNode } from "react";
 import {
   ContextMenu,
@@ -12,7 +12,7 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuTrigger,
-} from "@bb/shared-ui/context-menu";
+} from "@kaioken/shared-ui/context-menu";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,15 +23,15 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { Button } from "@bb/shared-ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@bb/shared-ui/tooltip";
-import { COARSE_POINTER_ICON_SIZE_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { Button } from "@kaioken/shared-ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@kaioken/shared-ui/tooltip";
+import { COARSE_POINTER_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { CompactLongPressMenu } from "@/components/ui/compact-long-press-menu";
-import { isThreadRead } from "@bb/client-core";
+import { isThreadRead } from "@kaioken/client-core";
 import { copyToClipboardWithToast } from "@/lib/clipboard";
 import { getThreadRoutePath } from "@/lib/route-paths";
 import { useThreadActions } from "./ThreadActionsProvider";

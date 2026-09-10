@@ -5,7 +5,7 @@ import {
   decodeCodexInteractiveRequest,
   extractCodexMacOsPermissionRequest,
 } from "./interactive-requests.js";
-import { ProviderRequestDecodeError } from "@bb/provider-bridge-protocol/bridge-kit";
+import { ProviderRequestDecodeError } from "@kaioken/provider-bridge-protocol/bridge-kit";
 
 describe("decodeCodexInteractiveRequest", () => {
   it("maps command approval requests into pending interaction payloads", () => {
@@ -464,7 +464,7 @@ describe("decodeCodexInteractiveRequest", () => {
 });
 
 describe("buildCodexInteractiveResponse", () => {
-  it("maps bb command approvals back to Codex responses", () => {
+  it("maps kaioken command approvals back to Codex responses", () => {
     expect(
       buildCodexInteractiveResponse({
         payload: {

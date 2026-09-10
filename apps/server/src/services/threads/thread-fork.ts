@@ -1,7 +1,7 @@
-import { getEnvironment, getThread } from "@bb/db";
-import type { EnvironmentRow } from "@bb/db";
-import type { PromptInput, Thread } from "@bb/domain";
-import type { ForkThreadRequest } from "@bb/server-contract";
+import { getEnvironment, getThread } from "@kaioken/db";
+import type { EnvironmentRow } from "@kaioken/db";
+import type { PromptInput, Thread } from "@kaioken/domain";
+import type { ForkThreadRequest } from "@kaioken/server-contract";
 import type { LoggedPendingInteractionWorkSessionDeps } from "../../types.js";
 import { ApiError } from "../../errors.js";
 import { resolveExistingThreadPermissionMode } from "./thread-execution-plan.js";

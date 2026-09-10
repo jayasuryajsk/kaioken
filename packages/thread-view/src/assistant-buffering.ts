@@ -1,4 +1,4 @@
-import type { ThreadEvent } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
 
 export function parseAssistantDeltaText(decoded: ThreadEvent): string | null {
   if (

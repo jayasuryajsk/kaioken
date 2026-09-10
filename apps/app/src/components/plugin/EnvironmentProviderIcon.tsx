@@ -1,5 +1,5 @@
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
-import { Icon } from "@bb/shared-ui/icon";
+import type { SystemEnvironmentProvider } from "@kaioken/server-contract";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { getProviderIconInfo } from "@/lib/provider-icon";
 import { pluginIconName } from "./PluginIcon";
 

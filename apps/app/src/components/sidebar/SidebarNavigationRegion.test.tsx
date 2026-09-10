@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ExperimentalSidebarNavigationProps } from "@get-bb/plugin-sdk";
+import type { ExperimentalSidebarNavigationProps } from "@get-kaioken/plugin-sdk";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { resetAllCrashedPluginSlotsForTest } from "@/components/plugin/PluginSlotMount";
 import {
@@ -96,7 +96,7 @@ function Replacement({
         </button>
       ))}
       <button type="button" onClick={() => setDelegate(true)}>
-        Delegate to BB
+        Delegate to Kaioken
       </button>
       <button type="button" onClick={() => setCrash(true)}>
         Crash replacement
@@ -183,7 +183,7 @@ afterEach(() => {
 });
 
 describe("SidebarNavigationRegion", () => {
-  it("preserves modifier-click for New thread in BB navigation", () => {
+  it("preserves modifier-click for New thread in Kaioken navigation", () => {
     renderHarness();
 
     fireEvent.click(screen.getByRole("button", { name: "New thread" }), {
@@ -279,7 +279,7 @@ describe("SidebarNavigationRegion", () => {
     renderHarness(ownerMount);
     expect(ownerMount).toHaveBeenCalledOnce();
 
-    fireEvent.click(screen.getByRole("button", { name: "Delegate to BB" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delegate to Kaioken" }));
     expect(screen.getByTestId("built-in-sidebar-navigation")).toBeDefined();
     expect(ownerMount).toHaveBeenCalledOnce();
 
@@ -293,7 +293,7 @@ describe("SidebarNavigationRegion", () => {
       expect.objectContaining({
         title: "Sidebar navigation plugin crashed",
         description:
-          "Garden Navbar (garden) stopped working, so bb's own navigation is back.",
+          "Garden Navbar (garden) stopped working, so kaioken's own navigation is back.",
       }),
     ]);
   });

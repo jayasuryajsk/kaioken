@@ -17,7 +17,7 @@ describe("syncPluginTypes", () => {
   let rootDir: string;
 
   beforeEach(async () => {
-    rootDir = await mkdtemp(join(tmpdir(), "bb-sync-types-"));
+    rootDir = await mkdtemp(join(tmpdir(), "kaioken-sync-types-"));
   });
 
   afterEach(async () => {
@@ -28,32 +28,32 @@ describe("syncPluginTypes", () => {
     const results = await syncPluginTypes({ rootDir, app: false });
 
     expect(results).toEqual([
-      { path: "types/bb-plugin-sdk.d.ts", outcome: "written" },
+      { path: "types/kaioken-plugin-sdk.d.ts", outcome: "written" },
     ]);
     const written = await readFile(
-      join(rootDir, "types", "bb-plugin-sdk.d.ts"),
+      join(rootDir, "types", "kaioken-plugin-sdk.d.ts"),
       "utf8",
     );
-    expect(written).toContain("interface BbPluginApi");
+    expect(written).toContain("interface KaiokenPluginApi");
 
-    await writeFile(join(rootDir, "types", "bb-plugin-sdk.d.ts"), "// stale\n");
+    await writeFile(join(rootDir, "types", "kaioken-plugin-sdk.d.ts"), "// stale\n");
     const refreshed = await syncPluginTypes({ rootDir, app: false });
     expect(refreshed[0]?.outcome).toBe("written");
     expect(
-      await readFile(join(rootDir, "types", "bb-plugin-sdk.d.ts"), "utf8"),
-    ).toContain("interface BbPluginApi");
+      await readFile(join(rootDir, "types", "kaioken-plugin-sdk.d.ts"), "utf8"),
+    ).toContain("interface KaiokenPluginApi");
   });
 
   it("reports unchanged instead of rewriting a current declaration", async () => {
     await syncPluginTypes({ rootDir, app: false });
-    const before = await stat(join(rootDir, "types", "bb-plugin-sdk.d.ts"));
+    const before = await stat(join(rootDir, "types", "kaioken-plugin-sdk.d.ts"));
 
     const results = await syncPluginTypes({ rootDir, app: false });
 
     expect(results).toEqual([
-      { path: "types/bb-plugin-sdk.d.ts", outcome: "unchanged" },
+      { path: "types/kaioken-plugin-sdk.d.ts", outcome: "unchanged" },
     ]);
-    const after = await stat(join(rootDir, "types", "bb-plugin-sdk.d.ts"));
+    const after = await stat(join(rootDir, "types", "kaioken-plugin-sdk.d.ts"));
     expect(after.mtimeMs).toBe(before.mtimeMs);
   });
 
@@ -61,25 +61,25 @@ describe("syncPluginTypes", () => {
     await syncPluginTypes({ rootDir, app: false });
 
     await expect(
-      readFile(join(rootDir, "types", "bb-plugin-sdk-app.d.ts"), "utf8"),
+      readFile(join(rootDir, "types", "kaioken-plugin-sdk-app.d.ts"), "utf8"),
     ).rejects.toThrow();
   });
 
   it("refreshes existing app types even when the caller reports no bb.app", async () => {
     await mkdir(join(rootDir, "types"), { recursive: true });
     await writeFile(
-      join(rootDir, "types", "bb-plugin-sdk-app.d.ts"),
+      join(rootDir, "types", "kaioken-plugin-sdk-app.d.ts"),
       "// stale\n",
     );
 
     const results = await syncPluginTypes({ rootDir, app: false });
 
     expect(results).toContainEqual({
-      path: "types/bb-plugin-sdk-app.d.ts",
+      path: "types/kaioken-plugin-sdk-app.d.ts",
       outcome: "written",
     });
     expect(
-      await readFile(join(rootDir, "types", "bb-plugin-sdk-app.d.ts"), "utf8"),
+      await readFile(join(rootDir, "types", "kaioken-plugin-sdk-app.d.ts"), "utf8"),
     ).toContain("definePluginApp");
   });
 
@@ -88,7 +88,7 @@ describe("syncPluginTypes", () => {
       const victim = join(rootDir, "victim.txt");
       await writeFile(victim, "PRECIOUS\n");
       await mkdir(join(rootDir, "types"));
-      await symlink(victim, join(rootDir, "types", "bb-plugin-sdk.d.ts"));
+      await symlink(victim, join(rootDir, "types", "kaioken-plugin-sdk.d.ts"));
 
       await expect(syncPluginTypes({ rootDir, app: false })).rejects.toThrow(
         /symbolic link/,
@@ -99,13 +99,13 @@ describe("syncPluginTypes", () => {
     it("rejects a linked types directory and leaves the target intact", async () => {
       const outside = join(rootDir, "outside");
       await mkdir(outside);
-      await writeFile(join(outside, "bb-plugin-sdk.d.ts"), "PRECIOUS\n");
+      await writeFile(join(outside, "kaioken-plugin-sdk.d.ts"), "PRECIOUS\n");
       await symlink(outside, join(rootDir, "types"));
 
       await expect(syncPluginTypes({ rootDir, app: false })).rejects.toThrow(
         /symbolic link/,
       );
-      expect(await readFile(join(outside, "bb-plugin-sdk.d.ts"), "utf8")).toBe(
+      expect(await readFile(join(outside, "kaioken-plugin-sdk.d.ts"), "utf8")).toBe(
         "PRECIOUS\n",
       );
     });
@@ -115,7 +115,7 @@ describe("syncPluginTypes", () => {
     await syncPluginTypes({ rootDir, app: true });
 
     const entries = await readdir(join(rootDir, "types"));
-    expect(entries.filter((name) => name.includes("bb-tmp"))).toEqual([]);
+    expect(entries.filter((name) => name.includes("kaioken-tmp"))).toEqual([]);
   });
 
   it("check mode reports stale files and writes nothing", async () => {
@@ -125,8 +125,8 @@ describe("syncPluginTypes", () => {
       check: true,
     });
     expect(missing).toEqual([
-      { path: "types/bb-plugin-sdk.d.ts", outcome: "stale" },
-      { path: "types/bb-plugin-sdk-app.d.ts", outcome: "stale" },
+      { path: "types/kaioken-plugin-sdk.d.ts", outcome: "stale" },
+      { path: "types/kaioken-plugin-sdk-app.d.ts", outcome: "stale" },
     ]);
     await expect(stat(join(rootDir, "types"))).rejects.toThrow();
 

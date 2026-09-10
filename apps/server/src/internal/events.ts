@@ -7,12 +7,12 @@ import {
   listThreadEnvironmentAssignmentsOnHost,
   MissingStoredTurnStartedError,
   events as storedEvents,
-} from "@bb/db";
+} from "@kaioken/db";
 import type {
   AcceptedDaemonEvent,
   AppendDaemonEventInput,
   AppendDaemonEventsResult,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   hostDaemonEventBatchRequestSchema,
   ungroupHostDaemonEvents,
@@ -21,12 +21,12 @@ import {
   type HostDaemonEventEnvelope,
   type HostDaemonInternalSchema,
   type HostDaemonRejectedEvent,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   requireThreadEventScopeTurnId,
   type ThreadEventType,
   type ThreadEventTurnStatus,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { Hono } from "hono";
 import { ApiError } from "../errors.js";
 import type {

@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from "react";
-import type { PromptTextMention } from "@bb/domain";
+import type { PromptTextMention } from "@kaioken/domain";
 import {
   usePromptDraftStorage,
   type PromptDraftScope,
 } from "@/hooks/usePromptDraftStorage";
-import { promptDraftToInput } from "@bb/client-core";
-import type { PromptDraftState } from "@bb/client-core";
-import type { PromptInput } from "@bb/domain";
+import { promptDraftToInput } from "@kaioken/client-core";
+import type { PromptDraftState } from "@kaioken/client-core";
+import type { PromptInput } from "@kaioken/domain";
 
 export interface InlineComposerDraftSession {
   editSessionId: number;

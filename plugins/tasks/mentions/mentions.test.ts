@@ -1,4 +1,4 @@
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import { createFakePluginHost } from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it } from "vitest";
 
 import { createStore } from "../api";
@@ -172,17 +172,17 @@ describe("@task mention provider", () => {
       );
       expect(context).toContain("MEN-2 · Verify mention output — Done");
       expect(context).toMatch(/- 01[0-9A-HJKMNP-TV-Z]{24} · acceptance\.md/);
-      expect(context).toContain("Fetch with: bb tasks attachment get ");
+      expect(context).toContain("Fetch with: kaioken tasks attachment get ");
       expect(context).toContain("Sawyer · User");
       expect(context).toContain("thr_worker · Mention worker · Working");
       expect(context).toContain(
-        "You can act on this task with the bb tasks CLI.",
+        "You can act on this task with the kaioken tasks CLI.",
       );
       expect(context).toContain(
-        "first run: bb tasks attach MEN-1 (attaches THIS thread so the task shows you as working)",
+        "first run: kaioken tasks attach MEN-1 (attaches THIS thread so the task shows you as working)",
       );
-      expect(context).toContain("bb tasks comment MEN-1 --body ...");
-      expect(context).toContain("bb tasks update MEN-1 --status ...");
+      expect(context).toContain("kaioken tasks comment MEN-1 --body ...");
+      expect(context).toContain("kaioken tasks update MEN-1 --status ...");
     } finally {
       await harness.dispose();
     }

@@ -12,14 +12,14 @@ import {
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Host } from "@bb/domain";
-import { makeHost as makeHostFixture } from "@bb/test-helpers/domain-fixtures";
-import type { BbDesktopApi, BbDesktopInfo } from "@bb/desktop-contract";
+import type { Host } from "@kaioken/domain";
+import { makeHost as makeHostFixture } from "@kaioken/test-helpers/domain-fixtures";
+import type { KaiokenDesktopApi, KaiokenDesktopInfo } from "@kaioken/desktop-contract";
 import {
   HOST_DAEMON_PROTOCOL_VERSION,
   type ProviderCliKey,
-} from "@bb/host-daemon-contract";
-import { TooltipProvider } from "@bb/shared-ui/tooltip";
+} from "@kaioken/host-daemon-contract";
+import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
 import type {
   ProviderCliIssue,
   ProviderCliActionableIssue,
@@ -51,7 +51,7 @@ vi.mock("@/components/ui/app-toast", () => ({
 }));
 
 vi.mock("@/lib/sdk", async () => {
-  const { makeProviderInfo } = await import("@bb/test-helpers/domain-fixtures");
+  const { makeProviderInfo } = await import("@kaioken/test-helpers/domain-fixtures");
   return {
     sdk: {
       system: { version: vi.fn() },
@@ -245,7 +245,7 @@ function makeInventory(overrides: Partial<UpdateInventory>): UpdateInventory {
       source: "npm",
       updateAvailable: false,
       isDevelopment: false,
-      upgradeCommand: "npx bb-app@latest",
+      upgradeCommand: "npx kaioken-app@latest",
     },
     desktopInfo: null,
     appUpdateAvailable: false,
@@ -392,7 +392,7 @@ describe("UpdatesSettingsSection", () => {
     expect(bulkActions.querySelector('[data-icon="Download"]')).not.toBeNull();
     expect(
       screen.getByText(
-        "Manage bb and provider CLI updates across all machines.",
+        "Manage kaioken and provider CLI updates across all machines.",
       ),
     ).toBeDefined();
   });
@@ -478,7 +478,7 @@ The canonical release summary.
     expect(screen.queryByRole("button", { name: /check/i })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Updates" })).toBeNull();
     expect(
-      screen.getByRole("button", { name: /^Open the full bb .* changelog$/ }),
+      screen.getByRole("button", { name: /^Open the full kaioken .* changelog$/ }),
     ).toBeDefined();
     const changelog = document.querySelector(
       '[data-updates-domain="changelog"]',
@@ -526,7 +526,7 @@ The canonical release summary.
     expect(changelog?.textContent).toContain("Full changelog");
     expect(
       screen.getByRole("button", {
-        name: "Open the full bb 9.9.9 changelog",
+        name: "Open the full kaioken 9.9.9 changelog",
       }).className,
     ).toContain("font-semibold");
     for (const highlight of ["New features", "Fixes"]) {
@@ -540,7 +540,7 @@ The canonical release summary.
     expect(changelog?.textContent).toContain("One current feature.");
     expect(changelog?.textContent).toContain("One current fix.");
     const dismissChangelog = screen.getByRole("button", {
-      name: "Dismiss bb 9.9.9 changelog preview",
+      name: "Dismiss kaioken 9.9.9 changelog preview",
     });
     const changelogHeader = changelog?.querySelector("[data-changelog-header]");
     const changelogCard = changelogHeader?.closest("section");
@@ -551,7 +551,7 @@ The canonical release summary.
     expect(dismissChangelog.querySelector('[data-icon="X"]')).not.toBeNull();
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Open the full bb 9.9.9 changelog",
+        name: "Open the full kaioken 9.9.9 changelog",
       }),
     );
     expect(openUrlInExternalBrowserMock).toHaveBeenCalledWith(
@@ -564,7 +564,7 @@ The canonical release summary.
     );
     expect(
       screen.queryByRole("button", {
-        name: "Open the full bb 9.9.9 changelog",
+        name: "Open the full kaioken 9.9.9 changelog",
       }),
     ).toBeNull();
     expect(changelog?.getAttribute("data-changelog-dismiss-phase")).toBe(
@@ -618,7 +618,7 @@ The canonical release summary.
     await waitFor(() => {
       expect(
         screen.getByRole("button", {
-          name: "Dismiss bb 9.9.9 changelog preview",
+          name: "Dismiss kaioken 9.9.9 changelog preview",
         }),
       ).toBeDefined();
     });
@@ -680,18 +680,18 @@ The canonical release summary.
     );
     expect(offlineIcon?.getAttribute("class")).not.toContain("text-input");
     const daemonRow = screen
-      .getByText("bb daemon")
+      .getByText("kaioken daemon")
       .closest("[data-resource-row]");
     expect(daemonRow).not.toBeNull();
-    expect(screen.getByText("bb app")).toBeDefined();
+    expect(screen.getByText("kaioken app")).toBeDefined();
     expect(
       screen.getByRole("button", { name: "Open homelab settings" }),
     ).toBeDefined();
     expect(
-      daemonRow?.querySelector('[data-bb-update-role="daemon"]'),
+      daemonRow?.querySelector('[data-kaioken-update-role="daemon"]'),
     ).not.toBeNull();
     expect(
-      document.querySelector('[data-bb-update-role="app"]'),
+      document.querySelector('[data-kaioken-update-role="app"]'),
     ).not.toBeNull();
     expect(daemonRow?.querySelector('[data-icon="Laptop"]')).toBeNull();
     await waitFor(() => {
@@ -774,12 +774,12 @@ The canonical release summary.
 
     expect(screen.getByText("homelab")).toBeDefined();
     expect(screen.queryByText("1 updating")).toBeNull();
-    expect(screen.getByText("bb daemon")).toBeDefined();
+    expect(screen.getByText("kaioken daemon")).toBeDefined();
     expect(screen.getAllByText("In progress").length).toBeGreaterThan(0);
     expect(
       document.querySelector('[data-updates-machine="host_1"]'),
     ).not.toBeNull();
-    expect(screen.queryByText("1 machine is updating bb")).toBeNull();
+    expect(screen.queryByText("1 machine is updating kaioken")).toBeNull();
     expect(screen.queryByRole("button", { name: "Retry update" })).toBeNull();
     expect(screen.queryByText(/can't connect/i)).toBeNull();
   });
@@ -818,7 +818,7 @@ The canonical release summary.
     expect(screen.queryByText("1 machine needs attention")).toBeNull();
     expect(screen.queryByText(/daemon protocol/)).toBeNull();
     expect(
-      screen.getByText("bb daemon").closest("[data-resource-row]")?.className,
+      screen.getByText("kaioken daemon").closest("[data-resource-row]")?.className,
     ).not.toContain("bg-surface-destructive");
     expect(screen.queryByText(/^Up to date/)).toBeNull();
     const stalledMessage = screen.getByText("Update didn't finish");
@@ -846,7 +846,7 @@ The canonical release summary.
     );
   });
 
-  it("names a machine running a newer bb than the server", () => {
+  it("names a machine running a newer kaioken than the server", () => {
     useDesktopUpdateInfoMock.mockReturnValue({
       desktopApi: null,
       desktopInfo: null,
@@ -876,7 +876,7 @@ The canonical release summary.
     ).toBeNull();
   });
 
-  it("sweeps every machine stalled on the same bb update", () => {
+  it("sweeps every machine stalled on the same kaioken update", () => {
     useDesktopUpdateInfoMock.mockReturnValue({
       desktopApi: null,
       desktopInfo: null,
@@ -947,7 +947,7 @@ The canonical release summary.
     const machineName = screen.getByText("workstation");
     expect(machineHeading.querySelector('[data-icon="Laptop"]')).not.toBeNull();
     expect(machineName.nextElementSibling).toBeNull();
-    expect(screen.getByText("bb app")).toBeDefined();
+    expect(screen.getByText("kaioken app")).toBeDefined();
     expect(screen.queryByLabelText(/available update/)).toBeNull();
     expect(screen.getAllByText("workstation")).toHaveLength(1);
     expect(screen.getByText("Codex")).toBeDefined();
@@ -1338,7 +1338,7 @@ The canonical release summary.
       source: "npm" as const,
       updateAvailable: true,
       isDevelopment: false,
-      upgradeCommand: "npx bb-app@latest",
+      upgradeCommand: "npx kaioken-app@latest",
     };
     useUpdateInventoryMock.mockReturnValue(
       makeInventory({
@@ -1351,7 +1351,7 @@ The canonical release summary.
     vi.mocked(sdk.system.version).mockResolvedValue(availableVersion);
 
     renderSection();
-    expect(screen.getByText("npx bb-app@latest")).toBeDefined();
+    expect(screen.getByText("npx kaioken-app@latest")).toBeDefined();
     expect(screen.getByText("0.0.6")).toBeDefined();
     const copyButton = screen.getByRole("button", {
       name: "Update available · Copy the upgrade command",
@@ -1371,7 +1371,7 @@ The canonical release summary.
   });
 
   it("checks for desktop updates through the desktop bridge", async () => {
-    const desktopInfo: BbDesktopInfo = {
+    const desktopInfo: KaiokenDesktopInfo = {
       downloadState: "downloaded",
       lastCheckedAt: null,
       latestVersion: "0.0.6",
@@ -1384,7 +1384,7 @@ The canonical release summary.
     const checkForUpdates = vi.fn().mockResolvedValue(desktopInfo);
     const installUpdate = vi.fn().mockResolvedValue(undefined);
     useDesktopUpdateInfoMock.mockReturnValue({
-      desktopApi: { checkForUpdates, installUpdate } as unknown as BbDesktopApi,
+      desktopApi: { checkForUpdates, installUpdate } as unknown as KaiokenDesktopApi,
       desktopInfo,
       isDesktop: true,
     });
@@ -1399,7 +1399,7 @@ The canonical release summary.
 
     renderSection();
     const relaunch = screen.getByRole("button", {
-      name: /Relaunch bb to finish updating/,
+      name: /Relaunch kaioken to finish updating/,
     });
     expect(relaunch.querySelector("img")?.className).toContain("size-3");
     expect(relaunch.className).toContain("border");
@@ -1413,7 +1413,7 @@ The canonical release summary.
   });
 
   it("does not claim a legacy desktop shell is downloading an available update", () => {
-    const desktopInfo: BbDesktopInfo = {
+    const desktopInfo: KaiokenDesktopInfo = {
       lastCheckedAt: null,
       latestVersion: "0.0.6",
       pendingVersion: null,
@@ -1423,7 +1423,7 @@ The canonical release summary.
       version: "0.0.5",
     };
     useDesktopUpdateInfoMock.mockReturnValue({
-      desktopApi: {} as BbDesktopApi,
+      desktopApi: {} as KaiokenDesktopApi,
       desktopInfo,
       isDesktop: true,
     });
@@ -1436,7 +1436,7 @@ The canonical release summary.
   });
 
   it("retries a failed desktop download through the desktop bridge", async () => {
-    const desktopInfo: BbDesktopInfo = {
+    const desktopInfo: KaiokenDesktopInfo = {
       downloadState: "failed",
       lastCheckedAt: null,
       latestVersion: "0.0.6",
@@ -1448,7 +1448,7 @@ The canonical release summary.
     };
     const checkForUpdates = vi.fn().mockResolvedValue(desktopInfo);
     useDesktopUpdateInfoMock.mockReturnValue({
-      desktopApi: { checkForUpdates } as unknown as BbDesktopApi,
+      desktopApi: { checkForUpdates } as unknown as KaiokenDesktopApi,
       desktopInfo,
       isDesktop: true,
     });

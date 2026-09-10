@@ -3,8 +3,8 @@ import { constants as fsConstants } from "node:fs";
 import fs from "node:fs/promises";
 import { basename, delimiter, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { AgentRuntimeOptions } from "@bb/agent-runtime";
-import { assignIfDefined } from "@bb/config/objects";
+import type { AgentRuntimeOptions } from "@kaioken/agent-runtime";
+import { assignIfDefined } from "@kaioken/config/objects";
 
 interface ResolveLocalBbExecutablePathOptions {
   cliExecutablePath?: string;
@@ -12,8 +12,8 @@ interface ResolveLocalBbExecutablePathOptions {
 }
 
 interface PrepareRuntimeShellEnvOptions {
-  bbExecutableDirectory: string;
-  bbExecutablePath?: string;
+  kaiokenExecutableDirectory: string;
+  kaiokenExecutablePath?: string;
   hostDaemonPort?: number;
   serverUrl: string;
   inheritedPath?: string;
@@ -45,8 +45,8 @@ export type SpawnUserShellEnv = (
   args: SpawnUserShellEnvArgs,
 ) => Promise<UserShellEnvSpawnResult>;
 
-const SHELL_ENV_START_MARKER = "__BB_SHELL_ENV_START__";
-const SHELL_ENV_END_MARKER = "__BB_SHELL_ENV_END__";
+const SHELL_ENV_START_MARKER = "__KAIOKEN_SHELL_ENV_START__";
+const SHELL_ENV_END_MARKER = "__KAIOKEN_SHELL_ENV_END__";
 const SHELL_ENV_COMMAND = [
   `printf '%s\\n' ${SHELL_ENV_START_MARKER}`,
   "env",
@@ -56,7 +56,7 @@ const USER_SHELL_ENV_TIMEOUT_MS = 3_000;
 const USER_SHELL_ENV_FORCE_KILL_AFTER_MS = 1_000;
 
 function getDefaultCliExecutablePath(): string {
-  return fileURLToPath(new URL("../../cli/bin/bb", import.meta.url));
+  return fileURLToPath(new URL("../../cli/bin/kaioken", import.meta.url));
 }
 
 function getDefaultCliRuntimePath(): string {
@@ -81,7 +81,7 @@ async function resolveCliEntryPath(cliExecutablePath: string): Promise<string> {
   try {
     const stats = await fs.stat(cliEntryPath);
     if (!stats.isFile()) {
-      throw new Error(`Resolved bb CLI entry is not a file: ${cliEntryPath}`);
+      throw new Error(`Resolved kaioken CLI entry is not a file: ${cliEntryPath}`);
     }
     if (process.platform !== "win32") {
       try {
@@ -89,7 +89,7 @@ async function resolveCliEntryPath(cliExecutablePath: string): Promise<string> {
       } catch (error) {
         if (getErrorCode(error) === "EACCES") {
           throw new Error(
-            `Resolved bb CLI entry is not executable: ${cliEntryPath}. Build @bb/cli before starting the host daemon.`,
+            `Resolved kaioken CLI entry is not executable: ${cliEntryPath}. Build @kaioken/cli before starting the host daemon.`,
           );
         }
         throw error;
@@ -98,7 +98,7 @@ async function resolveCliEntryPath(cliExecutablePath: string): Promise<string> {
   } catch (error) {
     if (getErrorCode(error) === "ENOENT") {
       throw new Error(
-        `Missing built bb CLI entry at ${cliEntryPath}. Build @bb/cli before starting the host daemon.`,
+        `Missing built kaioken CLI entry at ${cliEntryPath}. Build @kaioken/cli before starting the host daemon.`,
       );
     }
     throw error;
@@ -114,13 +114,13 @@ async function requireCliRuntimePath(cliRuntimePath: string): Promise<void> {
     const stats = await fs.stat(resolvedCliRuntimePath);
     if (!stats.isFile()) {
       throw new Error(
-        `Resolved bb CLI runtime is not a file: ${resolvedCliRuntimePath}`,
+        `Resolved kaioken CLI runtime is not a file: ${resolvedCliRuntimePath}`,
       );
     }
   } catch (error) {
     if (getErrorCode(error) === "ENOENT") {
       throw new Error(
-        `Missing built bb CLI runtime at ${resolvedCliRuntimePath}. Build @bb/cli before starting the host daemon.`,
+        `Missing built kaioken CLI runtime at ${resolvedCliRuntimePath}. Build @kaioken/cli before starting the host daemon.`,
       );
     }
     throw error;
@@ -398,32 +398,32 @@ export async function resolveLocalBbExecutablePath(
   return cliEntryPath;
 }
 
-function bbExecutableFileName(): string {
-  return "bb";
+function kaiokenExecutableFileName(): string {
+  return "kaioken";
 }
 
 export function resolveBbExecutablePathInDirectory(
-  bbExecutableDirectory: string,
+  kaiokenExecutableDirectory: string,
 ): string {
-  return resolve(bbExecutableDirectory, bbExecutableFileName());
+  return resolve(kaiokenExecutableDirectory, kaiokenExecutableFileName());
 }
 
 export function prepareRuntimeShellEnv(
   options: PrepareRuntimeShellEnvOptions,
 ): NonNullable<AgentRuntimeOptions["shellEnv"]> {
-  const bbExecutablePath =
-    options.bbExecutablePath ??
-    resolveBbExecutablePathInDirectory(options.bbExecutableDirectory);
+  const kaiokenExecutablePath =
+    options.kaiokenExecutablePath ??
+    resolveBbExecutablePathInDirectory(options.kaiokenExecutableDirectory);
   const shellEnv: NonNullable<AgentRuntimeOptions["shellEnv"]> = {
     PATH: prependPath(
-      options.bbExecutableDirectory,
+      options.kaiokenExecutableDirectory,
       options.inheritedPath ?? process.env.PATH,
     ),
-    BB_CLI: bbExecutablePath,
-    BB_SERVER_URL: options.serverUrl,
+    KAIOKEN_CLI: kaiokenExecutablePath,
+    KAIOKEN_SERVER_URL: options.serverUrl,
   };
   assignIfDefined({
-    key: "BB_HOST_DAEMON_PORT",
+    key: "KAIOKEN_HOST_DAEMON_PORT",
     target: shellEnv,
     value:
       options.hostDaemonPort === undefined

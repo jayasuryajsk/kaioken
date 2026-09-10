@@ -2,13 +2,13 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CompactViewportOverrideProvider } from "@bb/shared-ui/hooks/use-compact-viewport";
-import { AutomationOverviewView } from "bb-plugin-automations/overview-view";
+import { CompactViewportOverrideProvider } from "@kaioken/shared-ui/hooks/use-compact-viewport";
+import { AutomationOverviewView } from "kaioken-plugin-automations/overview-view";
 import { focusWithKeyboard } from "@/test/keyboard-focus";
 import type {
   AutomationResponse,
   AutomationsOverviewResponse,
-} from "bb-plugin-automations/rpc-types";
+} from "kaioken-plugin-automations/rpc-types";
 
 function iconNames(element: HTMLElement): string[] {
   return [...element.querySelectorAll("[data-icon]")].map(
@@ -48,7 +48,7 @@ const INSTALLED_AUTOMATIONS: AutomationsOverviewResponse["automations"] = [
       createdAt: 1_700_000_000_000,
       updatedAt: 1_700_000_000_000,
     },
-    project: { id: "proj_1", name: "bb" },
+    project: { id: "proj_1", name: "kaioken" },
   },
 ];
 
@@ -154,7 +154,7 @@ describe("AutomationOverviewView", () => {
           execution: { ...healthyAutomation.execution, prompt: "" },
           problem: "missing-agent-prompt",
         },
-        project: { id: "proj_1", name: "bb" },
+        project: { id: "proj_1", name: "kaioken" },
       },
       {
         automation: {
@@ -163,7 +163,7 @@ describe("AutomationOverviewView", () => {
           name: "Unreadable automation",
           problem: "invalid-stored-data",
         },
-        project: { id: "proj_1", name: "bb" },
+        project: { id: "proj_1", name: "kaioken" },
       },
       ...INSTALLED_AUTOMATIONS,
     ];
@@ -239,11 +239,11 @@ describe("AutomationOverviewView", () => {
     expect(screen.getByText("Projects")).toBeTruthy();
     expect(screen.getByText("Status")).toBeTruthy();
 
-    const projectOption = screen.getByRole("menuitemcheckbox", { name: "bb" });
+    const projectOption = screen.getByRole("menuitemcheckbox", { name: "kaioken" });
     expect(projectOption.querySelector("[data-icon]")).toBeNull();
     expect(
       projectOption.querySelector(".truncate")?.getAttribute("title"),
-    ).toBe("bb");
+    ).toBe("kaioken");
     const activeOption = screen.getByRole("menuitemcheckbox", {
       name: "Active",
     });
@@ -276,15 +276,15 @@ describe("AutomationOverviewView", () => {
     expect(rowTitles()).toEqual(["Nightly digest"]);
 
     fireEvent.pointerDown(screen.getByRole("button", { name: "Filters" }));
-    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "bb" }));
+    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "kaioken" }));
     expect(
-      screen.getByRole("menuitemcheckbox", { name: "bb" }).ariaChecked,
+      screen.getByRole("menuitemcheckbox", { name: "kaioken" }).ariaChecked,
     ).toBe("true");
     expect(rowTitles()).toEqual(["Nightly digest"]);
 
     fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "Paused" }));
     expect(
-      screen.getByRole("menuitemcheckbox", { name: "bb" }).ariaChecked,
+      screen.getByRole("menuitemcheckbox", { name: "kaioken" }).ariaChecked,
     ).toBe("true");
     expect(
       screen.getByRole("menuitemcheckbox", { name: "Paused" }).ariaChecked,
@@ -307,7 +307,7 @@ describe("AutomationOverviewView", () => {
     fireEvent.pointerDown(screen.getByRole("button", { name: /^Filters/ }));
     fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "Paused" }));
     expect(
-      screen.getByRole("menuitemcheckbox", { name: "bb" }).ariaChecked,
+      screen.getByRole("menuitemcheckbox", { name: "kaioken" }).ariaChecked,
     ).toBe("true");
     expect(rowTitles()).toEqual(["Nightly digest"]);
     expect(
@@ -363,7 +363,7 @@ describe("AutomationOverviewView", () => {
     expect(isEngaged(sort())).toBe(false);
 
     fireEvent.pointerDown(filters());
-    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "bb" }));
+    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "kaioken" }));
     fireEvent.keyDown(document, { key: "Escape" });
     expect(isEngaged(filters())).toBe(true);
   });

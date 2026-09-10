@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { defaultResolvedCodeTheme, type AppTheme } from "@bb/domain";
+import { defaultResolvedCodeTheme, type AppTheme } from "@kaioken/domain";
 import { applyAppThemeCss, clearAppThemePreview } from "@/lib/themes";
 import { useAppThemePreview } from "./useAppThemePreview";
 
@@ -35,7 +35,7 @@ function deferred<T>() {
 }
 
 function styleText(): string | null {
-  return document.getElementById("bb-app-theme")?.textContent ?? null;
+  return document.getElementById("kaioken-app-theme")?.textContent ?? null;
 }
 
 function renderPreviewHook() {

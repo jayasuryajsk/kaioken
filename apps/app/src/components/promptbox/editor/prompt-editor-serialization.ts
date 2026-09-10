@@ -4,13 +4,13 @@ import {
   type PromptMentionCommandTrigger,
   type PromptMentionResource,
   type PromptTextMention,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { JSONContent } from "@tiptap/react";
 import type { Node as ProseMirrorNode, Schema, Slice } from "@tiptap/pm/model";
 import type {
   PromptMentionSuggestion,
   ProviderCommandSuggestion,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 export interface PromptEditorValue {
   text: string;

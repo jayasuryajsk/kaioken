@@ -9,7 +9,7 @@ import {
 } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TooltipProvider } from "@bb/shared-ui/tooltip";
+import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
 import { SIDEBAR_CONTROL_STATE_CLASS } from "./sidebarRowClasses";
 import {
   SidebarHeaderActionsProvider,
@@ -23,7 +23,7 @@ import {
 } from "./sidebarCollapsedAtoms";
 
 const viewport = vi.hoisted(() => ({ compact: false }));
-vi.mock("@bb/shared-ui/hooks/use-compact-viewport", () => ({
+vi.mock("@kaioken/shared-ui/hooks/use-compact-viewport", () => ({
   useIsCompactViewport: () => viewport.compact,
 }));
 

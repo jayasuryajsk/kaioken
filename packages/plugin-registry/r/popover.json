@@ -3,16 +3,16 @@
   "name": "popover",
   "type": "registry:ui",
   "title": "popover",
-  "description": "BB ui \"popover\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"popover\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-popover"
   ],
   "registryDependencies": [
-    "@bb/overlay-trigger",
-    "@bb/portal-scope",
-    "@bb/responsive-overlay",
-    "@bb/use-pointer-coarse",
-    "@bb/utils"
+    "@kaioken/overlay-trigger",
+    "@kaioken/portal-scope",
+    "@kaioken/responsive-overlay",
+    "@kaioken/use-pointer-coarse",
+    "@kaioken/utils"
   ],
   "files": [
     {

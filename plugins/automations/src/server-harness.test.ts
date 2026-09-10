@@ -5,7 +5,7 @@ import {
   makeThreadResponse,
   PluginContextStaleError,
   type FakePluginHost,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import plugin from "./server.js";
 import { createAutomationService } from "./service.js";
 import {
@@ -907,7 +907,7 @@ describe("automations server plugin harness", () => {
     const service = createAutomationService({
       bb: host.bb as never,
       db: host.bb.storage.database(),
-      pluginDataDir: "/tmp/bb-automations-test",
+      pluginDataDir: "/tmp/kaioken-automations-test",
       serverUrl: "http://127.0.0.1:38886",
     });
     await expect(
@@ -1264,7 +1264,7 @@ describe("automations server plugin harness", () => {
     await harness.dispose();
   });
 
-  it("dispose aborts the sweep service and poisons stale bb handles", async () => {
+  it("dispose aborts the sweep service and poisons stale kaioken handles", async () => {
     const { bb, harness } = await bootAutomationsPlugin();
     const service = harness.runService("automation-sweep");
 

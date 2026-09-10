@@ -16,7 +16,7 @@ import {
   bridgeRequestEnvelopeSchema,
   providerMaintenanceParamsSchema,
   providerInstallationRunParamsSchema,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import { z } from "zod";
 import { claudePermissionModeSchema } from "../interactive-contract.js";
 

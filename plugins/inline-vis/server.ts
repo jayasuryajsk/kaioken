@@ -1,5 +1,5 @@
 import path from "node:path";
-import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
+import { defineRpcContract, type KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 
 export const MAX_PREVIEW_BYTES = 5 * 1024 * 1024;
@@ -126,7 +126,7 @@ export const inlineVisRpcContract = defineRpcContract({
   },
 });
 
-export default async function plugin(bb: BbPluginApi) {
+export default async function plugin(bb: KaiokenPluginApi) {
   bb.rpc.register(inlineVisRpcContract, {
     async preparePreview({
       threadId,

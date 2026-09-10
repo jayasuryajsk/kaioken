@@ -9,7 +9,7 @@ export default defineWorkspaceTestConfig({
     testTimeout: 15_000,
     projects: sharedWorkerProjects({
       pkgDir: __dirname,
-      name: "bb-plugin-workflows",
+      name: "kaioken-plugin-workflows",
       include: ["src/**/*.test.{ts,tsx}"],
     }),
   },

@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { environments } from "@bb/db";
+import { environments } from "@kaioken/db";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";

@@ -3,9 +3,9 @@ import {
   isThreadQueueAutoSendPaused,
   listEvents,
   listQueuedThreadMessages,
-} from "@bb/db";
-import { turnScope } from "@bb/domain";
-import { groupHostDaemonEvents } from "@bb/host-daemon-contract";
+} from "@kaioken/db";
+import { turnScope } from "@kaioken/domain";
+import { groupHostDaemonEvents } from "@kaioken/host-daemon-contract";
 import { describe, expect, it } from "vitest";
 import {
   listQueuedCommands,

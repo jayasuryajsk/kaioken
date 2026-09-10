@@ -15,11 +15,11 @@ import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { AgentRuntimeSkillRoot } from "@bb/agent-runtime";
+import type { AgentRuntimeSkillRoot } from "@kaioken/agent-runtime";
 import type {
   HostDaemonInjectedSkillSource,
   HostDaemonSkillTree,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   cleanupInjectedSkillStagingDirs,
   ensureDataDirSkillsRootPath,
@@ -47,7 +47,7 @@ interface CapturedWarning {
 const tempDirs: string[] = [];
 
 async function makeTempDir(): Promise<string> {
-  const dir = await mkdtemp(path.join(tmpdir(), "bb-host-skills-"));
+  const dir = await mkdtemp(path.join(tmpdir(), "kaioken-host-skills-"));
   tempDirs.push(dir);
   return dir;
 }
@@ -129,7 +129,7 @@ function createTreePayload(
     left.path < right.path ? -1 : left.path > right.path ? 1 : 0,
   );
   const hash = createHash("sha256");
-  hash.update("bb-skill-tree-v1");
+  hash.update("kaioken-skill-tree-v1");
   for (const entry of entries) {
     const bytes = Buffer.from(entry.contentBase64, "base64");
     hash.update("\0file\0");
@@ -301,7 +301,7 @@ describe("injected skill staging", () => {
       ).toString("base64"),
     });
     const hash = createHash("sha256");
-    hash.update("bb-skill-tree-v1");
+    hash.update("kaioken-skill-tree-v1");
     for (const entry of [...entries].sort((left, right) =>
       left.path < right.path ? -1 : left.path > right.path ? 1 : 0,
     )) {

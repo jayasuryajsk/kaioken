@@ -1,4 +1,4 @@
-import type { BbPluginApi, PluginRpcHandlers } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi, PluginRpcHandlers } from "@get-kaioken/plugin-sdk";
 import {
   createTasksStore,
   type Attachment as StoredAttachment,
@@ -58,7 +58,7 @@ export interface TasksApiStore {
   sidebarSummary(): SidebarProjectSummary[];
 }
 
-export function createStore(bb: BbPluginApi): TasksApiStore {
+export function createStore(bb: KaiokenPluginApi): TasksApiStore {
   const database = bb.storage.database();
   const tasks = createTasksStore(database);
 
@@ -181,7 +181,7 @@ function priorityName(priority: StoredTask["priority"]): string {
 }
 
 export function publishTasksChanged(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   taskId: string,
   projectId: string,
 ): void {
@@ -190,7 +190,7 @@ export function publishTasksChanged(
 }
 
 export function publishProjectsChanged(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   projectId: string | null,
 ): void {
   const payload: ProjectsChangedEvent = { projectId };
@@ -198,7 +198,7 @@ export function publishProjectsChanged(
 }
 
 export function publishCommentsChanged(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   taskId: string,
   notifiedCount?: number,
 ): void {
@@ -361,7 +361,7 @@ interface AgentThreadInfo {
 }
 
 async function resolveAgentThreadInfo(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   comments: readonly StoredComment[],
 ): Promise<Map<string, AgentThreadInfo>> {
   const threadIds = new Set<string>();
@@ -392,7 +392,7 @@ async function resolveAgentThreadInfo(
 }
 
 async function resolveProviderBadges(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   threadInfo: ReadonlyMap<string, AgentThreadInfo>,
 ): Promise<Map<string, CommentProvider>> {
   const providerIds = new Set(
@@ -429,7 +429,7 @@ interface CreateCommentInput {
 }
 
 export async function createComment(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksApiStore,
   input: CreateCommentInput,
 ): Promise<StoredComment> {
@@ -492,7 +492,7 @@ async function mapWithConcurrency<T, R>(
 }
 
 async function listTaskPullRequests(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksApiStore,
   taskId: string,
 ): Promise<TaskPullRequestsResult> {
@@ -522,7 +522,7 @@ async function listTaskPullRequests(
     PULL_REQUEST_LOOKUP_CONCURRENCY,
     async ([environmentId, threadIds]) => {
       let result: Awaited<
-        ReturnType<BbPluginApi["sdk"]["environments"]["pullRequest"]>
+        ReturnType<KaiokenPluginApi["sdk"]["environments"]["pullRequest"]>
       >;
       try {
         result = await bb.sdk.environments.pullRequest({ environmentId });
@@ -587,7 +587,7 @@ async function listTaskPullRequests(
 }
 
 export function registerHandlers(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksApiStore,
 ): PluginRpcHandlers<typeof tasksRpcContract> {
   return {
@@ -997,7 +997,7 @@ export function registerHandlers(
     async listBbProjects() {
       const projects = await bb.sdk.projects.list({ includePersonal: true });
       return {
-        bbProjects: projects.map((project) => ({
+        kaiokenProjects: projects.map((project) => ({
           id: project.id,
           name: project.name,
         })),
@@ -1012,6 +1012,6 @@ export function registerHandlers(
   };
 }
 
-export function registerTasksApi(bb: BbPluginApi, store: TasksApiStore): void {
+export function registerTasksApi(bb: KaiokenPluginApi, store: TasksApiStore): void {
   bb.rpc.register(tasksRpcContract, registerHandlers(bb, store));
 }

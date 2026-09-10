@@ -1,7 +1,7 @@
 import type {
   ProviderUsage,
   ProviderUsageResponse,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { describe, expect, it } from "vitest";
 import { registerHostRpcResponder } from "../helpers/host-rpc.js";
 import { readJson } from "../helpers/json.js";

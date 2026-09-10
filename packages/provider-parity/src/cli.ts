@@ -22,7 +22,7 @@ import {
   describeParityValue,
   normalizeParityEvents,
   normalizeParityRows,
-} from "@bb/provider-bridge-protocol/testing/parity";
+} from "@kaioken/provider-bridge-protocol/testing/parity";
 
 interface CliArgs {
   oldRoot: string;

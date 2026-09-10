@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { JsonValue } from "@get-bb/plugin-sdk";
+import type { JsonValue } from "@get-kaioken/plugin-sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   completeCodexInference,
@@ -33,7 +33,7 @@ interface CreateAccessTokenArgs {
 }
 
 async function makeTempHome(): Promise<string> {
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "bb-codex-auth-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-codex-auth-"));
   tempDirs.push(tempDir);
   vi.stubEnv("HOME", tempDir);
   return tempDir;
@@ -743,7 +743,7 @@ describe("Codex ChatGPT client", () => {
     expect(thrown).toMatchObject({
       detailCode: "codex_service_unavailable",
       message:
-        "Codex transcription request failed with HTTP 403: chatgpt.com answered with a Cloudflare challenge that bb cannot solve. Retry, or set BB_TRANSCRIPTION to an openai/ model with OPENAI_API_KEY.",
+        "Codex transcription request failed with HTTP 403: chatgpt.com answered with a Cloudflare challenge that kaioken cannot solve. Retry, or set KAIOKEN_TRANSCRIPTION to an openai/ model with OPENAI_API_KEY.",
     });
   });
 

@@ -6,12 +6,12 @@ import {
   jsonObjectSchema,
   permissionModeSchema,
   providerForkSchema,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { AgentRuntimeBridgeLaunch } from "../types.js";
 
 export const INTEGRATION_PROVIDER_BRIDGE_MANIFEST_PATH = join(
   tmpdir(),
-  "bb-agent-runtime-integration-provider-bridges.json",
+  "kaioken-agent-runtime-integration-provider-bridges.json",
 );
 
 const bridgeLaunchSchema = z.object({

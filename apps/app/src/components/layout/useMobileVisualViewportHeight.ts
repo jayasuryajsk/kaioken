@@ -18,7 +18,7 @@ export function shouldRestoreIOSViewportOnKeyboardDismissal({
   return isAppleWebKit && isIOSDevice;
 }
 
-export const SHELL_SAFE_AREA_BOTTOM_PROPERTY = "--bb-safe-area-bottom";
+export const SHELL_SAFE_AREA_BOTTOM_PROPERTY = "--kaioken-safe-area-bottom";
 
 export const KEYBOARD_OPEN_MIN_SHRINK_PX = 80;
 
@@ -83,7 +83,7 @@ export function useMobileVisualViewportHeight(
       appliedOverride = null;
       shell.style.removeProperty("top");
       shell.style.removeProperty("height");
-      viewportStyleRoot.style.removeProperty("--bb-shell-height");
+      viewportStyleRoot.style.removeProperty("--kaioken-shell-height");
     };
     const updateHeight = () => {
       animationFrame = null;
@@ -123,7 +123,7 @@ export function useMobileVisualViewportHeight(
       shell.style.top = `${shellTop}px`;
       shell.style.height = `${visualViewportHeight}px`;
       viewportStyleRoot.style.setProperty(
-        "--bb-shell-height",
+        "--kaioken-shell-height",
         `${visualViewportHeight}px`,
       );
     };

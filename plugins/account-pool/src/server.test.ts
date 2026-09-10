@@ -3,7 +3,7 @@ import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import path from "node:path";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import { createFakePluginHost } from "@get-kaioken/plugin-sdk/testing";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   accountSchema,
@@ -188,7 +188,7 @@ async function createFixture(args: {
   priority?: number;
   beforePlugin?: (host: Fixture["host"]) => void;
 }): Promise<Fixture> {
-  const dataDir = await mkdtemp(path.join(tmpdir(), "bb-account-pool-"));
+  const dataDir = await mkdtemp(path.join(tmpdir(), "kaioken-account-pool-"));
   const host = createFakePluginHost({
     pluginId: "account-pool",
     dataDir,
@@ -365,7 +365,7 @@ describe("Account Pool config schema", () => {
 describe("Account Pool plugin", () => {
   it("reads and updates one full config record through RPC and CLI", async () => {
     const dataDir = await mkdtemp(
-      path.join(tmpdir(), "bb-account-pool-config-"),
+      path.join(tmpdir(), "kaioken-account-pool-config-"),
     );
     const host = createFakePluginHost({
       pluginId: "account-pool",
@@ -579,7 +579,7 @@ describe("Account Pool plugin", () => {
     });
     cleanups.push(upstream.close);
     const dataDir = await mkdtemp(
-      path.join(tmpdir(), "bb-account-pool-codex-"),
+      path.join(tmpdir(), "kaioken-account-pool-codex-"),
     );
     let imported = 0;
     const importCodexCredentials =
@@ -811,7 +811,7 @@ describe("Account Pool plugin", () => {
 
   it("cancels a Codex upstream read when the HTTP client aborts", async () => {
     const dataDir = await mkdtemp(
-      path.join(tmpdir(), "bb-account-pool-codex-cancel-"),
+      path.join(tmpdir(), "kaioken-account-pool-codex-cancel-"),
     );
     let upstreamReadCanceled = false;
     const upstreamFetch = async (
@@ -916,7 +916,7 @@ describe("Account Pool plugin", () => {
   });
 
   it("prunes token files for unenrolled hosts on startup and status", async () => {
-    const dataDir = await mkdtemp(path.join(tmpdir(), "bb-pool-prune-"));
+    const dataDir = await mkdtemp(path.join(tmpdir(), "kaioken-pool-prune-"));
     const secretDir = path.join(
       dataDir,
       "plugins",
@@ -961,7 +961,7 @@ describe("Account Pool plugin", () => {
 
   it("uses a single-process token cache and throttles last-use file writes", async () => {
     let now = 1_000;
-    const dataDir = await mkdtemp(path.join(tmpdir(), "bb-pool-tokens-"));
+    const dataDir = await mkdtemp(path.join(tmpdir(), "kaioken-pool-tokens-"));
     cleanups.push(() => fs.rm(dataDir, { recursive: true, force: true }));
     const tokens = new HubTokenStore(dataDir, () => now);
     await tokens.initialize();
@@ -1002,7 +1002,7 @@ describe("Account Pool plugin", () => {
     });
     cleanups.push(upstream.close);
     const dataDir = await mkdtemp(
-      path.join(tmpdir(), "bb-account-pool-empty-"),
+      path.join(tmpdir(), "kaioken-account-pool-empty-"),
     );
     const host = createFakePluginHost({
       pluginId: "account-pool",
@@ -1040,7 +1040,7 @@ describe("Account Pool plugin", () => {
       }),
     ).resolves.toBeNull();
     expect(host.harness.inspection.needsConfigurationMessages).toEqual([
-      "Add and enable a Claude or Codex account with `bb pool account add`.",
+      "Add and enable a Claude or Codex account with `kaioken pool account add`.",
     ]);
     const hello = helloResponse();
     expect(hello.status).toBe(200);
@@ -1205,7 +1205,7 @@ describe("Account Pool plugin", () => {
       response.end();
     });
     cleanups.push(oauth.close);
-    const dataDir = await mkdtemp(path.join(tmpdir(), "bb-pool-login-rpc-"));
+    const dataDir = await mkdtemp(path.join(tmpdir(), "kaioken-pool-login-rpc-"));
     const host = createFakePluginHost({
       pluginId: "account-pool",
       dataDir,
@@ -1367,7 +1367,7 @@ describe("Account Pool plugin", () => {
       response.end("{}");
     });
     cleanups.push(auth.close);
-    const dataDir = await mkdtemp(path.join(tmpdir(), "bb-pool-codex-login-"));
+    const dataDir = await mkdtemp(path.join(tmpdir(), "kaioken-pool-codex-login-"));
     const host = createFakePluginHost({
       pluginId: "account-pool",
       dataDir,
@@ -1698,7 +1698,7 @@ describe("Account Pool plugin", () => {
     expect(fixture.host.harness.inspection.logEntries).toContainEqual({
       level: "warn",
       message:
-        "Account Pooler disabled with 1 recently routed thread on machines without a local Claude login. Run bb pool status before disabling to inspect them.",
+        "Account Pooler disabled with 1 recently routed thread on machines without a local Claude login. Run kaioken pool status before disabling to inspect them.",
     });
   });
 

@@ -1,7 +1,7 @@
 import {
   type DynamicTool,
   experimental_buildBridgeToolCallContent,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import type { McpSdkServerConfigWithInstance } from "@anthropic-ai/claude-agent-sdk";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
@@ -9,9 +9,9 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
-import { BB_BRIDGE_MCP_SERVER_NAME } from "../tool-classification.js";
+import { KAIOKEN_BRIDGE_MCP_SERVER_NAME } from "../tool-classification.js";
 
-export const BRIDGE_MCP_SERVER_NAME = BB_BRIDGE_MCP_SERVER_NAME;
+export const BRIDGE_MCP_SERVER_NAME = KAIOKEN_BRIDGE_MCP_SERVER_NAME;
 
 type BridgeToolCallContent =
   | { type: "text"; text: string }

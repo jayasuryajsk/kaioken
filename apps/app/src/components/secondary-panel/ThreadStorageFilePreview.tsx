@@ -12,12 +12,12 @@ import type {
   FilePreviewLineRange,
   TextFilePreview,
   WorkspaceFilePreviewStatusLabel,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   isCsvFilePreview,
   isHtmlFilePreviewPath,
   isMarkdownFilePreview,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 const GENERIC_HTML_IFRAME_SANDBOX = "allow-scripts";
 

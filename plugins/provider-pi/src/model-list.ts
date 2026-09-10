@@ -6,7 +6,7 @@ import {
   XHIGH_REASONING_EFFORT,
   type AvailableModel,
   type ModelReasoningEffort,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 
 const NONE_REASONING_EFFORT: ModelReasoningEffort = {
   reasoningEffort: "none",

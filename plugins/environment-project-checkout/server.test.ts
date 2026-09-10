@@ -1,11 +1,11 @@
 import type {
   PluginEnvironmentProviderCreateContext,
   PluginEnvironmentProviderValidateContext,
-} from "@get-bb/plugin-sdk/environment-provider";
+} from "@get-kaioken/plugin-sdk/environment-provider";
 import {
   createFakePluginHost,
   makeHostResponse,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it } from "vitest";
 import { PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID } from "./provider-id.js";
 import plugin from "./server.js";
@@ -19,12 +19,12 @@ const HOST = makeHostResponse({ id: "host-a", name: "Fake machine" });
 const PROJECT: PluginEnvironmentProviderCreateContext["project"] = {
   id: "project-1",
   kind: "standard",
-  name: "bb",
+  name: "kaioken",
   gitRemoteUrl: null,
   createdAt: 1,
   updatedAt: 1,
 };
-const CHECKOUT_PATH = "/checkouts/bb";
+const CHECKOUT_PATH = "/checkouts/kaioken";
 
 function environmentAt(path: string): Environment {
   return {
@@ -265,12 +265,12 @@ describe("checkout provider validate", () => {
 
   it("checks the directory the inputs name rather than the project checkout", async () => {
     const decision = await validateWith({
-      environments: [environmentAt("/elsewhere/bb")],
+      environments: [environmentAt("/elsewhere/kaioken")],
       threads: [
         { id: "thr_other", environmentId: "env_1", status: "starting" },
       ],
       inputs: {
-        path: "/elsewhere/bb",
+        path: "/elsewhere/kaioken",
         branch: { kind: "existing", name: "release" },
       },
     });

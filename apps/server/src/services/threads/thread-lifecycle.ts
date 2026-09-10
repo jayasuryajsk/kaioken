@@ -27,8 +27,8 @@ import {
   type DbNotifier,
   type DbQueryConnection,
   type DbTransaction,
-} from "@bb/db";
-import { assertNever } from "@bb/core-ui";
+} from "@kaioken/db";
+import { assertNever } from "@kaioken/core-ui";
 import {
   type ProvisioningTranscriptEntry,
   type SystemThreadInterruptedReason,
@@ -39,7 +39,7 @@ import {
   type ThreadStatus,
   threadScope,
   turnScope,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   AppDeps,
   LoggedPendingInteractionWorkSessionDeps,

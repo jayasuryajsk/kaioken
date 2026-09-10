@@ -5,11 +5,11 @@ import type {
   ThreadTimelineResponse,
   TimelineRow,
   TimelineUserConversationRow,
-} from "@bb/server-contract";
-import { mergeLatestTimelineRows } from "@bb/client-core";
+} from "@kaioken/server-contract";
+import { mergeLatestTimelineRows } from "@kaioken/client-core";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { BbHttpError, sdk } from "@/lib/sdk";
-import { OPTIMISTIC_TIMELINE_ROW_ID_PREFIX } from "@bb/client-core";
+import { KaiokenHttpError, sdk } from "@/lib/sdk";
+import { OPTIMISTIC_TIMELINE_ROW_ID_PREFIX } from "@kaioken/client-core";
 import { threadTimelineQueryKey } from "@/hooks/queries/query-keys";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
 import { useThreadTimelineController } from "./useThreadTimelineController";
@@ -333,7 +333,7 @@ describe("useThreadTimelineController", () => {
     let resolveRefetch: (value: ThreadTimelineResponse) => void = () => {};
     vi.mocked(sdk.threads.timeline)
       .mockRejectedValueOnce(
-        new BbHttpError({
+        new KaiokenHttpError({
           body: null,
           code: null,
           status: 500,
@@ -354,7 +354,7 @@ describe("useThreadTimelineController", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.timelineError).toBeInstanceOf(BbHttpError);
+      expect(result.current.timelineError).toBeInstanceOf(KaiokenHttpError);
     });
 
     act(() => {

@@ -1,9 +1,9 @@
 import {
   defineRpcContract,
-  type BbPluginApi,
+  type KaiokenPluginApi,
   type MessageDispatchHookDecision,
   type PluginThreadEventName,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { concurrencyLimitHostContract } from "./contract.js";
 import {
@@ -184,7 +184,7 @@ function formatHostLine(host: {
 }
 
 export default async function concurrencyLimitPlugin(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
 ): Promise<void> {
   const hostClient = bb.hosts.experimental_client({
     contract: concurrencyLimitHostContract,
@@ -262,17 +262,17 @@ export default async function concurrencyLimitPlugin(
       {
         name: "status",
         summary: "Show effective concurrency limits",
-        usage: "bb concurrency-limit status [--json]",
+        usage: "kaioken concurrency-limit status [--json]",
       },
       {
         name: "global",
         summary: "Show or set the overall limit",
-        usage: "bb concurrency-limit global [unlimited|<limit>] [--json]",
+        usage: "kaioken concurrency-limit global [unlimited|<limit>] [--json]",
       },
       {
         name: "host",
         summary: "Show or set one host limit",
-        usage: "bb concurrency-limit host <host-id> [auto|<limit>] [--json]",
+        usage: "kaioken concurrency-limit host <host-id> [auto|<limit>] [--json]",
       },
     ],
     async run(argv) {
@@ -345,7 +345,7 @@ export default async function concurrencyLimitPlugin(
       return {
         exitCode: 1,
         stderr:
-          "Usage: bb concurrency-limit <status|global|host> [arguments] [--json]",
+          "Usage: kaioken concurrency-limit <status|global|host> [arguments] [--json]",
       };
     },
   });

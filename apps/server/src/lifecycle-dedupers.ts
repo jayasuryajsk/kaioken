@@ -1,4 +1,4 @@
-import type { AvailableModel } from "@bb/domain";
+import type { AvailableModel } from "@kaioken/domain";
 import {
   createAsyncDeduper,
   createAsyncRerunner,

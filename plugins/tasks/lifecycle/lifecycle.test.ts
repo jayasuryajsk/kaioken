@@ -1,7 +1,7 @@
 import {
   createFakePluginHost,
   makeThreadResponse,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it, vi } from "vitest";
 import { createStore } from "../api";
 import type { TaskThreadLiveStatus } from "../db";
@@ -12,7 +12,7 @@ import {
 } from ".";
 
 interface TrackedThreadFixture {
-  bb: ReturnType<typeof createFakePluginHost>["bb"];
+  bb: ReturnType<typeof createFakePluginHost>["kaioken"];
   harness: ReturnType<typeof createFakePluginHost>["harness"];
   store: ReturnType<typeof createStore>;
   taskId: string;

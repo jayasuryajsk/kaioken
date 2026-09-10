@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
+} from "@kaioken/shared-ui/dialog";
 import {
   Select,
   SelectContent,
@@ -21,10 +21,10 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
-} from "@bb/shared-ui/select";
-import { Button } from "@bb/shared-ui/button";
-import { Input } from "@bb/shared-ui/input";
-import { Icon } from "@bb/shared-ui/icon";
+} from "@kaioken/shared-ui/select";
+import { Button } from "@kaioken/shared-ui/button";
+import { Input } from "@kaioken/shared-ui/input";
+import { Icon } from "@kaioken/shared-ui/icon";
 import {
   ColorSwatchPicker,
   DEFAULT_COLOR,
@@ -34,11 +34,11 @@ import {
   PROJECT_PREFIX_PATTERN,
 } from "./shared.js";
 import {
-  BbProjectLinkPicker,
+  KaiokenProjectLinkPicker,
   emptyBbProjectLinkState,
   resolveBbProjectLink,
-  type BbProjectLinkState,
-} from "./bb-project-link.js";
+  type KaiokenProjectLinkState,
+} from "./kaioken-project-link.js";
 
 const NO_FOLDER = "__none__";
 const NEW_FOLDER = "__new__";
@@ -64,17 +64,17 @@ export function NewProjectDialog({
   const [folderId, setFolderId] = useState<string | null>(null);
   const [newFolderMode, setNewFolderMode] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
-  const [linkState, setLinkState] = useState<BbProjectLinkState>(
+  const [linkState, setLinkState] = useState<KaiokenProjectLinkState>(
     emptyBbProjectLinkState,
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const bbProjects = useTasksQuery(
-    async (rpc) => (await rpc.call("listBbProjects")).bbProjects,
+  const kaiokenProjects = useTasksQuery(
+    async (rpc) => (await rpc.call("listBbProjects")).kaiokenProjects,
     [],
   );
-  const bbProjectList = bbProjects.data ?? [];
+  const kaiokenProjectList = kaiokenProjects.data ?? [];
 
   useEffect(() => {
     if (!open) return;
@@ -276,13 +276,13 @@ export function NewProjectDialog({
             ) : null}
           </Field>
           <Field
-            label="Linked bb project"
-            hint="Optional. Linking a bb project enables dispatching to agents."
+            label="Linked kaioken project"
+            hint="Optional. Linking a kaioken project enables dispatching to agents."
           >
-            <BbProjectLinkPicker
+            <KaiokenProjectLinkPicker
               state={linkState}
               onStateChange={setLinkState}
-              bbProjects={bbProjectList}
+              kaiokenProjects={kaiokenProjectList}
             />
           </Field>
         </div>

@@ -2,15 +2,15 @@ import {
   findLocalPathProjectSourceForHost,
   type ProjectSource,
   type ThreadListEntry,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   ProjectBranchesResponse,
   SystemEnvironmentProvider,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   PERSONAL_WORKSPACE_ENVIRONMENT_PROVIDER_ID,
   PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   encodeProviderValue,
   parseEnvironmentValue,

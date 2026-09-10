@@ -29,7 +29,7 @@ function installDocument(html: string): void {
     .replace(/^[\s\S]*?<html[^>]*>/, "")
     .replace(/<\/html>[\s\S]*$/, "");
   document.documentElement.innerHTML = inner;
-  document.documentElement.className = "bb-app-shell-root";
+  document.documentElement.className = "kaioken-app-shell-root";
 }
 
 function runInlineScripts(): void {
@@ -106,12 +106,12 @@ describe("index.html pre-paint script", () => {
   it("injects the palette CSS cached by applyAppThemeCss as the last head style", () => {
     const css = ":root { --canvas: oklch(0.3 0.02 250); }";
     applyAppThemeCss(css);
-    document.getElementById("bb-app-theme")?.remove();
+    document.getElementById("kaioken-app-theme")?.remove();
     expect(localStorage.getItem(APP_THEME_CSS_STORAGE_KEY)).toBe(css);
 
     runInlineScripts();
 
-    const style = document.getElementById("bb-app-theme");
+    const style = document.getElementById("kaioken-app-theme");
     expect(style).toBeInstanceOf(HTMLStyleElement);
     expect(style?.textContent).toBe(css);
     expect(document.head.lastElementChild).toBe(style);
@@ -120,7 +120,7 @@ describe("index.html pre-paint script", () => {
   it("does not inject a palette element when no palette is cached", () => {
     runInlineScripts();
 
-    expect(document.getElementById("bb-app-theme")).toBeNull();
+    expect(document.getElementById("kaioken-app-theme")).toBeNull();
   });
 
   it("lets applyCachedAppThemeCss adopt the pre-paint element and keep it last", () => {
@@ -133,7 +133,7 @@ describe("index.html pre-paint script", () => {
 
     applyCachedAppThemeCss();
 
-    const styles = document.querySelectorAll("#bb-app-theme");
+    const styles = document.querySelectorAll("#kaioken-app-theme");
     expect(styles).toHaveLength(1);
     expect(styles[0].textContent).toBe(css);
     expect(document.head.lastElementChild).toBe(styles[0]);

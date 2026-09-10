@@ -6,12 +6,12 @@ import {
   openSession,
   updateHost,
   upsertHost,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   HOST_DAEMON_PROTOCOL_VERSION,
   hostDaemonServerWsMessageSchema,
   hostDaemonSessionOpenResponseSchema,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { describe, expect, it } from "vitest";
 import { ApiError } from "../../src/errors.js";
 import { HostSharedPortCoordinator } from "../../src/ws/host-shared-ports.js";
@@ -580,7 +580,7 @@ describe("daemon session connect shares", () => {
           ports: [4173],
         }),
       ).toThrow(
-        'cannot share ports from host "Host" (host-1) because it has no bb connect machine credential; enroll it via Connect in Settings > Machines',
+        'cannot share ports from host "Host" (host-1) because it has no kaioken connect machine credential; enroll it via Connect in Settings > Machines',
       );
       expect(daemonSocket.messages).toEqual(messagesBeforeDeclaration);
       expect(

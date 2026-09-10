@@ -1,7 +1,7 @@
 import { withEnvironmentPathAdmission } from "../environments/path-admission.js";
-import type { EnvironmentRow } from "@bb/db";
-import type { Thread } from "@bb/domain";
-import type { DbConnection } from "@bb/db";
+import type { EnvironmentRow } from "@kaioken/db";
+import type { Thread } from "@kaioken/domain";
+import type { DbConnection } from "@kaioken/db";
 import type { WorkSessionDeps } from "../../types.js";
 import { requireEnvironment } from "../lib/entity-lookup.js";
 import {

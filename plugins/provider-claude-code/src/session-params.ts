@@ -7,7 +7,7 @@ import {
   type ReasoningLevel,
   type RuntimePermissionPolicy,
   buildShellEnvOverrides,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import { z } from "zod";
 import {
   toClaudePermissionMode,

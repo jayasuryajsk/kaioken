@@ -3,9 +3,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { BRIDGE_NOTIFICATION_METHODS } from "@bb/provider-bridge-protocol";
-import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-bb/plugin-sdk/provider-bridge/testing";
-import type { BridgeJsonRpcTestHarness } from "@get-bb/plugin-sdk/provider-bridge/testing";
+import { BRIDGE_NOTIFICATION_METHODS } from "@kaioken/provider-bridge-protocol";
+import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
+import type { BridgeJsonRpcTestHarness } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 import { handleLine } from "./bridge.js";
 
 const THREAD_ID = "thr_codex_recovery_1";
@@ -70,9 +70,9 @@ let workspaceDir: string;
 function stubFakeAppServer(script: Record<string, unknown>): void {
   const scriptPath = join(workspaceDir, "fake-codex-script.json");
   writeFileSync(scriptPath, JSON.stringify(script), "utf8");
-  vi.stubEnv("BB_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
+  vi.stubEnv("KAIOKEN_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
   vi.stubEnv(
-    "BB_CODEX_BRIDGE_APP_SERVER_ARGS",
+    "KAIOKEN_CODEX_BRIDGE_APP_SERVER_ARGS",
     JSON.stringify([fakeAppServerPath, scriptPath]),
   );
 }
@@ -106,7 +106,7 @@ function threadDeltas(): unknown[] {
 }
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "bb-codex-recovery-ws-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "kaioken-codex-recovery-ws-"));
 });
 
 afterEach(async () => {

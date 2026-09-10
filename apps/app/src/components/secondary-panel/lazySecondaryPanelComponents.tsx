@@ -1,8 +1,8 @@
 import { lazy, Suspense, type ComponentProps, type ReactNode } from "react";
 import { useAtomValue } from "jotai";
 import { Panel } from "react-resizable-panels";
-import { Skeleton } from "@bb/shared-ui/skeleton";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { PANEL_COLLAPSE_TRANSITION_CLASS } from "./panelTransitionTokens";
 import {
   CONVERSATION_COLLAPSED_PANEL_SIZE_PERCENT,

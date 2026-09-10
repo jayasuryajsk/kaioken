@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { delimiter, dirname, isAbsolute, join } from "node:path";
 import { promisify } from "node:util";
-import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
+import { HOST_DAEMON_PROTOCOL_VERSION } from "@kaioken/host-daemon-contract";
 import type { HostDaemonLogger } from "./logger.js";
 import type { FetchFn } from "./server-client.js";
 import { usesSecureInternalFetchTransport } from "./server-client.js";
@@ -156,7 +156,7 @@ const defaultRunProcess: SelfUpdateProcessRunner = async (
   await execFileAsync(command, args, options);
 };
 
-const BB_APP_ALLOW_SCRIPTS_ARG =
+const KAIOKEN_APP_ALLOW_SCRIPTS_ARG =
   "--allow-scripts=better-sqlite3,node-pty,@parcel/watcher";
 
 async function defaultInstallTarball(
@@ -168,17 +168,17 @@ async function defaultInstallTarball(
   const path = inheritedPath
     ? `${executableDirectory}${delimiter}${inheritedPath}`
     : executableDirectory;
-  const rawConfiguredPrefix = process.env.BB_APP_NPM_PREFIX?.trim();
+  const rawConfiguredPrefix = process.env.KAIOKEN_APP_NPM_PREFIX?.trim();
   const configuredPrefix =
     rawConfiguredPrefix === "" ? undefined : rawConfiguredPrefix;
   if (configuredPrefix !== undefined && !isAbsolute(configuredPrefix)) {
-    throw new Error("BB_APP_NPM_PREFIX must be an absolute path");
+    throw new Error("KAIOKEN_APP_NPM_PREFIX must be an absolute path");
   }
   const prefixArgs =
     configuredPrefix === undefined ? [] : ["--prefix", configuredPrefix];
   await runProcess(
     "npm",
-    ["install", "-g", BB_APP_ALLOW_SCRIPTS_ARG, ...prefixArgs, tarballPath],
+    ["install", "-g", KAIOKEN_APP_ALLOW_SCRIPTS_ARG, ...prefixArgs, tarballPath],
     {
       env: { ...process.env, PATH: path },
     },
@@ -210,14 +210,14 @@ export function createProtocolSelfUpdater(
       if (!options.enabled) {
         options.logger.error(
           { daemonProtocolVersion: HOST_DAEMON_PROTOCOL_VERSION },
-          "Daemon auto-update is disabled; install the server's bb-app package manually.",
+          "Daemon auto-update is disabled; install the server's kaioken-app package manually.",
         );
         return "skipped";
       }
       if (!usesSecureInternalFetchTransport(options.serverUrl)) {
         options.logger.error(
           { serverUrl: options.serverUrl },
-          "Refusing daemon auto-update over insecure transport; install the server's bb-app package manually. Keeping the current daemon running and retrying normally.",
+          "Refusing daemon auto-update over insecure transport; install the server's kaioken-app package manually. Keeping the current daemon running and retrying normally.",
         );
         return "failed";
       }
@@ -283,10 +283,10 @@ export function createProtocolSelfUpdater(
 
         const tarballPath = join(
           options.dataDir,
-          `bb-app-update-${process.pid}.tgz`,
+          `kaioken-app-update-${process.pid}.tgz`,
         );
         try {
-          const tarballUrl = new URL("/install/bb-app.tgz", options.serverUrl);
+          const tarballUrl = new URL("/install/kaioken-app.tgz", options.serverUrl);
           const installedDigest = await readInstalledArtifactDigest(
             installedArtifactDigestPath,
           );
@@ -303,7 +303,7 @@ export function createProtocolSelfUpdater(
           if (response.status === 304 && installedDigest !== null) {
             options.logger.info(
               { artifactDigest: installedDigest },
-              "The server-matched bb host artifact is already installed; restarting the daemon.",
+              "The server-matched kaioken host artifact is already installed; restarting the daemon.",
             );
             return "updated";
           }
@@ -342,7 +342,7 @@ export function createProtocolSelfUpdater(
             serverProtocolVersion: server.protocolVersion,
             serverVersion: server.version,
           },
-          "Installed the server-matched bb host package; restarting the daemon.",
+          "Installed the server-matched kaioken host package; restarting the daemon.",
         );
         return "updated";
       } catch (error) {

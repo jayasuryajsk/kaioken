@@ -32,7 +32,7 @@ describe("integration harness", () => {
     });
   });
 
-  it("reloads bb-app managed config through the integration server", async () => {
+  it("reloads kaioken-app managed config through the integration server", async () => {
     await withHarness(async (harness) => {
       await fs.writeFile(
         path.join(harness.server.config.dataDir, "env.json"),

@@ -1,5 +1,5 @@
 {
-  "name": "@bb/agent-runtime",
+  "name": "@kaioken/agent-runtime",
   "version": "0.0.1",
   "type": "module",
   "exports": {
@@ -24,16 +24,16 @@
     "test:integration": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
-    "@bb/domain": "workspace:*",
-    "@bb/process-utils": "workspace:*",
-    "@bb/provider-bridge-protocol": "workspace:*",
+    "@kaioken/domain": "workspace:*",
+    "@kaioken/process-utils": "workspace:*",
+    "@kaioken/provider-bridge-protocol": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@bb/plugin-build": "workspace:*",
-    "@bb/test-helpers": "workspace:*",
-    "@bb/tsconfig": "workspace:*",
-    "@get-bb/plugin-sdk": "workspace:*",
+    "@kaioken/plugin-build": "workspace:*",
+    "@kaioken/test-helpers": "workspace:*",
+    "@kaioken/tsconfig": "workspace:*",
+    "@get-kaioken/plugin-sdk": "workspace:*",
     "@types/node": "^22.0.0",
     "tsx": "^4.23.1",
     "typescript": "npm:@typescript/typescript6@^6.0.2",

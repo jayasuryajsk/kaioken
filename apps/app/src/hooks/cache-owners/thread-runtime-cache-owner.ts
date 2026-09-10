@@ -6,7 +6,7 @@ import type {
   ThreadListEntry,
   ThreadQueuedMessage,
   ThreadWithRuntime,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   CreateQueuedMessageRequest,
   PromptHistoryResponse,
@@ -20,9 +20,9 @@ import type {
   TimelineConversationAttachments,
   TimelineRow,
   UpdateQueuedMessageRequest,
-} from "@bb/server-contract";
-import type { AppCreateThreadRequest } from "@bb/client-core";
-import { OPTIMISTIC_TIMELINE_ROW_ID_PREFIX } from "@bb/client-core";
+} from "@kaioken/server-contract";
+import type { AppCreateThreadRequest } from "@kaioken/client-core";
+import { OPTIMISTIC_TIMELINE_ROW_ID_PREFIX } from "@kaioken/client-core";
 import { collectPromptAttachments } from "@/lib/prompt-attachments";
 import { prependPromptHistoryEntry } from "@/lib/prompt-history";
 import {

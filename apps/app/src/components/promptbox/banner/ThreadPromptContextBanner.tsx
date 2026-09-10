@@ -5,8 +5,8 @@ import type {
   GitBranchRefClassification,
   ThreadPullRequest,
   ThreadRuntimeDisplayStatus,
-} from "@bb/domain";
-import type { PullRequestMergeMethod } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { PullRequestMergeMethod } from "@kaioken/server-contract";
 import {
   BranchPicker,
   getMergeBaseBranchCandidateGroups,
@@ -20,7 +20,7 @@ import {
 import {
   activityIconClass,
   activityRowClass,
-} from "@bb/shared-ui/activity-row-styles";
+} from "@kaioken/shared-ui/activity-row-styles";
 import { WorkspaceChangesList } from "@/components/thread/WorkspaceChangesList";
 import {
   formatChangeSummary,
@@ -29,8 +29,8 @@ import {
   type WorkspaceChangedFileSelection,
   type WorkspaceChangedFilesSection,
 } from "@/components/workspace/workspace-change-summary";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
 import {
   getPullRequestAttentionDisplay,
   getPullRequestGithubCheckStatus,
@@ -49,7 +49,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
+} from "@kaioken/shared-ui/dropdown-menu";
 import { useUrlAnchorClickHandler } from "@/lib/url-open-routing";
 
 export interface ContextBannerMergeBaseConfig {

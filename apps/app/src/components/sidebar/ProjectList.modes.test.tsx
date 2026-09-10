@@ -16,9 +16,9 @@ import {
   useAtomValue,
 } from "jotai";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ThreadListEntry } from "@bb/domain";
+import type { ThreadListEntry } from "@kaioken/domain";
 import { ActiveSidebarModeSections, MachineModeSections } from "./ProjectList";
-import { buildMachineThreadGroups } from "@bb/client-core";
+import { buildMachineThreadGroups } from "@kaioken/client-core";
 import {
   collapsedSidebarSectionIdsAtom,
   sidebarCollapsedMachinesAtom,
@@ -31,7 +31,7 @@ import {
   type SidebarSectionId,
 } from "./sidebarCollapsedAtoms";
 import { useSidebarModeSectionOrder } from "./useSidebarModeSectionOrder";
-import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
+import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 
 const mockUseHosts = vi.hoisted(() => vi.fn(() => ({ data: [] })));
 
@@ -44,8 +44,8 @@ vi.mock("@/hooks/queries/system-queries", () => ({
   useSystemConfig: () => ({ data: undefined }),
 }));
 
-vi.mock("@bb/client-core", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@bb/client-core")>();
+vi.mock("@kaioken/client-core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@kaioken/client-core")>();
   return {
     ...actual,
     buildMachineThreadGroups: vi.fn(actual.buildMachineThreadGroups),

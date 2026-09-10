@@ -7,7 +7,7 @@ appId: app.getbb.mobile
 ---
 - runFlow:
     when:
-      visible: "Connect to a bb server"
+      visible: "Connect to a kaioken server"
     commands:
       - tapOn:
           id: "server-url-input"
@@ -17,7 +17,7 @@ appId: app.getbb.mobile
       - inputText: "E2E backend"
       # Tapping static text dismisses the keyboard (the screen sets
       # keyboardShouldPersistTaps="handled"); Maestro's hideKeyboard swipe is
-      # unreliable on this screen since the bb connect row lengthened it.
+      # unreliable on this screen since the kaioken connect row lengthened it.
       - tapOn: "Server URL"
       - tapOn:
           id: "add-server-submit"

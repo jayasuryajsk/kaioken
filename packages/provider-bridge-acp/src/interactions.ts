@@ -1,13 +1,13 @@
 import {
   isApprovalPendingInteractionPayload,
   isApprovalPendingInteractionResolution,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   PendingInteractionApprovalDecision,
   PendingInteractionApprovalSubject,
   PendingInteractionPayload,
   PendingInteractionResolution,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { toolKindPresentation } from "./presentation.js";
 import {
   type AcpToolCallOperation,

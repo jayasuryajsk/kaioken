@@ -8,10 +8,10 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import type { ExperimentalSidebarFooterCommandKind } from "@get-bb/plugin-sdk/internal/plugin-app-collector";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { COARSE_POINTER_CHILD_ICON_BUTTON_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { Icon } from "@bb/shared-ui/icon";
+import type { ExperimentalSidebarFooterCommandKind } from "@get-kaioken/plugin-sdk/internal/plugin-app-collector";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { COARSE_POINTER_CHILD_ICON_BUTTON_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar.js";
 import { PluginIcon, pluginIconName } from "@/components/plugin/PluginIcon";
 import { PluginSlotMount } from "@/components/plugin/PluginSlotMount";

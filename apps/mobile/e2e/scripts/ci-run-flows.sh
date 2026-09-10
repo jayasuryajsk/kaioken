@@ -10,18 +10,18 @@
 #
 # Default flows (in this order): shell-launch, shell-deep-link, shell-send,
 # shell-unreachable-server. Every one drives the WebView shell, so the backend
-# must be started with BB_MOBILE_E2E_SERVE_APP=1 and apps/app must be built
-# (`pnpm exec turbo run build --filter=@bb/app`); without them the server
+# must be started with KAIOKEN_MOBILE_E2E_SERVE_APP=1 and apps/app must be built
+# (`pnpm exec turbo run build --filter=@kaioken/app`); without them the server
 # answers API routes only and the shell shows its native error state.
 #
 # shell-connect is not in the default set: it needs the connect stub backend
-# (`pnpm --filter @bb/integration-tests e2e:mobile-connect-stub`), so it runs
+# (`pnpm --filter @kaioken/integration-tests e2e:mobile-connect-stub`), so it runs
 # on its own.
 #
 # Environment: SERVER_URL (default http://127.0.0.1:41999; the flows' own
 # env blocks point at the same port), MAESTRO_FLAGS (extra `maestro test`
 # flags). Needs maestro + java on PATH. Every flow gets
-# `-e BB_E2E_EMBEDDED_BUNDLE=1` (see ../subflows/launch-app.yaml); pass
+# `-e KAIOKEN_E2E_EMBEDDED_BUNDLE=1` (see ../subflows/launch-app.yaml); pass
 # `--dev-client` as the first argument to drive a dev client through Metro
 # instead (local use).
 # (bash 3.2 on macOS: empty arrays are expanded with the `${arr[@]+"${arr[@]}"}`
@@ -30,7 +30,7 @@ set -uo pipefail
 
 cd "$(dirname "$0")/.."
 
-LAUNCH_ENV=(-e BB_E2E_EMBEDDED_BUNDLE=1)
+LAUNCH_ENV=(-e KAIOKEN_E2E_EMBEDDED_BUNDLE=1)
 if [ "${1:-}" = "--dev-client" ]; then
   LAUNCH_ENV=()
   shift

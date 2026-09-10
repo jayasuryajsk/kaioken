@@ -22,19 +22,19 @@ import { autoUpdater } from "electron-updater";
 import {
   APP_SURFACE_DESKTOP,
   APP_SURFACE_ENV_NAME,
-} from "@bb/config/app-surface";
-import type { ConnectCredential } from "@bb/connect-client";
-import type { AppKeybindings } from "@bb/domain";
+} from "@kaioken/config/app-surface";
+import type { ConnectCredential } from "@kaioken/connect-client";
+import type { AppKeybindings } from "@kaioken/domain";
 import {
-  bbDesktopBrowserImportCookiesRequestSchema,
-  bbDesktopThemeSchema,
-  type BbDesktopInfo,
-  type BbDesktopWindowState,
-} from "@bb/desktop-contract";
+  kaiokenDesktopBrowserImportCookiesRequestSchema,
+  kaiokenDesktopThemeSchema,
+  type KaiokenDesktopInfo,
+  type KaiokenDesktopWindowState,
+} from "@kaioken/desktop-contract";
 import {
   serverMessageLenientSchema,
   type ClientMessage,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { z } from "zod";
 import {
   assertPathExists,
@@ -44,10 +44,10 @@ import {
 } from "./app-paths.js";
 import {
   resolveBbAppProcessRuntime,
-  type BbAppProcess,
-  type BbAppProcessExit,
+  type KaiokenAppProcess,
+  type KaiokenAppProcessExit,
   startBbAppProcess,
-} from "./bb-process.js";
+} from "./kaioken-process.js";
 import { openExistingServerDialog } from "./existing-server-dialog.js";
 import {
   readForeignRuntimeDetails,
@@ -138,21 +138,21 @@ import {
 } from "./desktop-auto-update.js";
 import { mergeDesktopUpdateInfo } from "./desktop-update-info.js";
 import {
-  BB_DESKTOP_CHECK_FOR_UPDATES_CHANNEL,
-  BB_DESKTOP_GET_INFO_CHANNEL,
-  BB_DESKTOP_INFO_CHANGED_CHANNEL,
-  BB_DESKTOP_INSTALL_UPDATE_CHANNEL,
-  BB_DESKTOP_OPEN_EXTERNAL_URL_CHANNEL,
-  BB_DESKTOP_SET_THEME_CHANNEL,
+  KAIOKEN_DESKTOP_CHECK_FOR_UPDATES_CHANNEL,
+  KAIOKEN_DESKTOP_GET_INFO_CHANNEL,
+  KAIOKEN_DESKTOP_INFO_CHANGED_CHANNEL,
+  KAIOKEN_DESKTOP_INSTALL_UPDATE_CHANNEL,
+  KAIOKEN_DESKTOP_OPEN_EXTERNAL_URL_CHANNEL,
+  KAIOKEN_DESKTOP_SET_THEME_CHANNEL,
 } from "./desktop-update-ipc.js";
 import {
-  BB_DESKTOP_APP_COMMAND_CHANNEL,
-  BB_DESKTOP_CLOSE_WINDOW_REQUEST_CHANNEL,
-  BB_DESKTOP_CLOSE_WINDOW_RESPONSE_CHANNEL,
-  BB_DESKTOP_GET_WINDOW_STATE_CHANNEL,
-  BB_DESKTOP_OPEN_NEW_TAB_CHANNEL,
-  BB_DESKTOP_OPEN_SERVER_DAEMON_LOGS_CHANNEL,
-  BB_DESKTOP_WINDOW_STATE_CHANGED_CHANNEL,
+  KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL,
+  KAIOKEN_DESKTOP_CLOSE_WINDOW_REQUEST_CHANNEL,
+  KAIOKEN_DESKTOP_CLOSE_WINDOW_RESPONSE_CHANNEL,
+  KAIOKEN_DESKTOP_GET_WINDOW_STATE_CHANNEL,
+  KAIOKEN_DESKTOP_OPEN_NEW_TAB_CHANNEL,
+  KAIOKEN_DESKTOP_OPEN_SERVER_DAEMON_LOGS_CHANNEL,
+  KAIOKEN_DESKTOP_WINDOW_STATE_CHANGED_CHANNEL,
   CLOSE_WINDOW_REQUEST_TIMEOUT_MS,
 } from "./desktop-window-command-ipc.js";
 import {
@@ -168,14 +168,14 @@ import {
   type DesktopBrowserBroker,
 } from "./desktop-browser-broker.js";
 import { createDesktopBrowserBrokerClient } from "./desktop-browser-broker-client.js";
-import { bbDesktopBrowserTabRefSchema } from "@bb/desktop-contract";
+import { kaiokenDesktopBrowserTabRefSchema } from "@kaioken/desktop-contract";
 import {
-  BB_DESKTOP_BROWSER_TARGET_CHANNEL,
-  BB_DESKTOP_BROWSER_GET_CONTROL_CHANNEL,
-  BB_DESKTOP_BROWSER_RELEASE_CONTROL_CHANNEL,
-  BB_DESKTOP_BROWSER_LIST_IMPORT_SOURCES_CHANNEL,
-  BB_DESKTOP_BROWSER_IMPORT_COOKIES_CHANNEL,
-  BB_DESKTOP_BROWSER_OPEN_FULL_DISK_ACCESS_SETTINGS_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_TARGET_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_GET_CONTROL_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_RELEASE_CONTROL_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_LIST_IMPORT_SOURCES_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_IMPORT_COOKIES_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_OPEN_FULL_DISK_ACCESS_SETTINGS_CHANNEL,
 } from "./desktop-browser-ipc.js";
 import { parseDesktopSystemConfig } from "./desktop-system-config.js";
 import { ensurePackagedUserShellPath } from "./desktop-shell-path.js";
@@ -201,7 +201,7 @@ import {
 } from "./log-viewer-contract.js";
 import {
   ATTACH_PROBE_TIMEOUT_MS,
-  DEFAULT_BB_SERVER_URL,
+  DEFAULT_KAIOKEN_SERVER_URL,
   PROCESS_LOG_LINE_LIMIT,
   STARTUP_POLL_INTERVAL_MS,
   STARTUP_TIMEOUT_MS,
@@ -216,7 +216,7 @@ const FOREIGN_RUNTIME_KILL_TIMEOUT_MS = 3_000;
 const REMOTE_SYSTEM_CONFIG_POLL_INTERVAL_MS = 5 * 60 * 1000;
 
 interface DesktopRuntime {
-  bbProcess: BbAppProcess | null;
+  kaiokenProcess: KaiokenAppProcess | null;
   ownership: RuntimeOwnership;
   serverUrl: string;
   userDataPath: string | null;
@@ -267,7 +267,7 @@ type StartupRaceResult =
   | ServerProbeStartupRaceResult;
 
 interface ProcessExitedStartupRaceResult {
-  exit: BbAppProcessExit;
+  exit: KaiokenAppProcessExit;
   kind: "process-exited";
 }
 
@@ -292,7 +292,7 @@ interface ResolveDesktopWindowUrlArgs {
 
 interface ResolveDesktopUpdateFeedUrlArgs {
   env: NodeJS.ProcessEnv;
-  platform: BbDesktopInfo["platform"];
+  platform: KaiokenDesktopInfo["platform"];
 }
 
 interface FetchSystemConfigArgs {
@@ -336,7 +336,7 @@ let systemConfigSync: SystemConfigSync | null = null;
 let systemConfigRefreshToken = 0;
 let refreshRemoteSystemConfig: (() => void) | null = null;
 const applicationWindowWebContentsIds = new Set<number>();
-let bbAppLoaded = false;
+let kaiokenAppLoaded = false;
 let stoppingForQuit = false;
 let quitting = false;
 let serverTargetStore: ServerTargetStore | null = null;
@@ -348,16 +348,16 @@ let connectSessionRenewal: ConnectSessionRenewal | null = null;
 let serverTargetGeneration = 0;
 let connectAccountServers: ConnectAccountServer[] = [];
 let connectServerSyncSkipReason: ConnectServerSyncSkipReason | null = null;
-let builtinServerUrl: string = DEFAULT_BB_SERVER_URL;
+let builtinServerUrl: string = DEFAULT_KAIOKEN_SERVER_URL;
 let desktopBridgePath: string | null = null;
 let desktopUserDataPath: string | null = null;
 let serverUrlDialogPreloadPath: string | null = null;
 let existingServerDialogPreloadPath: string | null = null;
 
 function resolveDesktopServerUrl(args: ResolveDesktopServerUrlArgs): string {
-  const rawPort = args.env.BB_SERVER_PORT?.trim();
+  const rawPort = args.env.KAIOKEN_SERVER_PORT?.trim();
   if (rawPort === undefined || rawPort.length === 0) {
-    return DEFAULT_BB_SERVER_URL;
+    return DEFAULT_KAIOKEN_SERVER_URL;
   }
 
   const port = Number(rawPort);
@@ -365,11 +365,11 @@ function resolveDesktopServerUrl(args: ResolveDesktopServerUrlArgs): string {
     return `http://127.0.0.1:${port}`;
   }
 
-  throw new Error("BB_SERVER_PORT must be a valid TCP port");
+  throw new Error("KAIOKEN_SERVER_PORT must be a valid TCP port");
 }
 
 function resolveDesktopWindowUrl(args: ResolveDesktopWindowUrlArgs): string {
-  const rawAppUrl = args.env.BB_DESKTOP_APP_URL?.trim();
+  const rawAppUrl = args.env.KAIOKEN_DESKTOP_APP_URL?.trim();
   if (rawAppUrl === undefined || rawAppUrl.length === 0) {
     return args.serverUrl;
   }
@@ -377,10 +377,10 @@ function resolveDesktopWindowUrl(args: ResolveDesktopWindowUrlArgs): string {
   try {
     parsedAppUrl = new URL(rawAppUrl);
   } catch {
-    throw new Error("BB_DESKTOP_APP_URL must be a valid URL");
+    throw new Error("KAIOKEN_DESKTOP_APP_URL must be a valid URL");
   }
   if (parsedAppUrl.protocol !== "http:" && parsedAppUrl.protocol !== "https:") {
-    throw new Error("BB_DESKTOP_APP_URL must be an http(s) URL");
+    throw new Error("KAIOKEN_DESKTOP_APP_URL must be an http(s) URL");
   }
   return rawAppUrl;
 }
@@ -401,7 +401,7 @@ function canReplaceAppImage(appImagePath: string): boolean {
 function resolveDesktopUpdateFeedUrl(
   args: ResolveDesktopUpdateFeedUrlArgs,
 ): string {
-  const rawFeedUrl = args.env.BB_DESKTOP_VERSION_FEED_URL?.trim();
+  const rawFeedUrl = args.env.KAIOKEN_DESKTOP_VERSION_FEED_URL?.trim();
   if (rawFeedUrl === undefined || rawFeedUrl.length === 0) {
     return createDesktopUpdateFeedUrl(args.platform);
   }
@@ -418,16 +418,16 @@ function getDesktopVersion(version: string | undefined): string {
 function readDesktopAboutFacts(applicationName: string): DesktopAboutFacts {
   return {
     applicationName,
-    buildDate: process.env.BB_DESKTOP_BUILD_DATE ?? "",
+    buildDate: process.env.KAIOKEN_DESKTOP_BUILD_DATE ?? "",
     channel: DESKTOP_RELEASE_CHANNEL,
-    commit: process.env.BB_DESKTOP_COMMIT ?? "",
+    commit: process.env.KAIOKEN_DESKTOP_COMMIT ?? "",
     electronVersion: process.versions.electron,
     osArch: arch(),
     osRelease: release(),
     osType: osType(),
     platform: process.platform,
-    pluginSdkVersion: process.env.BB_DESKTOP_PLUGIN_SDK_VERSION ?? "",
-    version: getDesktopVersion(process.env.BB_DESKTOP_VERSION),
+    pluginSdkVersion: process.env.KAIOKEN_DESKTOP_PLUGIN_SDK_VERSION ?? "",
+    version: getDesktopVersion(process.env.KAIOKEN_DESKTOP_VERSION),
   };
 }
 
@@ -453,7 +453,7 @@ async function showAboutDialog(): Promise<void> {
   }
 }
 
-function getCurrentDesktopInfo(): BbDesktopInfo | null {
+function getCurrentDesktopInfo(): KaiokenDesktopInfo | null {
   const info = mergeDesktopUpdateInfo({
     autoInfo: desktopAutoUpdateService?.getInfo() ?? null,
     feedInfo: desktopUpdateService?.getInfo() ?? null,
@@ -513,18 +513,18 @@ function sendDesktopInfoChanged(): void {
     if (applicationWindowWebContentsIds.has(browserWindow.webContents.id)) {
       sendToApplicationRenderer(
         browserWindow,
-        BB_DESKTOP_INFO_CHANGED_CHANNEL,
+        KAIOKEN_DESKTOP_INFO_CHANGED_CHANNEL,
         info,
       );
     } else {
-      browserWindow.webContents.send(BB_DESKTOP_INFO_CHANGED_CHANNEL, info);
+      browserWindow.webContents.send(KAIOKEN_DESKTOP_INFO_CHANGED_CHANNEL, info);
     }
   }
 }
 
 function getDesktopWindowState(
   browserWindow: Pick<DesktopBrowserWindow, "isFullScreen"> | null,
-): BbDesktopWindowState {
+): KaiokenDesktopWindowState {
   return {
     isFullScreen: browserWindow?.isFullScreen() ?? false,
   };
@@ -532,7 +532,7 @@ function getDesktopWindowState(
 
 function getSenderDesktopWindowState(
   event: IpcMainInvokeEvent,
-): BbDesktopWindowState {
+): KaiokenDesktopWindowState {
   return getDesktopWindowState(resolveApplicationWindow(event.sender));
 }
 
@@ -541,7 +541,7 @@ function sendDesktopWindowStateChanged(
 ): void {
   sendToApplicationRenderer(
     browserWindow as BrowserWindow,
-    BB_DESKTOP_WINDOW_STATE_CHANGED_CHANNEL,
+    KAIOKEN_DESKTOP_WINDOW_STATE_CHANGED_CHANNEL,
     getDesktopWindowState(browserWindow),
   );
 }
@@ -561,9 +561,9 @@ function createDesktopLogger(): DesktopAutoUpdateLogger {
 }
 
 function resolveDataDirFromEnv(args: ResolveDataDirFromEnvArgs): string {
-  const rawDataDir = args.env.BB_DATA_DIR?.trim();
+  const rawDataDir = args.env.KAIOKEN_DATA_DIR?.trim();
   if (rawDataDir === undefined || rawDataDir.length === 0) {
-    return join(args.homeDir, ".bb");
+    return join(args.homeDir, ".kaioken");
   }
   if (rawDataDir === "~") {
     return args.homeDir;
@@ -584,7 +584,7 @@ function formatLogDirectory(): string {
   );
 }
 
-function formatExitResult(result: BbAppProcessExit): string {
+function formatExitResult(result: KaiokenAppProcessExit): string {
   if (result.code !== null) {
     return `exit code ${result.code}`;
   }
@@ -626,7 +626,7 @@ function requestRendererWindowClose(browserWindow: BrowserWindow): void {
   );
   sendToApplicationRenderer(
     browserWindow,
-    BB_DESKTOP_CLOSE_WINDOW_REQUEST_CHANNEL,
+    KAIOKEN_DESKTOP_CLOSE_WINDOW_REQUEST_CHANNEL,
     null,
   );
 }
@@ -742,12 +742,12 @@ function installCurrentApplicationMenu(): void {
       if (browserWindow !== null) {
         sendToApplicationRenderer(
           browserWindow,
-          BB_DESKTOP_OPEN_NEW_TAB_CHANNEL,
+          KAIOKEN_DESKTOP_OPEN_NEW_TAB_CHANNEL,
           null,
         );
         sendToApplicationRenderer(
           browserWindow,
-          BB_DESKTOP_APP_COMMAND_CHANNEL,
+          KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL,
           "panel.newTab",
         );
       }
@@ -757,7 +757,7 @@ function installCurrentApplicationMenu(): void {
       if (browserWindow !== null) {
         sendToApplicationRenderer(
           browserWindow,
-          BB_DESKTOP_APP_COMMAND_CHANNEL,
+          KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL,
           "thread.new",
         );
       }
@@ -767,7 +767,7 @@ function installCurrentApplicationMenu(): void {
       if (browserWindow !== null) {
         sendToApplicationRenderer(
           browserWindow,
-          BB_DESKTOP_APP_COMMAND_CHANNEL,
+          KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL,
           "panel.reopenClosedTab",
         );
       }
@@ -777,7 +777,7 @@ function installCurrentApplicationMenu(): void {
       if (browserWindow !== null) {
         sendToApplicationRenderer(
           browserWindow,
-          BB_DESKTOP_APP_COMMAND_CHANNEL,
+          KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL,
           "settings.open",
         );
       }
@@ -1052,7 +1052,7 @@ async function ensureBuiltinRuntimeAttached(): Promise<boolean> {
 
   if (existingProbe.kind === "compatible") {
     setCurrentRuntime({
-      bbProcess: null,
+      kaiokenProcess: null,
       ownership: "attached",
       serverUrl: existingProbe.serverUrl,
       userDataPath: null,
@@ -1091,7 +1091,7 @@ async function authenticateConnectTarget(
     }
     if (cachedResult.code === "unauthorized") {
       createDesktopLogger().info(
-        "[desktop] bb Connect refused the cached machine credential — dropping it",
+        "[desktop] kaioken Connect refused the cached machine credential — dropping it",
       );
       await clearCachedConnectCredential();
     } else if (cachedResult.code === "network") {
@@ -1115,7 +1115,7 @@ async function authenticateConnectTarget(
       cachedFailure ?? {
         code: "network",
         detail:
-          "the local bb server is unavailable, and this app has no stored bb Connect credential",
+          "the local kaioken server is unavailable, and this app has no stored kaioken Connect credential",
         ok: false,
       }
     );
@@ -1151,7 +1151,7 @@ function ensureDesktopMachineEnrolled(): void {
   }
   if (!cache.canPersist()) {
     createDesktopLogger().info(
-      "[desktop] no OS keychain available — keeping the local bb server for bb Connect sessions",
+      "[desktop] no OS keychain available — keeping the local kaioken server for kaioken Connect sessions",
     );
     return;
   }
@@ -1160,13 +1160,13 @@ function ensureDesktopMachineEnrolled(): void {
     const result = await enrollDesktopMachine({ localServerUrl });
     if (!result.ok) {
       logger.info(
-        `[desktop] could not enroll this app with bb Connect (${result.code}): ${result.detail}`,
+        `[desktop] could not enroll this app with kaioken Connect (${result.code}): ${result.detail}`,
       );
       return;
     }
     cachedConnectCredential = result.credential;
     await cache.write(result.credential);
-    logger.info("[desktop] enrolled this app as a bb Connect machine");
+    logger.info("[desktop] enrolled this app as a kaioken Connect machine");
   })().finally(() => {
     enrollingDesktopMachine = null;
   });
@@ -1191,7 +1191,7 @@ async function applyServerTarget(): Promise<void> {
     if (!attached) {
       await loadStartupError({
         details:
-          "Could not connect to the local bb server on this Mac. Check that the port is free or that a compatible bb server is running.",
+          "Could not connect to the local kaioken server on this Mac. Check that the port is free or that a compatible kaioken server is running.",
         logs: "",
         title: "Could not connect",
       });
@@ -1223,7 +1223,7 @@ async function applyServerTarget(): Promise<void> {
           "The desktop app could not establish a session for this Connect server. " +
           `Try switching servers again. (${result.code}: ${result.detail})`,
         logs: "",
-        title: "Could not authenticate with bb Connect",
+        title: "Could not authenticate with kaioken Connect",
       });
       refreshApplicationMenu();
       return;
@@ -1264,7 +1264,7 @@ async function loadRemoteServerTarget(
   if (!loaded || !isCurrent()) {
     return loaded;
   }
-  bbAppLoaded = true;
+  kaiokenAppLoaded = true;
   startRemoteSystemConfigSync(serverUrl);
   return true;
 }
@@ -1396,7 +1396,7 @@ async function loadLogViewerWindow(
     minHeight: 520,
     minWidth: 840,
     show: false,
-    title: "bb - Server & Daemon Logs",
+    title: "kaioken - Server & Daemon Logs",
     titleBarStyle: "default",
     webPreferences: {
       contextIsolation: true,
@@ -1482,20 +1482,20 @@ async function loadWindowUrl(args: LoadWindowUrlArgs): Promise<void> {
 }
 
 async function loadLoadingView(): Promise<void> {
-  bbAppLoaded = false;
+  kaiokenAppLoaded = false;
   await loadWindowUrl({
     url: createLocalViewUrl({
       viewModel: {
         kind: "loading",
-        message: "Starting local services and opening the bb workspace.",
-        title: "Opening bb",
+        message: "Starting local services and opening the kaioken workspace.",
+        title: "Opening kaioken",
       },
     }),
   });
 }
 
 async function loadStartupError(args: LoadStartupErrorArgs): Promise<void> {
-  bbAppLoaded = false;
+  kaiokenAppLoaded = false;
   await loadWindowUrl({
     url: createLocalViewUrl({
       viewModel: {
@@ -1509,7 +1509,7 @@ async function loadStartupError(args: LoadStartupErrorArgs): Promise<void> {
 }
 
 async function loadBbApp(serverUrl: string): Promise<void> {
-  bbAppLoaded = true;
+  kaiokenAppLoaded = true;
   await loadWindowUrl({ url: serverUrl });
   if (shouldOpenDevTools()) {
     desktopWindowFactory?.openDevTools();
@@ -1517,7 +1517,7 @@ async function loadBbApp(serverUrl: string): Promise<void> {
 }
 
 function shouldOpenDevTools(): boolean {
-  return process.env.BB_DESKTOP_OPEN_DEVTOOLS === "1";
+  return process.env.KAIOKEN_DESKTOP_OPEN_DEVTOOLS === "1";
 }
 
 async function createApplicationWindow(
@@ -1532,7 +1532,7 @@ async function createApplicationWindow(
     stateKey: args.stateKey,
   });
   registerApplicationWindow(browserWindow);
-  if (bbAppLoaded && shouldOpenDevTools()) {
+  if (kaiokenAppLoaded && shouldOpenDevTools()) {
     browserWindow.webContents.openDevTools({ mode: "detach" });
   }
   return browserWindow;
@@ -1547,7 +1547,7 @@ async function stopOwnedRuntime(): Promise<void> {
 
   setCurrentRuntime(null);
   try {
-    await runtime.bbProcess?.stop({
+    await runtime.kaiokenProcess?.stop({
       killSignal: "SIGKILL",
       killTimeoutMs: OWNED_RUNTIME_KILL_TIMEOUT_MS,
       signal: "SIGTERM",
@@ -1586,23 +1586,23 @@ async function finishQuit(): Promise<void> {
 }
 
 function registerDesktopUpdateIpc(): void {
-  ipcMain.handle(BB_DESKTOP_GET_INFO_CHANNEL, () => {
+  ipcMain.handle(KAIOKEN_DESKTOP_GET_INFO_CHANNEL, () => {
     return getCurrentDesktopInfo();
   });
-  ipcMain.handle(BB_DESKTOP_GET_WINDOW_STATE_CHANNEL, (event) => {
+  ipcMain.handle(KAIOKEN_DESKTOP_GET_WINDOW_STATE_CHANNEL, (event) => {
     return getSenderDesktopWindowState(event);
   });
-  ipcMain.handle(BB_DESKTOP_OPEN_SERVER_DAEMON_LOGS_CHANNEL, async () => {
+  ipcMain.handle(KAIOKEN_DESKTOP_OPEN_SERVER_DAEMON_LOGS_CHANNEL, async () => {
     await openServerDaemonLogs();
   });
-  ipcMain.handle(BB_DESKTOP_CHECK_FOR_UPDATES_CHANNEL, async () => {
+  ipcMain.handle(KAIOKEN_DESKTOP_CHECK_FOR_UPDATES_CHANNEL, async () => {
     await Promise.all([
       desktopUpdateService?.checkForUpdates() ?? Promise.resolve(null),
       desktopAutoUpdateService?.checkForUpdates() ?? Promise.resolve(null),
     ]);
     return getCurrentDesktopInfo();
   });
-  ipcMain.handle(BB_DESKTOP_INSTALL_UPDATE_CHANNEL, async () => {
+  ipcMain.handle(KAIOKEN_DESKTOP_INSTALL_UPDATE_CHANNEL, async () => {
     if (desktopAutoUpdateService === null) {
       return;
     }
@@ -1625,15 +1625,15 @@ function registerDesktopUpdateIpc(): void {
     await finishQuit();
     desktopAutoUpdateService.installUpdate();
   });
-  ipcMain.on(BB_DESKTOP_SET_THEME_CHANNEL, (_event, payload: unknown) => {
-    const parsed = bbDesktopThemeSchema.safeParse(payload);
+  ipcMain.on(KAIOKEN_DESKTOP_SET_THEME_CHANNEL, (_event, payload: unknown) => {
+    const parsed = kaiokenDesktopThemeSchema.safeParse(payload);
     if (!parsed.success) {
       return;
     }
     nativeTheme.themeSource = parsed.data;
   });
 
-  ipcMain.on(BB_DESKTOP_CLOSE_WINDOW_RESPONSE_CHANNEL, (event, payload) => {
+  ipcMain.on(KAIOKEN_DESKTOP_CLOSE_WINDOW_RESPONSE_CHANNEL, (event, payload) => {
     const pending = pendingCloseWindowRequests.get(event.sender.id);
     if (pending !== undefined) {
       clearTimeout(pending);
@@ -1644,7 +1644,7 @@ function registerDesktopUpdateIpc(): void {
     }
   });
   ipcMain.on(
-    BB_DESKTOP_OPEN_EXTERNAL_URL_CHANNEL,
+    KAIOKEN_DESKTOP_OPEN_EXTERNAL_URL_CHANNEL,
     (_event, payload: unknown) => {
       if (typeof payload !== "string") {
         return;
@@ -1705,7 +1705,7 @@ function registerDesktopBrowserWindowLifecycle({
 async function startOwnedRuntime(
   args: StartOwnedRuntimeArgs,
 ): Promise<DesktopRuntime | null> {
-  const bbProcess = startBbAppProcess({
+  const kaiokenProcess = startBbAppProcess({
     bridgePath: args.bridgePath,
     cwd: homedir(),
     env: {
@@ -1721,31 +1721,31 @@ async function startOwnedRuntime(
     }),
   });
   const runtime: DesktopRuntime = {
-    bbProcess,
+    kaiokenProcess,
     ownership: "spawned",
     serverUrl: args.serverUrl,
     userDataPath: args.userDataPath,
   };
   await writeOwnedRuntimePidFile({
     bridgePath: args.bridgePath,
-    pid: bbProcess.pid,
+    pid: kaiokenProcess.pid,
     serverUrl: args.serverUrl,
     userDataPath: args.userDataPath,
   });
   setCurrentRuntime(runtime);
 
-  void bbProcess.exit.then((exit) => {
+  void kaiokenProcess.exit.then((exit) => {
     void clearOwnedRuntimePidFile({ userDataPath: args.userDataPath });
     if (quitting || currentRuntime !== runtime) {
       return;
     }
     setCurrentRuntime(null);
     void loadStartupError({
-      details: `The Electron-owned bb-app process stopped with ${formatExitResult(
+      details: `The Electron-owned kaioken-app process stopped with ${formatExitResult(
         exit,
       )}.`,
-      logs: bbProcess.logs.text(),
-      title: "bb stopped",
+      logs: kaiokenProcess.logs.text(),
+      title: "kaioken stopped",
     });
   });
 
@@ -1758,7 +1758,7 @@ async function startOwnedRuntime(
       kind: "server-probe",
       result,
     })),
-    bbProcess.exit.then((exit) => ({
+    kaiokenProcess.exit.then((exit) => ({
       exit,
       kind: "process-exited",
     })),
@@ -1766,11 +1766,11 @@ async function startOwnedRuntime(
 
   if (raceResult.kind === "process-exited") {
     await loadStartupError({
-      details: `bb-app exited before the server was ready with ${formatExitResult(
+      details: `kaioken-app exited before the server was ready with ${formatExitResult(
         raceResult.exit,
       )}.`,
-      logs: bbProcess.logs.text(),
-      title: "Could not start bb",
+      logs: kaiokenProcess.logs.text(),
+      title: "Could not start kaioken",
     });
     setCurrentRuntime(null);
     return null;
@@ -1783,10 +1783,10 @@ async function startOwnedRuntime(
   await loadStartupError({
     details:
       raceResult.result.kind === "incompatible"
-        ? `Port ${args.serverUrl} is responding, but it does not look like bb: ${raceResult.result.reason}.`
-        : `Timed out waiting for bb at ${args.serverUrl}: ${raceResult.result.reason}.`,
-    logs: bbProcess.logs.text(),
-    title: "Could not start bb",
+        ? `Port ${args.serverUrl} is responding, but it does not look like kaioken: ${raceResult.result.reason}.`
+        : `Timed out waiting for kaioken at ${args.serverUrl}: ${raceResult.result.reason}.`,
+    logs: kaiokenProcess.logs.text(),
+    title: "Could not start kaioken",
   });
   await stopOwnedRuntime();
   return null;
@@ -1802,10 +1802,10 @@ function shouldAskBeforeAttaching(): boolean {
   if (!app.isPackaged || existingServerDialogPreloadPath === null) {
     return false;
   }
-  if (process.env.BB_DESKTOP_ATTACH_WITHOUT_PROMPT === "1") {
+  if (process.env.KAIOKEN_DESKTOP_ATTACH_WITHOUT_PROMPT === "1") {
     return false;
   }
-  return (process.env.BB_DESKTOP_APP_URL ?? "").trim().length === 0;
+  return (process.env.KAIOKEN_DESKTOP_APP_URL ?? "").trim().length === 0;
 }
 
 async function waitForServerToStop(serverUrl: string): Promise<boolean> {
@@ -1865,36 +1865,36 @@ async function decideOnExistingServer(
   if (stopResult.kind === "unverified") {
     await loadStartupError({
       details:
-        `The bb at ${probe.serverUrl} records process ${String(stopResult.pid)}, but that ` +
-        "process no longer matches the record. bb did not stop it. Stop it yourself, then open bb again.",
+        `The kaioken at ${probe.serverUrl} records process ${String(stopResult.pid)}, but that ` +
+        "process no longer matches the record. kaioken did not stop it. Stop it yourself, then open kaioken again.",
       logs: "",
-      title: "Could not stop the running bb",
+      title: "Could not stop the running kaioken",
     });
     return "quit";
   }
   if (stopResult.kind === "still-running") {
     await loadStartupError({
-      details: `bb could not stop process ${String(stopResult.pid)}, even after SIGKILL.`,
+      details: `kaioken could not stop process ${String(stopResult.pid)}, even after SIGKILL.`,
       logs: "",
-      title: "Could not stop the running bb",
+      title: "Could not stop the running kaioken",
     });
     return "quit";
   }
   if (stopResult.kind === "replaced") {
     await loadStartupError({
       details:
-        `Another bb started at ${probe.serverUrl} while the question was open, so bb stopped nothing. ` +
-        "Open bb again to see the copy that runs now.",
+        `Another kaioken started at ${probe.serverUrl} while the question was open, so kaioken stopped nothing. ` +
+        "Open kaioken again to see the copy that runs now.",
       logs: "",
-      title: "Could not stop the running bb",
+      title: "Could not stop the running kaioken",
     });
     return "quit";
   }
   if (!(await waitForServerToStop(probe.serverUrl))) {
     await loadStartupError({
-      details: `The bb at ${probe.serverUrl} stopped, but the address is still in use.`,
+      details: `The kaioken at ${probe.serverUrl} stopped, but the address is still in use.`,
       logs: "",
-      title: "Could not stop the running bb",
+      title: "Could not stop the running kaioken",
     });
     return "quit";
   }
@@ -1929,7 +1929,7 @@ async function initializeRuntime(args: InitializeRuntimeArgs): Promise<void> {
     }
 
     setCurrentRuntime({
-      bbProcess: null,
+      kaiokenProcess: null,
       ownership: "attached",
       serverUrl: existingProbe.serverUrl,
       userDataPath: null,
@@ -1947,7 +1947,7 @@ async function initializeRuntime(args: InitializeRuntimeArgs): Promise<void> {
 
   if (existingProbe.kind === "incompatible") {
     await loadStartupError({
-      details: `Port ${args.serverUrl} is already in use, but it is not a compatible bb server: ${existingProbe.reason}.`,
+      details: `Port ${args.serverUrl} is already in use, but it is not a compatible kaioken server: ${existingProbe.reason}.`,
       logs: "",
       title: "Port conflict",
     });
@@ -1976,7 +1976,7 @@ async function runDesktopApp(): Promise<void> {
 
   const applicationName = app.isPackaged
     ? DESKTOP_RELEASE_INFO.applicationName
-    : "bb-dev";
+    : "kaioken-dev";
   app.setName(applicationName);
   installAboutPanel(applicationName);
 
@@ -2068,7 +2068,7 @@ async function runDesktopApp(): Promise<void> {
   const serverUrl = resolveDesktopServerUrl({ env: process.env });
   builtinServerUrl = serverUrl;
   desktopBridgePath = bridgePath;
-  const desktopVersion = getDesktopVersion(process.env.BB_DESKTOP_VERSION);
+  const desktopVersion = getDesktopVersion(process.env.KAIOKEN_DESKTOP_VERSION);
   const desktopPlatform = resolveBbDesktopPlatform(process.platform);
   const desktopUpdateFeedUrl = resolveDesktopUpdateFeedUrl({
     env: process.env,
@@ -2077,7 +2077,7 @@ async function runDesktopApp(): Promise<void> {
   const userDataPath = app.getPath("userData");
   desktopUserDataPath = userDataPath;
 
-  assertPathExists({ label: "bb-app bridge", path: bridgePath });
+  assertPathExists({ label: "kaioken-app bridge", path: bridgePath });
   assertPathExists({
     label: "existing server dialog preload script",
     path: resolvedExistingServerDialogPreloadPath,
@@ -2172,7 +2172,7 @@ async function runDesktopApp(): Promise<void> {
     currentVersion: desktopVersion,
     enabled:
       desktopUpdateSupport.versionCheck &&
-      (app.isPackaged || process.env.BB_DESKTOP_VERSION_CHECK === "1"),
+      (app.isPackaged || process.env.KAIOKEN_DESKTOP_VERSION_CHECK === "1"),
     feedUrl: desktopUpdateFeedUrl,
     logger: createDesktopLogger(),
     platform: desktopPlatform,
@@ -2186,7 +2186,7 @@ async function runDesktopApp(): Promise<void> {
         isPackaged: app.isPackaged,
       }),
     forceDevUpdateConfig:
-      !app.isPackaged && process.env.BB_DESKTOP_AUTO_UPDATE === "1",
+      !app.isPackaged && process.env.KAIOKEN_DESKTOP_AUTO_UPDATE === "1",
     logger: createDesktopLogger(),
     platform: desktopPlatform,
     updater: createElectronAutoUpdaterAdapter(autoUpdater),
@@ -2208,7 +2208,7 @@ async function runDesktopApp(): Promise<void> {
       }
       sendToApplicationRenderer(
         browserWindow,
-        BB_DESKTOP_APP_COMMAND_CHANNEL,
+        KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL,
         command,
       );
     },
@@ -2244,17 +2244,17 @@ async function runDesktopApp(): Promise<void> {
     browserImport: browserImportService,
   });
   ipcMain.handle(
-    BB_DESKTOP_BROWSER_LIST_IMPORT_SOURCES_CHANNEL,
+    KAIOKEN_DESKTOP_BROWSER_LIST_IMPORT_SOURCES_CHANNEL,
     async (event) => {
       if (!applicationWindowWebContentsIds.has(event.sender.id)) return null;
       return { sources: await browserImportService.listSources() };
     },
   );
   ipcMain.handle(
-    BB_DESKTOP_BROWSER_IMPORT_COOKIES_CHANNEL,
+    KAIOKEN_DESKTOP_BROWSER_IMPORT_COOKIES_CHANNEL,
     async (event, payload: unknown) => {
       const parsed =
-        bbDesktopBrowserImportCookiesRequestSchema.safeParse(payload);
+        kaiokenDesktopBrowserImportCookiesRequestSchema.safeParse(payload);
       if (
         !parsed.success ||
         !applicationWindowWebContentsIds.has(event.sender.id)
@@ -2272,7 +2272,7 @@ async function runDesktopApp(): Promise<void> {
     },
   );
   ipcMain.on(
-    BB_DESKTOP_BROWSER_OPEN_FULL_DISK_ACCESS_SETTINGS_CHANNEL,
+    KAIOKEN_DESKTOP_BROWSER_OPEN_FULL_DISK_ACCESS_SETTINGS_CHANNEL,
     (event) => {
       if (
         !applicationWindowWebContentsIds.has(event.sender.id) ||
@@ -2284,15 +2284,15 @@ async function runDesktopApp(): Promise<void> {
       );
     },
   );
-  ipcMain.handle(BB_DESKTOP_BROWSER_TARGET_CHANNEL, (event) => {
+  ipcMain.handle(KAIOKEN_DESKTOP_BROWSER_TARGET_CHANNEL, (event) => {
     return applicationWindowWebContentsIds.has(event.sender.id)
       ? (desktopBrowserBroker?.getTarget(event.sender.id) ?? null)
       : null;
   });
   ipcMain.handle(
-    BB_DESKTOP_BROWSER_GET_CONTROL_CHANNEL,
+    KAIOKEN_DESKTOP_BROWSER_GET_CONTROL_CHANNEL,
     (event, payload: unknown) => {
-      const parsed = bbDesktopBrowserTabRefSchema.safeParse(payload);
+      const parsed = kaiokenDesktopBrowserTabRefSchema.safeParse(payload);
       return parsed.success &&
         applicationWindowWebContentsIds.has(event.sender.id)
         ? (desktopBrowserBroker?.getControl(
@@ -2303,9 +2303,9 @@ async function runDesktopApp(): Promise<void> {
     },
   );
   ipcMain.on(
-    BB_DESKTOP_BROWSER_RELEASE_CONTROL_CHANNEL,
+    KAIOKEN_DESKTOP_BROWSER_RELEASE_CONTROL_CHANNEL,
     (event, payload: unknown) => {
-      const parsed = bbDesktopBrowserTabRefSchema.safeParse(payload);
+      const parsed = kaiokenDesktopBrowserTabRefSchema.safeParse(payload);
       if (
         parsed.success &&
         applicationWindowWebContentsIds.has(event.sender.id)
@@ -2393,6 +2393,6 @@ void runDesktopApp().catch((error) => {
   void loadStartupError({
     details: message,
     logs: "",
-    title: "Could not open bb",
+    title: "Could not open kaioken",
   });
 });

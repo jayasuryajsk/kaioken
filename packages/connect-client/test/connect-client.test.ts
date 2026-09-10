@@ -26,10 +26,10 @@ describe("connect URL helpers", () => {
     expect(serverUrlForHandle("https://getbb.app", "phone")).toBe(
       "https://phone.getbb.app",
     );
-    expect(deriveConnectBaseUrl("https://laptop.bb.example:8443")).toBe(
-      "https://bb.example:8443",
+    expect(deriveConnectBaseUrl("https://laptop.kaioken.example:8443")).toBe(
+      "https://kaioken.example:8443",
     );
-    expect(connectPublicProtocol("bb.localhost:42745")).toBe("http:");
+    expect(connectPublicProtocol("kaioken.localhost:42745")).toBe("http:");
     expect(connectPublicProtocol("getbb.app")).toBe("https:");
   });
 });
@@ -173,13 +173,13 @@ describe("redeemMachineCredential", () => {
   it("accepts a self-hosted apex", async () => {
     await expect(
       redeemMachineCredential(
-        { apexUrl: "https://bb.example", code: "ABCD-1234" },
+        { apexUrl: "https://kaioken.example", code: "ABCD-1234" },
         async () =>
           new Response(
             JSON.stringify({
               credential: "bbcm_desktop",
               machineId: "machine-1",
-              serverUrl: "https://laptop.bb.example",
+              serverUrl: "https://laptop.kaioken.example",
             }),
           ),
       ),
@@ -209,10 +209,10 @@ describe("mobile pairing payload", () => {
     expect(
       mobilePairingPayload({
         code: "AAAA-BBBB",
-        serverUrl: "http://laptop.bb.localhost:42745",
+        serverUrl: "http://laptop.kaioken.localhost:42745",
         expiresAt: 1,
       }).apex,
-    ).toBe("http://bb.localhost:42745");
+    ).toBe("http://kaioken.localhost:42745");
   });
 
   it("rejects text that is not a pairing payload", () => {

@@ -1,10 +1,10 @@
-import type { PermissionMode, ReasoningLevel, ServiceTier } from "@bb/domain";
+import type { PermissionMode, ReasoningLevel, ServiceTier } from "@kaioken/domain";
 import type {
   CreateExecutionInputSources,
   ExecutionInputFieldSource,
   ExistingThreadExecutionInputSources,
   SystemProvidersQuery,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type {
   StoredPermissionMode,
   StoredReasoningLevel,

@@ -2,7 +2,7 @@ import {
   findProjectEnvironmentByHostPath,
   getProjectSourceByHost,
   type EnvironmentRow,
-} from "@bb/db";
+} from "@kaioken/db";
 import { z } from "zod";
 import { DEFAULT_ENVIRONMENT_PROVIDER_ID } from "../environments/environment-provider-ids.js";
 import {
@@ -11,14 +11,14 @@ import {
   isLocalPathProjectSource,
   type GitBranchSelection,
   type JsonValue,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   EnvironmentArgs,
   ProviderEnvironmentArgs,
   ProviderReadyEnvironmentArgs,
   UnmanagedBranchSpec,
-} from "@bb/server-contract";
-import { summarizeStandardIssues } from "@get-bb/plugin-sdk/internal/host-policy";
+} from "@kaioken/server-contract";
+import { summarizeStandardIssues } from "@get-kaioken/plugin-sdk/internal/host-policy";
 import type { LoggedPendingInteractionWorkSessionDeps } from "../../types.js";
 import { ApiError } from "../../errors.js";
 import {

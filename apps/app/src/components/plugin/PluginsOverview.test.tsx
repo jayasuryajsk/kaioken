@@ -82,7 +82,7 @@ const GITHUB_CATALOG_ENTRY = {
   entryId: "github",
   pluginId: "github",
   displayName: "GitHub",
-  description: "Browse GitHub issues and pull requests in BB.",
+  description: "Browse GitHub issues and pull requests in Kaioken.",
   icon: "Github",
   iconUrl: null,
   categoryId: "code-and-reviews",
@@ -390,7 +390,7 @@ describe("PluginsOverview", () => {
     expect(toolbar.contains(sort)).toBe(true);
     const heroHeading = screen.getByRole("heading", {
       level: 2,
-      name: /^Turn bb into/,
+      name: /^Turn kaioken into/,
     });
     expect(
       heroHeading.compareDocumentPosition(toolbar) &

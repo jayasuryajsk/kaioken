@@ -14,14 +14,14 @@ import type {
   ThreadEvent,
   ToolCallRequest,
   ToolCallResponse,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   ProviderHealthResult,
   ProviderInstallationRunResult,
   ProviderInstallationStatus,
   ProviderUsageResult,
   SkillsConfigureRoot,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 
 export type AgentRuntimeShellEnvironment = Record<string, string>;
 

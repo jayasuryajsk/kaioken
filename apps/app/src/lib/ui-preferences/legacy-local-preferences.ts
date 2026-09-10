@@ -2,7 +2,7 @@ import {
   parseUiPreferenceValue,
   type UiPreferenceKey,
   type UiPreferenceValue,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { withLocalStorage } from "@/lib/browser-storage";
 
 const RETIRED_LOCAL_STORAGE_KEYS: Partial<
@@ -14,7 +14,7 @@ const RETIRED_LOCAL_STORAGE_KEYS: Partial<
 };
 
 function legacyLocalStorageKey(key: UiPreferenceKey): string {
-  return `bb.${key}`;
+  return `kaioken.${key}`;
 }
 
 export function readLegacyLocalUiPreference<Key extends UiPreferenceKey>(

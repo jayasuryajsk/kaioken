@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ThreadTimelinePendingTodos } from "@bb/domain";
+import type { ThreadTimelinePendingTodos } from "@kaioken/domain";
 import { StoryCard, StoryRow } from "../../../../.ladle/story-card";
 import { ThreadTodoCard } from "./ThreadTodoCard";
 
@@ -56,7 +56,7 @@ const mixedTodos: ThreadTimelinePendingTodos = {
     },
     {
       id: "todo:4",
-      text: "Surface pendingTodos in `bb thread show` and `bb status`",
+      text: "Surface pendingTodos in `kaioken thread show` and `kaioken status`",
       status: "pending",
     },
     {

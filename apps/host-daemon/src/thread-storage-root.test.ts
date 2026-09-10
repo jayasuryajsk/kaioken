@@ -26,7 +26,7 @@ afterEach(async () => {
 
 describe("thread storage root", () => {
   it("creates the shared thread-storage directory under the host data dir", async () => {
-    const dataDir = await makeTempDir("bb-thread-storage-root-");
+    const dataDir = await makeTempDir("kaioken-thread-storage-root-");
 
     const rootPath = await ensureThreadStorageRoot(dataDir);
     const stats = await fs.stat(rootPath);
@@ -36,11 +36,11 @@ describe("thread storage root", () => {
   });
 
   it("ignores a parent agent thread's ambient storage path", async () => {
-    const dataDir = await makeTempDir("bb-thread-storage-root-data-");
+    const dataDir = await makeTempDir("kaioken-thread-storage-root-data-");
     const parentStorageRoot = await makeTempDir(
-      "bb-thread-storage-root-parent-",
+      "kaioken-thread-storage-root-parent-",
     );
-    vi.stubEnv("BB_THREAD_STORAGE", path.join(parentStorageRoot, "thr_parent"));
+    vi.stubEnv("KAIOKEN_THREAD_STORAGE", path.join(parentStorageRoot, "thr_parent"));
 
     const rootPath = await ensureThreadStorageRoot(dataDir);
 

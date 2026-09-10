@@ -1,6 +1,6 @@
-import { ConnectListError } from "@bb/connect-client";
-import { toRecord } from "@bb/core-ui";
-import { BbHttpError } from "@bb/sdk/browser";
+import { ConnectListError } from "@kaioken/connect-client";
+import { toRecord } from "@kaioken/core-ui";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 
 export type AuthErrorKind = "auth-required" | "network" | "http" | "unknown";
 
@@ -24,7 +24,7 @@ export function mapAuthError(input: unknown): AuthErrorKind {
   if (input instanceof ConnectListError) {
     return input.code === "unauthorized" ? "auth-required" : "network";
   }
-  if (input instanceof BbHttpError) {
+  if (input instanceof KaiokenHttpError) {
     return isAuthStatus(input.status) ? "auth-required" : "http";
   }
   if (isResponseLike(input)) {

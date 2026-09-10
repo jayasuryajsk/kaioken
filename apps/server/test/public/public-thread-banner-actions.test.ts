@@ -1,10 +1,10 @@
-import { getLastStoredProviderThreadId, getThread, listEvents } from "@bb/db";
+import { getLastStoredProviderThreadId, getThread, listEvents } from "@kaioken/db";
 import {
   encodeClientTurnRequestIdNumber,
   threadScope,
   turnScope,
   type PromptInput,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { describe, expect, it, vi } from "vitest";
 import { registerHostRpcResponder } from "../helpers/host-rpc.js";
 import { readJson } from "../helpers/json.js";

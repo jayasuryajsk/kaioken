@@ -116,7 +116,7 @@ describe("ThreadTimelineRows row containment", () => {
       ).toEqual([...armedClassNames].sort());
     }
 
-    rowWrapper(view.container, "assistant_1").classList.add("bb-search-flash");
+    rowWrapper(view.container, "assistant_1").classList.add("kaioken-search-flash");
     view.rerender(
       <MemoryRouter>
         <QueryClientProvider client={new QueryClient()}>
@@ -132,7 +132,7 @@ describe("ThreadTimelineRows row containment", () => {
     );
     expect(
       rowWrapper(view.container, "assistant_1").classList.contains(
-        "bb-search-flash",
+        "kaioken-search-flash",
       ),
     ).toBe(true);
     expect(

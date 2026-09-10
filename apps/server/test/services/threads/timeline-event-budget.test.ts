@@ -1,22 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { getTimelineGroupingContext } from "../../../src/services/threads/timeline-context-order.js";
-import { prependOlderTimelineRows } from "@bb/client-core";
+import { prependOlderTimelineRows } from "@kaioken/client-core";
 import {
   threadTimelineResponseSchema,
   type TimelineRow,
-} from "@bb/server-contract";
-import { defaultFeatureFlags } from "@bb/domain";
+} from "@kaioken/server-contract";
+import { defaultFeatureFlags } from "@kaioken/domain";
 import { createTestAppHarness } from "../../helpers/test-app.js";
 import {
   mergeLoadedTimelineWithLatest,
   buildLoadedTimelineState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   encodeClientTurnRequestIdNumber,
   threadScope,
   turnScope,
-} from "@bb/domain";
-import type { ClientTurnRequestId, Thread } from "@bb/domain";
+} from "@kaioken/domain";
+import type { ClientTurnRequestId, Thread } from "@kaioken/domain";
 import {
   createConnection,
   createProject,
@@ -25,9 +25,9 @@ import {
   migrate,
   noopNotifier,
   upsertHost,
-} from "@bb/db";
-import type { DbConnection } from "@bb/db";
-import type { TimelinePaginationCursor } from "@bb/server-contract";
+} from "@kaioken/db";
+import type { DbConnection } from "@kaioken/db";
+import type { TimelinePaginationCursor } from "@kaioken/server-contract";
 import {
   buildThreadTimeline,
   buildThreadTimelineWithProfile,

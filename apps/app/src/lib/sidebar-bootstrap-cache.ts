@@ -1,7 +1,7 @@
 import {
   sidebarBootstrapResponseSchema,
   type SidebarBootstrapResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { createLastKnownCache } from "@/lib/last-known-cache";
 
 const sidebarBootstrapCache = createLastKnownCache({

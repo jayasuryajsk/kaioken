@@ -2,7 +2,7 @@ import type {
   ExperimentalSidebarNavigationAction,
   ExperimentalSidebarNavigationItem,
   ExperimentalSidebarNavigationShortcut,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import type { PluginNavPanelSlot } from "@/lib/plugin-slots";
 import {
   getPluginPanelRoutePath,

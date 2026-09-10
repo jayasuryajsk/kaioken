@@ -15,13 +15,13 @@ describe("sidebar thread state styling", () => {
 
   it("marks the row for an opaque backing surface when it becomes sticky", () => {
     expect(SIDEBAR_ROW_SELECTED_STATE_CLASS).toContain(
-      "bb-sidebar-selected-row",
+      "kaioken-sidebar-selected-row",
     );
   });
 
   it("marks open-in-split rows for an opaque sidebar-resolved tint", () => {
     expect(SIDEBAR_ROW_OPEN_IN_SPLIT_STATE_CLASS).toBe(
-      "bb-sidebar-open-in-split-row",
+      "kaioken-sidebar-open-in-split-row",
     );
   });
 });

@@ -1,4 +1,4 @@
-import type { BbPluginApi, PluginAgentToolResult } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi, PluginAgentToolResult } from "@get-kaioken/plugin-sdk";
 import {
   ASK_USER_QUESTION_RENDERER_ID,
   interactionResponseSchema,
@@ -24,7 +24,7 @@ function errorResult(message: string): PluginAgentToolResult {
   return { content: [{ type: "text", text: message }], isError: true };
 }
 
-export default function plugin(bb: BbPluginApi) {
+export default function plugin(bb: KaiokenPluginApi) {
   bb.agents.registerTool({
     name: TOOL_NAME,
     description: TOOL_DESCRIPTION,

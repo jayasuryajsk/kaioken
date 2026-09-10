@@ -2,41 +2,41 @@
 
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import type {
-  BbDesktopBrowserApi,
-  BbDesktopBrowserAttachRequest,
-  BbDesktopBrowserSetBoundsRequest,
-  BbDesktopBrowserSetVisibleRequest,
-  BbDesktopBrowserState,
-} from "@bb/desktop-contract";
+  KaiokenDesktopBrowserApi,
+  KaiokenDesktopBrowserAttachRequest,
+  KaiokenDesktopBrowserSetBoundsRequest,
+  KaiokenDesktopBrowserSetVisibleRequest,
+  KaiokenDesktopBrowserState,
+} from "@kaioken/desktop-contract";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BrowserFixedPanelTab } from "@/lib/fixed-panel-tabs-state";
 import {
   createBbDesktopApi,
   createNoopDesktopBrowserApi,
-} from "@/test/bb-desktop-test-utils";
-import { POINTER_COARSE_QUERY } from "@bb/shared-ui/hooks/use-pointer-coarse";
+} from "@/test/kaioken-desktop-test-utils";
+import { POINTER_COARSE_QUERY } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 import { BrowserTabDeck, BrowserTabLifecycleObserver } from "./BrowserTabDeck";
 import { resetBrowserViewPersistence } from "./browserViewVisibilityCoordinator";
 
 type BrowserCall =
-  | { type: "attach"; request: BbDesktopBrowserAttachRequest }
+  | { type: "attach"; request: KaiokenDesktopBrowserAttachRequest }
   | { type: "detach"; tabId: string }
-  | { type: "setBounds"; request: BbDesktopBrowserSetBoundsRequest }
-  | { type: "setVisible"; request: BbDesktopBrowserSetVisibleRequest }
+  | { type: "setBounds"; request: KaiokenDesktopBrowserSetBoundsRequest }
+  | { type: "setVisible"; request: KaiokenDesktopBrowserSetVisibleRequest }
   | {
       type: "setVisibleWithoutFocus";
-      request: BbDesktopBrowserSetVisibleRequest;
+      request: KaiokenDesktopBrowserSetVisibleRequest;
     };
 
 interface RecordingBrowserApi {
-  api: BbDesktopBrowserApi;
+  api: KaiokenDesktopBrowserApi;
   calls: BrowserCall[];
   detachments: string[];
-  attachments: BbDesktopBrowserAttachRequest[];
-  bounds: BbDesktopBrowserSetBoundsRequest[];
-  emitState: (state: BbDesktopBrowserState) => void;
-  visibility: BbDesktopBrowserSetVisibleRequest[];
-  visibilityWithoutFocus: BbDesktopBrowserSetVisibleRequest[];
+  attachments: KaiokenDesktopBrowserAttachRequest[];
+  bounds: KaiokenDesktopBrowserSetBoundsRequest[];
+  emitState: (state: KaiokenDesktopBrowserState) => void;
+  visibility: KaiokenDesktopBrowserSetVisibleRequest[];
+  visibilityWithoutFocus: KaiokenDesktopBrowserSetVisibleRequest[];
 }
 
 const BROWSER_PANEL_RECT = new DOMRect(12, 24, 420, 260);
@@ -63,13 +63,13 @@ function makeBrowserTab(id: string, url: string): BrowserFixedPanelTab {
 
 function createRecordingBrowserApi(): RecordingBrowserApi {
   const calls: BrowserCall[] = [];
-  const attachments: BbDesktopBrowserAttachRequest[] = [];
-  const bounds: BbDesktopBrowserSetBoundsRequest[] = [];
+  const attachments: KaiokenDesktopBrowserAttachRequest[] = [];
+  const bounds: KaiokenDesktopBrowserSetBoundsRequest[] = [];
   const detachments: string[] = [];
-  const stateListeners: Array<(state: BbDesktopBrowserState) => void> = [];
-  const visibility: BbDesktopBrowserSetVisibleRequest[] = [];
-  const visibilityWithoutFocus: BbDesktopBrowserSetVisibleRequest[] = [];
-  const api: BbDesktopBrowserApi = {
+  const stateListeners: Array<(state: KaiokenDesktopBrowserState) => void> = [];
+  const visibility: KaiokenDesktopBrowserSetVisibleRequest[] = [];
+  const visibilityWithoutFocus: KaiokenDesktopBrowserSetVisibleRequest[] = [];
+  const api: KaiokenDesktopBrowserApi = {
     ...createNoopDesktopBrowserApi(),
     attach(request) {
       attachments.push(request);
@@ -117,8 +117,8 @@ function createRecordingBrowserApi(): RecordingBrowserApi {
   };
 }
 
-function installDesktopBrowser(api: BbDesktopBrowserApi): void {
-  window.bbDesktop = createBbDesktopApi(desktopInfo, api);
+function installDesktopBrowser(api: KaiokenDesktopBrowserApi): void {
+  window.kaiokenDesktop = createBbDesktopApi(desktopInfo, api);
 }
 
 function createMatchMedia(
@@ -179,7 +179,7 @@ describe("BrowserTabLifecycleObserver", () => {
     cleanup();
     vi.restoreAllMocks();
     resetBrowserViewPersistence();
-    delete window.bbDesktop;
+    delete window.kaiokenDesktop;
   });
 
   it("destroys a closed browser view exactly once without an active deck", async () => {
@@ -223,7 +223,7 @@ describe("BrowserTabDeck native browser first-show ordering", () => {
     vi.restoreAllMocks();
     resetBrowserViewPersistence();
     window.localStorage.clear();
-    delete window.bbDesktop;
+    delete window.kaiokenDesktop;
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
       writable: true,

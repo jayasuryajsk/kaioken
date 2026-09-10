@@ -12,13 +12,13 @@ import {
   type DbNotifier,
   type DbTransaction,
   updateThread,
-} from "@bb/db";
+} from "@kaioken/db";
 import { runtimeErrorLogFields } from "../lib/error-log-fields.js";
 import {
   threadScope,
   type ProvisioningTranscriptEntry,
   type Thread,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { AppDeps } from "../../types.js";
 import type { CommandResultSideEffectsDeps } from "../../internal/command-result-side-effects.js";
 import { ApiError } from "../../errors.js";

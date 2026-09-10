@@ -1,4 +1,4 @@
-import { WorkspaceError } from "bb-environment-provider-host/git";
+import { WorkspaceError } from "kaioken-environment-provider-host/git";
 import path from "node:path";
 
 const REPO_DIR_NAME_PATTERN = /^[A-Za-z0-9._][A-Za-z0-9._-]*$/;

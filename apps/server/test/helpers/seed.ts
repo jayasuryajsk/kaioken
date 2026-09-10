@@ -11,17 +11,17 @@ import {
   createThread,
   openSession,
   upsertHost,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   HOST_DAEMON_PROTOCOL_VERSION,
   HOST_ID_FILE_NAME,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   encodeClientTurnRequestIdNumber,
   parseStoredThreadEvent,
   threadScope,
   turnScope,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   EnvironmentProviderSelection,
   EnvironmentStatus,
@@ -36,7 +36,7 @@ import type {
   ThreadOriginKind,
   ThreadStatus,
   ThreadVisibility,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { AppDeps } from "../../src/types.js";
 import { registerTestHostRpcCapture } from "./commands.js";
 
@@ -113,7 +113,7 @@ export function seedSession(deps: Pick<AppDeps, "db" | "hub">, hostId: string) {
     instanceId: "instance-1",
     hostName: "Test Host",
     hostType: "persistent",
-    dataDir: `/tmp/bb-host-data/${hostId}`,
+    dataDir: `/tmp/kaioken-host-data/${hostId}`,
     protocolVersion: HOST_DAEMON_PROTOCOL_VERSION,
     heartbeatIntervalMs: 5_000,
     leaseTimeoutMs: 30_000,
@@ -180,7 +180,7 @@ export function seedEnvironment(
           },
         }
       : {}),
-    branchName: args.branchName !== undefined ? args.branchName : "bb/test",
+    branchName: args.branchName !== undefined ? args.branchName : "kaioken/test",
     baseBranch: args.baseBranch !== undefined ? args.baseBranch : null,
     defaultBranch:
       args.defaultBranch !== undefined ? args.defaultBranch : "main",

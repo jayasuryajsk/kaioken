@@ -17,14 +17,14 @@ import {
   compactThreadTimelineSummaryEvents,
   type AcceptedClientRequestContext,
   type ThreadEventWithMeta,
-} from "@bb/thread-view";
-import { LEGACY_CODEX_GOAL_EXTENSION_KIND } from "@bb/domain";
+} from "@kaioken/thread-view";
+import { LEGACY_CODEX_GOAL_EXTENSION_KIND } from "@kaioken/domain";
 import type {
   ClientTurnRequestId,
   ProviderComposerCommand,
   Thread,
   ThreadEventItemType,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   ThreadConversationOutlineItem,
   ThreadConversationOutlineResponse,
@@ -34,8 +34,8 @@ import type {
   TimelineOutputPreview,
   ThreadTimelineResponse,
   TimelineTurnSummaryDetailsResponse,
-} from "@bb/server-contract";
-import { threadConversationOutlineItemSchema } from "@bb/server-contract";
+} from "@kaioken/server-contract";
+import { threadConversationOutlineItemSchema } from "@kaioken/server-contract";
 import {
   findStoredTimelineWindowByteBudgetFloor,
   findTimelineWindowBudgetFloorSequence,
@@ -70,13 +70,13 @@ import {
   listTimelineSegmentAnchorsDescending,
   scopedItemRefKey,
   upsertThreadConversationOutlineRecord,
-} from "@bb/db";
+} from "@kaioken/db";
 import type {
   DbConnection,
   InlineOutputCharLimit,
   ScopedItemRef,
   StoredEventRow,
-} from "@bb/db";
+} from "@kaioken/db";
 import { ApiError } from "../../errors.js";
 import { roundDurationMs } from "../lib/duration.js";
 import { runEventLoopWorkSync } from "../system/event-loop-work.js";

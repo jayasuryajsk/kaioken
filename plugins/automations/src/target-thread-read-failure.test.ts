@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import { createFakePluginHost } from "@get-kaioken/plugin-sdk/testing";
 import plugin from "./server.js";
 import { createAutomationService } from "./service.js";
 
@@ -53,7 +53,7 @@ function createService(host: Awaited<ReturnType<typeof createHost>>) {
   return createAutomationService({
     bb: host.bb as never,
     db: host.bb.storage.database(),
-    pluginDataDir: "/tmp/bb-automations-read-failure-test",
+    pluginDataDir: "/tmp/kaioken-automations-read-failure-test",
     serverUrl: "http://127.0.0.1:38886",
   });
 }

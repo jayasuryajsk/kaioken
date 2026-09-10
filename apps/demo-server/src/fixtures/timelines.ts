@@ -2,7 +2,7 @@ import type {
   TimelineCommandWorkRow,
   TimelineConversationRow,
   TimelineRow,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 
 export interface DemoThreadSeed {
   id: string;
@@ -233,7 +233,7 @@ export const DEMO_REPLY = [
   "I would put the toggle next to the other appearance settings and store the",
   "choice with the existing preferences, so it survives a restart.",
   "",
-  "This is the bb demo server, so I am replaying a scripted answer rather than",
+  "This is the kaioken demo server, so I am replaying a scripted answer rather than",
   "running a real agent.",
 ].join("\n");
 

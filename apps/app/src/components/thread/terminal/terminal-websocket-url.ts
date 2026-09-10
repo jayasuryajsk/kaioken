@@ -1,7 +1,7 @@
 import {
   buildTerminalWebSocketPath,
   type BuildTerminalWebSocketPathArgs,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { buildDevWebSocketUrl } from "@/lib/dev-websocket-url";
 
 type BuildTerminalWebSocketUrlArgs = BuildTerminalWebSocketPathArgs;

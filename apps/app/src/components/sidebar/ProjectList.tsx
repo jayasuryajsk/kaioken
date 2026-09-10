@@ -12,12 +12,12 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import type {
   ProjectResponse,
   ThreadSectionResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   findLocalPathProjectSourceForHost,
   PERSONAL_PROJECT_ID,
   type ThreadListEntry,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { useRouteState } from "@/hooks/useRouteState";
 import {
   useConnectionAwareQueryState,
@@ -40,14 +40,14 @@ import {
 import { useHosts, usePrimaryHost } from "@/hooks/queries/host-queries";
 import { useDialogState } from "@/hooks/useDialogState";
 import { usePromptDraftInputThreadIds } from "@/hooks/usePromptDraftStorage";
-import { getCollapsedChildActivity } from "@bb/client-core";
+import { getCollapsedChildActivity } from "@kaioken/client-core";
 import { getRootComposeRoutePath } from "@/lib/route-paths";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
 import { getMutationErrorMessage } from "@/lib/mutation-errors";
-import { BbHttpError } from "@bb/sdk/browser";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 import { useSetRootComposeProjectId } from "@/lib/root-compose-selection";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { Button } from "@bb/shared-ui/button";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   AppCommandShortcutHint,
   AppCommandShortcutPill,
@@ -61,14 +61,14 @@ import {
   ConfirmDeleteDialog,
   ConfirmDeleteDialogContent,
 } from "@/components/dialogs/ConfirmDeleteDialog";
-import { Icon } from "@bb/shared-ui/icon";
-import { LIST_HOVER_TRANSITION } from "@bb/shared-ui/motion";
-import { Skeleton } from "@bb/shared-ui/skeleton";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { LIST_HOVER_TRANSITION } from "@kaioken/shared-ui/motion";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
 import {
   SidebarGroupContent,
   SidebarStickyStack,
 } from "@/components/ui/sidebar.js";
-import { COARSE_POINTER_ROW_HEIGHT_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
+import { COARSE_POINTER_ROW_HEIGHT_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
 import {
   ChronologicalSectionThreadSections,
   ProjectThreadTree,
@@ -89,7 +89,7 @@ import {
   type ProjectThreadItem,
   type SidebarSectionDefinition,
   type ThreadComparator,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   SortableProjectRow,
   type ProjectListRowModel,
@@ -447,7 +447,7 @@ function getSectionMutationErrorMessage(
   error: unknown,
   fallbackMessage: string,
 ): string {
-  if (error instanceof BbHttpError && error.code === "section_name_conflict") {
+  if (error instanceof KaiokenHttpError && error.code === "section_name_conflict") {
     return "Section name already exists.";
   }
   return getMutationErrorMessage({ error, fallbackMessage });

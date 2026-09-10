@@ -98,7 +98,7 @@ export function setPluginStateSnapshotRollbackPending(
   rollback: {
     candidateVersion: string;
     sourceFingerprint: string;
-    bbVersion: string;
+    kaiokenVersion: string;
     sdkVersion: string;
     detail: string;
     updatedAt: number;
@@ -111,7 +111,7 @@ export function setPluginStateSnapshotRollbackPending(
         status: "rollback-pending",
         rollbackCandidateVersion: rollback.candidateVersion,
         rollbackSourceFingerprint: rollback.sourceFingerprint,
-        rollbackBbVersion: rollback.bbVersion,
+        rollbackBbVersion: rollback.kaiokenVersion,
         rollbackSdkVersion: rollback.sdkVersion,
         rollbackDetail: rollback.detail,
         updatedAt: rollback.updatedAt,

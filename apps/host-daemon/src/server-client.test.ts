@@ -1,7 +1,7 @@
 import { AbortError } from "p-retry";
 import { describe, expect, it, vi } from "vitest";
-import type { PendingInteractionCreate } from "@bb/domain";
-import { HOST_ARTIFACT_MAX_BYTES } from "@bb/host-daemon-contract/protocol";
+import type { PendingInteractionCreate } from "@kaioken/domain";
+import { HOST_ARTIFACT_MAX_BYTES } from "@kaioken/host-daemon-contract/protocol";
 import {
   createServerClient,
   readHostArtifactBytes,
@@ -58,14 +58,14 @@ describe("createServerClient", () => {
       getSessionId: () => "session-1",
       hostKey: "host-key",
       logger: createLogger(),
-      serverUrl: "https://bb.example.test",
+      serverUrl: "https://kaioken.example.test",
     });
 
     const result = client.openSession({
       hostId: "host-1",
       hostName: "Host",
       hostType: "persistent",
-      dataDir: "/tmp/bb",
+      dataDir: "/tmp/kaioken",
       instanceId: "instance-1",
       localApiPort: null,
       activeThreads: [],
@@ -104,14 +104,14 @@ describe("createServerClient", () => {
         hostKey: "host-key",
         logger: createLogger(),
         ...(machineCredential !== undefined ? { machineCredential } : {}),
-        serverUrl: "https://bb.example.test",
+        serverUrl: "https://kaioken.example.test",
       });
 
       await client.openSession({
         hostId: "host-1",
         hostName: "Host",
         hostType: "persistent",
-        dataDir: "/tmp/bb",
+        dataDir: "/tmp/kaioken",
         instanceId: "instance-1",
         localApiPort: 38_888,
         activeThreads: [],
@@ -128,7 +128,7 @@ describe("createServerClient", () => {
       getSessionId: () => "session-1",
       hostKey: "host-key",
       logger: createLogger(),
-      serverUrl: "http://bb.example.test",
+      serverUrl: "http://kaioken.example.test",
     });
 
     await expect(
@@ -183,7 +183,7 @@ describe("createServerClient", () => {
       getSessionId: () => "session-1",
       hostKey: "host-key",
       logger: createLogger(),
-      serverUrl: "https://bb.example.test",
+      serverUrl: "https://kaioken.example.test",
     });
 
     const attachment = await client.fetchProjectAttachment({
@@ -240,7 +240,7 @@ describe("createServerClient", () => {
       getSessionId: () => "session-1",
       hostKey: "host-key",
       logger: createLogger(),
-      serverUrl: "https://bb.example.test",
+      serverUrl: "https://kaioken.example.test",
     });
 
     await expect(
@@ -293,7 +293,7 @@ describe("createServerClient", () => {
       hostKey: "host-key",
       logger: createLogger(),
       machineCredential: "bbcm_machine",
-      serverUrl: "https://bb.example.test",
+      serverUrl: "https://kaioken.example.test",
     });
 
     await client.fetchSkillTree(treeHash);
@@ -312,7 +312,7 @@ describe("createServerClient", () => {
       getSessionId: () => "session-1",
       hostKey: "host-key",
       logger: createLogger(),
-      serverUrl: "https://bb.example.test",
+      serverUrl: "https://kaioken.example.test",
     });
 
     await expect(
@@ -398,7 +398,7 @@ describe("createServerClient", () => {
       getSessionId: () => "session-1",
       hostKey: "host-key",
       logger: createLogger(),
-      serverUrl: "https://bb.example.test",
+      serverUrl: "https://kaioken.example.test",
     });
 
     await expect(
@@ -468,7 +468,7 @@ describe("createServerClient", () => {
       getSessionId: () => "session-1",
       hostKey: "host-key",
       logger,
-      serverUrl: "https://bb.example.test",
+      serverUrl: "https://kaioken.example.test",
     });
 
     await expect(
@@ -512,7 +512,7 @@ describe("createServerClient", () => {
       getSessionId: () => "session-1",
       hostKey: "host-key",
       logger,
-      serverUrl: "https://bb.example.test",
+      serverUrl: "https://kaioken.example.test",
     });
 
     const result = client.registerInteractiveRequest(

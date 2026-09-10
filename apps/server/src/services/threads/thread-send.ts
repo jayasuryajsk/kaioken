@@ -2,8 +2,8 @@ import {
   getEnvironment,
   getThread,
   requireThreadLifecycleEventApplied,
-} from "@bb/db";
-import type { DbConnection, DbTransaction, EnvironmentRow } from "@bb/db";
+} from "@kaioken/db";
+import type { DbConnection, DbTransaction, EnvironmentRow } from "@kaioken/db";
 import type {
   ClientTurnRequestId,
   PromptInput,
@@ -11,10 +11,10 @@ import type {
   Thread,
   ThreadTurnInitiator,
   TurnRequestTarget,
-} from "@bb/domain";
-import { isStandaloneBuiltinClearCommand } from "@bb/domain";
-import type { SendMessageRequest } from "@bb/server-contract";
-import { renderTemplate } from "@bb/templates";
+} from "@kaioken/domain";
+import { isStandaloneBuiltinClearCommand } from "@kaioken/domain";
+import type { SendMessageRequest } from "@kaioken/server-contract";
+import { renderTemplate } from "@kaioken/templates";
 import type {
   AppDeps,
   LoggedPendingInteractionWorkSessionDeps,

@@ -8,14 +8,14 @@ export type {
   ReasoningLevel,
   ServiceTier,
   ThreadStatus,
-} from "@bb/domain";
+} from "@kaioken/domain";
 export type {
   CreateExecutionInputSources,
   EnvironmentArgs,
   ExistingThreadExecutionInputSources,
   UnmanagedBranchSpec,
   WorkspaceArgs,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 
 export type * from "./realtime.js";
 export type * from "./areas/environments.js";

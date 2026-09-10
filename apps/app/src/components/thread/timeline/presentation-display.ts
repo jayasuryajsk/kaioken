@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
-import { isPresentationTintColor } from "@bb/domain";
-import type { TimelineRowPresentation } from "@bb/server-contract";
-import { ICON_NAMES, type IconName } from "@bb/shared-ui/icon";
+import { isPresentationTintColor } from "@kaioken/domain";
+import type { TimelineRowPresentation } from "@kaioken/server-contract";
+import { ICON_NAMES, type IconName } from "@kaioken/shared-ui/icon";
 
 const ICON_NAME_SET: ReadonlySet<string> = new Set(ICON_NAMES);
 

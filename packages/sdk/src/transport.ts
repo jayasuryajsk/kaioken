@@ -1,18 +1,18 @@
-import type { ApiClient } from "@bb/server-contract";
+import type { ApiClient } from "@kaioken/server-contract";
 import type {
   FetchImplementation,
   JsonBodyOf,
   SdkResponseLike,
 } from "./response.js";
 
-export type BbSdkRuntime = "node" | "browser";
+export type KaiokenSdkRuntime = "node" | "browser";
 
-export interface BbSdkTransport {
+export interface KaiokenSdkTransport {
   api: ApiClient["api"];
   baseUrl: string;
   fetch: FetchImplementation;
   realtimeUrl?: string;
-  runtime: BbSdkRuntime;
+  runtime: KaiokenSdkRuntime;
   readJson<TResponse extends SdkResponseLike>(
     response: Promise<TResponse>,
   ): Promise<JsonBodyOf<TResponse>>;
@@ -22,31 +22,31 @@ export interface BbSdkTransport {
   resolve<TResponse extends SdkResponseLike>(
     response: Promise<TResponse>,
   ): Promise<TResponse>;
-  websocket?: BbRealtimeSocketFactory;
+  websocket?: KaiokenRealtimeSocketFactory;
 }
 
-export interface BbRealtimeSocketMessageEvent {
+export interface KaiokenRealtimeSocketMessageEvent {
   data: unknown;
 }
 
-export interface BbRealtimeSocket {
+export interface KaiokenRealtimeSocket {
   close(): void;
   onclose: (() => void) | null;
   onerror: (() => void) | null;
-  onmessage: ((event: BbRealtimeSocketMessageEvent) => void) | null;
+  onmessage: ((event: KaiokenRealtimeSocketMessageEvent) => void) | null;
   onopen: (() => void) | null;
   readyState: number;
   send(data: string): void;
 }
 
-export type BbRealtimeSocketFactory = (url: string) => BbRealtimeSocket;
+export type KaiokenRealtimeSocketFactory = (url: string) => KaiokenRealtimeSocket;
 
-export interface BbSdkContext {}
+export interface KaiokenSdkContext {}
 
 export interface CreateHttpTransportArgs {
   baseUrl?: string;
   fetch?: FetchImplementation;
   realtimeUrl?: string;
-  runtime: BbSdkRuntime;
-  websocket?: BbRealtimeSocketFactory;
+  runtime: KaiokenSdkRuntime;
+  websocket?: KaiokenRealtimeSocketFactory;
 }

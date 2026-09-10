@@ -1,5 +1,5 @@
-import type { ThreadEvent } from "@bb/domain";
-import { getThreadEventScopeTurnId } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
+import { getThreadEventScopeTurnId } from "@kaioken/domain";
 import type { AgentRuntime } from "../types.js";
 
 export type RuntimeWaitPredicate = () => boolean;

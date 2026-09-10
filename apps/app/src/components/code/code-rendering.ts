@@ -3,7 +3,7 @@ import type {
   DiffViewMode,
   ExperimentalDiffFullFileContents,
   SourceCodeLineRange,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import type { ParsedGitDiffFile } from "@/components/git-diff/git-diff-parsing";
 
 export const DEFAULT_CODE_OVERFLOW: CodeOverflowMode = "scroll";
@@ -20,7 +20,7 @@ export interface DiffPresentation {
   showLineNumbers: boolean;
 }
 
-export interface BbSourceCodeProps extends SourceCodePresentation {
+export interface KaiokenSourceCodeProps extends SourceCodePresentation {
   content: string;
   path: string;
   cacheKey?: string;
@@ -29,7 +29,7 @@ export interface BbSourceCodeProps extends SourceCodePresentation {
   onSelectionAddToChat?: (text: string) => void;
 }
 
-export interface BbDiffProps extends DiffPresentation {
+export interface KaiokenDiffProps extends DiffPresentation {
   file: ParsedGitDiffFile;
   patchText?: string;
   fullFileContents: ExperimentalDiffFullFileContents | null;

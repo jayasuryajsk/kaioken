@@ -3,12 +3,12 @@
   "name": "badge",
   "type": "registry:ui",
   "title": "badge",
-  "description": "BB ui \"badge\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"badge\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "@bb/utils"
+    "@kaioken/utils"
   ],
   "files": [
     {

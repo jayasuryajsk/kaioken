@@ -1,5 +1,5 @@
 {
-  "name": "bb-plugin-echo-provider",
+  "name": "kaioken-plugin-echo-provider",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -20,14 +20,14 @@
     "host": "./host.ts"
   },
   "keywords": [
-    "bb-plugin"
+    "kaioken-plugin"
   ],
   "scripts": {
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@get-bb/plugin-sdk": "workspace:*",
+    "@get-kaioken/plugin-sdk": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {

@@ -3,10 +3,10 @@ import { resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 import {
-  bbDesktopVersionFeedSchema,
+  kaiokenDesktopVersionFeedSchema,
   createBbDesktopVersionFeedFileName,
-  type BbDesktopVersionFeed,
-} from "@bb/desktop-contract";
+  type KaiokenDesktopVersionFeed,
+} from "@kaioken/desktop-contract";
 import {
   createDesktopReleaseConfig,
   resolveDesktopBuildPlatform,
@@ -66,7 +66,7 @@ if (updateMetadata.version !== packageJson.version) {
   );
 }
 
-const desktopVersionFeed: BbDesktopVersionFeed = {
+const desktopVersionFeed: KaiokenDesktopVersionFeed = {
   channel: releaseChannel,
   files: updateMetadata.files,
   minimumSystemVersion: null,
@@ -81,7 +81,7 @@ const desktopVersionFeed: BbDesktopVersionFeed = {
   version: packageJson.version,
 };
 
-const validatedFeed = bbDesktopVersionFeedSchema.parse(desktopVersionFeed);
+const validatedFeed = kaiokenDesktopVersionFeedSchema.parse(desktopVersionFeed);
 await writeFile(
   desktopVersionFeedPath,
   `${JSON.stringify(validatedFeed, null, 2)}\n`,

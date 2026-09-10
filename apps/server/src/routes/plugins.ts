@@ -8,7 +8,7 @@ import type { WSContext, WSMessageReceive, WSEvents } from "hono/ws";
 import type {
   ExperimentalPluginWebSocket,
   ExperimentalPluginWebSocketHandlers,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import type { ServerRuntimeConfig } from "../types.js";
 import { ApiError } from "../errors.js";
 import {
@@ -36,11 +36,11 @@ import {
   pluginSettingsUpdateRequestSchema,
   pluginTokenRequestSchema,
   pluginUpdateCheckRequestSchema,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 
 interface PluginRoutesDeps {
   config: Pick<ServerRuntimeConfig, "serverPort" | "appUrl" | "devAppPort">;
-  db: import("@bb/db").DbConnection;
+  db: import("@kaioken/db").DbConnection;
 }
 
 type WireAuthProblem = BrowserRequestProblem | { status: 401; error: string };
@@ -164,7 +164,7 @@ async function tokenAuthProblem(
       status: 401,
       error:
         'missing or invalid plugin token — send it as the "x-bb-plugin-token" header ' +
-        "or ?token=; print it with `bb plugin token " +
+        "or ?token=; print it with `kaioken plugin token " +
         `${id}\``,
     };
   }

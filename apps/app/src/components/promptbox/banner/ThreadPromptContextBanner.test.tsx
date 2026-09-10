@@ -3,7 +3,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
-import type { ThreadPullRequest } from "@bb/domain";
+import type { ThreadPullRequest } from "@kaioken/domain";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   isThreadDisplayStatusBannerActive,
@@ -24,9 +24,9 @@ const pullRequestFixture: ThreadPullRequest = {
   number: 128,
   title: "Show pull request status in the prompt context banner",
   state: "open",
-  url: "https://github.com/acme/bb/pull/128",
+  url: "https://github.com/acme/kaioken/pull/128",
   baseRefName: "main",
-  headRefName: "bb/pr-context-banner",
+  headRefName: "kaioken/pr-context-banner",
   updatedAt: "2026-06-16T12:30:00Z",
   checks: {
     state: "passing",

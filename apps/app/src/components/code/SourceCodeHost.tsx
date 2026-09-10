@@ -4,19 +4,19 @@ import { deprecatedOriginalAlias } from "@/lib/plugin-sdk-deprecated-aliases";
 import { useSourceCodeRendererReplacement } from "./codeRendererProvider";
 import {
   DEFAULT_CODE_OVERFLOW,
-  type BbSourceCodeProps,
+  type KaiokenSourceCodeProps,
 } from "./code-rendering";
 
 const SOURCE_CODE_RENDERER_SLOT_KIND = "sourceCodeRenderer";
 
-const BbSourceCode = lazy(() => import("./BbSourceCode"));
+const KaiokenSourceCode = lazy(() => import("./KaiokenSourceCode"));
 
 interface SourceCodeHostProps extends Omit<
-  BbSourceCodeProps,
+  KaiokenSourceCodeProps,
   "overflow" | "highlightedLines"
 > {
-  overflow?: BbSourceCodeProps["overflow"];
-  highlightedLines?: BbSourceCodeProps["highlightedLines"];
+  overflow?: KaiokenSourceCodeProps["overflow"];
+  highlightedLines?: KaiokenSourceCodeProps["highlightedLines"];
   fallback?: ReactNode;
 }
 
@@ -35,7 +35,7 @@ export function SourceCodeHost({
 
   const original = (
     <Suspense fallback={fallback}>
-      <BbSourceCode
+      <KaiokenSourceCode
         content={content}
         path={path}
         cacheKey={cacheKey}

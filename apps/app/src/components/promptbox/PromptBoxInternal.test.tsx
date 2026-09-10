@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { PromptTextMention } from "@bb/domain";
+import type { PromptTextMention } from "@kaioken/domain";
 import { TextSelection } from "@tiptap/pm/state";
 import { EditorView } from "@tiptap/pm/view";
 import {
@@ -25,7 +25,7 @@ import { MemoryRouter } from "react-router-dom";
 import {
   EMPTY_ORDERED_MENTION_SUGGESTIONS,
   emptyPromptDraftState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   getComposerInputLock,
   useComposer,
@@ -74,7 +74,7 @@ import { orderPromptMentionSuggestions } from "@/hooks/promptMentionCandidates";
 import type {
   PromptMentionSuggestion,
   ProviderCommandSuggestion,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 type PromptBoxProps = ComponentProps<typeof PromptBoxInternal>;
 
@@ -3723,8 +3723,8 @@ describe("PromptBoxInternal prompt actions", () => {
         label,
       });
       return {
-        text: `Build a plugin capability like ${pill.text.trimEnd()} using bb's Plugin Guide. `,
-        html: `Build a plugin capability like ${pill.html.trimEnd()} using bb's Plugin Guide. `,
+        text: `Build a plugin capability like ${pill.text.trimEnd()} using kaioken's Plugin Guide. `,
+        html: `Build a plugin capability like ${pill.html.trimEnd()} using kaioken's Plugin Guide. `,
       };
     };
 
@@ -3751,8 +3751,8 @@ describe("PromptBoxInternal prompt actions", () => {
       getPromptEditorElement().querySelectorAll(".prompt-mention-pill"),
     ).toHaveLength(2);
     expect(latestValue(changes)).toBe(
-      "Build a plugin capability like @Inline actions using bb's Plugin Guide. " +
-        "Build a plugin capability like @Thread side-panel tabs using bb's Plugin Guide. ",
+      "Build a plugin capability like @Inline actions using kaioken's Plugin Guide. " +
+        "Build a plugin capability like @Thread side-panel tabs using kaioken's Plugin Guide. ",
     );
   });
 

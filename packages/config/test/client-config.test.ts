@@ -10,7 +10,7 @@ describe("client config", () => {
   it("normalizes server URLs to origins", () => {
     const config = parseClientConfig({
       servers: {
-        "https://bb.example.test/projects/proj_1": {
+        "https://kaioken.example.test/projects/proj_1": {
           hosts: {
             host_1: {
               sshAuthority: "devbox",
@@ -21,11 +21,11 @@ describe("client config", () => {
     });
 
     expect(listClientServerOrigins(config)).toEqual([
-      "https://bb.example.test",
+      "https://kaioken.example.test",
     ]);
     expect(
       resolveClientSshAuthority(config, {
-        serverOrigin: "https://bb.example.test/thread/thr_1",
+        serverOrigin: "https://kaioken.example.test/thread/thr_1",
         hostId: "host_1",
       }),
     ).toBe("devbox");
@@ -34,7 +34,7 @@ describe("client config", () => {
   it("returns null when no SSH target is configured for a host", () => {
     const config = parseClientConfig({
       servers: {
-        "https://bb.example.test": {
+        "https://kaioken.example.test": {
           hosts: {
             host_1: {
               sshAuthority: "devbox",
@@ -46,7 +46,7 @@ describe("client config", () => {
 
     expect(
       resolveClientSshAuthority(config, {
-        serverOrigin: "https://bb.example.test",
+        serverOrigin: "https://kaioken.example.test",
         hostId: "host_2",
       }),
     ).toBeNull();
@@ -56,10 +56,10 @@ describe("client config", () => {
     expect(() =>
       parseClientConfig({
         servers: {
-          "https://bb.example.test/a": {
+          "https://kaioken.example.test/a": {
             hosts: {},
           },
-          "https://bb.example.test/b": {
+          "https://kaioken.example.test/b": {
             hosts: {},
           },
         },
@@ -74,7 +74,7 @@ describe("client config", () => {
     expect(() =>
       parseClientConfig({
         servers: {
-          "https://bb.example.test": {
+          "https://kaioken.example.test": {
             hosts: {
               host_1: {
                 sshAuthority: "bad authority",

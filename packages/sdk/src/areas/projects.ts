@@ -21,9 +21,9 @@ import type {
   UploadedPromptAttachment,
   WorkspacePathListResponse,
   WorkspaceFileListResponse,
-} from "@bb/server-contract";
-import { uploadedPromptAttachmentSchema } from "@bb/server-contract";
-import type { ProjectExecutionDefaults, ProjectSource } from "@bb/domain";
+} from "@kaioken/server-contract";
+import { uploadedPromptAttachmentSchema } from "@kaioken/server-contract";
+import type { ProjectExecutionDefaults, ProjectSource } from "@kaioken/domain";
 import { signalRequestArgs, type CreateSdkAreaArgs } from "./common.js";
 
 export interface ProjectListArgs {

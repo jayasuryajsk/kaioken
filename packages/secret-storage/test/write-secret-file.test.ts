@@ -7,7 +7,7 @@ import { deleteSecretFile, writeSecretFile } from "../src/index.js";
 const tempDirs: string[] = [];
 
 async function makeTempDir(): Promise<string> {
-  const tempDir = await mkdtemp(path.join(os.tmpdir(), "bb-write-secret-"));
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "kaioken-write-secret-"));
   tempDirs.push(tempDir);
   return tempDir;
 }

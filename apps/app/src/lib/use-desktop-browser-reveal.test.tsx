@@ -2,16 +2,16 @@
 
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { BbDesktopBrowserRevealRequest } from "@bb/desktop-contract";
+import type { KaiokenDesktopBrowserRevealRequest } from "@kaioken/desktop-contract";
 import { useDesktopBrowserReveal } from "./use-desktop-browser-reveal";
 
 const listeners = vi.hoisted(
-  () => new Set<(request: BbDesktopBrowserRevealRequest) => void>(),
+  () => new Set<(request: KaiokenDesktopBrowserRevealRequest) => void>(),
 );
 
-vi.mock("./bb-desktop", () => ({
+vi.mock("./kaioken-desktop", () => ({
   getDesktopBrowserApi: () => ({
-    onReveal: (listener: (request: BbDesktopBrowserRevealRequest) => void) => {
+    onReveal: (listener: (request: KaiokenDesktopBrowserRevealRequest) => void) => {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },

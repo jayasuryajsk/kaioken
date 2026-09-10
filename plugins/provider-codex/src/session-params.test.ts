@@ -9,7 +9,7 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import type { PromptInput, RuntimePermissionPolicy } from "@bb/domain";
+import type { PromptInput, RuntimePermissionPolicy } from "@kaioken/domain";
 import {
   buildCodexConfig,
   combineWorkspaceWriteRoots,
@@ -87,12 +87,12 @@ interface InvalidCommonDirCase {
 const optionalGitRootEscapeCases: readonly OptionalGitRootEscapeCase[] = [
   {
     label: "refs",
-    outsidePrefix: "bb-codex-refs-escape-",
+    outsidePrefix: "kaioken-codex-refs-escape-",
     relativePath: "refs",
   },
   {
     label: "logs refs",
-    outsidePrefix: "bb-codex-logs-refs-escape-",
+    outsidePrefix: "kaioken-codex-logs-refs-escape-",
     relativePath: path.join("logs", "refs"),
   },
 ];
@@ -104,7 +104,7 @@ const unsafeHeadRefCases: readonly UnsafeHeadRefCase[] = [
   },
   {
     label: "absolute path",
-    headContent: "ref: /tmp/bb-main\n",
+    headContent: "ref: /tmp/kaioken-main\n",
   },
   {
     label: "empty path segment",
@@ -129,14 +129,14 @@ const invalidCommonDirCases: readonly InvalidCommonDirCase[] = [
 
 function createLinkedWorktreeFixture(): LinkedWorktreeFixture {
   const rootPath = realpathSync.native(
-    mkdtempSync(path.join(tmpdir(), "bb-codex-worktree-")),
+    mkdtempSync(path.join(tmpdir(), "kaioken-codex-worktree-")),
   );
   const workspacePath = path.join(rootPath, "worktree");
   const commonDir = path.join(rootPath, "repo.git");
   const gitDir = path.join(commonDir, "worktrees", "bb1");
-  const headRef = "refs/heads/bb/probe";
-  const headRefParent = path.join(commonDir, "refs", "heads", "bb");
-  const headLogParent = path.join(commonDir, "logs", "refs", "heads", "bb");
+  const headRef = "refs/heads/kaioken/probe";
+  const headRefParent = path.join(commonDir, "refs", "heads", "kaioken");
+  const headLogParent = path.join(commonDir, "logs", "refs", "heads", "kaioken");
 
   mkdirSync(workspacePath, { recursive: true });
   mkdirSync(gitDir, { recursive: true });
@@ -177,7 +177,7 @@ function workspaceConfigForCwd(args: {
   additionalWorkspaceWriteRoots?: string[];
 }): ReturnType<typeof buildCodexConfig> {
   return buildCodexConfig({
-    threadId: "bb-thread-1",
+    threadId: "kaioken-thread-1",
     additionalWorkspaceWriteRoots: args.additionalWorkspaceWriteRoots ?? [],
     gitWritableRoots: gitWritableRootsForWorkspace(args.cwd),
     options: WORKSPACE_ASK_OPTIONS,
@@ -344,7 +344,7 @@ describe("gitWritableRootsForWorkspace", () => {
   it("rejects linked worktree git roots when objects symlink escapes common dir", () => {
     const fixture = createLinkedWorktreeFixture();
     const outsideObjectsPath = realpathSync.native(
-      mkdtempSync(path.join(tmpdir(), "bb-codex-objects-escape-")),
+      mkdtempSync(path.join(tmpdir(), "kaioken-codex-objects-escape-")),
     );
     try {
       rmSync(path.join(fixture.commonDir, "objects"), {
@@ -371,7 +371,7 @@ describe("gitWritableRootsForWorkspace", () => {
   it("rejects linked worktree git roots when worktrees symlink escapes common dir", () => {
     const fixture = createLinkedWorktreeFixture();
     const outsideWorktreesPath = realpathSync.native(
-      mkdtempSync(path.join(tmpdir(), "bb-codex-worktrees-escape-")),
+      mkdtempSync(path.join(tmpdir(), "kaioken-codex-worktrees-escape-")),
     );
     try {
       rmSync(path.join(fixture.commonDir, "worktrees"), {
@@ -391,7 +391,7 @@ describe("gitWritableRootsForWorkspace", () => {
       );
       writeFileSync(
         path.join(escapedGitDir, "HEAD"),
-        "ref: refs/heads/bb/probe\n",
+        "ref: refs/heads/kaioken/probe\n",
       );
       symlinkSync(
         outsideWorktreesPath,
@@ -599,7 +599,7 @@ describe("codex permission settings", () => {
 
 function configFor(options: CodexSessionOptions) {
   return buildCodexConfig({
-    threadId: "bb-thread-1",
+    threadId: "kaioken-thread-1",
     additionalWorkspaceWriteRoots: [],
     gitWritableRoots: [],
     options,
@@ -643,7 +643,7 @@ describe("buildCodexConfig", () => {
     });
 
     expect(config).toMatchObject({
-      "shell_environment_policy.set.BB_THREAD_ID": "bb-thread-1",
+      "shell_environment_policy.set.KAIOKEN_THREAD_ID": "kaioken-thread-1",
       "shell_environment_policy.set.PLUGIN_API_URL":
         "http://127.0.0.1:3334/plugins/example/auth",
       "shell_environment_policy.set.TEST_VAR": "123",
@@ -670,7 +670,7 @@ describe("buildCodexConfig", () => {
   it("omits the writable-roots key for a full-access session", () => {
     expectWorkspaceWriteWritableRootsConfigAbsent(
       buildCodexConfig({
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
         additionalWorkspaceWriteRoots: ["/repo/.git/objects"],
         gitWritableRoots: [],
         options: FULL_OPTIONS,
@@ -706,7 +706,7 @@ describe("resolveCodexInstructionOverrides", () => {
 });
 
 describe("toCodexReasoningEffort", () => {
-  it("maps the top of the bb reasoning ladder", () => {
+  it("maps the top of the kaioken reasoning ladder", () => {
     expect(toCodexReasoningEffort("max")).toBe("max");
     expect(toCodexReasoningEffort("ultra")).toBe("ultra");
   });

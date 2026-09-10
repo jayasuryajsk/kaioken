@@ -4,14 +4,14 @@ import {
   openSession,
   upsertHost,
   updateHost,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   HOST_DAEMON_PROTOCOL_VERSION,
   hostDaemonProjectAttachmentContentQuerySchema,
   hostDaemonSessionOpenRequestSchema,
   typedRoutes,
   type HostDaemonInternalSchema,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import type { Hono } from "hono";
 import { z } from "zod";
 import type { AppDeps } from "../types.js";
@@ -84,7 +84,7 @@ export function registerInternalSessionRoutes(
           daemonProtocolVersion: compatibility.data.protocolVersion,
           serverProtocolVersion: HOST_DAEMON_PROTOCOL_VERSION,
         },
-        "Rejecting daemon session: protocol version mismatch. An older auto-update-enabled daemon will install this server's bb-app; a newer daemon requires the server to be updated.",
+        "Rejecting daemon session: protocol version mismatch. An older auto-update-enabled daemon will install this server's kaioken-app; a newer daemon requires the server to be updated.",
       );
       throw new ApiError(
         400,

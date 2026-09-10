@@ -3,8 +3,8 @@ import type {
   ExperimentalAiInferenceCompleteOutput,
   ExperimentalAiVoiceTranscribeInput,
   ExperimentalAiVoiceTranscribeOutput,
-} from "@get-bb/plugin-sdk/ai-services";
-import type { PluginAiServiceKind } from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk/ai-services";
+import type { PluginAiServiceKind } from "@get-kaioken/plugin-sdk";
 import type {
   AiServiceCallOptions,
   AiServiceRegistry,

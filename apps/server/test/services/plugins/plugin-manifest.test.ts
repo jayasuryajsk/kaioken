@@ -8,7 +8,7 @@ describe("plugin manifest", () => {
   let rootDir: string;
 
   beforeEach(async () => {
-    rootDir = await mkdtemp(join(tmpdir(), "bb-plugin-manifest-"));
+    rootDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-manifest-"));
     await writeFile(join(rootDir, "server.ts"), "export default () => {};\n");
   });
 
@@ -30,7 +30,7 @@ describe("plugin manifest", () => {
     await writeFile(
       join(rootDir, "package.json"),
       JSON.stringify({
-        name: "bb-plugin-contract",
+        name: "kaioken-plugin-contract",
         version: "2.3.4",
         ...(bbPluginSdk === undefined ? {} : { engines: { bbPluginSdk } }),
         bb,
@@ -81,22 +81,22 @@ describe("plugin manifest", () => {
   });
 
   it.each(["name", "description"] as const)(
-    "requires a non-empty bb.%s string",
+    "requires a non-empty kaioken.%s string",
     async (field: "name" | "description") => {
       const { [field]: _omitted, ...withoutField } = validBb;
       await writeManifest(undefined, withoutField);
       await expect(readPluginManifest(rootDir)).rejects.toThrow(
-        new RegExp(`bb\\.${field}`),
+        new RegExp(`kaioken\\.${field}`),
       );
 
       await writeManifest(undefined, { ...validBb, [field]: "   " });
       await expect(readPluginManifest(rootDir)).rejects.toThrow(
-        new RegExp(`bb\\.${field}`),
+        new RegExp(`kaioken\\.${field}`),
       );
 
       await writeManifest(undefined, { ...validBb, [field]: null });
       await expect(readPluginManifest(rootDir)).rejects.toThrow(
-        new RegExp(`bb\\.${field}`),
+        new RegExp(`kaioken\\.${field}`),
       );
     },
   );
@@ -205,7 +205,7 @@ describe("plugin manifest", () => {
     ["logo", "./logo.svg"],
     ["logoDark", "./logo-dark.svg"],
   ])(
-    "rejects the legacy bb.%s field instead of ignoring it",
+    "rejects the legacy kaioken.%s field instead of ignoring it",
     async (field, value) => {
       await writeManifest(undefined, { ...validBb, [field]: value });
       await expect(readPluginManifest(rootDir)).rejects.toThrow(
@@ -241,7 +241,7 @@ describe("plugin manifest", () => {
 
   it("rejects a branding asset symlink that escapes the plugin directory", async () => {
     const outsideDir = await mkdtemp(
-      join(tmpdir(), "bb-plugin-branding-outside-"),
+      join(tmpdir(), "kaioken-plugin-branding-outside-"),
     );
     try {
       const outsideAsset = join(outsideDir, "outside.svg");

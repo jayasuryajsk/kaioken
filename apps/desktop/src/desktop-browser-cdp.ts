@@ -157,7 +157,7 @@ function createConnection(
   const browserInfo: CdpObject = {
     targetId: browserTargetId,
     type: "browser",
-    title: "BB",
+    title: "Kaioken",
     url: "",
     attached: true,
     canAccessOpener: false,

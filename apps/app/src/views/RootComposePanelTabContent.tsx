@@ -1,8 +1,8 @@
 import { useMemo, type ReactNode } from "react";
-import type { OpenInTargetContext } from "@bb/host-daemon-contract";
+import type { OpenInTargetContext } from "@kaioken/host-daemon-contract";
 import type { SidebarProject } from "@/hooks/queries/project-queries";
-import { findLocalPathProjectSourceForHost } from "@bb/domain";
-import type { PluginFileOpenerSource } from "@get-bb/plugin-sdk";
+import { findLocalPathProjectSourceForHost } from "@kaioken/domain";
+import type { PluginFileOpenerSource } from "@get-kaioken/plugin-sdk";
 import type {
   PluginPanelFixedPanelTab,
   SecondaryFileFixedPanelTab,
@@ -35,7 +35,7 @@ import {
   buildOpenInEditorHandler,
   resolveEnvironmentOpenContext,
 } from "./thread-detail/threadWorkspaceOpenPath";
-import { getFilePreviewLineRangeStart } from "@bb/client-core";
+import { getFilePreviewLineRangeStart } from "@kaioken/client-core";
 import { resolveAbsoluteFilePath } from "@/lib/absolute-file-path";
 import { useAppCommandHandler } from "@/components/commands/AppCommandProvider";
 import type { MarkdownPreviewLinkHandler } from "@/components/ui/markdown-link";

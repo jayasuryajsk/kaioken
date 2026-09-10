@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
-import { Pill } from "@bb/shared-ui/pill";
+import { Pill } from "@kaioken/shared-ui/pill";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
+} from "@kaioken/shared-ui/tooltip";
 
 export function ProvenancePill({
   label,

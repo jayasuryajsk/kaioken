@@ -1,4 +1,4 @@
-import { assertNever } from "@bb/core-ui";
+import { assertNever } from "@kaioken/core-ui";
 import type {
   ApprovalPendingInteraction,
   PendingInteraction,
@@ -6,19 +6,19 @@ import type {
   ThreadEventItemApprovalStatus,
   ThreadEventItem,
   ThreadEventScope,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   isApprovalPendingInteraction,
   toInteractionLifecycle,
   turnScope,
   threadScope,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   getThread,
   type AppendStoredThreadEventArgs,
   type DbNotifier,
   type DbTransaction,
-} from "@bb/db";
+} from "@kaioken/db";
 import type { AppDeps } from "../../types.js";
 import {
   appendThreadEvent,

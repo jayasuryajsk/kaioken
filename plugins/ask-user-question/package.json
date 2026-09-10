@@ -1,5 +1,5 @@
 {
-  "name": "bb-plugin-ask-user-question",
+  "name": "kaioken-plugin-ask-user-question",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -17,19 +17,19 @@
     "app": "./app.tsx"
   },
   "keywords": [
-    "bb-plugin"
+    "kaioken-plugin"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
-    "@bb/plugin-interaction-contracts": "workspace:*",
-    "@bb/shared-ui": "workspace:*",
+    "@kaioken/plugin-interaction-contracts": "workspace:*",
+    "@kaioken/shared-ui": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@get-bb/plugin-sdk": "workspace:*",
+    "@get-kaioken/plugin-sdk": "workspace:*",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",

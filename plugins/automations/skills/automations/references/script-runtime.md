@@ -24,20 +24,20 @@ output returns it as `execution.storedScriptPath`.
 The plugin injects these variables:
 
 ```text
-BB_SERVER_URL          The BB server API base URL
-BB_PROJECT_ID          The automation project
-BB_AUTOMATION_ID       The automation ID
-BB_AUTOMATION_RUN_ID   The run ID
-BB_CLI                 The absolute BB CLI path, when available
+KAIOKEN_SERVER_URL          The Kaioken server API base URL
+KAIOKEN_PROJECT_ID          The automation project
+KAIOKEN_AUTOMATION_ID       The automation ID
+KAIOKEN_AUTOMATION_RUN_ID   The run ID
+KAIOKEN_CLI                 The absolute Kaioken CLI path, when available
 ```
 
-The plugin does not inject `BB_ENVIRONMENT_ID` or `BB_HOST_DAEMON_PORT`.
+The plugin does not inject `KAIOKEN_ENVIRONMENT_ID` or `KAIOKEN_HOST_DAEMON_PORT`.
 
-The plugin resolves `bb` from `BB_CLI`, `BB_CLI_DIR`, `PATH`, and common macOS
+The plugin resolves `kaioken` from `KAIOKEN_CLI`, `KAIOKEN_CLI_DIR`, `PATH`, and common macOS
 install paths. It adds the selected directory to `PATH`.
 
-If the plugin cannot find `bb`, the script still starts. Its output starts with
-a `[bb] warning:` line. A later `bb` call then fails normally.
+If the plugin cannot find `kaioken`, the script still starts. Its output starts with
+a `[kaioken] warning:` line. A later `kaioken` call then fails normally.
 
 ## Execution safety
 

@@ -8,7 +8,7 @@ import {
 import type {
   TerminalSession,
   ThreadStorageFileListResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   useFixedPanelTabsState,
   useUpdateFixedPanelTabsState,
@@ -43,7 +43,7 @@ import type {
   HostFileTabState,
   ThreadStorageFileTabState,
   WorkspaceFileTabState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { useRecordThreadRecentItem } from "./threadRecentItems";
 import type {
   SecondaryPanelTabReorderHandler,
@@ -65,7 +65,7 @@ import {
   reorderSecondaryPanelFileTabInState,
   setSecondaryPanelTabsInState,
   updateSecondaryPanelTabInState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { pruneTerminalTabsForSessions } from "./terminalPanelTabs";
 
 interface UseThreadFileTabsParams {

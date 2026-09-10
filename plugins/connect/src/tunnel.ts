@@ -2,14 +2,14 @@ import { WebSocket as NodeWebSocket } from "ws";
 import {
   PROTOCOL_VERSION,
   TUNNEL_PROTOCOL_QUERY_PARAM,
-} from "@bb/tunnel-contract";
+} from "@kaioken/tunnel-contract";
 import {
   humanizeTransportError,
   ReconnectBackoff,
   TunnelSession,
   type StreamOriginResult,
-} from "@bb/tunnel-client";
-import type { PluginLogger } from "@get-bb/plugin-sdk";
+} from "@kaioken/tunnel-client";
+import type { PluginLogger } from "@get-kaioken/plugin-sdk";
 import {
   ConnectListError,
   deriveConnectBaseUrl,
@@ -19,7 +19,7 @@ import {
   type ConnectCredential,
   type DesktopSession,
   type ListAccountServersResult,
-} from "@bb/connect-client";
+} from "@kaioken/connect-client";
 import type { CredentialStore } from "./credential.js";
 import { fetchMachineCode, MachineCodeError } from "./machine-code.js";
 import { asConnectPairError, redeemConnectCode } from "./redeem.js";
@@ -191,7 +191,7 @@ export class ConnectTunnel {
     if (credential === null) {
       throw new ConnectListError(
         "not_paired",
-        "this bb is not connected to getbb.app — run `bb connect` for how to pair",
+        "this kaioken is not connected to getbb.app — run `kaioken connect` for how to pair",
       );
     }
     return listAccountServers(credential);
@@ -199,7 +199,7 @@ export class ConnectTunnel {
 
   async createDesktopSession(): Promise<DesktopSession> {
     if (this.credential === null) {
-      throw new ConnectListError("not_paired", "this bb is not connected");
+      throw new ConnectListError("not_paired", "this kaioken is not connected");
     }
     return fetchDesktopSession(this.credential);
   }
@@ -338,7 +338,7 @@ export class ConnectTunnel {
 
   private credentialRejected(statusCode: number): void {
     this.lastError =
-      `the gate rejected this bb's credential (HTTP ${statusCode}) — ` +
+      `the gate rejected this kaioken's credential (HTTP ${statusCode}) — ` +
       "pairing was revoked; get a new code from the getbb.app dashboard and re-pair";
     this.options.log.warn(this.lastError);
     this.credential = null;

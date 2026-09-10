@@ -2,9 +2,9 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import * as pluginSdkApp from "@get-bb/plugin-sdk/app";
+import * as pluginSdkApp from "@get-kaioken/plugin-sdk/app";
 import {
-  type BbPluginApi,
+  type KaiokenPluginApi,
   type ExperimentalAppOverlayProps,
   type PluginAppBuilder,
   type PluginAppSlots,
@@ -38,14 +38,14 @@ import {
   type PluginThreadPanelProps,
   type ThreadChatMessageAction,
   type ThreadChatProps,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 
 const FRONTEND_RUNTIME_EXPORT_NAMES = Object.keys(pluginSdkApp).sort();
 const REPO_ROOT = fileURLToPath(new URL("../../../../../", import.meta.url));
 
 const SKILL_ROOT = fileURLToPath(
   new URL(
-    "../../../../../plugins/bb-guide/skills/bb-plugin-authoring/",
+    "../../../../../plugins/kaioken-guide/skills/kaioken-plugin-authoring/",
     import.meta.url,
   ),
 );
@@ -129,13 +129,13 @@ const FRONTEND_TEST_EXPORT_NAMES = [
 );
 
 const PUBLIC_PLUGIN_SDK_EXPORT_NAMES = [
-  "bb-plugin-sdk.d.ts",
-  "bb-plugin-sdk-ai-services.d.ts",
-  "bb-plugin-sdk-provider-bridge.d.ts",
-  "bb-plugin-sdk-provider-bridge-testing.d.ts",
-  "bb-plugin-sdk-provider-bridge-acp.d.ts",
-  "bb-plugin-sdk-host.d.ts",
-  "bb-plugin-sdk-testing.d.ts",
+  "kaioken-plugin-sdk.d.ts",
+  "kaioken-plugin-sdk-ai-services.d.ts",
+  "kaioken-plugin-sdk-provider-bridge.d.ts",
+  "kaioken-plugin-sdk-provider-bridge-testing.d.ts",
+  "kaioken-plugin-sdk-provider-bridge-acp.d.ts",
+  "kaioken-plugin-sdk-host.d.ts",
+  "kaioken-plugin-sdk-testing.d.ts",
 ].flatMap((filename) =>
   declarationExportNames(
     readFileSync(
@@ -145,7 +145,7 @@ const PUBLIC_PLUGIN_SDK_EXPORT_NAMES = [
   ),
 );
 
-const BB_PLUGIN_API_KEYS = [
+const KAIOKEN_PLUGIN_API_KEYS = [
   "pluginId",
   "log",
   "settings",
@@ -167,11 +167,11 @@ const BB_PLUGIN_API_KEYS = [
   "experimental_environments",
   "sdk",
   "onDispose",
-] as const satisfies readonly (keyof BbPluginApi)[];
+] as const satisfies readonly (keyof KaiokenPluginApi)[];
 
 type MissingApiKey = Exclude<
-  keyof BbPluginApi,
-  (typeof BB_PLUGIN_API_KEYS)[number]
+  keyof KaiokenPluginApi,
+  (typeof KAIOKEN_PLUGIN_API_KEYS)[number]
 >;
 const _assertAllApiKeysListed: MissingApiKey extends never ? true : never =
   true;
@@ -503,7 +503,7 @@ const _assertAllThreadChatMessageActionFieldsListed: MissingThreadChatMessageAct
   : never = true;
 void _assertAllThreadChatMessageActionFieldsListed;
 
-describe("bb-plugin-authoring skill", () => {
+describe("kaioken-plugin-authoring skill", () => {
   const skillEntry = readFileSync(SKILL_PATH, "utf8");
   const skill = readSkillTree();
 
@@ -518,18 +518,18 @@ describe("bb-plugin-authoring skill", () => {
   });
 
   it("has frontmatter naming the skill after its directory", () => {
-    expect(skillEntry).toMatch(/^---\nname: bb-plugin-authoring\n/);
+    expect(skillEntry).toMatch(/^---\nname: kaioken-plugin-authoring\n/);
   });
 
-  it("documents every BbPluginApi property", () => {
-    for (const key of BB_PLUGIN_API_KEYS) {
-      expect(skill, `bb.${key} is not documented in the skill`).toContain(
-        `bb.${key}`,
+  it("documents every KaiokenPluginApi property", () => {
+    for (const key of KAIOKEN_PLUGIN_API_KEYS) {
+      expect(skill, `kaioken.${key} is not documented in the skill`).toContain(
+        `kaioken.${key}`,
       );
     }
   });
 
-  it("documents every @get-bb/plugin-sdk/app runtime export", () => {
+  it("documents every @get-kaioken/plugin-sdk/app runtime export", () => {
     for (const name of FRONTEND_RUNTIME_EXPORT_NAMES) {
       expect(skill, `${name} is not documented in the skill`).toContain(name);
     }
@@ -545,7 +545,7 @@ describe("bb-plugin-authoring skill", () => {
     );
   });
 
-  it("accounts for every @get-bb/plugin-sdk/app type export", () => {
+  it("accounts for every @get-kaioken/plugin-sdk/app type export", () => {
     for (const name of FRONTEND_TYPE_EXPORT_NAMES) {
       expect(skill, `${name} is not documented in the skill`).toContain(name);
     }
@@ -736,8 +736,8 @@ describe("bb-plugin-authoring skill", () => {
     expect(skill).toContain("branding.icon");
     expect(skill).toContain("./assets/icon.svg");
     expect(skill).toContain("CSS mask");
-    expect(skill).toContain("canonical BB icon name");
-    expect(skill).toContain("BB reuses this icon on roomy");
+    expect(skill).toContain("canonical Kaioken icon name");
+    expect(skill).toContain("Kaioken reuses this icon on roomy");
     expect(skill).toContain("Logo-only");
     expect(skill).toContain("manifests remain supported");
     expect(skill).toContain("Do not duplicate");

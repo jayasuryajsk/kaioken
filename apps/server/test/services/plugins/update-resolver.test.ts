@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
-import { PLUGIN_SDK_VERSION } from "@bb/domain";
+import { PLUGIN_SDK_VERSION } from "@kaioken/domain";
 import {
   createNpmResolverRun,
   listGitSemverTags,
@@ -57,7 +57,7 @@ function npmIntent(
   specKind: "default" | "exact" | "tag" | "range",
 ) {
   return {
-    packageName: "bb-plugin-matrix",
+    packageName: "kaioken-plugin-matrix",
     registry: "http://registry.test",
     requestedSpec,
     specKind,
@@ -68,7 +68,7 @@ describe("npm update candidate selection", () => {
   it("selects an older compatible range candidate and reports the newer block", async () => {
     const resolution = await resolveNpmUpdate({
       intent: npmIntent("^1.0.0", "range"),
-      current: { version: "1.0.0", display: "bb-plugin-matrix@1.0.0" },
+      current: { version: "1.0.0", display: "kaioken-plugin-matrix@1.0.0" },
       appVersion: "1.5.0",
       run: createNpmResolverRun({
         fetch: packumentFetch({
@@ -85,7 +85,7 @@ describe("npm update candidate selection", () => {
       candidate: { version: "1.2.0" },
       blocked: {
         version: { version: "1.3.0" },
-        reasons: [{ engine: "bb", required: ">=2" }],
+        reasons: [{ engine: "kaioken", required: ">=2" }],
       },
     });
   });
@@ -93,7 +93,7 @@ describe("npm update candidate selection", () => {
   it("enforces SDK compatibility and returns incompatible when none match", async () => {
     const resolution = await resolveNpmUpdate({
       intent: npmIntent("", "default"),
-      current: { version: "1.0.0", display: "bb-plugin-matrix@1.0.0" },
+      current: { version: "1.0.0", display: "kaioken-plugin-matrix@1.0.0" },
       appVersion: "1.5.0",
       run: createNpmResolverRun({
         fetch: packumentFetch({
@@ -123,7 +123,7 @@ describe("npm update candidate selection", () => {
     });
     const stable = await resolveNpmUpdate({
       intent: npmIntent("", "default"),
-      current: { version: "1.0.0", display: "bb-plugin-matrix@1.0.0" },
+      current: { version: "1.0.0", display: "kaioken-plugin-matrix@1.0.0" },
       appVersion: "1.0.0",
       run: createNpmResolverRun({ fetch }),
     });
@@ -131,7 +131,7 @@ describe("npm update candidate selection", () => {
       intent: npmIntent(">=1.0.0-beta.1 <1.0.0", "range"),
       current: {
         version: "1.0.0-alpha.1",
-        display: "bb-plugin-matrix@1.0.0-alpha.1",
+        display: "kaioken-plugin-matrix@1.0.0-alpha.1",
       },
       appVersion: "1.0.0",
       run: createNpmResolverRun({ fetch }),
@@ -150,7 +150,7 @@ describe("npm update candidate selection", () => {
   it("labels dev mode, ignores engines.bb for selection, and still enforces SDK", async () => {
     const resolution = await resolveNpmUpdate({
       intent: npmIntent("", "default"),
-      current: { version: "1.0.0", display: "bb-plugin-matrix@1.0.0" },
+      current: { version: "1.0.0", display: "kaioken-plugin-matrix@1.0.0" },
       appVersion: "0.0.0",
       run: createNpmResolverRun({
         fetch: packumentFetch({
@@ -166,7 +166,7 @@ describe("npm update candidate selection", () => {
       devMode: true,
       candidate: { version: "2.0.0" },
       blocked: { version: { version: "3.0.0" } },
-      packagedBuildProblems: [{ engine: "bb", required: ">=99" }],
+      packagedBuildProblems: [{ engine: "kaioken", required: ">=99" }],
     });
   });
 
@@ -176,13 +176,13 @@ describe("npm update candidate selection", () => {
     });
     const tagged = await resolveNpmUpdate({
       intent: npmIntent("next", "tag"),
-      current: { version: "1.0.0", display: "bb-plugin-matrix@1.0.0" },
+      current: { version: "1.0.0", display: "kaioken-plugin-matrix@1.0.0" },
       appVersion: "1.0.0",
       run,
     });
     const exact = await resolveNpmUpdate({
       intent: npmIntent("1.0.0", "exact"),
-      current: { version: "1.0.0", display: "bb-plugin-matrix@1.0.0" },
+      current: { version: "1.0.0", display: "kaioken-plugin-matrix@1.0.0" },
       appVersion: "1.0.0",
       run,
     });
@@ -192,14 +192,14 @@ describe("npm update candidate selection", () => {
     });
     expect(exact).toEqual({
       outcome: "pinned",
-      current: { version: "1.0.0", display: "bb-plugin-matrix@1.0.0" },
+      current: { version: "1.0.0", display: "kaioken-plugin-matrix@1.0.0" },
     });
   });
 
   it("binds a registry version when the registry omits integrity", async () => {
     const resolution = await resolveNpmUpdate({
       intent: npmIntent("next", "tag"),
-      current: { version: "1.0.0", display: "bb-plugin-matrix@1.0.0" },
+      current: { version: "1.0.0", display: "kaioken-plugin-matrix@1.0.0" },
       appVersion: "1.0.0",
       run: createNpmResolverRun({
         fetch: async () =>
@@ -221,7 +221,7 @@ describe("npm update candidate selection", () => {
 
 describe("git update resolution", () => {
   it("classifies tags and branches, detects a moved branch, and reports current", async () => {
-    const repo = await mkdtemp(join(tmpdir(), "bb-update-resolver-git-"));
+    const repo = await mkdtemp(join(tmpdir(), "kaioken-update-resolver-git-"));
     cleanup.push(repo);
     await mkdir(repo, { recursive: true });
     await run("git", ["init", "-q", "-b", "main"], { cwd: repo });
@@ -297,7 +297,7 @@ describe("git semver tag resolution", () => {
     repo: string;
     commitOf: Map<string, string>;
   }> {
-    const repo = await mkdtemp(join(tmpdir(), "bb-git-tags-"));
+    const repo = await mkdtemp(join(tmpdir(), "kaioken-git-tags-"));
     cleanup.push(repo);
     await run("git", ["init", "-q", "-b", "main"], { cwd: repo });
     await run("git", ["config", "user.email", "test@example.com"], {
@@ -368,7 +368,7 @@ describe("git semver tag resolution", () => {
   });
 
   it("asks the remote for release tags only, so unrelated tags cost nothing", async () => {
-    const repo = await mkdtemp(join(tmpdir(), "bb-git-many-tags-"));
+    const repo = await mkdtemp(join(tmpdir(), "kaioken-git-many-tags-"));
     cleanup.push(repo);
     await run("git", ["init", "-q", "-b", "main"], { cwd: repo });
     await run("git", ["config", "user.email", "test@example.com"], {
@@ -511,7 +511,7 @@ describe("git semver tag resolution", () => {
     });
   });
 
-  it("walks down to the newest release this bb can run", async () => {
+  it("walks down to the newest release this kaioken can run", async () => {
     const { repo, commitOf } = await tagRepo();
     const probed: string[] = [];
 
@@ -532,10 +532,10 @@ describe("git semver tag resolution", () => {
               devMode: false,
               reasons: [
                 {
-                  engine: "bb",
+                  engine: "kaioken",
                   required: ">=99.0.0",
                   actual: "1.0.0",
-                  message: "requires bb >=99.0.0, running bb is 1.0.0",
+                  message: "requires kaioken >=99.0.0, running kaioken is 1.0.0",
                 },
               ],
             }
@@ -554,7 +554,7 @@ describe("git semver tag resolution", () => {
       candidate: { version: commitOf.get("v1.1.0") },
       blocked: {
         version: { version: commitOf.get("v2.0.0") },
-        reasons: [{ engine: "bb" }],
+        reasons: [{ engine: "kaioken" }],
       },
     });
   });
@@ -577,10 +577,10 @@ describe("git semver tag resolution", () => {
           devMode: false,
           reasons: [
             {
-              engine: "bb",
+              engine: "kaioken",
               required: ">=99.0.0",
               actual: "1.0.0",
-              message: "requires bb >=99.0.0, running bb is 1.0.0",
+              message: "requires kaioken >=99.0.0, running kaioken is 1.0.0",
             },
           ],
         }),
@@ -589,7 +589,7 @@ describe("git semver tag resolution", () => {
       outcome: "current",
       blocked: {
         version: { version: commitOf.get("v1.1.0") },
-        reasons: [{ engine: "bb" }],
+        reasons: [{ engine: "kaioken" }],
       },
     });
   });

@@ -1,14 +1,14 @@
 import { useMemo, useState, type ReactNode } from "react";
-import type { ComposerPlusMenuItem, ComposerView } from "@get-bb/plugin-sdk";
-import { Button } from "@bb/shared-ui/button";
-import { COARSE_POINTER_PROMPT_ICON_ACTION_BUTTON_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
+import type { ComposerPlusMenuItem, ComposerView } from "@get-kaioken/plugin-sdk";
+import { Button } from "@kaioken/shared-ui/button";
+import { COARSE_POINTER_PROMPT_ICON_ACTION_BUTTON_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
 import {
   DropdownMenuItem,
   DropdownMenuLabel,
-} from "@bb/shared-ui/dropdown-menu";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@bb/shared-ui/popover";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@kaioken/shared-ui/popover";
 import { appToast } from "@/components/ui/app-toast";
 import {
   recordPluginComposerActionUse,

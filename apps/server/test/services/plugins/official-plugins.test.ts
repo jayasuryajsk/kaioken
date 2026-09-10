@@ -9,9 +9,9 @@ import {
   migrate,
   upsertInstalledPlugin,
   type DbConnection,
-} from "@bb/db";
-import type { Logger } from "@bb/logger";
-import { derivePluginId } from "@bb/domain";
+} from "@kaioken/db";
+import type { Logger } from "@kaioken/logger";
+import { derivePluginId } from "@kaioken/domain";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import {
   createPluginService,
@@ -34,7 +34,7 @@ const fixtureRoot = resolve(
   "..",
   "fixtures",
   "plugins",
-  "bb-plugin-builtin-fixture",
+  "kaioken-plugin-builtin-fixture",
 );
 const globals = globalThis as Record<string, unknown>;
 
@@ -214,7 +214,7 @@ describe("store-installed official plugins", () => {
   );
 
   it("re-points an installed official plugin when the bundled copy changes", async () => {
-    const mutableRoot = join(workDir, "bb-plugin-builtin-fixture");
+    const mutableRoot = join(workDir, "kaioken-plugin-builtin-fixture");
     await cp(fixtureRoot, mutableRoot, { recursive: true });
     service = createService({
       db,

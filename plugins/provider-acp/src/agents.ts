@@ -1,7 +1,7 @@
 import { z } from "zod";
-import type { PluginProviderReasoningLevel } from "@get-bb/plugin-sdk";
-import { experimental_acpLaunchSpecSchema } from "@get-bb/plugin-sdk/provider-bridge/acp";
-import type { AcpLaunchSpec } from "@get-bb/plugin-sdk/provider-bridge/acp";
+import type { PluginProviderReasoningLevel } from "@get-kaioken/plugin-sdk";
+import { experimental_acpLaunchSpecSchema } from "@get-kaioken/plugin-sdk/provider-bridge/acp";
+import type { AcpLaunchSpec } from "@get-kaioken/plugin-sdk/provider-bridge/acp";
 import type { AcpNativeRootsResolver } from "./native-roots/resolver.js";
 
 export const ACP_FAMILY = "acp";

@@ -1,7 +1,7 @@
-import type { BbDesktopInfo } from "@bb/desktop-contract";
+import type { KaiokenDesktopInfo } from "@kaioken/desktop-contract";
 
 export function resolveBbDesktopPlatform(
   platform: NodeJS.Platform,
-): BbDesktopInfo["platform"] {
+): KaiokenDesktopInfo["platform"] {
   return platform === "darwin" ? "macos" : "linux";
 }

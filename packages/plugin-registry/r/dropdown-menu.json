@@ -3,19 +3,19 @@
   "name": "dropdown-menu",
   "type": "registry:ui",
   "title": "dropdown-menu",
-  "description": "BB ui \"dropdown-menu\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"dropdown-menu\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-dropdown-menu"
   ],
   "registryDependencies": [
-    "@bb/coarse-pointer-sizing",
-    "@bb/icon",
-    "@bb/menu-item-hover",
-    "@bb/motion",
-    "@bb/overlay-trigger",
-    "@bb/portal-scope",
-    "@bb/responsive-overlay",
-    "@bb/utils"
+    "@kaioken/coarse-pointer-sizing",
+    "@kaioken/icon",
+    "@kaioken/menu-item-hover",
+    "@kaioken/motion",
+    "@kaioken/overlay-trigger",
+    "@kaioken/portal-scope",
+    "@kaioken/responsive-overlay",
+    "@kaioken/utils"
   ],
   "files": [
     {

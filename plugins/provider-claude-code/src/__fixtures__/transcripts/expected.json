@@ -19,7 +19,7 @@
       "interrupted": 0
     }
   },
-  "bb-workflow-run.ndjson": {
+  "kaioken-workflow-run.ndjson": {
     "items": {
       "commandExecution": 7,
       "fileChange": 2,

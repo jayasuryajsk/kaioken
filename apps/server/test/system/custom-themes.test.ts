@@ -6,7 +6,7 @@ import {
   CUSTOM_THEME_CSS_MAX_LENGTH,
   defaultAppTheme,
   resolveCodeTheme,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   listCustomThemeNames,
   readCustomThemeCss,
@@ -24,7 +24,7 @@ describe("custom themes service", () => {
   let themeRoot: string;
 
   beforeEach(async () => {
-    dataDir = await mkdtemp(join(tmpdir(), "bb-theme-test-"));
+    dataDir = await mkdtemp(join(tmpdir(), "kaioken-theme-test-"));
     themeRoot = resolveThemeRootPath(dataDir);
   });
 

@@ -18,7 +18,7 @@ import {
   openSecondaryPanelTabInState,
   reconcileFixedPanelViewTabsInState,
   replaceNewTabWithSecondaryPanelTabInState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 function makeWorkspaceTab(environmentId: string) {
   return createWorkspaceFilePreviewFixedPanelTab({

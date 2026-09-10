@@ -2,12 +2,12 @@ import {
   threadScope,
   type ProvisioningTranscriptEntry,
   WORKSPACE_PROVISIONING_STEP_KEYS,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   EnvironmentProvisionCommand,
   HostDaemonCommandResult,
-} from "@bb/host-daemon-contract";
-import type { ProvisionWorkspaceArgs } from "@bb/host-workspace";
+} from "@kaioken/host-daemon-contract";
+import type { ProvisionWorkspaceArgs } from "@kaioken/host-workspace";
 import {
   type CommandDispatchOptions,
   type CommandOf,

@@ -11,6 +11,6 @@ Use these sources instead:
 - Local Codex adapter code:
   `plugins/provider-codex/src/**`
 
-If you need to understand which Codex notifications bb currently consumes, read
+If you need to understand which Codex notifications kaioken currently consumes, read
 the generated schema plus the normalization code in
 `plugins/provider-codex/src/delta-translation.ts`.

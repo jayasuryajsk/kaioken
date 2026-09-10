@@ -23,11 +23,11 @@ import type {
   ThreadSearchSourceKind,
   ThreadStatus,
   ThreadVisibility,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   evaluateThreadLifecycleEvent,
   threadSearchSourceKindSchema,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { DbConnection, DbTransaction } from "../connection.js";
 import type { DbQueryConnection } from "../connection.js";
 import type { DbNotifier } from "../notifier.js";
@@ -1166,7 +1166,7 @@ export interface CountThreadsResult {
 }
 
 /**
- * `SELECT count(*)` over threads, optionally grouped. Backs `bb thread count`,
+ * `SELECT count(*)` over threads, optionally grouped. Backs `kaioken thread count`,
  * which answers "how many" in the database instead of paging threads into
  * memory to count them. The host filter and the `host` grouping both need the
  * environment row, so they join it; every other shape reads `threads` alone.

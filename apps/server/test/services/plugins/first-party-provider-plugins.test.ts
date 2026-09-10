@@ -341,7 +341,7 @@ describe("first-party provider plugins", () => {
         expect(claude?.fallbackModels.map((model) => model.id)).toContain(
           "claude-opus-5[1m]",
         );
-        expect(claude?.envPassthrough).toEqual(["BB_CLAUDE_CODE_EXECUTABLE"]);
+        expect(claude?.envPassthrough).toEqual(["KAIOKEN_CLAUDE_CODE_EXECUTABLE"]);
         expect(
           harness.deps.providerRegistry
             .get("codex")

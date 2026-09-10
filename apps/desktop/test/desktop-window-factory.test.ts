@@ -31,7 +31,7 @@ interface FakeDesktopWindowArgs {
 const tempDirs: TempDir[] = [];
 
 async function createTempDir(): Promise<TempDir> {
-  const path = await mkdtemp(join(tmpdir(), "bb-desktop-window-factory-"));
+  const path = await mkdtemp(join(tmpdir(), "kaioken-desktop-window-factory-"));
   const tempDir = { path };
   tempDirs.push(tempDir);
   return tempDir;

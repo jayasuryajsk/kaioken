@@ -1,9 +1,9 @@
-import { archiveThread, markThreadDeleted } from "@bb/db";
-import { GENERATED_ID_ALPHABET, GENERATED_ID_SUFFIX_LENGTH } from "@bb/domain";
+import { archiveThread, markThreadDeleted } from "@kaioken/db";
+import { GENERATED_ID_ALPHABET, GENERATED_ID_SUFFIX_LENGTH } from "@kaioken/domain";
 import {
   resolveThreadMentionsResponseSchema,
   THREAD_MENTION_RESOLVE_MAX_IDS,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { describe, expect, it } from "vitest";
 import { readJson } from "../helpers/json.js";
 import {

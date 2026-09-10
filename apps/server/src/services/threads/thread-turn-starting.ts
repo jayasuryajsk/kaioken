@@ -1,5 +1,5 @@
-import { getThread, type ClaimedQueuedThreadMessageRow } from "@bb/db";
-import type { Thread, ThreadQueuedMessage } from "@bb/domain";
+import { getThread, type ClaimedQueuedThreadMessageRow } from "@kaioken/db";
+import type { Thread, ThreadQueuedMessage } from "@kaioken/domain";
 import type { AppDeps } from "../../types.js";
 import { NotificationBuffer } from "../lib/notification-buffer.js";
 import {

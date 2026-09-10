@@ -3,9 +3,9 @@ import {
   EMPTY_PROVIDER_NATIVE_ROOTS,
   EMPTY_PROVIDER_RESOLVED_NATIVE_ROOTS,
   normalizeProviderNativeRoots,
-} from "@bb/domain";
-import type { DiscoveredSkill } from "@bb/host-daemon-contract";
-import type { SkillSummary } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { DiscoveredSkill } from "@kaioken/host-daemon-contract";
+import type { SkillSummary } from "@kaioken/server-contract";
 import { COMMAND_TIMEOUT_MS } from "../../constants.js";
 import type { LoggedWorkSessionDeps } from "../../types.js";
 import { callHostRetryableOnlineRpc } from "../hosts/online-rpc.js";
@@ -80,7 +80,7 @@ export async function resolveSharedSkills(
     timeoutMs: COMMAND_TIMEOUT_MS,
     command: {
       type: "host.list_skills",
-      providerId: "bb-shared",
+      providerId: "kaioken-shared",
       cwd: args.cwd,
       nativeRoots: {
         skills: normalizeProviderNativeRoots(roots),

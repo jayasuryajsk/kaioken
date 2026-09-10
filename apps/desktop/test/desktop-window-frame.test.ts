@@ -8,7 +8,7 @@ describe("desktop window frame", () => {
   it("enables frameless windows on Linux when requested", () => {
     expect(
       shouldUseLinuxFramelessWindow({
-        argv: ["bb-nightly", LINUX_FRAMELESS_WINDOW_ARGUMENT],
+        argv: ["kaioken-nightly", LINUX_FRAMELESS_WINDOW_ARGUMENT],
         platform: "linux",
       }),
     ).toBe(true);
@@ -17,7 +17,7 @@ describe("desktop window frame", () => {
   it("keeps the native Linux frame by default", () => {
     expect(
       shouldUseLinuxFramelessWindow({
-        argv: ["bb-nightly"],
+        argv: ["kaioken-nightly"],
         platform: "linux",
       }),
     ).toBe(false);
@@ -27,7 +27,7 @@ describe("desktop window frame", () => {
     for (const platform of ["darwin", "win32"] as const) {
       expect(
         shouldUseLinuxFramelessWindow({
-          argv: ["bb", LINUX_FRAMELESS_WINDOW_ARGUMENT],
+          argv: ["kaioken", LINUX_FRAMELESS_WINDOW_ARGUMENT],
           platform,
         }),
       ).toBe(false);

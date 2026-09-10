@@ -3,14 +3,14 @@
   "name": "carousel",
   "type": "registry:ui",
   "title": "carousel",
-  "description": "BB ui \"carousel\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"carousel\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "embla-carousel-react",
     "lucide-react"
   ],
   "registryDependencies": [
-    "@bb/button",
-    "@bb/utils"
+    "@kaioken/button",
+    "@kaioken/utils"
   ],
   "files": [
     {

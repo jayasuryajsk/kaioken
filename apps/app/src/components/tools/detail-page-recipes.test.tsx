@@ -10,22 +10,22 @@ import {
 import { useState, type ComponentProps } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
-import type { SkillSummary } from "@bb/server-contract";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
+import type { SkillSummary } from "@kaioken/server-contract";
 import type {
   AgentExecutionUpdate,
   AutomationResponse,
-} from "bb-plugin-automations/rpc-types";
+} from "kaioken-plugin-automations/rpc-types";
 import type {
   ExperimentalPermissionModePickerProps,
   ExperimentalProviderModelPickerProps,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import {
   AutomationDetailView as AutomationDetailViewBase,
   AutomationRunStatusIndicator,
-} from "bb-plugin-automations/detail-view";
+} from "kaioken-plugin-automations/detail-view";
 
-vi.mock("@get-bb/plugin-sdk/app", async (importOriginal) => ({
+vi.mock("@get-kaioken/plugin-sdk/app", async (importOriginal) => ({
   ...(await importOriginal()),
   experimental_ProviderModelPicker: ({
     value,
@@ -35,7 +35,7 @@ vi.mock("@get-bb/plugin-sdk/app", async (importOriginal) => ({
   }: ExperimentalProviderModelPickerProps) => (
     <button
       type="button"
-      data-testid="bb-provider-model-picker"
+      data-testid="kaioken-provider-model-picker"
       data-routing-kind={routing?.kind ?? "primary"}
       data-routing-id={
         routing === undefined
@@ -68,7 +68,7 @@ vi.mock("@get-bb/plugin-sdk/app", async (importOriginal) => ({
     <button
       type="button"
       aria-label="Permission mode"
-      data-testid="bb-permission-mode-picker"
+      data-testid="kaioken-permission-mode-picker"
       data-provider-id={providerId}
       disabled={disabled}
       onClick={() => onChange(value === "full" ? "auto" : "full")}
@@ -116,7 +116,7 @@ const PLUGIN: PluginListItem = makePluginListItem({
   id: "github",
   source: "builtin:github",
   rootDir: "/managed/plugins/github",
-  description: "Browse GitHub issues and pull requests in BB.",
+  description: "Browse GitHub issues and pull requests in Kaioken.",
   name: "GitHub",
   icon: "Github",
   provenance: "catalog",
@@ -255,7 +255,7 @@ describe("Plugin detail recipe", () => {
     ).toBeNull();
 
     for (const item of [
-      "bb gh",
+      "kaioken gh",
       "review",
       "gh_search",
       "Pull requests",
@@ -883,10 +883,10 @@ describe("Automation detail recipe", () => {
     expect(savedPrompt.textContent).toBe("Summarize yesterday's commits.");
     expect(screen.queryByRole("button", { name: "Save Prompt" })).toBeNull();
     const disabledModelSelector = container.querySelector(
-      '[data-testid="bb-provider-model-picker"]',
+      '[data-testid="kaioken-provider-model-picker"]',
     ) as HTMLButtonElement;
     const disabledPermissionSelector = container.querySelector(
-      '[data-testid="bb-permission-mode-picker"]',
+      '[data-testid="kaioken-permission-mode-picker"]',
     ) as HTMLButtonElement;
     expect(disabledModelSelector.disabled).toBe(true);
     expect(disabledPermissionSelector.disabled).toBe(true);
@@ -927,14 +927,14 @@ describe("Automation detail recipe", () => {
       promptFooter.querySelectorAll('[data-option-display=""]'),
     ).toHaveLength(1);
     const accessSelector = promptFooter.querySelector(
-      '[data-testid="bb-permission-mode-picker"]',
+      '[data-testid="kaioken-permission-mode-picker"]',
     ) as HTMLButtonElement;
     expect(accessSelector.disabled).toBe(false);
     expect(accessSelector.getAttribute("aria-label")).toBe("Permission mode");
     expect(promptPanel.textContent).toContain("Opus 5");
     expect(promptPanel.textContent).toContain("Claude");
     const modelSelector = promptPanel.querySelector(
-      '[data-testid="bb-provider-model-picker"]',
+      '[data-testid="kaioken-provider-model-picker"]',
     ) as HTMLButtonElement;
     expect(modelSelector.disabled).toBe(false);
     expect(modelSelector.textContent).toContain("medium");
@@ -956,10 +956,10 @@ describe("Automation detail recipe", () => {
     }) as HTMLTextAreaElement;
     const reopenedPanel = reopenedPrompt.closest("form") as HTMLElement;
     const reopenedModelSelector = reopenedPanel.querySelector(
-      '[data-testid="bb-provider-model-picker"]',
+      '[data-testid="kaioken-provider-model-picker"]',
     ) as HTMLButtonElement;
     const reopenedAccessSelector = container.querySelector(
-      '[data-testid="bb-permission-mode-picker"]',
+      '[data-testid="kaioken-permission-mode-picker"]',
     ) as HTMLButtonElement;
     const reopenedSavePrompt = screen.getByRole("button", {
       name: "Save Prompt",
@@ -1010,7 +1010,7 @@ describe("Automation detail recipe", () => {
                 hostId: "host_local",
                 workspace: {
                   type: "unmanaged",
-                  path: "/Users/you/Code/bb",
+                  path: "/Users/you/Code/kaioken",
                   branch: {
                     kind: "existing",
                     name: "agent/tools-hub-schedules",
@@ -1019,7 +1019,7 @@ describe("Automation detail recipe", () => {
               },
             },
           }}
-          projectLabel="bb"
+          projectLabel="kaioken"
           runsState={{
             runs: [],
             nextCursor: null,
@@ -1047,15 +1047,15 @@ describe("Automation detail recipe", () => {
     ) as HTMLElement;
     expect(promptShell.textContent).toContain("Claude");
     expect(promptShell.textContent).toContain("Opus 5");
-    expect(promptFooter.textContent).toContain("bb");
-    expect(promptFooter.textContent).toContain("~/Code/bb");
+    expect(promptFooter.textContent).toContain("kaioken");
+    expect(promptFooter.textContent).toContain("~/Code/kaioken");
     expect(promptFooter.textContent).toContain("Approve for me");
     expect(promptShell.textContent).toContain("medium");
     expect(
       promptShell.querySelectorAll('[data-option-display=""]'),
     ).toHaveLength(2);
     expect(
-      promptShell.querySelectorAll('[data-testid="bb-provider-model-picker"]'),
+      promptShell.querySelectorAll('[data-testid="kaioken-provider-model-picker"]'),
     ).toHaveLength(1);
   });
 
@@ -1114,7 +1114,7 @@ describe("Automation detail recipe", () => {
       promptFooter.querySelectorAll('[data-option-display=""]'),
     ).toHaveLength(2);
     expect(
-      container.querySelector('[data-testid="bb-provider-model-picker"]'),
+      container.querySelector('[data-testid="kaioken-provider-model-picker"]'),
     ).not.toBeNull();
   });
 

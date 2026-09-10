@@ -1,7 +1,7 @@
 import {
   createFakePluginHost,
   makePluginAgentConfigurationContext,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { readdirSync, readFileSync } from "node:fs";
 import { extname, relative, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -152,7 +152,7 @@ describe("workflows CLI argument validation", () => {
       (tool) => tool.name === "bb_workflow_run",
     );
     expect(run?.description).toBe(
-      "Execute a workflow script that orchestrates multiple subagents deterministically. Workflows run in the background — this tool returns immediately with a run ID and a `previewDirective`. After a successful call, emit that directive exactly once on its own line (not in a code fence) so BB renders live progress in chat. A completion notification is sent to the origin thread. Use `bb workflows status <run-id>` for a compact summary. For detailed history, redirect a bounded JSONL page from `bb workflows history <run-id> --cursor <call-index> --limit <1-100>` into `$BB_THREAD_STORAGE`, then inspect the file with normal filesystem tools.",
+      "Execute a workflow script that orchestrates multiple subagents deterministically. Workflows run in the background — this tool returns immediately with a run ID and a `previewDirective`. After a successful call, emit that directive exactly once on its own line (not in a code fence) so Kaioken renders live progress in chat. A completion notification is sent to the origin thread. Use `kaioken workflows status <run-id>` for a compact summary. For detailed history, redirect a bounded JSONL page from `kaioken workflows history <run-id> --cursor <call-index> --limit <1-100>` into `$BB_THREAD_STORAGE`, then inspect the file with normal filesystem tools.",
     );
     expect(run?.inputSchema).toMatchObject({
       type: "object",
@@ -184,7 +184,7 @@ describe("workflows CLI argument validation", () => {
 
   it("keeps the removed workflow-specific catalog command out of project documentation", () => {
     const root = resolve(process.cwd(), "../..");
-    const removedCommand = ["bb workflows", "catalog"].join(" ");
+    const removedCommand = ["kaioken workflows", "catalog"].join(" ");
     const matches = documentationFiles(root)
       .filter((path) => readIfPresent(path).includes(removedCommand))
       .map((path) => relative(root, path))

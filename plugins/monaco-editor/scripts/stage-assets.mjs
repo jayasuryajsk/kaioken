@@ -1,7 +1,7 @@
 /**
  * Builds the Monaco bundle this plugin serves, into `dist/monaco`.
  *
- * Monaco cannot go through `bb plugin build` with everything else: that
+ * Monaco cannot go through `kaioken plugin build` with everything else: that
  * config emits one file with no code splitting, so Monaco would parse at app
  * boot for every user — including everyone who never opens a file — and its
  * worker could not be emitted at all. Building it here instead keeps it

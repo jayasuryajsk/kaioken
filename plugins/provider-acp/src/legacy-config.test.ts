@@ -13,7 +13,7 @@ afterEach(async () => {
 });
 
 async function dataDir(config?: unknown): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), "bb-acp-legacy-"));
+  const dir = await mkdtemp(join(tmpdir(), "kaioken-acp-legacy-"));
   dirs.push(dir);
   if (config !== undefined) {
     await writeFile(join(dir, "config.json"), JSON.stringify(config), "utf8");
@@ -60,7 +60,7 @@ describe("readLegacyCustomAcpAgents", () => {
   });
 
   it("reports unreadable config instead of throwing", async () => {
-    const dir = await mkdtemp(join(tmpdir(), "bb-acp-legacy-"));
+    const dir = await mkdtemp(join(tmpdir(), "kaioken-acp-legacy-"));
     dirs.push(dir);
     await writeFile(join(dir, "config.json"), "{ not json", "utf8");
 

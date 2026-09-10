@@ -1,5 +1,5 @@
 {
-  "name": "bb-plugin-thread-chat-demo",
+  "name": "kaioken-plugin-thread-chat-demo",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -17,10 +17,10 @@
     "server": "./server.ts"
   },
   "keywords": [
-    "bb-plugin"
+    "kaioken-plugin"
   ],
   "devDependencies": {
-    "@get-bb/plugin-sdk": "workspace:*",
+    "@get-kaioken/plugin-sdk": "workspace:*",
     "@types/react": "^19.0.0",
     "react": "^19.0.0",
     "typescript": "^5.7.0"

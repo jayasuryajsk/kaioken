@@ -1,17 +1,17 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
-import type { AvailableModel } from "@bb/domain";
+import type { AvailableModel } from "@kaioken/domain";
 import type {
   SystemExecutionOptionsResponse,
   SystemProviderStatesResponse,
-} from "@bb/server-contract";
-import type { ProviderInfo } from "@bb/domain";
-import { makeProviderInfo } from "@bb/test-helpers/domain-fixtures";
+} from "@kaioken/server-contract";
+import type { ProviderInfo } from "@kaioken/domain";
+import { makeProviderInfo } from "@kaioken/test-helpers/domain-fixtures";
 import type {
   ProviderCliStatusResponse,
   ProviderUsageResponse,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { sdk } from "@/lib/sdk";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
@@ -31,7 +31,7 @@ import {
 } from "./system-queries";
 
 vi.mock("@/lib/sdk", () => ({
-  BbHttpError: class BbHttpError extends Error {},
+  KaiokenHttpError: class KaiokenHttpError extends Error {},
   sdk: {
     hosts: { providerCliStatus: vi.fn() },
     providers: { list: vi.fn() },

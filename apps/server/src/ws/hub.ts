@@ -10,15 +10,15 @@ import {
   type ThreadChangeKind,
   type ThreadChangeMetadata,
   type ThreadEventType,
-} from "@bb/domain";
-import type { DbNotifier } from "@bb/db";
+} from "@kaioken/domain";
+import type { DbNotifier } from "@kaioken/db";
 import type {
   HostPlatform,
   HostDaemonOnlineRpcRequestMessage,
   HostDaemonOnlineRpcResponseMessage,
   HostDaemonServerWsMessage,
   HostDaemonSessionCloseReason,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   pluginSignalSchema,
   serverMessageSchema,
@@ -29,7 +29,7 @@ import {
   type ThreadOpenFile,
   type ThreadOpenSplit,
   type TerminalServerMessage,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 
 const TERMINAL_SOCKET_HIGH_WATER_BYTES = 1024 * 1024;
 const TERMINAL_SOCKET_MAX_QUEUE_BYTES = 32 * 1024 * 1024;

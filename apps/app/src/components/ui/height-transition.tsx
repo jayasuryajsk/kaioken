@@ -1,8 +1,8 @@
 import { useStore } from "jotai";
 import { useLayoutEffect, useRef, type ReactNode } from "react";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { usePrefersReducedMotion } from "@bb/shared-ui/hooks/use-media-query";
-import { usePointerCoarse } from "@bb/shared-ui/hooks/use-pointer-coarse";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { usePrefersReducedMotion } from "@kaioken/shared-ui/hooks/use-media-query";
+import { usePointerCoarse } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 import {
   isDocumentVisible,
   subscribeToDocumentVisibility,

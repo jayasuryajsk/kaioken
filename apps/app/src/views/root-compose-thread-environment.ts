@@ -1,8 +1,8 @@
-import type { EnvironmentMachineSelection, JsonValue } from "@bb/domain";
+import type { EnvironmentMachineSelection, JsonValue } from "@kaioken/domain";
 import type {
   CreateThreadRequest,
   SystemEnvironmentProvider,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { parseEnvironmentValue } from "@/components/pickers/environment-picker-value";
 
 interface ResolveRootComposeThreadEnvironmentArgs {

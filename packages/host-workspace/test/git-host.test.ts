@@ -43,10 +43,10 @@ function ghJson(overrides: Record<string, unknown> = {}): string {
     number: 42,
     title: "Add pull request section",
     state: "OPEN",
-    url: "https://github.com/acme/bb/pull/42",
+    url: "https://github.com/acme/kaioken/pull/42",
     isDraft: false,
     baseRefName: "main",
-    headRefName: "bb/add-pr-section",
+    headRefName: "kaioken/add-pr-section",
     updatedAt: "2026-06-16T12:30:00Z",
     statusCheckRollup: [],
     reviewDecision: null,
@@ -63,10 +63,10 @@ describe("parseGitHostPullRequest", () => {
       number: 42,
       title: "Add pull request section",
       state: "OPEN",
-      url: "https://github.com/acme/bb/pull/42",
+      url: "https://github.com/acme/kaioken/pull/42",
       isDraft: false,
       baseRefName: "main",
-      headRefName: "bb/add-pr-section",
+      headRefName: "kaioken/add-pr-section",
       updatedAt: "2026-06-16T12:30:00Z",
       checks: [],
       reviewDecision: null,
@@ -102,7 +102,7 @@ describe("parseGitHostPullRequest", () => {
               name: "typecheck",
               status: "COMPLETED",
               conclusion: "SUCCESS",
-              detailsUrl: "https://github.com/acme/bb/actions/runs/1",
+              detailsUrl: "https://github.com/acme/kaioken/actions/runs/1",
               startedAt: "2026-06-16T12:20:00Z",
             },
             {
@@ -135,7 +135,7 @@ describe("parseGitHostPullRequest", () => {
           name: "typecheck",
           status: "completed",
           conclusion: "success",
-          url: "https://github.com/acme/bb/actions/runs/1",
+          url: "https://github.com/acme/kaioken/actions/runs/1",
           startedAt: "2026-06-16T12:20:00Z",
         },
         {
@@ -186,7 +186,7 @@ describe("parseGitHostPullRequest", () => {
 describe("runPullRequestActionForCurrentBranch", () => {
   const actionArgs = {
     cwd: "/tmp/workspace",
-    localBranch: "bb/pr-action",
+    localBranch: "kaioken/pr-action",
     shellPath: "/Users/test/.local/bin:/usr/bin",
   };
 
@@ -290,7 +290,7 @@ describe("runPullRequestActionForCurrentBranch", () => {
 describe("getPullRequestForCurrentBranch", () => {
   const lookupArgs = {
     cwd: "/tmp/workspace",
-    localBranch: "bb/pr-lookup",
+    localBranch: "kaioken/pr-lookup",
     shellPath: "/Users/test/.local/bin:/usr/bin",
   };
 
@@ -357,7 +357,7 @@ describe("getPullRequestForCurrentBranch", () => {
     mockGhFailure(
       Object.assign(new Error("gh exited 1"), {
         code: 1,
-        stderr: 'no pull requests found for branch "bb/pr-lookup"',
+        stderr: 'no pull requests found for branch "kaioken/pr-lookup"',
       }),
     );
     await expect(getPullRequestForCurrentBranch(lookupArgs)).resolves.toEqual({

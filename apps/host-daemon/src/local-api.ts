@@ -3,15 +3,15 @@ import { serve } from "@hono/node-server";
 import {
   buildLocalAppOrigins,
   type BuildLocalAppOriginsArgs,
-} from "@bb/config/local-app-origins";
+} from "@kaioken/config/local-app-origins";
 import {
   formatClientConfigPath,
   normalizeClientServerOrigin,
   parseClientConfig,
   resolveClientSshAuthority,
   type ClientConfig,
-} from "@bb/config/client-config";
-import { assignIfDefined } from "@bb/config/objects";
+} from "@kaioken/config/client-config";
+import { assignIfDefined } from "@kaioken/config/objects";
 import {
   healthResponseSchema,
   HOST_DAEMON_PROTOCOL_VERSION,
@@ -22,14 +22,14 @@ import {
   type OpenInTargetRequest,
   type WorkspaceOpenTarget,
   type WorkspaceOpenTargetsQuery,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   createWorkspaceOpenTargetRuntime,
   listWorkspaceOpenTargetsWithRuntime,
   openPathInTargetWithRuntime,
   type OpenPathInTargetArgs,
   WorkspaceOpenTargetError,
-} from "@bb/local-open-targets";
+} from "@kaioken/local-open-targets";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
@@ -163,7 +163,7 @@ async function resolveOpenPathInTargetArgs({
   if (sshAuthority === null) {
     throw new WorkspaceOpenTargetError({
       code: "remote_mapping_missing",
-      message: `No SSH target configured for host ${request.context.hostId} on ${serverOrigin}. Run: bb-app client ssh-target set ${serverOrigin} <ssh-target> --host-id ${request.context.hostId}`,
+      message: `No SSH target configured for host ${request.context.hostId} on ${serverOrigin}. Run: kaioken-app client ssh-target set ${serverOrigin} <ssh-target> --host-id ${request.context.hostId}`,
     });
   }
 
@@ -247,7 +247,7 @@ export async function startLocalApiServer(
       !(await isAllowedAppOrigin(origin, c.req.url))
     ) {
       return c.json(
-        { error: `origin "${origin}" is not a local BB app origin` },
+        { error: `origin "${origin}" is not a local Kaioken app origin` },
         403,
       );
     }

@@ -18,7 +18,7 @@ import type {
   ThreadEventSearchMode,
   ThreadTurnInitiator,
   WorkflowProgressSnapshot,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { EventProjection } from "./event-projection.js";
 
 const eventProjectionMessageStatusValues = [

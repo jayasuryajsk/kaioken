@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { decodeFrame, encodeFrame, type Frame } from "@bb/tunnel-contract";
-import { machine } from "@bb/connect-db";
+import { decodeFrame, encodeFrame, type Frame } from "@kaioken/tunnel-contract";
+import { machine } from "@kaioken/connect-db";
 
 import { cacheKey } from "./cache";
 import { parseClientProtocolVersion } from "./tunnel-do";
@@ -670,7 +670,7 @@ describe("machine gate auth", () => {
     expect(captured).toHaveLength(0);
   });
 
-  it.each(["/install.sh", "/install/version", "/install/bb-app.tgz"])(
+  it.each(["/install.sh", "/install/version", "/install/kaioken-app.tgz"])(
     "forwards GET %s without session or machine auth",
     async (path) => {
       const { env, ctx, captured } = makeEnv(() => new Response("artifact"));
@@ -690,7 +690,7 @@ describe("machine gate auth", () => {
   );
 });
 
-describe("bb mobile app-link association files", () => {
+describe("kaioken mobile app-link association files", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockParseCookie.mockReturnValue(null);
@@ -902,12 +902,12 @@ describe("gate worker share hosts", () => {
   it("reissues the local Cloud cookie without the Secure attribute", async () => {
     mockVerifySessionDetails.mockResolvedValue(sessionDetails(OWNER, true));
     mockRefreshAccountSession.mockResolvedValue([
-      "better-auth.session_token=renewed; Max-Age=604800; Domain=.bb.localhost; Path=/; HttpOnly; SameSite=Lax",
+      "better-auth.session_token=renewed; Max-Age=604800; Domain=.kaioken.localhost; Path=/; HttpOnly; SameSite=Lax",
     ]);
     const { env, ctx } = makeEnv(() => new Response("ok"));
     Object.assign(env, {
-      ACCOUNT_APP_URL: "http://bb.localhost:42745",
-      BASE_DOMAIN: "bb.localhost",
+      ACCOUNT_APP_URL: "http://kaioken.localhost:42745",
+      BASE_DOMAIN: "kaioken.localhost",
       CLOUD_DEV: "true",
     });
     const response = await worker.fetch(
@@ -922,11 +922,11 @@ describe("gate worker share hosts", () => {
     );
 
     expect(response.headers.get("set-cookie")).toBe(
-      "better-auth.session_token=renewed; Max-Age=604800; Domain=.bb.localhost; Path=/; HttpOnly; SameSite=Lax",
+      "better-auth.session_token=renewed; Max-Age=604800; Domain=.kaioken.localhost; Path=/; HttpOnly; SameSite=Lax",
     );
     expect(mockRefreshAccountSession).toHaveBeenCalledWith(
       "better-auth.session_token=session-token",
-      "http://bb.localhost:42745",
+      "http://kaioken.localhost:42745",
       expect.any(Function),
     );
   });
@@ -954,8 +954,8 @@ describe("gate worker share hosts", () => {
     mockResolveLabel.mockResolvedValue(resolvedMachine());
     const { env, ctx } = makeEnv(() => new Response("origin"));
     Object.assign(env, {
-      ACCOUNT_APP_URL: "http://bb.localhost:42745",
-      BASE_DOMAIN: "bb.localhost",
+      ACCOUNT_APP_URL: "http://kaioken.localhost:42745",
+      BASE_DOMAIN: "kaioken.localhost",
       CLOUD_DEV: "true",
     });
     const response = await worker.fetch(
@@ -970,8 +970,8 @@ describe("gate worker share hosts", () => {
     );
 
     const html = await response.text();
-    expect(html).toContain("sawyer-air--&lt;port&gt;.bb.localhost:42745");
-    expect(html).toContain('href="http://sawyer.bb.localhost:42745"');
+    expect(html).toContain("sawyer-air--&lt;port&gt;.kaioken.localhost:42745");
+    expect(html).toContain('href="http://sawyer.kaioken.localhost:42745"');
   });
 
   it("applies the same owner-session check to machine share hosts", async () => {
@@ -1134,8 +1134,8 @@ describe("gate worker share hosts", () => {
     mockParseCookie.mockReturnValue(null);
     const { env, ctx } = makeEnv(() => new Response("ok"));
     Object.assign(env, {
-      ACCOUNT_APP_URL: "http://bb.localhost:42745",
-      BASE_DOMAIN: "bb.localhost",
+      ACCOUNT_APP_URL: "http://kaioken.localhost:42745",
+      BASE_DOMAIN: "kaioken.localhost",
       CLOUD_DEV: "true",
     });
     const response = await worker.fetch(
@@ -1151,7 +1151,7 @@ describe("gate worker share hosts", () => {
 
     expect(response.status).toBe(401);
     expect(await response.text()).toContain(
-      "returnTo=http%3A%2F%2Fsawyer.bb.localhost%3A42745%2Fthreads%2Fthr_1%3Fview%3Dfull",
+      "returnTo=http%3A%2F%2Fsawyer.kaioken.localhost%3A42745%2Fthreads%2Fthr_1%3Fview%3Dfull",
     );
   });
 
@@ -1294,7 +1294,7 @@ describe("gate worker share hosts", () => {
 });
 
 const OFFLINE_BODY =
-  "bb connect: this server is offline (no tunnel connected)\n";
+  "kaioken connect: this server is offline (no tunnel connected)\n";
 
 function offlineDoResponse(): Response {
   return new Response(OFFLINE_BODY, {
@@ -1328,7 +1328,7 @@ describe("gate offline page", () => {
     expect(res.status).toBe(503);
     expect(res.headers.get("content-type")).toContain("text/html");
     const html = await res.text();
-    expect(html).toContain("Your bb is offline");
+    expect(html).toContain("Your kaioken is offline");
     expect(html).toContain("Last seen 5 minutes ago");
     expect(html).toContain('http-equiv="refresh"');
   });
@@ -1344,7 +1344,7 @@ describe("gate offline page", () => {
       ctx,
     );
     const html = await res.text();
-    expect(html).toContain("Your bb is offline");
+    expect(html).toContain("Your kaioken is offline");
     expect(html).not.toContain("Last seen");
   });
 
@@ -1364,7 +1364,7 @@ describe("gate offline page", () => {
     const html = await res.text();
     expect(html).toContain("This machine is offline");
     expect(html).toContain("This machine was last seen 5 minutes ago");
-    expect(html).not.toContain("Your bb is offline");
+    expect(html).not.toContain("Your kaioken is offline");
   });
 
   it("keeps the plain 503 for non-navigation requests (API/assets/fetch)", async () => {

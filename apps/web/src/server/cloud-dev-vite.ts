@@ -9,9 +9,9 @@ export function resolveCloudDevViteSettings(
 ): CloudDevViteSettings | null {
   if (command !== "serve") return null;
 
-  const persistStatePath = env.BB_CLOUD_DEV_STATE_PATH?.trim();
-  const appUrl = env.BB_CLOUD_DEV_APP_URL?.trim();
-  const serverUrlTemplate = env.BB_CLOUD_DEV_SERVER_URL_TEMPLATE?.trim();
+  const persistStatePath = env.KAIOKEN_CLOUD_DEV_STATE_PATH?.trim();
+  const appUrl = env.KAIOKEN_CLOUD_DEV_APP_URL?.trim();
+  const serverUrlTemplate = env.KAIOKEN_CLOUD_DEV_SERVER_URL_TEMPLATE?.trim();
   const betterAuthSecret = env.BETTER_AUTH_SECRET?.trim();
   if (!persistStatePath || !appUrl || !serverUrlTemplate || !betterAuthSecret) {
     return null;

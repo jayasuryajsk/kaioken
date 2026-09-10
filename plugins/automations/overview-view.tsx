@@ -14,14 +14,14 @@ import {
   AutomationLifecycleControl,
   automationIconName,
 } from "./detail-view.js";
-import { Icon } from "@bb/shared-ui/icon";
-import { DelayedLoading } from "@bb/shared-ui/delayed-loading";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { DelayedLoading } from "@kaioken/shared-ui/delayed-loading";
 import {
   ResourcePagination,
   useResourcePagination,
   useResourceViewportPageSize,
-} from "@bb/shared-ui/resource-pagination";
-import { COARSE_POINTER_ICON_SIZE_SHRINK_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
+} from "@kaioken/shared-ui/resource-pagination";
+import { COARSE_POINTER_ICON_SIZE_SHRINK_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
 import {
   ResourceBrowseGrid,
   ResourceCollectionPage,
@@ -36,9 +36,9 @@ import {
   ResourceSortMenu,
   ResourceTemplateBrowseCard,
   ResourceToolbar,
-} from "@bb/shared-ui/resource-list";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { Button } from "@bb/shared-ui/button";
+} from "@kaioken/shared-ui/resource-list";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   type AutomationStatusFilter,
   formatAutomationTrigger,
@@ -57,7 +57,7 @@ const AUTOMATION_STATUS_FILTER_OPTIONS = [
   { id: "paused", label: "Paused" },
 ] as const;
 
-export const CREATE_AUTOMATION_PROMPT = "Create a new bb automation to ";
+export const CREATE_AUTOMATION_PROMPT = "Create a new kaioken automation to ";
 export const AUTOMATION_CREATE_TEMPLATES = [
   {
     label: "CI failure triage",
@@ -612,7 +612,7 @@ export function AutomationOverviewView({
   return (
     <ResourceCollectionPage
       id="automations-collection"
-      description="Manage scheduled bb work across projects and folders. Automations run recurring or one-time tasks without manual prompting."
+      description="Manage scheduled kaioken work across projects and folders. Automations run recurring or one-time tasks without manual prompting."
       modes={[
         {
           id: "installed",

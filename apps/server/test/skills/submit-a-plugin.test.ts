@@ -5,11 +5,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import { derivePluginId } from "@bb/domain";
+import { derivePluginId } from "@kaioken/domain";
 
 const skillRoot = fileURLToPath(
   new URL(
-    "../../../../plugins/bb-guide/skills/submit-a-plugin/",
+    "../../../../plugins/kaioken-guide/skills/submit-a-plugin/",
     import.meta.url,
   ),
 );
@@ -35,7 +35,7 @@ async function readSkillTree(): Promise<string> {
 }
 
 async function makeTempDir(): Promise<string> {
-  const directory = await mkdtemp(path.join(tmpdir(), "bb-submit-plugin-"));
+  const directory = await mkdtemp(path.join(tmpdir(), "kaioken-submit-plugin-"));
   tempDirs.push(directory);
   return directory;
 }
@@ -60,8 +60,8 @@ afterEach(async () => {
 describe("submit-a-plugin skill", () => {
   it("derives dotted and underscored package ids with the product algorithm", async () => {
     for (const packageName of [
-      "@acme/bb-plugin-release.notes",
-      "@acme/bb-plugin-release_notes",
+      "@acme/kaioken-plugin-release.notes",
+      "@acme/kaioken-plugin-release_notes",
       "bb_plugin_notes",
     ]) {
       await expect(deriveWithSkill(packageName)).resolves.toBe(
@@ -76,7 +76,7 @@ describe("submit-a-plugin skill", () => {
     const manifestPath = path.join(directory, "package.json");
     await writeFile(
       manifestPath,
-      JSON.stringify({ name: "bb-plugin-notes$(touch metadata-executed)" }),
+      JSON.stringify({ name: "kaioken-plugin-notes$(touch metadata-executed)" }),
       "utf8",
     );
 
@@ -85,7 +85,7 @@ describe("submit-a-plugin skill", () => {
         cwd: directory,
         encoding: "utf8",
       }).trim(),
-    ).toBe(derivePluginId("bb-plugin-notes$(touch metadata-executed)"));
+    ).toBe(derivePluginId("kaioken-plugin-notes$(touch metadata-executed)"));
     expect(existsSync(markerPath)).toBe(false);
   });
 

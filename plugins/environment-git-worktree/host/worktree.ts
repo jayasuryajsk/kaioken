@@ -1,4 +1,4 @@
-import { experimental_killProcessesWithCwdUnder } from "@get-bb/plugin-sdk/host";
+import { experimental_killProcessesWithCwdUnder } from "@get-kaioken/plugin-sdk/host";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -12,14 +12,14 @@ import {
   runGit,
   WorkspaceError,
   type GitProcessOptions,
-} from "bb-environment-provider-host/git";
+} from "kaioken-environment-provider-host/git";
 import {
   ProcessLocalQueuedLockTimeoutError,
   runGitWithWorktreeMetadataLock,
   tryWithCheckoutMutationLock,
   withGitRefMutationLock,
   withWorktreeMetadataLock,
-} from "bb-environment-provider-host/locks";
+} from "kaioken-environment-provider-host/locks";
 import {
   createProvisionCancelledError,
   emitCwd,
@@ -29,7 +29,7 @@ import {
   isProvisionAbortError,
   throwIfProvisionAborted,
   type ProgressCallback,
-} from "bb-environment-provider-host/transcript";
+} from "kaioken-environment-provider-host/transcript";
 import {
   copyWorktreeIncludeFiles,
   WORKTREE_INCLUDE_FILE_NAME,

@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useAtomValue } from "jotai";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { beginSplitDrag, type SplitDropTarget } from "@/lib/split-drag";
 import {
   computePaneRects,
@@ -24,7 +24,7 @@ import {
 import { dimInactiveSplitsAtom } from "@/lib/split-layout/atoms";
 import { createSplitResizeSnapSession } from "@/lib/split-resize-snap";
 import { IframeDragGuardOverlay } from "@/lib/iframe-drag-guard";
-import { MACOS_APP_REGION_NO_DRAG_CLASS } from "@/lib/bb-desktop";
+import { MACOS_APP_REGION_NO_DRAG_CLASS } from "@/lib/kaioken-desktop";
 import { withLocalStorage } from "@/lib/browser-storage";
 import {
   PaneContext,

@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-bb/plugin-sdk/provider-bridge/testing";
+import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 import { handleLine } from "./bridge.js";
 
 const THREAD_ID = "thr_archive_idempotency_1";
@@ -25,7 +25,7 @@ const sessionOptions = {
 } as const;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "bb-codex-archive-ws-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "kaioken-codex-archive-ws-"));
   processLogPath = join(workspaceDir, "app-server-processes.log");
   const fakeScriptPath = join(workspaceDir, "fake-codex-script.json");
   writeFileSync(
@@ -36,9 +36,9 @@ beforeEach(() => {
       sigtermDelayMs: 250,
     }),
   );
-  vi.stubEnv("BB_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
+  vi.stubEnv("KAIOKEN_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
   vi.stubEnv(
-    "BB_CODEX_BRIDGE_APP_SERVER_ARGS",
+    "KAIOKEN_CODEX_BRIDGE_APP_SERVER_ARGS",
     JSON.stringify([fakeAppServerPath, fakeScriptPath]),
   );
   harness = createBridgeJsonRpcTestHarness(handleLine);

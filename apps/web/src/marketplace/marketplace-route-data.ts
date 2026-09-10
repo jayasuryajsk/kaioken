@@ -9,9 +9,9 @@ import {
   parseMarketplaceCategory,
 } from "./marketplace-view-model.js";
 
-export const MARKETPLACE_PAGE_TITLE = "Plugin Marketplace — bb";
+export const MARKETPLACE_PAGE_TITLE = "Plugin Marketplace — kaioken";
 export const MARKETPLACE_PAGE_DESCRIPTION =
-  "Find community plugins that add new features to bb.";
+  "Find community plugins that add new features to kaioken.";
 
 export function validateMarketplaceSearch(search: Record<string, unknown>) {
   const category = parseMarketplaceCategory(search.category);

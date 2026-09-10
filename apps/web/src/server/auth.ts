@@ -8,7 +8,7 @@ import {
   session,
   user,
   verification,
-} from "@bb/connect-db";
+} from "@kaioken/connect-db";
 import type { Env } from "./env.js";
 import { resolveDevEmailPasswordEnabled } from "./local-auth.js";
 
@@ -22,7 +22,7 @@ export function createAuth(env: Env) {
     appUrl.port ? `:${appUrl.port}` : ""
   }`;
   return betterAuth({
-    appName: "bb connect",
+    appName: "kaioken connect",
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.APP_URL,
     trustedOrigins: [env.APP_URL, subdomainOrigin],

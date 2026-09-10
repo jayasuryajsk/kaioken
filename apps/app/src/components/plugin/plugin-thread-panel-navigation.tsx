@@ -6,10 +6,10 @@ import {
   type ReactNode,
   useContext,
 } from "react";
-import type { BbNavigate } from "@get-bb/plugin-sdk";
+import type { KaiokenNavigate } from "@get-kaioken/plugin-sdk";
 
 export type PluginThreadPanelOpenHandler = (
-  options: Parameters<BbNavigate["openThreadPanel"]>[0] & {
+  options: Parameters<KaiokenNavigate["openThreadPanel"]>[0] & {
     pluginId: string;
   },
 ) => boolean;

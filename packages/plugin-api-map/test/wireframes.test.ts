@@ -162,7 +162,7 @@ describe("guide fixture boundaries", () => {
     );
   });
 
-  it("mirrors bb's fixed Info/Diff tabs before plugin-owned content tabs", () => {
+  it("mirrors kaioken's fixed Info/Diff tabs before plugin-owned content tabs", () => {
     const appSource = readFileSync(
       join(
         import.meta.dirname,

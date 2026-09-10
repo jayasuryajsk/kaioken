@@ -1,11 +1,11 @@
-import type { ThreadStatus, ThreadTimelinePendingTodos } from "@bb/domain";
+import type { ThreadStatus, ThreadTimelinePendingTodos } from "@kaioken/domain";
 import type {
   ProjectResponse,
   ThreadListResponse,
   ThreadResponse,
   ThreadTimelineResponse,
   ThreadWithIncludesResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { signalRequestArgs, type CreateSdkAreaArgs } from "./common.js";
 
 export interface StatusGetArgs {

@@ -3,7 +3,7 @@ import {
   PANE_FOCUS_APP_COMMAND_IDS,
   THREAD_JUMP_APP_COMMAND_IDS,
   type AppCommandId,
-} from "@bb/domain";
+} from "@kaioken/domain";
 
 interface AppCommandMetadata {
   command: AppCommandId;
@@ -78,19 +78,19 @@ export const APP_COMMAND_GROUPS: readonly AppCommandGroup[] = [
       paletteHiddenCommand(
         "palette.open",
         "Open quick palette",
-        "Search and run bb commands from the keyboard.",
+        "Search and run kaioken commands from the keyboard.",
       ),
-      command("window.new", "New window", "Open another bb desktop window."),
+      command("window.new", "New window", "Open another kaioken desktop window."),
       command(
         "app.back",
         "Back to app",
         "Return from Settings, Plugins, or Skills to the app.",
       ),
-      command("settings.open", "Open settings", "Open bb settings."),
+      command("settings.open", "Open settings", "Open kaioken settings."),
       command(
         "settings.openServers",
         "Open server settings",
-        "Open settings to add or manage bb servers.",
+        "Open settings to add or manage kaioken servers.",
       ),
       command(
         "sidebar.toggle",
@@ -147,7 +147,7 @@ export const APP_COMMAND_GROUPS: readonly AppCommandGroup[] = [
       command(
         "logs.openServerDaemon",
         "Open server and daemon logs",
-        "Open the desktop log viewer for the bb server and host daemon.",
+        "Open the desktop log viewer for the kaioken server and host daemon.",
       ),
       command(
         "notifications.open",
@@ -252,7 +252,7 @@ export const APP_COMMAND_GROUPS: readonly AppCommandGroup[] = [
       paletteHiddenCommand(
         id,
         `Choose answer ${index + 1}`,
-        `Choose visible answer ${index + 1} when bb asks a question.`,
+        `Choose visible answer ${index + 1} when kaioken asks a question.`,
       ),
     ),
   },

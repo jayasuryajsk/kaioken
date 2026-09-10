@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Button } from "@bb/shared-ui/button";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { Input } from "@bb/shared-ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@bb/shared-ui/popover";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { Input } from "@kaioken/shared-ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@kaioken/shared-ui/popover";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { useScrollOverflowState } from "@/components/thread/timeline/useScrollOverflowState";
 import type {
   PluginBrowseSort,

@@ -16,7 +16,7 @@ import {
 const tempDirs: string[] = [];
 
 async function createDataDir(): Promise<string> {
-  const dataDir = await mkdtemp(join(tmpdir(), "bb-runtime-file-"));
+  const dataDir = await mkdtemp(join(tmpdir(), "kaioken-runtime-file-"));
   tempDirs.push(dataDir);
   return dataDir;
 }
@@ -24,7 +24,7 @@ async function createDataDir(): Promise<string> {
 function recordFor(dataDir: string, pid: number) {
   return {
     dataDir,
-    entryPath: "/opt/bb/bb-app.js",
+    entryPath: "/opt/kaioken/kaioken-app.js",
     pid,
     serverUrl: "http://127.0.0.1:38886",
     startedAt: "2026-08-03T10:00:00.000Z",
@@ -127,7 +127,7 @@ describe("stopVerifiedProcess", () => {
     return {
       isRunning: () => true,
       kill: () => undefined,
-      readCommand: async () => "node /opt/bb/bb-app.js start",
+      readCommand: async () => "node /opt/kaioken/kaioken-app.js start",
       readElapsedSeconds: async () => 60,
       waitForExit: async () => true,
       ...overrides,
@@ -145,7 +145,7 @@ describe("stopVerifiedProcess", () => {
         signal: "SIGTERM",
         startedAt,
         timeoutMs: 10,
-        verifyTokens: ["bb-app.js"],
+        verifyTokens: ["kaioken-app.js"],
       }),
     ).resolves.toEqual({ kind: "still-running" });
   });
@@ -158,7 +158,7 @@ describe("stopVerifiedProcess", () => {
       signal: "SIGTERM",
       startedAt,
       timeoutMs: 10,
-      verifyTokens: ["bb-app.js"],
+      verifyTokens: ["kaioken-app.js"],
     });
 
     expect(result).toMatchObject({ kind: "unverified", reason: "start-time" });
@@ -172,7 +172,7 @@ describe("stopVerifiedProcess", () => {
       signal: "SIGTERM",
       startedAt,
       timeoutMs: 10,
-      verifyTokens: ["bb-app.js"],
+      verifyTokens: ["kaioken-app.js"],
     });
 
     expect(result).toMatchObject({ kind: "unverified", reason: "start-time" });

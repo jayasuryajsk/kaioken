@@ -2,9 +2,9 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createConnection, migrate, type DbConnection } from "@bb/db";
-import { encodeClientTurnRequestIdNumber } from "@bb/domain";
-import type { Logger } from "@bb/logger";
+import { createConnection, migrate, type DbConnection } from "@kaioken/db";
+import { encodeClientTurnRequestIdNumber } from "@kaioken/domain";
+import type { Logger } from "@kaioken/logger";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import {
   createPluginService,
@@ -57,7 +57,7 @@ async function writePlugin(
   options: {
     name: string;
     serverSource?: string;
-    bbSkills?: string[];
+    kaiokenSkills?: string[];
     skillNames?: string[];
     skillsDirName?: string;
   },
@@ -74,7 +74,7 @@ async function writePlugin(
         description: "Agent contributions plugin fixture.",
         branding: { icon: "Zap" },
         server: "./server.ts",
-        ...(options.bbSkills ? { skills: options.bbSkills } : {}),
+        ...(options.kaiokenSkills ? { skills: options.kaiokenSkills } : {}),
       },
     }),
   );
@@ -99,7 +99,7 @@ describe("plugin skills tier", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-skills-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-skills-test-"));
     service = createPluginService({
       aiServices: createAiServiceRegistry(),
       telemetry: createNoopTelemetryService(),
@@ -123,7 +123,7 @@ describe("plugin skills tier", () => {
 
   it("layers plugin skills between user (data-dir/project) skills and builtins", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-skiller",
+      name: "kaioken-plugin-skiller",
       skillNames: ["alpha", "beta", "gamma"],
     });
     await service.installPath(rootDir);
@@ -176,8 +176,8 @@ describe("plugin skills tier", () => {
 
   it("manifest bb.skills relocates the convention root and the experiment gates the tier", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-relocated",
-      bbSkills: ["./custom/*"],
+      name: "kaioken-plugin-relocated",
+      kaiokenSkills: ["./custom/*"],
       skillNames: ["relocated-skill"],
       skillsDirName: "custom",
     });
@@ -197,7 +197,7 @@ describe("plugin skills tier", () => {
 
   it("a skill added after install is discovered on the next resolve after reload", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-growing",
+      name: "kaioken-plugin-growing",
       skillNames: ["first-skill"],
     });
     await service.installPath(rootDir);
@@ -223,7 +223,7 @@ describe("plugin agent contributions reach thread runtime config", () => {
 
   beforeEach(async () => {
     harness = await createTestAppHarness();
-    pluginsDir = await mkdtemp(join(tmpdir(), "bb-plugin-runtime-test-"));
+    pluginsDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-runtime-test-"));
   });
 
   it("isolates resolver failures and timeouts", async () => {
@@ -246,7 +246,7 @@ describe("plugin agent contributions reach thread runtime config", () => {
     });
     try {
       const root = await writePlugin(pluginsDir, {
-        name: "bb-plugin-env-failures",
+        name: "kaioken-plugin-env-failures",
         serverSource: `
           export default function plugin(bb) {
             bb.providers.experimental_contributeEnv("codex", () => {
@@ -282,7 +282,7 @@ describe("plugin agent contributions reach thread runtime config", () => {
 
   it("plugin skills reach the thread.start command and update after reload", async () => {
     const rootDir = await writePlugin(pluginsDir, {
-      name: "bb-plugin-ctxdemo",
+      name: "kaioken-plugin-ctxdemo",
       skillNames: ["ctx-skill"],
       serverSource: `
         export default function plugin() {}
@@ -343,7 +343,7 @@ describe("plugin agent contributions reach thread runtime config", () => {
 
   it("resolves provider environment per command and keeps the first plugin on conflicts", async () => {
     const firstRoot = await writePlugin(pluginsDir, {
-      name: "bb-plugin-env-first",
+      name: "kaioken-plugin-env-first",
       serverSource: `
         export default function plugin(bb) {
           bb.providers.experimental_contributeEnv("codex", (context) => [
@@ -364,7 +364,7 @@ describe("plugin agent contributions reach thread runtime config", () => {
       `,
     });
     const secondRoot = await writePlugin(pluginsDir, {
-      name: "bb-plugin-env-second",
+      name: "kaioken-plugin-env-second",
       serverSource: `
         export default function plugin(bb) {
           bb.providers.experimental_contributeEnv("codex", () => [

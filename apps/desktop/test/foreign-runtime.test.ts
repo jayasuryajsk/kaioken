@@ -4,8 +4,8 @@ import { join } from "node:path";
 import {
   readBbAppRuntimeFile,
   writeBbAppRuntimeFile,
-} from "@bb/config/app-runtime-file";
-import type { VerifiedProcessOps } from "@bb/config/verified-process-stop";
+} from "@kaioken/config/app-runtime-file";
+import type { VerifiedProcessOps } from "@kaioken/config/verified-process-stop";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   readForeignRuntimeDetails,
@@ -17,7 +17,7 @@ const tempDirs: string[] = [];
 const STARTED_AT = new Date(Date.now() - 30 * 60_000).toISOString();
 
 async function createDataDir(): Promise<string> {
-  const dataDir = await mkdtemp(join(tmpdir(), "bb-foreign-runtime-"));
+  const dataDir = await mkdtemp(join(tmpdir(), "kaioken-foreign-runtime-"));
   tempDirs.push(dataDir);
   return dataDir;
 }
@@ -28,7 +28,7 @@ function createProcessOps(
   return {
     isRunning: vi.fn(() => true),
     kill: vi.fn(),
-    readCommand: vi.fn(async () => "node /opt/bb/bb-app.js start"),
+    readCommand: vi.fn(async () => "node /opt/kaioken/kaioken-app.js start"),
     readElapsedSeconds: vi.fn(async () => 30 * 60),
     waitForExit: vi.fn(async () => true),
     ...overrides,
@@ -44,7 +44,7 @@ async function writeRuntimeFile(args: {
 }): Promise<void> {
   await writeBbAppRuntimeFile({
     dataDir: args.dataDir,
-    entryPath: args.entryPath ?? "/opt/bb/bb-app.js",
+    entryPath: args.entryPath ?? "/opt/kaioken/kaioken-app.js",
     pid: args.pid ?? 4_242,
     serverUrl: args.serverUrl ?? "http://127.0.0.1:38886",
     startedAt: args.startedAt ?? STARTED_AT,
@@ -56,7 +56,7 @@ async function writeRuntimeFile(args: {
 function detailsFor(dataDir: string): ForeignRuntimeDetails {
   return {
     dataDir,
-    entryPath: "/opt/bb/bb-app.js",
+    entryPath: "/opt/kaioken/kaioken-app.js",
     pid: 4_242,
     startedAt: STARTED_AT,
     surface: "web",
@@ -74,7 +74,7 @@ afterEach(async () => {
 });
 
 describe("readForeignRuntimeDetails", () => {
-  it("describes the running bb when the runtime file matches the probed server", async () => {
+  it("describes the running kaioken when the runtime file matches the probed server", async () => {
     const dataDir = await createDataDir();
     await writeRuntimeFile({ dataDir });
 
@@ -98,7 +98,7 @@ describe("readForeignRuntimeDetails", () => {
     ).resolves.toBeNull();
   });
 
-  it("returns null for a bb that writes no runtime file", async () => {
+  it("returns null for a kaioken that writes no runtime file", async () => {
     const dataDir = await createDataDir();
 
     await expect(
@@ -133,7 +133,7 @@ describe("stopForeignRuntime", () => {
     await writeRuntimeFile({ dataDir });
     const processOps = createProcessOps({
       readCommand: vi.fn(
-        async () => "node packages/bb-app/dist/bb-app.js start",
+        async () => "node packages/kaioken-app/dist/kaioken-app.js start",
       ),
     });
 
@@ -221,7 +221,7 @@ describe("stopForeignRuntime", () => {
     await expect(readBbAppRuntimeFile(dataDir)).resolves.not.toBeNull();
   });
 
-  it("refuses to signal a recycled pid that no longer looks like bb", async () => {
+  it("refuses to signal a recycled pid that no longer looks like kaioken", async () => {
     const dataDir = await createDataDir();
     await writeRuntimeFile({ dataDir });
     const processOps = createProcessOps({

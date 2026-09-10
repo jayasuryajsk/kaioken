@@ -2,10 +2,10 @@
 
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { TooltipProvider } from "@bb/shared-ui/tooltip";
-import type { Host } from "@bb/domain";
-import { makeHost } from "@bb/test-helpers/domain-fixtures";
-import type { ProviderCliKey } from "@bb/host-daemon-contract";
+import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
+import type { Host } from "@kaioken/domain";
+import { makeHost } from "@kaioken/test-helpers/domain-fixtures";
+import type { ProviderCliKey } from "@kaioken/host-daemon-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ProviderCliIssue } from "@/components/provider-cli/provider-cli-install";
 import type {
@@ -32,7 +32,7 @@ vi.mock("@/components/provider-cli/provider-cli-install", () => ({
 
 vi.mock("@/lib/sdk", async () => {
   const { makeProviderInfo: provider } =
-    await import("@bb/test-helpers/domain-fixtures");
+    await import("@kaioken/test-helpers/domain-fixtures");
   return {
     sdk: {
       providers: {
@@ -106,7 +106,7 @@ function missingInstallIssue(
     },
     action: null,
     title: `${displayName} CLI not installed`,
-    description: `Install ${displayName} so bb can start ${displayName} sessions.`,
+    description: `Install ${displayName} so kaioken can start ${displayName} sessions.`,
     fingerprint: `${provider}:missing:1.1.0`,
   };
 }
@@ -166,28 +166,28 @@ describe("SidebarUpdatesBadge", () => {
     expect(result.container.innerHTML).toBe("");
   });
 
-  it("shows only the bb chip for a bb-only update", () => {
+  it("shows only the kaioken chip for a kaioken-only update", () => {
     renderBadge({ appUpdateAvailable: true });
 
-    expect(screen.getByTestId("sidebar-updates-badge-bb")).toBeTruthy();
+    expect(screen.getByTestId("sidebar-updates-badge-kaioken")).toBeTruthy();
     expect(screen.queryByTestId("sidebar-updates-badge-providers")).toBeNull();
   });
 
-  it("counts a daemon stuck on an old protocol as a bb update, not a provider one", () => {
+  it("counts a daemon stuck on an old protocol as a kaioken update, not a provider one", () => {
     renderBadge({ machines: [machine({ canRetryDaemonUpdate: true })] });
 
-    expect(screen.getByTestId("sidebar-updates-badge-bb")).toBeTruthy();
+    expect(screen.getByTestId("sidebar-updates-badge-kaioken")).toBeTruthy();
     expect(screen.queryByTestId("sidebar-updates-badge-providers")).toBeNull();
   });
 
-  it("shows only the provider chip when bb itself is current", () => {
+  it("shows only the provider chip when kaioken itself is current", () => {
     renderBadge({
       machines: [
         machine({ issues: [providerIssue("claude-code", "Claude Code")] }),
       ],
     });
 
-    expect(screen.queryByTestId("sidebar-updates-badge-bb")).toBeNull();
+    expect(screen.queryByTestId("sidebar-updates-badge-kaioken")).toBeNull();
     expect(
       screen
         .getByTestId("sidebar-updates-badge-providers")
@@ -226,10 +226,10 @@ describe("SidebarUpdatesBadge", () => {
     });
 
     expect(screen.queryByTestId("sidebar-updates-badge-providers")).toBeNull();
-    expect(screen.queryByTestId("sidebar-updates-badge-bb")).toBeNull();
+    expect(screen.queryByTestId("sidebar-updates-badge-kaioken")).toBeNull();
   });
 
-  it("still shows the bb chip when the only provider issue is a missing CLI", () => {
+  it("still shows the kaioken chip when the only provider issue is a missing CLI", () => {
     renderBadge({
       appUpdateAvailable: true,
       machines: [
@@ -239,7 +239,7 @@ describe("SidebarUpdatesBadge", () => {
       ],
     });
 
-    expect(screen.getByTestId("sidebar-updates-badge-bb")).toBeTruthy();
+    expect(screen.getByTestId("sidebar-updates-badge-kaioken")).toBeTruthy();
     expect(screen.queryByTestId("sidebar-updates-badge-providers")).toBeNull();
   });
 
@@ -282,6 +282,6 @@ describe("SidebarUpdatesBadge", () => {
         node.classList.contains("flex"),
       ),
     ).toBe(true);
-    expect(screen.getByTestId("sidebar-updates-badge-bb")).toBeTruthy();
+    expect(screen.getByTestId("sidebar-updates-badge-kaioken")).toBeTruthy();
   });
 });

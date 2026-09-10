@@ -1,4 +1,4 @@
-export type { EmptyInput, Endpoint, Untyped } from "@bb/hono-typed-routes";
+export type { EmptyInput, Endpoint, Untyped } from "@kaioken/hono-typed-routes";
 
 export const THREAD_EVENT_LIST_PAGE_SIZE = 100;
 

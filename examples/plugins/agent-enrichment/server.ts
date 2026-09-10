@@ -2,14 +2,14 @@ import { readdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 
 const docsDir = join(dirname(fileURLToPath(import.meta.url)), "docs");
 
 const USAGE = [
   "Usage:",
-  "  bb docs search <query...>   Search the bundled docs and print matching lines",
-  "  bb docs last                Show the cached last search",
+  "  kaioken docs search <query...>   Search the bundled docs and print matching lines",
+  "  kaioken docs last                Show the cached last search",
 ].join("\n");
 
 const DOC_FILE_PATTERN = /^[a-z0-9-]+\.md$/;
@@ -20,7 +20,7 @@ interface LastSearch {
   at: number;
 }
 
-export default async function plugin(bb: BbPluginApi) {
+export default async function plugin(bb: KaiokenPluginApi) {
   const settings = bb.settings.define({
     caseSensitive: {
       type: "boolean",
@@ -78,12 +78,12 @@ export default async function plugin(bb: BbPluginApi) {
       {
         name: "search",
         summary: "Search the docs and print matching lines",
-        usage: "bb docs search <query...>",
+        usage: "kaioken docs search <query...>",
       },
       {
         name: "last",
         summary: "Show the cached last search",
-        usage: "bb docs last",
+        usage: "kaioken docs last",
       },
     ],
     async run(argv) {

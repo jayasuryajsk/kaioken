@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { BUILTIN_THEME_IDS } from "@bb/domain";
+import { BUILTIN_THEME_IDS } from "@kaioken/domain";
 import { converter, parse } from "culori";
 import { describe, expect, it } from "vitest";
 import {
@@ -345,7 +345,7 @@ describe("generate-native-theme", () => {
     expect(keys).toEqual([...keys].sort());
     expect(
       source.startsWith(
-        "/**\n * GENERATED FILE — run pnpm --filter @bb/mobile theme:generate",
+        "/**\n * GENERATED FILE — run pnpm --filter @kaioken/mobile theme:generate",
       ),
     ).toBe(true);
     expect(source.endsWith("\n")).toBe(true);

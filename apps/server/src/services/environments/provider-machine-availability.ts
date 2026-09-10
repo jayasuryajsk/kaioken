@@ -1,6 +1,6 @@
-import { getProjectSourceByHost } from "@bb/db";
-import { isLocalPathProjectSource } from "@bb/domain";
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
+import { getProjectSourceByHost } from "@kaioken/db";
+import { isLocalPathProjectSource } from "@kaioken/domain";
+import type { SystemEnvironmentProvider } from "@kaioken/server-contract";
 import type { WorkSessionDeps } from "../../types.js";
 import {
   getNonDestroyedHostWithStatus,

@@ -1,5 +1,5 @@
-import type { ThreadEvent } from "@bb/domain";
-import { turnScope } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
+import { turnScope } from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import {
   RuntimeThreadIdentityRegistry,
@@ -109,7 +109,7 @@ describe("RuntimeThreadIdentityRegistry", () => {
     ).toBeUndefined();
   });
 
-  it("stamps projected events with the resolved bb thread id", () => {
+  it("stamps projected events with the resolved kaioken thread id", () => {
     const event: ThreadEvent = {
       type: "turn/started",
       threadId: "provider-thread-1",

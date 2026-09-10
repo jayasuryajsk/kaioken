@@ -9,15 +9,15 @@ import {
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
-import type { PromptTextMention, ThreadListEntry } from "@bb/domain";
-import type { TimelineTitleLink } from "@bb/thread-view";
+import type { PromptTextMention, ThreadListEntry } from "@kaioken/domain";
+import type { TimelineTitleLink } from "@kaioken/thread-view";
 import { ConversationMessageContent } from "./ConversationMessageContent";
 import { ThreadTitleMentionResourcesProvider } from "@/components/thread/ThreadTitleMentions";
 import { RouteNavigationProvider } from "@/components/ui/app-route-anchor";
 import type { TimelineTitleActionResolver } from "./TimelineTitleView";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
-import { makeThreadListEntry as makeThreadListEntryFixture } from "@bb/test-helpers/domain-fixtures";
-import { GENERATED_MESSAGE_COLLAPSED_PREVIEW_CHAR_CAP } from "@bb/client-core";
+import { makeThreadListEntry as makeThreadListEntryFixture } from "@kaioken/test-helpers/domain-fixtures";
+import { GENERATED_MESSAGE_COLLAPSED_PREVIEW_CHAR_CAP } from "@kaioken/client-core";
 import { generatedConversationCollapsedPreview } from "./GeneratedConversationMessage";
 
 function resolveThreadLink(link: TimelineTitleLink): string | null {

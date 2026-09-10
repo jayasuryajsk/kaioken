@@ -1,14 +1,14 @@
-import type { ThreadEventPlanStep } from "@bb/domain";
-import type { TimelineRowPresentation } from "@bb/server-contract";
-import type { TimelineViewWorkRow } from "@bb/thread-view";
+import type { ThreadEventPlanStep } from "@kaioken/domain";
+import type { TimelineRowPresentation } from "@kaioken/server-contract";
+import type { TimelineViewWorkRow } from "@kaioken/thread-view";
 import {
   activityIconClass,
   activityRowClass,
   activityTextClass,
   type ActivityRowState,
-} from "@bb/shared-ui/activity-row-styles";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/activity-row-styles";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { MarkdownPreview } from "../../ui/markdown-preview.js";
 
 export function PresentationDetail({

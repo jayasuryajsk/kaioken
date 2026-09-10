@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import type { BbDesktopBrowserApi } from "@bb/desktop-contract";
+import type { KaiokenDesktopBrowserApi } from "@kaioken/desktop-contract";
 import {
   DESKTOP_BROWSER_IMPORT_FAILURE_COPY,
   type DesktopBrowserImportOutcome,
   type DesktopBrowserImportSource,
-} from "@bb/host-daemon-contract";
-import { Button } from "@bb/shared-ui/button";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/host-daemon-contract";
+import { Button } from "@kaioken/shared-ui/button";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { appToast } from "@/components/ui/app-toast";
 import {
   SettingsBadge,
@@ -14,7 +14,7 @@ import {
   SettingsRowList,
   SettingsSection,
 } from "@/components/ui/settings-section";
-import { getDesktopBrowserApi } from "@/lib/bb-desktop";
+import { getDesktopBrowserApi } from "@/lib/kaioken-desktop";
 import { formatRelativeTime } from "@/lib/relative-time";
 import { BrowserImportDialog } from "./BrowserImportDialog";
 import { BrowserSourceIcon } from "./BrowserSourceIcon";
@@ -123,7 +123,7 @@ function BrowserRow({
 }
 
 export interface BrowserSettingsSectionContentProps {
-  desktopBrowser: BbDesktopBrowserApi | null;
+  desktopBrowser: KaiokenDesktopBrowserApi | null;
 }
 
 export function BrowserSettingsSectionContent({
@@ -234,7 +234,7 @@ export function BrowserSettingsSectionContent({
     <>
       <SettingsSection
         title="Browsers"
-        description="Bring signed-in sessions from a browser on this machine into the BB browser, so previews and agent tabs open already logged in."
+        description="Bring signed-in sessions from a browser on this machine into the Kaioken browser, so previews and agent tabs open already logged in."
         action={
           supported ? (
             <Button
@@ -250,7 +250,7 @@ export function BrowserSettingsSectionContent({
       >
         {!supported ? (
           <p className="text-sm text-subtle-foreground">
-            Only available in the BB desktop app.
+            Only available in the Kaioken desktop app.
           </p>
         ) : state.status === "loading" ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
@@ -283,8 +283,8 @@ export function BrowserSettingsSectionContent({
       </SettingsSection>
       {supported ? (
         <p className="mt-4 text-xs text-subtle-foreground/75">
-          Also from the CLI: <code>bb browser import-sources</code> and{" "}
-          <code>bb browser import-cookies</code>.
+          Also from the CLI: <code>kaioken browser import-sources</code> and{" "}
+          <code>kaioken browser import-cookies</code>.
         </p>
       ) : null}
       {dialogSource && desktopBrowser ? (

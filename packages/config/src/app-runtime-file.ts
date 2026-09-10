@@ -2,9 +2,9 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { z } from "zod";
 
-const BB_APP_RUNTIME_FILE_NAME = "bb-app-runtime.json";
+const KAIOKEN_APP_RUNTIME_FILE_NAME = "kaioken-app-runtime.json";
 
-const bbAppRuntimeFileSchema = z.object({
+const kaiokenAppRuntimeFileSchema = z.object({
   entryPath: z.string().min(1),
   pid: z.number().int().positive(),
   surface: z.string().min(1),
@@ -13,7 +13,7 @@ const bbAppRuntimeFileSchema = z.object({
   version: z.string().min(1),
 });
 
-export type BbAppRuntimeFile = z.infer<typeof bbAppRuntimeFileSchema>;
+export type KaiokenAppRuntimeFile = z.infer<typeof kaiokenAppRuntimeFileSchema>;
 
 interface WriteBbAppRuntimeFileArgs {
   dataDir: string;
@@ -26,7 +26,7 @@ interface WriteBbAppRuntimeFileArgs {
 }
 
 export function formatBbAppRuntimeFilePath(dataDir: string): string {
-  return join(dataDir, BB_APP_RUNTIME_FILE_NAME);
+  return join(dataDir, KAIOKEN_APP_RUNTIME_FILE_NAME);
 }
 
 function defaultIsRunning(pid: number): boolean {
@@ -41,7 +41,7 @@ function defaultIsRunning(pid: number): boolean {
 export async function writeBbAppRuntimeFile(
   args: WriteBbAppRuntimeFileArgs,
 ): Promise<void> {
-  const runtimeFile: BbAppRuntimeFile = {
+  const runtimeFile: KaiokenAppRuntimeFile = {
     entryPath: args.entryPath,
     pid: args.pid,
     serverUrl: args.serverUrl,
@@ -89,13 +89,13 @@ export async function clearOwnBbAppRuntimeFile(args: {
   return true;
 }
 
-export function bbAppRuntimeVerifyTokens(entryPath: string): string[] {
+export function kaiokenAppRuntimeVerifyTokens(entryPath: string): string[] {
   return [entryPath, basename(entryPath)];
 }
 
 export async function readBbAppRuntimeFile(
   dataDir: string,
-): Promise<BbAppRuntimeFile | null> {
+): Promise<KaiokenAppRuntimeFile | null> {
   let rawContents: string;
   try {
     rawContents = await readFile(formatBbAppRuntimeFilePath(dataDir), "utf8");
@@ -104,7 +104,7 @@ export async function readBbAppRuntimeFile(
   }
 
   try {
-    const parsed = bbAppRuntimeFileSchema.safeParse(JSON.parse(rawContents));
+    const parsed = kaiokenAppRuntimeFileSchema.safeParse(JSON.parse(rawContents));
     return parsed.success ? parsed.data : null;
   } catch {
     return null;

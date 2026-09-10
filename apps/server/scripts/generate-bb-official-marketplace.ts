@@ -11,7 +11,7 @@ import {
   PLUGIN_CATALOG_CATEGORIES,
   pluginCatalogCategoryIdSchema,
   pluginPackageJsonSchema,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { z } from "zod";
 import {
   BUNDLED_MARKETPLACE_FILENAME,
@@ -262,7 +262,7 @@ export async function generateBbOfficialMarketplace(args: {
         description: manifest.bb.description,
         icon: marketplaceIcon(plugin.name, declaredIcon),
         tags: [],
-        author: { name: "BB" },
+        author: { name: "Kaioken" },
         source: { bundled: { plugin: plugin.name } },
         category: catalog.category,
         screenshots: catalog.screenshots,
@@ -275,7 +275,7 @@ export async function generateBbOfficialMarketplace(args: {
     schemaVersion: 2,
     name: BUNDLED_MARKETPLACE_NAME,
     displayName: "BB Official",
-    description: "Plugins that ship with bb.",
+    description: "Plugins that ship with kaioken.",
     categories: PLUGIN_CATALOG_CATEGORIES,
     collections: [
       {

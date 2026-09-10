@@ -22,7 +22,7 @@ import {
   type PluginListItem,
 } from "@/hooks/queries/plugin-settings-queries";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
-import { TooltipProvider } from "@bb/shared-ui/tooltip";
+import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
 import {
   resetPluginSlotStoreForTest,
   setPluginSlotRegistrations,
@@ -65,8 +65,8 @@ vi.mock("react-resizable-panels", async () => {
 const GITHUB_PLUGIN = makePluginListItem({
   id: "github",
   source: "builtin:github",
-  rootDir: "/Users/you/.bb/plugins/github",
-  description: "Browse GitHub issues and pull requests in BB.",
+  rootDir: "/Users/you/.kaioken/plugins/github",
+  description: "Browse GitHub issues and pull requests in Kaioken.",
   name: "GitHub",
   icon: "Github",
   app: { hasApp: true, bundle: null },
@@ -81,7 +81,7 @@ const GITHUB_CATALOG_ENTRY = {
   marketplace: "bb-official",
   pluginId: "github",
   displayName: "GitHub",
-  description: "Browse GitHub issues and pull requests in BB.",
+  description: "Browse GitHub issues and pull requests in Kaioken.",
   icon: "Github",
   iconUrl: null,
   iconTinted: false,
@@ -164,7 +164,7 @@ describe("PluginDetail official catalog lifecycle", () => {
     expect(screen.getByText("BB Official")).toBeTruthy();
     expect(screen.getByText("Developer tools")).toBeTruthy();
     expect(
-      screen.getByText("Browse GitHub issues and pull requests in BB."),
+      screen.getByText("Browse GitHub issues and pull requests in Kaioken."),
     ).toBeTruthy();
     expect(screen.queryByText("Capabilities")).toBeNull();
     expect(container.querySelector('[data-icon="Github"]')).not.toBeNull();
@@ -178,7 +178,7 @@ describe("PluginDetail official catalog lifecycle", () => {
       <CatalogPluginDetail
         entry={{
           ...GITHUB_CATALOG_ENTRY,
-          repositoryUrl: "https://github.com/acme/bb-github",
+          repositoryUrl: "https://github.com/acme/kaioken-github",
         }}
         onInstall={() => {}}
         catalogEntries={[]}
@@ -187,9 +187,9 @@ describe("PluginDetail official catalog lifecycle", () => {
     );
 
     const link = screen.getByRole("link", {
-      name: /github\.com\/acme\/bb-github/u,
+      name: /github\.com\/acme\/kaioken-github/u,
     });
-    expect(link.getAttribute("href")).toBe("https://github.com/acme/bb-github");
+    expect(link.getAttribute("href")).toBe("https://github.com/acme/kaioken-github");
     expect(link.getAttribute("target")).toBe("_blank");
   });
 
@@ -223,7 +223,7 @@ describe("PluginDetail official catalog lifecycle", () => {
     const incompatibleEntry = {
       ...GITHUB_CATALOG_ENTRY,
       compatible: false,
-      incompatibleReason: "Requires bb 0.20 or newer.",
+      incompatibleReason: "Requires kaioken 0.20 or newer.",
     };
     render(
       <>
@@ -239,15 +239,15 @@ describe("PluginDetail official catalog lifecycle", () => {
 
     expect(screen.queryByRole("alert")).toBeNull();
     const compatibilityStatus = screen
-      .getByText("Update bb to install this plugin")
+      .getByText("Update kaioken to install this plugin")
       .closest("div[class*='bg-surface-recessed']");
     expect(compatibilityStatus).not.toBeNull();
     if (compatibilityStatus === null) return;
     expect(compatibilityStatus.textContent).toContain(
-      "Update bb to install this plugin",
+      "Update kaioken to install this plugin",
     );
     expect(compatibilityStatus.textContent).toContain(
-      "Requires bb 0.20 or newer.",
+      "Requires kaioken 0.20 or newer.",
     );
     expect(
       screen
@@ -313,7 +313,7 @@ describe("PluginDetail official catalog lifecycle", () => {
 
     expect(screen.getByText("Release")).toBeTruthy();
     expect(
-      screen.getByText("Browse GitHub issues and pull requests in BB."),
+      screen.getByText("Browse GitHub issues and pull requests in Kaioken."),
     ).toBeTruthy();
     const meta = screen.getByText("0.1.0");
     expect(
@@ -321,16 +321,16 @@ describe("PluginDetail official catalog lifecycle", () => {
         .closest("[data-resource-detail-section]")
         ?.getAttribute("data-resource-detail-section"),
     ).toBe("release");
-    expect(screen.getByText("~/.bb/plugins/github")).toBeTruthy();
+    expect(screen.getByText("~/.kaioken/plugins/github")).toBeTruthy();
     fireEvent.click(
       screen.getByRole("button", {
-        name: "Copy plugin path: /Users/you/.bb/plugins/github",
+        name: "Copy plugin path: /Users/you/.kaioken/plugins/github",
       }),
     );
     await waitFor(() => {
-      expect(writeText).toHaveBeenCalledWith("/Users/you/.bb/plugins/github");
+      expect(writeText).toHaveBeenCalledWith("/Users/you/.kaioken/plugins/github");
     });
-    expect(screen.getByText("Updates with bb")).toBeTruthy();
+    expect(screen.getByText("Updates with kaioken")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Check now" })).toBeNull();
 
     expect(container.querySelector('[data-icon="Github"]')).not.toBeNull();
@@ -379,7 +379,7 @@ describe("PluginDetail official catalog lifecycle", () => {
       name: "Update GitHub to 1.5.0",
     });
     const activation = screen.getByRole("switch", { name: "Disable GitHub" });
-    const path = screen.getByText("~/.bb/plugins/github");
+    const path = screen.getByText("~/.kaioken/plugins/github");
     const releaseSection = document.querySelector(
       '[data-resource-detail-section="release"]',
     );
@@ -440,7 +440,7 @@ describe("PluginDetail official catalog lifecycle", () => {
 
     expect(screen.getByRole("rowheader", { name: "Installed" })).toBeTruthy();
     expect(screen.getByText("Install date unavailable")).toBeTruthy();
-    expect(screen.queryByText("Updates with bb")).toBeNull();
+    expect(screen.queryByText("Updates with kaioken")).toBeNull();
   });
 
   it.each([
@@ -463,7 +463,7 @@ describe("PluginDetail official catalog lifecycle", () => {
       updateState: {
         ...EMPTY_PLUGIN_UPDATE_STATE,
         blockedVersion: "2.0.0",
-        blockedReasons: ["Requires bb 0.20 or newer."],
+        blockedReasons: ["Requires kaioken 0.20 or newer."],
       },
       expected: "Update blocked",
       actionName: null,
@@ -602,7 +602,7 @@ describe("PluginDetail official catalog lifecycle", () => {
     fireEvent.pointerMove(uninstall);
     expect(
       await screen.findAllByText(
-        "Included with BB; disable this plugin instead.",
+        "Included with Kaioken; disable this plugin instead.",
       ),
     ).not.toHaveLength(0);
   });
@@ -667,9 +667,9 @@ describe("BB Official plugin detail routing", () => {
       categoryId: "code-and-reviews",
       category: "Code & Reviews",
       author: {
-        name: "BB",
-        github: "get-bb",
-        url: "https://github.com/get-bb",
+        name: "Kaioken",
+        github: "get-kaioken",
+        url: "https://github.com/get-kaioken",
       },
     };
     vi.stubGlobal(
@@ -759,9 +759,9 @@ describe("BB Official plugin detail routing", () => {
     "/plugins?view=installed",
   ])("opens installed plugin settings from %s", async (path) => {
     const author = {
-      name: "BB",
-      github: "get-bb",
-      url: "https://github.com/get-bb",
+      name: "Kaioken",
+      github: "get-kaioken",
+      url: "https://github.com/get-kaioken",
     };
     const catalogEntries = [
       { ...GITHUB_CATALOG_ENTRY, author, installed: true },
@@ -862,9 +862,9 @@ describe("BB Official plugin detail routing", () => {
 
   it("opens an author from a card and returns to the prior Browse filters", async () => {
     const author = {
-      name: "BB",
-      github: "get-bb",
-      url: "https://github.com/get-bb",
+      name: "Kaioken",
+      github: "get-kaioken",
+      url: "https://github.com/get-kaioken",
     };
     const catalogEntries = [
       {
@@ -920,18 +920,18 @@ describe("BB Official plugin detail routing", () => {
       { wrapper: QueryClientWrapper },
     );
 
-    fireEvent.click((await screen.findAllByRole("link", { name: "BB" }))[0]!);
-    expect(await screen.findByRole("heading", { name: /^BB/u })).toBeTruthy();
+    fireEvent.click((await screen.findAllByRole("link", { name: "Kaioken" }))[0]!);
+    expect(await screen.findByRole("heading", { name: /^Kaioken/u })).toBeTruthy();
     let params = new URLSearchParams(
       screen.getByTestId("route-search").textContent ?? "",
     );
-    expect(params.get("author")).toBe("11:bb-official:github:get-bb");
+    expect(params.get("author")).toBe("11:bb-official:github:get-kaioken");
     expect(params.getAll("category")).toEqual(["code-and-reviews"]);
     expect(params.get("sort")).toBe("recently-added");
 
     fireEvent.click(screen.getByRole("button", { name: "Browser back" }));
     await waitFor(() => {
-      expect(screen.queryByRole("heading", { name: /^BB/u })).toBeNull();
+      expect(screen.queryByRole("heading", { name: /^Kaioken/u })).toBeNull();
     });
     params = new URLSearchParams(
       screen.getByTestId("route-search").textContent ?? "",
@@ -940,7 +940,7 @@ describe("BB Official plugin detail routing", () => {
     expect(params.getAll("category")).toEqual(["code-and-reviews"]);
     expect(params.get("sort")).toBe("recently-added");
 
-    fireEvent.click((await screen.findAllByRole("link", { name: "BB" }))[0]!);
+    fireEvent.click((await screen.findAllByRole("link", { name: "Kaioken" }))[0]!);
     const card = await screen.findByRole("button", {
       name: "Open GitHub details",
     });
@@ -955,9 +955,9 @@ describe("BB Official plugin detail routing", () => {
 
   it("routes the detail author link to the restored author page", async () => {
     const author = {
-      name: "BB",
-      github: "get-bb",
-      url: "https://github.com/get-bb",
+      name: "Kaioken",
+      github: "get-kaioken",
+      url: "https://github.com/get-kaioken",
     };
     const catalogEntries = [
       { ...GITHUB_CATALOG_ENTRY, author },
@@ -1004,17 +1004,17 @@ describe("BB Official plugin detail routing", () => {
     expect(
       await screen.findByRole("heading", { name: "More from this author" }),
     ).toBeTruthy();
-    const authorLinks = screen.getAllByRole("link", { name: "BB" });
+    const authorLinks = screen.getAllByRole("link", { name: "Kaioken" });
     fireEvent.click(authorLinks.at(-1)!);
     await waitFor(() => {
       expect(screen.getByTestId("route-path").textContent).toBe("/plugins");
     });
-    expect(await screen.findByRole("heading", { name: /^BB/u })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: /^Kaioken/u })).toBeTruthy();
     expect(
       new URLSearchParams(
         screen.getByTestId("route-search").textContent ?? "",
       ).get("author"),
-    ).toBe("11:bb-official:github:get-bb");
+    ).toBe("11:bb-official:github:get-kaioken");
   });
 });
 
@@ -1022,16 +1022,16 @@ describe("plugin removal confirmation", () => {
   it("warns that removing a local plugin deletes its settings, secrets, and schedules and names the move path", async () => {
     const localPlugin = {
       id: "github",
-      source: "path:/Users/you/src/bb-plugin-github",
-      rootDir: "/Users/you/src/bb-plugin-github",
+      source: "path:/Users/you/src/kaioken-plugin-github",
+      rootDir: "/Users/you/src/kaioken-plugin-github",
       version: "0.1.0",
       provenance: "direct",
       isOrphanedBuiltin: false,
       publisherLabel: null,
-      sourceDisplay: "path · /Users/you/src/bb-plugin-github",
+      sourceDisplay: "path · /Users/you/src/kaioken-plugin-github",
       updateState: {},
       enabled: true,
-      description: "Browse GitHub issues and pull requests in BB.",
+      description: "Browse GitHub issues and pull requests in Kaioken.",
       name: "GitHub",
       icon: "Github",
       iconUrl: null,
@@ -1085,13 +1085,13 @@ describe("plugin removal confirmation", () => {
       screen.getByRole("button", { name: "GitHub actions" }),
     );
     fireEvent.click(
-      await screen.findByRole("menuitem", { name: "Remove from bb" }),
+      await screen.findByRole("menuitem", { name: "Remove from kaioken" }),
     );
 
     expect(
-      await screen.findByRole("heading", { name: "Remove plugin from bb?" }),
+      await screen.findByRole("heading", { name: "Remove plugin from kaioken?" }),
     ).toBeTruthy();
-    const description = screen.getByText(/Remove "github" from bb/);
+    const description = screen.getByText(/Remove "github" from kaioken/);
     expect(description.textContent).toContain(
       "delete its settings, secrets, and schedules",
     );
@@ -1120,7 +1120,7 @@ describe("PluginDetail banner precedence", () => {
       ...EMPTY_PLUGIN_UPDATE_STATE,
       availableVersion: "1.5.0",
       blockedVersion: "2.0.0",
-      blockedReasons: ["Requires a newer bb."],
+      blockedReasons: ["Requires a newer kaioken."],
       lastFailure: {
         version: "1.4.5",
         at: null,
@@ -1284,7 +1284,7 @@ describe("PluginDetail runtime health", () => {
       "Wait a moment, then reload the plugin.",
     );
     expect(alert.textContent).not.toContain("issue-sync");
-    expect(alert.textContent).not.toContain("Restart bb");
+    expect(alert.textContent).not.toContain("Restart kaioken");
     expect(screen.getByRole("button", { name: "Reload" })).toBeTruthy();
   });
 
@@ -1314,13 +1314,13 @@ describe("PluginDetail runtime health", () => {
   it.each([
     [
       "incompatible",
-      "This plugin version isn't compatible with your version of bb.",
-      "Update bb to load a compatible bundled plugin.",
+      "This plugin version isn't compatible with your version of kaioken.",
+      "Update kaioken to load a compatible bundled plugin.",
     ],
     [
       "missing",
       "The plugin's files are missing.",
-      "Restart bb. If the files are still missing, reinstall bb.",
+      "Restart kaioken. If the files are still missing, reinstall kaioken.",
     ],
   ] as const)(
     "explains the %s condition and a supported recovery",
@@ -1343,7 +1343,7 @@ describe("PluginDetail runtime health", () => {
     const alert = screen.getByRole("alert");
     expect(alert.textContent).toContain("An API token is required.");
     expect(alert.textContent).toContain(
-      "Complete the Configuration section; bb reloads the plugin after you save.",
+      "Complete the Configuration section; kaioken reloads the plugin after you save.",
     );
     const settingsLink = within(alert).getByRole("link", {
       name: "Open settings",
@@ -1615,7 +1615,7 @@ describe("PluginDetail capability inventory", () => {
       "Adds a page to the app sidebar.",
       "enhance-prompt",
       "Adds an action beside the thread composer.",
-      "bb capability",
+      "kaioken capability",
       "Inspect contributed capabilities.",
       "review",
       "Review repository changes.",

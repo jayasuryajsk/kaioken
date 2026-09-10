@@ -1,4 +1,4 @@
-import { availableModelSchema } from "@bb/domain";
+import { availableModelSchema } from "@kaioken/domain";
 import { z } from "zod";
 import { createLastKnownCache } from "@/lib/last-known-cache";
 

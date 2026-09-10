@@ -1,4 +1,4 @@
-import type { BbPluginApi, PluginCliResult } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi, PluginCliResult } from "@get-kaioken/plugin-sdk";
 import { setTimeout as wait } from "node:timers/promises";
 import {
   accountAddInputSchema,
@@ -31,27 +31,27 @@ interface ParsedFlags {
 
 const HELP = [
   "Usage:",
-  "  bb pool account add --provider claude --import [--label <text>] [--priority <n>]",
-  "  bb pool account add --provider codex --import [--label <text>] [--priority <n>]",
-  "  bb pool account add --provider claude --login",
-  "  bb pool account add --provider codex --login",
-  "  bb pool account login-poll --session <id>",
-  "  printf '%s\\n' \"$CLAUDE_AUTH_CODE\" | bb pool account login-complete --session <id> --code-stdin",
-  "  bb pool account add --provider claude --api-key-stdin [--label <text>] [--priority <n>]",
-  "  bb pool account add --provider claude --api-key <key> [--label <text>] [--priority <n>]  Unsafe: exposes the key in process arguments.",
-  "  bb pool account list [--json]",
-  "  bb pool account remove <id>",
-  "  bb pool account enable <id>",
-  "  bb pool account disable <id>",
-  "  bb pool account priority <id> <n>",
-  "  bb pool account reorder <claude|codex> <id>...",
-  "  bb pool account refresh <id>",
-  "  bb pool status [--json]",
-  "  bb pool routing <claude|codex> [--off]",
-  "  bb pool config",
-  "  bb pool config set <anthropicUpstreamBaseUrl|codexUpstreamBaseUrl|switchThreshold> <value>",
-  "  bb pool token rotate --machine <id-or-name>",
-  "  bb pool bypass <thread-id> [--off]",
+  "  kaioken pool account add --provider claude --import [--label <text>] [--priority <n>]",
+  "  kaioken pool account add --provider codex --import [--label <text>] [--priority <n>]",
+  "  kaioken pool account add --provider claude --login",
+  "  kaioken pool account add --provider codex --login",
+  "  kaioken pool account login-poll --session <id>",
+  "  printf '%s\\n' \"$CLAUDE_AUTH_CODE\" | kaioken pool account login-complete --session <id> --code-stdin",
+  "  kaioken pool account add --provider claude --api-key-stdin [--label <text>] [--priority <n>]",
+  "  kaioken pool account add --provider claude --api-key <key> [--label <text>] [--priority <n>]  Unsafe: exposes the key in process arguments.",
+  "  kaioken pool account list [--json]",
+  "  kaioken pool account remove <id>",
+  "  kaioken pool account enable <id>",
+  "  kaioken pool account disable <id>",
+  "  kaioken pool account priority <id> <n>",
+  "  kaioken pool account reorder <claude|codex> <id>...",
+  "  kaioken pool account refresh <id>",
+  "  kaioken pool status [--json]",
+  "  kaioken pool routing <claude|codex> [--off]",
+  "  kaioken pool config",
+  "  kaioken pool config set <anthropicUpstreamBaseUrl|codexUpstreamBaseUrl|switchThreshold> <value>",
+  "  kaioken pool token rotate --machine <id-or-name>",
+  "  kaioken pool bypass <thread-id> [--off]",
   "",
   "Accounts run sequentially by priority, then order added. The current fallback stays active until unavailable.",
   "Reorder includes every account for the provider and changes the next failover sequence; existing conversations stay pinned.",
@@ -245,7 +245,7 @@ function json(value: object): string {
 }
 
 export function registerPoolCli(
-  bb: Pick<BbPluginApi, "cli">,
+  bb: Pick<KaiokenPluginApi, "cli">,
   operations: PoolOperations,
   login: ClaudeOAuthLogin,
   codexLogin: CodexDeviceLogin,
@@ -261,84 +261,84 @@ export function registerPoolCli(
         summary:
           "Sign in to Claude or Codex, import credentials, or add an Anthropic API key",
         usage:
-          "bb pool account add --provider <claude|codex> --login\nbb pool account add --provider <claude|codex> --import [--label <text>] [--priority <n>]\nbb pool account add --provider claude --api-key-stdin [--label <text>] [--priority <n>]\nUnsafe compatibility form: bb pool account add --provider claude --api-key <key> [--label <text>] [--priority <n>]",
+          "kaioken pool account add --provider <claude|codex> --login\nbb pool account add --provider <claude|codex> --import [--label <text>] [--priority <n>]\nbb pool account add --provider claude --api-key-stdin [--label <text>] [--priority <n>]\nUnsafe compatibility form: kaioken pool account add --provider claude --api-key <key> [--label <text>] [--priority <n>]",
       },
       {
         name: "account-login-poll",
         summary: "Wait for a Codex device-code login to complete",
-        usage: "bb pool account login-poll --session <id>",
+        usage: "kaioken pool account login-poll --session <id>",
       },
       {
         name: "account-login-complete",
         summary: "Complete a Claude browser login with its manual code",
         usage:
-          "printf '%s\\n' \"$CLAUDE_AUTH_CODE\" | bb pool account login-complete --session <id> --code-stdin",
+          "printf '%s\\n' \"$CLAUDE_AUTH_CODE\" | kaioken pool account login-complete --session <id> --code-stdin",
       },
       {
         name: "account-list",
         summary: "List pool accounts and observed quota",
-        usage: "bb pool account list [--json]",
+        usage: "kaioken pool account list [--json]",
       },
       {
         name: "account-remove",
         summary: "Remove an account and its secret token file",
-        usage: "bb pool account remove <id>",
+        usage: "kaioken pool account remove <id>",
       },
       {
         name: "account-enable",
         summary: "Enable an account",
-        usage: "bb pool account enable <id>",
+        usage: "kaioken pool account enable <id>",
       },
       {
         name: "account-disable",
         summary: "Disable an account",
-        usage: "bb pool account disable <id>",
+        usage: "kaioken pool account disable <id>",
       },
       {
         name: "account-priority",
         summary: "Set an account's position in the failover priority order",
-        usage: "bb pool account priority <id> <n>",
+        usage: "kaioken pool account priority <id> <n>",
       },
       {
         name: "account-reorder",
         summary: "Set the complete failover order for one provider",
-        usage: "bb pool account reorder <claude|codex> <id>...",
+        usage: "kaioken pool account reorder <claude|codex> <id>...",
       },
       {
         name: "account-refresh",
         summary: "Refresh one account's observed usage",
-        usage: "bb pool account refresh <id>",
+        usage: "kaioken pool account refresh <id>",
       },
       {
         name: "status",
         summary: "Show hub, machine token, routing, and account status",
-        usage: "bb pool status [--json]",
+        usage: "kaioken pool status [--json]",
       },
       {
         name: "routing",
         summary: "Enable or disable pooled routing for one provider",
-        usage: "bb pool routing <claude|codex> [--off]",
+        usage: "kaioken pool routing <claude|codex> [--off]",
       },
       {
         name: "config",
         summary: "Show Account Pooler routing configuration",
-        usage: "bb pool config",
+        usage: "kaioken pool config",
       },
       {
         name: "config-set",
         summary: "Update one Account Pooler routing configuration value",
         usage:
-          "bb pool config set <anthropicUpstreamBaseUrl|codexUpstreamBaseUrl|switchThreshold> <value>",
+          "kaioken pool config set <anthropicUpstreamBaseUrl|codexUpstreamBaseUrl|switchThreshold> <value>",
       },
       {
         name: "token-rotate",
         summary: "Rotate one machine's Account Pooler bearer token",
-        usage: "bb pool token rotate --machine <id-or-name>",
+        usage: "kaioken pool token rotate --machine <id-or-name>",
       },
       {
         name: "bypass",
         summary: "Bypass Account Pooler routing for one thread",
-        usage: "bb pool bypass <thread-id> [--off]",
+        usage: "kaioken pool bypass <thread-id> [--off]",
       },
     ],
     async run(argv, ctx): Promise<PluginCliResult> {
@@ -422,7 +422,7 @@ export function registerPoolCli(
                   `Session ID: ${started.sessionId}`,
                   "",
                   "After authorizing, wait for the account to be added with:",
-                  `bb pool account login-poll --session ${started.sessionId}`,
+                  `kaioken pool account login-poll --session ${started.sessionId}`,
                 ].join("\n")}\n`,
               };
             }
@@ -436,13 +436,13 @@ export function registerPoolCli(
                 `Session ID: ${started.sessionId}`,
                 "",
                 "After signing in, pipe the code shown on the final page into:",
-                `printf '%s\\n' \"$CLAUDE_AUTH_CODE\" | bb pool account login-complete --session ${started.sessionId} --code-stdin`,
+                `printf '%s\\n' \"$CLAUDE_AUTH_CODE\" | kaioken pool account login-complete --session ${started.sessionId} --code-stdin`,
               ].join("\n")}\n`,
             };
           }
           if (apiKeyStdin) {
             throw new Error(
-              "--api-key-stdin must be invoked through the bb CLI so it can read stdin safely.",
+              "--api-key-stdin must be invoked through the kaioken CLI so it can read stdin safely.",
             );
           }
           if (!imported && flags.values.get("provider") !== "claude") {
@@ -509,7 +509,7 @@ export function registerPoolCli(
           );
           if (flags.booleans.has("code-stdin")) {
             throw new Error(
-              "--code-stdin requires the current bb CLI so it can read stdin safely.",
+              "--code-stdin requires the current kaioken CLI so it can read stdin safely.",
             );
           }
           const input = loginCompleteInputSchema.parse({

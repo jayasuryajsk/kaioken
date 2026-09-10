@@ -13,18 +13,18 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { PLUGIN_SDK_MAJOR, PLUGIN_SDK_VERSION } from "@bb/domain";
-import { scaffoldPlugin } from "@bb/templates/plugin-scaffold";
+import { PLUGIN_SDK_MAJOR, PLUGIN_SDK_VERSION } from "@kaioken/domain";
+import { scaffoldPlugin } from "@kaioken/templates/plugin-scaffold";
 import {
   buildPluginApp,
   resolvePluginBuildToolchain,
   type PluginBuildToolchain,
-} from "@bb/plugin-build";
+} from "@kaioken/plugin-build";
 function testToolchain() {
-  return resolvePluginBuildToolchain(join(tmpdir(), "bb-toolchain-unused"));
+  return resolvePluginBuildToolchain(join(tmpdir(), "kaioken-toolchain-unused"));
 }
 
-const TEST_BB_VERSION = "0.9.0-test";
+const TEST_KAIOKEN_VERSION = "0.9.0-test";
 
 async function failingTailwindToolchain(
   dir: string,
@@ -58,7 +58,7 @@ async function metafileRejectingToolchain(
 
 const FIXTURE_PACKAGE_JSON = JSON.stringify(
   {
-    name: "bb-plugin-fixture",
+    name: "kaioken-plugin-fixture",
     version: "0.1.0",
     type: "module",
     bb: {
@@ -76,7 +76,7 @@ const FIXTURE_PACKAGE_JSON = JSON.stringify(
 const FIXTURE_APP_TSX = `
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { definePluginApp } from "@get-bb/plugin-sdk/app";
+import { definePluginApp } from "@get-kaioken/plugin-sdk/app";
 
 void createRoot;
 
@@ -96,7 +96,7 @@ describe("buildPluginApp", () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await mkdtemp(join(tmpdir(), "bb-plugin-build-"));
+    root = await mkdtemp(join(tmpdir(), "kaioken-plugin-build-"));
   });
 
   afterEach(async () => {
@@ -113,7 +113,7 @@ describe("buildPluginApp", () => {
     await writeFixture();
     const result = await buildPluginApp(
       root,
-      TEST_BB_VERSION,
+      TEST_KAIOKEN_VERSION,
       await testToolchain(),
     );
 
@@ -145,7 +145,7 @@ describe("buildPluginApp", () => {
     expect(css).toContain(".animate-in");
     expect(css).toContain(".fade-in-0");
     const scope =
-      ":where([data-bb-plugin=fixture],[data-bb-plugin-root]:not([data-bb-plugin]))";
+      ":where([data-kaioken-plugin=fixture],[data-kaioken-plugin-root]:not([data-kaioken-plugin]))";
     expect(css).toContain(`${scope} .animate-in`);
     expect(css).toContain(`${scope}.animate-in`);
     expect(css).not.toContain("@scope");
@@ -158,7 +158,7 @@ describe("buildPluginApp", () => {
       pluginId: "fixture",
       pluginVersion: "0.1.0",
       builtWith: {
-        bbVersion: TEST_BB_VERSION,
+        kaiokenVersion: TEST_KAIOKEN_VERSION,
         pluginSdkVersion: PLUGIN_SDK_VERSION,
       },
     });
@@ -178,7 +178,7 @@ describe("buildPluginApp", () => {
 
     const { cssPath } = await buildPluginApp(
       root,
-      TEST_BB_VERSION,
+      TEST_KAIOKEN_VERSION,
       await testToolchain(),
     );
     const css = await readFile(cssPath, "utf8");
@@ -189,22 +189,22 @@ describe("buildPluginApp", () => {
       css.lastIndexOf("@layer utilities{"),
     );
     const scope =
-      ":where([data-bb-plugin=fixture],[data-bb-plugin-root]:not([data-bb-plugin]))";
+      ":where([data-kaioken-plugin=fixture],[data-kaioken-plugin-root]:not([data-kaioken-plugin]))";
     expect(css).not.toContain(`${scope} .fixture-highlight`);
     expect(css).not.toContain(`${scope}.fixture-highlight`);
   });
 
-  it("throws at import time without the BB runtime and loads once slots are set", async () => {
+  it("throws at import time without the Kaioken runtime and loads once slots are set", async () => {
     await writeFixture();
     const { jsPath } = await buildPluginApp(
       root,
-      TEST_BB_VERSION,
+      TEST_KAIOKEN_VERSION,
       await testToolchain(),
     );
     const url = pathToFileURL(jsPath).href;
 
     await expect(import(/* @vite-ignore */ url)).rejects.toThrow(
-      /must be loaded by the BB app/,
+      /must be loaded by the Kaioken app/,
     );
 
     (globalThis as { __bbPluginRuntime?: unknown }).__bbPluginRuntime = {
@@ -237,7 +237,7 @@ describe("buildPluginApp", () => {
     );
     const { jsPath } = await buildPluginApp(
       root,
-      TEST_BB_VERSION,
+      TEST_KAIOKEN_VERSION,
       await testToolchain(),
     );
     const js = await readFile(jsPath, "utf8");
@@ -266,7 +266,7 @@ describe("buildPluginApp", () => {
     );
     const { jsPath } = await buildPluginApp(
       root,
-      TEST_BB_VERSION,
+      TEST_KAIOKEN_VERSION,
       await testToolchain(),
     );
     const js = await readFile(jsPath, "utf8");
@@ -278,7 +278,7 @@ describe("buildPluginApp", () => {
     await writeFixture();
     const first = await buildPluginApp(
       root,
-      TEST_BB_VERSION,
+      TEST_KAIOKEN_VERSION,
       await testToolchain(),
     );
     const originalJs = await readFile(first.jsPath, "utf8");
@@ -292,7 +292,7 @@ describe("buildPluginApp", () => {
     await expect(
       buildPluginApp(
         root,
-        TEST_BB_VERSION,
+        TEST_KAIOKEN_VERSION,
         await failingTailwindToolchain(root, "tailwind exploded"),
       ),
     ).rejects.toThrow("tailwind exploded");
@@ -311,7 +311,7 @@ describe("buildPluginApp", () => {
     await writeFile(
       join(root, "package.json"),
       JSON.stringify({
-        name: "bb-plugin-headless",
+        name: "kaioken-plugin-headless",
         version: "0.1.0",
         bb: {
           name: "Headless fixture",
@@ -322,14 +322,14 @@ describe("buildPluginApp", () => {
       }),
     );
     await expect(
-      buildPluginApp(root, TEST_BB_VERSION, await testToolchain()),
+      buildPluginApp(root, TEST_KAIOKEN_VERSION, await testToolchain()),
     ).rejects.toThrow(/no frontend entry/);
   });
 
   it("errors when bb.app points at a missing file", async () => {
     await writeFile(join(root, "package.json"), FIXTURE_PACKAGE_JSON);
     await expect(
-      buildPluginApp(root, TEST_BB_VERSION, await testToolchain()),
+      buildPluginApp(root, TEST_KAIOKEN_VERSION, await testToolchain()),
     ).rejects.toThrow(/missing file/);
   });
 
@@ -345,25 +345,25 @@ describe("buildPluginApp", () => {
     );
 
     await expect(
-      buildPluginApp(root, TEST_BB_VERSION, await testToolchain()),
+      buildPluginApp(root, TEST_KAIOKEN_VERSION, await testToolchain()),
     ).rejects.toThrow(/bb\.branding\.icon points at a missing file/);
 
     await mkdir(join(root, "assets"));
     await writeFile(join(root, "assets", "icon.svg"), "<svg/>");
     const result = await buildPluginApp(
       root,
-      TEST_BB_VERSION,
+      TEST_KAIOKEN_VERSION,
       await testToolchain(),
     );
     expect(result.jsPath).toBe(join(root, "dist", "app.js"));
   });
 
-  it("builds the `bb plugin new` scaffold end to end", async () => {
-    const targetDir = join(root, "bb-plugin-scaffolded");
+  it("builds the `kaioken plugin new` scaffold end to end", async () => {
+    const targetDir = join(root, "kaioken-plugin-scaffolded");
     await scaffoldPlugin({
       targetDir,
-      packageName: "bb-plugin-scaffolded",
-      bbVersion: "0.9.0",
+      packageName: "kaioken-plugin-scaffolded",
+      kaiokenVersion: "0.9.0",
     });
     await linkScaffoldDeps(targetDir, [
       "@radix-ui/react-checkbox",
@@ -373,7 +373,7 @@ describe("buildPluginApp", () => {
     ]);
     const result = await buildPluginApp(
       targetDir,
-      TEST_BB_VERSION,
+      TEST_KAIOKEN_VERSION,
       await metafileRejectingToolchain(root),
     );
     const js = await readFile(result.jsPath, "utf8");

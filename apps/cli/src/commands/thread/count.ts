@@ -3,13 +3,13 @@ import {
   threadStatusSchema,
   threadStatusValues,
   type ThreadStatus,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   threadCountGroupBySchema,
   THREAD_COUNT_ROOT_PARENT,
   type ThreadCountGroupBy,
-} from "@bb/server-contract";
-import type { ThreadCountResult } from "@bb/sdk";
+} from "@kaioken/server-contract";
+import type { ThreadCountResult } from "@kaioken/sdk";
 import { action } from "../../action.js";
 import { createCliBbSdk } from "../../client.js";
 import { renderBorderlessTable } from "../../table.js";
@@ -72,7 +72,7 @@ export function registerCountCommand(
 
 /**
  * An ungrouped count is one number, so it prints as one number: the common
- * `bb thread count --status active` call stays pipeable without --json.
+ * `kaioken thread count --status active` call stays pipeable without --json.
  */
 function printThreadCount(
   result: ThreadCountResult,

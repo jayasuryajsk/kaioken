@@ -7,11 +7,11 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
-import { Button } from "@bb/shared-ui/button";
+import { Button } from "@kaioken/shared-ui/button";
 import { useAtomValue } from "jotai";
-import { COARSE_POINTER_TOOLBAR_ACTION_BUTTON_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { Icon } from "@bb/shared-ui/icon";
-import { Pill } from "@bb/shared-ui/pill";
+import { COARSE_POINTER_TOOLBAR_ACTION_BUTTON_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { Pill } from "@kaioken/shared-ui/pill";
 import { SplitButton } from "@/components/ui/split-button.js";
 import {
   AppPageHeader,
@@ -24,8 +24,8 @@ import {
   getBbDesktopInfo,
   MACOS_WINDOW_NO_DRAG_CLASS,
   shouldUseMacosDesktopChrome,
-} from "@/lib/bb-desktop";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@/lib/kaioken-desktop";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { useAppCommandShortcut } from "@/components/commands/AppCommandProvider";
 import { AppCommandShortcutHint } from "@/components/commands/AppCommandShortcutHint";
 import { useInlineThreadTitle } from "@/components/thread/InlineThreadTitle";
@@ -33,8 +33,8 @@ import { useThreadActions } from "@/components/thread/ThreadActionsProvider";
 import { ThreadTitleMentions } from "@/components/thread/ThreadTitleMentions";
 import { SecondaryPanelHostLayoutContext } from "@/components/secondary-panel/SecondaryPanelHostLayoutContext";
 import { RIGHT_PANEL_TOGGLE_ICON_NAME } from "@/components/secondary-panel/panelToggleControlState";
-import { CHROME_SUBTLE_ICON_BUTTON_FOREGROUND_CLASS } from "@bb/shared-ui/chrome-style-tokens";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { CHROME_SUBTLE_ICON_BUTTON_FOREGROUND_CLASS } from "@kaioken/shared-ui/chrome-style-tokens";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import { dimInactiveSplitsAtom } from "@/lib/split-layout/atoms";
 import {
   CONTEXT_INACTIVE_TEXT_CLASS,
@@ -168,7 +168,7 @@ export function ThreadDetailHeader({
         <p
           className={cn(
             "relative min-w-0 text-sm font-normal transition-colors",
-            isEditing ? "overflow-visible" : "bb-thread-title",
+            isEditing ? "overflow-visible" : "kaioken-thread-title",
             isSplitPaneHeader &&
               !isFocused &&
               dimsInactiveSplits &&

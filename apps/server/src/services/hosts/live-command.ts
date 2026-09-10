@@ -3,7 +3,7 @@ import {
   type HostDaemonCommand,
   type HostDaemonCommandResult,
   type HostDaemonSettledCommandType,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { ApiError } from "../../errors.js";
 import {
   buildCommandResultSettlementDeps,

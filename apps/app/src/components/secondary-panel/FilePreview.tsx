@@ -8,12 +8,12 @@ import {
 } from "react";
 import type { UrlTransform } from "react-markdown";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Button } from "@bb/shared-ui/button";
+import { Button } from "@kaioken/shared-ui/button";
 import { SourceCodeHost } from "@/components/code/SourceCodeHost";
-import { COARSE_POINTER_TEXT_SM_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { EmptyStatePanel } from "@bb/shared-ui/empty-state";
+import { COARSE_POINTER_TEXT_SM_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { EmptyStatePanel } from "@kaioken/shared-ui/empty-state";
 import { CopyButton } from "@/components/ui/copy-button.js";
-import { Icon } from "@bb/shared-ui/icon";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { OpenInEditorButton } from "@/components/ui/open-in-editor-button.js";
 import { useAppCommandShortcut } from "@/components/commands/AppCommandProvider";
 import { AppCommandShortcutHint } from "@/components/commands/AppCommandShortcutHint";
@@ -25,20 +25,20 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
+} from "@kaioken/shared-ui/tooltip";
 import { TruncateStart } from "@/components/ui/truncate-start.js";
 import { copyToClipboardWithToast } from "@/lib/clipboard";
 import { openUrlInExternalBrowser } from "@/lib/url-open-routing";
 import type {
   FilePreviewLineRange,
   WorkspaceFilePreviewStatusLabel,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   DEFAULT_CODE_OVERFLOW_MODE,
   type CodeOverflowMode,
   type CodeOverflowModeChangeHandler,
 } from "@/lib/code-overflow-mode";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { SecondaryPanelSelectionActions } from "./SecondaryPanelSelectionActions.js";
 
 export interface FilePreviewFile {

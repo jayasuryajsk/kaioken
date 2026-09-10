@@ -5,11 +5,11 @@ import {
   type PromptInput,
   serviceTierSchema,
   type ServiceTier,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   DEFAULT_THREAD_WAIT_POLL_INTERVAL_MS,
   DEFAULT_THREAD_WAIT_TIMEOUT_MS,
-} from "@bb/sdk";
+} from "@kaioken/sdk";
 import { joinValues } from "../helpers.js";
 
 export const THREAD_WAIT_EXIT_CODE_TIMEOUT = 2;

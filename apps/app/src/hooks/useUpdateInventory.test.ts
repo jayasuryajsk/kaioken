@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type {
   ProviderCliStatus,
   ProviderCliStatusResponse,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { buildUpdateInventoryProviderIssues } from "./useUpdateInventory";
 
 function providerStatus(

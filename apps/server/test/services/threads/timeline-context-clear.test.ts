@@ -5,7 +5,7 @@ import {
   threadScope,
   turnScope,
   type Thread,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   createConnection,
   createProject,
@@ -16,7 +16,7 @@ import {
   noopNotifier,
   upsertHost,
   type DbConnection,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   buildThreadConversationOutline,
   buildThreadTimeline,

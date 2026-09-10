@@ -1,10 +1,10 @@
-import type { Environment, WorkspaceFileStatus } from "@bb/domain";
-import type { OpenInTargetContext } from "@bb/host-daemon-contract";
+import type { Environment, WorkspaceFileStatus } from "@kaioken/domain";
+import type { OpenInTargetContext } from "@kaioken/host-daemon-contract";
 import type { WorkspaceChangedFilesSection } from "@/components/workspace/workspace-change-summary";
 import type {
   EnvironmentFilePreviewSource,
   WorkspaceFilePreviewStatusLabel,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { buildAbsoluteFilePath } from "@/lib/absolute-file-path";
 
 interface ResolveThreadWorkspaceOpenPathArgs {

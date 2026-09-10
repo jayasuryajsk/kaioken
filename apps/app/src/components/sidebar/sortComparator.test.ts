@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PERSONAL_PROJECT_ID, type ThreadListEntry } from "@bb/domain";
+import { PERSONAL_PROJECT_ID, type ThreadListEntry } from "@kaioken/domain";
 import {
   getSelectedThreadSidebarExpansion,
   getSidebarThreadComparator,
@@ -9,10 +9,10 @@ import {
   type ProjectThreadNode,
   type ProjectThreadItem,
   type ThreadComparator,
-} from "@bb/client-core";
-import { NO_COLLAPSED_CHILD_ACTIVITY } from "@bb/client-core";
+} from "@kaioken/client-core";
+import { NO_COLLAPSED_CHILD_ACTIVITY } from "@kaioken/client-core";
 import type { ThreadTitleMentionResources } from "@/components/thread/ThreadTitleMentions";
-import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
+import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 
 function thread(overrides: Partial<ThreadListEntry>): ThreadListEntry {
   return makeThreadListEntry({

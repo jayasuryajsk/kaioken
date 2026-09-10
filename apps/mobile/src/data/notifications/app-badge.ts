@@ -1,5 +1,5 @@
-import type { SidebarBootstrapResponse } from "@bb/server-contract";
-import { isUnreadDoneThread } from "@bb/client-core";
+import type { SidebarBootstrapResponse } from "@kaioken/server-contract";
+import { isUnreadDoneThread } from "@kaioken/client-core";
 
 export function badgeCountFromSidebar(
   bootstrap: Pick<SidebarBootstrapResponse, "projects" | "personalProject">,

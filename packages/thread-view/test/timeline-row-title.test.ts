@@ -13,7 +13,7 @@ import type {
   TimelineToolWorkRow,
   TimelineWebFetchWorkRow,
   TimelineWebSearchWorkRow,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   buildTimelineActivityIntentTitles,
   buildTimelineRowTitle,
@@ -100,7 +100,7 @@ function commandRow(): TimelineCommandWorkRow {
     workKind: "command",
     status: "completed",
     callId: "call-1",
-    command: "pnpm exec turbo run test --filter=@bb/app",
+    command: "pnpm exec turbo run test --filter=@kaioken/app",
     cwd: null,
     source: null,
     output: "",
@@ -406,11 +406,11 @@ describe("buildTimelineRowTitle", () => {
     const title = buildTimelineRowTitle(commandRow(), DEFAULT_OPTIONS);
 
     expect(title.plain).toBe(
-      "Ran pnpm exec turbo run test --filter=@bb/app (2s)",
+      "Ran pnpm exec turbo run test --filter=@kaioken/app (2s)",
     );
     expect(title.segments.map((s) => s.text)).toEqual([
       "Ran",
-      "pnpm exec turbo run test --filter=@bb/app",
+      "pnpm exec turbo run test --filter=@kaioken/app",
     ]);
     expect(title.segments[1]?.em).toBe(true);
     expect(title.decorations).toEqual([
@@ -444,7 +444,7 @@ describe("buildTimelineRowTitle", () => {
     );
 
     expect(title.plain).toBe(
-      "Running pnpm exec turbo run test --filter=@bb/app",
+      "Running pnpm exec turbo run test --filter=@kaioken/app",
     );
     expect(title.segments[0]?.text).toBe("Running");
     expect(title.segments[0]?.shimmer).toBe(true);
@@ -465,7 +465,7 @@ describe("buildTimelineRowTitle", () => {
     );
 
     expect(title.plain).toBe(
-      "Ran pnpm exec turbo run test --filter=@bb/app (3s, interrupted)",
+      "Ran pnpm exec turbo run test --filter=@kaioken/app (3s, interrupted)",
     );
     expect(title.decorations).toEqual([
       {
@@ -520,18 +520,18 @@ describe("buildTimelineRowTitle", () => {
     });
 
     expect(title.plain).toBe(
-      "Ran pnpm exec turbo run test --filter=@bb/app (2s)",
+      "Ran pnpm exec turbo run test --filter=@kaioken/app (2s)",
     );
     expect(title.tone).toBe("summary");
     expect(title.segments.find((s) => s.em)?.text).toBe(
-      "pnpm exec turbo run test --filter=@bb/app",
+      "pnpm exec turbo run test --filter=@kaioken/app",
     );
   });
 
   it.each([
     {
       expectedPlain:
-        "Permission denied: pnpm exec turbo run test --filter=@bb/app (2s)",
+        "Permission denied: pnpm exec turbo run test --filter=@kaioken/app (2s)",
       row: {
         ...commandRow(),
         approvalStatus: "denied",
@@ -731,7 +731,7 @@ describe("buildTimelineRowTitle", () => {
     const title = buildTimelineRowTitle(row, DEFAULT_OPTIONS);
 
     expect(title.plain).toBe(
-      "Ran pnpm exec turbo run test --filter=@bb/app (2s, error)",
+      "Ran pnpm exec turbo run test --filter=@kaioken/app (2s, error)",
     );
     expect(title.tone).toBe("default");
   });
@@ -1262,7 +1262,7 @@ describe("buildTimelineRowTitle", () => {
 
     const title = buildTimelineRowTitle(row, DEFAULT_OPTIONS);
 
-    expect(title.plain).toBe("Ran pnpm exec turbo run test --filter=@bb/app");
+    expect(title.plain).toBe("Ran pnpm exec turbo run test --filter=@kaioken/app");
   });
 
   it("hides one-second turn durations", () => {

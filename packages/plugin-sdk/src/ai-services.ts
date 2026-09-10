@@ -1,5 +1,5 @@
 /**
- * `@get-bb/plugin-sdk/ai-services` — the contract between bb's AI-services
+ * `@get-kaioken/plugin-sdk/ai-services` — the contract between kaioken's AI-services
  * feature (server-side helper inference: thread titles, commit messages;
  * voice transcription) and a plugin that serves them from a host.
  *
@@ -7,7 +7,7 @@
  * `bb.experimental_aiServices.register({ id, displayName, kinds })` in its
  * `server.ts`, and implements the methods below in its `bb.host` entry
  * (`experimental_defineHostEntry({ contract: experimental_aiServicesHostContract, ... })`).
- * Core routes the user's configured `BB_INFERENCE` / `BB_TRANSCRIPTION`
+ * Core routes the user's configured `KAIOKEN_INFERENCE` / `KAIOKEN_TRANSCRIPTION`
  * (`<serviceId>/<model>`) to the plugin that registered `serviceId` and calls
  * the method on the primary host. The `serviceId` travels on every call so one
  * plugin can serve several services from one host entry.
@@ -18,7 +18,7 @@
  * the configured fallback model; auth failures do not).
  */
 import { z } from "zod";
-import { jsonObjectSchema } from "@bb/domain";
+import { jsonObjectSchema } from "@kaioken/domain";
 import { defineRpcContract } from "./rpc-contract.js";
 
 /** Why a call did not produce a result; core's retry policy keys on it. */

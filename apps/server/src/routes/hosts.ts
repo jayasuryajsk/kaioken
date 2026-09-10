@@ -1,11 +1,11 @@
-import { getNonDestroyedHost, updateHost } from "@bb/db";
+import { getNonDestroyedHost, updateHost } from "@kaioken/db";
 import {
   publicApiRoutes,
   typedRoutes,
   type PublicApiSchema,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type { Hono } from "hono";
-import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
+import { HOST_DAEMON_PROTOCOL_VERSION } from "@kaioken/host-daemon-contract";
 import type { AppDeps } from "../types.js";
 import { getProviderInstallations } from "../services/system/provider-installations.js";
 import { resolveBridgeLaunchForProviderId } from "../services/system/provider-bridge-launch.js";
@@ -81,7 +81,7 @@ async function revokeConnectMachineCredential(
   } catch (error) {
     deps.logger.error(
       { err: error, machineId },
-      "Host was removed locally, but its bb connect machine credential could not be revoked. Revoke this machine manually from the getbb.app dashboard.",
+      "Host was removed locally, but its kaioken connect machine credential could not be revoked. Revoke this machine manually from the getbb.app dashboard.",
     );
   }
 }

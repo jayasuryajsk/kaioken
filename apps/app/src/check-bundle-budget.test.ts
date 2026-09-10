@@ -65,7 +65,7 @@ async function runCheck(stats: BundleStats): Promise<{
   code: number;
   output: string;
 }> {
-  const dir = await mkdtemp(resolve(tmpdir(), "bb-bundle-budget-test-"));
+  const dir = await mkdtemp(resolve(tmpdir(), "kaioken-bundle-budget-test-"));
   const distDir = resolve(dir, "dist");
   await mkdir(distDir);
   await writeFile(resolve(dir, "bundle-stats.json"), JSON.stringify(stats));

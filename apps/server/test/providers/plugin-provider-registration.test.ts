@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   validatePluginProviderDeclaration,
   type NormalizedPluginProviderDeclaration,
-} from "@get-bb/plugin-sdk/internal/host-policy";
-import type { PluginProviderDeclaration } from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk/internal/host-policy";
+import type { PluginProviderDeclaration } from "@get-kaioken/plugin-sdk";
 import { buildPluginProviderRegistration } from "../../src/services/providers/plugin-provider-registration.js";
 import { loadFirstPartyProviderDeclarations } from "../helpers/provider-registry.js";
 
@@ -181,7 +181,7 @@ describe("buildPluginProviderRegistration", () => {
             },
           ],
         },
-        env: { passthrough: ["BB_MY_AGENT_EXECUTABLE"] },
+        env: { passthrough: ["KAIOKEN_MY_AGENT_EXECUTABLE"] },
         deriveProviderOptions: (context) => ({
           memory: context.settings.memoryEnabled !== false,
           plan: context.promptMode === "plan",
@@ -201,7 +201,7 @@ describe("buildPluginProviderRegistration", () => {
       }),
     ).toStrictEqual({ memory: false, plan: true, thread: "thr_1" });
     expect(registration.envPassthrough).toStrictEqual([
-      "BB_MY_AGENT_EXECUTABLE",
+      "KAIOKEN_MY_AGENT_EXECUTABLE",
     ]);
     expect(registration.fallbackModels).toStrictEqual([
       {

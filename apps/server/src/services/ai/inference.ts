@@ -1,10 +1,10 @@
 import { setTimeout as delay } from "node:timers/promises";
-import { SERVER_DIRECT_AI_SERVICE_IDS } from "@get-bb/plugin-sdk/internal/host-policy";
-import { jsonObjectSchema, type JsonObject, type JsonValue } from "@bb/domain";
+import { SERVER_DIRECT_AI_SERVICE_IDS } from "@get-kaioken/plugin-sdk/internal/host-policy";
+import { jsonObjectSchema, type JsonObject, type JsonValue } from "@kaioken/domain";
 import {
   parseProviderModelConfig,
   type ProviderModelInfo,
-} from "@bb/config/inference-model";
+} from "@kaioken/config/inference-model";
 import { validateToolCall } from "@earendil-works/pi-ai";
 import type { Static, TSchema, Tool, ToolCall } from "@earendil-works/pi-ai";
 import { builtinModels } from "@earendil-works/pi-ai/providers/all";
@@ -286,7 +286,7 @@ export async function inferenceComplete<T extends TSchema>(
   const configuredModel = args.model ?? deps.config.inferenceModel;
   const modelInfo = parseProviderModelConfig({
     name:
-      args.model === undefined ? "BB_INFERENCE" : "inference model override",
+      args.model === undefined ? "KAIOKEN_INFERENCE" : "inference model override",
     value: configuredModel,
   });
   if (

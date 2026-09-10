@@ -6,8 +6,8 @@ import {
   buildPluginHost,
   buildPluginServer,
   resolvePluginBuildToolchain,
-} from "@bb/plugin-build";
-import { isPluginOwnedIconPath, pluginPackageJsonSchema } from "@bb/domain";
+} from "@kaioken/plugin-build";
+import { isPluginOwnedIconPath, pluginPackageJsonSchema } from "@kaioken/domain";
 import { z } from "zod";
 import {
   BUNDLED_MARKETPLACE_FILENAME,
@@ -35,12 +35,12 @@ const bundledMarketplaceManifestPath = path.resolve(
   BUNDLED_MARKETPLACE_GENERATED_DIRECTORY,
   BUNDLED_MARKETPLACE_FILENAME,
 );
-const bbAppPackageJsonPath = path.resolve(
+const kaiokenAppPackageJsonPath = path.resolve(
   serverRoot,
   "..",
   "..",
   "packages",
-  "bb-app",
+  "kaioken-app",
   "package.json",
 );
 
@@ -58,17 +58,17 @@ async function exists(filePath: string): Promise<boolean> {
 async function readAuthoritativeBbVersion(): Promise<string> {
   try {
     const json: unknown = JSON.parse(
-      await readFile(bbAppPackageJsonPath, "utf8"),
+      await readFile(kaiokenAppPackageJsonPath, "utf8"),
     );
     const parsed = z.object({ version: z.string().min(1) }).safeParse(json);
     if (parsed.success) return parsed.data.version;
   } catch (error) {
     throw new Error(
-      `cannot read authoritative bb version from ${bbAppPackageJsonPath}: ${error instanceof Error ? error.message : String(error)}`,
+      `cannot read authoritative kaioken version from ${kaiokenAppPackageJsonPath}: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
   throw new Error(
-    `cannot read authoritative bb version from ${bbAppPackageJsonPath}`,
+    `cannot read authoritative kaioken version from ${kaiokenAppPackageJsonPath}`,
   );
 }
 
@@ -114,7 +114,7 @@ async function runStageAssets(sourceRoot: string): Promise<void> {
 }
 
 async function copyBuiltinPlugin(args: {
-  bbVersion: string;
+  kaiokenVersion: string;
   build: boolean;
   name: string;
   sourceRoot: string;
@@ -122,19 +122,19 @@ async function copyBuiltinPlugin(args: {
 }): Promise<void> {
   if (args.build) {
     const toolchain = await resolvePluginBuildToolchain(
-      path.join(serverRoot, "node_modules", ".bb-toolchain"),
+      path.join(serverRoot, "node_modules", ".kaioken-toolchain"),
     );
-    await buildPluginServer(args.sourceRoot, args.bbVersion, toolchain);
+    await buildPluginServer(args.sourceRoot, args.kaiokenVersion, toolchain);
     const raw = await readFile(
       path.join(args.sourceRoot, "package.json"),
       "utf8",
     );
     const packageJson = pluginPackageJsonSchema.parse(JSON.parse(raw));
     if (packageJson.bb.app !== undefined) {
-      await buildPluginApp(args.sourceRoot, args.bbVersion, toolchain);
+      await buildPluginApp(args.sourceRoot, args.kaiokenVersion, toolchain);
     }
     if (packageJson.bb.host !== undefined) {
-      await buildPluginHost(args.sourceRoot, args.bbVersion, toolchain);
+      await buildPluginHost(args.sourceRoot, args.kaiokenVersion, toolchain);
     }
     await runStageAssets(args.sourceRoot);
   }
@@ -188,7 +188,7 @@ async function copyBuiltinPlugin(args: {
 }
 
 export async function copyBuiltinPlugins(args: {
-  bbVersion: string;
+  kaiokenVersion: string;
   build?: boolean;
   plugins?: readonly Pick<BundledPluginDefinition, "name">[];
   sourceModuleDir?: string;
@@ -208,7 +208,7 @@ export async function copyBuiltinPlugins(args: {
 
   for (const plugin of plugins) {
     await copyBuiltinPlugin({
-      bbVersion: args.bbVersion,
+      kaiokenVersion: args.kaiokenVersion,
       build,
       name: plugin.name,
       sourceRoot: resolveBuiltinPluginRootPathForModuleDir({
@@ -225,7 +225,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const targetArg =
     targetFlagIndex !== -1 ? process.argv[targetFlagIndex + 1] : undefined;
   await copyBuiltinPlugins({
-    bbVersion: await readAuthoritativeBbVersion(),
+    kaiokenVersion: await readAuthoritativeBbVersion(),
     ...(targetArg !== undefined ? { targetRoot: path.resolve(targetArg) } : {}),
   });
 }

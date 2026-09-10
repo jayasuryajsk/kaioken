@@ -1,10 +1,10 @@
 import { Command } from "commander";
-import type { Host } from "@bb/domain";
+import type { Host } from "@kaioken/domain";
 import {
   UPDATE_STATE_PRESENTATION,
   type UpdateState,
-} from "@bb/domain/update-state";
-import type { HostProviderCliStatusResponse } from "@bb/server-contract";
+} from "@kaioken/domain/update-state";
+import type { HostProviderCliStatusResponse } from "@kaioken/server-contract";
 import { action } from "../action.js";
 import { createCliBbSdk } from "../client.js";
 import { renderBorderlessTable } from "../table.js";
@@ -152,11 +152,11 @@ export function registerUpdatesCommands(
 ): void {
   const updates = program
     .command("updates")
-    .description("Inspect and apply bb and provider CLI updates");
+    .description("Inspect and apply kaioken and provider CLI updates");
 
   updates
     .command("status", { isDefault: true })
-    .description("Show bb and provider CLI update status across machines")
+    .description("Show kaioken and provider CLI update status across machines")
     .option("--machine <id-or-name>", "Limit to one machine")
     .option("--json", "Print machine-readable JSON output")
     .action(
@@ -197,7 +197,7 @@ export function registerUpdatesCommands(
             ? `${version.currentVersion} -> ${version.latestVersion}`
             : version.currentVersion;
         printUpdatesTable({
-          appRow: ["bb-app", appVersionLabel, appState],
+          appRow: ["kaioken-app", appVersionLabel, appState],
           entries,
         });
       }),
@@ -234,7 +234,7 @@ export function registerUpdatesCommands(
           );
           console.log(
             hasManualUpdates
-              ? "No updates bb can apply. Run bb updates status for manual updates."
+              ? "No updates kaioken can apply. Run kaioken updates status for manual updates."
               : "Everything is up to date.",
           );
           return;

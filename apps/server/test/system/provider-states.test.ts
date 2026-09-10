@@ -1,4 +1,4 @@
-import type { ProviderHealth } from "@bb/host-daemon-contract";
+import type { ProviderHealth } from "@kaioken/host-daemon-contract";
 import { describe, expect, it } from "vitest";
 import { getProviderStates } from "../../src/services/system/provider-states.js";
 import { setPluginAgentContributions } from "../../src/services/plugins/plugin-agent-contributions.js";

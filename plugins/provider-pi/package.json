@@ -1,15 +1,15 @@
 {
-  "name": "bb-plugin-provider-pi",
+  "name": "kaioken-plugin-provider-pi",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Run bb threads with Pi.",
+  "description": "Run kaioken threads with Pi.",
   "engines": {
     "bb": ">=0.0"
   },
   "bb": {
     "name": "Pi provider",
-    "description": "Run bb threads with Pi.",
+    "description": "Run kaioken threads with Pi.",
     "branding": {
       "icon": "./icons/pi.svg"
     },
@@ -18,20 +18,20 @@
     "app": "./app.tsx"
   },
   "keywords": [
-    "bb-plugin"
+    "kaioken-plugin"
   ],
   "scripts": {
     "test": "vitest run --config vitest.config.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@bb/shared-ui": "workspace:*",
-    "@get-bb/plugin-sdk": "workspace:*",
+    "@kaioken/shared-ui": "workspace:*",
+    "@get-kaioken/plugin-sdk": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@bb/domain": "workspace:*",
-    "@bb/provider-bridge-protocol": "workspace:*",
+    "@kaioken/domain": "workspace:*",
+    "@kaioken/provider-bridge-protocol": "workspace:*",
     "@earendil-works/pi-ai": "0.84.0",
     "@earendil-works/pi-coding-agent": "0.84.0",
     "@testing-library/react": "^16.3.2",

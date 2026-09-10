@@ -6,7 +6,7 @@ import type {
   ProviderCommandSuggestion,
   PromptMentionSuggestion,
   TypeaheadMenuState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { orderPromptMentionSuggestions } from "@/hooks/promptMentionCandidates";
 import { StoryCard, StoryRow } from "../../../../.ladle/story-card";
 

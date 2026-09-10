@@ -29,18 +29,18 @@ describe("run-cli", () => {
       "thread",
       "list",
     ]);
-    expect(execution.env.BB_SERVER_URL).toBe(expectedDevServerUrl(repoRoot));
-    expect(execution.env.BB_HOST_DAEMON_PORT).toBe(
+    expect(execution.env.KAIOKEN_SERVER_URL).toBe(expectedDevServerUrl(repoRoot));
+    expect(execution.env.KAIOKEN_HOST_DAEMON_PORT).toBe(
       String(expectedDevPorts(repoRoot).hostDaemonPort),
     );
   });
 
-  it("keeps bb:dev independent of cli:prepare", async () => {
+  it("keeps kaioken:dev independent of cli:prepare", async () => {
     const packageJson = await import("../../../package.json", {
       with: { type: "json" },
     });
 
-    expect(packageJson.default.scripts["bb:dev"]).not.toContain("cli:prepare");
+    expect(packageJson.default.scripts["kaioken:dev"]).not.toContain("cli:prepare");
   });
 
   it("runs the built CLI in production mode", () => {
@@ -75,12 +75,12 @@ describe("run-cli", () => {
 
   it("lets explicit development CLI targets win", () => {
     vi.stubEnv("NODE_ENV", "development");
-    vi.stubEnv("BB_SERVER_URL", "http://localhost:4444");
-    vi.stubEnv("BB_HOST_DAEMON_PORT", "5555");
+    vi.stubEnv("KAIOKEN_SERVER_URL", "http://localhost:4444");
+    vi.stubEnv("KAIOKEN_HOST_DAEMON_PORT", "5555");
 
     const execution = resolveCliExecution(["status"]);
 
-    expect(execution.env.BB_SERVER_URL).toBe("http://localhost:4444");
-    expect(execution.env.BB_HOST_DAEMON_PORT).toBe("5555");
+    expect(execution.env.KAIOKEN_SERVER_URL).toBe("http://localhost:4444");
+    expect(execution.env.KAIOKEN_HOST_DAEMON_PORT).toBe("5555");
   });
 });

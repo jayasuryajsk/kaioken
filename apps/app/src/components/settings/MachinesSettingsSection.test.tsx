@@ -7,11 +7,11 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import type { Host } from "@bb/domain";
-import { makeHost } from "@bb/test-helpers/domain-fixtures";
-import { RETRY_ACTION_ICON } from "@bb/domain/update-state";
-import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
-import type { SystemConfigResponse } from "@bb/server-contract";
+import type { Host } from "@kaioken/domain";
+import { makeHost } from "@kaioken/test-helpers/domain-fixtures";
+import { RETRY_ACTION_ICON } from "@kaioken/domain/update-state";
+import { HOST_DAEMON_PROTOCOL_VERSION } from "@kaioken/host-daemon-contract";
+import type { SystemConfigResponse } from "@kaioken/server-contract";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sdk } from "@/lib/sdk";
@@ -485,7 +485,7 @@ describe("MachinesSettingsSection", () => {
     focusWithKeyboard(removeItem);
     expect(
       await screen.findByRole("tooltip", {
-        name: "bb's primary machine can't be removed.",
+        name: "kaioken's primary machine can't be removed.",
       }),
     ).toBeDefined();
     fireEvent.click(removeItem);

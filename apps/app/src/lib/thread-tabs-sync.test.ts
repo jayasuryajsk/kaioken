@@ -1,4 +1,4 @@
-import type { ThreadTab } from "@bb/server-contract";
+import type { ThreadTab } from "@kaioken/server-contract";
 import { describe, expect, it } from "vitest";
 import { createEmptyFixedPanelTabsState } from "./fixed-panel-tabs-state";
 import { createPluginPageFixedPanelTab } from "./fixed-panel-tabs-state";

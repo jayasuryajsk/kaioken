@@ -1,7 +1,7 @@
 export const DEFAULT_CONNECT_BASE_URL = "https://getbb.app";
 
 export function resolveDefaultConnectBaseUrl(env: NodeJS.ProcessEnv): string {
-  const configured = env.BB_DEV_CONNECT_BASE_URL?.trim();
+  const configured = env.KAIOKEN_DEV_CONNECT_BASE_URL?.trim();
   if (env.NODE_ENV !== "development" || !configured) {
     return DEFAULT_CONNECT_BASE_URL;
   }
@@ -11,12 +11,12 @@ export function resolveDefaultConnectBaseUrl(env: NodeJS.ProcessEnv): string {
     url = new URL(configured);
   } catch {
     throw new Error(
-      "BB_DEV_CONNECT_BASE_URL must be an http://bb.localhost:<port> origin",
+      "KAIOKEN_DEV_CONNECT_BASE_URL must be an http://kaioken.localhost:<port> origin",
     );
   }
   if (
     url.protocol !== "http:" ||
-    url.hostname !== "bb.localhost" ||
+    url.hostname !== "kaioken.localhost" ||
     url.port.length === 0 ||
     url.username.length > 0 ||
     url.password.length > 0 ||
@@ -25,7 +25,7 @@ export function resolveDefaultConnectBaseUrl(env: NodeJS.ProcessEnv): string {
     url.hash.length > 0
   ) {
     throw new Error(
-      "BB_DEV_CONNECT_BASE_URL must be an http://bb.localhost:<port> origin",
+      "KAIOKEN_DEV_CONNECT_BASE_URL must be an http://kaioken.localhost:<port> origin",
     );
   }
   return url.origin;

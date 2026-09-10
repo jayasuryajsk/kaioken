@@ -6,7 +6,7 @@ import {
   type PromptInput,
   type ThreadChangedMessage,
   type ThreadQueuedMessage,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   createQueuedMessageRequestSchema,
   pingMessageSchema,
@@ -21,7 +21,7 @@ import {
   type ThreadQueuedMessageListResponse,
   type ThreadTabsResponse,
   type ThreadTimelineResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { z } from "zod";
 import configFixture from "./fixtures/system-config.json" with { type: "json" };
 import { PROVIDERS, SYSTEM_EXECUTION_OPTIONS } from "./fixtures/providers.js";
@@ -98,7 +98,7 @@ function notImplemented(method: string, path: string): Response {
     {
       error: {
         code: "not_implemented",
-        message: `The bb demo server does not implement ${method} ${path}. This server exists for App Store review and product demos; it serves fixed data and runs nothing.`,
+        message: `The kaioken demo server does not implement ${method} ${path}. This server exists for App Store review and product demos; it serves fixed data and runs nothing.`,
       },
     },
     501,

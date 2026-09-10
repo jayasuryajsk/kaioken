@@ -3,13 +3,13 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ThreadEvent, ToolCallResponse } from "@bb/domain";
+import type { ThreadEvent, ToolCallResponse } from "@kaioken/domain";
 import { createProviderForId } from "./provider-registry.js";
 import { handleRuntimeProviderRequest } from "./runtime-provider-requests.js";
 import {
   parseJsonRpcLine,
   type JsonRpcMessage,
-} from "@bb/provider-bridge-protocol/bridge-kit";
+} from "@kaioken/provider-bridge-protocol/bridge-kit";
 import { promptTextInput } from "./test/prompt-input.js";
 import {
   createScriptedEchoLaunch,
@@ -45,7 +45,7 @@ describe("createAgentRuntime tool calls", () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), "bb-runtime-test-"));
+    tmpDir = mkdtempSync(join(tmpdir(), "kaioken-runtime-test-"));
   });
 
   afterEach(() => {
@@ -296,7 +296,7 @@ describe("createAgentRuntime tool calls", () => {
     }
   });
 
-  it("rejects tool calls whose BB thread hint disagrees with the provider-thread mapping", async () => {
+  it("rejects tool calls whose Kaioken thread hint disagrees with the provider-thread mapping", async () => {
     const toolCalls: string[] = [];
     const events: ThreadEvent[] = [];
     const runtime = createScriptedEchoRuntime({

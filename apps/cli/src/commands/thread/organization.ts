@@ -1,11 +1,11 @@
 import { Command } from "commander";
-import { updateThreadTabsRequestSchema } from "@bb/server-contract";
+import { updateThreadTabsRequestSchema } from "@kaioken/server-contract";
 import {
   queuedMessageWaitHolderSchema,
   type PromptInput,
   type QueuedMessageWaitHolder,
-} from "@bb/domain";
-import type { ThreadQueuedMessagesResult } from "@bb/sdk";
+} from "@kaioken/domain";
+import type { ThreadQueuedMessagesResult } from "@kaioken/sdk";
 import { renderBorderlessTable } from "../../table.js";
 import { describeQueueWait } from "./actions.js";
 import { formatQueueSendCountdown } from "./send-time.js";
@@ -290,7 +290,7 @@ export function registerOrganizationCommands(
     parent
       .command(`${name} [id]`)
       .description(`Mark a thread ${name}`)
-      .option("--self", "Target the current thread (from BB_THREAD_ID)")
+      .option("--self", "Target the current thread (from KAIOKEN_THREAD_ID)")
       .option("--json", "Print machine-readable JSON output")
       .action(
         action(async (id: string | undefined, opts: SelfOptions) => {

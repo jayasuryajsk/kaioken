@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { PluginSidebarThread } from "@get-bb/plugin-sdk/app";
+import type { PluginSidebarThread } from "@get-kaioken/plugin-sdk/app";
 import {
   loadPluginApp,
   mountPluginContentScripts,
   renderSlot,
-} from "@get-bb/plugin-sdk/testing/app";
+} from "@get-kaioken/plugin-sdk/testing/app";
 
 afterEach(() => {
   cleanup();

@@ -11,7 +11,7 @@ import {
   migrate,
   upsertInstalledPlugin,
   type DbConnection,
-} from "@bb/db";
+} from "@kaioken/db";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createPluginCatalogService } from "../../../src/services/plugin-catalog/plugin-catalog-service.js";
 import type { MarketplaceFetch } from "../../../src/services/plugin-catalog/marketplace-http.js";
@@ -83,7 +83,7 @@ describe("third-party marketplaces", () => {
     db = createConnection(":memory:");
     migrate(db);
     installedCatalogEntries = [];
-    dataDir = await mkdtemp(join(tmpdir(), "bb-marketplace-data-"));
+    dataDir = await mkdtemp(join(tmpdir(), "kaioken-marketplace-data-"));
     cleanup.push(dataDir);
   });
 
@@ -162,7 +162,7 @@ describe("third-party marketplaces", () => {
     plugins: unknown[];
     icon?: Buffer;
   }): Promise<string> {
-    const repo = await mkdtemp(join(tmpdir(), "bb-marketplace-repo-"));
+    const repo = await mkdtemp(join(tmpdir(), "kaioken-marketplace-repo-"));
     cleanup.push(repo);
     await run("git", ["init", "-q", "-b", "main"], { cwd: repo });
     await run("git", ["config", "user.email", "test@example.com"], {
@@ -275,7 +275,7 @@ describe("third-party marketplaces", () => {
   });
 
   it("reads a path marketplace and its icons in place", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "bb-marketplace-dir-"));
+    const directory = await mkdtemp(join(tmpdir(), "kaioken-marketplace-dir-"));
     cleanup.push(directory);
     await mkdir(join(directory, "icons"), { recursive: true });
     await writeFile(join(directory, "icons", "notes.svg"), VALID_SVG);
@@ -365,11 +365,11 @@ describe("third-party marketplaces", () => {
           entry({
             id: "notes",
             displayName: "Official Notes",
-            source: { npm: { package: "bb-plugin-notes" } },
+            source: { npm: { package: "kaioken-plugin-notes" } },
           }),
         ]),
         [ACME_URL]: manifest("acme-plugins", [
-          entry({ source: { npm: { package: "bb-plugin-notes" } } }),
+          entry({ source: { npm: { package: "kaioken-plugin-notes" } } }),
         ]),
       }),
     });
@@ -387,7 +387,7 @@ describe("third-party marketplaces", () => {
         marketplace: "acme-plugins",
         confirmedSource: {
           kind: "npm",
-          package: "bb-plugin-notes",
+          package: "kaioken-plugin-notes",
           resolvedVersion: "1.4.2",
           resolvedIntegrity: "sha512-listed",
         },
@@ -398,7 +398,7 @@ describe("third-party marketplaces", () => {
         marketplace: "acme-plugins",
         entryId: "notes",
         pluginId: "notes",
-        source: "npm:bb-plugin-notes",
+        source: "npm:kaioken-plugin-notes",
         selection: { kind: "root" },
         expectedNpmVersion: "1.4.2",
         expectedNpmIntegrity: "sha512-listed",
@@ -441,7 +441,7 @@ describe("third-party marketplaces", () => {
       fetch: marketplaceFetch({
         [OFFICIAL_URL]: manifest("bb-community", []),
         [ACME_URL]: manifest("acme-plugins", [
-          entry({ source: { npm: { package: "bb-plugin-notes" } } }),
+          entry({ source: { npm: { package: "kaioken-plugin-notes" } } }),
         ]),
       }),
     });
@@ -453,7 +453,7 @@ describe("third-party marketplaces", () => {
         entryId: "notes",
         confirmedSource: {
           kind: "npm",
-          package: "bb-plugin-notes",
+          package: "kaioken-plugin-notes",
           resolvedVersion: "1.4.2",
           resolvedIntegrity: "sha512-listed",
         },
@@ -466,7 +466,7 @@ describe("third-party marketplaces", () => {
   });
 
   it("refuses a third-party source that changed after confirmation", async () => {
-    let packageName = "bb-plugin-notes";
+    let packageName = "kaioken-plugin-notes";
     const catalog = service({
       fetch: async (url) =>
         url === ACME_URL
@@ -484,7 +484,7 @@ describe("third-party marketplaces", () => {
     });
     if (plan.kind !== "marketplace") throw new Error("expected a listing");
 
-    packageName = "bb-plugin-notes-impostor";
+    packageName = "kaioken-plugin-notes-impostor";
     await catalog.refreshMarketplaces({ name: "acme-plugins" });
 
     await expect(
@@ -692,7 +692,7 @@ describe("third-party marketplaces", () => {
 
   describe("install plans", () => {
     it("resolves a third-party git range to its current tag and commit", async () => {
-      const repo = await mkdtemp(join(tmpdir(), "bb-plugin-repo-"));
+      const repo = await mkdtemp(join(tmpdir(), "kaioken-plugin-repo-"));
       cleanup.push(repo);
       await run("git", ["init", "-q", "-b", "main"], { cwd: repo });
       await run("git", ["config", "user.email", "test@example.com"], {
@@ -710,7 +710,7 @@ describe("third-party marketplaces", () => {
       const expected = (
         await run("git", ["rev-parse", "notes/v1.2.0"], { cwd: repo })
       ).stdout.trim();
-      const listedUrl = "https://acme.test/bb-plugins.git";
+      const listedUrl = "https://acme.test/kaioken-plugins.git";
       await useGitUrlRewrite(listedUrl, repo);
 
       const catalog = service({
@@ -796,7 +796,7 @@ describe("third-party marketplaces", () => {
             entry({
               source: {
                 npm: {
-                  package: "bb-plugin-notes",
+                  package: "kaioken-plugin-notes",
                   tag: "beta",
                   registry: "https://npm.acme.test",
                 },
@@ -813,10 +813,10 @@ describe("third-party marketplaces", () => {
       });
       expect(plan).toMatchObject({
         kind: "marketplace",
-        source: "npm:bb-plugin-notes@beta",
+        source: "npm:kaioken-plugin-notes@beta",
         resolvedSource: {
           kind: "npm",
-          package: "bb-plugin-notes",
+          package: "kaioken-plugin-notes",
           tag: "beta",
           registry: "https://npm.acme.test",
         },
@@ -831,7 +831,7 @@ describe("third-party marketplaces", () => {
               id: "official-notes",
               source: {
                 git: {
-                  url: "https://github.invalid/bb/plugins.git",
+                  url: "https://github.invalid/kaioken/plugins.git",
                   range: "^1.0.0",
                 },
               },
@@ -848,7 +848,7 @@ describe("third-party marketplaces", () => {
         official: true,
         resolvedSource: {
           kind: "git",
-          url: "https://github.invalid/bb/plugins.git",
+          url: "https://github.invalid/kaioken/plugins.git",
           range: "^1.0.0",
         },
       });
@@ -862,7 +862,7 @@ describe("third-party marketplaces", () => {
   });
 
   it("refuses an oversize local manifest before reading it", async () => {
-    const directory = await mkdtemp(join(tmpdir(), "bb-marketplace-big-"));
+    const directory = await mkdtemp(join(tmpdir(), "kaioken-marketplace-big-"));
     cleanup.push(directory);
     const padded = manifest("acme-plugins", [
       entry({ description: "x".repeat(1_100_000) }),
@@ -881,7 +881,7 @@ describe("third-party marketplaces", () => {
 
   it("binds an npm install to the exact version it confirmed", async () => {
     const npmEntry = entry({
-      source: { npm: { package: "bb-plugin-notes", range: "^1.0.0" } },
+      source: { npm: { package: "kaioken-plugin-notes", range: "^1.0.0" } },
     });
     let resolvedVersion = "1.4.2";
     const catalog = service({
@@ -905,7 +905,7 @@ describe("third-party marketplaces", () => {
       kind: "marketplace",
       resolvedSource: {
         kind: "npm",
-        package: "bb-plugin-notes",
+        package: "kaioken-plugin-notes",
         range: "^1.0.0",
         resolvedVersion: "1.4.2",
         resolvedIntegrity: "sha512-1.4.2",
@@ -947,7 +947,7 @@ describe("third-party marketplaces", () => {
 
   it("refuses an npm install whose version cannot be resolved", async () => {
     const npmEntry = entry({
-      source: { npm: { package: "bb-plugin-notes", tag: "beta" } },
+      source: { npm: { package: "kaioken-plugin-notes", tag: "beta" } },
     });
     const catalog = service({
       fetch: marketplaceFetch({
@@ -988,7 +988,7 @@ describe("third-party marketplaces", () => {
         [OFFICIAL_URL]: manifest("bb-community", []),
         [ACME_URL]: manifest("acme-plugins", [
           entry({
-            source: { npm: { package: "bb-plugin-notes", range: "^1.0.0" } },
+            source: { npm: { package: "kaioken-plugin-notes", range: "^1.0.0" } },
           }),
         ]),
       }),
@@ -1050,7 +1050,7 @@ describe("third-party marketplaces", () => {
     expect(getPluginMarketplace(db, "a".repeat(65))).toBeUndefined();
   });
 
-  it("refuses a marketplace source bb cannot interpret", async () => {
+  it("refuses a marketplace source kaioken cannot interpret", async () => {
     const catalog = service({ fetch: marketplaceFetch({}) });
     await expect(catalog.addMarketplace("acme/marketplace")).rejects.toThrow(
       /expected "https:/u,

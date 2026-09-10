@@ -1,7 +1,7 @@
-import { Icon } from "@bb/shared-ui/icon";
-import { COARSE_POINTER_TEXT_SM_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { LIST_HOVER_TRANSITION } from "@bb/shared-ui/motion";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { COARSE_POINTER_TEXT_SM_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { LIST_HOVER_TRANSITION } from "@kaioken/shared-ui/motion";
 import type { ReactNode } from "react";
 import { CONTEXT_SELECTION_SURFACE_CLASS } from "./context-selection";
 

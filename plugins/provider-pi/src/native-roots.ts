@@ -1,10 +1,10 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import type { PluginProviderDeclaration } from "@get-bb/plugin-sdk";
+import type { PluginProviderDeclaration } from "@get-kaioken/plugin-sdk";
 import {
   experimental_filterResolvedNativeRoots,
   type ExperimentalNativeRootsResolveAnswer,
-} from "@get-bb/plugin-sdk/host";
+} from "@get-kaioken/plugin-sdk/host";
 import { z } from "zod";
 
 export const PI_NATIVE_ROOTS_DECLARATION: Pick<

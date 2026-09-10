@@ -1,4 +1,4 @@
-import type { NormalizedPluginEnvironmentProvider } from "@get-bb/plugin-sdk/internal/host-policy";
+import type { NormalizedPluginEnvironmentProvider } from "@get-kaioken/plugin-sdk/internal/host-policy";
 import type { PluginHookInvocation } from "./plugin-hook-registry.js";
 
 export interface PluginEnvironmentProviderRecord {

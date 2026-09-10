@@ -2,7 +2,7 @@ import { Buffer } from "node:buffer";
 import type {
   ExperimentalAiVoiceTranscribeInput,
   ExperimentalAiVoiceTranscribeOutput,
-} from "@get-bb/plugin-sdk/ai-services";
+} from "@get-kaioken/plugin-sdk/ai-services";
 import { describe, expect, it, vi } from "vitest";
 import { ApiError } from "../../src/errors.js";
 import {

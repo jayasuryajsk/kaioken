@@ -4,8 +4,8 @@ import {
   reasoningLevelSchema,
   reasoningLevelValues,
   type ReasoningLevel,
-} from "@bb/domain";
-import type { CommitActionResponse } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { CommitActionResponse } from "@kaioken/server-contract";
 import type { ResolvedId } from "../context-env.js";
 
 export {

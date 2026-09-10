@@ -1,13 +1,13 @@
 # Workflows built-in plugin
 
 Workflows is an opt-in built-in plugin (`builtin:workflows`) and is disabled on
-fresh BB installations. It runs provider-independent JavaScript orchestration
-inside QuickJS while delegating actual reasoning to ordinary BB threads.
+fresh Kaioken installations. It runs provider-independent JavaScript orchestration
+inside QuickJS while delegating actual reasoning to ordinary Kaioken threads.
 
 The author-facing native surface is intentionally one tool:
 `bb_workflow_run`. Validation, inspection, listing, and cancellation use the
-`bb workflows` CLI documented below. Provider and model discovery uses BB's
-built-in `bb provider` commands. Structured workers separately
+`kaioken workflows` CLI documented below. Provider and model discovery uses Kaioken's
+built-in `kaioken provider` commands. Structured workers separately
 receive only `bb_workflow_result`; ordinary authoring agents never receive that
 worker tool.
 
@@ -21,20 +21,20 @@ A successful `bb_workflow_run` result includes a trusted
 ```
 
 The authoring agent emits that returned value exactly once on a standalone
-line. BB replaces the directive with a compact live run card in chat. The card
+line. Kaioken replaces the directive with a compact live run card in chat. The card
 shows run state, declared phases, the active phase's workers, elapsed time, and
 an action that opens the full workflow inspector in the thread's right panel.
 While a thread has queued or running workflows, the plugin also contributes a
 status card above that thread's composer. It lists every active run with its
 current phase and agent-call progress and lets the user stop a run in place;
 the card disappears when the thread has no active runs.
-The panel shows every phase and worker, links attached workers to their BB
+The panel shows every phase and worker, links attached workers to their Kaioken
 threads, reports cache and result state, and can stop an active run. It may also
 be opened directly from the thread panel action, in which case it shows that
 thread's latest run.
 
-Both surfaces are implemented by the plugin app with `@bb/shared-ui` controls
-and BB theme tokens. Directive attributes and restored panel parameters are
+Both surfaces are implemented by the plugin app with `@kaioken/shared-ui` controls
+and Kaioken theme tokens. Directive attributes and restored panel parameters are
 treated as untrusted input. The backend additionally binds every requested run
 to the directive message or panel thread, so a run ID from another thread
 cannot be inspected or stopped through these UI RPCs. The service publishes a
@@ -72,10 +72,10 @@ Workflow input follows the native Claude source modes: provide exactly one of
 an inline `script`, a workspace `scriptPath`, or a workflow `name`. The older
 `source` field remains an explicit alias for inline `script`; `script` and
 `source` cannot be supplied together. Name lookup is project-local at
-`.bb/workflows/<name>.js`. There is no plugin-bundled workflow discovery.
+`.kaioken/workflows/<name>.js`. There is no plugin-bundled workflow discovery.
 
 File and name sources are resolved on the workflow origin environment's host,
-not on the bb server machine. BB reads them through the environment `hostId`
+not on the kaioken server machine. Kaioken reads them through the environment `hostId`
 with `rootPath` confinement to its workspace. Traversal and outside absolute or
 UNC paths, missing workspace roots, non-UTF-8 content, and sources larger than
 512 KiB are rejected. QuickJS receives only the resolved source text and never
@@ -104,7 +104,7 @@ Worker output is either the final assistant text or an Ajv-validated value
 submitted through `bb_workflow_result`. Structured workers receive two
 corrective retries after their initial invalid attempt.
 
-Workflow workers use BB's generic hidden-thread visibility. They remain
+Workflow workers use Kaioken's generic hidden-thread visibility. They remain
 out of sidebar organization without contributing unread/pending favicon
 attention. Retention archives them when it deletes their run, because a
 stopped worker keeps its thread row and no server cascade reaches a root
@@ -116,7 +116,7 @@ temporary Workflow folder.
 
 Workflows may invoke one child workflow level with
 `workflow(nameOrRef, args)`. A string and `{ name }` resolve under
-`.bb/workflows`, `{ scriptPath }` uses the same origin-workspace confinement as
+`.kaioken/workflows`, `{ scriptPath }` uses the same origin-workspace confinement as
 top-level runs, and `{ script }` is inline source. Each child is parsed,
 schema-validated, and evaluated in a separate QuickJS VM. Parent and child VMs
 share one FIFO agent scheduler, call budget, cancellation signal, replay order,
@@ -156,26 +156,26 @@ capped exponential backoff. Status exposes notification outcome as `pending`,
 Useful checks:
 
 ```bash
-pnpm exec turbo run typecheck --filter=bb-plugin-workflows
-pnpm exec turbo run test --filter=bb-plugin-workflows --force
-bb plugin build plugins/workflows
+pnpm exec turbo run typecheck --filter=kaioken-plugin-workflows
+pnpm exec turbo run test --filter=kaioken-plugin-workflows --force
+kaioken plugin build plugins/workflows
 ```
 
-User-facing commands (run these from a BB project thread) are:
+User-facing commands (run these from a Kaioken project thread) are:
 
 ```bash
-bb workflows validate --script '<javascript>'
-bb workflows validate --file .bb/workflows/review.js
-bb workflows validate --name review
-bb workflows run --script '<javascript>' --args '<json>'
-bb workflows run --file .bb/workflows/review.js --resume <run-id>
-bb workflows run --name review
-bb workflows status <run-id>
-bb workflows history <run-id> --cursor 0 --limit 100
-bb workflows list --limit 20
-bb workflows stop <run-id>
-bb provider list --environment "$BB_ENVIRONMENT_ID" --json
-bb provider models <provider-id> --environment "$BB_ENVIRONMENT_ID" --json
+kaioken workflows validate --script '<javascript>'
+kaioken workflows validate --file .kaioken/workflows/review.js
+kaioken workflows validate --name review
+kaioken workflows run --script '<javascript>' --args '<json>'
+kaioken workflows run --file .kaioken/workflows/review.js --resume <run-id>
+kaioken workflows run --name review
+kaioken workflows status <run-id>
+kaioken workflows history <run-id> --cursor 0 --limit 100
+kaioken workflows list --limit 20
+kaioken workflows stop <run-id>
+kaioken provider list --environment "$BB_ENVIRONMENT_ID" --json
+kaioken provider models <provider-id> --environment "$BB_ENVIRONMENT_ID" --json
 ```
 
 `status` is deliberately bounded: it returns run state, phase, call counts,
@@ -192,7 +192,7 @@ transcript:
 ```bash
 run=<run-id>
 mkdir -p "$BB_THREAD_STORAGE/workflows"
-bb workflows history "$run" --cursor 0 --limit 100 \
+kaioken workflows history "$run" --cursor 0 --limit 100 \
   > "$BB_THREAD_STORAGE/workflows/$run.jsonl"
 ```
 
@@ -211,7 +211,7 @@ same flow therefore works for local and remote environments without granting
 the server arbitrary filesystem-write access.
 
 Before selecting an explicit provider tuple, query only the relevant provider
-with BB's built-in commands above. Never infer ACP model IDs from a provider
+with Kaioken's built-in commands above. Never infer ACP model IDs from a provider
 name: for example, an ACP provider can advertise `grok-4.5` even though neither
 that model ID nor its reasoning options can be derived from `acp-grok`.
 
@@ -228,7 +228,7 @@ directory. That directory and the final path must both remain inside the
 origin environment workspace; absolute and traversal escapes are rejected.
 Relative agent-tool `scriptPath` values remain rooted at the workspace root.
 
-Agent options accept native `label`, `phase`, and `schema` alongside BB's
+Agent options accept native `label`, `phase`, and `schema` alongside Kaioken's
 existing `title` and `outputSchema`. `label` resolves to canonical `title`, and
 `schema` resolves to canonical `outputSchema`. Both spellings of an alias may
 be provided only when structurally identical; schema object key order is

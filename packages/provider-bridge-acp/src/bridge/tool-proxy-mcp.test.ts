@@ -90,7 +90,7 @@ async function connectLikeOpenCode(port: number): Promise<Client> {
     if (value !== undefined) env[key] = value;
   }
   for (const { name, value } of config.env) env[name] = value;
-  env.BB_ACP_DYNAMIC_TOOL_PROGRESS_INTERVAL_MS = "200";
+  env.KAIOKEN_ACP_DYNAMIC_TOOL_PROGRESS_INTERVAL_MS = "200";
   const transport = new StdioClientTransport({
     command: config.command,
     args: config.args,
@@ -100,13 +100,13 @@ async function connectLikeOpenCode(port: number): Promise<Client> {
   const client = new Client({ name: "opencode-like", version: "0" });
   await client.connect(transport);
   transport.stderr?.on("data", (chunk: Buffer) => {
-    process.stderr.write(`[bb-bridge mcp] ${chunk.toString()}`);
+    process.stderr.write(`[kaioken-bridge mcp] ${chunk.toString()}`);
   });
   cleanups.push(() => client.close());
   return client;
 }
 
-describe("bb-bridge MCP server keeps long tool calls alive", () => {
+describe("kaioken-bridge MCP server keeps long tool calls alive", () => {
   it("sends progress notifications so an OpenCode-style client does not time out while the user answers", async () => {
     const fakeBridge = await listenFakeBridge({ responseDelayMs: 2_500 });
     const client = await connectLikeOpenCode(fakeBridge.port);

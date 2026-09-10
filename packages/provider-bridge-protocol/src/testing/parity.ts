@@ -9,7 +9,7 @@ import {
 import { tmpdir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ThreadEvent } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
 import { readBoundedLines } from "../bridge-kit/bounded-line-reader.js";
 import type { BridgeRecordingEntry } from "../bridge-kit/bridge-recorder.js";
 import { PROVIDER_BRIDGE_PROTOCOL_VERSION } from "../version.js";
@@ -102,7 +102,7 @@ export function resolveProviderBridgeLaunch(
   const bootstrapPath =
     options.bootstrapPath ?? resolveProviderBridgeBootstrapPath();
   const dataDir =
-    options.dataDir ?? mkdtempSync(join(tmpdir(), "bb-parity-data-"));
+    options.dataDir ?? mkdtempSync(join(tmpdir(), "kaioken-parity-data-"));
   return {
     command: process.execPath,
     args: [
@@ -327,9 +327,9 @@ export async function replayRecording(
   const profile = options.profile ?? DEFAULT_REPLAY_PROFILE;
   const recording = readBridgeRecording(options.recordingDir);
 
-  const stateDir = mkdtempSync(join(tmpdir(), "bb-parity-replay-"));
+  const stateDir = mkdtempSync(join(tmpdir(), "kaioken-parity-replay-"));
   const workspaceDir = realpathSync(
-    mkdtempSync(join(tmpdir(), "bb-parity-ws-")),
+    mkdtempSync(join(tmpdir(), "kaioken-parity-ws-")),
   );
   const replayCommand = [
     process.execPath,
@@ -545,7 +545,7 @@ export async function replayRecording(
       method: "initialize",
       params: {
         protocolVersion: PROVIDER_BRIDGE_PROTOCOL_VERSION,
-        client: { name: "bb-parity", version: "0" },
+        client: { name: "kaioken-parity", version: "0" },
       },
     }),
   );

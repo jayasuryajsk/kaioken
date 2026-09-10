@@ -26,7 +26,7 @@ const FIXTURE_ARTIFACT_DIGEST = createHash("sha256")
   .digest("hex");
 
 function createFixture(): { binDir: string; dataDir: string; homeDir: string } {
-  const root = mkdtempSync(join(tmpdir(), "bb-install-script-test-"));
+  const root = mkdtempSync(join(tmpdir(), "kaioken-install-script-test-"));
   createdDirectories.push(root);
   const binDir = join(root, "bin");
   const dataDir = join(root, "data");
@@ -52,7 +52,7 @@ function createScriptEnv(
 ): NodeJS.ProcessEnv {
   return {
     ...process.env,
-    BB_DATA_DIR: fixture.dataDir,
+    KAIOKEN_DATA_DIR: fixture.dataDir,
     HOME: fixture.homeDir,
     PATH: [fixture.binDir, "/usr/bin", "/bin"].join(delimiter),
     ...env,
@@ -138,7 +138,7 @@ const option = (name) => {
   return index === -1 ? undefined : cliArgs[index + 1];
 };
 ${recordInvocation}
-const dataDir = process.env.BB_DATA_DIR;
+const dataDir = process.env.KAIOKEN_DATA_DIR;
 const hostId = ${JSON.stringify(args.hostId)};
 const port = Number(option("--host-daemon-port"));
 const serverUrl = option("--server-url");
@@ -199,9 +199,9 @@ case "$*" in
 esac
 `,
   );
-  const bbAppTemplatePath = join(fixture.dataDir, "bb-app-template");
+  const kaiokenAppTemplatePath = join(fixture.dataDir, "kaioken-app-template");
   writeExecutable(
-    bbAppTemplatePath,
+    kaiokenAppTemplatePath,
     createEnrollingBbAppScript({ hostId: "host-test" }),
   );
   writeExecutable(
@@ -214,16 +214,16 @@ while [ "$#" -gt 0 ]; do
 done
 [ -n "$prefix" ] || exit 2
 mkdir -p "$prefix/bin"
-cp "${bbAppTemplatePath}" "$prefix/bin/bb-app"
-chmod +x "$prefix/bin/bb-app"
-cp "${bbAppTemplatePath}" "$prefix/bin/bb"
-chmod +x "$prefix/bin/bb"
-mkdir -p "$prefix/lib/node_modules/bb-app/host-daemon/dist"
-printf '%s\n' 'fixture' >"$prefix/lib/node_modules/bb-app/host-daemon/dist/daemon-bundle.mjs"
+cp "${kaiokenAppTemplatePath}" "$prefix/bin/kaioken-app"
+chmod +x "$prefix/bin/kaioken-app"
+cp "${kaiokenAppTemplatePath}" "$prefix/bin/kaioken"
+chmod +x "$prefix/bin/kaioken"
+mkdir -p "$prefix/lib/node_modules/kaioken-app/host-daemon/dist"
+printf '%s\n' 'fixture' >"$prefix/lib/node_modules/kaioken-app/host-daemon/dist/daemon-bundle.mjs"
 for module in node-pty @parcel/watcher; do
-  mkdir -p "$prefix/lib/node_modules/bb-app/node_modules/$module"
+  mkdir -p "$prefix/lib/node_modules/kaioken-app/node_modules/$module"
   if [ -z "$FAKE_NPM_SKIP_NATIVE_MODULES" ]; then
-    printf '%s\n' 'module.exports = {};' >"$prefix/lib/node_modules/bb-app/node_modules/$module/index.js"
+    printf '%s\n' 'module.exports = {};' >"$prefix/lib/node_modules/kaioken-app/node_modules/$module/index.js"
   fi
 done
 `,
@@ -237,7 +237,7 @@ function writeEnrollingBbApp(
   statusServerUrl?: string,
 ): void {
   writeExecutable(
-    join(fixture.binDir, "bb-app"),
+    join(fixture.binDir, "kaioken-app"),
     createEnrollingBbAppScript({ hostId, invocationPath, statusServerUrl }),
   );
 }
@@ -316,13 +316,13 @@ describe("machine install script", () => {
     expect(result.stderr).not.toContain("TypeError");
   });
 
-  it("uses bb-app from PATH and passes the launcher join flags verbatim", () => {
+  it("uses kaioken-app from PATH and passes the launcher join flags verbatim", () => {
     const fixture = createFixture();
     const invocationPath = join(fixture.dataDir, "invocation");
     writeCurlArtifactMock(fixture, 404);
     writeEnrollingBbApp(fixture, invocationPath);
     const result = runScript(JOIN_ARGS, fixture, {
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
     });
 
     expect(
@@ -361,7 +361,7 @@ describe("machine install script", () => {
     writeJoinedState(fixture);
 
     const result = runScript(JOIN_ARGS, fixture, {
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
     });
 
     expect(result.status, result.stderr).toBe(0);
@@ -403,7 +403,7 @@ describe("machine install script", () => {
         "http://localhost:20101",
       ],
       fixture,
-      { BB_INSTALL_SKIP_SERVICE: "1" },
+      { KAIOKEN_INSTALL_SKIP_SERVICE: "1" },
     );
 
     expect(result.status, result.stderr).toBe(0);
@@ -413,12 +413,12 @@ describe("machine install script", () => {
     process.kill(daemonPid, "SIGTERM");
   });
 
-  it("installs the server tarball even when a same-version bb-app is on PATH", () => {
+  it("installs the server tarball even when a same-version kaioken-app is on PATH", () => {
     const fixture = createFixture();
     writeServerInstallTools(fixture, 200);
-    writeExecutable(join(fixture.binDir, "bb-app"), "#!/bin/sh\nexit 99\n");
+    writeExecutable(join(fixture.binDir, "kaioken-app"), "#!/bin/sh\nexit 99\n");
     const result = runScript(JOIN_ARGS, fixture, {
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
     });
 
     expect(result.status, result.stderr).toBe(0);
@@ -427,7 +427,7 @@ describe("machine install script", () => {
       "utf8",
     );
     expect(npmInvocation).toMatch(
-      /^install -g --allow-scripts=better-sqlite3,node-pty,@parcel\/watcher --prefix \/.*\/data\/npm \/.*bb-app\..*\.tgz$/mu,
+      /^install -g --allow-scripts=better-sqlite3,node-pty,@parcel\/watcher --prefix \/.*\/data\/npm \/.*kaioken-app\..*\.tgz$/mu,
     );
     const daemonPid = Number(
       readFileSync(join(fixture.dataDir, "install-daemon.pid"), "utf8"),
@@ -435,11 +435,11 @@ describe("machine install script", () => {
     process.kill(daemonPid, "SIGTERM");
   });
 
-  it("prefers the server-matched tarball when bb-app is absent", () => {
+  it("prefers the server-matched tarball when kaioken-app is absent", () => {
     const fixture = createFixture();
     writeServerInstallTools(fixture, 200);
     const result = runScript(JOIN_ARGS, fixture, {
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
     });
 
     expect(result.status, result.stderr).toBe(0);
@@ -448,29 +448,29 @@ describe("machine install script", () => {
       "utf8",
     );
     expect(npmInvocation).toMatch(
-      /^install -g --allow-scripts=better-sqlite3,node-pty,@parcel\/watcher --prefix \/.*\/data\/npm \/.*bb-app\..*\.tgz$/mu,
+      /^install -g --allow-scripts=better-sqlite3,node-pty,@parcel\/watcher --prefix \/.*\/data\/npm \/.*kaioken-app\..*\.tgz$/mu,
     );
-    expect(npmInvocation).not.toContain("bb-app\n");
+    expect(npmInvocation).not.toContain("kaioken-app\n");
     expect(readFileSync(join(fixture.dataDir, "curl.log"), "utf8")).toContain(
       "--silent --show-error --location --connect-timeout 10 --max-time 300",
     );
     expect(result.stdout).toContain(
       "Setting up this machine as host-test for https://machine.getbb.app",
     );
-    expect(result.stdout).toContain("\n  bb machine setup\n\n");
+    expect(result.stdout).toContain("\n  kaioken machine setup\n\n");
     expect(result.stdout).toContain(
       "  ○  Setting up this machine as host-test for https://machine.getbb.app",
     );
     expect(result.stdout).toContain(
-      "Downloading the server's bb-app package (timeout: 5 minutes)",
+      "Downloading the server's kaioken-app package (timeout: 5 minutes)",
     );
     expect(result.stdout).toContain(
-      "  ✓  Downloaded the server's bb-app package",
+      "  ✓  Downloaded the server's kaioken-app package",
     );
     expect(result.stdout).toContain(
-      "  ○  Installing the server's bb-app build",
+      "  ○  Installing the server's kaioken-app build",
     );
-    expect(result.stdout).toContain("  ✓  Installed the server's bb-app build");
+    expect(result.stdout).toContain("  ✓  Installed the server's kaioken-app build");
     expect(result.stdout).toContain(
       "Waiting for the temporary host daemon to connect",
     );
@@ -485,12 +485,12 @@ describe("machine install script", () => {
     const fixture = createFixture();
     writeServerInstallTools(fixture, 200);
     const first = runScript(JOIN_ARGS, fixture, {
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
     });
     expect(first.status, first.stderr).toBe(0);
 
     const second = runScript(JOIN_ARGS, fixture, {
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
     });
 
     expect(second.status, second.stderr).toBe(0);
@@ -517,7 +517,7 @@ describe("machine install script", () => {
     writeServerInstallTools(fixture, 200, "a".repeat(64));
 
     const result = runScript(JOIN_ARGS, fixture, {
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
     });
 
     expect(result.status).toBe(1);
@@ -532,12 +532,12 @@ describe("machine install script", () => {
     const fixture = createFixture();
     writeServerInstallTools(fixture, 404);
     const result = runScript(JOIN_ARGS, fixture, {
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
     });
 
     expect(result.status, result.stderr).toBe(0);
     expect(readFileSync(join(fixture.dataDir, "npm.log"), "utf8")).toMatch(
-      /^install -g --allow-scripts=better-sqlite3,node-pty,@parcel\/watcher --prefix \/.*\/data\/npm bb-app\n$/u,
+      /^install -g --allow-scripts=better-sqlite3,node-pty,@parcel\/watcher --prefix \/.*\/data\/npm kaioken-app\n$/u,
     );
     const daemonPid = Number(
       readFileSync(join(fixture.dataDir, "install-daemon.pid"), "utf8"),
@@ -549,13 +549,13 @@ describe("machine install script", () => {
     const fixture = createFixture();
     writeServerInstallTools(fixture, 200);
     const result = runScript(JOIN_ARGS, fixture, {
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
       FAKE_NPM_SKIP_NATIVE_MODULES: "1",
     });
 
     expect(result.status, result.stderr).toBe(1);
     expect(result.stderr).toContain(
-      "npm installed bb-app, but its host native add-ons (node-pty, @parcel/watcher) did not load.",
+      "npm installed kaioken-app, but its host native add-ons (node-pty, @parcel/watcher) did not load.",
     );
     expect(result.stderr).toContain(
       "npm_config_allow_scripts=better-sqlite3,node-pty,@parcel/watcher",
@@ -563,18 +563,18 @@ describe("machine install script", () => {
     expect(existsSync(join(fixture.dataDir, "install-daemon.pid"))).toBe(false);
   });
 
-  it("defaults the data dir to a per-server directory under ~/.bb-machines", () => {
+  it("defaults the data dir to a per-server directory under ~/.kaioken-machines", () => {
     const fixture = createFixture();
     writeServerInstallTools(fixture, 200);
     const result = runScript(JOIN_ARGS, fixture, {
-      BB_DATA_DIR: "",
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_DATA_DIR: "",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
     });
 
     expect(result.status, result.stderr).toBe(0);
     const defaultDataDir = join(
       fixture.homeDir,
-      ".bb-machines/machine.getbb.app",
+      ".kaioken-machines/machine.getbb.app",
     );
     expect(
       JSON.parse(readFileSync(join(defaultDataDir, "auth.json"), "utf8")),
@@ -588,10 +588,10 @@ describe("machine install script", () => {
   it("refuses a data dir enrolled for a different host instead of faking success", () => {
     const fixture = createFixture();
     writeCurlArtifactMock(fixture, 404);
-    writeExecutable(join(fixture.binDir, "bb-app"), "#!/bin/sh\nexit 99\n");
+    writeExecutable(join(fixture.binDir, "kaioken-app"), "#!/bin/sh\nexit 99\n");
     writeJoinedState(fixture, "https://machine.getbb.app", "host-other");
     const result = runScript(JOIN_ARGS, fixture, {
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
     });
 
     expect(result.status).toBe(1);
@@ -626,7 +626,7 @@ describe("machine install script", () => {
 
     try {
       const result = runScript(JOIN_ARGS, fixture, {
-        BB_INSTALL_SKIP_SERVICE: "1",
+        KAIOKEN_INSTALL_SKIP_SERVICE: "1",
       });
 
       expect(result.status, result.stderr).toBe(0);
@@ -663,14 +663,14 @@ describe("machine install script", () => {
     writeJoinedState(secondFixture);
     writeCurlArtifactMock(fixture, 404);
     writeExecutable(
-      join(fixture.binDir, "bb-app"),
+      join(fixture.binDir, "kaioken-app"),
       createEnrollingBbAppScript({ hostId: "host-test" }),
     );
 
     const [firstResult, secondResult] = await Promise.all([
-      runScriptAsync(JOIN_ARGS, firstFixture, { BB_INSTALL_SKIP_SERVICE: "1" }),
+      runScriptAsync(JOIN_ARGS, firstFixture, { KAIOKEN_INSTALL_SKIP_SERVICE: "1" }),
       runScriptAsync(JOIN_ARGS, secondFixture, {
-        BB_INSTALL_SKIP_SERVICE: "1",
+        KAIOKEN_INSTALL_SKIP_SERVICE: "1",
       }),
     ]);
 
@@ -685,7 +685,7 @@ describe("machine install script", () => {
       "utf8",
     ).trim();
     expect(firstPort).not.toBe(secondPort);
-    const registryDir = join(fixture.homeDir, ".bb-machines/host-daemon-ports");
+    const registryDir = join(fixture.homeDir, ".kaioken-machines/host-daemon-ports");
     expect(
       new Set([
         readFileSync(join(registryDir, firstPort, "data-dir"), "utf8").trim(),
@@ -721,7 +721,7 @@ describe("machine install script", () => {
         "MACH-INE1",
       ],
       fixture,
-      { BB_INSTALL_SKIP_SERVICE: "1" },
+      { KAIOKEN_INSTALL_SKIP_SERVICE: "1" },
     );
 
     expect(result.status, result.stderr).toBe(0);
@@ -749,7 +749,7 @@ describe("machine install script", () => {
     const fixture = createFixture();
     writeCurlArtifactMock(fixture, 404);
     writeExecutable(
-      join(fixture.binDir, "bb-app"),
+      join(fixture.binDir, "kaioken-app"),
       `#!/usr/bin/env node
 setInterval(() => {}, 1000);
 `,
@@ -757,7 +757,7 @@ setInterval(() => {}, 1000);
     writeExecutable(join(fixture.binDir, "sleep"), "#!/bin/sh\nexit 0\n");
 
     const result = runScript(JOIN_ARGS, fixture, {
-      BB_INSTALL_SKIP_SERVICE: "1",
+      KAIOKEN_INSTALL_SKIP_SERVICE: "1",
     });
 
     expect(result.status).toBe(1);
@@ -791,7 +791,7 @@ if [ "$1" = bootout ] && [ -f "${join(fixture.dataDir, "service-daemon.pid")}" ]
 fi
 if [ "$1" = bootstrap ]; then
   port=$(sed -n '1p' "${join(fixture.dataDir, "host-daemon-port")}")
-  BB_DATA_DIR="${fixture.dataDir}" "${join(fixture.dataDir, "npm/bin/bb-app")}" host-daemon --host-daemon-port "$port" --server-url https://machine.getbb.app >/dev/null 2>&1 &
+  KAIOKEN_DATA_DIR="${fixture.dataDir}" "${join(fixture.dataDir, "npm/bin/kaioken-app")}" host-daemon --host-daemon-port "$port" --server-url https://machine.getbb.app >/dev/null 2>&1 &
   echo $! >"${join(fixture.dataDir, "service-daemon.pid")}"
   printf 'start\n' >>"${join(fixture.dataDir, "launchctl-starts.log")}"
 fi
@@ -818,15 +818,15 @@ fi
     expect(firstResult.status, firstResult.stderr).toBe(0);
     expect(firstResult.stdout).toContain("already joined");
     expect(firstResult.stdout).toContain(
-      "Installing the persistent bb host daemon service",
+      "Installing the persistent kaioken host daemon service",
     );
     expect(firstResult.stdout).toContain(
       "Waiting for the launch agent to connect",
     );
-    expect(firstResult.stdout).toContain("  ●  bb machine is ready");
+    expect(firstResult.stdout).toContain("  ●  kaioken machine is ready");
     expect(secondResult.status, secondResult.stderr).toBe(0);
     expect(secondResult.stdout).toContain("already joined");
-    expect(secondResult.stdout).toContain("  ●  bb machine is ready");
+    expect(secondResult.stdout).toContain("  ●  kaioken machine is ready");
     expect(secondResult.stdout).toContain("server  https://machine.getbb.app");
     expect(secondResult.stdout).toContain(
       "service " +
@@ -858,7 +858,7 @@ fi
     );
     expect(plist).toContain("<string>https://machine.getbb.app</string>");
     expect(plist).toContain(
-      `<key>BB_APP_NPM_PREFIX</key><string>${realpathSync(fixture.dataDir)}/npm</string>`,
+      `<key>KAIOKEN_APP_NPM_PREFIX</key><string>${realpathSync(fixture.dataDir)}/npm</string>`,
     );
     const serviceFile = join(
       fixture.homeDir,
@@ -893,7 +893,7 @@ fi
 
     expect(result.status).toBe(1);
     expect(result.stderr).toContain(
-      "Could not register the bb host-daemon launch agent app.getbb.host-daemon.machine-getbb-app.",
+      "Could not register the kaioken host-daemon launch agent app.getbb.host-daemon.machine-getbb-app.",
     );
     expect(result.stderr).toContain("launchctl: fixture bootstrap failure");
   });
@@ -915,7 +915,7 @@ printf '%s\n' "$*" >>"${join(fixture.dataDir, "launchctl.log")}"
 
     expect(result.status).toBe(1);
     expect(result.stderr).toContain(
-      "The bb host-daemon launch agent started but did not connect to https://machine.getbb.app.",
+      "The kaioken host-daemon launch agent started but did not connect to https://machine.getbb.app.",
     );
     expect(result.stderr).toContain(
       `See ${fixture.dataDir}/logs/launchd.log for the daemon error.`,
@@ -934,9 +934,9 @@ printf '%s\n' "$*" >>"${join(fixture.dataDir, "launchctl.log")}"
       join(fixture.binDir, "systemctl"),
       `#!/bin/sh
 printf '%s\n' "$*" >>"${join(fixture.dataDir, "systemctl.log")}"
-if [ "$*" = "--user restart bb-host-daemon-machine-getbb-app.service" ]; then
+if [ "$*" = "--user restart kaioken-host-daemon-machine-getbb-app.service" ]; then
   port=$(sed -n '1p' "${join(fixture.dataDir, "host-daemon-port")}")
-  BB_DATA_DIR="${fixture.dataDir}" "${join(fixture.dataDir, "npm/bin/bb-app")}" host-daemon --host-daemon-port "$port" --server-url https://machine.getbb.app >/dev/null 2>&1 &
+  KAIOKEN_DATA_DIR="${fixture.dataDir}" "${join(fixture.dataDir, "npm/bin/kaioken-app")}" host-daemon --host-daemon-port "$port" --server-url https://machine.getbb.app >/dev/null 2>&1 &
   echo $! >"${join(fixture.dataDir, "service-daemon.pid")}"
 fi
 `,
@@ -962,7 +962,7 @@ fi
     const unit = readFileSync(
       join(
         fixture.homeDir,
-        ".config/systemd/user/bb-host-daemon-machine-getbb-app.service",
+        ".config/systemd/user/kaioken-host-daemon-machine-getbb-app.service",
       ),
       "utf8",
     );
@@ -974,10 +974,10 @@ fi
       `host-daemon --auto-update --host-daemon-port "${selectedPort}" --server-url "https://machine.getbb.app"`,
     );
     expect(unit).toContain(
-      `Environment="BB_APP_NPM_PREFIX=${realpathSync(fixture.dataDir)}/npm"`,
+      `Environment="KAIOKEN_APP_NPM_PREFIX=${realpathSync(fixture.dataDir)}/npm"`,
     );
     expect(readFileSync(join(fixture.dataDir, "systemctl.log"), "utf8")).toBe(
-      "--user daemon-reload\n--user enable bb-host-daemon-machine-getbb-app.service\n--user restart bb-host-daemon-machine-getbb-app.service\n",
+      "--user daemon-reload\n--user enable kaioken-host-daemon-machine-getbb-app.service\n--user restart kaioken-host-daemon-machine-getbb-app.service\n",
     );
   });
 });

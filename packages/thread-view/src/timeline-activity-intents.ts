@@ -3,7 +3,7 @@ import type {
   TimelineCommandWorkRow,
   TimelineFileReadWorkRow,
   TimelineSearchWorkRow,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { assertNever } from "./assert-never.js";
 import {
   formatTimelinePath,

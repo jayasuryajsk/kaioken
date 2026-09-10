@@ -5,7 +5,7 @@ appId: app.getbb.mobile
 - launchApp:
     appId: app.getbb.mobile
 - tapOn:
-    text: "https://bb.example.ts.net"
+    text: "https://kaioken.example.ts.net"
 - inputText: "http://localhost:26524"
 - hideKeyboard
 - tapOn:

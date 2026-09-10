@@ -63,7 +63,7 @@ export function SettingsStoryChrome({
   return (
     <SidebarProvider
       className="h-screen min-h-[640px] bg-background"
-      style={{ "--bb-shell-height": "100vh" } as CSSProperties}
+      style={{ "--kaioken-shell-height": "100vh" } as CSSProperties}
     >
       <SettingsSidebarContent
         appRoutePath="/"

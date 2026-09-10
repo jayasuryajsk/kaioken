@@ -1,6 +1,6 @@
 # Releasing BB Official plugins
 
-Official plugins ship **bundled inside the BB app**. There is no separate
+Official plugins ship **bundled inside the Kaioken app**. There is no separate
 publish pipeline: at packaging time, `apps/server/scripts/copy-builtin-plugins.ts`
 builds every plugin declared in `BUNDLED_PLUGINS`
 (`apps/server/src/services/plugins/builtin-registry.ts`) and copies each
@@ -17,11 +17,11 @@ The official plugins are:
 
 | Directory                    | Package name                   | Store entry          | Plugin id            |
 | ---------------------------- | ------------------------------ | -------------------- | -------------------- |
-| `plugins/browser-automation` | `bb-plugin-browser-automation` | `browser-automation` | `browser-automation` |
-| `plugins/github`             | `bb-plugin-github`             | `github`             | `github`             |
-| `plugins/docs`               | `bb-plugin-simple-notes`       | `docs`               | `simple-notes`       |
-| `plugins/memory`             | `bb-plugin-memory`             | `memory`             | `memory`             |
-| `plugins/tasks`              | `bb-plugin-tasks`              | `tasks`              | `tasks`              |
+| `plugins/browser-automation` | `kaioken-plugin-browser-automation` | `browser-automation` | `browser-automation` |
+| `plugins/github`             | `kaioken-plugin-github`             | `github`             | `github`             |
+| `plugins/docs`               | `kaioken-plugin-simple-notes`       | `docs`               | `simple-notes`       |
+| `plugins/memory`             | `kaioken-plugin-memory`             | `memory`             | `memory`             |
+| `plugins/tasks`              | `kaioken-plugin-tasks`              | `tasks`              | `tasks`              |
 
 ## Releasing a change
 
@@ -30,7 +30,7 @@ The official plugins are:
    version is shown in plugin management and drives startup reconciliation
    (an installed official plugin re-points to the new bundled copy when its
    version or root directory changes).
-2. Ship a normal BB app release. The packaging step rebuilds and bundles every
+2. Ship a normal Kaioken app release. The packaging step rebuilds and bundles every
    official plugin automatically; installed plugins pick up the new code at
    the next server start.
 
@@ -38,7 +38,7 @@ Never check in `plugins/*/dist`; packaging builds it.
 
 ## Adding a new official plugin
 
-1. Create the plugin under `plugins/<name>` with a `bb` manifest
+1. Create the plugin under `plugins/<name>` with a `kaioken` manifest
    block (`server`, optional `app`, `branding`, optional `skills`).
 2. Add an entry to `OFFICIAL_PLUGINS` in
    `apps/server/src/services/plugins/builtin-registry.ts` with the store
@@ -50,8 +50,8 @@ Never check in `plugins/*/dist`; packaging builds it.
 ## Verify locally
 
 ```bash
-pnpm exec turbo run build --filter=bb-app
-ls packages/bb-app/server/dist/builtin-plugins
+pnpm exec turbo run build --filter=kaioken-app
+ls packages/kaioken-app/server/dist/builtin-plugins
 ```
 
 Every bundled plugin directory must contain a rewritten `package.json`
@@ -59,8 +59,8 @@ pointing at `./dist/server.js` plus the prebuilt `dist/` artifacts. Then, in a
 dev build:
 
 ```bash
-bb plugin search docs
-bb plugin install docs --yes
-bb plugin list
-bb plugin remove simple-notes
+kaioken plugin search docs
+kaioken plugin install docs --yes
+kaioken plugin list
+kaioken plugin remove simple-notes
 ```

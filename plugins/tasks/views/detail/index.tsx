@@ -3,7 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { SmilePlusIcon } from "@hugeicons/core-free-icons";
 import type { Task } from "../../shared/contract.js";
 import type { DelegationRpcContract } from "../../delegate/contract.js";
-import { useBbNavigate, useRpc } from "@get-bb/plugin-sdk/app";
+import { useBbNavigate, useRpc } from "@get-kaioken/plugin-sdk/app";
 import {
   listAllTasks,
   useMentionItems,
@@ -27,9 +27,9 @@ import {
 } from "./rail.js";
 import { ThreadsSection } from "./threads.js";
 import { DetailToasts, useDetailToasts } from "./toast.js";
-import { DelayedLoading } from "@bb/shared-ui/delayed-loading";
-import { Icon } from "@bb/shared-ui/icon";
-import { Skeleton } from "@bb/shared-ui/skeleton";
+import { DelayedLoading } from "@kaioken/shared-ui/delayed-loading";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
 
 interface DetailViewProps {
   taskKey: string;

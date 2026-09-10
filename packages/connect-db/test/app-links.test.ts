@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   ANDROID_ASSET_LINKS_PATH,
   APPLE_APP_SITE_ASSOCIATION_PATH,
-  BB_MOBILE_ANDROID_PACKAGE,
-  BB_MOBILE_IOS_APP_ID,
+  KAIOKEN_MOBILE_ANDROID_PACKAGE,
+  KAIOKEN_MOBILE_IOS_APP_ID,
   handleAppLinkAssociationRequest,
   parseAssetLinksFingerprints,
 } from "../src/app-links.js";
@@ -26,7 +26,7 @@ describe("app link association files", () => {
     };
     expect(body.applinks.details).toEqual([
       {
-        appIDs: [BB_MOBILE_IOS_APP_ID],
+        appIDs: [KAIOKEN_MOBILE_IOS_APP_ID],
         components: [
           { "/": "/threads/*" },
           { "/": "/projects/*" },
@@ -45,7 +45,7 @@ describe("app link association files", () => {
     const unsetBody = (await unset?.json()) as {
       target: { package_name: string; sha256_cert_fingerprints: string[] };
     }[];
-    expect(unsetBody[0]?.target.package_name).toBe(BB_MOBILE_ANDROID_PACKAGE);
+    expect(unsetBody[0]?.target.package_name).toBe(KAIOKEN_MOBILE_ANDROID_PACKAGE);
     expect(unsetBody[0]?.target.sha256_cert_fingerprints).toEqual([]);
 
     const set = handleAppLinkAssociationRequest(

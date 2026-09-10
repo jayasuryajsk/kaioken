@@ -10,8 +10,8 @@ import {
 describe("local Cloud request routing", () => {
   it("accepts the launcher host and selects HTTP cookies only in local Cloud", () => {
     const runtime = resolveConnectRuntime({
-      ACCOUNT_APP_URL: "http://bb.localhost:8787",
-      BASE_DOMAIN: "bb.localhost",
+      ACCOUNT_APP_URL: "http://kaioken.localhost:8787",
+      BASE_DOMAIN: "kaioken.localhost",
       CLOUD_DEV: "true",
     });
     const headers = new Headers({
@@ -19,12 +19,12 @@ describe("local Cloud request routing", () => {
       [CLOUD_DEV_HOST_HEADER]: "sawyer--3000",
     });
     expect(resolveConnectRequestHost(headers, runtime)).toBe(
-      "sawyer--3000.bb.localhost",
+      "sawyer--3000.kaioken.localhost",
     );
     expect(runtime.sessionCookieName).toBe("better-auth.session_token");
-    expect(runtime.desktopSessionCookieName).toBe("bb-connect.desktop_session");
+    expect(runtime.desktopSessionCookieName).toBe("kaioken-connect.desktop_session");
     expect(publicConnectOrigin("sawyer--3000", runtime)).toBe(
-      "http://sawyer--3000.bb.localhost:8787",
+      "http://sawyer--3000.kaioken.localhost:8787",
     );
     expect(
       resolveConnectRequestUrl(
@@ -32,7 +32,7 @@ describe("local Cloud request routing", () => {
         headers,
         runtime,
       ).toString(),
-    ).toBe("http://sawyer--3000.bb.localhost:8787/threads/thr_1?view=full");
+    ).toBe("http://sawyer--3000.kaioken.localhost:8787/threads/thr_1?view=full");
   });
 
   it("ignores the launcher header in production", () => {

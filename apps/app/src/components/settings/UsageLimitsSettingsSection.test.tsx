@@ -2,9 +2,9 @@
 
 import type { ComponentProps } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import type { ProviderInfo } from "@bb/domain";
-import { makeHost, makeProviderInfo } from "@bb/test-helpers/domain-fixtures";
-import { TooltipProvider } from "@bb/shared-ui/tooltip";
+import type { ProviderInfo } from "@kaioken/domain";
+import { makeHost, makeProviderInfo } from "@kaioken/test-helpers/domain-fixtures";
+import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { UsageLimitsSettingsSectionContent } from "./UsageLimitsSettingsSection";
 

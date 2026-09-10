@@ -1,4 +1,4 @@
--- bb connect — multi-server: every server owns a globally-unique `subdomain`
+-- kaioken connect — multi-server: every server owns a globally-unique `subdomain`
 -- label in the same namespace as `profile.handle`. See src/schema.ts `server`.
 --
 -- SQLite cannot `ALTER TABLE ... ADD COLUMN` a NOT NULL *and* UNIQUE column, so

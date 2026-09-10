@@ -3,7 +3,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
-import { experimental_createHostEntryHarness } from "@get-bb/plugin-sdk/testing/host";
+import { experimental_createHostEntryHarness } from "@get-kaioken/plugin-sdk/testing/host";
 import { afterEach, describe, expect, it } from "vitest";
 import { createCheckoutHostEntry } from "./host.js";
 
@@ -15,17 +15,17 @@ async function git(cwd: string, ...args: string[]): Promise<string> {
     cwd,
     env: {
       ...process.env,
-      GIT_AUTHOR_NAME: "bb",
-      GIT_AUTHOR_EMAIL: "bb@example.com",
-      GIT_COMMITTER_NAME: "bb",
-      GIT_COMMITTER_EMAIL: "bb@example.com",
+      GIT_AUTHOR_NAME: "kaioken",
+      GIT_AUTHOR_EMAIL: "kaioken@example.com",
+      GIT_COMMITTER_NAME: "kaioken",
+      GIT_COMMITTER_EMAIL: "kaioken@example.com",
     },
   });
   return result.stdout;
 }
 
 async function createRepository(): Promise<{ repo: string; dataDir: string }> {
-  const root = await mkdtemp(join(tmpdir(), "bb-checkout-plugin-"));
+  const root = await mkdtemp(join(tmpdir(), "kaioken-checkout-plugin-"));
   temporaryRoots.push(root);
   const repo = join(root, "repo");
   const dataDir = join(root, "plugin-data");
@@ -95,13 +95,13 @@ describe("checkout host entry", () => {
     const created = await harness.experimental_call("attach", {
       operationId: "new",
       path: repo,
-      branch: { kind: "new", name: "bb/feature-thr_1", baseBranch: "main" },
+      branch: { kind: "new", name: "kaioken/feature-thr_1", baseBranch: "main" },
     });
     expect(created.status).toBe("attached");
     expect((await git(repo, "rev-parse", "--abbrev-ref", "HEAD")).trim()).toBe(
-      "bb/feature-thr_1",
+      "kaioken/feature-thr_1",
     );
-    expect(progressText(harness)).toContain("Created branch bb/feature-thr_1");
+    expect(progressText(harness)).toContain("Created branch kaioken/feature-thr_1");
     await harness.experimental_dispose();
   });
 

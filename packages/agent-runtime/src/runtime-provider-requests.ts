@@ -8,8 +8,8 @@ import type {
   PendingInteractionPayload,
   PendingInteractionResolution,
   ToolCallRequest,
-} from "@bb/domain";
-import { isApprovalPendingInteractionPayload } from "@bb/domain";
+} from "@kaioken/domain";
+import { isApprovalPendingInteractionPayload } from "@kaioken/domain";
 import type { BridgeProtocolAdapter } from "./bridge-protocol-adapter.js";
 import {
   type JsonRpcMessage,
@@ -18,8 +18,8 @@ import {
   sendJsonRpcResult,
   sendProviderRequestDecodeErrorIfKnown,
   sendProviderResponseEncodeErrorIfKnown,
-} from "@bb/provider-bridge-protocol/bridge-kit";
-import { shouldAutoDenyInteractiveRequest } from "@bb/provider-bridge-protocol/bridge-kit";
+} from "@kaioken/provider-bridge-protocol/bridge-kit";
+import { shouldAutoDenyInteractiveRequest } from "@kaioken/provider-bridge-protocol/bridge-kit";
 
 export type RuntimeProviderRequestKind = "interactive request" | "tool call";
 

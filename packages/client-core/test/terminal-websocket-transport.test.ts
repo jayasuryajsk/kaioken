@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
   TerminalServerMessage,
   TerminalSession,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   TerminalWebSocketTransport,
   type TerminalBrowserSocket,

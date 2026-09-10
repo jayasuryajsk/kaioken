@@ -1,4 +1,4 @@
-export const RESERVED_BB_CLI_COMMANDS: readonly string[] = [
+export const RESERVED_KAIOKEN_CLI_COMMANDS: readonly string[] = [
   "browser",
   "environment",
   "file",
@@ -21,7 +21,7 @@ export const RESERVED_BB_CLI_COMMANDS: readonly string[] = [
 ];
 
 export function pluginCliCall(pluginId: string, name: string): string {
-  if (RESERVED_BB_CLI_COMMANDS.includes(name))
-    return `bb plugin run ${pluginId}`;
-  return `bb ${name}`;
+  if (RESERVED_KAIOKEN_CLI_COMMANDS.includes(name))
+    return `kaioken plugin run ${pluginId}`;
+  return `kaioken ${name}`;
 }

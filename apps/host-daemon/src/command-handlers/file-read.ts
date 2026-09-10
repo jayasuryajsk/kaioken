@@ -5,12 +5,12 @@ import mimeTypes from "mime-types";
 import type {
   HostReadFileIfNoneMatch,
   HostReadFileRelativeDotfilePolicy,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   readGitBlob,
   WorkspaceError,
   type GitProcessOptions,
-} from "@bb/host-workspace";
+} from "@kaioken/host-workspace";
 import {
   CommandDispatchError,
   ExpectedCommandDispatchError,

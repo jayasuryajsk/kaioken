@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadPluginApp, renderSlot } from "@get-bb/plugin-sdk/testing/app";
+import { loadPluginApp, renderSlot } from "@get-kaioken/plugin-sdk/testing/app";
 import { CONNECT_REALTIME_CHANNEL, type ConnectStatus } from "@/src/types";
 
 const app = await loadPluginApp(() => import("./app"));
@@ -57,7 +57,7 @@ describe("connect settings section", () => {
   });
 
   it("uses the local Cloud dashboard supplied by the server as a native new-tab link", async () => {
-    const dashboardUrl = "http://bb.localhost:42745/dashboard";
+    const dashboardUrl = "http://kaioken.localhost:42745/dashboard";
     const slot = renderSlot(
       app.settingsSections[0]!,
       {},
@@ -74,8 +74,8 @@ describe("connect settings section", () => {
     expect(link.target).toBe("_blank");
     fireEvent.click(link);
     expect(slot.navigateCalls).toEqual([]);
-    slot.getByText("you.bb.localhost:42745");
-    slot.getByText(/your bb\.localhost:42745 dashboard/);
+    slot.getByText("you.kaioken.localhost:42745");
+    slot.getByText(/your kaioken\.localhost:42745 dashboard/);
   });
 
   it("auto-submits a normalized 4-4 code and applies live paired status", async () => {
@@ -328,7 +328,7 @@ describe("connect settings section", () => {
         rpc: {
           status: () => connected({ shares: [] }),
           expose: () => {
-            throw new Error("this bb is not connected to getbb.app");
+            throw new Error("this kaioken is not connected to getbb.app");
           },
         },
       },
@@ -349,7 +349,7 @@ describe("connect settings section", () => {
         input: { port: 8080 },
       }),
     );
-    await slot.findByText(/this bb is not connected to getbb.app/);
+    await slot.findByText(/this kaioken is not connected to getbb.app/);
   });
 
   it("hides mobile pairing unless the mobileApp experiment is on", async () => {
@@ -412,10 +412,10 @@ describe("connect settings section", () => {
     slot.getByRole("button", { name: "Copy pairing code" });
     slot.getByText(/Code expires in 9:5\d/);
     const qr = (await slot.findByRole("img", {
-      name: "QR code to pair the bb mobile app",
+      name: "QR code to pair the kaioken mobile app",
     })) as HTMLImageElement;
     expect(qr.src.startsWith("data:image/png")).toBe(true);
-    slot.getByText(/bb connect machine-code/);
+    slot.getByText(/kaioken connect machine-code/);
   });
 
   it("an expired mobile pairing code offers a fresh one", async () => {

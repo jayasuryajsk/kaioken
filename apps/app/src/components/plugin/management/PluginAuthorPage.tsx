@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Icon } from "@bb/shared-ui/icon";
+import { Icon } from "@kaioken/shared-ui/icon";
 import {
   ResourceCollectionViewport,
   ResourceListState,
   ResourceSortMenu,
   ResourceToolbar,
-} from "@bb/shared-ui/resource-list";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/resource-list";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { TOOLS_PAGE_BAND_CLASSES } from "@/components/tools/tools-navigation";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {

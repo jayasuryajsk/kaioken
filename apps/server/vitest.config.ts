@@ -7,13 +7,13 @@ export default defineWorkspaceTestConfig({
   test: {
     silent: "passed-only",
     env: {
-      BB_DATA_DIR: "/tmp/bb-server-test",
-      BB_SERVER_PORT: "49161",
-      BB_HOST_DAEMON_PORT: "49162",
+      KAIOKEN_DATA_DIR: "/tmp/kaioken-server-test",
+      KAIOKEN_SERVER_PORT: "49161",
+      KAIOKEN_HOST_DAEMON_PORT: "49162",
     },
     projects: sharedWorkerProjects({
       pkgDir: __dirname,
-      name: "@bb/server",
+      name: "@kaioken/server",
       include: ["src/**/*.test.ts", "test/**/*.test.ts"],
     }),
   },

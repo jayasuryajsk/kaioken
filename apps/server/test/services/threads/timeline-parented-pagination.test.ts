@@ -3,8 +3,8 @@ import {
   encodeClientTurnRequestIdNumber,
   threadScope,
   turnScope,
-} from "@bb/domain";
-import type { ClientTurnRequestId, Thread } from "@bb/domain";
+} from "@kaioken/domain";
+import type { ClientTurnRequestId, Thread } from "@kaioken/domain";
 import {
   createConnection,
   createProject,
@@ -13,9 +13,9 @@ import {
   migrate,
   noopNotifier,
   upsertHost,
-} from "@bb/db";
-import type { DbConnection } from "@bb/db";
-import type { TimelineRow } from "@bb/server-contract";
+} from "@kaioken/db";
+import type { DbConnection } from "@kaioken/db";
+import type { TimelineRow } from "@kaioken/server-contract";
 import { buildThreadTimeline } from "../../../src/services/threads/timeline.js";
 
 const providerThreadId = "provider-root";

@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import { withHarness } from "../../helpers/harness.js";
 import { createReadyThread } from "./shared.js";

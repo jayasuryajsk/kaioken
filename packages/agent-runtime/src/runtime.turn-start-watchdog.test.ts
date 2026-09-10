@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { ThreadEvent } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
 import {
   createScriptedEchoRuntime,
   fullRuntimeOptions,
@@ -16,7 +16,7 @@ describe("turn-start watchdog", () => {
   let runtime: LaunchBoundAgentRuntime | null = null;
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), "bb-runtime-watchdog-"));
+    tmpDir = mkdtempSync(join(tmpdir(), "kaioken-runtime-watchdog-"));
   });
 
   afterEach(async () => {

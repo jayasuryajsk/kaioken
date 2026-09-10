@@ -1,11 +1,11 @@
-import { createThread, getThread, listEvents } from "@bb/db";
+import { createThread, getThread, listEvents } from "@kaioken/db";
 import {
   type ResolvedThreadExecutionOptions,
   systemThreadProvisioningEventDataSchema,
   threadSchema,
   turnScope,
-} from "@bb/domain";
-import { groupHostDaemonEvents } from "@bb/host-daemon-contract";
+} from "@kaioken/domain";
+import { groupHostDaemonEvents } from "@kaioken/host-daemon-contract";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   internalAuthHeaders,

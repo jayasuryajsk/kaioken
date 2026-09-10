@@ -1,5 +1,5 @@
 {
-  "name": "bb-environment-provider-host",
+  "name": "kaioken-environment-provider-host",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -35,11 +35,11 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@get-bb/plugin-sdk": "workspace:*",
+    "@get-kaioken/plugin-sdk": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@bb/tsconfig": "workspace:*",
+    "@kaioken/tsconfig": "workspace:*",
     "@types/node": "^22.0.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-7": "npm:typescript@^7.0.2"

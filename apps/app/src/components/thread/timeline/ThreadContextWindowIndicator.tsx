@@ -1,7 +1,7 @@
-import { Popover, PopoverContent, PopoverTrigger } from "@bb/shared-ui/popover";
-import type { ThreadContextWindowUsage } from "@bb/server-contract";
+import { Popover, PopoverContent, PopoverTrigger } from "@kaioken/shared-ui/popover";
+import type { ThreadContextWindowUsage } from "@kaioken/server-contract";
 import { useHoverPopover } from "../../ui/hooks/use-hover-popover.js";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   calculateContextWindowUsagePercent,
   formatCompactTokenCount,

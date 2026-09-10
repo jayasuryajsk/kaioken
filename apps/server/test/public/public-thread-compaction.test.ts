@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getLatestThreadSequence, listQueuedThreadMessages } from "@bb/db";
+import { getLatestThreadSequence, listQueuedThreadMessages } from "@kaioken/db";
 import {
   createStandaloneBuiltinCompactCommandInput,
   turnScope,
-} from "@bb/domain";
-import type { ClientTurnRequestId } from "@bb/domain";
+} from "@kaioken/domain";
+import type { ClientTurnRequestId } from "@kaioken/domain";
 import { applyTurnCompletedEvent } from "../../src/internal/turn-completed-events.js";
 import { sendNextQueuedMessageIfPresent } from "../../src/services/threads/queued-messages.js";
 import {

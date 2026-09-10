@@ -8,29 +8,29 @@ import {
 import ReactMarkdown, { type Components } from "react-markdown";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { BbDesktopInfo } from "@bb/desktop-contract";
-import type { SystemVersionResponse } from "@bb/server-contract";
+import type { KaiokenDesktopInfo } from "@kaioken/desktop-contract";
+import type { SystemVersionResponse } from "@kaioken/server-contract";
 import {
   RETRY_ACTION_ICON,
   UPDATE_ACTION_ICON,
   UPDATE_STATE_PRESENTATION,
   type UpdateState,
-} from "@bb/domain/update-state";
-import { Button, type ButtonProps } from "@bb/shared-ui/button";
-import { usePrefersReducedMotion } from "@bb/shared-ui/hooks/use-media-query";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/domain/update-state";
+import { Button, type ButtonProps } from "@kaioken/shared-ui/button";
+import { usePrefersReducedMotion } from "@kaioken/shared-ui/hooks/use-media-query";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
+} from "@kaioken/shared-ui/tooltip";
 import {
   ResourceActionButton,
   ResourceListState,
   ResourceRow,
-} from "@bb/shared-ui/resource-list";
+} from "@kaioken/shared-ui/resource-list";
 import {
   hasProviderCliAction,
   isProviderCliUpdateIssue,
@@ -58,7 +58,7 @@ import {
   type ChangelogBlock,
 } from "@/components/settings/changelog-preview";
 import { appToast } from "@/components/ui/app-toast";
-import { BbLogo } from "@/components/ui/bb-logo";
+import { KaiokenLogo } from "@/components/ui/kaioken-logo";
 import { OverflowFade } from "@/components/ui/overflow-fade";
 import {
   SettingsBadge,
@@ -596,7 +596,7 @@ export function ChangelogPreviewCard() {
                         variant="ghost"
                         size="icon"
                         className="size-7 text-muted-foreground hover:text-foreground"
-                        aria-label={`Dismiss bb ${entry.version} changelog preview`}
+                        aria-label={`Dismiss kaioken ${entry.version} changelog preview`}
                         onClick={() => {
                           rawStringLocalStorage.setItem(
                             CHANGELOG_DISMISSED_VERSION_STORAGE_KEY,
@@ -668,7 +668,7 @@ export function ChangelogPreviewCard() {
               <button
                 type="button"
                 disabled={!releaseVisible}
-                aria-label={`Open the full bb ${entry.version} changelog`}
+                aria-label={`Open the full kaioken ${entry.version} changelog`}
                 onClick={() =>
                   openUrlInExternalBrowser(
                     `${CHANGELOG_URL}#${entry.version.replaceAll(".", "-")}`,
@@ -711,7 +711,7 @@ export function ChangelogPreviewCard() {
                   You're all caught up
                 </h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                  We'll show the next bb release here.
+                  We'll show the next kaioken release here.
                 </p>
               </div>
             </div>
@@ -722,23 +722,23 @@ export function ChangelogPreviewCard() {
   );
 }
 
-interface BbAppUpdateRowsProps {
+interface KaiokenAppUpdateRowsProps {
   systemVersion: SystemVersionResponse | undefined;
-  desktopInfo: BbDesktopInfo | null;
+  desktopInfo: KaiokenDesktopInfo | null;
   isDesktop: boolean;
   onRelaunchDesktop: (() => void) | null;
   onRetryDesktop: (() => void) | null;
   isChecking?: boolean;
 }
 
-export function BbAppUpdateRows({
+export function KaiokenAppUpdateRows({
   systemVersion,
   desktopInfo,
   isDesktop,
   onRelaunchDesktop,
   onRetryDesktop,
   isChecking = false,
-}: BbAppUpdateRowsProps) {
+}: KaiokenAppUpdateRowsProps) {
   const settledStatus = isChecking ? (
     <RowStateControl live state="in-progress" />
   ) : (
@@ -747,8 +747,8 @@ export function BbAppUpdateRows({
   const row = (name: ReactNode, indicator: ReactNode, caption?: ReactNode) => (
     <UpdatesRow
       leading={
-        <span data-bb-update-role="app" aria-hidden>
-          <BbLogo className="size-4" />
+        <span data-kaioken-update-role="app" aria-hidden>
+          <KaiokenLogo className="size-4" />
         </span>
       }
     >
@@ -761,7 +761,7 @@ export function BbAppUpdateRows({
   );
   if (isDesktop && desktopInfo === null) {
     return row(
-      <RowName name="bb app" current={null} latest={null} />,
+      <RowName name="kaioken app" current={null} latest={null} />,
       <RowStateControl live state="in-progress" />,
     );
   }
@@ -771,7 +771,7 @@ export function BbAppUpdateRows({
       desktopInfo.pendingVersion ?? desktopInfo.latestVersion;
     const latest = desktopInfo.updateAvailable ? pendingVersion : null;
     const name = (
-      <RowName name="bb app" current={desktopInfo.version} latest={latest} />
+      <RowName name="kaioken app" current={desktopInfo.version} latest={latest} />
     );
 
     if (desktopInfo.updateDownloaded) {
@@ -779,9 +779,9 @@ export function BbAppUpdateRows({
         name,
         <RowStateControl
           state="restart-required"
-          buttonLeading={<BbLogo className="size-3" />}
+          buttonLeading={<KaiokenLogo className="size-3" />}
           buttonLabel="Relaunch"
-          actionLabel="Relaunch bb to finish updating"
+          actionLabel="Relaunch kaioken to finish updating"
           onClick={() => onRelaunchDesktop?.()}
         />,
       );
@@ -809,14 +809,14 @@ export function BbAppUpdateRows({
 
   if (systemVersion === undefined) {
     return row(
-      <RowName name="bb app" current={null} latest={null} />,
+      <RowName name="kaioken app" current={null} latest={null} />,
       <RowStateControl state="in-progress" />,
     );
   }
 
   const name = (
     <RowName
-      name="bb app"
+      name="kaioken app"
       detail={
         systemVersion.updateAvailable ? (
           <span className="hidden truncate font-mono text-2xs text-muted-foreground sm:inline">
@@ -903,7 +903,7 @@ function visibleInstalledProviderEntries(
   );
 }
 
-export function BbDaemonUpdateRow({
+export function KaiokenDaemonUpdateRow({
   machine,
   now,
   retryUpdatePending,
@@ -938,11 +938,11 @@ export function BbDaemonUpdateRow({
       openLabel={`Open ${host.name} settings`}
       onOpen={() => onOpenMachine(host.id)}
       leading={
-        <span data-bb-update-role="daemon" aria-hidden>
-          <BbLogo className="size-4" />
+        <span data-kaioken-update-role="daemon" aria-hidden>
+          <KaiokenLogo className="size-4" />
         </span>
       }
-      title="bb daemon"
+      title="kaioken daemon"
       state={daemonCaption}
       trailingMeta={null}
       actions={
@@ -1196,7 +1196,7 @@ export function MachineUpdatesFleetSection({
     <SettingsSection
       action={action}
       bodyClassName="border-0 bg-transparent p-0"
-      description="Manage bb and provider CLI updates across all machines."
+      description="Manage kaioken and provider CLI updates across all machines."
       title="Machine updates"
     >
       <div className="space-y-6 pt-1.5">{children}</div>
@@ -1401,7 +1401,7 @@ export function UpdatesSettingsSection({
                 }
               >
                 {ownsApp ? (
-                  <BbAppUpdateRows
+                  <KaiokenAppUpdateRows
                     systemVersion={inventory.systemVersion}
                     desktopInfo={desktopInfo}
                     isDesktop={isDesktop}
@@ -1431,7 +1431,7 @@ export function UpdatesSettingsSection({
                   />
                 ) : null}
                 {showDaemon ? (
-                  <BbDaemonUpdateRow
+                  <KaiokenDaemonUpdateRow
                     machine={machine}
                     now={now}
                     retryUpdatePending={

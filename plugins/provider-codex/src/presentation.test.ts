@@ -212,8 +212,8 @@ describe("every codex lifecycle delta carries a presentation", () => {
       item: {
         type: "webSearch",
         id: "ws1",
-        query: "bb",
-        action: { type: "search", query: "bb", queries: null },
+        query: "kaioken",
+        action: { type: "search", query: "kaioken", queries: null },
       },
     },
     {

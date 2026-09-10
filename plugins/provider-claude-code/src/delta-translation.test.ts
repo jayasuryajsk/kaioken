@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ThreadEvent } from "@bb/domain";
-import { threadScope, turnScope } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
+import { threadScope, turnScope } from "@kaioken/domain";
 import {
   ITEM_ID_PATTERN,
   TURN_1,
@@ -252,7 +252,7 @@ describe("claude turn and checkpoint lifecycle", () => {
         },
         session_id: "sess-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
     harness.translate(
       {
@@ -265,7 +265,7 @@ describe("claude turn and checkpoint lifecycle", () => {
         },
         session_id: "sess-1",
       },
-      { threadId: "bb-thread-1", parentToolCallId: "tool-subagent" },
+      { threadId: "kaioken-thread-1", parentToolCallId: "tool-subagent" },
     );
 
     const events = harness.translate(
@@ -274,7 +274,7 @@ describe("claude turn and checkpoint lifecycle", () => {
         subtype: "success",
         session_id: "sess-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     expect(events).toContainEqual(
@@ -406,7 +406,7 @@ describe("claude turn and checkpoint lifecycle", () => {
 
   it("does not open a provider-only turn while a failed turn's subagent drains", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-rate-limited" };
+    const context = { threadId: "kaioken-thread-rate-limited" };
     harness.acceptInput("creq_23456789af", context.threadId);
     harness.translate(
       spawningToolUseFor(loadFixture("task-started-subagent.json")),
@@ -508,7 +508,7 @@ describe("claude turn and checkpoint lifecycle", () => {
 
   it("does not open a provider-only turn for a bridge error after terminal failure", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-bridge-error-drain" };
+    const context = { threadId: "kaioken-thread-bridge-error-drain" };
     harness.acceptInput("creq_23456789bg", context.threadId);
     harness.translate(
       {
@@ -559,7 +559,7 @@ describe("claude turn and checkpoint lifecycle", () => {
 describe("claude synthetic no-response handling", () => {
   it("completes a pending turn for Claude synthetic no-response messages", () => {
     const harness = createClaudeDeltaHarness();
-    expect(harness.acceptInput("creq_23456789af", "bb-thread-1")).toEqual([]);
+    expect(harness.acceptInput("creq_23456789af", "kaioken-thread-1")).toEqual([]);
 
     const events = harness.translate(
       {
@@ -579,7 +579,7 @@ describe("claude synthetic no-response handling", () => {
         },
         session_id: "claude-session-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     expect(events).toEqual([
@@ -608,14 +608,14 @@ describe("claude synthetic no-response handling", () => {
 
   it("maps a conversation reset and settles its zero-work turn", () => {
     const harness = createClaudeDeltaHarness();
-    harness.acceptInput("creq_23456789af", "bb-thread-1");
+    harness.acceptInput("creq_23456789af", "kaioken-thread-1");
 
     const resetEvents = harness.translate(
       {
         type: "conversation_reset",
         session_id: "claude-session-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     expect(resetEvents.map((event) => event.type)).toEqual([
@@ -639,7 +639,7 @@ describe("claude synthetic no-response handling", () => {
         result: "",
         session_id: "claude-session-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     expect(resultEvents.map((event) => event.type)).toEqual(["turn/completed"]);
@@ -654,7 +654,7 @@ describe("claude synthetic no-response handling", () => {
 
   it("does not let a recovered task notification settle pending human input", () => {
     const harness = createClaudeDeltaHarness();
-    harness.acceptInput("creq_23456789af", "bb-thread-1");
+    harness.acceptInput("creq_23456789af", "kaioken-thread-1");
 
     expect(
       harness.translate(
@@ -667,7 +667,7 @@ describe("claude synthetic no-response handling", () => {
           origin: { kind: "task-notification" },
           session_id: "claude-session-1",
         },
-        { threadId: "bb-thread-1" },
+        { threadId: "kaioken-thread-1" },
       ),
     ).toEqual([]);
 
@@ -681,7 +681,7 @@ describe("claude synthetic no-response handling", () => {
         },
         session_id: "claude-session-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     expect(assistantEvents).toContainEqual(
@@ -708,7 +708,7 @@ describe("claude synthetic no-response handling", () => {
           origin: { kind: "human" },
           session_id: "claude-session-1",
         },
-        { threadId: "bb-thread-1" },
+        { threadId: "kaioken-thread-1" },
       ),
     ).toContainEqual(
       expect.objectContaining({
@@ -721,7 +721,7 @@ describe("claude synthetic no-response handling", () => {
 
   it("ignores a trailing result once the turn has closed", () => {
     const harness = createClaudeDeltaHarness();
-    harness.acceptInput("creq_23456789af", "bb-thread-1");
+    harness.acceptInput("creq_23456789af", "kaioken-thread-1");
     harness.translate(
       {
         type: "assistant",
@@ -732,32 +732,32 @@ describe("claude synthetic no-response handling", () => {
         },
         session_id: "claude-session-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     harness.translate(
       { type: "result", subtype: "success", session_id: "claude-session-1" },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     expect(
       harness.translate(
         { type: "result", subtype: "success", session_id: "claude-session-1" },
-        { threadId: "bb-thread-1" },
+        { threadId: "kaioken-thread-1" },
       ),
     ).toEqual([]);
   });
 
   it("completes a pending turn for wrapped Claude synthetic no-response messages", () => {
     const harness = createClaudeDeltaHarness();
-    harness.acceptInput("creq_23456789af", "bb-thread-1");
+    harness.acceptInput("creq_23456789af", "kaioken-thread-1");
 
     const events = harness.translate(
       {
         jsonrpc: "2.0",
         method: "sdk/message",
         params: {
-          threadId: "bb-thread-1",
+          threadId: "kaioken-thread-1",
           message: {
             type: "assistant",
             message: {
@@ -777,7 +777,7 @@ describe("claude synthetic no-response handling", () => {
           },
         },
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     expect(events).toEqual([
@@ -833,7 +833,7 @@ describe("claude synthetic no-response handling", () => {
         },
         session_id: "claude-session-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     expect(events).toContainEqual(
@@ -865,7 +865,7 @@ describe("claude synthetic no-response handling", () => {
         },
         session_id: "claude-session-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     const events = harness.translate(
@@ -886,7 +886,7 @@ describe("claude synthetic no-response handling", () => {
         },
         session_id: "claude-session-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     expect(events).toEqual([
@@ -902,7 +902,7 @@ describe("claude synthetic no-response handling", () => {
 
   it("keeps an open turn for synthetic no-response messages while an agent is running", () => {
     const harness = createClaudeDeltaHarness();
-    const context = { threadId: "bb-thread-1" };
+    const context = { threadId: "kaioken-thread-1" };
     harness.translate(
       spawningToolUseFor(loadFixture("task-started-subagent.json")),
       context,
@@ -1172,7 +1172,7 @@ describe("claude unhandled and ignored events", () => {
       jsonrpc: "2.0",
       method: "sdk/message",
       params: {
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
         message: {
           type: "custom_event",
         },
@@ -1199,7 +1199,7 @@ describe("claude unhandled and ignored events", () => {
       jsonrpc: "2.0",
       method: "sdk/message",
       params: {
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
         message: {
           type: "user",
           message: {
@@ -1230,7 +1230,7 @@ describe("claude unhandled and ignored events", () => {
       jsonrpc: "2.0",
       method: "sdk/message",
       params: {
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
         message: {
           type: "stream_event",
           event: {
@@ -1258,7 +1258,7 @@ describe("claude unhandled and ignored events", () => {
         },
         session_id: "sess-1",
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     const events = harness.translate(
@@ -1266,13 +1266,13 @@ describe("claude unhandled and ignored events", () => {
         jsonrpc: "2.0",
         method: "sdk/message",
         params: {
-          threadId: "bb-thread-1",
+          threadId: "kaioken-thread-1",
           message: {
             type: "custom_event",
           },
         },
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     expect(events).toEqual([
@@ -1465,7 +1465,7 @@ describe("claude warnings and identity", () => {
       jsonrpc: "2.0",
       method: "thread/identity",
       params: {
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
         providerThreadId: "claude-thread-1",
       },
     });
@@ -1772,7 +1772,7 @@ describe("claude error translation", () => {
           message: "Claude auth expired",
         },
       },
-      { threadId: "bb-thread-1" },
+      { threadId: "kaioken-thread-1" },
     );
 
     expect(events).toEqual([

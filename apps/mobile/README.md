@@ -1,12 +1,12 @@
-# @bb/mobile
+# @kaioken/mobile
 
-Native iOS/Android client for bb (Expo SDK 57, React Native 0.86, Expo
-Router, NativeWind v5). Plan and decisions: `plans/bb-mobile-expo.md`.
+Native iOS/Android client for kaioken (Expo SDK 57, React Native 0.86, Expo
+Router, NativeWind v5). Plan and decisions: `plans/kaioken-mobile-expo.md`.
 
 Status: Phase 7 (settings, machines, updates, plugins, skills, share,
-haptics, CI) — M4, the last build milestone, over Direct mode and bb connect;
+haptics, CI) — M4, the last build milestone, over Direct mode and kaioken connect;
 M5 (SPA-in-WebView plugin surfaces, tablet layout, store releases) is
-deferred. Direct-mode and bb connect server profiles (QR / code pairing, desktop-session
+deferred. Direct-mode and kaioken connect server profiles (QR / code pairing, desktop-session
 cookie, re-pair), the app shell (root stack, connection banner, settings),
 theme/design system, the per-profile SDK/realtime/query layer, the grouped
 thread list (home, long-press menus, organize/sort, drag-to-reorder
@@ -48,11 +48,11 @@ app/                     Expo Router routes (thin: each file re-exports a screen
                          threads/[id]/files (the Files tab full screen, or a file
                          preview for ?kind=&path=&line=[&source=&status=])
   settings/              index (the settings buckets), servers/ (list),
-                         servers/add (bb connect entry + Direct mode form),
+                         servers/add (kaioken connect entry + Direct mode form),
                          archived (archived threads), server (server status
                          card), general, appearance, experiments,
                          providers/[providerId] (codex | claude-code), usage
-                         (usage limits), updates (bb + provider CLIs + CLI
+                         (usage limits), updates (kaioken + provider CLIs + CLI
                          skills), machines/ (index: the paired machines + the
                          add-machine sheet, [hostId]: one machine), plugins/
                          (index: installed plugins, browse: the catalog,
@@ -61,8 +61,8 @@ app/                     Expo Router routes (thin: each file re-exports a screen
                          [skillId]: one skill read-only, registry/index:
                          skills.sh browse, registry/[registrySkillId]: one
                          registry skill + install)
-  connect/index.tsx      bb connect enrollment (QR / code) — also the re-pair
-                         target (`?profileId=`) and the `bb://connect?code=…` link
+  connect/index.tsx      kaioken connect enrollment (QR / code) — also the re-pair
+                         target (`?profileId=`) and the `kaioken://connect?code=…` link
                          (the new-thread composer is the home screen's bottom
                          dock: `/?projectId=&sectionId=&initialPrompt=&reuseEnvironmentId=`
                          + the fork / handoff seed params open it)
@@ -74,10 +74,10 @@ app/                     Expo Router routes (thin: each file re-exports a screen
                          banners + queued list on synthetic payloads, plus a
                          "Live thread" section for any thread id), spike,
                          connect-spike (Phase 0 diagnostics). Dev /
-                         EXPO_PUBLIC_BB_E2E=1 only: release bundles redirect
-                         them (and bb://dev/* links) home
-  e2e/reset.tsx          bb://e2e/reset — wipes local state (dev / EXPO_PUBLIC_BB_E2E=1)
-  +native-intent.tsx     redirectSystemPath: every incoming URL (bb:// scheme,
+                         EXPO_PUBLIC_KAIOKEN_E2E=1 only: release bundles redirect
+                         them (and kaioken://dev/* links) home
+  e2e/reset.tsx          kaioken://e2e/reset — wipes local state (dev / EXPO_PUBLIC_KAIOKEN_E2E=1)
+  +native-intent.tsx     redirectSystemPath: every incoming URL (kaioken:// scheme,
                          universal links, dev-client URLs) → src/lib/links
                          resolution → profile switch + route / add-server prompt
 src/
@@ -97,7 +97,7 @@ src/
                          and usePushRegistration (Settings)
   screens/               screen components (home/ — thread list + the
                          new-thread ComposeDock; compose/ — ComposeDock,
-                         useComposeController; settings/, shell/, connect/ — bb connect enrollment: ConnectEnrollScreen,
+                         useComposeController; settings/, shell/, connect/ — kaioken connect enrollment: ConnectEnrollScreen,
                          ConnectScanner (expo-camera QR), AccountServersList;
                          projects/, pickers/ — reusable picker sheets: project,
                          provider, model+reasoning, permission mode, environment,
@@ -236,13 +236,13 @@ src/
   lib/                   pure TypeScript, vitest-tested (no react-native imports)
     profiles/            ServerProfile model, SecureStore-backed store, URL
                          validation, /health + /system/config probe
-    sdk/                 createMobileSdk (@bb/sdk/browser + app-surface header),
+    sdk/                 createMobileSdk (@kaioken/sdk/browser + app-surface header),
                          per-profile client registry
     realtime/            WebSocketManager-shaped realtime on RN WebSocket
     query/               query keys, per-profile QueryClient, AppState focus,
                          realtime → query invalidation (+ the observer-less
                          diff-patch cache it evicts on workspace events)
-    session/             bb connect desktop-session cookie scheduler (Phase 5)
+    session/             kaioken connect desktop-session cookie scheduler (Phase 5)
     connection/          active-profile connector (socket + session lifecycle),
                          connection banner derivation
     e2e/                 launch/deep-link reset logic
@@ -282,7 +282,7 @@ e2e/manual/              flows that need a server the harness cannot provide
                          not part of `pnpm e2e:ios`
 e2e/subflows/            shared steps (launch-app.yaml: cold start through the
                          dev client + Metro, or `launchApp` of the embedded
-                         Release bundle with `-e BB_E2E_EMBEDDED_BUNDLE=1`;
+                         Release bundle with `-e KAIOKEN_E2E_EMBEDDED_BUNDLE=1`;
                          launch-to-home.yaml: launch + add the harness server +
                          wait for Home), called with `runFlow: ../subflows/<name>.yaml`
 e2e/scripts/             seeding + CI helpers: create-idle-thread.sh ("P4b …"
@@ -294,13 +294,13 @@ e2e/scripts/             seeding + CI helpers: create-idle-thread.sh ("P4b …"
 eas.json                 EAS Build profiles (development / development-device /
                          preview / production); see "Release"
 assets/terminal/         index.html — the bundled xterm page (generated, committed;
-                         `pnpm --filter @bb/mobile terminal:build`)
+                         `pnpm --filter @kaioken/mobile terminal:build`)
 scripts/                 generate-native-theme.ts (theme tokens),
                          build-terminal-page.ts (the terminal WebView page),
                          data-smoke.mts
 ```
 
-Rules: import `@bb/sdk/browser` (never `@bb/sdk`); no `@bb/shared-ui`; no DOM
+Rules: import `@kaioken/sdk/browser` (never `@kaioken/sdk`); no `@kaioken/shared-ui`; no DOM
 APIs; keep RN-dependent code out of `src/lib/**` except `src/lib/native`.
 
 ## Prerequisites (macOS)
@@ -317,21 +317,21 @@ APIs; keep RN-dependent code out of `src/lib/**` except `src/lib/native`.
 pnpm install                                   # applies patches/expo-modules-jsi@57.0.4.patch
 cd apps/mobile
 pnpm ios                                       # prebuild + build the dev-client, opens the simulator
-EXPO_PUBLIC_BB_SERVER_URL=http://127.0.0.1:<port> pnpm dev   # Metro (dev-client)
+EXPO_PUBLIC_KAIOKEN_SERVER_URL=http://127.0.0.1:<port> pnpm dev   # Metro (dev-client)
 ```
 
 The iOS Simulator shares the Mac loopback, so `pnpm dev` (repo root) or
-`scripts/bb-dev-app current` gives a server URL that works as-is. Physical
-phones need a Tailscale Serve URL, bb connect, or a temporary
-`BB_SERVER_BIND_HOST=0.0.0.0`.
+`scripts/kaioken-dev-app current` gives a server URL that works as-is. Physical
+phones need a Tailscale Serve URL, kaioken connect, or a temporary
+`KAIOKEN_SERVER_BIND_HOST=0.0.0.0`.
 
 ## E2E (Maestro)
 
 ```bash
 # terminal 1: deterministic backend (fake provider, fixed port 41999)
-pnpm --filter @bb/integration-tests e2e:mobile-backend
-# terminal 2: Metro (EXPO_PUBLIC_BB_E2E=1 wipes profiles/preferences on every launch)
-cd apps/mobile && EXPO_PUBLIC_BB_SERVER_URL=http://127.0.0.1:41999 EXPO_PUBLIC_BB_E2E=1 pnpm dev --port 8082
+pnpm --filter @kaioken/integration-tests e2e:mobile-backend
+# terminal 2: Metro (EXPO_PUBLIC_KAIOKEN_E2E=1 wipes profiles/preferences on every launch)
+cd apps/mobile && EXPO_PUBLIC_KAIOKEN_SERVER_URL=http://127.0.0.1:41999 EXPO_PUBLIC_KAIOKEN_E2E=1 pnpm dev --port 8082
 # terminal 3: flows
 cd apps/mobile && pnpm e2e:ios
 ```
@@ -340,7 +340,7 @@ cd apps/mobile && pnpm e2e:ios
 workspace menu → Settings → Server status shows realtime connected); `smoke.yaml`
 opens the Phase 0 diagnostics screen; `phase3-threads.yaml` exercises the
 thread list (rename, pin, archive, Settings → Archived → unarchive, search);
-`phase3-compose.yaml` creates a thread from the home dock (`bb://compose`
+`phase3-compose.yaml` creates a thread from the home dock (`kaioken://compose`
 → home; pickers, model, environment) and exercises the New-project machine/folder
 pickers (pass `-e REPO_PARENT_DIR=<dir>` to also browse into the harness repo);
 `phase4a-timeline.yaml` opens the seeded "Rich thread" (the seed leaves it
@@ -383,14 +383,14 @@ environment line, "…" → Rename, long-press → Copy text, Add to chat quotes
 into the composer). `phase4b-composer.yaml` drives the composer showcase's
 typeahead, pills, "+" menu and attachment chip. The shell rewrite deleted
 `phase5-links.yaml`. `shell-deep-link.yaml` now checks the applicable native
-route at `bb://settings/notifications`. It does not restore the deleted flow.
+route at `kaioken://settings/notifications`. It does not restore the deleted flow.
 `phase6-panel.yaml` opens a thread named "P6 panel thread" (create it first:
 a managed-worktree thread through the API with a file written into its
 worktree), presents the workspace panel from the header button, checks the
 Info tab's Directory / Branch / Git status / Changed files rows, taps
 "Changed files" (the Diff tab becomes the selected strip entry), switches to
 Info and the Files launcher, and swipes the sheet away. Under
-`EXPO_PUBLIC_BB_E2E=1` a Metro reload mid-flow (another agent saving a file)
+`EXPO_PUBLIC_KAIOKEN_E2E=1` a Metro reload mid-flow (another agent saving a file)
 wipes the profile; when sources are being edited concurrently, run Metro
 without that flag for this flow.
 `phase6-diff.yaml` opens the thread named "P6 diff" whose worktree
@@ -406,11 +406,11 @@ card, then commits through the API (`e2e/scripts/phase6-commit.js`,
 `runScript`), refreshes and picks "Committed changes".
 `phase6-terminal.yaml` takes `-e THREAD_TITLE=<title>` (any thread; the seed's
 "Idle thread" works): it opens the workspace panel's Terminal tab, starts a
-session, opens it full screen, types `echo bb-42` and reads the output back
+session, opens it full screen, types `echo kaioken-42` and reads the output back
 through the dev-only text mirror (`terminal-text-mirror`, a one-line
 `accessibilityLabel` of the page's last lines — a WebView's text is invisible
 to the accessibility tree, so this is how Maestro sees the terminal; only
-rendered under `EXPO_PUBLIC_BB_E2E=1` / dev), interrupts a `sleep` with the
+rendered under `EXPO_PUBLIC_KAIOKEN_E2E=1` / dev), interrupts a `sleep` with the
 accessory bar's sticky Ctrl + `c`, recalls it with the arrow keys, and
 renames the session from the "…" menu. `phase6-terminal-resume.yaml` runs a
 slow producer, presses Home for 20 s (the socket suspends) and expects the
@@ -424,12 +424,12 @@ workspace panel → Files launcher (storage browser lists notes › report.csv)
 (markdown preview) → Source → Jump to line 60 → back to Files (the launcher
 stayed mounted, so the query is still there: clear it) → notes ›
 plan.md (storage preview) → close the panel → the full-screen preview by
-deep link (`bb://threads/<id>/files?kind=workspace&path=src%2Fapp.ts&line=12`,
+deep link (`kaioken://threads/<id>/files?kind=workspace&path=src%2Fapp.ts&line=12`,
 pass `-e THREAD_ID=`) lands on the highlighted line → long-press a line →
 Copy line toasts.
-`phase5-connect.yaml` drives bb connect end to end against the stub apex +
-gate (`pnpm --filter @bb/integration-tests e2e:mobile-connect-stub`, see
-"bb connect" below): Add server → "Connect with bb connect" → an expired code
+`phase5-connect.yaml` drives kaioken connect end to end against the stub apex +
+gate (`pnpm --filter @kaioken/integration-tests e2e:mobile-connect-stub`, see
+"kaioken connect" below): Add server → "Connect with kaioken connect" → an expired code
 shows the inline error → the real code with the handle and the self-hosted
 apex → enrolled screen (session signed in, account servers listed, one tap
 adds the second server) → Done → home through the gate (cookie on fetch and
@@ -439,7 +439,7 @@ re-mints and reconnects by itself) → the stub revokes the machine
 (`/__stub/revoke-machine`: "needs to be paired again" banner) → tap the
 banner → "Sign in again" re-pairs the same profile with a new code → home
 connected again. The flow needs the stub started with
-`BB_MOBILE_E2E_SIMULATOR=<udid>` once (it installs its root certificate in
+`KAIOKEN_MOBILE_E2E_SIMULATOR=<udid>` once (it installs its root certificate in
 that simulator) and drives the stub through `e2e/scripts/connect-stub-control.js`
 (plain-HTTP control port 42997).
 `phase7-settings.yaml` walks the settings buckets against the harness:
@@ -460,18 +460,18 @@ Flows cold-start the dev client (`stopApp`) because a warm reload keeps the
 last deep link as the initial URL. Flows that share seed threads are
 order-sensitive: `phase3-threads.yaml` renames "Idle thread", which
 `phase4a-conversation-rows.yaml` looks up, so run the Phase 4a flows first (or
-restart the backend between them). Without `EXPO_PUBLIC_BB_E2E=1`, open `bb://e2e/reset`
+restart the backend between them). Without `EXPO_PUBLIC_KAIOKEN_E2E=1`, open `kaioken://e2e/reset`
 (dev builds) to return the simulator to first run.
 
 ### Flows against a Release build (no Metro)
 
 A Release build (`npx expo run:ios --configuration Release --no-bundler
 --device <udid>`) embeds the JS bundle and never starts the dev launcher, so
-the same flows run without Metro: build it with `EXPO_PUBLIC_BB_E2E=1` (and
-`EXPO_PUBLIC_BB_SERVER_URL=http://127.0.0.1:41999` for the smoke screen) in
+the same flows run without Metro: build it with `EXPO_PUBLIC_KAIOKEN_E2E=1` (and
+`EXPO_PUBLIC_KAIOKEN_SERVER_URL=http://127.0.0.1:41999` for the smoke screen) in
 the environment — the Xcode "Bundle React Native code and images" phase
 inlines `EXPO_PUBLIC_*` at bundle time — and pass
-`-e BB_E2E_EMBEDDED_BUNDLE=1` to Maestro. `e2e/subflows/launch-app.yaml`
+`-e KAIOKEN_E2E_EMBEDDED_BUNDLE=1` to Maestro. `e2e/subflows/launch-app.yaml`
 switches on that variable between the dev-client deep link and a plain
 `launchApp`; it is a `-e` variable on purpose because values in a flow's
 `env:` block beat `-e`, and `METRO_URL` lives in every flow's header.
@@ -529,7 +529,7 @@ argument drives a dev client through Metro instead.
   tree / HEAD / merge base; images and videos become `data:` URLs), host /
   storage / project files read the raw content routes with the profile fetch
   (cookie jar shared with expo-image and the WebView) and classify with
-  `buildFilePreview` from `@bb/client-core`; a 413 `file_too_large` shows the
+  `buildFilePreview` from `@kaioken/client-core`; a 413 `file_too_large` shows the
   too-large state with "Open in browser". HTML renders in a WebView pointed
   at the raw route (`/worktree/files/<path>`, `/thread-storage/files/<path>`,
   `/files/raw?path=` for host files — all answered with
@@ -548,10 +548,10 @@ argument drives a dev client through Metro instead.
   title / restart / new / close toolbar) and the full-screen route
   `/threads/[id]/terminal/[terminalId]` (any orientation; the tab's title
   opens it). `/threads/[id]/terminal` lists the thread's sessions.
-- **Transport**: React Native owns the socket. `@bb/client-core`
+- **Transport**: React Native owns the socket. `@kaioken/client-core`
   `TerminalWebSocketTransport` over RN's `WebSocket`
   (`ws(s)://<server>/ws/terminals/:id?sinceSeq=N`, cookies from the native
-  jar so bb connect works), heartbeat + reconnect from the transport, and
+  jar so kaioken connect works), heartbeat + reconnect from the transport, and
   `suspend()` / `resume()` bound to `AppState`: backgrounding closes the
   socket, foregrounding reattaches from the last chunk seen and the server
   replays what was missed. A replay gap the socket cannot cover
@@ -563,7 +563,7 @@ argument drives a dev client through Metro instead.
 - **Page**: `assets/terminal/index.html` is a single self-contained document
   (xterm.js + fit + unicode11 + web-links + the page script and CSS inlined)
   built by `scripts/build-terminal-page.ts`
-  (`pnpm --filter @bb/mobile terminal:build`) and committed;
+  (`pnpm --filter @kaioken/mobile terminal:build`) and committed;
   `src/screens/terminal/terminal-page.test.ts` rebuilds it in memory and
   fails when it is stale (like the theme drift test). It is loaded with
   `expo-asset` + `expo-file-system` and handed to `react-native-webview` as
@@ -598,17 +598,17 @@ argument drives a dev client through Metro instead.
   are up to 64 KiB, so the batcher mostly coalesces small interactive
   output.
 
-## bb connect (Phase 5)
+## kaioken connect (Phase 5)
 
-- The pairing surfaces on the bb side (Settings → Remote access → Add mobile
-  device, `bb connect machine-code`) sit behind the `mobileApp` experiment
+- The pairing surfaces on the kaioken side (Settings → Remote access → Add mobile
+  device, `kaioken connect machine-code`) sit behind the `mobileApp` experiment
   while the app is in early access: turn it on in Settings → Experiments or
-  with `bb settings experiment mobileApp true` before you mint a code.
+  with `kaioken settings experiment mobileApp true` before you mint a code.
 - Enrollment (`src/screens/connect`, `src/data/connect`, route `/connect`):
-  "Add server" offers "Connect with bb connect" above the Direct URL form.
+  "Add server" offers "Connect with kaioken connect" above the Direct URL form.
   The screen scans the pairing QR (`expo-camera`; payload = the connect
   plugin's `MobilePairingPayload` JSON `{code, serverUrl, apex, expiresAt}`, a
-  `bb://connect?code=…&serverUrl=…` link, or a bare code —
+  `kaioken://connect?code=…&serverUrl=…` link, or a bare code —
   `parseConnectPairingPayload`) or takes the code by hand with an optional
   server (handle like `bee` or `https://bee.getbb.app`) and an optional
   self-hosted apex; the apex defaults to `deriveConnectBaseUrl(serverUrl)`
@@ -647,13 +647,13 @@ argument drives a dev client through Metro instead.
   is a button that opens `/connect?profileId=<id>`, which re-pairs the same
   profile (new credential, same label and place in the list); Settings →
   Servers offers "Sign in again" from the long-press menu for connect
-  profiles and shows a mode pill (`bb connect` / `direct`) plus `@handle`.
+  profiles and shows a mode pill (`kaioken connect` / `direct`) plus `@handle`.
   "Remove" only forgets the profile locally: the phone stays listed under
   Machines in the getbb.app dashboard until revoked there (the copy says so).
 - Stub for e2e (`tests/integration/mobile-e2e/connect-stub.ts`,
-  `pnpm --filter @bb/integration-tests e2e:mobile-connect-stub`): plays the
+  `pnpm --filter @kaioken/integration-tests e2e:mobile-connect-stub`): plays the
   apex and the gate on one TLS port (`https://localhost:42998` /
-  `https://stub.localhost:42998`, so `@bb/connect-client`'s "server lives
+  `https://stub.localhost:42998`, so `@kaioken/connect-client`'s "server lives
   under the apex" rule and the `Secure` cookie hold; iOS ATS refuses plain
   http to a qualified name). It redeems `STUB-PAIR` (sentinels
   `EXPIRED-CODE` / `USED-CODE` / `LIMIT-CODE` reproduce the apex errors),
@@ -661,16 +661,16 @@ argument drives a dev client through Metro instead.
   proxies everything else (HTTP + WebSocket upgrade) to the harness backend
   — only with a valid session cookie, otherwise the gate's HTML 401 —
   rewriting `Origin: https://<gate host>` to the loopback origin like the
-  tunnel client does so the bb server's origin guard accepts RN's
+  tunnel client does so the kaioken server's origin guard accepts RN's
   WebSocket. Control: `POST /__stub/{expire-session,revoke-machine,reset}`,
   `GET /__stub/state`, also on plain `http://127.0.0.1:42997`. It generates a
-  local CA under `~/.bb-mobile-e2e/connect-stub-certs` and installs it in
-  the simulator named by `BB_MOBILE_E2E_SIMULATOR` (`xcrun simctl keychain …
-add-root-cert`). Env: `BB_MOBILE_E2E_GATE_PORT` (42998),
-  `BB_MOBILE_E2E_STUB_CONTROL_PORT` (42997), `BB_MOBILE_E2E_UPSTREAM_URL`
-  (`http://127.0.0.1:${BB_MOBILE_E2E_PORT ?? 41999}`),
-  `BB_MOBILE_E2E_CONNECT_CODE`, `BB_MOBILE_E2E_STUB_HANDLE`,
-  `BB_MOBILE_E2E_SESSION_TTL_MS`, `BB_MOBILE_E2E_STUB_LOG=1` (one line per
+  local CA under `~/.kaioken-mobile-e2e/connect-stub-certs` and installs it in
+  the simulator named by `KAIOKEN_MOBILE_E2E_SIMULATOR` (`xcrun simctl keychain …
+add-root-cert`). Env: `KAIOKEN_MOBILE_E2E_GATE_PORT` (42998),
+  `KAIOKEN_MOBILE_E2E_STUB_CONTROL_PORT` (42997), `KAIOKEN_MOBILE_E2E_UPSTREAM_URL`
+  (`http://127.0.0.1:${KAIOKEN_MOBILE_E2E_PORT ?? 41999}`),
+  `KAIOKEN_MOBILE_E2E_CONNECT_CODE`, `KAIOKEN_MOBILE_E2E_STUB_HANDLE`,
+  `KAIOKEN_MOBILE_E2E_SESSION_TTL_MS`, `KAIOKEN_MOBILE_E2E_STUB_LOG=1` (one line per
   gate request).
 
 ## Push notifications and deep links (Phase 5)
@@ -684,15 +684,15 @@ add-root-cert`). Env: `BB_MOBILE_E2E_GATE_PORT` (42998),
   AppState active, when the OS rolls the token (re-register), and when the
   toggle flips; profiles removed from the app get their server row deleted
   by the stored server URL. A direct profile must use HTTPS, unless it uses
-  `127.0.0.1`, `localhost`, or `::1`. Tailscale Serve and bb connect profiles
-  work normally. Other HTTP profiles show "Push needs HTTPS or bb connect"
+  `127.0.0.1`, `localhost`, or `::1`. Tailscale Serve and kaioken connect profiles
+  work normally. Other HTTP profiles show "Push needs HTTPS or kaioken connect"
   and do not register. The server also needs outbound access to `exp.host`.
   The server must enable the `push-notifications` plugin.
   The one-time "Get notified…" sheet appears only after the first successful
   connection. The sheet never appears on launch. The OS prompt starts only
   after the user selects "Turn on notifications".
 - Privacy: the registration request contains the full Expo token. The list
-  RPC method and `bb push-notifications list` return only the last six token
+  RPC method and `kaioken push-notifications list` return only the last six token
   characters in `tokenSuffix`. A token can receive pushes but cannot read
   server data.
 - Handling: a foreground arrival becomes a toast with "Open" (no system
@@ -706,8 +706,8 @@ payload.apns` with `{"aps":{"alert":{…}},"body":{"kind":"turn-finished",
 "threadId":"…","projectId":"…","serverUrl":"https://…"}}`
   (expo-notifications reads remote `data` from the `body` key) after the user
   grants permission.
-- Deep links: `bb://<mobile path>` (`bb://threads/<id>`, `bb://settings/servers`,
-  `bb://projects/<p>/threads/<t>`, …) and universal / app links
+- Deep links: `kaioken://<mobile path>` (`kaioken://threads/<id>`, `kaioken://settings/servers`,
+  `kaioken://projects/<p>/threads/<t>`, …) and universal / app links
   `https://<handle>.getbb.app/{threads,projects,settings}/*` (iOS
   `associatedDomains: applinks:getbb.app, applinks:*.getbb.app`; Android
   `intentFilters` with `autoVerify`). `app/+native-intent.tsx` resolves every
@@ -719,10 +719,10 @@ payload.apns` with `{"aps":{"alert":{…}},"body":{"kind":"turn-finished",
   `https://<handle>.getbb.app/.well-known/apple-app-site-association` /
   `assetlinks.json` are served (the connect gate and the apex do, before the
   session gate — `packages/connect-db/src/app-links.ts`) and the app is
-  signed with the team id in that file; until then only the `bb://` scheme
+  signed with the team id in that file; until then only the `kaioken://` scheme
   works, and wildcard associated-domain behavior still needs a physical
   device check. The realtime `thread-open` signal (`POST /threads/:id/open`,
-  `bb thread open`) navigates to the thread while the app is foregrounded.
+  `kaioken thread open`) navigates to the thread while the app is foregrounded.
 
 ## Plugins, marketplaces, skills (Phase 7)
 
@@ -748,7 +748,7 @@ payload.apns` with `{"aps":{"alert":{…}},"body":{"kind":"turn-finished",
   library grouped by scope, SkillDetailScreen rendering SKILL.md with
   `@/markdown`, RegistrySkillsScreen with Load more, RegistrySkillDetailScreen
   with "Install to my skills").
-- Plugin compact icons and provider logos are `currentColor` SVGs served by bb:
+- Plugin compact icons and provider logos are `currentColor` SVGs served by kaioken:
   `ServerSvgIcon` reads them as text through the profile fetch and renders
   `SvgXml` with the theme foreground (an image view would paint them black);
   the provider picker uses it for `GET /system/providers/:id/logo`.
@@ -759,7 +759,7 @@ payload.apns` with `{"aps":{"alert":{…}},"body":{"kind":"turn-finished",
   installed list is empty (the flow asserts the empty state) while the
   catalog / marketplaces / skills routes work. `e2e/manual/phase7-plugins-
 devserver.yaml` drives the same screens against the checkout's dev server
-  (`scripts/bb-dev-app current`; real builtin plugins, read-mostly) and is not
+  (`scripts/kaioken-dev-app current`; real builtin plugins, read-mostly) and is not
   part of `pnpm e2e:ios`.
 
 ## Share sheet and haptics (Phase 7)
@@ -767,7 +767,7 @@ devserver.yaml` drives the same screens against the checkout's dev server
 - Outbound: the thread "…" menu's "Share link" hands the thread's web URL to
   the OS share sheet (`src/lib/share/share-thread.ts`, RN `Share.share`; iOS
   gets a `url` item, Android a `message`).
-- Inbound "Send to bb" is wired for `expo-share-intent` but the native module
+- Inbound "Send to kaioken" is wired for `expo-share-intent` but the native module
   is **not** in the current dev client: `src/lib/share/share-intent.ts` loads
   it optionally (Metro's `allowOptionalDependencies` keeps the bundle building
   without it) and `src/app-shell/ShareIntentHandler.tsx` renders nothing when
@@ -787,9 +787,9 @@ devserver.yaml` drives the same screens against the checkout's dev server
 
 ## Release (EAS)
 
-The app lives in the EAS project `@bb-team/bb-app` (id in
-`app.json` → `extra.eas.projectId`; the Expo slug `bb-app` also names the
-dev-client scheme `exp+bb-app://`). Apple team `9QCU24SXK5`, bundle id
+The app lives in the EAS project `@bb-team/kaioken-app` (id in
+`app.json` → `extra.eas.projectId`; the Expo slug `kaioken-app` also names the
+dev-client scheme `exp+kaioken-app://`). Apple team `9QCU24SXK5`, bundle id
 `app.getbb.mobile`, App Store Connect app `6803559210`. EAS holds the iOS
 credentials (distribution certificate, App Store provisioning profile, APNs
 push key); nobody needs a local Xcode signing setup to ship.
@@ -803,8 +803,8 @@ push key); nobody needs a local Xcode signing setup to ship.
   number on EAS, `version` in `app.json` is the marketing version).
 - **Push release check**: confirm the APNs key with `pnpm exec eas credentials
   -p ios`. Use `development-device` for a physical iPhone. Keep the server
-  `push-notifications` plugin enabled, and use an HTTPS or bb connect profile.
-  Run `bb push-notifications list`. Confirm that it shows a token suffix, not
+  `push-notifications` plugin enabled, and use an HTTPS or kaioken connect profile.
+  Run `kaioken push-notifications list`. Confirm that it shows a token suffix, not
   a full token.
 - **TestFlight by hand**: `pnpm exec eas build -p ios --profile production`,
   then `pnpm exec eas submit -p ios --latest`. The submit profile reads the
@@ -827,14 +827,14 @@ push key); nobody needs a local Xcode signing setup to ship.
 --build N` from `apps/mobile` with the `.p8` in place.
   Run it alone from the Actions tab ("Mobile iOS (EAS)") or
   `gh workflow run mobile-ios-eas.yml -f profile=production -f submit=true`.
-  The nightly `publish-bb-app.yml` calls the same workflow after the npm
+  The nightly `publish-kaioken-app.yml` calls the same workflow after the npm
   nightly publish with an empty `version`, so every nightly keeps the
   marketing version committed in `app.json` and only the EAS build number
   moves. This is deliberate: TestFlight needs a Beta App Review for the
   first build of each new marketing version, and later builds of the same
   version skip it. Bump `app.json` `version` only when you want a new
   review, for example for a store release. Repo
-  secrets: `EXPO_TOKEN` (a robot token from the `bb-team` Expo org) and
+  secrets: `EXPO_TOKEN` (a robot token from the `kaioken-team` Expo org) and
   `ASC_API_KEY_P8` (the `.p8` contents).
 - The `expo-modules-jsi` pnpm patch and the `lightningcss` override ship
   with the repo and apply on EAS; the default build image provides
@@ -851,7 +851,7 @@ push key); nobody needs a local Xcode signing setup to ship.
 
 **Internal testers** need no Apple review. A build reaches the group as soon as
 App Store Connect finishes processing it, usually within 30 minutes. The group
-`bb team` exists and the nightly feeds it.
+`kaioken team` exists and the nightly feeds it.
 
 **External testers** need a Beta App Review on the first build of each
 marketing version, and Apple usually auto-approves later builds of that
@@ -866,15 +866,15 @@ group, App Store Connect needs all of this:
   build, a "What to test" note.
 - **Beta App Review Details** (`betaAppReviewDetail`): contact first name, last
   name, phone, and email. Apple uses these, testers never see them.
-- **A way for the reviewer to use the app.** This is the part that fails. bb
-  opens on "Add server", and a reviewer has no bb server, so without help they
+- **A way for the reviewer to use the app.** This is the part that fails. kaioken
+  opens on "Add server", and a reviewer has no kaioken server, so without help they
   cannot get past the first screen and will reject the build. Neither real
-  path works for a reviewer: a bb server's API is unauthenticated and runs
+  path works for a reviewer: a kaioken server's API is unauthenticated and runs
   commands, so it cannot be on the internet, and connect pairing codes are
   single-use and expire in ten minutes. Give them the **demo server** instead:
   `apps/demo-server` is a Cloudflare Worker that answers the launch-path API
   from fixed data, runs nothing, and isolates each client address. Deploy it
-  with `pnpm --filter @bb/demo-server deploy`, and rehearse the notes with
+  with `pnpm --filter @kaioken/demo-server deploy`, and rehearse the notes with
   `e2e/manual/demo-server.yaml` before every submission. Disclose it in the
   notes: a disclosed demo mode is sanctioned by guideline 2.1.
 
@@ -882,12 +882,12 @@ Review notes template — keep it literal, and assume the reviewer knows nothing
 about coding agents:
 
 ```text
-bb is a client for a bb server that a developer runs on their own computer.
+kaioken is a client for a kaioken server that a developer runs on their own computer.
 The app has no accounts of its own, so we have prepared a demo server for
 you. It serves sample conversations and scripted replies; it does not run a
 real coding agent.
 
-1. Open the app. It shows "Connect to a bb server".
+1. Open the app. It shows "Connect to a kaioken server".
 2. Under "Direct URL", in "Server URL", enter: https://<DEMO-HOST>
 3. Tap "Connect".
 4. The app shows a list of conversations. Open any of them to read it.
@@ -896,7 +896,7 @@ real coding agent.
 Write to <EMAIL> if the server does not respond.
 ```
 
-Rehearse it before submitting: hand a colleague a phone that has never run bb,
+Rehearse it before submitting: hand a colleague a phone that has never run kaioken,
 give them only these notes, and check that they reach a thread.
 
 The nightly keeps the marketing version in `app.json` and lets the EAS build
@@ -931,14 +931,14 @@ Beta App Review and another build of the same version usually does not.
 `apps/app/src/lib/themes/*.ts`: every color token per palette × light/dark as a
 plain RN color string, with `nativeRadii` and the touch (`pointer: coarse`)
 `nativeTypography` scale. Do not edit it by hand. After changing theme.css or a
-palette, run `pnpm --filter @bb/mobile theme:generate` and commit the result;
+palette, run `pnpm --filter @kaioken/mobile theme:generate` and commit the result;
 `src/theme/generate-native-theme.test.ts` fails when the file is stale.
 
 ## Notes
 
 - Workspace packages resolve from TypeScript source through `metro.config.js`
-  (`source` export condition for `@bb/*` only, `./x.js` → `./x.ts`).
-- Import `@bb/sdk/browser`, never `@bb/sdk` (lint-enforced).
+  (`source` export condition for `@kaioken/*` only, `./x.js` → `./x.ts`).
+- Import `@kaioken/sdk/browser`, never `@kaioken/sdk` (lint-enforced).
 - Never spread a `Headers` instance into a fetch init on React Native.
 - File uploads (`POST /projects/:id/attachments`, `/system/voice-transcription`)
   go through `XMLHttpRequest` (`src/data/composer/multipart-upload.ts`): the

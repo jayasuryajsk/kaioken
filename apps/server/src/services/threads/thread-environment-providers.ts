@@ -10,13 +10,13 @@ import {
   getThread,
   recordEnvironmentCurrentBranch,
   recordEnvironmentProviderProvenance,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   isLocalPathProjectSource,
   type Environment,
   type ProvisioningTranscriptEntry,
   type Thread,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { ApiError } from "../../errors.js";
 import {
   getNonDestroyedHostWithStatus,

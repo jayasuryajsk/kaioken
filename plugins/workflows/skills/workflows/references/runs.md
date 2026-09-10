@@ -2,13 +2,13 @@
 
 ## Running and resuming
 
-`bb_workflow_run` and `bb workflows validate` accept exactly one source mode:
+`bb_workflow_run` and `kaioken workflows validate` accept exactly one source mode:
 
 - `script`: inline JavaScript.
 - `scriptPath`: a relative path or an absolute path confined to the workflow
   origin environment's workspace.
 - `name`: a lowercase kebab-case name resolved as
-  `.bb/workflows/<name>.js` in the current project workspace.
+  `.kaioken/workflows/<name>.js` in the current project workspace.
 
 The existing `source` field remains a supported alias for inline `script`, but
 do not provide both. File and name resolution happens through the origin
@@ -18,9 +18,9 @@ rejected. QuickJS receives source text only; it never gets filesystem access.
 Plugin-bundled workflow discovery is not supported.
 
 `bb_workflow_run` also accepts optional JSON `args` and optional `resumeRunId`.
-It returns a durable run ID immediately. Use the compact `bb workflows status`
-summary, paged `bb workflows history`, `bb workflows list`, and
-`bb workflows stop` afterward. Completion is sent back as an agent-only input:
+It returns a durable run ID immediately. Use the compact `kaioken workflows status`
+summary, paged `kaioken workflows history`, `kaioken workflows list`, and
+`kaioken workflows stop` afterward. Completion is sent back as an agent-only input:
 it steers an active origin immediately or starts a turn when the origin is idle,
 without rendering a user-facing message. Delivery is duplicate-tolerant
 at-least-once because `threads.send` has no idempotency key. CLI status polling
@@ -36,7 +36,7 @@ JSONL page on the execution host, then use normal file-navigation tools:
 ```bash
 run=<run-id>
 mkdir -p "$BB_THREAD_STORAGE/workflows"
-bb workflows history "$run" --cursor 0 --limit 100 \
+kaioken workflows history "$run" --cursor 0 --limit 100 \
   > "$BB_THREAD_STORAGE/workflows/$run.jsonl"
 jq -c 'select(.type == "page")' "$BB_THREAD_STORAGE/workflows/$run.jsonl"
 ```
@@ -73,18 +73,18 @@ persisted and visible in workflow history.
 The CLI equivalents are:
 
 ```bash
-bb workflows validate --script '<javascript>'
-bb workflows validate --file .bb/workflows/review-change.js
-bb workflows validate --name review-change
-bb workflows run --script '<javascript>' --args '<json>'
-bb workflows run --file .bb/workflows/review-change.js --resume <run-id>
-bb workflows run --name review-change
-bb workflows status <run-id>
-bb workflows history <run-id> --cursor 0 --limit 100
-bb workflows list --limit 20
-bb workflows stop <run-id>
-bb provider list --environment "$BB_ENVIRONMENT_ID" --json
-bb provider models <provider-id> --environment "$BB_ENVIRONMENT_ID" --json
+kaioken workflows validate --script '<javascript>'
+kaioken workflows validate --file .kaioken/workflows/review-change.js
+kaioken workflows validate --name review-change
+kaioken workflows run --script '<javascript>' --args '<json>'
+kaioken workflows run --file .kaioken/workflows/review-change.js --resume <run-id>
+kaioken workflows run --name review-change
+kaioken workflows status <run-id>
+kaioken workflows history <run-id> --cursor 0 --limit 100
+kaioken workflows list --limit 20
+kaioken workflows stop <run-id>
+kaioken provider list --environment "$BB_ENVIRONMENT_ID" --json
+kaioken provider models <provider-id> --environment "$BB_ENVIRONMENT_ID" --json
 ```
 
 The CLI's `--file` maps to the agent tool's `scriptPath`, but a relative CLI

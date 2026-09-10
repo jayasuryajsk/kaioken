@@ -3,9 +3,9 @@
   "name": "skeleton",
   "type": "registry:ui",
   "title": "skeleton",
-  "description": "BB ui \"skeleton\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"skeleton\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "registryDependencies": [
-    "@bb/utils"
+    "@kaioken/utils"
   ],
   "files": [
     {

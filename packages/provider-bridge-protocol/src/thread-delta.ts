@@ -16,7 +16,7 @@ import {
   threadEventTurnStatusSchema,
   threadEventWarningCategorySchema,
   workflowProgressSnapshotSchema,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { z } from "zod";
 
 export const THREAD_DELTA_NOTIFICATION_METHOD = "thread/delta";

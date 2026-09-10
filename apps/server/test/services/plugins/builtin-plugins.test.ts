@@ -17,9 +17,9 @@ import {
   getInstalledPluginRegistration,
   migrate,
   type DbConnection,
-} from "@bb/db";
-import { PLUGIN_SDK_MAJOR, PLUGIN_SDK_VERSION } from "@bb/domain";
-import type { Logger } from "@bb/logger";
+} from "@kaioken/db";
+import { PLUGIN_SDK_MAJOR, PLUGIN_SDK_VERSION } from "@kaioken/domain";
+import type { Logger } from "@kaioken/logger";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import {
   createPluginService,
@@ -45,7 +45,7 @@ const fixtureRoot = resolve(
   "..",
   "fixtures",
   "plugins",
-  "bb-plugin-builtin-fixture",
+  "kaioken-plugin-builtin-fixture",
 );
 const globals = globalThis as Record<string, unknown>;
 
@@ -72,7 +72,7 @@ async function writePackagedBuiltinSource(workDir: string): Promise<{
       join(sourceRoot, "package.json"),
       JSON.stringify(
         {
-          name: `bb-plugin-${name}`,
+          name: `kaioken-plugin-${name}`,
           version: "0.1.0",
           type: "module",
           bb: {
@@ -203,7 +203,7 @@ describe("builtin plugin reconciliation", () => {
     delete globals.__hotBuiltinServerVersion;
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-builtin-plugins-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-builtin-plugins-"));
   });
 
   it("keeps official plugins bundled but out of the auto-install builtins", () => {
@@ -224,7 +224,7 @@ describe("builtin plugin reconciliation", () => {
 
   it("gives every builtin plugin a deliberate settings icon", async () => {
     const expectedIcons = new Map([
-      ["bb-guide", "Explore"],
+      ["kaioken-guide", "Explore"],
       ["account-pool", "Layers"],
       ["ask-user-question", "MessageQuestion"],
       ["automations", "Repeat"],
@@ -324,8 +324,8 @@ describe("builtin plugin reconciliation", () => {
     const legacyRows = [
       ["legacy-path", `path:${fixtureRoot}`, 1, 101],
       ["legacy-builtin", "builtin:fixture", 0, 102],
-      ["legacy-npm", "npm:bb-plugin-legacy@1.2.3", 1, 103],
-      ["legacy-git", `git:github.com/acme/bb-plugin-legacy@${sha}`, 0, 104],
+      ["legacy-npm", "npm:kaioken-plugin-legacy@1.2.3", 1, 103],
+      ["legacy-git", `git:github.com/acme/kaioken-plugin-legacy@${sha}`, 0, 104],
     ] as const;
     const insert = db.$client.prepare(
       `INSERT INTO plugins
@@ -358,7 +358,7 @@ describe("builtin plugin reconciliation", () => {
       enabled: true,
       removedAt: 103,
       sourceKind: "npm",
-      sourceNpmPackage: "bb-plugin-legacy",
+      sourceNpmPackage: "kaioken-plugin-legacy",
       sourceNpmRequestedSpec: "1.2.3",
       npmResolvedVersion: "1.2.3",
     });
@@ -366,7 +366,7 @@ describe("builtin plugin reconciliation", () => {
       enabled: false,
       removedAt: 104,
       sourceKind: "git",
-      sourceGitUrl: "https://github.com/acme/bb-plugin-legacy",
+      sourceGitUrl: "https://github.com/acme/kaioken-plugin-legacy",
       sourceGitRequestedRef: sha,
       gitResolvedCommit: sha,
     });
@@ -664,7 +664,7 @@ describe("builtin plugin reconciliation", () => {
   });
 
   it("refreshes the builtin row when the bundled package version changes", async () => {
-    const mutableRoot = join(workDir, "bb-plugin-builtin-fixture");
+    const mutableRoot = join(workDir, "kaioken-plugin-builtin-fixture");
     await cp(fixtureRoot, mutableRoot, { recursive: true });
     service = createService({
       db,
@@ -677,7 +677,7 @@ describe("builtin plugin reconciliation", () => {
     await writeFile(
       join(mutableRoot, "package.json"),
       JSON.stringify({
-        name: "bb-plugin-builtin-fixture",
+        name: "kaioken-plugin-builtin-fixture",
         version: "0.2.0",
         type: "module",
         bb: {
@@ -729,12 +729,12 @@ describe("builtin plugin reconciliation", () => {
   });
 
   it("hot-reloads a source-layout builtin server instead of a compatible dist artifact", async () => {
-    const mutableRoot = join(workDir, "bb-plugin-hot-server-builtin");
+    const mutableRoot = join(workDir, "kaioken-plugin-hot-server-builtin");
     await mkdir(join(mutableRoot, "dist"), { recursive: true });
     await writeFile(
       join(mutableRoot, "package.json"),
       JSON.stringify({
-        name: "bb-plugin-hot-server-builtin",
+        name: "kaioken-plugin-hot-server-builtin",
         version: "0.1.0",
         type: "module",
         bb: {
@@ -785,12 +785,12 @@ describe("builtin plugin reconciliation", () => {
   }, 30_000);
 
   it("rebuilds a source-layout builtin app changed while the server was stopped", async () => {
-    const mutableRoot = join(workDir, "bb-plugin-stale-app-builtin");
+    const mutableRoot = join(workDir, "kaioken-plugin-stale-app-builtin");
     await mkdir(mutableRoot, { recursive: true });
     await writeFile(
       join(mutableRoot, "package.json"),
       JSON.stringify({
-        name: "bb-plugin-stale-app-builtin",
+        name: "kaioken-plugin-stale-app-builtin",
         version: "0.1.0",
         type: "module",
         bb: {
@@ -850,12 +850,12 @@ describe("builtin plugin reconciliation", () => {
   }, 30_000);
 
   it("surfaces builtin app build failures in status until the next successful build", async () => {
-    const mutableRoot = join(workDir, "bb-plugin-hot-app-builtin");
+    const mutableRoot = join(workDir, "kaioken-plugin-hot-app-builtin");
     await mkdir(mutableRoot, { recursive: true });
     await writeFile(
       join(mutableRoot, "package.json"),
       JSON.stringify({
-        name: "bb-plugin-hot-app-builtin",
+        name: "kaioken-plugin-hot-app-builtin",
         version: "0.1.0",
         type: "module",
         bb: {
@@ -936,7 +936,7 @@ describe("builtin plugin reconciliation", () => {
     const { sourceModuleDir } = await writePackagedBuiltinSource(workDir);
     const targetRoot = join(workDir, "builtin-plugins");
     await copyBuiltinPlugins({
-      bbVersion: "0.9.0-test",
+      kaiokenVersion: "0.9.0-test",
       build: false,
       plugins: BUILTIN_PLUGINS,
       sourceModuleDir,
@@ -975,7 +975,7 @@ describe("builtin plugin reconciliation", () => {
     const incompatibleMajor = PLUGIN_SDK_MAJOR + 1;
     const targetRoot = join(workDir, "builtin-plugins");
     await copyBuiltinPlugins({
-      bbVersion: "0.9.0-test",
+      kaiokenVersion: "0.9.0-test",
       build: false,
       plugins: BUILTIN_PLUGINS,
       sourceModuleDir,
@@ -1006,7 +1006,7 @@ describe("builtin plugin reconciliation", () => {
         version: "0.1.0",
         enabled: true,
         status: "incompatible",
-        statusDetail: `server artifact for plugin "automations" was built for SDK major ${incompatibleMajor}, running SDK major is ${PLUGIN_SDK_MAJOR}; rebuild the server artifact with this bb version`,
+        statusDetail: `server artifact for plugin "automations" was built for SDK major ${incompatibleMajor}, running SDK major is ${PLUGIN_SDK_MAJOR}; rebuild the server artifact with this kaioken version`,
       },
     ]);
     expect(packagedLoadCount()).toBe(before);
@@ -1016,7 +1016,7 @@ describe("builtin plugin reconciliation", () => {
     const { sourceModuleDir } = await writePackagedBuiltinSource(workDir);
     const targetRoot = join(workDir, "builtin-plugins");
     await copyBuiltinPlugins({
-      bbVersion: "0.9.0-test",
+      kaiokenVersion: "0.9.0-test",
       build: false,
       plugins: BUILTIN_PLUGINS,
       sourceModuleDir,
@@ -1047,7 +1047,7 @@ describe("builtin plugin packaging", () => {
   let workDir: string;
 
   beforeEach(async () => {
-    workDir = await mkdtemp(join(tmpdir(), "bb-builtin-plugin-copy-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-builtin-plugin-copy-"));
   });
 
   afterEach(async () => {
@@ -1059,7 +1059,7 @@ describe("builtin plugin packaging", () => {
     const targetRoot = join(workDir, "builtin-plugins");
 
     await copyBuiltinPlugins({
-      bbVersion: "0.9.0-test",
+      kaiokenVersion: "0.9.0-test",
       build: false,
       plugins: BUILTIN_PLUGINS,
       sourceModuleDir,

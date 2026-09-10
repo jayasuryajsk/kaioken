@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
-import { isRunningThreadRuntimeDisplayStatus } from "@bb/client-core";
-import { EmptyStatePanel } from "@bb/shared-ui/empty-state";
-import { Skeleton } from "@bb/shared-ui/skeleton";
+import { isRunningThreadRuntimeDisplayStatus } from "@kaioken/client-core";
+import { EmptyStatePanel } from "@kaioken/shared-ui/empty-state";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
 import type { PromptMentionLinkResolver } from "@/components/promptbox/editor/prompt-mention-link";
 import { ConversationTimeline } from "@/components/ui/conversation.js";
 import { useThread } from "@/hooks/queries/thread-queries";
-import { BbHttpError } from "@/lib/sdk";
+import { KaiokenHttpError } from "@/lib/sdk";
 import {
   ThreadTimelineSurface,
   type ThreadTimelineSurfaceProps,
@@ -83,7 +83,7 @@ export function ThreadTimelinePanelContent({
           backgroundOnlyIndicatorLabel !== undefined)));
   const timelineRows = resolvedTimeline.timelineRows;
   const isChildThreadMissing =
-    threadQuery.error instanceof BbHttpError &&
+    threadQuery.error instanceof KaiokenHttpError &&
     threadQuery.error.status === 404;
 
   if (isChildThreadMissing) {

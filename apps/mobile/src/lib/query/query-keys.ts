@@ -1,4 +1,4 @@
-import type { ThreadOriginKind } from "@bb/domain";
+import type { ThreadOriginKind } from "@kaioken/domain";
 
 const SYSTEM_CONFIG_QUERY_KEY = "systemConfig";
 const SYSTEM_VERSION_QUERY_KEY = "systemVersion";

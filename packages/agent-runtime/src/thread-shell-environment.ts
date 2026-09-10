@@ -19,12 +19,12 @@ export function buildThreadShellEnvironment(
 ): Record<string, string> {
   return {
     ...(args.baseShellEnv ?? {}),
-    ...(args.projectId ? { BB_PROJECT_ID: args.projectId } : {}),
+    ...(args.projectId ? { KAIOKEN_PROJECT_ID: args.projectId } : {}),
     ...(args.threadStoragePath
-      ? { BB_THREAD_STORAGE: args.threadStoragePath }
+      ? { KAIOKEN_THREAD_STORAGE: args.threadStoragePath }
       : {}),
-    BB_THREAD_ID: args.threadId,
-    BB_ENVIRONMENT_ID: args.environmentId,
+    KAIOKEN_THREAD_ID: args.threadId,
+    KAIOKEN_ENVIRONMENT_ID: args.environmentId,
   };
 }
 
@@ -60,13 +60,13 @@ export function resolveThreadEnvironment(args: ResolveThreadEnvironmentArgs): {
     if (typeof contribution.value === "string") {
       value = contribution.value;
     } else {
-      const serverUrl = args.baseShellEnv?.BB_SERVER_URL;
+      const serverUrl = args.baseShellEnv?.KAIOKEN_SERVER_URL;
       if (serverUrl === undefined) {
         entries.push({
           name: contribution.name,
           source: contribution.source,
           value: { masked: true },
-          reason: `${contribution.reason} (dropped: no BB_SERVER_URL)`,
+          reason: `${contribution.reason} (dropped: no KAIOKEN_SERVER_URL)`,
         });
         droppedContributions.push({
           name: contribution.name,

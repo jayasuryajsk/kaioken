@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const BB_APP_VERSION_FALLBACK = "0.0.0-dev";
+const KAIOKEN_APP_VERSION_FALLBACK = "0.0.0-dev";
 const PARENT_LOOKUP_MAX_DEPTH = 8;
 
 interface ResolveBbAppVersionArgs {
@@ -10,12 +10,12 @@ interface ResolveBbAppVersionArgs {
   fromDir: string;
 }
 
-interface BbAppPackageJson {
+interface KaiokenAppPackageJson {
   name: string;
   version: string;
 }
 
-function isBbAppPackageJson(value: unknown): value is BbAppPackageJson {
+function isBbAppPackageJson(value: unknown): value is KaiokenAppPackageJson {
   return (
     typeof value === "object" &&
     value !== null &&
@@ -30,7 +30,7 @@ function isBbAppPackageJson(value: unknown): value is BbAppPackageJson {
 function readBbAppVersionAt(packageJsonPath: string): string | null {
   try {
     const parsed: unknown = JSON.parse(readFileSync(packageJsonPath, "utf8"));
-    if (!isBbAppPackageJson(parsed) || parsed.name !== "bb-app") {
+    if (!isBbAppPackageJson(parsed) || parsed.name !== "kaioken-app") {
       return null;
     }
     return parsed.version;
@@ -48,7 +48,7 @@ function trimEnvValue(value: string | undefined): string | undefined {
 }
 
 export function resolveBbAppVersion(args: ResolveBbAppVersionArgs): string {
-  const envValue = trimEnvValue(args.env.BB_APP_VERSION);
+  const envValue = trimEnvValue(args.env.KAIOKEN_APP_VERSION);
   if (envValue !== undefined) {
     return envValue;
   }
@@ -63,7 +63,7 @@ export function resolveBbAppVersion(args: ResolveBbAppVersionArgs): string {
     const workspaceCandidatePath = join(
       currentDir,
       "packages",
-      "bb-app",
+      "kaioken-app",
       "package.json",
     );
     const workspaceCandidateVersion = readBbAppVersionAt(
@@ -79,7 +79,7 @@ export function resolveBbAppVersion(args: ResolveBbAppVersionArgs): string {
     currentDir = parentDir;
   }
 
-  return BB_APP_VERSION_FALLBACK;
+  return KAIOKEN_APP_VERSION_FALLBACK;
 }
 
 export function resolveBbCliVersion(): string {

@@ -1,6 +1,6 @@
-import type { IconName } from "@bb/shared-ui/icon";
+import type { IconName } from "@kaioken/shared-ui/icon";
 import type { ShowcaseArchetype } from "@/components/showcase-hero/showcase-archetype";
-import { CREATE_PLUGIN_PROMPT } from "@bb/client-core";
+import { CREATE_PLUGIN_PROMPT } from "@kaioken/client-core";
 
 type BrowseArchetype = ShowcaseArchetype;
 
@@ -18,7 +18,7 @@ const ARCHETYPE_SOURCE: readonly Omit<BrowseArchetype, "id">[] = [
   {
     noun: "a live dashboard",
     title: "Live dashboard",
-    hook: "Put the numbers your team actually checks on the bb homepage.",
+    hook: "Put the numbers your team actually checks on the kaioken homepage.",
     capability: "homepageSection",
     icon: "ChartColumn",
     accentToken: "--success",
@@ -58,7 +58,7 @@ const ARCHETYPE_SOURCE: readonly Omit<BrowseArchetype, "id">[] = [
   {
     noun: "a support inbox",
     title: "Support inbox",
-    hook: "Triage user reports into fixes without leaving bb.",
+    hook: "Triage user reports into fixes without leaving kaioken.",
     capability: "navPanel + service + messageAction",
     icon: "Mail",
     accentToken: "--destructive-text",
@@ -111,7 +111,7 @@ export const UTILITY_EXAMPLES: readonly UtilityExample[] = [
     label: "CLI command",
     icon: "Terminal",
     brief:
-      "adds a bb CLI command that deploys the current branch to staging and reports status",
+      "adds a kaioken CLI command that deploys the current branch to staging and reports status",
   },
   {
     id: "background-service",

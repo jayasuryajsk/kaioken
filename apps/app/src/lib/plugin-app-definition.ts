@@ -1,8 +1,8 @@
-import type { PluginAppDefinition, PluginAppSetup } from "@get-bb/plugin-sdk";
+import type { PluginAppDefinition, PluginAppSetup } from "@get-kaioken/plugin-sdk";
 import {
   collectPluginAppRegistrations,
   type CollectedPluginAppRegistrations,
-} from "@get-bb/plugin-sdk/internal/plugin-app-collector";
+} from "@get-kaioken/plugin-sdk/internal/plugin-app-collector";
 
 export { collectPluginAppRegistrations };
 export type { CollectedPluginAppRegistrations };

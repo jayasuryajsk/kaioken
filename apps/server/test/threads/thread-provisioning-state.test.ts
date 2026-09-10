@@ -7,7 +7,7 @@ import {
   migrate,
   noopNotifier,
   upsertHost,
-} from "@bb/db";
+} from "@kaioken/db";
 import { getActiveThreadProvisionContext } from "../../src/services/threads/thread-provisioning-active-context.js";
 import { requestThreadProvision } from "../../src/services/threads/thread-provisioning.js";
 import { NotificationHub } from "../../src/ws/hub.js";

@@ -3,8 +3,8 @@ import type {
   ThreadPullRequest,
   WorkspaceFileStatus,
   WorkspaceStatus,
-} from "@bb/domain";
-import type { PullRequestMergeMethod } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { PullRequestMergeMethod } from "@kaioken/server-contract";
 import {
   ThreadPromptContextBanner,
   type ContextBannerMergeBaseConfig,
@@ -88,12 +88,12 @@ const dirtyUncommittedStatus: WorkspaceStatus = {
     lineStatsComplete: true,
   },
   branch: {
-    currentBranch: "bb/promptbox-stories",
+    currentBranch: "kaioken/promptbox-stories",
     defaultBranch: "main",
   },
   checkout: {
     kind: "branch",
-    branchName: "bb/promptbox-stories",
+    branchName: "kaioken/promptbox-stories",
     headSha: null,
   },
   mergeBase: null,
@@ -226,12 +226,12 @@ const dirtyUncommittedManyStatus: WorkspaceStatus = {
     lineStatsComplete: true,
   },
   branch: {
-    currentBranch: "bb/promptbox-stories",
+    currentBranch: "kaioken/promptbox-stories",
     defaultBranch: "main",
   },
   checkout: {
     kind: "branch",
-    branchName: "bb/promptbox-stories",
+    branchName: "kaioken/promptbox-stories",
     headSha: null,
   },
   mergeBase: null,
@@ -249,7 +249,7 @@ const untrackedOnlyStatus: WorkspaceStatus = {
         deletions: null,
       },
       {
-        path: "apps/app/scripts/dev-bb-worktree.sh",
+        path: "apps/app/scripts/dev-kaioken-worktree.sh",
         status: "??",
         insertions: null,
         deletions: null,
@@ -260,12 +260,12 @@ const untrackedOnlyStatus: WorkspaceStatus = {
     lineStatsComplete: false,
   },
   branch: {
-    currentBranch: "bb/promptbox-stories",
+    currentBranch: "kaioken/promptbox-stories",
     defaultBranch: "main",
   },
   checkout: {
     kind: "branch",
-    branchName: "bb/promptbox-stories",
+    branchName: "kaioken/promptbox-stories",
     headSha: null,
   },
   mergeBase: null,
@@ -281,12 +281,12 @@ const committedUnmergedStatus: WorkspaceStatus = {
     lineStatsComplete: true,
   },
   branch: {
-    currentBranch: "bb/promptbox-stories",
+    currentBranch: "kaioken/promptbox-stories",
     defaultBranch: "main",
   },
   checkout: {
     kind: "branch",
-    branchName: "bb/promptbox-stories",
+    branchName: "kaioken/promptbox-stories",
     headSha: null,
   },
   mergeBase: {
@@ -419,9 +419,9 @@ function buildPullRequestFixture(
     number: 128,
     title: "Show pull request status in the prompt context banner",
     state: "open",
-    url: "https://github.com/acme/bb/pull/128",
+    url: "https://github.com/acme/kaioken/pull/128",
     baseRefName: "main",
-    headRefName: "bb/pr-context-banner",
+    headRefName: "kaioken/pr-context-banner",
     updatedAt: "2026-06-16T12:30:00Z",
     checks: {
       state: "failing",

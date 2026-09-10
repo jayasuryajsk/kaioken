@@ -1,18 +1,18 @@
 import { z } from "zod";
-import type { BbDesktopBrowserApi } from "./browser.js";
-import type { AppCommandId } from "@bb/domain";
+import type { KaiokenDesktopBrowserApi } from "./browser.js";
+import type { AppCommandId } from "@kaioken/domain";
 
 const isoUtcDateTimeSchema = z.iso.datetime();
 
-const bbDesktopDownloadStateSchema = z.enum([
+const kaiokenDesktopDownloadStateSchema = z.enum([
   "idle",
   "downloading",
   "downloaded",
   "failed",
 ]);
 
-export const bbDesktopInfoSchema = z.object({
-  downloadState: bbDesktopDownloadStateSchema.optional(),
+export const kaiokenDesktopInfoSchema = z.object({
+  downloadState: kaiokenDesktopDownloadStateSchema.optional(),
   lastCheckedAt: isoUtcDateTimeSchema.nullable(),
   latestVersion: z.string().min(1).nullable(),
   pendingVersion: z.string().min(1).nullable(),
@@ -22,43 +22,43 @@ export const bbDesktopInfoSchema = z.object({
   updateDownloaded: z.boolean(),
   version: z.string().min(1),
 });
-export type BbDesktopInfo = z.infer<typeof bbDesktopInfoSchema>;
+export type KaiokenDesktopInfo = z.infer<typeof kaiokenDesktopInfoSchema>;
 
-export const bbDesktopWindowStateSchema = z
+export const kaiokenDesktopWindowStateSchema = z
   .object({
     isFullScreen: z.boolean(),
   })
   .strict();
-export type BbDesktopWindowState = z.infer<typeof bbDesktopWindowStateSchema>;
+export type KaiokenDesktopWindowState = z.infer<typeof kaiokenDesktopWindowStateSchema>;
 
-export const bbDesktopThemeSchema = z.enum(["system", "light", "dark"]);
-export type BbDesktopTheme = z.infer<typeof bbDesktopThemeSchema>;
+export const kaiokenDesktopThemeSchema = z.enum(["system", "light", "dark"]);
+export type KaiokenDesktopTheme = z.infer<typeof kaiokenDesktopThemeSchema>;
 
-export type BbDesktopInfoChangeHandler = (info: BbDesktopInfo) => void;
-export type BbDesktopInfoUnsubscribe = () => void;
-export type BbDesktopWindowStateChangeHandler = (
-  state: BbDesktopWindowState,
+export type KaiokenDesktopInfoChangeHandler = (info: KaiokenDesktopInfo) => void;
+export type KaiokenDesktopInfoUnsubscribe = () => void;
+export type KaiokenDesktopWindowStateChangeHandler = (
+  state: KaiokenDesktopWindowState,
 ) => void;
-export type BbDesktopOpenNewTabHandler = () => void;
-export type BbDesktopAppCommandHandler = (command: AppCommandId) => void;
-export type BbDesktopCloseWindowRequestHandler = () => boolean;
+export type KaiokenDesktopOpenNewTabHandler = () => void;
+export type KaiokenDesktopAppCommandHandler = (command: AppCommandId) => void;
+export type KaiokenDesktopCloseWindowRequestHandler = () => boolean;
 
-export interface BbDesktopApi extends BbDesktopInfo {
-  browser: BbDesktopBrowserApi;
-  checkForUpdates(): Promise<BbDesktopInfo>;
-  getInfo(): Promise<BbDesktopInfo>;
-  getWindowState?(): Promise<BbDesktopWindowState>;
+export interface KaiokenDesktopApi extends KaiokenDesktopInfo {
+  browser: KaiokenDesktopBrowserApi;
+  checkForUpdates(): Promise<KaiokenDesktopInfo>;
+  getInfo(): Promise<KaiokenDesktopInfo>;
+  getWindowState?(): Promise<KaiokenDesktopWindowState>;
   installUpdate(): Promise<void>;
-  onChange(listener: BbDesktopInfoChangeHandler): BbDesktopInfoUnsubscribe;
+  onChange(listener: KaiokenDesktopInfoChangeHandler): KaiokenDesktopInfoUnsubscribe;
   onWindowStateChange?(
-    listener: BbDesktopWindowStateChangeHandler,
-  ): BbDesktopInfoUnsubscribe;
-  onOpenNewTab?(listener: BbDesktopOpenNewTabHandler): BbDesktopInfoUnsubscribe;
-  onAppCommand?(listener: BbDesktopAppCommandHandler): BbDesktopInfoUnsubscribe;
+    listener: KaiokenDesktopWindowStateChangeHandler,
+  ): KaiokenDesktopInfoUnsubscribe;
+  onOpenNewTab?(listener: KaiokenDesktopOpenNewTabHandler): KaiokenDesktopInfoUnsubscribe;
+  onAppCommand?(listener: KaiokenDesktopAppCommandHandler): KaiokenDesktopInfoUnsubscribe;
   onCloseWindowRequest?(
-    listener: BbDesktopCloseWindowRequestHandler,
-  ): BbDesktopInfoUnsubscribe;
+    listener: KaiokenDesktopCloseWindowRequestHandler,
+  ): KaiokenDesktopInfoUnsubscribe;
   openExternalUrl(url: string): void;
   openServerDaemonLogs?(): Promise<void>;
-  setTheme(theme: BbDesktopTheme): void;
+  setTheme(theme: KaiokenDesktopTheme): void;
 }

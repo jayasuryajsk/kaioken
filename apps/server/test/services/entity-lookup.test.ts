@@ -10,9 +10,9 @@ import {
   updateHost,
   upsertHost,
   type DbConnection,
-} from "@bb/db";
-import type { Host, Project } from "@bb/domain";
-import { makeHost } from "@bb/test-helpers/domain-fixtures";
+} from "@kaioken/db";
+import type { Host, Project } from "@kaioken/domain";
+import { makeHost } from "@kaioken/test-helpers/domain-fixtures";
 import { ApiError } from "../../src/errors.js";
 import { NotificationHub } from "../../src/ws/hub.js";
 import {

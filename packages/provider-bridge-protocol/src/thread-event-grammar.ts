@@ -1,5 +1,5 @@
-import type { ThreadEvent } from "@bb/domain";
-import { getThreadEventScopeTurnId } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
+import { getThreadEventScopeTurnId } from "@kaioken/domain";
 
 export const ITEM_STREAMING_EVENT_TYPES = new Set<ThreadEvent["type"]>([
   "item/agentMessage/delta",

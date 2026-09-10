@@ -1,4 +1,4 @@
-import { providerInfoSchema } from "@bb/domain";
+import { providerInfoSchema } from "@kaioken/domain";
 import { z } from "zod";
 import { createLastKnownCache } from "@/lib/last-known-cache";
 

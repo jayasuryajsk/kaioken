@@ -11,11 +11,11 @@ const USAGE =
 const defaultRepoRoot = resolve(dirname(scriptPath), "..");
 const packageTargets = [
   {
-    label: "bb-app",
-    path: "packages/bb-app/package.json",
+    label: "kaioken-app",
+    path: "packages/kaioken-app/package.json",
   },
   {
-    label: "@bb/desktop",
+    label: "@kaioken/desktop",
     path: "apps/desktop/package.json",
   },
 ];
@@ -152,11 +152,11 @@ export async function bumpVersion(options) {
   }));
 
   await writePackageTargetsAtomically({ fileSystem, updates });
-  log(`Bumped: bb-app + @bb/desktop → ${newVersion}`);
+  log(`Bumped: kaioken-app + @kaioken/desktop → ${newVersion}`);
 }
 
 async function main() {
-  const repoRoot = process.env.BB_BUMP_VERSION_REPO_ROOT ?? defaultRepoRoot;
+  const repoRoot = process.env.KAIOKEN_BUMP_VERSION_REPO_ROOT ?? defaultRepoRoot;
 
   await bumpVersion({
     args: process.argv.slice(2),

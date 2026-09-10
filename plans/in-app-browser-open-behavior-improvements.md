@@ -2,13 +2,13 @@
 
 ## Goal
 
-Make bb desktop open ordinary web links from more UI surfaces in the visible
+Make kaioken desktop open ordinary web links from more UI surfaces in the visible
 in-app browser by default, while letting users bypass selected URLs to their OS
 default browser with regex rules.
 
 This plan is only about opening links and browser-tab UX. Browser automation and
-CLI-driven app control are split across `plans/bb-browser.md` and
-`plans/bb-settings.md`.
+CLI-driven app control are split across `plans/kaioken-browser.md` and
+`plans/kaioken-settings.md`.
 
 Status (2026-08-03): not started. The bypass regex rules do not exist in any
 layer, and `bb.openLinksInAppBrowser` is still a single localStorage boolean.
@@ -58,7 +58,7 @@ Scope:
   - report invalid regexes for the settings UI
   - route to `"default"` when any valid regex matches the full URL string
   - continue routing only http/https URLs to the in-app browser
-- Update `InAppBrowserLinkSettingsSection` copy from "from chat" to "from bb".
+- Update `InAppBrowserLinkSettingsSection` copy from "from chat" to "from kaioken".
 - Add a compact settings control for bypass regexes, with inline validation for
   invalid patterns.
 
@@ -72,9 +72,9 @@ Exit criteria:
 
 Validation:
 
-- `pnpm exec turbo run test --filter=@bb/app -- in-app-browser-link-preference`
-- `pnpm exec turbo run test --filter=@bb/app -- AppSettingsView`
-- `pnpm exec turbo run typecheck --filter=@bb/app`
+- `pnpm exec turbo run test --filter=@kaioken/app -- in-app-browser-link-preference`
+- `pnpm exec turbo run test --filter=@kaioken/app -- AppSettingsView`
+- `pnpm exec turbo run typecheck --filter=@kaioken/app`
 
 ## Phase 2 - Wire Missing URL Surfaces
 
@@ -107,16 +107,16 @@ Exit criteria:
 
 Validation:
 
-- `pnpm exec turbo run test --filter=@bb/app -- ThreadTerminalView`
-- `pnpm exec turbo run test --filter=@bb/app -- TerminalOutputBlock`
-- `pnpm exec turbo run test --filter=@bb/app -- ThreadTerminalPanel`
-- `pnpm exec turbo run typecheck --filter=@bb/app`
+- `pnpm exec turbo run test --filter=@kaioken/app -- ThreadTerminalView`
+- `pnpm exec turbo run test --filter=@kaioken/app -- TerminalOutputBlock`
+- `pnpm exec turbo run test --filter=@kaioken/app -- ThreadTerminalPanel`
+- `pnpm exec turbo run typecheck --filter=@kaioken/app`
 
 ## Phase 3 - Desktop QA
 
 Scope:
 
-- Use `scripts/bb-dev-app current` to launch the desktop dev app.
+- Use `scripts/kaioken-dev-app current` to launch the desktop dev app.
 - Open a thread with:
   - assistant markdown containing `https://example.com`
   - command output containing `https://example.com`
@@ -136,9 +136,9 @@ Exit criteria:
 
 Validation:
 
-- `pnpm exec turbo run test --filter=@bb/desktop`
-- `pnpm exec turbo run typecheck --filter=@bb/desktop`
-- Manual desktop smoke test through `scripts/bb-dev-app current`
+- `pnpm exec turbo run test --filter=@kaioken/desktop`
+- `pnpm exec turbo run typecheck --filter=@kaioken/desktop`
+- Manual desktop smoke test through `scripts/kaioken-dev-app current`
 
 ## Open Questions
 

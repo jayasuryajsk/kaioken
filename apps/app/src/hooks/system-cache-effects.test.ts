@@ -207,7 +207,7 @@ describe("system cache effects", () => {
       source: "npm",
       updateAvailable: true,
       isDevelopment: false,
-      upgradeCommand: "npx bb-app@latest",
+      upgradeCommand: "npx kaioken-app@latest",
     });
 
     invalidateRealtimeQueriesAfterServerReconnect({

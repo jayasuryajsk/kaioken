@@ -23,7 +23,7 @@ import {
   type PluginBuildToolchain,
 } from "./toolchain.js";
 
-const PLUGIN_SDK_HOST_RUNTIME_NAMESPACE = "bb-host-sdk-runtime";
+const PLUGIN_SDK_HOST_RUNTIME_NAMESPACE = "kaioken-host-sdk-runtime";
 const HOST_STAGE_DIRECTORY_PREFIX = ".host-stage-";
 const HOST_STAGE_STALE_AFTER_MS = 60 * 60 * 1_000;
 
@@ -45,12 +45,12 @@ export function defineRpcContract(contract) { return contract; }
 ${PLUGIN_SDK_DEFINE_HOST_ENTRY_RUNTIME}`;
 
 const PLUGIN_SDK_HOST_SUBPATH = "./host";
-const PLUGIN_SDK_HOST_FALLBACK_SPECIFIER = "@get-bb/plugin-sdk/host";
+const PLUGIN_SDK_HOST_FALLBACK_SPECIFIER = "@get-kaioken/plugin-sdk/host";
 const PLUGIN_SDK_HOST_FALLBACK_EXPORTS: ReadonlySet<string> = new Set([
   "experimental_defineHostEntry",
 ]);
 const PLUGIN_SDK_HOST_FALLBACK_RUNTIME = PLUGIN_SDK_DEFINE_HOST_ENTRY_RUNTIME;
-const PLUGIN_SDK_HOST_FALLBACK_NAMESPACE = "bb-host-sdk-fallback";
+const PLUGIN_SDK_HOST_FALLBACK_NAMESPACE = "kaioken-host-sdk-fallback";
 
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
@@ -257,7 +257,7 @@ async function unresolvedHostSdkError(args: {
 }
 
 function privateBbImportError(specifier: string): string {
-  return `host entries cannot import private BB workspace package "${specifier}"; use @get-bb/plugin-sdk, Node APIs, or a regular plugin dependency`;
+  return `host entries cannot import private Kaioken workspace package "${specifier}"; use @get-kaioken/plugin-sdk, Node APIs, or a regular plugin dependency`;
 }
 
 async function owningPackageName(
@@ -368,7 +368,7 @@ async function removeStaleHostStageDirectories(distDir: string): Promise<void> {
 
 export async function buildPluginHost(
   rootDir: string,
-  bbVersion: string,
+  kaiokenVersion: string,
   toolchain: PluginBuildToolchain,
 ): Promise<PluginHostBuildResult> {
   const { hostEntry, packageName, pluginVersion } =
@@ -461,9 +461,9 @@ export async function buildPluginHost(
           },
         },
         {
-          name: "reject-private-bb-host-imports",
+          name: "reject-private-kaioken-host-imports",
           setup(build) {
-            build.onResolve({ filter: /^@bb(?:\/|$)/ }, (args) => ({
+            build.onResolve({ filter: /^@kaioken(?:\/|$)/ }, (args) => ({
               errors: [{ text: privateBbImportError(args.path) }],
             }));
             build.onLoad({ filter: /\.[cm]?[jt]sx?$/ }, async (args) => {
@@ -471,14 +471,14 @@ export async function buildPluginHost(
                 args.path,
                 packageNameByDirectory,
               );
-              if (owner === "@bb" || owner?.startsWith("@bb/")) {
+              if (owner === "@kaioken" || owner?.startsWith("@kaioken/")) {
                 return {
                   errors: [{ text: privateBbImportError(owner) }],
                 };
               }
               const source = await readFile(args.path, "utf8");
               for (const specifier of sourceImportSpecifiers(source)) {
-                if (specifier === "@bb" || specifier.startsWith("@bb/")) {
+                if (specifier === "@kaioken" || specifier.startsWith("@kaioken/")) {
                   return {
                     errors: [{ text: privateBbImportError(specifier) }],
                   };
@@ -499,8 +499,8 @@ export async function buildPluginHost(
                   packageNameByDirectory,
                 );
                 if (
-                  importedOwner === "@bb" ||
-                  importedOwner?.startsWith("@bb/")
+                  importedOwner === "@kaioken" ||
+                  importedOwner?.startsWith("@kaioken/")
                 ) {
                   return {
                     errors: [{ text: privateBbImportError(importedOwner) }],
@@ -527,7 +527,7 @@ export async function buildPluginHost(
           ...createPluginArtifactMeta({
             packageName,
             pluginVersion,
-            bbVersion,
+            kaiokenVersion,
           }),
           artifactDigest,
         },

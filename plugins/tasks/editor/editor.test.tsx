@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Editor } from "@tiptap/core";
-import { POINTER_COARSE_QUERY } from "@bb/shared-ui/hooks/use-pointer-coarse";
+import { POINTER_COARSE_QUERY } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 import { createEditorExtensions } from "./extensions.js";
 import { TasksEditor } from "./tasks-editor.js";
 
@@ -56,7 +56,7 @@ describe("markdown round-trip", () => {
     ["task list", "- [ ] open task\n- [x] done task"],
     ["code block", "```ts\nconst answer = 42;\n```"],
     ["blockquote", "> quoted wisdom"],
-    ["link", "Read the [bb guide](https://example.com/guide)."],
+    ["link", "Read the [kaioken guide](https://example.com/guide)."],
     ["image", "![diagram](https://example.com/diagram.png)"],
     ["mention", "Blocked on [TSK-42](bbtask://TSK-42) for review."],
     [
@@ -156,7 +156,7 @@ describe("mention extension", () => {
       const pill = editor.view.dom.querySelector(
         '[data-task-mention="TSK-42"]',
       );
-      expect(pill?.classList.contains("bb-tasks-mention")).toBe(true);
+      expect(pill?.classList.contains("kaioken-tasks-mention")).toBe(true);
       expect(pill?.textContent).toBe("TSK-42");
       editor.commands.setContent("[docs](https://example.com)");
       expect(findMentions()).toEqual([]);
@@ -280,9 +280,9 @@ describe("thread mention extension", () => {
       const pill = editor.view.dom.querySelector(
         '[data-thread-mention="thr_a82u8wp8qq"]',
       );
-      expect(pill?.classList.contains("bb-tasks-thread-mention")).toBe(true);
+      expect(pill?.classList.contains("kaioken-tasks-thread-mention")).toBe(true);
       expect(pill?.textContent).toBe("Fix login flow");
-      expect(pill?.querySelector("svg.bb-tasks-mention-icon")).toBeTruthy();
+      expect(pill?.querySelector("svg.kaioken-tasks-mention-icon")).toBeTruthy();
       expect(editor.storage.markdown.getMarkdown()).toBe(
         "See [Fix login flow](bbthread://thr_a82u8wp8qq).",
       );

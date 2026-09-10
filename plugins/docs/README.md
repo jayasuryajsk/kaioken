@@ -1,11 +1,11 @@
 # Docs
 
-Docs is a filesystem-first document library for bb. Documents remain ordinary
+Docs is a filesystem-first document library for kaioken. Documents remain ordinary
 Markdown, HTML, and asset files while the plugin adds nested navigation,
 multi-host vaults, rich editing, images, sandboxed HTML, automation, chat
 mentions, and links that open inside a thread.
 
-The package and installed plugin ID remain `bb-plugin-simple-notes` and
+The package and installed plugin ID remain `kaioken-plugin-simple-notes` and
 `simple-notes` for compatibility with existing settings and stored vaults. The
 user-facing product name, catalog listing, panel route, CLI, mention
 provider, and directive are all Docs.
@@ -74,32 +74,32 @@ provider, and directive are all Docs.
 The plugin ships `skills/docs/SKILL.md`. Installed agents are taught to use the
 Docs CLI, understand that a Docs `@`-mention is user-provided document context,
 store plans and HTML artifacts in a vault when asked, and return `::docs` links
-that the user can open in bb.
+that the user can open in kaioken.
 
 ## CLI
 
-The plugin registers the agent-discoverable `bb docs` command:
+The plugin registers the agent-discoverable `kaioken docs` command:
 
 ```sh
-bb docs vaults --json
-bb docs vault-add Work /home/me/work-docs host_workstation
-bb docs list --vault personal --json
-bb docs read projects/plan.md --vault personal
-bb docs pull projects/plan.md --vault personal --into ./docs-work
+kaioken docs vaults --json
+kaioken docs vault-add Work /home/me/work-docs host_workstation
+kaioken docs list --vault personal --json
+kaioken docs read projects/plan.md --vault personal
+kaioken docs pull projects/plan.md --vault personal --into ./docs-work
 # Edit ./docs-work/projects/plan.md with an ordinary editor or agent file tool.
-bb docs status ./docs-work --diff
-bb docs push ./docs-work
+kaioken docs status ./docs-work --diff
+kaioken docs push ./docs-work
 
-bb docs pull projects --folder --vault personal --into ./docs-work
-bb docs pull --all --vault personal --into ./docs-work
-bb docs push ./docs-work --dry-run --diff
-bb docs push ./docs-work --delete
+kaioken docs pull projects --folder --vault personal --into ./docs-work
+kaioken docs pull --all --vault personal --into ./docs-work
+kaioken docs push ./docs-work --dry-run --diff
+kaioken docs push ./docs-work --delete
 ```
 
 ### Sync workspace contract
 
 - **Layout and identity:** the destination keeps exact vault-relative paths
-  beneath one workspace root and stores a versioned `.bb-docs-state.json`
+  beneath one workspace root and stores a versioned `.kaioken-docs-state.json`
   manifest at that root. Manifest entries map `vault id + remote path` to a
   local path and retain the pulled SHA-256, byte size, content encoding, MIME
   type, and modification time. A single-file pull still keeps its vault path,
@@ -163,7 +163,7 @@ its existing compare-and-swap behavior.
 ## Token-authenticated HTTP API
 
 The stable internal plugin ID remains `simple-notes`. Generate or inspect its
-token with `bb plugin token simple-notes`, then send it in
+token with `kaioken plugin token simple-notes`, then send it in
 `x-bb-plugin-token` to these JSON endpoints:
 
 ```text
@@ -194,7 +194,7 @@ state client-side.
 ## Install
 
 ```sh
-bb plugin install simple-notes
-bb plugin config simple-notes set directory "~/Notes"
-bb plugin reload simple-notes
+kaioken plugin install simple-notes
+kaioken plugin config simple-notes set directory "~/Notes"
+kaioken plugin reload simple-notes
 ```

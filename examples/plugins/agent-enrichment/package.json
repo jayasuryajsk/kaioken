@@ -1,5 +1,5 @@
 {
-  "name": "bb-plugin-agent-enrichment",
+  "name": "kaioken-plugin-agent-enrichment",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
     "server": "./server.ts"
   },
   "keywords": [
-    "bb-plugin"
+    "kaioken-plugin"
   ],
   "dependencies": {
     "zod": "^4.0.0"

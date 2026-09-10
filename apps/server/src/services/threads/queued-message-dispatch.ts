@@ -7,11 +7,11 @@ import {
   listQueuedThreadMessagesByWaitHolder,
   listQueuedThreadMessagesWaitingOnKind,
   listThreadIdsWithHostOfflineQueueWaits,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   QUEUED_MESSAGE_PLUGIN_WAIT_HOLDER_PREFIX,
   type QueuedMessageWaitingOnKind,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { LoggedPendingInteractionWorkSessionDeps } from "../../types.js";
 import { deferAfterResponse } from "../lib/response-deferral.js";
 import {

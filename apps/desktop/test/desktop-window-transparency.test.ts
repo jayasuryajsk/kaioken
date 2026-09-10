@@ -8,7 +8,7 @@ describe("desktop window transparency", () => {
   it("enables transparent windows on Linux when requested", () => {
     expect(
       shouldUseLinuxTransparentWindow({
-        argv: ["bb", LINUX_TRANSPARENT_WINDOW_ARGUMENT],
+        argv: ["kaioken", LINUX_TRANSPARENT_WINDOW_ARGUMENT],
         platform: "linux",
       }),
     ).toBe(true);
@@ -17,7 +17,7 @@ describe("desktop window transparency", () => {
   it("keeps Linux windows opaque by default", () => {
     expect(
       shouldUseLinuxTransparentWindow({
-        argv: ["bb"],
+        argv: ["kaioken"],
         platform: "linux",
       }),
     ).toBe(false);
@@ -27,7 +27,7 @@ describe("desktop window transparency", () => {
     for (const platform of ["darwin", "win32"] as const) {
       expect(
         shouldUseLinuxTransparentWindow({
-          argv: ["bb", LINUX_TRANSPARENT_WINDOW_ARGUMENT],
+          argv: ["kaioken", LINUX_TRANSPARENT_WINDOW_ARGUMENT],
           platform,
         }),
       ).toBe(false);

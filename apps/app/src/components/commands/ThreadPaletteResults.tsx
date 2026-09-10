@@ -6,9 +6,9 @@ import {
   type MouseEventHandler,
   type ReactNode,
 } from "react";
-import type { ThreadListEntry } from "@bb/domain";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
-import type { ThreadSearchMatch } from "@bb/server-contract";
+import type { ThreadListEntry } from "@kaioken/domain";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
+import type { ThreadSearchMatch } from "@kaioken/server-contract";
 import {
   hasActiveBackgroundAgentActivity,
   hasActiveBackgroundCommandActivity,
@@ -19,14 +19,14 @@ import {
   isUnreadDoneThread,
   resolveThreadListIndicator,
   type ThreadListIndicatorState,
-} from "@bb/client-core";
-import { CHROME_SECTION_LABEL_CLASS } from "@bb/shared-ui/chrome-style-tokens";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/client-core";
+import { CHROME_SECTION_LABEL_CLASS } from "@kaioken/shared-ui/chrome-style-tokens";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   COARSE_POINTER_ICON_SIZE_CLASS,
   COARSE_POINTER_TEXT_SM_CLASS,
-} from "@bb/shared-ui/coarse-pointer-sizing";
+} from "@kaioken/shared-ui/coarse-pointer-sizing";
 import { useThreadTitleMentionResources } from "@/components/thread/ThreadTitleMentions";
 import { ThreadStatusGlyph } from "@/components/sidebar/ThreadRow";
 import {

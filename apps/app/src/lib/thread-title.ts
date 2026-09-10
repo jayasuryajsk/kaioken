@@ -1,4 +1,4 @@
-import type { Thread } from "@bb/domain";
+import type { Thread } from "@kaioken/domain";
 
 export function getThreadDisplayTitle(
   thread: Pick<Thread, "id" | "title" | "titleFallback">,

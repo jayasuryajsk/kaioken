@@ -2,8 +2,8 @@ import {
   isStandaloneBuiltinCompactCommand,
   pendingInteractionResolutionSchema,
   reasoningEffortsForLevels,
-} from "@bb/domain";
-import type { AvailableModel, PromptInput, ReasoningLevel } from "@bb/domain";
+} from "@kaioken/domain";
+import type { AvailableModel, PromptInput, ReasoningLevel } from "@kaioken/domain";
 import { acpLaunchSpecSchema, type AcpLaunchSpec } from "../launch-spec.js";
 import {
   BRIDGE_INBOUND_REQUEST_METHODS,
@@ -12,11 +12,11 @@ import {
   PROVIDER_BRIDGE_PROTOCOL_VERSION,
   THREAD_DELTA_GRAMMAR_V3,
   THREAD_DELTA_NOTIFICATION_METHOD,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 import type {
   InitializeResult,
   ThreadDelta,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 import {
   BridgeRecoveryError,
   bridgeRequestEnvelopeSchema,
@@ -28,8 +28,8 @@ import {
   mimeTypeFromExtension,
   runBridgeRequest,
   withoutBridgeRuntimeEnv,
-} from "@bb/provider-bridge-protocol/bridge-kit";
-import type { BridgeJsonRpcResponse } from "@bb/provider-bridge-protocol/bridge-kit";
+} from "@kaioken/provider-bridge-protocol/bridge-kit";
+import type { BridgeJsonRpcResponse } from "@kaioken/provider-bridge-protocol/bridge-kit";
 import { execFile } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { promises as fs, readFileSync } from "node:fs";
@@ -159,7 +159,7 @@ interface AcpPendingTurnInput {
 }
 
 interface AcpThreadSession {
-  bbThreadId: string;
+  kaiokenThreadId: string;
   construction: AcpSessionParams;
   providerThreadId: string;
   cwd: string;
@@ -192,7 +192,7 @@ type AcpDeferredStartEmitter = (
 ) => void;
 
 const sessionsByBbThreadId = new Map<string, AcpThreadSession>();
-const bbThreadIdByProviderThreadId = new Map<string, string>();
+const kaiokenThreadIdByProviderThreadId = new Map<string, string>();
 const pendingRuntimeRequests = new Map<
   number,
   (response: BridgeJsonRpcResponse) => void
@@ -277,10 +277,10 @@ function emitForSession(
   params: Record<string, unknown>,
 ): void {
   sendThreadDeltas(
-    session.bbThreadId,
+    session.kaiokenThreadId,
     session.translator.translateAcpEvent(
       { jsonrpc: "2.0", method, params },
-      { threadId: session.bbThreadId },
+      { threadId: session.kaiokenThreadId },
     ),
   );
 }
@@ -288,12 +288,12 @@ function emitForSession(
 function emitSessionError(session: AcpThreadSession, message: string): void {
   if (session.activePromptKind !== null) {
     emitForSession(session, "error", {
-      threadId: session.bbThreadId,
+      threadId: session.kaiokenThreadId,
       message,
     });
   }
   sendNotification(BRIDGE_NOTIFICATION_METHODS.error, {
-    threadId: session.bbThreadId,
+    threadId: session.kaiokenThreadId,
     ...(session.providerThreadId !== ""
       ? { providerThreadId: session.providerThreadId }
       : {}),
@@ -334,11 +334,11 @@ async function forwardDynamicToolCall(args: {
     return { ok: false, error: "No active ACP session for dynamic tool call." };
   }
 
-  session.translator.noteInjectedToolCall(session.bbThreadId, args.tool);
+  session.translator.noteInjectedToolCall(session.kaiokenThreadId, args.tool);
   try {
     const result = await sendRuntimeRequest("item/tool/call", {
       providerThreadId: session.providerThreadId,
-      threadId: session.bbThreadId,
+      threadId: session.kaiokenThreadId,
       turnId: null,
       callId: args.callId,
       tool: args.tool,
@@ -827,7 +827,7 @@ async function loadSessionDiscoveredModels(
           method: "initialize",
           params: {
             protocolVersion: ACP_PROTOCOL_VERSION,
-            clientInfo: { name: "bb", version: "1.0.0" },
+            clientInfo: { name: "kaioken", version: "1.0.0" },
             clientCapabilities: acpClientCapabilities(parameterizedModelPicker),
           },
           resultSchema: acpInitializeResultSchema,
@@ -1373,7 +1373,7 @@ function handlePermissionRequest(
   const toolCall = parsed.data.toolCall;
   const bound =
     toolCall?.toolCallId !== undefined
-      ? session.translator.notePermissionToolCall(session.bbThreadId, {
+      ? session.translator.notePermissionToolCall(session.kaiokenThreadId, {
           toolCallId: toolCall.toolCallId,
           ...(toolCall.title !== undefined ? { title: toolCall.title } : {}),
           ...(toolCall.kind !== undefined ? { kind: toolCall.kind } : {}),
@@ -1423,7 +1423,7 @@ function handlePermissionRequest(
             : {}),
           startedToolCall: bound.event,
           injectedTool: session.translator.getInjectedToolBinding(
-            session.bbThreadId,
+            session.kaiokenThreadId,
             bound.toolCallId,
           ),
         }
@@ -1438,7 +1438,7 @@ function handlePermissionRequest(
     });
     void sendRuntimeRequest(BRIDGE_INBOUND_REQUEST_METHODS.interactionRequest, {
       providerThreadId: session.providerThreadId,
-      threadId: session.bbThreadId,
+      threadId: session.kaiokenThreadId,
       turnId: null,
       payload,
     })
@@ -1528,7 +1528,7 @@ async function handleFsWriteTextFile(
   ) {
     responder.error(
       -32000,
-      `File writes outside the workspace are denied by BB's accept-edits permission mode: ${parsed.data.path}`,
+      `File writes outside the workspace are denied by Kaioken's accept-edits permission mode: ${parsed.data.path}`,
     );
     return;
   }
@@ -1544,7 +1544,7 @@ async function handleFsWriteTextFile(
     await fs.writeFile(parsed.data.path, parsed.data.content, "utf8");
 
     emitForSession(session, ACP_FS_WRITE_METHOD, {
-      threadId: session.bbThreadId,
+      threadId: session.kaiokenThreadId,
       path: parsed.data.path,
       kind: oldText === undefined ? "add" : "update",
       ...(oldText === undefined ? {} : { oldText }),
@@ -1560,9 +1560,9 @@ async function handleFsWriteTextFile(
 }
 
 function liveSessionForThread(
-  bbThreadId: string,
+  kaiokenThreadId: string,
 ): AcpThreadSession | undefined {
-  const session = sessionsByBbThreadId.get(bbThreadId);
+  const session = sessionsByBbThreadId.get(kaiokenThreadId);
   if (!session || session.stopping || session.providerThreadId === "") {
     return undefined;
   }
@@ -1570,14 +1570,14 @@ function liveSessionForThread(
 }
 
 function removeSession(session: AcpThreadSession): void {
-  if (sessionsByBbThreadId.get(session.bbThreadId) === session) {
-    sessionsByBbThreadId.delete(session.bbThreadId);
+  if (sessionsByBbThreadId.get(session.kaiokenThreadId) === session) {
+    sessionsByBbThreadId.delete(session.kaiokenThreadId);
   }
   if (
-    bbThreadIdByProviderThreadId.get(session.providerThreadId) ===
-    session.bbThreadId
+    kaiokenThreadIdByProviderThreadId.get(session.providerThreadId) ===
+    session.kaiokenThreadId
   ) {
-    bbThreadIdByProviderThreadId.delete(session.providerThreadId);
+    kaiokenThreadIdByProviderThreadId.delete(session.providerThreadId);
   }
 }
 
@@ -1593,7 +1593,7 @@ async function releaseCursorMcpApproval(
     await revokeCursorSessionMcpServer(approval);
   } catch (error) {
     process.stderr.write(
-      `acp bridge: failed to remove Cursor session MCP approval for thread "${session.bbThreadId}": ${
+      `acp bridge: failed to remove Cursor session MCP approval for thread "${session.kaiokenThreadId}": ${
         error instanceof Error ? error.message : String(error)
       }\n`,
     );
@@ -1603,8 +1603,8 @@ async function releaseCursorMcpApproval(
 function getSessionByProviderThreadId(
   providerThreadId: string,
 ): AcpThreadSession | undefined {
-  const bbThreadId = bbThreadIdByProviderThreadId.get(providerThreadId);
-  return bbThreadId ? sessionsByBbThreadId.get(bbThreadId) : undefined;
+  const kaiokenThreadId = kaiokenThreadIdByProviderThreadId.get(providerThreadId);
+  return kaiokenThreadId ? sessionsByBbThreadId.get(kaiokenThreadId) : undefined;
 }
 
 type AcpSessionStartRequest =
@@ -1624,9 +1624,9 @@ async function startAgentSession(
   request: AcpSessionStartRequest,
 ): Promise<AcpThreadSession> {
   const params = request.params;
-  const bbThreadId = params.threadId;
+  const kaiokenThreadId = params.threadId;
 
-  const existing = sessionsByBbThreadId.get(bbThreadId);
+  const existing = sessionsByBbThreadId.get(kaiokenThreadId);
   if (existing) {
     await stopSession(existing);
   }
@@ -1663,7 +1663,7 @@ async function startAgentSession(
   const launch = await resolveAgentLaunchArgs(params);
   if (launch.warning) {
     emitStartNotification(ACP_WARNING_METHOD, {
-      threadId: bbThreadId,
+      threadId: kaiokenThreadId,
       summary: launch.warning,
     });
   }
@@ -1678,13 +1678,13 @@ async function startAgentSession(
     args: launch.args,
     cwd: params.cwd,
     env: childEnv,
-    recordThreadId: bbThreadId,
+    recordThreadId: kaiokenThreadId,
     onNotification: (method, notificationParams) =>
       handleAgentNotification(session, method, notificationParams),
     onRequest: (method, requestParams, responder) =>
       handleAgentRequest(session, method, requestParams, responder),
     onExit: (info) => {
-      const wasCurrent = sessionsByBbThreadId.get(bbThreadId) === session;
+      const wasCurrent = sessionsByBbThreadId.get(kaiokenThreadId) === session;
       cancelPendingPermissions(session);
       removeSession(session);
       if (!wasCurrent || session.stopping || session.providerThreadId === "") {
@@ -1700,7 +1700,7 @@ async function startAgentSession(
     },
   });
   session = {
-    bbThreadId,
+    kaiokenThreadId,
     construction: params,
     providerThreadId: "",
     cwd: params.cwd,
@@ -1728,14 +1728,14 @@ async function startAgentSession(
     cursorMcpApproval: undefined,
     deferStartEmit: emitStartNotification,
   };
-  sessionsByBbThreadId.set(bbThreadId, session);
+  sessionsByBbThreadId.set(kaiokenThreadId, session);
 
   try {
     const initializeResult = await connection.request({
       method: "initialize",
       params: {
         protocolVersion: ACP_PROTOCOL_VERSION,
-        clientInfo: { name: "bb", version: "1.0.0" },
+        clientInfo: { name: "kaioken", version: "1.0.0" },
         clientCapabilities: acpClientCapabilities(
           params.parameterizedModelPicker,
           true,
@@ -1771,7 +1771,7 @@ async function startAgentSession(
       });
       if (session.cursorMcpApproval?.installedByBb) {
         process.stderr.write(
-          `acp bridge: installed Cursor session MCP approval for thread "${bbThreadId}"\n`,
+          `acp bridge: installed Cursor session MCP approval for thread "${kaiokenThreadId}"\n`,
         );
       }
     }
@@ -1845,7 +1845,7 @@ async function startAgentSession(
       });
       if (request.kind === "resume") {
         emitStartNotification(ACP_WARNING_METHOD, {
-          threadId: bbThreadId,
+          threadId: kaiokenThreadId,
           summary: `${agentLabel} could not restore the previous session; continuing in a fresh session without in-agent history.`,
         });
       }
@@ -1864,7 +1864,7 @@ async function startAgentSession(
       session.pendingLoadUsageUpdate = undefined;
       if (loadUsageUpdate) {
         emitStartNotification(ACP_UPDATE_METHOD, {
-          threadId: session.bbThreadId,
+          threadId: session.kaiokenThreadId,
           update: loadUsageUpdate,
         });
       }
@@ -1872,17 +1872,17 @@ async function startAgentSession(
 
     if (session.stopping) {
       throw new Error(
-        `ACP session for thread "${bbThreadId}" was released during construction`,
+        `ACP session for thread "${kaiokenThreadId}" was released during construction`,
       );
     }
     session.providerThreadId = sessionId;
-    bbThreadIdByProviderThreadId.set(sessionId, bbThreadId);
+    kaiokenThreadIdByProviderThreadId.set(sessionId, kaiokenThreadId);
     sendNotification(BRIDGE_NOTIFICATION_METHODS.threadIdentity, {
-      threadId: bbThreadId,
+      threadId: kaiokenThreadId,
       providerThreadId: sessionId,
       sessionRestorable: session.supportsLoadSession,
     });
-    sendThreadDeltas(bbThreadId, [{ kind: "session.reset" }]);
+    sendThreadDeltas(kaiokenThreadId, [{ kind: "session.reset" }]);
     session.deferStartEmit = undefined;
     for (const deferred of deferredEmits) {
       if (
@@ -1984,12 +1984,12 @@ function acceptTurnInput(
   session: AcpThreadSession,
   pending: AcpPendingTurnInput,
 ): void {
-  sendThreadDeltas(session.bbThreadId, [
+  sendThreadDeltas(session.kaiokenThreadId, [
     { kind: "input.accepted", clientRequestId: pending.clientRequestId },
   ]);
   const requestId = takeTurnInputRequestId(pending);
   if (requestId !== null) {
-    sendResult(requestId, { threadId: session.bbThreadId });
+    sendResult(requestId, { threadId: session.kaiokenThreadId });
   }
 }
 
@@ -2026,7 +2026,7 @@ function finishTurn(
   session.promptRequestPending = false;
   session.cancelRequested = false;
   emitForSession(session, ACP_TURN_COMPLETED_METHOD, {
-    threadId: session.bbThreadId,
+    threadId: session.kaiokenThreadId,
     stopReason,
   });
 }
@@ -2037,7 +2037,7 @@ function runTurn(
 ): void {
   session.activePromptKind = "turn";
   emitForSession(session, ACP_TURN_STARTED_METHOD, {
-    threadId: session.bbThreadId,
+    threadId: session.kaiokenThreadId,
   });
 
   session.turnSettled = (async () => {
@@ -2107,7 +2107,7 @@ function startCompaction(
   session.activePromptKind = "compaction";
   session.compactionAgentMessage = "";
   emitForSession(session, ACP_COMPACTION_STARTED_METHOD, {
-    threadId: session.bbThreadId,
+    threadId: session.kaiokenThreadId,
   });
 
   const finish = (outcome: Record<string, unknown>): void => {
@@ -2156,7 +2156,7 @@ function finishCompaction(
     return;
   }
   emitForSession(session, ACP_COMPACTION_COMPLETED_METHOD, {
-    threadId: session.bbThreadId,
+    threadId: session.kaiokenThreadId,
     ...outcome,
   });
   session.activePromptKind = null;
@@ -2197,9 +2197,9 @@ function handleDialectRequest(
   }
   if (outcome.delegation !== undefined) {
     sendThreadDeltas(
-      session.bbThreadId,
+      session.kaiokenThreadId,
       session.translator.noteDelegationReport(
-        session.bbThreadId,
+        session.kaiokenThreadId,
         outcome.delegation,
       ),
     );
@@ -2235,7 +2235,7 @@ function handleAgentNotification(
     return;
   }
   const update = {
-    threadId: session.bbThreadId,
+    threadId: session.kaiokenThreadId,
     update: parsed.data.update,
   };
   if (session.providerThreadId === "") {

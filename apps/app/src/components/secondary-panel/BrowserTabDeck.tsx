@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { BbDesktopBrowserTarget } from "@bb/desktop-contract";
+import type { KaiokenDesktopBrowserTarget } from "@kaioken/desktop-contract";
 import type { BrowserFixedPanelTab } from "@/lib/fixed-panel-tabs-state";
-import { getDesktopBrowserApi } from "@/lib/bb-desktop";
+import { getDesktopBrowserApi } from "@/lib/kaioken-desktop";
 import {
   BrowserTabContent,
   type BrowserAddressFocusRequest,
@@ -110,7 +110,7 @@ export function BrowserTabDeck({
   const target = activeBrowserTab?.desktopTarget;
   const targetHostId = target?.hostId;
   const [verifiedTarget, setVerifiedTarget] =
-    useState<BbDesktopBrowserTarget | null>(null);
+    useState<KaiokenDesktopBrowserTarget | null>(null);
   useEffect(() => {
     let current = true;
     setVerifiedTarget(null);

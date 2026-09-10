@@ -1,7 +1,7 @@
 import {
   createFakePluginHost,
   makeThreadResponse,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it, vi } from "vitest";
 import plugin from "./server.js";
 import { rpcContract } from "./contracts.js";

@@ -2,11 +2,11 @@ import type {
   ThreadTimelinePendingTodos,
   ThreadTimelinePendingTodoItem,
   ThreadTimelinePendingTodoItemStatus,
-} from "@bb/domain";
-import type { BbSdk } from "@bb/sdk";
+} from "@kaioken/domain";
+import type { KaiokenSdk } from "@kaioken/sdk";
 
 interface FetchThreadPendingTodosArgs {
-  sdk: Pick<BbSdk, "threads">;
+  sdk: Pick<KaiokenSdk, "threads">;
   threadId: string;
 }
 

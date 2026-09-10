@@ -1,8 +1,8 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { codexExtensionKinds } from "./src/extension-kinds.js";
 import { CODEX_NATIVE_ROOTS_DECLARATION } from "./src/native-roots.js";
 
-export default function plugin(bb: BbPluginApi) {
+export default function plugin(bb: KaiokenPluginApi) {
   bb.experimental_aiServices.register({
     id: "codex",
     displayName: "Codex (ChatGPT account or API key)",
@@ -14,14 +14,14 @@ export default function plugin(bb: BbPluginApi) {
       type: "boolean",
       label: "Codex memory",
       description:
-        "Allow Codex to recall existing memories and generate new memories from bb threads.",
+        "Allow Codex to recall existing memories and generate new memories from kaioken threads.",
       default: true,
     },
     subagentsDisabled: {
       type: "boolean",
       label: "Disable provider subagents",
       description:
-        "Prevent Codex from starting native subagents so agents use bb for delegation.",
+        "Prevent Codex from starting native subagents so agents use kaioken for delegation.",
       default: false,
     },
   });

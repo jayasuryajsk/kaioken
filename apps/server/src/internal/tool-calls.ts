@@ -2,8 +2,8 @@ import {
   hostDaemonToolCallRequestSchema,
   typedRoutes,
   type HostDaemonInternalSchema,
-} from "@bb/host-daemon-contract";
-import type { ToolCallResponse } from "@bb/domain";
+} from "@kaioken/host-daemon-contract";
+import type { ToolCallResponse } from "@kaioken/domain";
 import type { Hono } from "hono";
 import type { AppDeps } from "../types.js";
 import { ApiError } from "../errors.js";

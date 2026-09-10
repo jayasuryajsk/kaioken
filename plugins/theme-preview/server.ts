@@ -1,7 +1,7 @@
 import { watch, type FSWatcher } from "node:fs";
 import { readFile, stat } from "node:fs/promises";
 import { resolve } from "node:path";
-import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
+import { defineRpcContract, type KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 
 const swatchSchema = z
@@ -158,8 +158,8 @@ async function readCustomThemeCss(directory: string, id: string, signal?: AbortS
 }
 
 /**
- * bb's bundled palettes, with swatches extracted from bb's own source
- * (apps/app/src/components/ui/theme.css and lib/themes/*.ts at bb@c942421a4):
+ * kaioken's bundled palettes, with swatches extracted from kaioken's own source
+ * (apps/app/src/components/ui/theme.css and lib/themes/*.ts at kaioken@c942421a4):
  * each builtin's overrides overlaid on the base theme, var() references
  * inlined. color-mix() strings are kept verbatim — the browser resolves them.
  */
@@ -349,7 +349,7 @@ export async function buildCatalog(
  * plugin's install dir at the path the manifest's `bb.themes[]` entry names.
  */
 async function readPluginThemeCss(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   themeId: string,
   rootDirs: Map<string, string>,
   signal?: AbortSignal,
@@ -414,7 +414,7 @@ async function activeThemePath(
  * newer picker action. File stamps are keyed by path: changing the active
  * theme is not itself mistaken for editing the previous theme's stylesheet.
  */
-export function createCatalogLoader(bb: BbPluginApi) {
+export function createCatalogLoader(bb: KaiokenPluginApi) {
   const slowWarningMs = 5_000;
   const catalogOperationTimeoutMs = 15_000;
   const stamps = new Map<string, string>();
@@ -504,7 +504,7 @@ export function createCatalogLoader(bb: BbPluginApi) {
           stamps.set(path, stamp);
           if (previousStamp !== undefined && stamp !== previousStamp) {
             // Everything above can await. Confirm that neither this panel nor
-            // another bb surface selected a different theme in the meantime.
+            // another kaioken surface selected a different theme in the meantime.
             const current = (await observeCatalogOperation("active theme confirmation", (signal) =>
               bb.sdk.theme.catalog({ signal }),
             )) as { active?: { themeId?: unknown } };
@@ -565,13 +565,13 @@ export function createCatalogLoader(bb: BbPluginApi) {
   };
 }
 
-export default async function plugin(bb: BbPluginApi) {
-  // Live-reload support. bb reads a custom theme's CSS from disk on demand and
+export default async function plugin(bb: KaiokenPluginApi) {
+  // Live-reload support. kaioken reads a custom theme's CSS from disk on demand and
   // never watches the file, so an agent editing `<dataDir>/theme/<id>/theme.css`
   // in one split leaves every open window painted with the previous version.
   // The background watcher below handles custom-theme edits immediately. Each
   // catalog poll also stats the active custom or plugin theme as a fallback;
-  // when it has changed we re-set the same palette, which makes bb re-read the
+  // when it has changed we re-set the same palette, which makes kaioken re-read the
   // CSS and push it to every client.
   const catalogLoader = createCatalogLoader(bb);
   const catalog = catalogLoader.catalog;

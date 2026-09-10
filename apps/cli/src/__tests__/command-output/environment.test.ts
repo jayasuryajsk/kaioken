@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { ThreadPullRequest, WorkspaceStatus } from "@bb/domain";
+import type { ThreadPullRequest, WorkspaceStatus } from "@kaioken/domain";
 import {
   setupCommandOutputTestEnvironment,
   collectLogLines,
@@ -11,7 +11,7 @@ import type { CommandRegistrar } from "../helpers/command-output-harness.js";
 import * as fixtures from "../helpers/command-output-fixtures.js";
 import { registerEnvironmentCommands } from "../../commands/environment.js";
 
-describe("bb environment command output", () => {
+describe("kaioken environment command output", () => {
   setupCommandOutputTestEnvironment();
 
   const register: CommandRegistrar = (program) =>
@@ -35,11 +35,11 @@ describe("bb environment command output", () => {
     },
     checkout: {
       kind: "branch",
-      branchName: "bb/environment-cli",
+      branchName: "kaioken/environment-cli",
       headSha: "abc123",
     },
     branch: {
-      currentBranch: "bb/environment-cli",
+      currentBranch: "kaioken/environment-cli",
       defaultBranch: "main",
     },
     mergeBase: {
@@ -60,9 +60,9 @@ describe("bb environment command output", () => {
     number: 701,
     title: "Environment inspection parity",
     state: "open",
-    url: "https://github.com/example/bb/pull/701",
+    url: "https://github.com/example/kaioken/pull/701",
     baseRefName: "main",
-    headRefName: "bb/environment-cli",
+    headRefName: "kaioken/environment-cli",
     updatedAt: "2026-07-14T12:00:00.000Z",
     checks: {
       state: "passing",
@@ -101,7 +101,7 @@ describe("bb environment command output", () => {
     expect(help).not.toContain("squash-merge");
   });
 
-  it("bb environment providers lists selectable ids and required inputs", async () => {
+  it("kaioken environment providers lists selectable ids and required inputs", async () => {
     stubServerApi({
       "v1.system.environment-providers.$get": vi.fn(async () => ({
         providers: [
@@ -156,7 +156,7 @@ describe("bb environment command output", () => {
     ]);
   });
 
-  it("bb environment providers requests eligibility for a project and machine", async () => {
+  it("kaioken environment providers requests eligibility for a project and machine", async () => {
     const getProviders = vi.fn(async () => ({ providers: [] }));
     stubServerApi({
       "v1.hosts.$get": vi.fn(async () => [
@@ -190,7 +190,7 @@ describe("bb environment command output", () => {
     });
   });
 
-  it("bb environment providers prints each provider's availability on the chosen machine", async () => {
+  it("kaioken environment providers prints each provider's availability on the chosen machine", async () => {
     const provider = {
       displayName: "Provider",
       icon: null,
@@ -260,7 +260,7 @@ describe("bb environment command output", () => {
     ]);
   });
 
-  it("bb environment list names the provider that produced each row", async () => {
+  it("kaioken environment list names the provider that produced each row", async () => {
     const list = vi.fn(async () => [
       fixtures.makeEnvironment({
         id: "env-worktree",
@@ -286,7 +286,7 @@ describe("bb environment command output", () => {
     ]);
   });
 
-  it("bb environment list names invalid --limit as a non-negative integer", async () => {
+  it("kaioken environment list names invalid --limit as a non-negative integer", async () => {
     const list = vi.fn(async () => []);
     stubServerApi({ "v1.environments.$get": list });
 
@@ -300,7 +300,7 @@ describe("bb environment command output", () => {
     expect(list).not.toHaveBeenCalled();
   });
 
-  it("bb environment list names invalid --offset as a non-negative integer", async () => {
+  it("kaioken environment list names invalid --offset as a non-negative integer", async () => {
     const list = vi.fn(async () => []);
     stubServerApi({ "v1.environments.$get": list });
 
@@ -314,7 +314,7 @@ describe("bb environment command output", () => {
     expect(list).not.toHaveBeenCalled();
   });
 
-  it("bb environment delete reports requested cleanup and its lifecycle", async () => {
+  it("kaioken environment delete reports requested cleanup and its lifecycle", async () => {
     const remove = vi.fn(async () => ({ ok: true as const }));
     const get = vi.fn(async () =>
       fixtures.makeEnvironment({
@@ -341,7 +341,7 @@ describe("bb environment command output", () => {
     ]);
   });
 
-  it("bb environment status inspects an arbitrary environment id", async () => {
+  it("kaioken environment status inspects an arbitrary environment id", async () => {
     const get = vi.fn(async () => ({
       outcome: "available",
       workspace: workspaceStatus,
@@ -366,7 +366,7 @@ describe("bb environment command output", () => {
     expect(collectLogLines(vi.mocked(console.log))).toEqual(
       expect.arrayContaining([
         "State: dirty_uncommitted",
-        "Branch: bb/environment-cli",
+        "Branch: kaioken/environment-cli",
         "Changed files: 1",
         "Merge base: main",
         "Ahead: 2",
@@ -374,7 +374,7 @@ describe("bb environment command output", () => {
     );
   });
 
-  it("bb environment status --json preserves the canonical response", async () => {
+  it("kaioken environment status --json preserves the canonical response", async () => {
     const response = {
       outcome: "available",
       workspace: workspaceStatus,
@@ -415,7 +415,7 @@ describe("bb environment command output", () => {
     expect(lines.some((line) => line.startsWith("Deletions:"))).toBe(false);
   });
 
-  it("bb environment status explains non-git environments", async () => {
+  it("kaioken environment status explains non-git environments", async () => {
     stubServerApi({
       "v1.environments.:id.status.$get": vi.fn(async () => ({
         outcome: "not_applicable",
@@ -431,7 +431,7 @@ describe("bb environment command output", () => {
     );
   });
 
-  it("bb environment pull-request show reports absence and presence", async () => {
+  it("kaioken environment pull-request show reports absence and presence", async () => {
     const get = vi
       .fn()
       .mockResolvedValueOnce({ outcome: "absent" })
@@ -461,13 +461,13 @@ describe("bb environment command output", () => {
     expect(collectLogLines(vi.mocked(console.log))).toEqual(
       expect.arrayContaining([
         "Pull request: #701 open - Environment inspection parity",
-        "Branch: bb/environment-cli -> main",
+        "Branch: kaioken/environment-cli -> main",
         "Checks: passing (2 passed, 0 failed, 0 pending, 2 total)",
       ]),
     );
   });
 
-  it("bb environment pull-request show --json preserves the outcome", async () => {
+  it("kaioken environment pull-request show --json preserves the outcome", async () => {
     stubServerApi({
       "v1.environments.:id.pull-request.$get": vi.fn(async () => ({
         outcome: "absent",
@@ -484,7 +484,7 @@ describe("bb environment command output", () => {
     ).toEqual({ outcome: "absent" });
   });
 
-  it("bb environment pull-request show reports a failed lookup", async () => {
+  it("kaioken environment pull-request show reports a failed lookup", async () => {
     stubServerApi({
       "v1.environments.:id.pull-request.$get": vi.fn(async () => ({
         outcome: "unavailable",
@@ -502,7 +502,7 @@ describe("bb environment command output", () => {
     ]);
   });
 
-  it("bb environment branches returns local and remote results", async () => {
+  it("kaioken environment branches returns local and remote results", async () => {
     const get = vi.fn(async () => ({
       branches: ["main", "release"],
       branchesTruncated: false,
@@ -539,7 +539,7 @@ describe("bb environment command output", () => {
     ]);
   });
 
-  it("bb environment paths targets the environment and path kinds", async () => {
+  it("kaioken environment paths targets the environment and path kinds", async () => {
     const response = {
       paths: [
         {
@@ -584,7 +584,7 @@ describe("bb environment command output", () => {
     ]);
   });
 
-  it("bb environment diff prints summary, full diff, and truncation", async () => {
+  it("kaioken environment diff prints summary, full diff, and truncation", async () => {
     const get = vi.fn(async () => ({
       outcome: "available",
       diff: {
@@ -622,7 +622,7 @@ describe("bb environment command output", () => {
     ]);
   });
 
-  it("bb environment diff-files --json preserves binary and initial patch metadata", async () => {
+  it("kaioken environment diff-files --json preserves binary and initial patch metadata", async () => {
     const response = {
       outcome: "available",
       files: [
@@ -672,7 +672,7 @@ describe("bb environment command output", () => {
     ).toEqual(response);
   });
 
-  it("bb environment diff-files reports a truncated file list", async () => {
+  it("kaioken environment diff-files reports a truncated file list", async () => {
     stubServerApi({
       "v1.environments.:id.diff.files.$get": vi.fn(async () => ({
         outcome: "available",
@@ -713,7 +713,7 @@ describe("bb environment command output", () => {
     ]);
   });
 
-  it("bb environment diff-file distinguishes text and binary content", async () => {
+  it("kaioken environment diff-file distinguishes text and binary content", async () => {
     const get = vi
       .fn()
       .mockResolvedValueOnce({
@@ -788,7 +788,7 @@ describe("bb environment command output", () => {
     ]);
   });
 
-  it("bb environment diff-patch preserves patch paths and truncation", async () => {
+  it("kaioken environment diff-patch preserves patch paths and truncation", async () => {
     const post = vi.fn(async () => ({
       outcome: "available",
       patches: [
@@ -839,7 +839,7 @@ describe("bb environment command output", () => {
     ]);
   });
 
-  it("bb environment diff explains non-git results", async () => {
+  it("kaioken environment diff explains non-git results", async () => {
     stubServerApi({
       "v1.environments.:id.diff.$get": vi.fn(async () => ({
         outcome: "not_applicable",
@@ -912,7 +912,7 @@ describe("bb environment command output", () => {
     );
   });
 
-  it("bb environment commit prefixes failures with environment context", async () => {
+  it("kaioken environment commit prefixes failures with environment context", async () => {
     const post = vi.fn(async () => {
       throw new Error("HTTP 500: boom");
     });
@@ -927,7 +927,7 @@ describe("bb environment command output", () => {
     );
   });
 
-  it("bb environment commit posts the action without a thread id", async () => {
+  it("kaioken environment commit posts the action without a thread id", async () => {
     const post = vi.fn(async () => ({
       ok: true,
       action: "commit",
@@ -945,7 +945,7 @@ describe("bb environment command output", () => {
     });
   });
 
-  it("bb environment update sets the merge base branch", async () => {
+  it("kaioken environment update sets the merge base branch", async () => {
     const environment = fixtures.makeEnvironment({
       id: "env-update-1",
       projectId: "proj-1",
@@ -980,7 +980,7 @@ describe("bb environment command output", () => {
     );
   });
 
-  it("bb environment update clears the merge base branch", async () => {
+  it("kaioken environment update clears the merge base branch", async () => {
     const environment = fixtures.makeEnvironment({
       id: "env-update-2",
       projectId: "proj-1",
@@ -1006,7 +1006,7 @@ describe("bb environment command output", () => {
     );
   });
 
-  it("bb environment update renames the environment", async () => {
+  it("kaioken environment update renames the environment", async () => {
     const environment = fixtures.makeEnvironment({
       id: "env-update-name",
       projectId: "proj-1",
@@ -1041,7 +1041,7 @@ describe("bb environment command output", () => {
     );
   });
 
-  it("bb environment update clears the environment name", async () => {
+  it("kaioken environment update clears the environment name", async () => {
     const environment = fixtures.makeEnvironment({
       id: "env-clear-name",
       projectId: "proj-1",
@@ -1065,7 +1065,7 @@ describe("bb environment command output", () => {
     expect(collectLogLines(vi.mocked(console.log))).toContain("Name cleared");
   });
 
-  it("bb environment update sets name and merge base together", async () => {
+  it("kaioken environment update sets name and merge base together", async () => {
     const environment = fixtures.makeEnvironment({
       id: "env-update-combined",
       projectId: "proj-1",
@@ -1103,7 +1103,7 @@ describe("bb environment command output", () => {
     );
   });
 
-  it("bb environment update rejects name and clear-name together", async () => {
+  it("kaioken environment update rejects name and clear-name together", async () => {
     const patch = vi.fn();
     stubServerApi({ "v1.environments.:id.$patch": patch });
 
@@ -1127,7 +1127,7 @@ describe("bb environment command output", () => {
     expect(patch).not.toHaveBeenCalled();
   });
 
-  it("bb environment update rejects an empty name", async () => {
+  it("kaioken environment update rejects an empty name", async () => {
     const patch = vi.fn();
     stubServerApi({ "v1.environments.:id.$patch": patch });
 
@@ -1144,7 +1144,7 @@ describe("bb environment command output", () => {
     expect(patch).not.toHaveBeenCalled();
   });
 
-  it("bb environment update --json prints the updated environment", async () => {
+  it("kaioken environment update --json prints the updated environment", async () => {
     const environment = fixtures.makeEnvironment({
       id: "env-json-update",
       projectId: "proj-1",

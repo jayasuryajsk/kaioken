@@ -10,17 +10,17 @@ import {
   getThread,
   listStoredThreadProvisioningRowsByProvisioningId,
   threads,
-} from "@bb/db";
-import { recordProvisionedEnvironmentWorkspace } from "@bb/db/internal-environment-lifecycle";
+} from "@kaioken/db";
+import { recordProvisionedEnvironmentWorkspace } from "@kaioken/db/internal-environment-lifecycle";
 import type {
   ProvisioningTranscriptEntry,
   SystemThreadProvisioningStatus,
   ThreadStatus,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   systemThreadProvisioningEventDataSchema,
   threadScope,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { AppDeps } from "../../types.js";
 import {
   appendSystemErrorEventInTransaction,

@@ -18,7 +18,7 @@ function nextRequestId(): number {
 
 beforeEach(async () => {
   harness = await startFakePiBridge({
-    prefix: "bb-pi-install-gate-",
+    prefix: "kaioken-pi-install-gate-",
     initialize: true,
   });
 });

@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 
 const [, , command, ...args] = process.argv;
 
-const STANDALONE_PARENT_PID_ENV = "BB_STANDALONE_PARENT_PID";
+const STANDALONE_PARENT_PID_ENV = "KAIOKEN_STANDALONE_PARENT_PID";
 
 const commandConfig = {
   "standalone:start": {
@@ -11,20 +11,20 @@ const commandConfig = {
     turboChecks: [
       [
         "build",
-        "--filter=@bb/server",
-        "--filter=@bb/host-daemon",
-        "--filter=@bb/cli",
+        "--filter=@kaioken/server",
+        "--filter=@kaioken/host-daemon",
+        "--filter=@kaioken/cli",
       ],
-      ["typecheck", "--filter=@bb/qa"],
+      ["typecheck", "--filter=@kaioken/qa"],
     ],
   },
   "standalone:stop": {
     packageScript: "standalone:stop",
-    turboChecks: [["typecheck", "--filter=@bb/qa"]],
+    turboChecks: [["typecheck", "--filter=@kaioken/qa"]],
   },
   "standalone:cleanup": {
     packageScript: "standalone:cleanup",
-    turboChecks: [["typecheck", "--filter=@bb/qa"]],
+    turboChecks: [["typecheck", "--filter=@kaioken/qa"]],
   },
 };
 
@@ -99,7 +99,7 @@ function main() {
 
   return run(
     "pnpm",
-    ["--silent", "--filter", "@bb/qa", config.packageScript, ...args],
+    ["--silent", "--filter", "@kaioken/qa", config.packageScript, ...args],
     "inherit",
     packageEnv,
   );

@@ -2,11 +2,11 @@ import { serve } from "@hono/node-server";
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ServerConfig } from "@bb/config/server";
-import { isLoopbackHostname } from "@bb/config/loopback";
-import { toOptionalString } from "@bb/config/strings";
-import { createLogger } from "@bb/logger";
-import { getAppSettings } from "@bb/db";
+import type { ServerConfig } from "@kaioken/config/server";
+import { isLoopbackHostname } from "@kaioken/config/loopback";
+import { toOptionalString } from "@kaioken/config/strings";
+import { createLogger } from "@kaioken/logger";
+import { getAppSettings } from "@kaioken/db";
 import { initDb } from "./db.js";
 import { createApp } from "./server.js";
 import { PendingInteractionLifecycle } from "./services/interactions/pending-interactions.js";
@@ -17,7 +17,7 @@ import { PluginHostArtifactRegistry } from "./services/plugins/plugin-host-artif
 import { createProviderNativeRootsCache } from "./services/providers/native-roots.js";
 import { createAiServiceRegistry } from "./services/ai/ai-service-registry.js";
 import { createAppVersionService } from "./services/system/app-version.js";
-import { createBbAppManagedConfigReloader } from "./services/system/bb-app-managed-config.js";
+import { createBbAppManagedConfigReloader } from "./services/system/kaioken-app-managed-config.js";
 import { startEventLoopStallMonitor } from "./services/system/event-loop-stall-monitor.js";
 import {
   runPeriodicSweeps,
@@ -35,13 +35,13 @@ import { HostSharedPortCoordinator } from "./ws/host-shared-ports.js";
 
 interface StartHttpListenerArgs {
   fetch: Parameters<typeof serve>[0]["fetch"];
-  serverConfig: Pick<ServerConfig, "BB_SERVER_BIND_HOST" | "BB_SERVER_PORT">;
+  serverConfig: Pick<ServerConfig, "KAIOKEN_SERVER_BIND_HOST" | "KAIOKEN_SERVER_PORT">;
 }
 
 export function startHttpListener(args: StartHttpListenerArgs) {
   return serve({
-    hostname: args.serverConfig.BB_SERVER_BIND_HOST,
-    port: args.serverConfig.BB_SERVER_PORT,
+    hostname: args.serverConfig.KAIOKEN_SERVER_BIND_HOST,
+    port: args.serverConfig.KAIOKEN_SERVER_PORT,
     fetch: args.fetch,
   });
 }
@@ -49,10 +49,10 @@ export function startHttpListener(args: StartHttpListenerArgs) {
 export async function runServer(serverConfig: ServerConfig): Promise<void> {
   const logger = createLogger({
     component: "server",
-    dataDir: serverConfig.BB_DATA_DIR,
+    dataDir: serverConfig.KAIOKEN_DATA_DIR,
   });
   const db = initDb(serverConfig.databasePath, {
-    dataDir: serverConfig.BB_DATA_DIR,
+    dataDir: serverConfig.KAIOKEN_DATA_DIR,
     logger,
   });
   const hub = new NotificationHub();
@@ -60,7 +60,7 @@ export async function runServer(serverConfig: ServerConfig): Promise<void> {
   const sharedPorts = new HostSharedPortCoordinator({ db, hub });
   const workspaceReadCaches = new WorkspaceReadCaches({ hub });
   const lifecycleDedupers = createLifecycleDedupers();
-  const appUrl = toOptionalString(serverConfig.BB_APP_URL);
+  const appUrl = toOptionalString(serverConfig.KAIOKEN_APP_URL);
 
   const selfDir = dirname(fileURLToPath(import.meta.url));
   const appDir = resolve(selfDir, "../../app");
@@ -69,21 +69,21 @@ export async function runServer(serverConfig: ServerConfig): Promise<void> {
   const staticDir =
     isProduction && existsSync(appDistDir) ? appDistDir : undefined;
   const runtimeConfig: ServerRuntimeConfig = {
-    appVersion: serverConfig.BB_APP_VERSION,
+    appVersion: serverConfig.KAIOKEN_APP_VERSION,
     builtinSkillsRootPath: resolveBuiltinSkillsRootPath(),
-    marketplaceUrl: serverConfig.BB_MARKETPLACE_URL,
+    marketplaceUrl: serverConfig.KAIOKEN_MARKETPLACE_URL,
     customModels: [],
-    dataDir: serverConfig.BB_DATA_DIR,
+    dataDir: serverConfig.KAIOKEN_DATA_DIR,
     featureFlags: serverConfig.featureFlags,
-    hostDaemonPort: serverConfig.BB_HOST_DAEMON_PORT,
-    inheritedSkillsRootPaths: serverConfig.BB_INHERITED_SKILLS_ROOTS,
-    inferenceFallbackModel: serverConfig.BB_INFERENCE_FALLBACK,
-    inferenceModel: serverConfig.BB_INFERENCE,
+    hostDaemonPort: serverConfig.KAIOKEN_HOST_DAEMON_PORT,
+    inheritedSkillsRootPaths: serverConfig.KAIOKEN_INHERITED_SKILLS_ROOTS,
+    inferenceFallbackModel: serverConfig.KAIOKEN_INFERENCE_FALLBACK,
+    inferenceModel: serverConfig.KAIOKEN_INFERENCE,
     isDevelopment: !isProduction,
     openAiApiKey: serverConfig.OPENAI_API_KEY,
-    serverPort: serverConfig.BB_SERVER_PORT,
+    serverPort: serverConfig.KAIOKEN_SERVER_PORT,
     sharedSkillRoots: { user: [], project: [] },
-    transcriptionModel: serverConfig.BB_TRANSCRIPTION,
+    transcriptionModel: serverConfig.KAIOKEN_TRANSCRIPTION,
   };
 
   const providerRegistry = createProviderRegistryService({
@@ -100,11 +100,11 @@ export async function runServer(serverConfig: ServerConfig): Promise<void> {
   if (appUrl !== undefined) {
     runtimeConfig.appUrl = appUrl;
   }
-  if (serverConfig.BB_DEV_APP_PORT !== undefined) {
-    runtimeConfig.devAppPort = serverConfig.BB_DEV_APP_PORT;
+  if (serverConfig.KAIOKEN_DEV_APP_PORT !== undefined) {
+    runtimeConfig.devAppPort = serverConfig.KAIOKEN_DEV_APP_PORT;
   }
-  if (serverConfig.BB_SERVER_LAUNCH_ID !== undefined) {
-    runtimeConfig.launchId = serverConfig.BB_SERVER_LAUNCH_ID;
+  if (serverConfig.KAIOKEN_SERVER_LAUNCH_ID !== undefined) {
+    runtimeConfig.launchId = serverConfig.KAIOKEN_SERVER_LAUNCH_ID;
   }
   const terminalSessions = new TerminalSessionLifecycle({
     config: runtimeConfig,
@@ -112,23 +112,23 @@ export async function runServer(serverConfig: ServerConfig): Promise<void> {
     hub,
     logger,
   });
-  const bbAppManagedConfig = await createBbAppManagedConfigReloader({
+  const kaiokenAppManagedConfig = await createBbAppManagedConfigReloader({
     config: runtimeConfig,
     hub,
     logger,
   });
 
   const telemetry = await createTelemetryService({
-    apiKey: serverConfig.BB_POSTHOG_API_KEY,
-    appSurface: serverConfig.BB_APP_SURFACE,
-    appVersion: serverConfig.BB_APP_VERSION,
-    dataDir: serverConfig.BB_DATA_DIR,
-    enabled: serverConfig.BB_TELEMETRY && isProduction,
+    apiKey: serverConfig.KAIOKEN_POSTHOG_API_KEY,
+    appSurface: serverConfig.KAIOKEN_APP_SURFACE,
+    appVersion: serverConfig.KAIOKEN_APP_VERSION,
+    dataDir: serverConfig.KAIOKEN_DATA_DIR,
+    enabled: serverConfig.KAIOKEN_TELEMETRY && isProduction,
     logger,
   });
 
   const machineAuth = await createMachineAuthService({
-    dataDir: serverConfig.BB_DATA_DIR,
+    dataDir: serverConfig.KAIOKEN_DATA_DIR,
     db,
     logger,
   });
@@ -166,7 +166,7 @@ export async function runServer(serverConfig: ServerConfig): Promise<void> {
   } = createApp(
     {
       appVersion,
-      bbAppManagedConfig,
+      kaiokenAppManagedConfig,
       config: runtimeConfig,
       db,
       hub,
@@ -210,9 +210,9 @@ export async function runServer(serverConfig: ServerConfig): Promise<void> {
     logger.error({ err: error }, "Startup recovery sweep failed");
   });
 
-  if (!isLoopbackHostname(serverConfig.BB_SERVER_BIND_HOST)) {
+  if (!isLoopbackHostname(serverConfig.KAIOKEN_SERVER_BIND_HOST)) {
     logger.warn(
-      { bindHost: serverConfig.BB_SERVER_BIND_HOST },
+      { bindHost: serverConfig.KAIOKEN_SERVER_BIND_HOST },
       "SECURITY WARNING: The public API is unauthenticated and permits command execution and file reads. Wildcard server binding must only be used behind a trusted network boundary.",
     );
   }
@@ -225,16 +225,16 @@ export async function runServer(serverConfig: ServerConfig): Promise<void> {
 
   logger.info(
     {
-      bindHost: serverConfig.BB_SERVER_BIND_HOST,
-      port: serverConfig.BB_SERVER_PORT,
-      dataDir: serverConfig.BB_DATA_DIR,
+      bindHost: serverConfig.KAIOKEN_SERVER_BIND_HOST,
+      port: serverConfig.KAIOKEN_SERVER_PORT,
+      dataDir: serverConfig.KAIOKEN_DATA_DIR,
     },
     "Server listening",
   );
   telemetry.capture({ name: "app_started" });
 
   pluginService.bindSdk({
-    baseUrl: `http://127.0.0.1:${serverConfig.BB_SERVER_PORT}`,
+    baseUrl: `http://127.0.0.1:${serverConfig.KAIOKEN_SERVER_PORT}`,
   });
   void pluginService
     .start()

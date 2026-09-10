@@ -1,4 +1,4 @@
-import type { RealtimeSubscriptionTarget } from "@bb/server-contract";
+import type { RealtimeSubscriptionTarget } from "@kaioken/server-contract";
 import { useEffect, useMemo } from "react";
 import { useProfileClient } from "@/app-shell/ProfilesProvider";
 

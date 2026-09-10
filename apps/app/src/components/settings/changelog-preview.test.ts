@@ -14,7 +14,7 @@ A much faster app on your phone, and a long list of fixes.
 
 ### Mobile is much faster
 
-Every tap used to make bb measure the whole page.
+Every tap used to make kaioken measure the whole page.
 
 - Taps answer at once.
 - The sidebar keeps its scroll position.
@@ -26,7 +26,7 @@ Turn on **Edit messages** in Settings → Experiments.
 ## 0.36.0
 
 - Fixed a [crash](https://example.test) on launch.
-- Tidied \`bb status\` output.
+- Tidied \`kaioken status\` output.
 `;
 
 describe("parseChangelogEntries", () => {
@@ -54,7 +54,7 @@ describe("parseChangelogEntries", () => {
       blocks: [
         {
           kind: "paragraph",
-          text: "Every tap used to make bb measure the whole page.",
+          text: "Every tap used to make kaioken measure the whole page.",
         },
         {
           kind: "list",
@@ -76,7 +76,7 @@ describe("parseChangelogEntries", () => {
         kind: "list",
         items: [
           "Fixed a [crash](https://example.test) on launch.",
-          "Tidied `bb status` output.",
+          "Tidied `kaioken status` output.",
         ],
       },
     ]);

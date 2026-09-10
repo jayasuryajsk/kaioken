@@ -293,7 +293,7 @@ describe("marketplace entry schemas", () => {
         ...bundled,
         source: {
           bundled: { plugin: "docs" },
-          npm: { package: "bb-plugin-docs" },
+          npm: { package: "kaioken-plugin-docs" },
         },
       }).success,
     ).toBe(false);

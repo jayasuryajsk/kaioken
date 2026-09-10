@@ -5,13 +5,13 @@ import {
   getLatestThreadSequence,
   getLatestStoredConversationOutlineSequence,
   listQueuedThreadMessages,
-} from "@bb/db";
+} from "@kaioken/db";
 import type { Hono } from "hono";
 import {
   PROMPT_HISTORY_ENTRY_LIMIT,
   threadEventTypeSchema,
   type ThreadEventType,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   publicApiRoutes,
   THREAD_EVENT_LIST_PAGE_SIZE,
@@ -19,7 +19,7 @@ import {
   type PublicApiSchema,
   type ThreadConversationOutlineResponse,
   type ThreadTimelineQuery,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type {
   AppDeps,
   LoggedWorkSessionDeps,
@@ -68,7 +68,7 @@ import {
   truncateTimelineResponseOutputs,
 } from "../../services/threads/timeline-output-truncation.js";
 import { previewTimelineResponseOutputs } from "../../services/threads/timeline-output-preview.js";
-import { computeTimelineRowDelta } from "@bb/server-contract";
+import { computeTimelineRowDelta } from "@kaioken/server-contract";
 import {
   findThreadEvent,
   getLastThreadOutput,

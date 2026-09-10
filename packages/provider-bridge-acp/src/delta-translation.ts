@@ -1,26 +1,26 @@
-import { providerRawEventSchema } from "@bb/domain";
-import type { ProviderRawEvent } from "@bb/domain";
+import { providerRawEventSchema } from "@kaioken/domain";
+import type { ProviderRawEvent } from "@kaioken/domain";
 import {
   COMPACTION_PRESENTATION,
   errorEnvelopeSchema,
   jsonRpcEnvelopeSchema,
   planStepsPresentation,
   presentationTitle,
-} from "@bb/provider-bridge-protocol/bridge-kit";
+} from "@kaioken/provider-bridge-protocol/bridge-kit";
 import type {
   JsonRpcMessage,
   ProviderRuntimeEvent,
-} from "@bb/provider-bridge-protocol/bridge-kit";
+} from "@kaioken/provider-bridge-protocol/bridge-kit";
 import type {
   ThreadEventItemStatus,
   ThreadEventPlanStep,
   ThreadEventTurnStatus,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   DeltaItemShape,
   DeltaNoTurnFallback,
   ThreadDelta,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 import {
   ACP_COMPACTION_COMPLETED_METHOD,
   ACP_COMPACTION_STARTED_METHOD,

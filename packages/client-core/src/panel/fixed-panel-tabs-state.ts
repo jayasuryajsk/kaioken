@@ -1,16 +1,16 @@
 import { z } from "zod";
 import {
-  BB_DESKTOP_BROWSER_MAX_TITLE_LENGTH,
-  BB_DESKTOP_BROWSER_MAX_URL_LENGTH,
-  bbDesktopBrowserTargetSchema,
-  type BbDesktopBrowserTarget,
-} from "@bb/desktop-contract";
+  KAIOKEN_DESKTOP_BROWSER_MAX_TITLE_LENGTH,
+  KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH,
+  kaiokenDesktopBrowserTargetSchema,
+  type KaiokenDesktopBrowserTarget,
+} from "@kaioken/desktop-contract";
 import {
   terminalCreateTargetSchema,
   threadTabFileOpenerOwnerSchema,
   type TerminalCreateTarget,
   type ThreadTabFileOpenerOwner,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   areFilePreviewLineRangesEqual,
   areEnvironmentFilePreviewSourcesEqual,
@@ -119,13 +119,13 @@ const browserFixedPanelTabSchema = z
     environmentId: z.string().min(1).nullable().default(null),
     id: z.string().min(1),
     kind: z.literal("browser"),
-    desktopTarget: bbDesktopBrowserTargetSchema.optional(),
+    desktopTarget: kaiokenDesktopBrowserTargetSchema.optional(),
     title: z
       .string()
       .min(1)
-      .max(BB_DESKTOP_BROWSER_MAX_TITLE_LENGTH)
+      .max(KAIOKEN_DESKTOP_BROWSER_MAX_TITLE_LENGTH)
       .nullable(),
-    url: z.string().max(BB_DESKTOP_BROWSER_MAX_URL_LENGTH),
+    url: z.string().max(KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH),
   })
   .strict();
 const newTabFixedPanelTabSchema = z
@@ -259,7 +259,7 @@ export interface ThreadStorageFilePreviewFixedPanelTab {
 }
 
 export interface BrowserFixedPanelTab {
-  desktopTarget?: BbDesktopBrowserTarget;
+  desktopTarget?: KaiokenDesktopBrowserTarget;
   environmentId: string | null;
   id: string;
   kind: "browser";

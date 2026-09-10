@@ -15,7 +15,7 @@ import {
   type HeaderPair,
   type OpenHttpFrame,
   type OpenWsFrame,
-} from "@bb/tunnel-contract";
+} from "@kaioken/tunnel-contract";
 import { headersForLoopbackRequest } from "./headers.js";
 import type { TunnelClientLogger } from "./logger.js";
 
@@ -322,7 +322,7 @@ export class TunnelSession {
         const totalMs = performance.now() - startedAt;
         this.options.log.info?.(
           [
-            "bb connect thread load",
+            "kaioken connect thread load",
             `path=${meta.path}`,
             `status=${res.statusCode ?? 502}`,
             `originTtfbMs=${roundDurationMs(originTtfbMs)}`,

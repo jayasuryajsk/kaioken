@@ -1,11 +1,11 @@
-import { createDebouncedCallbackScheduler } from "@bb/domain";
+import { createDebouncedCallbackScheduler } from "@kaioken/domain";
 import type {
   ChangedMessage,
   SidebarBootstrapResponse,
   ThreadChangedMessage,
   ThreadChangeKind,
   ThreadResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   hashKey,
   type QueryClient,

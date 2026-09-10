@@ -13,10 +13,10 @@ interface SourceCliResult {
 const testDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(testDir, "..", "..", "..");
 const contextEnvKeys: string[] = [
-  "BB_ENVIRONMENT_ID",
-  "BB_PROJECT_ID",
-  "BB_THREAD_ID",
-  "BB_THREAD_STORAGE",
+  "KAIOKEN_ENVIRONMENT_ID",
+  "KAIOKEN_PROJECT_ID",
+  "KAIOKEN_THREAD_ID",
+  "KAIOKEN_THREAD_STORAGE",
 ];
 const spawnedChildren: ChildProcessWithoutNullStreams[] = [];
 
@@ -25,13 +25,13 @@ function buildCleanEnv(): NodeJS.ProcessEnv {
   for (const key of contextEnvKeys) {
     delete env[key];
   }
-  env.BB_SERVER_URL = "http://127.0.0.1:9";
+  env.KAIOKEN_SERVER_URL = "http://127.0.0.1:9";
   return env;
 }
 
 function runSourceBb(args: string[]): Promise<SourceCliResult> {
   return new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn("pnpm", ["--silent", "bb", ...args], {
+    const child = spawn("pnpm", ["--silent", "kaioken", ...args], {
       cwd: repoRoot,
       env: buildCleanEnv(),
     });

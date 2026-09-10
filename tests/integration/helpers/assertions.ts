@@ -6,8 +6,8 @@ import type {
   Thread,
   ThreadEventRow,
   ThreadStatus,
-} from "@bb/domain";
-import { createPublicApiClient } from "@bb/server-contract";
+} from "@kaioken/domain";
+import { createPublicApiClient } from "@kaioken/server-contract";
 import {
   describeThreadEvent,
   previewThreadText,

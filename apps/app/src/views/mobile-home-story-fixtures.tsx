@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import type { PromptTextMention, ThreadListEntry } from "@bb/domain";
+import type { PromptTextMention, ThreadListEntry } from "@kaioken/domain";
 import {
   NewThreadPromptBoxUI,
   type NewThreadEnvironmentConfig,
@@ -106,7 +106,7 @@ export const HOME_THREADS: ThreadListEntry[] = [
   }),
 ];
 
-export const MOBILE_RECENTS_VISIBILITY_CLASS = "bb-mobile-story-stage";
+export const MOBILE_RECENTS_VISIBILITY_CLASS = "kaioken-mobile-story-stage";
 
 const noop = () => {};
 

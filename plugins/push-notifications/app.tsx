@@ -5,7 +5,7 @@ import {
   useRealtime,
   useRpc,
   useSettings,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import {
   CLIENT_NOTIFICATION_CHANNEL,
   type pushNotificationsRpcContract,
@@ -130,7 +130,7 @@ function NotificationSettings() {
         </p>
       ) : null}
       <p className="text-xs text-muted-foreground">
-        Channel settings apply to this bb server. Each browser needs permission.
+        Channel settings apply to this kaioken server. Each browser needs permission.
         Click a notification to open its thread.
       </p>
     </div>

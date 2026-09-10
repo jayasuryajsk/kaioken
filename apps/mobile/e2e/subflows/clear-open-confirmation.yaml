@@ -3,8 +3,8 @@ appId: app.getbb.mobile
 - runFlow:
     when:
       platform: iOS
-      visible: "Open in.*bb.*"
+      visible: "Open in.*kaioken.*"
     commands:
       - tapOn: "Cancel"
 - stopApp
-- assertNotVisible: "Open in.*bb.*"
+- assertNotVisible: "Open in.*kaioken.*"

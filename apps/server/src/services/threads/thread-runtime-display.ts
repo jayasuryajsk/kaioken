@@ -12,8 +12,8 @@ import {
   type StoredEventRow,
   type ThreadClientTurnRequestKey,
   type ThreadWithPendingInteractionState,
-} from "@bb/db";
-import { LEGACY_CODEX_GOAL_EXTENSION_KIND } from "@bb/domain";
+} from "@kaioken/db";
+import { LEGACY_CODEX_GOAL_EXTENSION_KIND } from "@kaioken/domain";
 import type {
   Thread,
   ThreadActivityState,
@@ -23,18 +23,18 @@ import type {
   ThreadRuntimeState,
   ThreadStatus,
   ThreadWithRuntime,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   extractThreadTimelineActivePlanTurn,
   extractThreadTimelineGoal,
   type ThreadEventWithMeta,
-} from "@bb/thread-view";
-import type { ThreadResponse } from "@bb/server-contract";
+} from "@kaioken/thread-view";
+import type { ThreadResponse } from "@kaioken/server-contract";
 import { DAEMON_ACTIVE_WORK_DISCONNECT_GRACE_MS } from "../../constants.js";
 import type { NotificationHub } from "../../ws/hub.js";
 import { resolveProviderPlanCommand } from "../providers/provider-plan-command.js";
 import type { ProviderRegistryService } from "../providers/provider-registry.js";
-import { listQueuedThreadMessageCountsByThreadIds } from "@bb/db";
+import { listQueuedThreadMessageCountsByThreadIds } from "@kaioken/db";
 import { resolveEnvironmentWorkspaceDisplayKind } from "../environments/environment-response.js";
 import { canThreadSpawnChild } from "./thread-parent.js";
 import { toThreadEventWithMeta } from "./timeline.js";

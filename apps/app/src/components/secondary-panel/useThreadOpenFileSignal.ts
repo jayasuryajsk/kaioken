@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import type { ThreadOpenFile } from "@bb/server-contract";
-import { createFilePreviewLineRange } from "@bb/client-core";
+import type { ThreadOpenFile } from "@kaioken/server-contract";
+import { createFilePreviewLineRange } from "@kaioken/client-core";
 import { wsManager } from "@/lib/ws";
 import type { OpenSecondaryPanelTabRequest } from "./useThreadFileTabs";
 

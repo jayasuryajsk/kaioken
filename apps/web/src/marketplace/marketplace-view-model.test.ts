@@ -140,7 +140,7 @@ describe("public marketplace view model", () => {
 
   it("builds the install command", () => {
     expect(marketplaceInstallCommand("prompt-library")).toBe(
-      "bb plugin install prompt-library",
+      "kaioken plugin install prompt-library",
     );
   });
 
@@ -165,7 +165,7 @@ describe("public marketplace view model", () => {
       }),
     ).toBe("https://npm.example.com/custom-tool");
     expect(marketplaceRepositoryUrl(gitEntry)).toBe(
-      "https://github.com/acme/bb-plugins",
+      "https://github.com/acme/kaioken-plugins",
     );
   });
 

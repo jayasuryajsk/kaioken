@@ -4,8 +4,8 @@ import {
   useRealtime,
   useRpc,
   type StandardSchemaV1InferOutput,
-} from "@get-bb/plugin-sdk/app";
-import { Input } from "@bb/shared-ui/input";
+} from "@get-kaioken/plugin-sdk/app";
+import { Input } from "@kaioken/shared-ui/input";
 import { MAX_LIMIT_VALUE } from "./limits.js";
 import type { concurrencyLimitRpcContract } from "./server.js";
 

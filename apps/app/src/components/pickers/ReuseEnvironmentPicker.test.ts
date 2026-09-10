@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
+import type { SystemEnvironmentProvider } from "@kaioken/server-contract";
 import {
   reuseThreadOptionDisplay,
   type ReuseThreadOption,
@@ -27,7 +27,7 @@ const option: ReuseThreadOption = {
   environmentId: "env_1",
   branchName: "main",
   name: null,
-  path: "/workspace/bb",
+  path: "/workspace/kaioken",
   environmentProviderId: "project-checkout",
   hostName: "Michael-M4",
   threads: [],

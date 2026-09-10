@@ -1,7 +1,7 @@
-import { fuzzyMatchText } from "@bb/fuzzy-match";
-import { PERSONAL_PROJECT_ID, type Thread } from "@bb/domain";
-import type { PromptMentionSuggestion } from "@bb/client-core";
-import { compareCodepoint } from "@bb/client-core";
+import { fuzzyMatchText } from "@kaioken/fuzzy-match";
+import { PERSONAL_PROJECT_ID, type Thread } from "@kaioken/domain";
+import type { PromptMentionSuggestion } from "@kaioken/client-core";
+import { compareCodepoint } from "@kaioken/client-core";
 
 type ThreadMentionSuggestion = Extract<
   PromptMentionSuggestion,

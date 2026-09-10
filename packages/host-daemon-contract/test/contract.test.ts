@@ -1,5 +1,5 @@
-import { collectOptionalFieldPaths } from "@bb/test-helpers";
-import { threadScope, turnScope, type JsonObject } from "@bb/domain";
+import { collectOptionalFieldPaths } from "@kaioken/test-helpers";
+import { threadScope, turnScope, type JsonObject } from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import * as contract from "../src/index.js";
 import {
@@ -279,7 +279,7 @@ const ONLINE_RPC_RESPONSE_RESULT_FIXTURES: OnlineRpcResponseResultFixtures = {
     gitRemoteUrl: "git@example.com:me/project.git",
   },
   "project.clone_default_path": {
-    path: "/home/me/.bb/checkouts/project",
+    path: "/home/me/.kaioken/checkouts/project",
   },
   "host.pick_folder": {
     path: "/home/me/project",
@@ -301,32 +301,32 @@ const ONLINE_RPC_RESPONSE_RESULT_FIXTURES: OnlineRpcResponseResultFixtures = {
         id: `skill_${"a".repeat(64)}`,
         name: "review",
         description: "Review the current diff",
-        filePath: "/home/user/.bb/skills/review/SKILL.md",
-        rootKind: "bb-data-dir",
+        filePath: "/home/user/.kaioken/skills/review/SKILL.md",
+        rootKind: "kaioken-data-dir",
         linked: false,
       },
     ],
   },
   "host.delete_skill": {
-    deletedPath: "/home/user/.bb/skills/review",
+    deletedPath: "/home/user/.kaioken/skills/review",
   },
   "host.write_skill": {
     outcome: "written",
-    filePath: "/home/user/.bb/skills/review/SKILL.md",
+    filePath: "/home/user/.kaioken/skills/review/SKILL.md",
     sha256: "b".repeat(64),
   },
   "host.global_skills_status": {
     entries: [
       {
-        name: "bb-cli",
-        path: "/home/user/.agents/skills/bb-cli",
+        name: "kaioken-cli",
+        path: "/home/user/.agents/skills/kaioken-cli",
         treeHash: "c".repeat(64),
       },
     ],
   },
   "host.install_global_skills": {
     installations: [
-      { name: "bb-cli", path: "/home/user/.agents/skills/bb-cli" },
+      { name: "kaioken-cli", path: "/home/user/.agents/skills/kaioken-cli" },
     ],
   },
   "host.inspect_git_source": {
@@ -473,7 +473,7 @@ const ONLINE_RPC_RESPONSE_RESULT_FIXTURES: OnlineRpcResponseResultFixtures = {
       number: 42,
       title: "Add host RPC guard",
       state: "OPEN",
-      url: "https://github.com/acme/bb/pull/42",
+      url: "https://github.com/acme/kaioken/pull/42",
       isDraft: false,
       baseRefName: "main",
       headRefName: "feature/host-rpc",
@@ -517,14 +517,14 @@ const SETTLED_RESPONSE_RESULT_FIXTURES: SettledResponseResultFixtures = {
     path: "/tmp/env",
     isGitRepo: true,
     isWorktree: false,
-    branchName: "bb/env-123",
+    branchName: "kaioken/env-123",
     defaultBranch: "main",
   },
   "environment.attach.cancel": {
     aborted: true,
   },
   "project.clone": {
-    path: "/home/me/.bb/checkouts/project",
+    path: "/home/me/.kaioken/checkouts/project",
     gitRemoteUrl: "git@example.com:me/project.git",
   },
   "workspace.commit": {
@@ -862,7 +862,7 @@ describe("host-daemon local schemas", () => {
       contract.openInTargetRequestSchema.parse({
         context: {
           kind: "remote-ssh",
-          serverOrigin: "https://bb.example.test",
+          serverOrigin: "https://kaioken.example.test",
           hostId: "host_remote",
         },
         lineNumber: 12,
@@ -872,7 +872,7 @@ describe("host-daemon local schemas", () => {
     ).toEqual({
       context: {
         kind: "remote-ssh",
-        serverOrigin: "https://bb.example.test",
+        serverOrigin: "https://kaioken.example.test",
         hostId: "host_remote",
       },
       columnNumber: null,
@@ -1145,8 +1145,8 @@ describe("host-daemon command schemas", () => {
         },
         workspaceProvisionType: "managed-worktree",
         sourcePath: "/tmp/project",
-        targetPath: "/tmp/project/.bb/env",
-        branchName: "bb/env-123",
+        targetPath: "/tmp/project/.kaioken/env",
+        branchName: "kaioken/env-123",
         baseBranch: null,
         setupTimeoutMs: 900000,
       }),
@@ -1158,7 +1158,7 @@ describe("host-daemon command schemas", () => {
         environmentId: "env_personal",
         initiator: null,
         workspaceProvisionType: "personal",
-        targetPath: "/tmp/bb/personal-workspaces/env_personal",
+        targetPath: "/tmp/kaioken/personal-workspaces/env_personal",
       }),
     ).toThrow();
 
@@ -1341,7 +1341,7 @@ describe("host-daemon command schemas", () => {
     expect(
       hostDaemonOnlineRpcCommandSchema.parse({
         type: "host.list_skills",
-        providerId: "bb-shared",
+        providerId: "kaioken-shared",
         cwd: "/tmp/workspace",
         nativeRoots: {
           skills: { ...emptyRoots, user: [root(".agents/skills")] },
@@ -1431,20 +1431,20 @@ describe("host-daemon command schemas", () => {
     expect(
       hostDaemonOnlineRpcCommandSchema.parse({
         type: "host.file_metadata",
-        path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
-        rootPath: "/tmp/bb-data/thread-storage/thread-123",
+        path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
+        rootPath: "/tmp/kaioken-data/thread-storage/thread-123",
       }),
     ).toMatchObject({
       type: "host.file_metadata",
-      path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
-      rootPath: "/tmp/bb-data/thread-storage/thread-123",
+      path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
+      rootPath: "/tmp/kaioken-data/thread-storage/thread-123",
     });
 
     expect(
       hostDaemonOnlineRpcCommandSchema.parse({
         type: "host.read_file",
-        path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
-        rootPath: "/tmp/bb-data/thread-storage/thread-123",
+        path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
+        rootPath: "/tmp/kaioken-data/thread-storage/thread-123",
         ifNoneMatch: {
           kind: "sha256",
           values: ["a".repeat(64)],
@@ -1452,8 +1452,8 @@ describe("host-daemon command schemas", () => {
       }),
     ).toMatchObject({
       type: "host.read_file",
-      path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
-      rootPath: "/tmp/bb-data/thread-storage/thread-123",
+      path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
+      rootPath: "/tmp/kaioken-data/thread-storage/thread-123",
       ifNoneMatch: {
         kind: "sha256",
         values: ["a".repeat(64)],
@@ -1463,37 +1463,37 @@ describe("host-daemon command schemas", () => {
     expect(
       hostDaemonOnlineRpcCommandSchema.parse({
         type: "host.read_file",
-        path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
+        path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
       }),
     ).toMatchObject({
       type: "host.read_file",
-      path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
+      path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
     });
 
     expect(
       hostDaemonOnlineRpcCommandSchema.parse({
         type: "host.read_file",
-        path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
-        rootPath: "/tmp/bb-data/thread-storage/thread-123",
+        path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
+        rootPath: "/tmp/kaioken-data/thread-storage/thread-123",
         ref: "HEAD",
       }),
     ).toMatchObject({
       type: "host.read_file",
-      path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
-      rootPath: "/tmp/bb-data/thread-storage/thread-123",
+      path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
+      rootPath: "/tmp/kaioken-data/thread-storage/thread-123",
       ref: "HEAD",
     });
 
     expect(
       hostDaemonOnlineRpcCommandSchema.parse({
         type: "host.read_file_relative",
-        rootPath: "/tmp/bb-data/apps/demo/assets",
+        rootPath: "/tmp/kaioken-data/apps/demo/assets",
         path: "logo.png",
         dotfiles: "deny",
       }),
     ).toMatchObject({
       type: "host.read_file_relative",
-      rootPath: "/tmp/bb-data/apps/demo/assets",
+      rootPath: "/tmp/kaioken-data/apps/demo/assets",
       path: "logo.png",
       dotfiles: "deny",
     });
@@ -1501,7 +1501,7 @@ describe("host-daemon command schemas", () => {
     expect(
       hostDaemonOnlineRpcCommandSchema.parse({
         type: "host.list_files",
-        path: "/tmp/bb-data/thread-storage/thread-123",
+        path: "/tmp/kaioken-data/thread-storage/thread-123",
         limit: 100,
         includeHidden: true,
         respectGitIgnore: false,
@@ -1509,7 +1509,7 @@ describe("host-daemon command schemas", () => {
       }),
     ).toMatchObject({
       type: "host.list_files",
-      path: "/tmp/bb-data/thread-storage/thread-123",
+      path: "/tmp/kaioken-data/thread-storage/thread-123",
       limit: 100,
       includeHidden: true,
       respectGitIgnore: false,
@@ -1677,7 +1677,7 @@ describe("host-daemon command schemas", () => {
         initiator: null,
         workspaceProvisionType: "managed-worktree",
         sourcePath: "/tmp/project",
-        targetPath: "/tmp/project/.bb/env",
+        targetPath: "/tmp/project/.kaioken/env",
       }),
     ).toThrow();
 
@@ -1695,7 +1695,7 @@ describe("host-daemon command schemas", () => {
         environmentId: "env_123",
         initiator: null,
         path: "/tmp/project",
-        checkout: { kind: "new", name: "bb/env-123" },
+        checkout: { kind: "new", name: "kaioken/env-123" },
       }),
     ).toThrow();
 
@@ -1712,7 +1712,7 @@ describe("host-daemon command schemas", () => {
     expect(() =>
       hostDaemonOnlineRpcCommandSchema.parse({
         type: "host.read_file",
-        path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
+        path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
         ref: "HEAD",
       }),
     ).toThrow();
@@ -1720,7 +1720,7 @@ describe("host-daemon command schemas", () => {
     expect(() =>
       hostDaemonOnlineRpcCommandSchema.parse({
         type: "host.read_file_relative",
-        rootPath: "/tmp/bb-data/apps/demo/assets",
+        rootPath: "/tmp/kaioken-data/apps/demo/assets",
         path: "logo.png",
       }),
     ).toThrow();
@@ -2198,7 +2198,7 @@ describe("host-daemon command schemas", () => {
         fork: "tip",
       },
       providerOptions: { launch: { command: "echo-agent" } },
-      envPassthrough: ["BB_ECHO_AGENT_EXECUTABLE"],
+      envPassthrough: ["KAIOKEN_ECHO_AGENT_EXECUTABLE"],
     };
 
     const providerListModelsCommand = {
@@ -2326,8 +2326,8 @@ describe("host-daemon command schemas", () => {
         ...base,
         kind: "workspace-path",
         sourceType: "project",
-        sourceRootPath: "/workspace/.bb/skills/workflow-help",
-        skillFilePath: "/workspace/.bb/skills/workflow-help/SKILL.md",
+        sourceRootPath: "/workspace/.kaioken/skills/workflow-help",
+        skillFilePath: "/workspace/.kaioken/skills/workflow-help/SKILL.md",
       }),
     ).toMatchObject({ kind: "workspace-path", sourceType: "project" });
     expect(
@@ -2603,8 +2603,8 @@ describe("host-daemon command schemas", () => {
         },
         workspaceProvisionType: "managed-worktree",
         sourcePath: "/tmp/project",
-        targetPath: "/tmp/project/.bb/env",
-        branchName: "bb/env-123",
+        targetPath: "/tmp/project/.kaioken/env",
+        branchName: "kaioken/env-123",
         setupTimeoutMs: 900000,
       }),
     ).toThrow();
@@ -2639,7 +2639,7 @@ describe("host-daemon command schemas", () => {
         path: "/tmp/project",
         checkout: {
           kind: "new",
-          name: "bb/env-123",
+          name: "kaioken/env-123",
           baseBranch: "release lock",
         },
       }).success,
@@ -2652,8 +2652,8 @@ describe("host-daemon command schemas", () => {
         initiator: null,
         workspaceProvisionType: "managed-worktree",
         sourcePath: "/tmp/project",
-        targetPath: "/tmp/project/.bb/env",
-        branchName: "bb/env lock",
+        targetPath: "/tmp/project/.kaioken/env",
+        branchName: "kaioken/env lock",
         baseBranch: null,
         setupTimeoutMs: 900000,
       }).success,
@@ -2666,8 +2666,8 @@ describe("host-daemon command schemas", () => {
         initiator: null,
         workspaceProvisionType: "managed-worktree",
         sourcePath: "/tmp/project",
-        targetPath: "/tmp/project/.bb/env",
-        branchName: "bb/env-123",
+        targetPath: "/tmp/project/.kaioken/env",
+        branchName: "kaioken/env-123",
         baseBranch: "release lock",
         setupTimeoutMs: 900000,
       }).success,
@@ -2688,7 +2688,7 @@ describe("host-daemon command schemas", () => {
     ).toBe(false);
   });
 
-  it("limits host.write_skill to daemon-derived bb roots", () => {
+  it("limits host.write_skill to daemon-derived kaioken roots", () => {
     const base = {
       type: "host.write_skill",
       name: "review",
@@ -2699,7 +2699,7 @@ describe("host-daemon command schemas", () => {
     expect(
       hostDaemonOnlineRpcCommandSchema.safeParse({
         ...base,
-        scope: "bb-user",
+        scope: "kaioken-user",
       }).success,
     ).toBe(true);
     expect(
@@ -2761,7 +2761,7 @@ describe("host-daemon command schemas", () => {
     expect(() =>
       hostDaemonOnlineRpcCommandSchema.parse({
         type: "host.list_files",
-        path: "/tmp/bb-data/thread-storage/thread-123",
+        path: "/tmp/kaioken-data/thread-storage/thread-123",
         query: longQuery,
         limit: 100,
         includeHidden: true,
@@ -2773,7 +2773,7 @@ describe("host-daemon command schemas", () => {
     expect(() =>
       hostDaemonOnlineRpcCommandSchema.parse({
         type: "host.list_files",
-        path: "/tmp/bb-data/thread-storage/thread-123",
+        path: "/tmp/kaioken-data/thread-storage/thread-123",
         limit: contract.FILE_LIST_LIMIT_MAX + 1,
         includeHidden: true,
         respectGitIgnore: false,
@@ -2910,7 +2910,7 @@ describe("host-daemon command schemas", () => {
 
     expect(
       hostDaemonOnlineRpcResultSchemaByType["host.read_file"].parse({
-        path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
+        path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
         content: "# Notes",
         contentEncoding: "utf8",
         mimeType: "text/markdown",
@@ -2918,14 +2918,14 @@ describe("host-daemon command schemas", () => {
         sha256: "d".repeat(64),
       }),
     ).toMatchObject({
-      path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
+      path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
       content: "# Notes",
       contentEncoding: "utf8",
     });
 
     expect(
       hostDaemonOnlineRpcResultSchemaByType["host.read_file"].parse({
-        path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
+        path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
         contentEncoding: "utf8",
         mimeType: "text/markdown",
         sizeBytes: 13,
@@ -2933,7 +2933,7 @@ describe("host-daemon command schemas", () => {
         notModified: true,
       }),
     ).toMatchObject({
-      path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
+      path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
       sha256: "d".repeat(64),
       notModified: true,
     });
@@ -2955,12 +2955,12 @@ describe("host-daemon command schemas", () => {
 
     expect(
       hostDaemonOnlineRpcResultSchemaByType["host.file_metadata"].parse({
-        path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
+        path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
         modifiedAtMs: 1234.5,
         sizeBytes: 26_214_401,
       }),
     ).toMatchObject({
-      path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
+      path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
       modifiedAtMs: 1234.5,
       sizeBytes: 26_214_401,
     });
@@ -2978,12 +2978,12 @@ describe("host-daemon command schemas", () => {
             state: "clean",
           },
           branch: {
-            currentBranch: "bb/env-123",
+            currentBranch: "kaioken/env-123",
             defaultBranch: "main",
           },
           checkout: {
             kind: "branch",
-            branchName: "bb/env-123",
+            branchName: "kaioken/env-123",
             headSha: null,
           },
           mergeBase: null,
@@ -3027,19 +3027,19 @@ describe("host-daemon command schemas", () => {
         path: "/tmp/env",
         isGitRepo: true,
         isWorktree: true,
-        branchName: "bb/env-123",
+        branchName: "kaioken/env-123",
         defaultBranch: "main",
       }),
     ).toMatchObject({
       isGitRepo: true,
       isWorktree: true,
-      branchName: "bb/env-123",
+      branchName: "kaioken/env-123",
     });
     expect(() =>
       hostDaemonCommandResultSchemaByType["environment.attach"].parse({
         path: "/tmp/env",
         isGitRepo: true,
-        branchName: "bb/env-123",
+        branchName: "kaioken/env-123",
         defaultBranch: "main",
       }),
     ).toThrow();
@@ -3063,7 +3063,7 @@ describe("host-daemon session schemas", () => {
         hostType: "ephemeral",
         hasMachineCredential: true,
         platform: "linux",
-        dataDir: "/tmp/bb-data",
+        dataDir: "/tmp/kaioken-data",
         localApiPort: null,
         protocolVersion: HOST_DAEMON_PROTOCOL_VERSION,
         activeThreads: [],
@@ -3080,7 +3080,7 @@ describe("host-daemon session schemas", () => {
         hostName: "Michael's MacBook",
         hasMachineCredential: true,
         platform: "darwin",
-        dataDir: "/tmp/bb-data",
+        dataDir: "/tmp/kaioken-data",
         localApiPort: 38_887,
         protocolVersion: HOST_DAEMON_PROTOCOL_VERSION,
         activeThreads: [
@@ -3104,7 +3104,7 @@ describe("host-daemon session schemas", () => {
         hostType: "persistent",
         hasMachineCredential: false,
         platform: "darwin",
-        dataDir: "/tmp/bb-data",
+        dataDir: "/tmp/kaioken-data",
         localApiPort: null,
         protocolVersion: HOST_DAEMON_PROTOCOL_VERSION,
         activeThreads: [],
@@ -3130,7 +3130,7 @@ describe("host-daemon session schemas", () => {
         hostType: "persistent",
         hasMachineCredential: true,
         platform: "darwin",
-        dataDir: "/tmp/bb-data",
+        dataDir: "/tmp/kaioken-data",
         localApiPort: 38_887,
         protocolVersion: HOST_DAEMON_PROTOCOL_VERSION,
         activeThreads: [
@@ -3149,7 +3149,7 @@ describe("host-daemon session schemas", () => {
         hostType: "persistent",
         hasMachineCredential: true,
         platform: "darwin",
-        dataDir: "/tmp/bb-data",
+        dataDir: "/tmp/kaioken-data",
         localApiPort: 38_887,
         protocolVersion: HOST_DAEMON_PROTOCOL_VERSION - 1,
         activeThreads: [],
@@ -3166,7 +3166,7 @@ describe("host-daemon session schemas", () => {
         hostType: "persistent",
         hasMachineCredential: true,
         platform: "darwin",
-        dataDir: "/tmp/bb-data",
+        dataDir: "/tmp/kaioken-data",
         localApiPort: 38_887,
         protocolVersion: 0,
         activeThreads: [],
@@ -3727,7 +3727,7 @@ describe("host-daemon session schemas", () => {
         commandType: "host.read_file",
         ok: true,
         result: {
-          path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
+          path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
           content: "# Notes",
           contentEncoding: "utf8",
           mimeType: "text/markdown",
@@ -3742,7 +3742,7 @@ describe("host-daemon session schemas", () => {
       commandType: "host.read_file",
       ok: true,
       result: {
-        path: "/tmp/bb-data/thread-storage/thread-123/notes.md",
+        path: "/tmp/kaioken-data/thread-storage/thread-123/notes.md",
         content: "# Notes",
         contentEncoding: "utf8",
         mimeType: "text/markdown",

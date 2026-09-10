@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createConnection, migrate, type DbConnection } from "@bb/db";
+import { createConnection, migrate, type DbConnection } from "@kaioken/db";
 import { Hono } from "hono";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { registerPluginCatalogRoutes } from "../../../src/routes/plugin-catalog.js";
@@ -27,7 +27,7 @@ describe("plugin catalog routes", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    dataDir = await mkdtemp(join(tmpdir(), "bb-catalog-routes-"));
+    dataDir = await mkdtemp(join(tmpdir(), "kaioken-catalog-routes-"));
   });
 
   afterEach(async () => {
@@ -173,7 +173,7 @@ describe("plugin catalog routes", () => {
             icon: "Zap",
             author: { name: "Acme" },
             source: {
-              npm: { package: "bb-plugin-notes", range: "^1.0.0" },
+              npm: { package: "kaioken-plugin-notes", range: "^1.0.0" },
             },
           },
         ],
@@ -288,10 +288,10 @@ describe("plugin catalog routes", () => {
           kind: "marketplace",
           marketplace: "acme-plugins",
           official: false,
-          source: "npm:bb-plugin-notes@^1.0.0",
+          source: "npm:kaioken-plugin-notes@^1.0.0",
           resolvedSource: {
             kind: "npm",
-            package: "bb-plugin-notes",
+            package: "kaioken-plugin-notes",
             range: "^1.0.0",
             unresolvedReason: "no registry in this test",
           },
@@ -316,7 +316,7 @@ describe("plugin catalog routes", () => {
         marketplace: "acme-plugins",
         confirmedSource: {
           kind: "npm",
-          package: "bb-plugin-notes",
+          package: "kaioken-plugin-notes",
           range: "^1.0.0",
           unresolvedReason: "no registry in this test",
         },

@@ -1,6 +1,6 @@
 import { useCallback, useState, type ReactNode } from "react";
-import type { ThreadListEntry } from "@bb/domain";
-import type { ProjectResponse } from "@bb/server-contract";
+import type { ThreadListEntry } from "@kaioken/domain";
+import type { ProjectResponse } from "@kaioken/server-contract";
 import {
   BRANCH_NAMES,
   HOST_IDS,
@@ -17,7 +17,7 @@ import {
   ProjectListProjects,
   type ProjectListRowModel,
 } from "./ProjectListProjects";
-import { compareStandardThreads } from "@bb/client-core";
+import { compareStandardThreads } from "@kaioken/client-core";
 import { StoryCard, StoryRow } from "../../../.ladle/story-card";
 
 export default {
@@ -37,7 +37,7 @@ function SidebarStage({ children }: { children: ReactNode }) {
 }
 
 const makeProject = (overrides: Partial<ProjectResponse> = {}) =>
-  makeSharedProject({ id: PROJECT_IDS.bb, name: "bb", ...overrides });
+  makeSharedProject({ id: PROJECT_IDS.bb, name: "kaioken", ...overrides });
 
 const makeThread = (overrides: Partial<ThreadListEntry> = {}) =>
   makeThreadListEntry({ id: "thr_default", ...overrides });
@@ -203,7 +203,7 @@ const sharedWorktreeThreadA = makeThread({
   titleFallback: "Refactor timeline row types",
   environmentId: "env_shared_worktree",
   environmentHostId: HOST_IDS.local,
-  environmentBranchName: "bb/set-default-tab-for-panel-thr_vnj2qze4fg",
+  environmentBranchName: "kaioken/set-default-tab-for-panel-thr_vnj2qze4fg",
   environmentProviderId: "git-worktree",
   queuedWork: "none",
 });
@@ -213,7 +213,7 @@ const sharedWorktreeThreadB = makeThread({
   titleFallback: "Add story for env-grouped sidebar",
   environmentId: "env_shared_worktree",
   environmentHostId: HOST_IDS.local,
-  environmentBranchName: "bb/set-default-tab-for-panel-thr_vnj2qze4fg",
+  environmentBranchName: "kaioken/set-default-tab-for-panel-thr_vnj2qze4fg",
   environmentProviderId: "git-worktree",
   queuedWork: "none",
 });
@@ -275,7 +275,7 @@ const deepWorktreeA = makeThread({
   parentThreadId: deepIntermediateParent.id,
   environmentId: "env_deep_worktree",
   environmentHostId: HOST_IDS.local,
-  environmentBranchName: "bb/sidebar-parent-child-nesting",
+  environmentBranchName: "kaioken/sidebar-parent-child-nesting",
   environmentProviderId: "git-worktree",
   queuedWork: "none",
 });
@@ -286,7 +286,7 @@ const deepWorktreeB = makeThread({
   parentThreadId: deepIntermediateParent.id,
   environmentId: "env_deep_worktree",
   environmentHostId: HOST_IDS.local,
-  environmentBranchName: "bb/sidebar-parent-child-nesting",
+  environmentBranchName: "kaioken/sidebar-parent-child-nesting",
   environmentProviderId: "git-worktree",
   queuedWork: "none",
   hasPendingInteraction: true,
@@ -294,7 +294,7 @@ const deepWorktreeB = makeThread({
 
 const multipleProjects: StoryProjectRow[] = [
   {
-    project: makeProject({ id: "proj_bb", name: "bb" }),
+    project: makeProject({ id: "proj_bb", name: "kaioken" }),
     isActive: true,
     threadListState: {
       status: "ready",
@@ -679,7 +679,7 @@ const fullProjectAThreads: ThreadListEntry[] = [
     parentThreadId: fullParentA.id,
     environmentId: "env_full_a_codex_train",
     environmentHostId: "host_local",
-    environmentBranchName: "bb/ready-app-train-thr_s6fn8fuv9w",
+    environmentBranchName: "kaioken/ready-app-train-thr_s6fn8fuv9w",
     environmentProviderId: "git-worktree",
     queuedWork: "none",
   }),
@@ -691,7 +691,7 @@ const fullProjectAThreads: ThreadListEntry[] = [
     parentThreadId: fullParentA.id,
     environmentId: "env_full_a_codex_train",
     environmentHostId: "host_local",
-    environmentBranchName: "bb/ready-app-train-thr_s6fn8fuv9w",
+    environmentBranchName: "kaioken/ready-app-train-thr_s6fn8fuv9w",
     environmentProviderId: "git-worktree",
     queuedWork: "none",
   }),
@@ -720,7 +720,7 @@ const fullProjectAThreads: ThreadListEntry[] = [
     titleFallback: "Wire sidebar env-grouping data shape",
     environmentId: "env_full_a_sidebar_rail",
     environmentHostId: "host_local",
-    environmentBranchName: "bb/fix-diff-panel-issues-thr_u8cnp5fnea",
+    environmentBranchName: "kaioken/fix-diff-panel-issues-thr_u8cnp5fnea",
     environmentProviderId: "git-worktree",
     queuedWork: "none",
   }),
@@ -731,7 +731,7 @@ const fullProjectAThreads: ThreadListEntry[] = [
     titleFallback: "Add story for env-grouped sidebar",
     environmentId: "env_full_a_sidebar_rail",
     environmentHostId: "host_local",
-    environmentBranchName: "bb/fix-diff-panel-issues-thr_u8cnp5fnea",
+    environmentBranchName: "kaioken/fix-diff-panel-issues-thr_u8cnp5fnea",
     environmentProviderId: "git-worktree",
     queuedWork: "none",
   }),
@@ -782,7 +782,7 @@ const fullProjectCThreads: ThreadListEntry[] = [
 
 const fullProjects: StoryProjectRow[] = [
   {
-    project: makeProject({ id: "proj_full_a", name: "bb" }),
+    project: makeProject({ id: "proj_full_a", name: "kaioken" }),
     isActive: true,
     threadListState: { status: "ready", threads: fullProjectAThreads },
   },
@@ -803,7 +803,7 @@ export function MultipleProjects() {
     <StoryCard>
       <StoryRow
         label="projects list — three projects"
-        hint="the Projects section only (no Pinned/Threads/Apps): bb (active) with a parent that has 4 loose children + a 2-thread env sub-group, plus 2 standalones and a 2-thread project-level env group; pierre with 3 standalones; ingest-pipeline with a parent + 1 standalone"
+        hint="the Projects section only (no Pinned/Threads/Apps): kaioken (active) with a parent that has 4 loose children + a 2-thread env sub-group, plus 2 standalones and a 2-thread project-level env group; pierre with 3 standalones; ingest-pipeline with a parent + 1 standalone"
       >
         <SidebarStage>
           <ProjectListShell>

@@ -2,11 +2,11 @@ import {
   promptTextMentionSchema,
   type PromptInput,
   type PromptTextMention,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   uploadedPromptAttachmentSchema,
   type UploadedPromptAttachment,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { z } from "zod";
 import {
   isAutomationPromptCommandResource,

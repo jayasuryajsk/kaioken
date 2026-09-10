@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { threadTabsSchema } from "@bb/server-contract";
+import { threadTabsSchema } from "@kaioken/server-contract";
 import {
   EMPTY_FIXED_PANEL_TABS_STATE,
   areFixedPanelTabsEquivalent,

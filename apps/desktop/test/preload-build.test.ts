@@ -68,21 +68,21 @@ function writeNotFound(response: ServerResponse): void {
 function renderSmokePage(expectedDesktopVersion: string): string {
   return `<!doctype html>
 <meta charset="utf-8">
-<title>bb desktop smoke</title>
+<title>kaioken desktop smoke</title>
 <main>desktop smoke</main>
 <script>
 (async () => {
   let ok = false;
   let reason = "";
   try {
-    if (typeof window.bbDesktop !== "object" || window.bbDesktop === null) {
-      reason = "missing window.bbDesktop";
-    } else if (typeof window.bbDesktop.getInfo !== "function") {
-      reason = "missing window.bbDesktop.getInfo";
+    if (typeof window.kaiokenDesktop !== "object" || window.kaiokenDesktop === null) {
+      reason = "missing window.kaiokenDesktop";
+    } else if (typeof window.kaiokenDesktop.getInfo !== "function") {
+      reason = "missing window.kaiokenDesktop.getInfo";
     } else {
-      const info = await window.bbDesktop.getInfo();
+      const info = await window.kaiokenDesktop.getInfo();
       const expectedVersion = ${JSON.stringify(expectedDesktopVersion)};
-      ok = window.bbDesktop.version === expectedVersion && info.version === expectedVersion;
+      ok = window.kaiokenDesktop.version === expectedVersion && info.version === expectedVersion;
       reason = ok ? "" : "unexpected desktop version";
     }
   } catch (error) {
@@ -331,7 +331,7 @@ describe("desktop build", () => {
       "utf8",
     );
     const bridgeSource = await readFile(
-      resolve(desktopPackageRoot, "dist", "bb-app-bridge.mjs"),
+      resolve(desktopPackageRoot, "dist", "kaioken-app-bridge.mjs"),
       "utf8",
     );
 
@@ -339,16 +339,16 @@ describe("desktop build", () => {
     expect(mainSource).not.toMatch(/^import\s/mu);
 
     expect(preloadSource).toContain(desktopVersion);
-    expect(preloadSource).not.toContain("BB_DESKTOP_VERSION");
+    expect(preloadSource).not.toContain("KAIOKEN_DESKTOP_VERSION");
     expect(preloadSource).not.toContain("getDesktopVersion(process.env");
 
-    expect(bridgeSource).toContain('import "bb-app/dist/bb-app.js"');
+    expect(bridgeSource).toContain('import "kaioken-app/dist/kaioken-app.js"');
 
     for (const mapPath of [
       "main.js.map",
       "preload.cjs.map",
       "log-viewer-preload.cjs.map",
-      "bb-app-bridge.mjs.map",
+      "kaioken-app-bridge.mjs.map",
     ]) {
       await expect(
         access(resolve(desktopPackageRoot, "dist", mapPath)),
@@ -359,7 +359,7 @@ describe("desktop build", () => {
       return;
     }
 
-    const smokeRoot = await mkdtemp(join(tmpdir(), "bb-desktop-smoke-"));
+    const smokeRoot = await mkdtemp(join(tmpdir(), "kaioken-desktop-smoke-"));
     const smokeServer = await startDesktopSmokeServer({
       dataDir: join(smokeRoot, "data"),
       expectedDesktopVersion: desktopVersion,
@@ -368,14 +368,14 @@ describe("desktop build", () => {
     const stderr: string[] = [];
     const childEnv: NodeJS.ProcessEnv = {
       ...process.env,
-      BB_DATA_DIR: join(smokeRoot, "data"),
-      BB_DESKTOP_AUTO_UPDATE: "0",
-      BB_DESKTOP_OPEN_DEVTOOLS: "0",
-      BB_DESKTOP_VERSION_CHECK: "0",
-      BB_SERVER_PORT: String(smokeServer.port),
+      KAIOKEN_DATA_DIR: join(smokeRoot, "data"),
+      KAIOKEN_DESKTOP_AUTO_UPDATE: "0",
+      KAIOKEN_DESKTOP_OPEN_DEVTOOLS: "0",
+      KAIOKEN_DESKTOP_VERSION_CHECK: "0",
+      KAIOKEN_SERVER_PORT: String(smokeServer.port),
     };
-    delete childEnv.BB_DESKTOP_APP_URL;
-    delete childEnv.BB_DESKTOP_NODE_EXEC_PATH;
+    delete childEnv.KAIOKEN_DESKTOP_APP_URL;
+    delete childEnv.KAIOKEN_DESKTOP_NODE_EXEC_PATH;
     delete childEnv.ELECTRON_RUN_AS_NODE;
 
     const child = spawn(

@@ -4,7 +4,7 @@ import { useMemo, type ComponentProps, type ReactNode } from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
-import { CompactViewportOverrideProvider } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { CompactViewportOverrideProvider } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import {
   usePluginComposerHost,
   usePluginComposerHostDraft,
@@ -39,7 +39,7 @@ const secondaryPanelMockState = vi.hoisted(() => ({
     | undefined,
 }));
 
-vi.mock("@/lib/bb-desktop", () => ({
+vi.mock("@/lib/kaioken-desktop", () => ({
   DEFAULT_DESKTOP_WINDOW_STATE: { isFullScreen: false },
   getBbDesktopInfo: () => null,
   shouldReserveMacosTrafficLights: () => false,

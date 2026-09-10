@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import {
   getPluginConfigurationRoutePath,
   getPluginDetailRoutePath,
@@ -29,8 +29,8 @@ describe("route path helpers", () => {
       const suffix = "?from=bookmark#checkouts";
       expect(
         resolveRouteHref({
-          currentOrigin: "https://bb.example",
-          href: `https://bb.example${path}${suffix}`,
+          currentOrigin: "https://kaioken.example",
+          href: `https://kaioken.example${path}${suffix}`,
         }),
       ).toEqual({ path: `${path}${suffix}` });
     },

@@ -3,9 +3,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-bb/plugin-sdk/provider-bridge/testing";
-import type { BridgeJsonRpcTestHarness } from "@get-bb/plugin-sdk/provider-bridge/testing";
-import type { ThreadDelta } from "@get-bb/plugin-sdk/provider-bridge";
+import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
+import type { BridgeJsonRpcTestHarness } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
+import type { ThreadDelta } from "@get-kaioken/plugin-sdk/provider-bridge";
 
 import { handleLine } from "./bridge.js";
 
@@ -67,10 +67,10 @@ async function waitForDelegationDeltas(
 }
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "bb-codex-child-exit-ws-"));
-  vi.stubEnv("BB_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
+  workspaceDir = mkdtempSync(join(tmpdir(), "kaioken-codex-child-exit-ws-"));
+  vi.stubEnv("KAIOKEN_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
   vi.stubEnv(
-    "BB_CODEX_BRIDGE_APP_SERVER_ARGS",
+    "KAIOKEN_CODEX_BRIDGE_APP_SERVER_ARGS",
     JSON.stringify([fakeAppServerPath]),
   );
   harness = createBridgeJsonRpcTestHarness(handleLine);

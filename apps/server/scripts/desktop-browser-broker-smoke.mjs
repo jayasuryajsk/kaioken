@@ -7,10 +7,10 @@ import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
 import { WebSocket } from "ws";
 import { z } from "zod";
-import { createNodeBbSdk } from "@bb/sdk";
-import { getStoredThreadTabs } from "@bb/db";
-import { desktopBrowserCommandSchema } from "@bb/host-daemon-contract";
-import { threadTabsSchema } from "@bb/server-contract";
+import { createNodeBbSdk } from "@kaioken/sdk";
+import { getStoredThreadTabs } from "@kaioken/db";
+import { desktopBrowserCommandSchema } from "@kaioken/host-daemon-contract";
+import { threadTabsSchema } from "@kaioken/server-contract";
 import { startDesktopBrowserBroker } from "../../host-daemon/src/desktop-browser-broker.ts";
 import { onDaemonSocketMessage } from "../src/ws/daemon-protocol.ts";
 import { registerHostRpcResponder } from "../test/helpers/host-rpc.ts";
@@ -92,7 +92,7 @@ const pageAddress = browserServer.address();
 assert(pageAddress && typeof pageAddress !== "string");
 const pageUrl = `http://127.0.0.1:${pageAddress.port}/fixture`;
 const broker = await startDesktopBrowserBroker({
-  dataDir: process.env.BB_DATA_DIR ?? join(config.artifacts, "bb-data"),
+  dataDir: process.env.KAIOKEN_DATA_DIR ?? join(config.artifacts, "kaioken-data"),
   hostId: seeded.host.id,
   serverUrl: server.baseUrl,
   onChanged(event) {
@@ -128,7 +128,7 @@ await writeFile(
   electronConfig,
   JSON.stringify({
     artifacts: config.artifacts,
-    dataDir: process.env.BB_DATA_DIR,
+    dataDir: process.env.KAIOKEN_DATA_DIR,
     serverUrl: server.baseUrl,
   }),
   { mode: 0o600 },
@@ -137,8 +137,8 @@ const childEnv = {
   PATH: process.env.PATH,
   HOME: process.env.HOME,
   LANG: process.env.LANG,
-  BB_DATA_DIR: process.env.BB_DATA_DIR,
-  BB_SERVER_URL: server.baseUrl,
+  KAIOKEN_DATA_DIR: process.env.KAIOKEN_DATA_DIR,
+  KAIOKEN_SERVER_URL: server.baseUrl,
   DEV_BROWSER_HOME: join(config.artifacts, "dev-browser-state"),
   NODE_ENV: "test",
 };
@@ -264,7 +264,7 @@ try {
     .object({ wsEndpoint: z.string() })
     .parse(JSON.parse(await readFile(credentialFile, "utf8")));
   assert.equal(cliConnection.wsEndpoint, connection.wsEndpoint);
-  steps.push("actual bb CLI tabs and private connection file");
+  steps.push("actual kaioken CLI tabs and private connection file");
   const diagnosticScript = `
     const pages = await browser.listPages();
     const page = await browser.getPage(pages[0].id);

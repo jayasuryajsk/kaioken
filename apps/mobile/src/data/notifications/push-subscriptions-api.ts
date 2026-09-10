@@ -1,4 +1,4 @@
-import { BbHttpError, createBrowserBbSdk } from "@bb/sdk/browser";
+import { KaiokenHttpError, createBrowserBbSdk } from "@kaioken/sdk/browser";
 import { z } from "zod";
 import {
   pushSubscriptionsAddOutputSchema,
@@ -63,7 +63,7 @@ function isDisabledPluginMessage(message: string): boolean {
 }
 
 function mapRpcError(error: unknown): Error {
-  if (!(error instanceof BbHttpError)) {
+  if (!(error instanceof KaiokenHttpError)) {
     return error instanceof Error ? error : new Error(String(error));
   }
   const failure = rpcFailureSchema.safeParse(error.body);

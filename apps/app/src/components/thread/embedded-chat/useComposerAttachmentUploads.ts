@@ -1,8 +1,8 @@
 import { useCallback, useRef, useState } from "react";
 import { useUploadPromptAttachment } from "@/hooks/mutations/project-mutations";
 import { getMutationErrorMessage } from "@/lib/mutation-errors";
-import { BbHttpError } from "@/lib/sdk";
-import type { PromptDraftAttachment } from "@bb/client-core";
+import { KaiokenHttpError } from "@/lib/sdk";
+import type { PromptDraftAttachment } from "@kaioken/client-core";
 import type { InlineComposerDraftSession } from "./useActiveComposerDraft";
 
 interface UseComposerAttachmentUploadsArgs {
@@ -47,7 +47,7 @@ interface DraftAttachmentOperationState {
 }
 
 function uploadRejectionReason(error: unknown): string | null {
-  return error instanceof BbHttpError
+  return error instanceof KaiokenHttpError
     ? getMutationErrorMessage({ error, fallbackMessage: "Request failed" })
     : null;
 }

@@ -4,9 +4,9 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { ProjectResponse } from "@bb/server-contract";
+import type { ProjectResponse } from "@kaioken/server-contract";
 import type { ConnectionAwareQueryStatus } from "@/hooks/queries/connection-aware-query-state";
-import { EmptyState } from "@bb/shared-ui/empty-state";
+import { EmptyState } from "@kaioken/shared-ui/empty-state";
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar.js";
 import { ProjectRow } from "./ProjectRow";
 import type { ProjectRowProps, ProjectThreadListState } from "./ProjectRow";
-import type { ThreadComparator } from "@bb/client-core";
+import type { ThreadComparator } from "@kaioken/client-core";
 import { useSidebarSortable } from "./sortableMotion";
 import type { SidebarReorderDndContextProps } from "./useSidebarReorderDnd";
 import type { ConsumeDragClickSuppression } from "@/components/ui/use-drag-click-suppression";

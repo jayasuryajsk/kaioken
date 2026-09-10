@@ -4,14 +4,14 @@ import {
   getEnvironment,
   getProjectSourceByHost,
   getThread,
-} from "@bb/db";
+} from "@kaioken/db";
 import type {
   ProjectExecutionDefaults,
   Project,
   Thread,
   ThreadOriginKind,
   ThreadVisibility,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   AppDeps,
   LoggedPendingInteractionWorkSessionDeps,
@@ -35,7 +35,7 @@ import {
   hostIdForEnvironmentIntent,
   type PendingThreadStartContext,
 } from "./dispatch-attempt.js";
-import { setThreadPendingStartContext } from "@bb/db";
+import { setThreadPendingStartContext } from "@kaioken/db";
 import { emitPluginThreadDeleted } from "../plugins/plugin-thread-events.js";
 import {
   createThreadRecord,

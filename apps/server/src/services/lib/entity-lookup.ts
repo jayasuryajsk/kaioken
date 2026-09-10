@@ -7,10 +7,10 @@ import {
   getThread,
   listPublicHosts,
   type HostDaemonSessionRow,
-} from "@bb/db";
-import type { EnvironmentRow } from "@bb/db";
-import type { Host } from "@bb/domain";
-import type { DbConnection } from "@bb/db";
+} from "@kaioken/db";
+import type { EnvironmentRow } from "@kaioken/db";
+import type { Host } from "@kaioken/domain";
+import type { DbConnection } from "@kaioken/db";
 import type { NotificationHub } from "../../ws/hub.js";
 import { ApiError } from "../../errors.js";
 import {

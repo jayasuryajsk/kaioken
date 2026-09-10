@@ -9,7 +9,7 @@ export const MARKETPLACE_V2_FIXTURE: MarketplaceV2Manifest = {
   schemaVersion: 2,
   name: "bb-community",
   displayName: "BB Community",
-  description: "Plugins from the bb community.",
+  description: "Plugins from the kaioken community.",
   categories: [
     {
       id: "thread-content",
@@ -42,7 +42,7 @@ export const MARKETPLACE_V2_FIXTURE: MarketplaceV2Manifest = {
       publishedAt: "2026-07-14T09:30:00Z",
       updatedAt: "2026-08-24T16:45:00+02:00",
       tags: ["prompts", "templates"],
-      author: { name: "BB Labs", github: "get-bb" },
+      author: { name: "Kaioken Labs", github: "get-kaioken" },
       source: {
         npm: {
           package: "@get-bb/plugin-prompt-library",
@@ -64,7 +64,7 @@ export const MARKETPLACE_V2_FIXTURE: MarketplaceV2Manifest = {
       author: { name: "Acme", github: "acme-tools" },
       source: {
         git: {
-          url: "https://github.com/acme/bb-plugins.git",
+          url: "https://github.com/acme/kaioken-plugins.git",
           subdir: "plugins/review-companion",
           range: ">=1.0.0 <2.0.0",
           tagPrefix: "review-companion/",
@@ -82,7 +82,7 @@ export const MARKETPLACE_V2_FIXTURE: MarketplaceV2Manifest = {
       author: { name: "Acme", github: "acme-tools" },
       source: {
         git: {
-          url: "https://github.com/acme/bb-plugins.git",
+          url: "https://github.com/acme/kaioken-plugins.git",
           range: "^1.0.0",
         },
       },

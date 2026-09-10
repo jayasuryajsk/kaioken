@@ -1,7 +1,7 @@
 import type {
   HostDaemonCommand,
   HostDaemonSettledCommandType,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   emptyCommandResultSideEffects,
   type CommandResultReportForType,

@@ -7,20 +7,20 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import type { Host } from "@bb/domain";
-import { makeHost as makeHostFixture } from "@bb/test-helpers/domain-fixtures";
-import type { SystemConfigResponse } from "@bb/server-contract";
+import type { Host } from "@kaioken/domain";
+import { makeHost as makeHostFixture } from "@kaioken/test-helpers/domain-fixtures";
+import type { SystemConfigResponse } from "@kaioken/server-contract";
 import type {
   ProviderCliKey,
   ProviderCliStatus,
   ProviderCliStatusResponse,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sdk } from "@/lib/sdk";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
 import { makeSystemConfig } from "@/test/fixtures/system-config";
-import { makeProviderInfo } from "@bb/test-helpers/domain-fixtures";
+import { makeProviderInfo } from "@kaioken/test-helpers/domain-fixtures";
 import { MachineSettingsView } from "./MachineSettingsView";
 
 vi.mock("@/lib/sdk", () => ({
@@ -355,7 +355,7 @@ describe("MachineSettingsView", () => {
     expect(screen.queryByText("This machine")).toBeNull();
     expect(screen.queryByText("Primary")).toBeNull();
     expect(
-      screen.getByText("bb's primary machine can't be removed."),
+      screen.getByText("kaioken's primary machine can't be removed."),
     ).toBeDefined();
   });
 

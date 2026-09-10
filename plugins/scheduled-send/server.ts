@@ -1,4 +1,4 @@
-// bb-plugin-scheduled-send backend — deliberately empty.
+// kaioken-plugin-scheduled-send backend — deliberately empty.
 //
 // Scheduling used to live here: the frontend read the draft and this module
 // re-sent it with `sendAt`. It does not any more. `useComposer()`'s
@@ -12,6 +12,6 @@
 // entry (`pluginBbManifestSchema` in packages/domain/src/plugin-manifest.ts;
 // `app` and `host` are optional, `server` is not). Delete it when app-only
 // plugins are supported.
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 
-export default function scheduledSendPlugin(_bb: BbPluginApi): void {}
+export default function scheduledSendPlugin(_bb: KaiokenPluginApi): void {}

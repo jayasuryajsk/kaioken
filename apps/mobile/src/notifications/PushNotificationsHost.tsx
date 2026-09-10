@@ -1,5 +1,5 @@
 import * as Notifications from "expo-notifications";
-import { getThreadRoutePath } from "@bb/client-core";
+import { getThreadRoutePath } from "@kaioken/client-core";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, type AppStateStatus } from "react-native";
@@ -115,7 +115,7 @@ export function PushNotificationsHost() {
         const content = notification.request.content;
         const target = parsePushNotificationData(content.data);
         if (!target) return;
-        toast.message(content.title ?? "bb", {
+        toast.message(content.title ?? "kaioken", {
           description: content.body ?? undefined,
           duration: 8_000,
           action: { label: "Open", onClick: () => void openTarget(target) },
@@ -229,7 +229,7 @@ function FirstRunPrompt({
     <ActionSheet
       controller={sheet}
       title="Get notified when a thread needs you?"
-      message="bb can send a push notification when a thread finishes, hits an error, or is waiting for your input. You can change this per server in Settings."
+      message="kaioken can send a push notification when a thread finishes, hits an error, or is waiting for your input. You can change this per server in Settings."
       actions={[
         {
           key: "enable",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { SystemMessageKind, SystemMessageSubject } from "@bb/domain";
-import type { TimelineTitleLink } from "@bb/thread-view";
+import type { SystemMessageKind, SystemMessageSubject } from "@kaioken/domain";
+import type { TimelineTitleLink } from "@kaioken/thread-view";
 import { generatedConversationTitle } from "./GeneratedConversationMessage.js";
 
 const threadSubject: SystemMessageSubject = {
@@ -21,7 +21,7 @@ function systemTitle({
   return generatedConversationTitle({
     originKind: null,
     sourceKind: "system",
-    sourceName: "BB",
+    sourceName: "Kaioken",
     sourceThreadId: null,
     sourceIsPluginSideChat: false,
     systemMessageKind,

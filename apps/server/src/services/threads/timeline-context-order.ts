@@ -1,10 +1,10 @@
-import type { ThreadEventWithMeta } from "@bb/thread-view";
-import type { TimelineRow } from "@bb/server-contract";
+import type { ThreadEventWithMeta } from "@kaioken/thread-view";
+import type { TimelineRow } from "@kaioken/server-contract";
 import {
   getFirstParentedTimelineBoundarySequence,
   listTimelineOrderingContext,
   type DbConnection,
-} from "@bb/db";
+} from "@kaioken/db";
 
 interface TimelineGroupingContext {
   orderingBoundarySequence: number | null;

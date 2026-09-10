@@ -24,7 +24,7 @@ import {
   type DbConnection,
   type InstalledPluginRow,
   type PluginStateSnapshotRow,
-} from "@bb/db";
+} from "@kaioken/db";
 
 const kvRowSchema = z.object({
   pluginId: z.string(),

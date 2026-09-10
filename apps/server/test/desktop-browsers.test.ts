@@ -1,14 +1,14 @@
-import { getStoredThreadTabs, markThreadDeleted } from "@bb/db";
+import { getStoredThreadTabs, markThreadDeleted } from "@kaioken/db";
 import {
   desktopBrowserLeaseSchema,
   desktopBrowserResultSchemas,
   type DesktopBrowserTab,
   type HostDaemonOnlineRpcRequestMessage,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   desktopBrowserScopeSchema,
   threadTabsSchema,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { z } from "zod";
 import { describe, expect, it, vi } from "vitest";
 import { revokeThreadDesktopBrowserControl } from "../src/services/desktop-browsers.js";

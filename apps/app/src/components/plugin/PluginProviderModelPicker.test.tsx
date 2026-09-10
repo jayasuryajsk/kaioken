@@ -8,10 +8,10 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import type { AvailableModel, ProviderInfo, ReasoningLevel } from "@bb/domain";
-import { makeProviderInfo } from "@bb/test-helpers/domain-fixtures";
-import type { SystemExecutionOptionsResponse } from "@bb/server-contract";
-import type { ExperimentalProviderModelPickerValue } from "@get-bb/plugin-sdk";
+import type { AvailableModel, ProviderInfo, ReasoningLevel } from "@kaioken/domain";
+import { makeProviderInfo } from "@kaioken/test-helpers/domain-fixtures";
+import type { SystemExecutionOptionsResponse } from "@kaioken/server-contract";
+import type { ExperimentalProviderModelPickerValue } from "@get-kaioken/plugin-sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { systemExecutionOptionsQueryKey } from "@/hooks/queries/query-keys";
 import {

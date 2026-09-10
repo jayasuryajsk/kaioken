@@ -1,4 +1,4 @@
-import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
+import { defineRpcContract, type KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 
 import { createStore, registerTasksApi } from "./api";
@@ -22,7 +22,7 @@ function statusPayload() {
   return { name: TASKS_PLUGIN_NAME, version: TASKS_PLUGIN_VERSION };
 }
 
-export default async function plugin(bb: BbPluginApi) {
+export default async function plugin(bb: KaiokenPluginApi) {
   bb.log.info(`${TASKS_PLUGIN_NAME} ${TASKS_PLUGIN_VERSION} loaded`);
 
   const store = createStore(bb);

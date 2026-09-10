@@ -10,9 +10,9 @@ import {
   resolve,
   win32,
 } from "node:path";
-import { resolveContainedPath } from "@bb/process-utils";
-import type { PromptInput } from "@bb/domain";
-import type { UploadedPromptAttachment } from "@bb/server-contract";
+import { resolveContainedPath } from "@kaioken/process-utils";
+import type { PromptInput } from "@kaioken/domain";
+import type { UploadedPromptAttachment } from "@kaioken/server-contract";
 import mimeTypes from "mime-types";
 import { ApiError } from "../../errors.js";
 

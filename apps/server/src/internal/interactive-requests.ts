@@ -3,16 +3,16 @@ import {
   hostDaemonInteractiveRequestSchema,
   typedRoutes,
   type HostDaemonInternalSchema,
-} from "@bb/host-daemon-contract";
-import { formatPendingInteractionSubjectDetailLines } from "@bb/core-ui";
-import type { PendingInteraction } from "@bb/domain";
+} from "@kaioken/host-daemon-contract";
+import { formatPendingInteractionSubjectDetailLines } from "@kaioken/core-ui";
+import type { PendingInteraction } from "@kaioken/domain";
 import {
   isApprovalPendingInteractionPayload,
   isPluginExtensionInteractionRequestPayload,
   isUserQuestionPendingInteractionPayload,
   parseExtensionKind,
-} from "@bb/domain";
-import { getThread, hasStoredTurnStarted } from "@bb/db";
+} from "@kaioken/domain";
+import { getThread, hasStoredTurnStarted } from "@kaioken/db";
 import { isParentNotifiableChildThread } from "../services/threads/thread-parent.js";
 import type { Hono } from "hono";
 import type { AppDeps } from "../types.js";

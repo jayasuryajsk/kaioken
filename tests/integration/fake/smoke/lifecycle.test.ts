@@ -92,7 +92,7 @@ describe.sequential("fake provider smoke lifecycle integration", () => {
   it("starts parent and child threads with the shared runtime config", async () => {
     const record = await recordScriptedEchoRequests();
     try {
-      await withHarness({ builtinPlugins: ["bb-guide"] }, async (harness) => {
+      await withHarness({ builtinPlugins: ["kaioken-guide"] }, async (harness) => {
         const project = await createProjectFixture(
           harness,
           "Parent Thread Smoke",
@@ -156,11 +156,11 @@ describe.sequential("fake provider smoke lifecycle integration", () => {
         expect(childRuntimeCommand.dynamicToolNames).toEqual([
           "update_environment_directory",
         ]);
-        expect(parentRuntimeCommand.instructions).toContain("bb status");
-        expect(parentRuntimeCommand.instructions).toContain("bb guide");
+        expect(parentRuntimeCommand.instructions).toContain("kaioken status");
+        expect(parentRuntimeCommand.instructions).toContain("kaioken guide");
         expect(parentRuntimeCommand.instructions).toContain("Markdown links");
-        expect(childRuntimeCommand.instructions).toContain("bb status");
-        expect(childRuntimeCommand.instructions).toContain("bb guide");
+        expect(childRuntimeCommand.instructions).toContain("kaioken status");
+        expect(childRuntimeCommand.instructions).toContain("kaioken guide");
         expect(childRuntimeCommand.instructions).toContain("Markdown links");
         expect(parentRuntimeCommand.instructions).not.toContain("manager");
         expect(childRuntimeCommand.instructions).not.toContain("manager");

@@ -396,7 +396,7 @@ true;
 export const CLIPBOARD_PROBE = String.raw`
 (function () {
   var post = window.__bbSpike.post;
-  var sample = "bb-clipboard-probe-" + Math.round(performance.now());
+  var sample = "kaioken-clipboard-probe-" + Math.round(performance.now());
   var execCommandResult = null;
   try {
     var textarea = document.createElement("textarea");
@@ -509,7 +509,7 @@ export const VIEWPORT_WATCH_PROBE = String.raw`
   var sample = function (reason) {
     var composer = document.querySelector("textarea, [contenteditable='true']");
     var composerRect = composer ? composer.getBoundingClientRect() : null;
-    var shell = document.querySelector(".bb-app-shell > div, #root > div");
+    var shell = document.querySelector(".kaioken-app-shell > div, #root > div");
     post({
       kind: "viewport",
       reason: reason,

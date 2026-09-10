@@ -3,7 +3,7 @@ import {
   assertAiServiceRegistrable,
   providerWithoutBridgeMessage,
   type NormalizedPluginProviderDeclaration,
-} from "@get-bb/plugin-sdk/internal/host-policy";
+} from "@get-kaioken/plugin-sdk/internal/host-policy";
 import { createHash, randomUUID } from "node:crypto";
 import {
   createReadStream,
@@ -19,7 +19,7 @@ import { createRequire, registerHooks } from "node:module";
 import { performance } from "node:perf_hooks";
 import { createJiti } from "jiti";
 import semver from "semver";
-import { HOST_ARTIFACT_MAX_BYTES } from "@bb/host-daemon-contract/protocol";
+import { HOST_ARTIFACT_MAX_BYTES } from "@kaioken/host-daemon-contract/protocol";
 import {
   isPluginOwnedIconPath,
   parseNamespacedGlyph,
@@ -27,23 +27,23 @@ import {
   PLUGIN_SDK_VERSION,
   type Thread,
   type ThreadQueuedMessage,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   buildPluginApp,
   buildPluginHost,
   isIgnoredPluginDevPath,
-} from "@bb/plugin-build";
+} from "@kaioken/plugin-build";
 import { PluginHostArtifactRegistry } from "./plugin-host-artifact-registry.js";
 import { getPluginBuildToolchain } from "./build-toolchain.js";
-import { createNodeBbSdk, type BbSdk } from "@bb/sdk";
-import { experimental_aiServicesHostContract } from "@get-bb/plugin-sdk/ai-services";
+import { createNodeBbSdk, type KaiokenSdk } from "@kaioken/sdk";
+import { experimental_aiServicesHostContract } from "@get-kaioken/plugin-sdk/ai-services";
 import {
   getInstalledPlugin,
   listInstalledPlugins,
   prunePluginSchedules,
   upsertPluginSchedule,
   type InstalledPluginRow,
-} from "@bb/db";
+} from "@kaioken/db";
 import { toThreadResponseFromThread } from "../threads/thread-runtime-display.js";
 import {
   brandingAssetHash,
@@ -64,7 +64,7 @@ import { readPluginSettingsValuesSync } from "./plugin-settings.js";
 import type {
   PluginHookName,
   PluginSettingDescriptors,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import type { PluginHookRegistration } from "./plugin-hook-registry.js";
 import type { PluginEnvironmentProviderRecord } from "./plugin-environment-provider-registry.js";
 import {
@@ -74,7 +74,7 @@ import {
 import {
   createPluginApi,
   isNeedsConfigurationError,
-  type BbPluginApi,
+  type KaiokenPluginApi,
   type PluginThreadEventName,
   type PluginThreadEventPayloads,
 } from "./plugin-api.js";
@@ -93,9 +93,9 @@ const pluginSdkRuntimePath = join(
   dirname(fileURLToPath(import.meta.url)),
   "plugin-sdk-runtime.js",
 );
-const PLUGIN_SDK_SPECIFIER = "@get-bb/plugin-sdk";
+const PLUGIN_SDK_SPECIFIER = "@get-kaioken/plugin-sdk";
 
-const LEGACY_PLUGIN_SDK_SPECIFIER = "@bb/plugin-sdk";
+const LEGACY_PLUGIN_SDK_SPECIFIER = "@get-bb/plugin-sdk";
 
 async function hashFile(
   path: string,
@@ -128,7 +128,7 @@ interface MutableRoot {
 }
 
 const mutableRoots = new Map<string, MutableRoot>();
-const MUTABLE_ROOT_MARKER = /[?&]bbPluginLoad=(\d+)\.(\d+)/;
+const MUTABLE_ROOT_MARKER = /[?&]kaiokenPluginLoad=(\d+)\.(\d+)/;
 let nextMutableRootId = 1;
 let nextMutableRootEpoch = 1;
 let mutableRootHooks: { deregister: () => void } | null = null;
@@ -157,7 +157,7 @@ function registerMutableRootHooks(): void {
       const separator = resolved.url.includes("?") ? "&" : "?";
       return {
         ...resolved,
-        url: `${resolved.url}${separator}bbPluginLoad=${match.id}.${epoch}`,
+        url: `${resolved.url}${separator}kaiokenPluginLoad=${match.id}.${epoch}`,
         shortCircuit: true,
       };
     },
@@ -354,7 +354,7 @@ export function createPluginRuntime(context: PluginRuntimeContext) {
   const needsConfiguration = new Map<string, string>();
   const agentToolProblems = new Map<string, string>();
   const handlerStats = new Map<string, PluginHandlerStats>();
-  let boundSdk: BbSdk | undefined;
+  let boundSdk: KaiokenSdk | undefined;
   let boundLoopbackBaseUrl: string | undefined;
 
   function publishStatus(
@@ -796,7 +796,7 @@ export function createPluginRuntime(context: PluginRuntimeContext) {
   }
 
   function checkEngineRange(manifest: PluginManifest): string | undefined {
-    if (!manifest.bbEngineRange) return undefined;
+    if (!manifest.kaiokenEngineRange) return undefined;
     const version = semver.coerce(deps.appVersion);
     if (!version) {
       logger.warn(
@@ -807,8 +807,8 @@ export function createPluginRuntime(context: PluginRuntimeContext) {
     if (version.major === 0 && version.minor === 0 && version.patch === 0) {
       return undefined;
     }
-    if (!semver.satisfies(version, manifest.bbEngineRange)) {
-      return `requires bb ${manifest.bbEngineRange}, this is ${version.version}`;
+    if (!semver.satisfies(version, manifest.kaiokenEngineRange)) {
+      return `requires kaioken ${manifest.kaiokenEngineRange}, this is ${version.version}`;
     }
     return undefined;
   }
@@ -822,8 +822,8 @@ export function createPluginRuntime(context: PluginRuntimeContext) {
   }
 
   async function runFactoryTimeBoxed(
-    factory: (api: BbPluginApi) => unknown,
-    api: BbPluginApi,
+    factory: (api: KaiokenPluginApi) => unknown,
+    api: KaiokenPluginApi,
   ): Promise<void> {
     let timer: NodeJS.Timeout | undefined;
     try {
@@ -1532,7 +1532,7 @@ export function createPluginRuntime(context: PluginRuntimeContext) {
         );
       }
       await runFactoryTimeBoxed(
-        factory as (api: BbPluginApi) => unknown,
+        factory as (api: KaiokenPluginApi) => unknown,
         handle.api,
       );
     } catch (error) {
@@ -1545,7 +1545,7 @@ export function createPluginRuntime(context: PluginRuntimeContext) {
       handle.invalidate();
       let message = error instanceof Error ? error.message : String(error);
       if (/ERR_DLOPEN_FAILED|\.node/.test(message)) {
-        message += " (native dependencies are not supported in BB plugins)";
+        message += " (native dependencies are not supported in Kaioken plugins)";
       }
       if (previous !== undefined) {
         setStatus(row.id, "running", `reload failed: ${message}`);

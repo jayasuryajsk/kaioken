@@ -1,4 +1,4 @@
-import { capitalize } from "@bb/thread-view";
+import { capitalize } from "@kaioken/thread-view";
 import {
   useId,
   useState,
@@ -6,7 +6,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import { Button } from "@bb/shared-ui/button";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +14,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
-import { Input } from "@bb/shared-ui/input";
+} from "@kaioken/shared-ui/dialog";
+import { Input } from "@kaioken/shared-ui/input";
 import { useNameValidation } from "./useNameValidation.js";
 import { useRenameDialogAutoFocus } from "./useRenameDialogAutoFocus.js";
 

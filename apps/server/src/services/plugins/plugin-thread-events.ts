@@ -1,6 +1,6 @@
-import type { ApplyThreadLifecycleEventOutcome } from "@bb/db";
-import type { PendingInteraction, Thread } from "@bb/domain";
-import type { ThreadQueuedMessage } from "@bb/domain";
+import type { ApplyThreadLifecycleEventOutcome } from "@kaioken/db";
+import type { PendingInteraction, Thread } from "@kaioken/domain";
+import type { ThreadQueuedMessage } from "@kaioken/domain";
 import type { PluginThreadEventEmitter } from "./plugin-service.js";
 
 let emitter: PluginThreadEventEmitter | undefined;

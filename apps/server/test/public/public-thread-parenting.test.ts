@@ -1,12 +1,12 @@
-import { archiveThread, getThread } from "@bb/db";
-import { threadSchema } from "@bb/domain";
+import { archiveThread, getThread } from "@kaioken/db";
+import { threadSchema } from "@kaioken/domain";
 import {
   apiErrorSchema,
   sidebarBootstrapResponseSchema,
   threadArchiveAllResponseSchema,
   threadChildSummaryResponseSchema,
   threadListResponseSchema,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { describe, expect, it } from "vitest";
 import { waitForQueuedCommand } from "../helpers/commands.js";
 import { readJson } from "../helpers/json.js";

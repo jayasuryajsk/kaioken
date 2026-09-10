@@ -10,7 +10,7 @@ import {
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import Database from "better-sqlite3";
-import type { PluginCliRegistration } from "@get-bb/plugin-sdk";
+import type { PluginCliRegistration } from "@get-kaioken/plugin-sdk";
 import { describe, expect, it } from "vitest";
 import {
   claimAutomationScheduledRun,
@@ -36,7 +36,7 @@ import {
   validateOnceDefinition,
 } from "./schedule-helpers.js";
 import {
-  bbBinaryCandidates,
+  kaiokenBinaryCandidates,
   executeStoredScript,
   isWakeAgentSuppressed,
   mapScriptResultToRun,
@@ -1046,7 +1046,7 @@ describe("automation service", () => {
 
   it("removes a stored script directory after switching to agent execution", async () => {
     const db = createTestDb();
-    const pluginDataDir = await mkdtemp(join(tmpdir(), "bb-auto-service-"));
+    const pluginDataDir = await mkdtemp(join(tmpdir(), "kaioken-auto-service-"));
     const automation = createAutomation(db, {
       id: "auto_script_to_agent",
       projectId: "proj_test",
@@ -1096,7 +1096,7 @@ describe("automation service", () => {
 
   it("removes only a superseded stored script file after a filename change", async () => {
     const db = createTestDb();
-    const pluginDataDir = await mkdtemp(join(tmpdir(), "bb-auto-service-"));
+    const pluginDataDir = await mkdtemp(join(tmpdir(), "kaioken-auto-service-"));
     const automation = createAutomation(db, {
       id: "auto_script_rename",
       projectId: "proj_test",
@@ -1150,7 +1150,7 @@ describe("automation service", () => {
 
   it("removes a newly staged filename when the database update fails", async () => {
     const db = createTestDb();
-    const pluginDataDir = await mkdtemp(join(tmpdir(), "bb-auto-service-"));
+    const pluginDataDir = await mkdtemp(join(tmpdir(), "kaioken-auto-service-"));
     const automation = createAutomation(db, {
       id: "auto_script_rollback",
       projectId: "proj_test",
@@ -1206,7 +1206,7 @@ describe("automation service", () => {
 
   it("does not overwrite the active filename when the database update fails", async () => {
     const db = createTestDb();
-    const pluginDataDir = await mkdtemp(join(tmpdir(), "bb-auto-service-"));
+    const pluginDataDir = await mkdtemp(join(tmpdir(), "kaioken-auto-service-"));
     const automation = createAutomation(db, {
       id: "auto_script_same_name_rollback",
       projectId: "proj_test",
@@ -1266,8 +1266,8 @@ describe("automation CLI --script-file", () => {
 
   async function setup() {
     const db = createTestDb();
-    const pluginDataDir = await mkdtemp(join(tmpdir(), "bb-1649-data-"));
-    const srcDir = await mkdtemp(join(tmpdir(), "bb-1649-src-"));
+    const pluginDataDir = await mkdtemp(join(tmpdir(), "kaioken-1649-data-"));
+    const srcDir = await mkdtemp(join(tmpdir(), "kaioken-1649-src-"));
     const reads: FileReadCall[] = [];
     const serviceBb = createAutomationServiceBb();
     const service = createAutomationService({
@@ -1367,7 +1367,7 @@ describe("automation CLI --script-file", () => {
       expect(created.stdout).toContain(`Copied ${sourcePath}`);
       expect(created.stdout).toContain(`to ${storedPath}`);
       expect(created.stdout).toContain(
-        `bb automation update ${automationId} --project proj_test --script-file ${sourcePath} --interpreter bash --timeout 120000`,
+        `kaioken automation update ${automationId} --project proj_test --script-file ${sourcePath} --interpreter bash --timeout 120000`,
       );
 
       const shown = await t.cli.run(
@@ -1562,7 +1562,7 @@ describe("automation CLI --script-file", () => {
       expect(created.exitCode).toBe(0);
       const automationId = idFrom(created.stdout);
       expect(created.stdout).toContain(
-        `bb automation update ${automationId} --project proj_test --script-file '${sourcePath}' --interpreter python3 --timeout 5000 --env-json '{"CHANNEL":"qa","MSG":"it'\\''s"}'`,
+        `kaioken automation update ${automationId} --project proj_test --script-file '${sourcePath}' --interpreter python3 --timeout 5000 --env-json '{"CHANNEL":"qa","MSG":"it'\\''s"}'`,
       );
     } finally {
       await t.cleanup();
@@ -1570,53 +1570,53 @@ describe("automation CLI --script-file", () => {
   });
 });
 
-describe("bb CLI injection for script runs", () => {
+describe("kaioken CLI injection for script runs", () => {
   it("prefers the env pointers over PATH and macOS install locations", () => {
     expect(
-      bbBinaryCandidates({
-        BB_CLI: "/daemon/bundle/bb",
-        BB_CLI_DIR: "/other/dir",
+      kaiokenBinaryCandidates({
+        KAIOKEN_CLI: "/daemon/bundle/kaioken",
+        KAIOKEN_CLI_DIR: "/other/dir",
       })[0],
-    ).toBe("/daemon/bundle/bb");
-    expect(bbBinaryCandidates({ BB_CLI_DIR: "/daemon/bundle" })[0]).toBe(
-      "/daemon/bundle/bb",
+    ).toBe("/daemon/bundle/kaioken");
+    expect(kaiokenBinaryCandidates({ KAIOKEN_CLI_DIR: "/daemon/bundle" })[0]).toBe(
+      "/daemon/bundle/kaioken",
     );
   });
 
   it("expands PATH itself so every candidate is absolute", () => {
-    expect(bbBinaryCandidates({ PATH: "/usr/bin:/opt/tools" })).toEqual([
-      "/usr/bin/bb",
-      "/opt/tools/bb",
-      "/opt/homebrew/bin/bb",
-      "/usr/local/bin/bb",
+    expect(kaiokenBinaryCandidates({ PATH: "/usr/bin:/opt/tools" })).toEqual([
+      "/usr/bin/kaioken",
+      "/opt/tools/kaioken",
+      "/opt/homebrew/bin/kaioken",
+      "/usr/local/bin/kaioken",
     ]);
     expect(
-      bbBinaryCandidates({ PATH: "/usr/bin" }).every((c) => c.startsWith("/")),
+      kaiokenBinaryCandidates({ PATH: "/usr/bin" }).every((c) => c.startsWith("/")),
     ).toBe(true);
   });
 
   it("drops entries that would resolve against the wrong directory", () => {
-    expect(bbBinaryCandidates({ PATH: "/usr/bin::/bin" })).toEqual([
-      "/usr/bin/bb",
-      "/bin/bb",
-      "/opt/homebrew/bin/bb",
-      "/usr/local/bin/bb",
+    expect(kaiokenBinaryCandidates({ PATH: "/usr/bin::/bin" })).toEqual([
+      "/usr/bin/kaioken",
+      "/bin/kaioken",
+      "/opt/homebrew/bin/kaioken",
+      "/usr/local/bin/kaioken",
     ]);
     expect(
-      bbBinaryCandidates({ BB_CLI: "  ", BB_CLI_DIR: "", PATH: "" }),
-    ).toEqual(["/opt/homebrew/bin/bb", "/usr/local/bin/bb"]);
+      kaiokenBinaryCandidates({ KAIOKEN_CLI: "  ", KAIOKEN_CLI_DIR: "", PATH: "" }),
+    ).toEqual(["/opt/homebrew/bin/kaioken", "/usr/local/bin/kaioken"]);
     expect(
-      bbBinaryCandidates({ BB_CLI: "./bb", BB_CLI_DIR: "rel/dir", PATH: "" }),
-    ).toEqual(["/opt/homebrew/bin/bb", "/usr/local/bin/bb"]);
+      kaiokenBinaryCandidates({ KAIOKEN_CLI: "./kaioken", KAIOKEN_CLI_DIR: "rel/dir", PATH: "" }),
+    ).toEqual(["/opt/homebrew/bin/kaioken", "/usr/local/bin/kaioken"]);
   });
 
-  it("prepends bb's directory to PATH only when it is absolute", () => {
-    expect(scriptPathEnv("/daemon/bundle/bb", "/usr/bin:/bin")).toBe(
+  it("prepends kaioken's directory to PATH only when it is absolute", () => {
+    expect(scriptPathEnv("/daemon/bundle/kaioken", "/usr/bin:/bin")).toBe(
       "/daemon/bundle:/usr/bin:/bin",
     );
-    expect(scriptPathEnv("bb", "/usr/bin:/bin")).toBe("/usr/bin:/bin");
+    expect(scriptPathEnv("kaioken", "/usr/bin:/bin")).toBe("/usr/bin:/bin");
     expect(scriptPathEnv(null, "/usr/bin:/bin")).toBe("/usr/bin:/bin");
-    expect(scriptPathEnv("/daemon/bundle/bb", undefined)).toBe(
+    expect(scriptPathEnv("/daemon/bundle/kaioken", undefined)).toBe(
       "/daemon/bundle",
     );
   });
@@ -1646,7 +1646,7 @@ async function isProcessRunning(pid: number): Promise<boolean> {
 describe("script process containment", () => {
   it("terminates descendant processes when a script times out", async () => {
     const pluginDataDir = await mkdtemp(
-      join(tmpdir(), "bb-auto-process-group-"),
+      join(tmpdir(), "kaioken-auto-process-group-"),
     );
     const scriptDir = automationScriptDir(pluginDataDir, "auto_timeout");
     await mkdir(scriptDir, { recursive: true });
@@ -1711,7 +1711,7 @@ describe("script wake gate", () => {
 describe("legacy import", () => {
   it("ingests legacy rows, moves environment into agent execution, and imports scripts once", async () => {
     const db = createTestDb();
-    const pluginDataDir = await mkdtemp(join(tmpdir(), "bb-auto-plugin-"));
+    const pluginDataDir = await mkdtemp(join(tmpdir(), "kaioken-auto-plugin-"));
     await mkdir(join(pluginDataDir, "import"), { recursive: true });
     await writeFile(
       join(pluginDataDir, "import", "legacy-automations.json"),
@@ -1793,7 +1793,7 @@ describe("legacy import", () => {
 
     for (const testCase of cases) {
       const db = createTestDb();
-      const pluginDataDir = await mkdtemp(join(tmpdir(), "bb-auto-plugin-"));
+      const pluginDataDir = await mkdtemp(join(tmpdir(), "kaioken-auto-plugin-"));
       try {
         await mkdir(join(pluginDataDir, "import"), { recursive: true });
         await writeFile(

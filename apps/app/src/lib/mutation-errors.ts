@@ -1,5 +1,5 @@
-import { extractErrorMessage, toRecord } from "@bb/core-ui";
-import { BbHttpError } from "@bb/sdk/browser";
+import { extractErrorMessage, toRecord } from "@kaioken/core-ui";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 import { appToast } from "@/components/ui/app-toast";
 import { HttpError } from "./api";
 import {
@@ -43,7 +43,7 @@ function isAbortLikeError(error: unknown): boolean {
 function isNetworkTransportError(error: unknown): boolean {
   if (
     error instanceof HttpError ||
-    error instanceof BbHttpError ||
+    error instanceof KaiokenHttpError ||
     isAbortLikeError(error)
   ) {
     return false;
@@ -93,7 +93,7 @@ function toLifecycleErrorOperation(
   }
 }
 
-function getHttpErrorMessage(error: HttpError | BbHttpError): string | null {
+function getHttpErrorMessage(error: HttpError | KaiokenHttpError): string | null {
   const bodyMessage = extractErrorMessage(error.body);
   if (bodyMessage) {
     return normalizeMessage(bodyMessage);
@@ -144,7 +144,7 @@ export function getMutationErrorMessage({
     return formatLifecycleErrorDescription(lifecycleErrorDescription);
   }
 
-  if (error instanceof HttpError || error instanceof BbHttpError) {
+  if (error instanceof HttpError || error instanceof KaiokenHttpError) {
     return getHttpErrorMessage(error) ?? fallbackMessage;
   }
 

@@ -4,11 +4,11 @@ import type {
   PendingInteraction,
   ThreadQueuedMessage,
   ThreadWithRuntime,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   makeThreadQueuedMessage,
   makeThreadWithRuntime,
-} from "@bb/test-helpers/domain-fixtures";
+} from "@kaioken/test-helpers/domain-fixtures";
 import {
   act,
   cleanup,

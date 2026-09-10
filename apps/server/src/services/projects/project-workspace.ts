@@ -1,5 +1,5 @@
-import { getProjectSourceByHost } from "@bb/db";
-import type { ProjectWorkspaceRoutingQuery } from "@bb/server-contract";
+import { getProjectSourceByHost } from "@kaioken/db";
+import type { ProjectWorkspaceRoutingQuery } from "@kaioken/server-contract";
 import type { AppDeps } from "../../types.js";
 import { ApiError } from "../../errors.js";
 import {

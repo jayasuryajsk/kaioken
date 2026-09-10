@@ -1,5 +1,5 @@
-import { createProjectSource } from "@bb/db";
-import type { HostProviderCommand } from "@bb/host-daemon-contract";
+import { createProjectSource } from "@kaioken/db";
+import type { HostProviderCommand } from "@kaioken/host-daemon-contract";
 import { describe, expect, it, vi } from "vitest";
 import { registerHostRpcResponder } from "../helpers/host-rpc.js";
 import { declaredNativeRootSet } from "../helpers/provider-registry.js";

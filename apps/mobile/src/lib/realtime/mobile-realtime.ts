@@ -12,7 +12,7 @@ import {
   type ThreadOpenFile,
   type ThreadOpenSignal,
   type ThreadPaneActionSignal,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   SOCKET_OPEN,
   defaultRealtimeSocketFactory,

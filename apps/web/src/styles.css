@@ -12,15 +12,15 @@ body {
   font-family: var(--font-sans);
 }
 
-/* The bb mark, matching landing.css: two assets, one element, so the browser
+/* The kaioken mark, matching landing.css: two assets, one element, so the browser
    only fetches the variant the winning declaration names. */
-.bb-mark {
+.kaioken-mark {
   display: block;
   flex-shrink: 0;
-  background-image: url("./assets/bb-icon.png");
+  background-image: url("./assets/kaioken-icon.png");
   background-size: 100% 100%;
 }
 
-.dark .bb-mark {
-  background-image: url("./assets/bb-icon-dark.png");
+.dark .kaioken-mark {
+  background-image: url("./assets/kaioken-icon-dark.png");
 }

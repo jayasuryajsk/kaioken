@@ -7,8 +7,8 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import type { Host, ProjectExecutionDefaults } from "@bb/domain";
-import { makeHost } from "@bb/test-helpers/domain-fixtures";
+import type { Host, ProjectExecutionDefaults } from "@kaioken/domain";
+import { makeHost } from "@kaioken/test-helpers/domain-fixtures";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sdk } from "@/lib/sdk";
@@ -84,7 +84,7 @@ function stubSidebarBootstrapFetch(
             {
               id: projectId,
               kind: "standard",
-              name: "bb",
+              name: "kaioken",
               gitRemoteUrl: "git@github.com:get-bb/bb.git",
               createdAt: NOW - 86_400_000,
               updatedAt: NOW,
@@ -153,7 +153,7 @@ beforeEach(() => {
   ]);
   vi.mocked(sdk.hosts.pathsExist).mockResolvedValue({ existence: {} });
   vi.mocked(sdk.hosts.cloneDefaultPath).mockResolvedValue({
-    path: "/home/me/bb",
+    path: "/home/me/kaioken",
   });
   vi.mocked(sdk.projects.defaultExecutionOptions).mockResolvedValue(null);
 });
@@ -167,13 +167,13 @@ afterEach(() => {
 describe("ProjectDetailSettingsView", () => {
   it("lists every paired machine with its checkout or a set-up action", async () => {
     stubSidebarBootstrapFetch([
-      { hostId: "host_primary", path: "/Users/me/bb" },
+      { hostId: "host_primary", path: "/Users/me/kaioken" },
     ]);
 
     renderView();
 
-    expect(await screen.findByRole("heading", { name: "bb" })).toBeDefined();
-    expect(screen.getByText("/Users/me/bb")).toBeDefined();
+    expect(await screen.findByRole("heading", { name: "kaioken" })).toBeDefined();
+    expect(screen.getByText("/Users/me/kaioken")).toBeDefined();
     expect(
       screen.getByText("github.com/get-bb/bb · 1 of 3 machines · 1 thread"),
     ).toBeDefined();
@@ -189,17 +189,17 @@ describe("ProjectDetailSettingsView", () => {
 
   it("opens the machine setup dialog for a remote machine", async () => {
     stubSidebarBootstrapFetch([
-      { hostId: "host_primary", path: "/Users/me/bb" },
+      { hostId: "host_primary", path: "/Users/me/kaioken" },
     ]);
 
     renderView();
     fireEvent.click(await screen.findByRole("button", { name: "Set up" }));
 
-    expect(await screen.findByText("Set up bb on dev-vm")).toBeDefined();
+    expect(await screen.findByText("Set up kaioken on dev-vm")).toBeDefined();
   });
 
   it("opens the path dialog when the local machine has no checkout", async () => {
-    stubSidebarBootstrapFetch([{ hostId: "host_remote", path: "/home/me/bb" }]);
+    stubSidebarBootstrapFetch([{ hostId: "host_remote", path: "/home/me/kaioken" }]);
 
     renderView();
     fireEvent.click(await screen.findByRole("button", { name: "Set up" }));
@@ -209,8 +209,8 @@ describe("ProjectDetailSettingsView", () => {
 
   it("refuses to remove the last checkout but removes an extra one", async () => {
     stubSidebarBootstrapFetch([
-      { hostId: "host_primary", path: "/Users/me/bb" },
-      { hostId: "host_remote", path: "/home/me/bb" },
+      { hostId: "host_primary", path: "/Users/me/kaioken" },
+      { hostId: "host_remote", path: "/home/me/kaioken" },
     ]);
     vi.mocked(sdk.projects.sources.delete).mockResolvedValue({ ok: true });
 
@@ -234,7 +234,7 @@ describe("ProjectDetailSettingsView", () => {
 
   it("disables removal when the project has a single checkout", async () => {
     stubSidebarBootstrapFetch([
-      { hostId: "host_primary", path: "/Users/me/bb" },
+      { hostId: "host_primary", path: "/Users/me/kaioken" },
     ]);
 
     renderView();
@@ -253,7 +253,7 @@ describe("ProjectDetailSettingsView", () => {
 
   it("shows derived thread defaults when the project has run threads", async () => {
     stubSidebarBootstrapFetch([
-      { hostId: "host_primary", path: "/Users/me/bb" },
+      { hostId: "host_primary", path: "/Users/me/kaioken" },
     ]);
     const defaults: ProjectExecutionDefaults = {
       providerId: "codex",
@@ -273,7 +273,7 @@ describe("ProjectDetailSettingsView", () => {
 
   it("distinguishes a failed defaults load from an empty one", async () => {
     stubSidebarBootstrapFetch([
-      { hostId: "host_primary", path: "/Users/me/bb" },
+      { hostId: "host_primary", path: "/Users/me/kaioken" },
     ]);
     vi.mocked(sdk.projects.defaultExecutionOptions).mockRejectedValue(
       new Error("boom"),
@@ -289,7 +289,7 @@ describe("ProjectDetailSettingsView", () => {
 
   it("deletes the project and returns to the list", async () => {
     stubSidebarBootstrapFetch([
-      { hostId: "host_primary", path: "/Users/me/bb" },
+      { hostId: "host_primary", path: "/Users/me/kaioken" },
     ]);
     vi.mocked(sdk.projects.delete).mockResolvedValue({ ok: true });
 

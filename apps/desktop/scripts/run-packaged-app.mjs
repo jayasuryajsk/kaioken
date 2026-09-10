@@ -16,7 +16,7 @@ const releaseConfig = createDesktopReleaseConfig(
 function createElectronAppEnv(env) {
   const childEnv = {
     ...env,
-    BB_DESKTOP_OPEN_DEVTOOLS: env.BB_DESKTOP_OPEN_DEVTOOLS ?? "1",
+    KAIOKEN_DESKTOP_OPEN_DEVTOOLS: env.KAIOKEN_DESKTOP_OPEN_DEVTOOLS ?? "1",
   };
   delete childEnv.ELECTRON_RUN_AS_NODE;
   return childEnv;

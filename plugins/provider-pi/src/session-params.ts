@@ -3,7 +3,7 @@ import {
   type DynamicTool,
   type InstructionMode,
   type ReasoningLevel,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 
 type PiReasoningLevel = "off" | "low" | "medium" | "high" | "xhigh" | "max";
 
@@ -73,7 +73,7 @@ export function buildPiSessionParams(
   return {
     cwd: args.cwd,
     shellEnvOverrides: {
-      BB_THREAD_ID: args.threadId,
+      KAIOKEN_THREAD_ID: args.threadId,
       ...buildShellEnvOverrides(args.options.envVars),
     },
     ...(instructions

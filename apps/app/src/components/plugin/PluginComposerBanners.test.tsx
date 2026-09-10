@@ -214,14 +214,14 @@ describe("ComposerBannersSlot", () => {
 
     const view = render(
       <ComposerBannersSlot view={composerView("t1")} ownerPlacement="before">
-        <div>BB row</div>
+        <div>Kaioken row</div>
       </ComposerBannersSlot>,
     );
-    expect(view.container.textContent).toBe("BB rowPlugin row");
+    expect(view.container.textContent).toBe("Kaioken rowPlugin row");
 
     view.rerender(
       <ComposerBannersSlot view={composerView("t1")} ownerPlacement="after">
-        <div>BB row</div>
+        <div>Kaioken row</div>
       </ComposerBannersSlot>,
     );
     expect(view.container.textContent).toBe("Plugin rowBB row");

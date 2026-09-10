@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ClientTurnRequestId, ThreadEvent } from "@bb/domain";
-import { experimental_createDeltaAssembler as createDeltaAssembler } from "@get-bb/plugin-sdk/provider-bridge/testing";
+import type { ClientTurnRequestId, ThreadEvent } from "@kaioken/domain";
+import { experimental_createDeltaAssembler as createDeltaAssembler } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 import {
   createClaudeDeltaTranslator,
   type ClaudeDeltaTranslationContext,

@@ -7,13 +7,13 @@ import type {
   ProviderFork,
   ProviderInfo,
   ReasoningLevel,
-} from "@bb/domain";
-import { parseExtensionKind } from "@bb/domain";
+} from "@kaioken/domain";
+import { parseExtensionKind } from "@kaioken/domain";
 import type {
   PluginProviderExtensionKindDeclaration,
   PluginProviderOptionsContext,
-} from "@get-bb/plugin-sdk";
-import { providerAlreadyRegisteredMessage } from "@get-bb/plugin-sdk/internal/host-policy";
+} from "@get-kaioken/plugin-sdk";
+import { providerAlreadyRegisteredMessage } from "@get-kaioken/plugin-sdk/internal/host-policy";
 
 export interface ProviderHealthCacheKey {
   hostId: string;

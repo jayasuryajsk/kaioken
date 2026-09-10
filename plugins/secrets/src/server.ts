@@ -1,15 +1,15 @@
 import path from "node:path";
 import type {
-  BbPluginApi,
+  KaiokenPluginApi,
   PluginCliContext,
   PluginCliResult,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import {
   SECRET_REQUEST_RENDERER_ID,
   secretNameSchema,
   secretRequestResponseSchema,
-} from "@bb/plugin-interaction-contracts";
+} from "@kaioken/plugin-interaction-contracts";
 import { assertNoDuplicateAssignments, reconcileDotenv } from "./dotenv.js";
 
 interface ParsedRequest {
@@ -62,7 +62,7 @@ function parseSecretName(value: string, label: string): string {
 
 function parseRequest(argv: string[]): ParsedRequest {
   if (argv[0] !== "request")
-    throw new Error("Usage: bb secret request <NAME...> --write-env <path>");
+    throw new Error("Usage: kaioken secret request <NAME...> --write-env <path>");
   const names: string[] = [];
   const descriptions = new Map<string, string>();
   let purpose: string | null = null;
@@ -138,7 +138,7 @@ function httpStatus(error: unknown): number | null {
 }
 
 async function readSnapshot(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   args: { hostId: string; path: string },
 ): Promise<FileSnapshot> {
   try {
@@ -153,16 +153,16 @@ async function readSnapshot(
 }
 
 async function runRequest(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   argv: string[],
   ctx: PluginCliContext,
 ): Promise<PluginCliResult> {
   const parsed = parseRequest(argv);
   if (!ctx.threadId)
-    throw new Error("bb secret request must run from a bb thread.");
+    throw new Error("kaioken secret request must run from a kaioken thread.");
   if (!ctx.cwd)
     throw new Error(
-      "bb secret request requires the invoking working directory.",
+      "kaioken secret request requires the invoking working directory.",
     );
   const thread = threadHostSchema.parse(
     await bb.sdk.threads.get({
@@ -238,7 +238,7 @@ async function runRequest(
   throw new Error("Unreachable dotenv write state.");
 }
 
-export default function plugin(bb: BbPluginApi) {
+export default function plugin(bb: KaiokenPluginApi) {
   bb.cli.register({
     name: "secret",
     summary: "Securely request credentials and write them to a dotenv file.",
@@ -247,7 +247,7 @@ export default function plugin(bb: BbPluginApi) {
         name: "request",
         summary: "Request one or more secrets in a secure user form.",
         usage:
-          "bb secret request <NAME...> --write-env <path> [--purpose <text>] [--describe <NAME> <text>]...",
+          "kaioken secret request <NAME...> --write-env <path> [--purpose <text>] [--describe <NAME> <text>]...",
       },
     ],
     async run(argv, ctx) {

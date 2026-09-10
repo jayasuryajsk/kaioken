@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import type { ThreadListEntry, ThreadPullRequest } from "@bb/domain";
-import type { EnvironmentDisplayHostContext } from "@bb/core-ui";
+import type { ThreadListEntry, ThreadPullRequest } from "@kaioken/domain";
+import type { EnvironmentDisplayHostContext } from "@kaioken/core-ui";
 import {
   makeEnvironment,
   makeThread,
@@ -46,9 +46,9 @@ export function makePullRequest(
     number: 128,
     title: "Show the branch's GitHub pull request in the Info tab",
     state: "open",
-    url: "https://github.com/acme/bb/pull/128",
+    url: "https://github.com/acme/kaioken/pull/128",
     baseRefName: "main",
-    headRefName: "bb/pr-info-panel",
+    headRefName: "kaioken/pr-info-panel",
     updatedAt: "2026-06-16T12:30:00Z",
     checks: {
       state: "passing",

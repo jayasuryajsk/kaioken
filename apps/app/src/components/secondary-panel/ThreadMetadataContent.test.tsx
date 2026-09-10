@@ -9,11 +9,11 @@ import {
 } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MemoryRouter } from "react-router-dom";
-import type { Environment, Thread } from "@bb/domain";
-import type { EnvironmentDisplayHostContext } from "@bb/core-ui";
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
+import type { Environment, Thread } from "@kaioken/domain";
+import type { EnvironmentDisplayHostContext } from "@kaioken/core-ui";
+import type { SystemEnvironmentProvider } from "@kaioken/server-contract";
 import { systemEnvironmentProvidersQueryKey } from "@/hooks/queries/environment-provider-queries";
-import { TooltipProvider } from "@bb/shared-ui/tooltip";
+import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -21,7 +21,7 @@ import { focusWithKeyboard } from "@/test/keyboard-focus";
 import {
   makeEnvironment,
   makeThread as makeThreadFixture,
-} from "@bb/test-helpers/domain-fixtures";
+} from "@kaioken/test-helpers/domain-fixtures";
 import {
   EnvironmentProvisioningFailureRow,
   EnvironmentRow,

@@ -2,14 +2,14 @@ import {
   PERSONAL_PROJECT_ID,
   type ProjectSource,
   type ThreadListEntry,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   ProjectBranchesResponse,
   ProjectWithThreadsResponse,
   SidebarBootstrapResponse,
   SystemEnvironmentProvider,
   TerminalSession,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { describe, expect, it } from "vitest";
 import type { ReuseThreadOption } from "@/components/pickers/ReuseEnvironmentPicker";
 import {
@@ -20,8 +20,8 @@ import {
   restorePromptDraftAfterOptionChange,
   type ResolveNewThreadSubmitDisabledReasonArgs,
 } from "@/components/promptbox/NewThreadComposer";
-import { getProjectStoredPromptAttachmentPaths } from "@bb/client-core";
-import { THREAD_HANDOFF_CREATE_SEED_LOCATION_STATE_KEY } from "@bb/client-core";
+import { getProjectStoredPromptAttachmentPaths } from "@kaioken/client-core";
+import { THREAD_HANDOFF_CREATE_SEED_LOCATION_STATE_KEY } from "@kaioken/client-core";
 import {
   buildRootComposeTerminalSessions,
   buildMobileRecentThreads,
@@ -35,7 +35,7 @@ import {
   shouldNavigateAfterThreadCreate,
 } from "./RootComposeView";
 import { resolveRootComposeProjectFileRouting } from "./RootComposePanelTabContent";
-import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
+import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 import {
   makeProjectWithThreadsResponse,
   makeSidebarBootstrapResponse,
@@ -438,9 +438,9 @@ describe("readInitialPromptFromLocationState", () => {
     expect(
       readInitialPromptFromLocationState({
         focusPrompt: true,
-        initialPrompt: "Create a new bb automation to ",
+        initialPrompt: "Create a new kaioken automation to ",
       }),
-    ).toBe("Create a new bb automation to ");
+    ).toBe("Create a new kaioken automation to ");
   });
 
   it("returns null when no usable initialPrompt is present", () => {
@@ -459,13 +459,13 @@ describe("shouldReplaceInitialPromptFromLocationState", () => {
   it("returns true only for explicit replacement seed intents", () => {
     expect(
       shouldReplaceInitialPromptFromLocationState({
-        initialPrompt: "Create a new bb skill to review PRs.",
+        initialPrompt: "Create a new kaioken skill to review PRs.",
         replaceInitialPrompt: true,
       }),
     ).toBe(true);
     expect(
       shouldReplaceInitialPromptFromLocationState({
-        initialPrompt: "Create a new bb skill to review PRs.",
+        initialPrompt: "Create a new kaioken skill to review PRs.",
       }),
     ).toBe(false);
     expect(shouldReplaceInitialPromptFromLocationState(null)).toBe(false);

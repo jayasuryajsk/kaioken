@@ -5,7 +5,7 @@ import {
   schema,
   server,
   type ConnectDb,
-} from "@bb/connect-db";
+} from "@kaioken/connect-db";
 import {
   parseCookie,
   sha256Hex,

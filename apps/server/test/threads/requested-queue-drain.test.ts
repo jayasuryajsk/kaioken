@@ -4,8 +4,8 @@ import {
   listQueuedThreadMessages,
   setQueuedThreadMessageFailureReason,
   setQueuedThreadMessageGroupBoundary,
-} from "@bb/db";
-import type { PluginHookName } from "@get-bb/plugin-sdk";
+} from "@kaioken/db";
+import type { PluginHookName } from "@get-kaioken/plugin-sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   setPluginHookProvider,

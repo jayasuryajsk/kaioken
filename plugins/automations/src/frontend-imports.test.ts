@@ -7,7 +7,7 @@ const FRONTEND_ENTRY = join(PLUGIN_ROOT, "app.tsx");
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
 
 const BUNDLED_WORKSPACE_SPECIFIER =
-  /^(@bb\/(?!plugin-sdk(?:\/|$))[^/]+)((?:\/.*)?)$/;
+  /^(@kaioken\/(?!plugin-sdk(?:\/|$))[^/]+)((?:\/.*)?)$/;
 
 const HOST_PROVIDED_ICON_MODULE =
   /\/shared-ui\/src\/components\/ui\/icon\.tsx$/;
@@ -150,9 +150,9 @@ describe("automations frontend bundle", () => {
     );
   });
 
-  it("never treats an unfollowed @bb package as a third-party specifier", () => {
+  it("never treats an unfollowed @kaioken package as a third-party specifier", () => {
     expect(() =>
-      resolveLocalModule(FRONTEND_ENTRY, "@bb/plugin-interaction-contracts"),
+      resolveLocalModule(FRONTEND_ENTRY, "@kaioken/plugin-interaction-contracts"),
     ).toThrow(/plugin-interaction-contracts/);
   });
 

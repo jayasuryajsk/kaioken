@@ -11,8 +11,8 @@ import {
   noopNotifier,
   promptHistoryEntries,
   upsertHost,
-} from "@bb/db";
-import type { PromptHistoryScope, PromptInput } from "@bb/domain";
+} from "@kaioken/db";
+import type { PromptHistoryScope, PromptInput } from "@kaioken/domain";
 import {
   listProjectPromptHistory,
   listThreadPromptHistory,

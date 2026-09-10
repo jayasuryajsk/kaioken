@@ -2,7 +2,7 @@ import type {
   ThreadTimelinePendingTodoItem,
   ThreadTimelinePendingTodoItemStatus,
   ThreadTimelinePendingTodos,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { AnimatedBody } from "@/components/promptbox/banner/AnimatedBody";
 import {
   PROMPT_STACK_CARD_ROW_HEIGHT,
@@ -13,9 +13,9 @@ import {
   activityRowClass,
   activityTextClass,
   type ActivityRowState,
-} from "@bb/shared-ui/activity-row-styles";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/activity-row-styles";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 const STATUS_SORT_RANK: Record<ThreadTimelinePendingTodoItemStatus, number> = {
   in_progress: 0,

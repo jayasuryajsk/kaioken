@@ -1,6 +1,6 @@
 import semver from "semver";
 import { z } from "zod";
-import { PLUGIN_SDK_VERSION } from "@bb/domain";
+import { PLUGIN_SDK_VERSION } from "@kaioken/domain";
 import {
   DEFAULT_GIT_REF,
   gitSemverTagName,
@@ -17,7 +17,7 @@ export type NpmSpecKind = "default" | "exact" | "tag" | "range";
 export type GitRefKind = "branch" | "tag" | "commit";
 
 export interface CompatibilityProblem {
-  engine: "bb" | "bbPluginSdk";
+  engine: "kaioken" | "bbPluginSdk";
   required: string;
   actual: string;
   message: string;
@@ -204,7 +204,7 @@ function allowedNpmVersions(
 }
 
 export function evaluateCompatibility(args: {
-  bbRange: string | undefined;
+  kaiokenRange: string | undefined;
   sdkRange: string | undefined;
   appVersion: string;
 }): {
@@ -214,24 +214,24 @@ export function evaluateCompatibility(args: {
 } {
   const appVersion = semver.coerce(args.appVersion);
   if (!appVersion) {
-    throw new Error(`cannot parse running bb version "${args.appVersion}"`);
+    throw new Error(`cannot parse running kaioken version "${args.appVersion}"`);
   }
   const devMode = appVersion.version === "0.0.0";
-  const bbProblems: CompatibilityProblem[] = [];
-  if (args.bbRange !== undefined) {
-    if (semver.validRange(args.bbRange) === null) {
-      bbProblems.push({
-        engine: "bb",
-        required: args.bbRange,
+  const kaiokenProblems: CompatibilityProblem[] = [];
+  if (args.kaiokenRange !== undefined) {
+    if (semver.validRange(args.kaiokenRange) === null) {
+      kaiokenProblems.push({
+        engine: "kaioken",
+        required: args.kaiokenRange,
         actual: appVersion.version,
-        message: `declares invalid engines.bb range ${JSON.stringify(args.bbRange)}`,
+        message: `declares invalid engines.bb range ${JSON.stringify(args.kaiokenRange)}`,
       });
-    } else if (!semver.satisfies(appVersion, args.bbRange)) {
-      bbProblems.push({
-        engine: "bb",
-        required: args.bbRange,
+    } else if (!semver.satisfies(appVersion, args.kaiokenRange)) {
+      kaiokenProblems.push({
+        engine: "kaioken",
+        required: args.kaiokenRange,
         actual: appVersion.version,
-        message: `requires bb ${args.bbRange}, running bb is ${appVersion.version}`,
+        message: `requires kaioken ${args.kaiokenRange}, running kaioken is ${appVersion.version}`,
       });
     }
   }
@@ -254,8 +254,8 @@ export function evaluateCompatibility(args: {
     }
   }
   return {
-    effective: devMode ? sdkProblems : [...bbProblems, ...sdkProblems],
-    packaged: bbProblems,
+    effective: devMode ? sdkProblems : [...kaiokenProblems, ...sdkProblems],
+    packaged: kaiokenProblems,
     devMode,
   };
 }
@@ -331,7 +331,7 @@ export async function selectNpmCandidate(args: {
       },
     };
     const problems = evaluateCompatibility({
-      bbRange: candidate.engines.bb,
+      kaiokenRange: candidate.engines.bb,
       sdkRange: candidate.engines.bbPluginSdk,
       appVersion: args.appVersion,
     });
@@ -577,7 +577,7 @@ function movedGitTagDetail(args: {
   if (args.currentCommit === args.recordedCommit) return null;
   return (
     `security check failed: git tag "${args.tag}" in ${args.url} moved from ` +
-    `${args.recordedCommit} to ${args.currentCommit}; bb will not re-resolve a ` +
+    `${args.recordedCommit} to ${args.currentCommit}; kaioken will not re-resolve a ` +
     `tag that changed. Remove the plugin and install it again to accept the new commit`
   );
 }
@@ -627,7 +627,7 @@ async function resolveGitRangeUpdate(args: {
       outcome: "unavailable",
       detail:
         `security check failed: recorded git tag "${args.intent.resolvedTag}" no longer exists in ${args.url}; ` +
-        "bb will not re-resolve a missing release tag. Restore the tag, or remove and install the plugin again",
+        "kaioken will not re-resolve a missing release tag. Restore the tag, or remove and install the plugin again",
     };
   }
   const moved = movedGitTagDetail({
@@ -683,7 +683,7 @@ async function resolveGitRangeUpdate(args: {
     if (probes >= MAX_GIT_CANDIDATE_PROBES) {
       return {
         outcome: "unavailable",
-        detail: `no release of ${args.url} matching ${args.intent.range} runs on this bb within the newest ${MAX_GIT_CANDIDATE_PROBES} releases`,
+        detail: `no release of ${args.url} matching ${args.intent.range} runs on this kaioken within the newest ${MAX_GIT_CANDIDATE_PROBES} releases`,
       };
     }
     probes += 1;
@@ -807,7 +807,7 @@ export async function resolveGitRange(args: {
     if (probes >= MAX_GIT_CANDIDATE_PROBES) {
       return {
         outcome: "unavailable",
-        detail: `no release of ${args.url} matching ${args.range} runs on this bb within the newest ${MAX_GIT_CANDIDATE_PROBES} releases`,
+        detail: `no release of ${args.url} matching ${args.range} runs on this kaioken within the newest ${MAX_GIT_CANDIDATE_PROBES} releases`,
       };
     }
     probes += 1;
@@ -822,6 +822,6 @@ export async function resolveGitRange(args: {
     outcome: "unavailable",
     detail:
       firstProblem ??
-      `no release of ${args.url} matching ${args.range} runs on this bb`,
+      `no release of ${args.url} matching ${args.range} runs on this kaioken`,
   };
 }

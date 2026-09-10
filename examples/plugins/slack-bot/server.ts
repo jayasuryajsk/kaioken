@@ -1,12 +1,12 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 
 const SIGNATURE_VERSION = "v0";
 const SIGNATURE_MAX_AGE_SECONDS = 5 * 60;
 
 const CONFIGURE_HINT =
-  "Set botToken, signingSecret, and project with `bb plugin config slack-bot`, " +
-  "then `bb plugin reload slack-bot`.";
+  "Set botToken, signingSecret, and project with `kaioken plugin config slack-bot`, " +
+  "then `kaioken plugin reload slack-bot`.";
 
 function verifySlackSignature(args: {
   signingSecret: string;
@@ -41,7 +41,7 @@ interface SlackTarget {
   threadTs: string;
 }
 
-export default async function plugin(bb: BbPluginApi) {
+export default async function plugin(bb: KaiokenPluginApi) {
   const settings = bb.settings.define({
     botToken: {
       type: "string",
@@ -63,8 +63,8 @@ export default async function plugin(bb: BbPluginApi) {
     },
     project: {
       type: "project",
-      label: "BB project for mention threads",
-      description: "Mentions spawn BB threads in this project.",
+      label: "Kaioken project for mention threads",
+      description: "Mentions spawn Kaioken threads in this project.",
     },
   });
 

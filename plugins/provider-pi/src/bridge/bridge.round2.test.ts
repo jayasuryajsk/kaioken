@@ -15,7 +15,7 @@ let nextId = 1000;
 
 beforeEach(async () => {
   harness = await startFakePiBridge({
-    prefix: "bb-pi-round2-",
+    prefix: "kaioken-pi-round2-",
     initialize: true,
     processLog: true,
   });
@@ -312,7 +312,7 @@ it("recovers from one transient model mismatch by respawning", async () => {
 
 it("a child whose extension never reports ready is a construction error, not a hung tool call", async () => {
   vi.stubEnv("FAKE_PI_NO_SESSION_START", "1");
-  vi.stubEnv("BB_PI_BRIDGE_READINESS_TIMEOUT_MS", "1500");
+  vi.stubEnv("KAIOKEN_PI_BRIDGE_READINESS_TIMEOUT_MS", "1500");
   const response = await harness.startThread("thr_r2_noready");
   expect(response.error).toMatchObject({
     message: expect.stringContaining("did not report ready"),
@@ -332,7 +332,7 @@ it("a child whose extension never reports ready is a construction error, not a h
 }, 60_000);
 
 it("evicts an idle catalog child", async () => {
-  vi.stubEnv("BB_PI_CATALOG_IDLE_MS", "300");
+  vi.stubEnv("KAIOKEN_PI_CATALOG_IDLE_MS", "300");
   const models = await harness.request((nextId += 1), "model/list", {
     cwd: harness.workspaceDir,
   });
@@ -368,8 +368,8 @@ it("reports a bash call's cwd as the thread's working directory, never an empty 
   expect(JSON.stringify(harness.deltasOf(threadId))).not.toContain('"cwd":""');
 }, 90_000);
 
-it("a resumed thread reports the session header's cwd, not the cwd bb asked for", async () => {
-  const headerDir = mkdtempSync(join(tmpdir(), "bb-pi-header-cwd-"));
+it("a resumed thread reports the session header's cwd, not the cwd kaioken asked for", async () => {
+  const headerDir = mkdtempSync(join(tmpdir(), "kaioken-pi-header-cwd-"));
   try {
     const sessionDir = join(harness.workspaceDir, "sessions");
     mkdirSync(sessionDir, { recursive: true });
@@ -401,8 +401,8 @@ it("a resumed thread reports the session header's cwd, not the cwd bb asked for"
   }
 }, 90_000);
 
-it("resumes at bb's requested cwd when the session header's cwd was removed", async () => {
-  // bb moved the thread's environment directory; the old environment's
+it("resumes at kaioken's requested cwd when the session header's cwd was removed", async () => {
+  // kaioken moved the thread's environment directory; the old environment's
   // directory (recorded in the pi session header) no longer exists. The
   // bridge must still resume at the requested, existing cwd instead of
   // rejecting the turn.

@@ -3,17 +3,17 @@ import {
   bridgeCapabilitiesSchema,
   bridgeExecutionOptionsSchema,
   providerRecoveryNotificationSchema,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 import {
   providerRecoveryKindValues,
   threadEventDelegationItemSchema,
   threadEventItemPresentationSchema,
   type ThreadEventItemPresentation,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   timelineCommandWorkRowSchema,
   type TimelineCommandWorkRow,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import type { z } from "zod";
 import type { PluginAppSlots } from "../app-contract.js";
@@ -272,7 +272,7 @@ describe("guardrail G10: docs/provider-plugin-api.md matches the contract", () =
     expectTypeOf<DeclarationGapsNotLanded>().toBeNever();
   });
 
-  it("§2 the bridge entry point is exported from @get-bb/plugin-sdk/provider-bridge", () => {
+  it("§2 the bridge entry point is exported from @get-kaioken/plugin-sdk/provider-bridge", () => {
     expect(typeof providerBridgeSdk.experimental_defineProviderBridge).toBe(
       "function",
     );

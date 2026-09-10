@@ -1,8 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { Command } from "commander";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
-import type { RegistryRanking, RegistrySkill } from "@bb/server-contract";
-import type { SkillsRegistryArea } from "@bb/sdk";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
+import type { RegistryRanking, RegistrySkill } from "@kaioken/server-contract";
+import type { SkillsRegistryArea } from "@kaioken/sdk";
 import { action } from "../action.js";
 import { createCliBbSdk } from "../client.js";
 import { resolveMachineId } from "./machine.js";
@@ -65,7 +65,7 @@ function addWorkspaceOptions(command: Command): Command {
   return command
     .option(
       "--project <id>",
-      "Project ID (defaults to BB_PROJECT_ID or personal)",
+      "Project ID (defaults to KAIOKEN_PROJECT_ID or personal)",
     )
     .option("--environment <id>", "Project environment workspace")
     .option("--json", "Print machine-readable JSON output");
@@ -191,7 +191,7 @@ export function registerSkillCommands(
               entry.id,
               entry.name,
               entry.scope,
-              entry.provider ?? "bb",
+              entry.provider ?? "kaioken",
               entry.manageable ? "yes" : "no",
               entry.filePath,
             ]),
@@ -242,7 +242,7 @@ export function registerSkillCommands(
     .requiredOption("--file <path>", "Local SKILL.md to upload")
     .requiredOption(
       "--revision <sha256>",
-      "Revision returned by bb skill show --json",
+      "Revision returned by kaioken skill show --json",
     )
     .action(
       action(async (skillId: string, options: SkillUpdateOptions) => {
@@ -383,7 +383,7 @@ export function registerSkillCommands(
 
   skill
     .command("install <registry-skill-id>")
-    .description("Install a canonical skills.sh entry into bb user skills")
+    .description("Install a canonical skills.sh entry into kaioken user skills")
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(async (registrySkillId: string, options: JsonOutputOptions) => {
@@ -398,7 +398,7 @@ export function registerSkillCommands(
   skill
     .command("cli-skills-status")
     .description(
-      "Show whether each machine has bb's built-in CLI skills installed",
+      "Show whether each machine has kaioken's built-in CLI skills installed",
     )
     .option(
       "--machine <id-or-name>",
@@ -438,7 +438,7 @@ export function registerSkillCommands(
   skill
     .command("install-cli-skills")
     .description(
-      "Install bb's built-in CLI skills into ~/.agents/skills and ~/.claude/skills on a machine",
+      "Install kaioken's built-in CLI skills into ~/.agents/skills and ~/.claude/skills on a machine",
     )
     .option(
       "--machine <id-or-name>",

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { reconcileReasoningLevel } from "@bb/domain";
+import { reconcileReasoningLevel } from "@kaioken/domain";
 import type {
   Host,
   ProjectSource,
@@ -7,23 +7,23 @@ import type {
   ReasoningLevel,
   Thread,
   WorkspaceStatus,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   ProviderCliKey,
   ProviderCliStatus,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import type {
   ProjectResponse,
   SystemEnvironmentProvider,
-} from "@bb/server-contract";
-import { EMPTY_ORDERED_MENTION_SUGGESTIONS } from "@bb/client-core";
+} from "@kaioken/server-contract";
+import { EMPTY_ORDERED_MENTION_SUGGESTIONS } from "@kaioken/client-core";
 import {
   makeEnvironment as makeEnvironmentFixture,
   makeHost as makeHostFixture,
   makeProviderInfo,
   makeThread as makeThreadFixture,
   makeThreadListEntry as makeThreadListEntryFixture,
-} from "@bb/test-helpers/domain-fixtures";
+} from "@kaioken/test-helpers/domain-fixtures";
 import { makeProjectResponse } from "../src/test/fixtures/projects";
 import { getProviderIconInfo } from "../src/lib/provider-icon";
 import type { PickerOption } from "../src/components/pickers/OptionPicker";
@@ -58,7 +58,7 @@ export const PROJECT_IDS = {
 } as const;
 
 export const PROJECT_NAMES = {
-  bb: "bb",
+  bb: "kaioken",
   pierre: "pierre",
   ingest: "ingest-pipeline",
 } as const;
@@ -273,7 +273,7 @@ export const STORY_PROJECT_SOURCES: readonly ProjectSource[] = [
     projectId: PROJECT_IDS.bb,
     type: "local_path",
     hostId: HOST_IDS.local,
-    path: "/Users/michael/Projects/bb",
+    path: "/Users/michael/Projects/kaioken",
     isDefault: true,
     createdAt: 0,
     updatedAt: 0,
@@ -283,7 +283,7 @@ export const STORY_PROJECT_SOURCES: readonly ProjectSource[] = [
     projectId: PROJECT_IDS.bb,
     type: "local_path",
     hostId: HOST_IDS.remote,
-    path: "/home/michael/bb",
+    path: "/home/michael/kaioken",
     isDefault: false,
     createdAt: 0,
     updatedAt: 0,
@@ -295,13 +295,13 @@ export const STORY_BRANCH_OPTIONS: readonly string[] = [
   "release/1.2",
   "feat/sidebar-rail",
   "fix/timeline-pagination",
-  "bb/refactor-project-creation-thr_jj65bdsiwa",
+  "kaioken/refactor-project-creation-thr_jj65bdsiwa",
 ];
 
 export const STORY_WORKTREE_OPTIONS: readonly ReuseThreadOption[] = [
   {
     environmentId: "env_review_flow",
-    branchName: "bb/review-flow-thr_4hge9xn14m",
+    branchName: "kaioken/review-flow-thr_4hge9xn14m",
     name: null,
     path: null,
     environmentProviderId: "git-worktree",
@@ -312,7 +312,7 @@ export const STORY_WORKTREE_OPTIONS: readonly ReuseThreadOption[] = [
   },
   {
     environmentId: "env_timeline",
-    branchName: "bb/timeline-pagination-thr_qfk8ksbxkk",
+    branchName: "kaioken/timeline-pagination-thr_qfk8ksbxkk",
     name: "Timeline workspace",
     path: null,
     environmentProviderId: "git-worktree",
@@ -586,7 +586,7 @@ export function makeEnvironment(
     id: "env_demo",
     projectId: PROJECT_IDS.bb,
     hostId: HOST_IDS.local,
-    path: "/Users/michael/Projects/bb",
+    path: "/Users/michael/Projects/kaioken",
     branchName: BRANCH_NAMES.feature,
     baseBranch: BRANCH_NAMES.default,
     defaultBranch: BRANCH_NAMES.default,

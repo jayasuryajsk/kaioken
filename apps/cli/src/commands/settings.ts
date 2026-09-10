@@ -14,8 +14,8 @@ import {
   type Experiments,
   type UiPreferenceKey,
   type UiPreferenceValue,
-} from "@bb/domain";
-import { BbHttpError } from "@bb/sdk";
+} from "@kaioken/domain";
+import { KaiokenHttpError } from "@kaioken/sdk";
 import { action } from "../action.js";
 import { createCliBbSdk } from "../client.js";
 import { outputJson } from "./helpers.js";
@@ -145,7 +145,7 @@ function parseUiPreferenceInput<Key extends UiPreferenceKey>(
 }
 
 function isUiPreferenceConflict(error: unknown): boolean {
-  return error instanceof BbHttpError && error.status === 409;
+  return error instanceof KaiokenHttpError && error.status === 409;
 }
 
 export function registerSettingsCommands(
@@ -154,7 +154,7 @@ export function registerSettingsCommands(
 ): void {
   const settings = program
     .command("settings")
-    .description("Inspect and update BB settings");
+    .description("Inspect and update Kaioken settings");
 
   settings
     .command("show")
@@ -171,16 +171,16 @@ export function registerSettingsCommands(
   settings
     .command("ai-services")
     .description(
-      "Show the AI-service settings (BB_INFERENCE, BB_INFERENCE_FALLBACK, BB_TRANSCRIPTION) and the plugin services they may name",
+      "Show the AI-service settings (KAIOKEN_INFERENCE, KAIOKEN_INFERENCE_FALLBACK, KAIOKEN_TRANSCRIPTION) and the plugin services they may name",
     )
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(async (opts: JsonOptions) => {
         const { aiServices } = await createCliBbSdk(getUrl()).system.config();
         if (outputJson(opts, aiServices)) return;
-        console.log(`BB_INFERENCE          ${aiServices.inference}`);
-        console.log(`BB_INFERENCE_FALLBACK ${aiServices.inferenceFallback}`);
-        console.log(`BB_TRANSCRIPTION      ${aiServices.transcription}`);
+        console.log(`KAIOKEN_INFERENCE          ${aiServices.inference}`);
+        console.log(`KAIOKEN_INFERENCE_FALLBACK ${aiServices.inferenceFallback}`);
+        console.log(`KAIOKEN_TRANSCRIPTION      ${aiServices.transcription}`);
         console.log("");
         if (aiServices.services.length === 0) {
           console.log("No plugin registers an AI service.");
@@ -419,7 +419,7 @@ export function registerSettingsCommands(
 
   settings
     .command("version")
-    .description("Check the running and latest BB versions")
+    .description("Check the running and latest Kaioken versions")
     .option("--force", "Bypass the latest-version cache")
     .option("--json", "Print machine-readable JSON output")
     .action(
@@ -434,7 +434,7 @@ export function registerSettingsCommands(
 
   settings
     .command("reload")
-    .description("Reload BB's managed configuration")
+    .description("Reload Kaioken's managed configuration")
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(async (opts: JsonOptions) => {

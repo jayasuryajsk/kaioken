@@ -7,10 +7,10 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import type { ThreadListEntry } from "@bb/domain";
+import type { ThreadListEntry } from "@kaioken/domain";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
-import { TooltipProvider } from "@bb/shared-ui/tooltip";
+import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
 import { Provider, createStore } from "jotai";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -18,8 +18,8 @@ import {
   ProjectRow,
   type ProjectThreadListState,
 } from "./ProjectRow";
-import { buildSidebarEntitySectionId } from "@bb/client-core";
-import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
+import { buildSidebarEntitySectionId } from "@kaioken/client-core";
+import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 import { makeProjectResponse } from "@/test/fixtures/projects";
 
 const mockUpdateEnvironment = vi.hoisted(() => ({
@@ -147,7 +147,7 @@ describe("ProjectRow interactions", () => {
     const trigger = screen.getByRole("button", {
       name: "Test project actions",
     });
-    const actions = trigger.closest(".bb-sidebar-hover-actions");
+    const actions = trigger.closest(".kaioken-sidebar-hover-actions");
     expect(actions?.getAttribute("data-sidebar-hover-actions-mobile")).toBe(
       "always",
     );
@@ -529,7 +529,7 @@ describe("ProjectRow interactions", () => {
       const createButton = screen.getByRole("button", {
         name: "New thread in environment",
       });
-      const actions = createButton.closest(".bb-sidebar-hover-actions");
+      const actions = createButton.closest(".kaioken-sidebar-hover-actions");
       expect(actions?.getAttribute("data-sidebar-hover-actions-mobile")).toBe(
         "always",
       );

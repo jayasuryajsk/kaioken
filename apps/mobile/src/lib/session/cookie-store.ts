@@ -1,4 +1,4 @@
-import type { DesktopSession } from "@bb/connect-client";
+import type { DesktopSession } from "@kaioken/connect-client";
 
 export interface SessionCookieSpec {
   name: string;

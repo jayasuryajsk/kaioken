@@ -3,7 +3,7 @@ import {
   transportErrorCode,
 } from "./upstream-transport.js";
 import path from "node:path";
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { registerPoolCli } from "./cli.js";
 import {
   accountPoolConfigSchema,
@@ -61,7 +61,7 @@ export function helloResponse(): Response {
 export function createAccountPoolPlugin(
   options: AccountPoolPluginOptions = {},
 ) {
-  return async function accountPoolPlugin(bb: BbPluginApi): Promise<void> {
+  return async function accountPoolPlugin(bb: KaiokenPluginApi): Promise<void> {
     let currentSettings = accountPoolConfigSchema.parse(
       (await bb.storage.kv.get("config")) ?? {},
     );
@@ -160,7 +160,7 @@ export function createAccountPoolPlugin(
     });
     if ((await accounts.list()).every((account) => !account.enabled)) {
       bb.status.needsConfiguration(
-        "Add and enable a Claude or Codex account with `bb pool account add`.",
+        "Add and enable a Claude or Codex account with `kaioken pool account add`.",
       );
     }
     bb.rpc.register(
@@ -316,7 +316,7 @@ export function createAccountPoolPlugin(
 }
 
 async function inspectDisableState(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   operations: PoolOperations,
 ): Promise<string | null> {
   const installed = await bb.sdk.plugins.list();
@@ -326,7 +326,7 @@ async function inspectDisableState(
   if (!disabled) return null;
   const warnings = await operations.routedThreadsWithoutLocalLogin();
   if (warnings.length === 0) return null;
-  return `Account Pooler disabled with ${warnings.length} recently routed thread${warnings.length === 1 ? "" : "s"} on machines without a local Claude login. Run bb pool status before disabling to inspect them.`;
+  return `Account Pooler disabled with ${warnings.length} recently routed thread${warnings.length === 1 ? "" : "s"} on machines without a local Claude login. Run kaioken pool status before disabling to inspect them.`;
 }
 
 export default createAccountPoolPlugin();

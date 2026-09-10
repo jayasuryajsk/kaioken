@@ -2,7 +2,7 @@ import {
   listAccountServers,
   type AccountServerWithUrl,
   type ConnectCredential,
-} from "@bb/connect-client";
+} from "@kaioken/connect-client";
 import { useCallback, useEffect, useState } from "react";
 import { describeEnrollmentError, type EnrollmentFailure } from "./enrollment";
 

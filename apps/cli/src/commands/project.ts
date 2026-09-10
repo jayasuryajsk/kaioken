@@ -5,7 +5,7 @@ import type {
   CreateProjectSourceRequest,
   ProjectResponse,
   UpdateProjectSourceRequest,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { action } from "../action.js";
 import { createCliBbSdk } from "../client.js";
 import { resolveLocalHostId } from "../daemon.js";

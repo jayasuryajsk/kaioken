@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { listPublicHosts } from "@bb/db";
+import { listPublicHosts } from "@kaioken/db";
 import type {
   PluginRpcContract,
   StandardSchemaV1,
   StandardSchemaV1Result,
-} from "@get-bb/plugin-sdk";
-import type { JsonValue } from "@bb/domain";
+} from "@get-kaioken/plugin-sdk";
+import type { JsonValue } from "@kaioken/domain";
 import { COMMAND_TIMEOUT_MS } from "../../constants.js";
 import type { WorkSessionDeps } from "../../types.js";
 import { callHostOnlineRpc } from "../hosts/online-rpc.js";

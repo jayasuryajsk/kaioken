@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import plugin, { buildCatalog, classifySelector, createCatalogLoader, parseThemeSwatches } from "./server";
 
 describe("classifySelector", () => {
@@ -86,7 +86,7 @@ describe("createCatalogLoader", () => {
         plugins: { list: async () => ({ plugins: [] }) },
       },
       log: { info() {}, warn() {} },
-    } as unknown as BbPluginApi;
+    } as unknown as KaiokenPluginApi;
 
     const catalogLoader = createCatalogLoader(bb);
     const first = catalogLoader.catalog();
@@ -118,7 +118,7 @@ describe("createCatalogLoader", () => {
           plugins: { list: async () => ({ plugins: [] }) },
         },
         log: { info() {}, warn },
-      } as unknown as BbPluginApi;
+      } as unknown as KaiokenPluginApi;
 
       const catalogLoader = createCatalogLoader(bb);
       const failed = catalogLoader.catalog().catch((error: unknown) => error);
@@ -161,7 +161,7 @@ describe("createCatalogLoader", () => {
           },
         },
         log: { info() {}, warn },
-      } as unknown as BbPluginApi;
+      } as unknown as KaiokenPluginApi;
 
       const catalogLoader = createCatalogLoader(bb);
       const degraded = catalogLoader.catalog();
@@ -200,7 +200,7 @@ describe("createCatalogLoader", () => {
         },
       },
       log: { info() {}, warn() {} },
-    } as unknown as BbPluginApi;
+    } as unknown as KaiokenPluginApi;
 
     const catalogLoader = createCatalogLoader(bb);
     await catalogLoader.catalog();
@@ -241,7 +241,7 @@ describe("createCatalogLoader", () => {
         plugins: { list: async () => ({ plugins: [] }) },
       },
       log: { info() {}, warn() {} },
-    } as unknown as BbPluginApi;
+    } as unknown as KaiokenPluginApi;
 
     const catalogLoader = createCatalogLoader(bb);
     const first = catalogLoader.setTheme("theme-a");
@@ -283,7 +283,7 @@ describe("createCatalogLoader", () => {
         },
       },
       log: { info() {}, warn() {} },
-    } as unknown as BbPluginApi;
+    } as unknown as KaiokenPluginApi;
 
     const catalogLoader = createCatalogLoader(bb);
     const stale = catalogLoader.catalog();
@@ -314,7 +314,7 @@ describe("createCatalogLoader", () => {
         plugins: { list: async () => ({ plugins: [] }) },
       },
       log: { info() {}, warn() {} },
-    } as unknown as BbPluginApi;
+    } as unknown as KaiokenPluginApi;
 
     try {
       const loader = createCatalogLoader(bb);
@@ -354,7 +354,7 @@ describe("theme watcher", () => {
       },
       rpc: { register() {} },
       log: { info() {}, warn() {} },
-    } as unknown as BbPluginApi;
+    } as unknown as KaiokenPluginApi;
 
     await plugin(bb);
     const controller = new AbortController();
@@ -378,7 +378,7 @@ describe("RPC registration", () => {
         },
       },
       log: { info() {}, warn() {} },
-    } as unknown as BbPluginApi;
+    } as unknown as KaiokenPluginApi;
 
     await plugin(bb);
 
@@ -405,7 +405,7 @@ describe("buildCatalog", () => {
     );
     expect(out.activeThemeId).toBe("default");
     expect(out.themes.map((t) => t.id).slice(0, 3)).toEqual(["endless", "plugin:endless:endless-color", "default"]);
-    // bundled palettes carry swatches extracted from bb's source
+    // bundled palettes carry swatches extracted from kaioken's source
     const nord = out.themes.find((t) => t.id === "nord");
     expect(nord?.dark?.primary).toBe("#88c0d0");
     expect(nord?.light?.canvas).toBe("#eceff4");

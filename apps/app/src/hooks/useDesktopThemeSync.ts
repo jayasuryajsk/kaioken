@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { getBbDesktopInfo } from "@/lib/bb-desktop";
+import { getBbDesktopInfo } from "@/lib/kaioken-desktop";
 import { useThemePreference } from "./useTheme";
 
 export function useDesktopThemeSync(): void {

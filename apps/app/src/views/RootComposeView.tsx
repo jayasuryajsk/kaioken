@@ -13,11 +13,11 @@ import {
   type ReasoningLevel,
   type ServiceTier,
   type ThreadListEntry,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   SidebarBootstrapResponse,
   TerminalSession,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   NewThreadComposer,
   type NewThreadComposerState,
@@ -30,7 +30,7 @@ import {
   useProviderCliInstallRunner,
 } from "@/components/provider-cli/provider-cli-install";
 import { providerCliJobKey } from "@/components/provider-cli/provider-cli-install-store";
-import { PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID } from "@bb/client-core";
+import { PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID } from "@kaioken/client-core";
 import {
   encodeProviderValue,
   encodeReuseValue,
@@ -52,14 +52,14 @@ import {
   preloadThreadSecondaryPanel,
 } from "@/components/secondary-panel/lazySecondaryPanelComponents";
 import type { BrowserAddressFocusRequest } from "@/components/secondary-panel/BrowserTabContent";
-import { EmptyStatePanel } from "@bb/shared-ui/empty-state";
-import { Icon } from "@bb/shared-ui/icon";
+import { EmptyStatePanel } from "@kaioken/shared-ui/empty-state";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { PageShell } from "@/components/ui/page-shell.js";
 import { RouteLoadingSkeleton } from "@/components/ui/route-loading-skeleton";
-import { Button } from "@bb/shared-ui/button";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
-import { usePointerCoarse } from "@bb/shared-ui/hooks/use-pointer-coarse";
-import { COARSE_POINTER_COMPACT_ICON_SIZE_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
+import { Button } from "@kaioken/shared-ui/button";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
+import { usePointerCoarse } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
+import { COARSE_POINTER_COMPACT_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
 import { PluginIcon } from "@/components/plugin/PluginIcon";
 import type { FileOpenerOverride } from "@/lib/plugin-slot-resolvers";
 import { usePluginNewThreadPanelActions } from "@/components/plugin/PluginPanelActions";
@@ -82,16 +82,16 @@ import {
 import { PluginComposerHostProvider } from "@/components/plugin/plugin-composer-host";
 import type { PromptMentionLinkResolver } from "@/components/promptbox/editor/prompt-mention-link";
 import { useQuickCreateProjectController } from "@/hooks/useQuickCreateProject";
-import type { PromptDraftAttachment } from "@bb/client-core";
+import type { PromptDraftAttachment } from "@kaioken/client-core";
 import {
   buildForkThreadRequest,
   FORK_THREAD_CREATE_SEED_LOCATION_STATE_KEY,
   type ForkThreadCreateSeed,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   buildThreadHandoffPromptDraft,
   readThreadHandoffCreateSeedFromLocationState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { useNavigateToThreadAfterCreatePreference } from "@/lib/root-compose-create-preference";
 import {
   readInitialPromptFromSearch,
@@ -107,7 +107,7 @@ import { getBrowserUrlHost } from "@/lib/browser-url";
 import {
   getDesktopBrowserApi,
   isDesktopBrowserAvailable,
-} from "@/lib/bb-desktop";
+} from "@/lib/kaioken-desktop";
 import {
   useFixedPanelTabsState,
   useFixedPanelTabsStorageMaintenance,
@@ -121,7 +121,7 @@ import type {
   HostFileTabState,
   ThreadStorageFileTabState,
   WorkspaceFileTabState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   resolveUrlOpenTarget,
   useOpenLinksInAppBrowserPreference,
@@ -156,7 +156,7 @@ import {
   useThreadFileTabs,
   type FileSearchSelection,
 } from "@/components/secondary-panel/useThreadFileTabs";
-import { isSecondaryFileTab } from "@bb/client-core";
+import { isSecondaryFileTab } from "@kaioken/client-core";
 import { RightPanelFileTabIcon } from "@/components/secondary-panel/RightPanelFileTabIcon";
 import {
   DEFAULT_TERMINAL_COLS,

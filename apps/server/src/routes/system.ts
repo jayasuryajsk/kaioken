@@ -9,7 +9,7 @@ import {
   setAppKeybindingOverrides,
   setExperiments,
   setStoredAppearance,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   applyAppKeybindingOverrides,
   appSettingsSchema,
@@ -19,12 +19,12 @@ import {
   resolveCodeTheme,
   type AppKeybindingOverrides,
   type AppTheme,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   publicApiRoutes,
   typedRoutes,
   type PublicApiSchema,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type { Hono } from "hono";
 import { pluginImageResponse } from "./plugin-image-response.js";
 import {
@@ -306,7 +306,7 @@ export function registerSystemRoutes(
 
   post(routes.reloadConfig, async (context) => {
     try {
-      await deps.bbAppManagedConfig.reload({ notify: true });
+      await deps.kaiokenAppManagedConfig.reload({ notify: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new ApiError(422, "invalid_config", message);

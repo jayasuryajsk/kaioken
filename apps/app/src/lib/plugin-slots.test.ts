@@ -3,7 +3,7 @@ import type {
   PluginHomepageSectionProps,
   PluginMessageDirectiveProps,
   PluginNavPanelProps,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import {
   beginPluginSlotBatch,
   getPluginSlotSnapshot,

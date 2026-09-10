@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import type { ThreadEvent } from "@bb/domain";
-import { threadScope, turnScope } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
+import { threadScope, turnScope } from "@kaioken/domain";
 import type { AgentSessionEvent } from "@earendil-works/pi-coding-agent";
 import {
   getBuiltinModels,
@@ -12,7 +12,7 @@ import {
 import {
   createDeltaAssembler,
   type DeltaAssembler,
-} from "@bb/provider-bridge-protocol/assembler";
+} from "@kaioken/provider-bridge-protocol/assembler";
 import {
   createPiDeltaTranslator,
   createPiModelContextWindowResolverFrom,
@@ -26,7 +26,7 @@ const builtinCatalogResolver = createPiModelContextWindowResolverFrom(
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = resolve(__dirname, "./__fixtures__/pi");
 
-const THREAD_ID = "bb-thread-1";
+const THREAD_ID = "kaioken-thread-1";
 const ENTROPY = "pi-test";
 const TURN_ID_PATTERN = /^pi-test-t\d+$/;
 const ITEM_ID_PATTERN = /^pi-test-i\d+$/;
@@ -181,7 +181,7 @@ function agentMessageDeltaId(events: ThreadEvent[]): string | undefined {
 }
 
 describe("pi delta translation equivalence", () => {
-  it("keeps turn_start as internal noise while agent_start owns the bb turn", () => {
+  it("keeps turn_start as internal noise while agent_start owns the kaioken turn", () => {
     const harness = createHarness();
     harness.translate(loadFixture("agent-start.json"));
 
@@ -192,7 +192,7 @@ describe("pi delta translation equivalence", () => {
     expect(events).toEqual([]);
   });
 
-  it("agent_start opens exactly one bb turn", () => {
+  it("agent_start opens exactly one kaioken turn", () => {
     const harness = createHarness();
     const events = harness.translate(loadFixture("agent-start.json"));
     expect(events).toEqual([

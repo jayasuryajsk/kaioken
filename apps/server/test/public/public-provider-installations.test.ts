@@ -1,10 +1,10 @@
 import type {
   HostDaemonOnlineRpcRequestMessage,
   ProviderCliStatusResponse,
-} from "@bb/host-daemon-contract";
-import { systemProviderInfoSchema } from "@bb/server-contract";
-import { DEFAULT_BB_REQUEST_TIMEOUT_MS } from "@bb/sdk";
-import { validatePluginProviderDeclaration } from "@get-bb/plugin-sdk/internal/host-policy";
+} from "@kaioken/host-daemon-contract";
+import { systemProviderInfoSchema } from "@kaioken/server-contract";
+import { DEFAULT_KAIOKEN_REQUEST_TIMEOUT_MS } from "@kaioken/sdk";
+import { validatePluginProviderDeclaration } from "@get-kaioken/plugin-sdk/internal/host-policy";
 import { describe, expect, it, vi } from "vitest";
 import { COMMAND_TIMEOUT_MS } from "../../src/constants.js";
 import { buildPluginProviderRegistration } from "../../src/services/providers/plugin-provider-registration.js";
@@ -315,7 +315,7 @@ describe("public provider installation routes", () => {
 
     await expect(responsePromise).resolves.toEqual({});
     expect(now).toBe(PROVIDER_INSTALLATION_STATUS_TIMEOUT_MS);
-    expect(now).toBeLessThan(DEFAULT_BB_REQUEST_TIMEOUT_MS);
+    expect(now).toBeLessThan(DEFAULT_KAIOKEN_REQUEST_TIMEOUT_MS);
     expect(statusTimeouts).toHaveLength(expectedStatusRequestCount);
     expect(statusTimeouts.some((timeout) => timeout < COMMAND_TIMEOUT_MS)).toBe(
       true,

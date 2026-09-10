@@ -26,8 +26,8 @@ async function git(cwd: string, ...args: string[]): Promise<void> {
 async function initRepo(dir: string): Promise<void> {
   await fs.mkdir(dir, { recursive: true });
   await git(dir, "init", "-q", "-b", "main");
-  await git(dir, "config", "user.name", "BB Tests");
-  await git(dir, "config", "user.email", "bb@example.com");
+  await git(dir, "config", "user.name", "Kaioken Tests");
+  await git(dir, "config", "user.email", "kaioken@example.com");
   await fs.writeFile(path.join(dir, "README.md"), "hello\n");
   await git(dir, "add", "README.md");
   await git(dir, "commit", "-q", "-m", "init");
@@ -41,7 +41,7 @@ async function buildUmbrellaRoot(args: {
   root: string;
   nestedDirCount: number;
 }> {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "bb-1779-umbrella-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-1779-umbrella-"));
   tempDirs.push(root);
   if (args.gitRoot) {
     await initRepo(root);
@@ -188,7 +188,7 @@ describe("workspace root watch events inside nested heavy directories (#1779)", 
         "apps",
         "child-0",
         ".git",
-        "bb-marker",
+        "kaioken-marker",
       );
       const visibleFile = path.join(realRoot, "apps", "child-0", "visible.txt");
       const events: WorkspaceStatusChangeEvent[] = [];

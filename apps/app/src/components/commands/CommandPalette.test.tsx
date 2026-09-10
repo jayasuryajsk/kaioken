@@ -14,8 +14,8 @@ import {
   type AppCommandId,
   type AppDefaultKeybinding,
   type AppKeybinding,
-} from "@bb/domain";
-import { CompactViewportOverrideProvider } from "@bb/shared-ui/hooks/use-compact-viewport";
+} from "@kaioken/domain";
+import { CompactViewportOverrideProvider } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import { AppCommandProvider, useAppCommandHandler } from "./AppCommandProvider";
 import {
   removePluginSlotRegistrations,
@@ -113,7 +113,7 @@ vi.mock("@/hooks/queries/system-queries", () => ({
   }),
 }));
 
-vi.mock("@/lib/bb-desktop", () => ({
+vi.mock("@/lib/kaioken-desktop", () => ({
   getBbDesktopInfo: () => null,
 }));
 

@@ -1,4 +1,4 @@
-import type { TimelineRow } from "@bb/server-contract";
+import type { TimelineRow } from "@kaioken/server-contract";
 import { describe, expect, it } from "vitest";
 import {
   createTimelineEventFactory,
@@ -312,7 +312,7 @@ describe("completed turn summary rendering", () => {
         turnId: "turn-3",
       }),
       event.commandCompleted({
-        command: "pnpm exec turbo run test --filter=@bb/thread-view",
+        command: "pnpm exec turbo run test --filter=@kaioken/thread-view",
         itemId: "tool-3",
         turnId: "turn-3",
       }),
@@ -366,7 +366,7 @@ describe("completed turn summary rendering", () => {
       }),
       event.commandCompleted({
         itemId: "tool-after-steer",
-        command: "sqlite3 ~/.bb-dev/bb.db '.tables'",
+        command: "sqlite3 ~/.kaioken-dev/kaioken.db '.tables'",
       }),
       event.assistantCompleted({
         itemId: "assistant-1",
@@ -594,7 +594,7 @@ describe("completed turn summary rendering", () => {
       }),
       event.commandCompleted({
         itemId: "tool-after-steer",
-        command: "sqlite3 ~/.bb-dev/bb.db '.tables'",
+        command: "sqlite3 ~/.kaioken-dev/kaioken.db '.tables'",
       }),
       event.assistantCompleted({
         itemId: "assistant-1",
@@ -633,7 +633,7 @@ describe("completed turn summary rendering", () => {
       initiator: "system",
       senderThreadId: null,
       target: { kind: "auto", expectedTurnId: "turn-1" },
-      text: "[bb system] Continue after reconnect.",
+      text: "[kaioken system] Continue after reconnect.",
     });
     events.push(
       steerRequest,
@@ -642,7 +642,7 @@ describe("completed turn summary rendering", () => {
       }),
       event.commandCompleted({
         itemId: "tool-after-steer",
-        command: "sqlite3 ~/.bb-dev/bb.db '.tables'",
+        command: "sqlite3 ~/.kaioken-dev/kaioken.db '.tables'",
       }),
       event.assistantCompleted({
         itemId: "assistant-1",

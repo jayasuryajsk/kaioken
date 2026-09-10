@@ -44,7 +44,7 @@ describe("process utils", () => {
       "uncaughtExceptionMonitor",
     );
     const logsDir = join(
-      mkdtempSync(join(tmpdir(), "bb-process-utils-report-")),
+      mkdtempSync(join(tmpdir(), "kaioken-process-utils-report-")),
       "logs",
     );
 
@@ -76,7 +76,7 @@ describe("process utils", () => {
 
   it("writes env-safe diagnostic reports", () => {
     const logsDir = join(
-      mkdtempSync(join(tmpdir(), "bb-process-utils-report-")),
+      mkdtempSync(join(tmpdir(), "kaioken-process-utils-report-")),
       "logs",
     );
     const originalOpenAiApiKey = process.env.OPENAI_API_KEY;
@@ -110,7 +110,7 @@ describe("process utils", () => {
 
   it("writes nested error causes", () => {
     const logsDir = join(
-      mkdtempSync(join(tmpdir(), "bb-process-utils-report-")),
+      mkdtempSync(join(tmpdir(), "kaioken-process-utils-report-")),
       "logs",
     );
     const connectionError = new Error("connect ECONNREFUSED 127.0.0.1:38886");
@@ -141,7 +141,7 @@ describe("process utils", () => {
 
   it("truncates cyclic error causes", () => {
     const logsDir = join(
-      mkdtempSync(join(tmpdir(), "bb-process-utils-report-")),
+      mkdtempSync(join(tmpdir(), "kaioken-process-utils-report-")),
       "logs",
     );
     const firstError = new Error("first");
@@ -174,7 +174,7 @@ describe("process utils", () => {
 
   it("truncates error causes that exceed the depth limit", () => {
     const logsDir = join(
-      mkdtempSync(join(tmpdir(), "bb-process-utils-report-")),
+      mkdtempSync(join(tmpdir(), "kaioken-process-utils-report-")),
       "logs",
     );
     const rootError = new Error("cause-0");
@@ -202,7 +202,7 @@ describe("process utils", () => {
 
   it("writes bounded AggregateError details", () => {
     const logsDir = join(
-      mkdtempSync(join(tmpdir(), "bb-process-utils-report-")),
+      mkdtempSync(join(tmpdir(), "kaioken-process-utils-report-")),
       "logs",
     );
     const connectionErrors = Array.from({ length: 10 }, (_, index) => {
@@ -278,10 +278,10 @@ describe("process utils", () => {
     ).toBeNull();
   });
 
-  it("scrubs inherited bb runtime env vars and node mode", () => {
+  it("scrubs inherited kaioken runtime env vars and node mode", () => {
     const env: NodeJS.ProcessEnv = {
-      BB_DATA_DIR: "/tmp/bb-data",
-      BB_HOST_DAEMON_PORT: "38887",
+      KAIOKEN_DATA_DIR: "/tmp/kaioken-data",
+      KAIOKEN_HOST_DAEMON_PORT: "38887",
       NODE_ENV: "development",
       NODE_OPTIONS: "--enable-source-maps",
       OPENAI_API_KEY: "external-secret",
@@ -300,7 +300,7 @@ describe("process utils", () => {
 
   it("does not mutate the inherited env", () => {
     const env: NodeJS.ProcessEnv = {
-      BB_DATA_DIR: "/tmp/bb-data",
+      KAIOKEN_DATA_DIR: "/tmp/kaioken-data",
       NODE_ENV: "development",
       PATH: "/bin",
     };

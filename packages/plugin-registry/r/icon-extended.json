@@ -3,13 +3,13 @@
   "name": "icon-extended",
   "type": "registry:ui",
   "title": "icon-extended",
-  "description": "BB ui \"icon-extended\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"icon-extended\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@hugeicons/core-free-icons",
     "@hugeicons/react"
   ],
   "registryDependencies": [
-    "@bb/icon-registry"
+    "@kaioken/icon-registry"
   ],
   "files": [
     {

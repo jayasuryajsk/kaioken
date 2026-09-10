@@ -7,10 +7,10 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { TooltipProvider } from "@bb/shared-ui/tooltip";
-import type { BbDesktopInfo } from "@bb/desktop-contract";
+import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
+import type { KaiokenDesktopInfo } from "@kaioken/desktop-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createBbDesktopApi } from "@/test/bb-desktop-test-utils";
+import { createBbDesktopApi } from "@/test/kaioken-desktop-test-utils";
 import { focusWithKeyboard } from "@/test/keyboard-focus";
 import { useIsBrowserDimmingModalOpen } from "@/hooks/useBrowserDimmingModal";
 import { PaneContext, type PaneContextValue } from "./PaneContext";
@@ -68,7 +68,7 @@ function renderButton(
 
 afterEach(() => {
   cleanup();
-  delete window.bbDesktop;
+  delete window.kaiokenDesktop;
 });
 
 describe("PaneMaximizeButton", () => {
@@ -110,7 +110,7 @@ describe("PaneMaximizeButton", () => {
     expect(onToggle).toHaveBeenCalledOnce();
   });
 
-  it("shows only BB's supported split arrangement actions on hover", async () => {
+  it("shows only Kaioken's supported split arrangement actions on hover", async () => {
     const onMoveToSide = vi.fn();
     renderButton(false, noop, onMoveToSide);
     const button = screen.getByRole("button", {
@@ -180,7 +180,7 @@ describe("PaneMaximizeButton", () => {
   });
 
   it("preserves full-screen copy in every desktop app context", async () => {
-    const desktopInfo: BbDesktopInfo = {
+    const desktopInfo: KaiokenDesktopInfo = {
       lastCheckedAt: null,
       latestVersion: null,
       pendingVersion: null,
@@ -189,7 +189,7 @@ describe("PaneMaximizeButton", () => {
       updateDownloaded: false,
       version: "0.0.0-test",
     };
-    window.bbDesktop = createBbDesktopApi(desktopInfo);
+    window.kaiokenDesktop = createBbDesktopApi(desktopInfo);
     renderButton(false);
 
     const button = screen.getByRole("button", {
@@ -204,7 +204,7 @@ describe("PaneMaximizeButton", () => {
   });
 
   it("hides the native desktop browser while the arrangement menu can cover it", async () => {
-    const desktopInfo: BbDesktopInfo = {
+    const desktopInfo: KaiokenDesktopInfo = {
       lastCheckedAt: null,
       latestVersion: null,
       pendingVersion: null,
@@ -213,7 +213,7 @@ describe("PaneMaximizeButton", () => {
       updateDownloaded: false,
       version: "0.0.0-test",
     };
-    window.bbDesktop = createBbDesktopApi(desktopInfo);
+    window.kaiokenDesktop = createBbDesktopApi(desktopInfo);
     renderButton(false);
     expect(screen.getByTestId("browser-overlay-state").textContent).toBe(
       "visible",

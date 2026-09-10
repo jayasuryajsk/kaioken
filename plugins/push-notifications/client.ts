@@ -6,12 +6,12 @@ import {
 export type ClientChannel = "web" | "desktop";
 
 export function clientChannel(): ClientChannel | null {
-  if ("bbDesktop" in window) return "desktop";
+  if ("kaiokenDesktop" in window) return "desktop";
   if (
-    "bb" in window &&
-    typeof window.bb === "object" &&
-    window.bb !== null &&
-    "native" in window.bb
+    "kaioken" in window &&
+    typeof window.kaioken === "object" &&
+    window.kaioken !== null &&
+    "native" in window.kaioken
   )
     return null;
   return "web";
@@ -32,17 +32,17 @@ export function createClientDelivery(navigate: (threadId: string) => void) {
   function display(message: ClientNotification): void {
     if (disposed || notificationPermission() !== "granted") return;
     const isMacDesktop =
-      "bbDesktop" in window &&
-      typeof window.bbDesktop === "object" &&
-      window.bbDesktop !== null &&
-      "platform" in window.bbDesktop &&
-      window.bbDesktop.platform === "macos";
+      "kaiokenDesktop" in window &&
+      typeof window.kaiokenDesktop === "object" &&
+      window.kaiokenDesktop !== null &&
+      "platform" in window.kaiokenDesktop &&
+      window.kaiokenDesktop.platform === "macos";
     const notification = new Notification(message.title, {
       body: message.body,
       ...(isMacDesktop
         ? {}
         : { icon: new URL("/icon-192.png", window.location.origin).href }),
-      tag: `bb-${message.threadId ?? message.id}`,
+      tag: `kaioken-${message.threadId ?? message.id}`,
     });
     active.add(notification);
     notification.onclose = () => active.delete(notification);
@@ -92,7 +92,7 @@ export function createClientDelivery(navigate: (threadId: string) => void) {
       }
     };
     if (navigator.locks)
-      await navigator.locks.request(`bb-notifications-${channel}`, claim);
+      await navigator.locks.request(`kaioken-notifications-${channel}`, claim);
     else claim();
   }
 

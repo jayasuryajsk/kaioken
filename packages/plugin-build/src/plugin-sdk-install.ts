@@ -2,7 +2,7 @@ import { readFile, stat } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { isRecord } from "./plugin-manifest.js";
 
-export const PLUGIN_SDK_PACKAGE_NAME = "@get-bb/plugin-sdk";
+export const PLUGIN_SDK_PACKAGE_NAME = "@get-kaioken/plugin-sdk";
 
 export async function pathExists(path: string): Promise<boolean> {
   try {

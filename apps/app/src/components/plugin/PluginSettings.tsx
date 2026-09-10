@@ -2,27 +2,27 @@ import { useEffect, useId, useState, type FocusEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { appToast } from "@/components/ui/app-toast.js";
 import { PluginSettingsSections } from "@/components/plugin/PluginSettingsSections";
-import { Button } from "@bb/shared-ui/button";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
-import { Icon } from "@bb/shared-ui/icon";
-import { Input } from "@bb/shared-ui/input";
-import { Textarea } from "@bb/shared-ui/textarea";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { Input } from "@kaioken/shared-ui/input";
+import { Textarea } from "@kaioken/shared-ui/textarea";
 import { Link } from "react-router-dom";
 import { SettingsWithControl } from "@/components/ui/settings-section.js";
 import { getPluginDetailRoutePath } from "@/lib/route-paths";
-import { Skeleton } from "@bb/shared-ui/skeleton";
-import { Switch } from "@bb/shared-ui/switch";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
+import { Switch } from "@kaioken/shared-ui/switch";
 import {
   ResourceDetailConfigurationSection,
   ResourceDetailOverviewSection,
   ResourceDetailPanel,
   ResourceDetailStack,
-} from "@bb/shared-ui/resource-detail";
+} from "@kaioken/shared-ui/resource-detail";
 import { PluginIcon } from "@/components/plugin/PluginIcon";
 import {
   applyPluginSettingsView,

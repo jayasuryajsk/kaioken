@@ -1,5 +1,5 @@
 import http from "node:http";
-import { createNodeBbSdk } from "@bb/sdk/node";
+import { createNodeBbSdk } from "@kaioken/sdk/node";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   startTestServer,
@@ -52,7 +52,7 @@ function rawStatus(
 }
 
 describe("/api/v1 browser origin guard", () => {
-  it("passes callers that send no Origin: curl, the bb CLI, and the SDK", async () => {
+  it("passes callers that send no Origin: curl, the kaioken CLI, and the SDK", async () => {
     server = await startTestServer();
 
     expect(await statusFor(server.baseUrl)).toBe(200);
@@ -136,7 +136,7 @@ describe("/api/v1 browser origin guard", () => {
     ).toBe(403);
   });
 
-  it("accepts bb served over a LAN address or Tailscale Serve", async () => {
+  it("accepts kaioken served over a LAN address or Tailscale Serve", async () => {
     server = await startTestServer();
     const port = new URL(server.baseUrl).port;
 

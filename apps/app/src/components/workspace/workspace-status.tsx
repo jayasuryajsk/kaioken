@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
-import { assertNever } from "@bb/core-ui";
-import type { WorkspaceStatus } from "@bb/domain";
-import type { WorkspaceResolutionFailure } from "@bb/host-daemon-contract";
-import { BbHttpError } from "@bb/sdk/browser";
+import { assertNever } from "@kaioken/core-ui";
+import type { WorkspaceStatus } from "@kaioken/domain";
+import type { WorkspaceResolutionFailure } from "@kaioken/host-daemon-contract";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 import { describeLifecycleError } from "@/lib/lifecycle-errors";
 
 export interface ThreadGitStatusDisplay {
@@ -85,7 +85,7 @@ export function getGitStatusDisplay(
     }
 
     const isPathNotFound =
-      options?.error instanceof BbHttpError &&
+      options?.error instanceof KaiokenHttpError &&
       options.error.code === "path_not_found";
     if (options?.workspaceDeleted || isPathNotFound) {
       return plainDisplay("Unknown", "Workspace not found.");

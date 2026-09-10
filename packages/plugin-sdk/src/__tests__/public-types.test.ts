@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, expectTypeOf, it } from "vitest";
-import type { BbPluginApi } from "../index.js";
+import type { KaiokenPluginApi } from "../index.js";
 
 type ExpectedBbPluginApiKey =
   | "agents"
@@ -26,7 +26,7 @@ type ExpectedBbPluginApiKey =
   | "ui";
 
 const EXPECTED_BACKEND_ROOT_TYPE_EXPORTS = [
-  "BbPluginApi",
+  "KaiokenPluginApi",
   "MessageDispatchHookContext",
   "MessageDispatchHookDecision",
   "PluginAgents",
@@ -184,15 +184,15 @@ function rootExportNames(
 }
 
 describe("backend plugin SDK public surface", () => {
-  it("snapshots every BbPluginApi root member", () => {
-    expectTypeOf<keyof BbPluginApi>().toEqualTypeOf<ExpectedBbPluginApiKey>();
+  it("snapshots every KaiokenPluginApi root member", () => {
+    expectTypeOf<keyof KaiokenPluginApi>().toEqualTypeOf<ExpectedBbPluginApiKey>();
   });
 
   it("keeps every backend contract export in the root declaration bundle", async () => {
     const [backendContract, declarations] = await Promise.all([
       readFile(new URL("../backend-contract.ts", import.meta.url), "utf8"),
       readFile(
-        new URL("../../bundled-types/bb-plugin-sdk.d.ts", import.meta.url),
+        new URL("../../bundled-types/kaioken-plugin-sdk.d.ts", import.meta.url),
         "utf8",
       ),
     ]);
@@ -223,7 +223,7 @@ describe("backend plugin SDK public surface", () => {
     const [rpcContract, declarations] = await Promise.all([
       readFile(new URL("../rpc-contract.ts", import.meta.url), "utf8"),
       readFile(
-        new URL("../../bundled-types/bb-plugin-sdk.d.ts", import.meta.url),
+        new URL("../../bundled-types/kaioken-plugin-sdk.d.ts", import.meta.url),
         "utf8",
       ),
     ]);
@@ -252,7 +252,7 @@ describe("backend plugin SDK public surface", () => {
     const [hostContract, declarations] = await Promise.all([
       readFile(new URL("../host-contract.ts", import.meta.url), "utf8"),
       readFile(
-        new URL("../../bundled-types/bb-plugin-sdk.d.ts", import.meta.url),
+        new URL("../../bundled-types/kaioken-plugin-sdk.d.ts", import.meta.url),
         "utf8",
       ),
     ]);

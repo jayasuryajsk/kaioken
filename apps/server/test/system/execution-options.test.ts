@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { getAppSettings, setAppSettings } from "@bb/db";
+import { getAppSettings, setAppSettings } from "@kaioken/db";
 import {
   hostDaemonServerWsMessageSchema,
   type HostDaemonOnlineRpcRequestMessage,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import {
   appendCustomModels,
   listSystemProviderInfos,

@@ -3,13 +3,13 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createStore } from "jotai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { BbHttpError } from "@bb/sdk/browser";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 import {
   defaultUiPreferences,
   type UiPreferenceKey,
   type UiPreferenceValue,
-} from "@bb/domain";
-import type { UiPreferencesResponse } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { UiPreferencesResponse } from "@kaioken/server-contract";
 import {
   getCachedUiPreferences,
   setCachedUiPreferences,
@@ -30,9 +30,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/sdk", async () => {
-  const actual = await import("@bb/sdk/browser");
+  const actual = await import("@kaioken/sdk/browser");
   return {
-    BbHttpError: actual.BbHttpError,
+    KaiokenHttpError: actual.KaiokenHttpError,
     sdk: {
       system: {
         uiPreferences: {
@@ -65,8 +65,8 @@ function serverResponse(
   return { preferences: { ...preferences, ...overrides } };
 }
 
-function conflict(currentRevision: number): BbHttpError {
-  return new BbHttpError({
+function conflict(currentRevision: number): KaiokenHttpError {
+  return new KaiokenHttpError({
     body: { code: "ui_preference_conflict", details: { currentRevision } },
     code: "ui_preference_conflict",
     message: "UI preference changed on another client",

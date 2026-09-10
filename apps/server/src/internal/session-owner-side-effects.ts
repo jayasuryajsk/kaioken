@@ -5,8 +5,8 @@ import {
   listActiveHostThreads,
   listHostThreadIds,
   type HostDaemonSessionRow,
-} from "@bb/db";
-import type { HostDaemonActiveThread } from "@bb/host-daemon-contract";
+} from "@kaioken/db";
+import type { HostDaemonActiveThread } from "@kaioken/host-daemon-contract";
 import {
   DAEMON_ACTIVE_WORK_DISCONNECT_GRACE_MS,
   DAEMON_DISCONNECT_GRACE_MS,

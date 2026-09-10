@@ -32,7 +32,7 @@ function parseArgs() {
       const nextArg = process.argv[index + 1];
       if (nextArg !== "env" && nextArg !== "json") {
         throw new Error(
-          "Usage: pnpm --filter @bb/qa standalone:start --format json|env",
+          "Usage: pnpm --filter @kaioken/qa standalone:start --format json|env",
         );
       }
       format = nextArg;
@@ -41,7 +41,7 @@ function parseArgs() {
     }
 
     throw new Error(
-      "Usage: pnpm --filter @bb/qa standalone:start --format json|env",
+      "Usage: pnpm --filter @kaioken/qa standalone:start --format json|env",
     );
   }
 
@@ -57,9 +57,9 @@ async function main() {
     fallbackPid: process.ppid,
   });
 
-  const tmpRoot = await fs.mkdtemp(path.join(tmpdir(), "bb-standalone-"));
+  const tmpRoot = await fs.mkdtemp(path.join(tmpdir(), "kaioken-standalone-"));
   const logsDir = path.join(tmpRoot, "logs");
-  const bbRoot = path.join(tmpRoot, "bb-root");
+  const kaiokenRoot = path.join(tmpRoot, "kaioken-root");
   const serverDataDir = path.join(tmpRoot, "server-data");
   const projectRoot = path.join(tmpRoot, "repos", "test-project");
   const statePath = path.join(tmpRoot, "standalone-state.json");
@@ -102,11 +102,11 @@ async function main() {
       env: buildStandaloneRuntimeEnv({
         baseEnv: standaloneBaseEnv,
         overrides: {
-          BB_DATA_DIR: bbRoot,
-          BB_HOST_DAEMON_PORT: String(daemonPort),
-          BB_HOST_ENROLL_KEY: enrollKey.enrollKey,
-          BB_HOST_ID: enrollKey.hostId,
-          BB_SERVER_URL: serverUrl,
+          KAIOKEN_DATA_DIR: kaiokenRoot,
+          KAIOKEN_HOST_DAEMON_PORT: String(daemonPort),
+          KAIOKEN_HOST_ENROLL_KEY: enrollKey.enrollKey,
+          KAIOKEN_HOST_ID: enrollKey.hostId,
+          KAIOKEN_SERVER_URL: serverUrl,
           [STANDALONE_INSTANCE_ENV]: instanceId,
           [STANDALONE_PARENT_PID_ENV]: String(parentPid),
         },
@@ -121,14 +121,14 @@ async function main() {
     });
 
     const cleanupCommand =
-      `pnpm --silent --dir ${shellQuote(repoRoot)} --filter @bb/qa standalone:stop ` +
+      `pnpm --silent --dir ${shellQuote(repoRoot)} --filter @kaioken/qa standalone:stop ` +
       `--state ${shellQuote(statePath)} && ` +
-      `pnpm --silent --dir ${shellQuote(repoRoot)} --filter @bb/qa standalone:cleanup`;
+      `pnpm --silent --dir ${shellQuote(repoRoot)} --filter @kaioken/qa standalone:cleanup`;
     const restartDaemonCommand = buildDaemonRestartCommand({
       cwd: repoRoot,
       daemonPid: daemonProcess.pid,
       daemonPort,
-      dataDir: bbRoot,
+      dataDir: kaiokenRoot,
       entrypoint: path.join(repoRoot, "apps/host-daemon/dist/index.js"),
       envFilePath: envFile.path,
       hostId: host.id,
@@ -140,9 +140,9 @@ async function main() {
     });
 
     const cliEnv = {
-      BB_HOST_DAEMON_PORT: String(daemonPort),
-      BB_PROJECT_ID: project.id,
-      BB_SERVER_URL: serverUrl,
+      KAIOKEN_HOST_DAEMON_PORT: String(daemonPort),
+      KAIOKEN_PROJECT_ID: project.id,
+      KAIOKEN_SERVER_URL: serverUrl,
     };
 
     const setupEnv = {
@@ -164,7 +164,7 @@ async function main() {
         restartDaemon: restartDaemonCommand,
       },
       daemon: {
-        dataDir: bbRoot,
+        dataDir: kaiokenRoot,
         logPath: daemonLogPath,
         pid: daemonProcess.pid,
         port: daemonPort,
@@ -173,7 +173,7 @@ async function main() {
       instanceId,
       parentPid,
       paths: {
-        bbRoot,
+        kaiokenRoot,
         daemonRestartPidPath,
         envFilePath: envFile.path,
         logsDir,

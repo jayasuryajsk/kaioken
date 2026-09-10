@@ -46,7 +46,7 @@ import {
   type ProviderRuntimeEvent,
   experimental_defineProviderBridge,
   type ProviderRecoveryHint,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import { z } from "zod";
 import {
   CODEX_MACOS_PERMISSION_EXTENSION_KIND,
@@ -67,8 +67,8 @@ import {
   toCodexServiceTier,
   toCodexThreadPermissionSettings,
   toCodexUserInput,
-  type BbThreadForkParams,
-  type BbThreadStartParams,
+  type KaiokenThreadForkParams,
+  type KaiokenThreadStartParams,
   type CodexSessionOptions,
 } from "../session-params.js";
 import type { ThreadResumeParams } from "../generated/codex-app-server/schema/v2/ThreadResumeParams.js";
@@ -90,7 +90,7 @@ import {
   getCodexProviderUsage,
 } from "./provider-maintenance.js";
 
-type BbThreadResumeParams = ThreadResumeParams & { excludeTurns: boolean };
+type KaiokenThreadResumeParams = ThreadResumeParams & { excludeTurns: boolean };
 
 const codexBridgeCommandSchema = z.discriminatedUnion("method", [
   z.object({
@@ -267,13 +267,13 @@ function sendRuntimeRequest(
   return responsePromise;
 }
 
-const CODEX_APP_SERVER_COMMAND_ENV = "BB_CODEX_BRIDGE_APP_SERVER_COMMAND";
-const CODEX_APP_SERVER_ARGS_ENV = "BB_CODEX_BRIDGE_APP_SERVER_ARGS";
+const CODEX_APP_SERVER_COMMAND_ENV = "KAIOKEN_CODEX_BRIDGE_APP_SERVER_COMMAND";
+const CODEX_APP_SERVER_ARGS_ENV = "KAIOKEN_CODEX_BRIDGE_APP_SERVER_ARGS";
 const CODEX_POOL_BASE_URL_ENV = "CODEX_OPENAI_BASE_URL";
 const CODEX_POOL_AUTH_TOKEN_ENV = "CODEX_POOL_AUTH_TOKEN";
 
 const CODEX_INITIALIZE_PARAMS = {
-  clientInfo: { name: "bb", version: "1.0.0", title: null },
+  clientInfo: { name: "kaioken", version: "1.0.0", title: null },
   capabilities: { experimentalApi: true },
 };
 
@@ -329,7 +329,7 @@ async function delay(ms: number): Promise<void> {
   });
 }
 const MISSING_CODEX_CLI_GUIDANCE =
-  "bb could not find the Codex CLI on this machine. Install Codex (https://developers.openai.com/codex/cli) or put `codex` on PATH, then retry.";
+  "kaioken could not find the Codex CLI on this machine. Install Codex (https://developers.openai.com/codex/cli) or put `codex` on PATH, then retry.";
 
 export function resolveAppServerLaunch(env: NodeJS.ProcessEnv = process.env): {
   command: string;
@@ -352,19 +352,19 @@ export function resolveAppServerLaunch(env: NodeJS.ProcessEnv = process.env): {
       "-c",
       `openai_base_url=${JSON.stringify(poolBaseUrl)}`,
       "-c",
-      'model_provider="bb-account-pool"',
+      'model_provider="kaioken-account-pool"',
       "-c",
-      'model_providers.bb-account-pool.name="OpenAI"',
+      'model_providers.kaioken-account-pool.name="OpenAI"',
       "-c",
-      `model_providers.bb-account-pool.base_url=${JSON.stringify(poolBaseUrl)}`,
+      `model_providers.kaioken-account-pool.base_url=${JSON.stringify(poolBaseUrl)}`,
       "-c",
-      'model_providers.bb-account-pool.wire_api="responses"',
+      'model_providers.kaioken-account-pool.wire_api="responses"',
       "-c",
-      "model_providers.bb-account-pool.requires_openai_auth=true",
+      "model_providers.kaioken-account-pool.requires_openai_auth=true",
       "-c",
-      "model_providers.bb-account-pool.supports_websockets=false",
+      "model_providers.kaioken-account-pool.supports_websockets=false",
       "-c",
-      'model_providers.bb-account-pool.env_http_headers.x-bb-account-pool-token="CODEX_POOL_AUTH_TOKEN"',
+      'model_providers.kaioken-account-pool.env_http_headers.x-bb-account-pool-token="CODEX_POOL_AUTH_TOKEN"',
     ],
   };
 }
@@ -409,7 +409,7 @@ interface CodexSessionConstruction {
 }
 
 interface CodexBridgeSession {
-  bbThreadId: string;
+  kaiokenThreadId: string;
   codexThreadId: string | null;
   serial: number;
   connection: CodexAppServerConnection | null;
@@ -442,10 +442,10 @@ function stripLegacyBridgeIdPrefix(id: string): string {
 }
 
 function currentSession(
-  bbThreadId: string,
+  kaiokenThreadId: string,
   serial: number,
 ): CodexBridgeSession | undefined {
-  const session = sessionsByBbThreadId.get(bbThreadId);
+  const session = sessionsByBbThreadId.get(kaiokenThreadId);
   if (!session || session.serial !== serial || session.closing) {
     return undefined;
   }
@@ -457,8 +457,8 @@ function releaseSession(session: CodexBridgeSession): Promise<void> {
     return session.releasePromise;
   }
   session.closing = true;
-  if (sessionsByBbThreadId.get(session.bbThreadId) === session) {
-    sessionsByBbThreadId.delete(session.bbThreadId);
+  if (sessionsByBbThreadId.get(session.kaiokenThreadId) === session) {
+    sessionsByBbThreadId.delete(session.kaiokenThreadId);
   }
   const previousChildExit = session.previousChildExit;
   session.previousChildExit = null;
@@ -574,7 +574,7 @@ function sendThreadDeltas(
     return;
   }
   sendNotification(THREAD_DELTA_NOTIFICATION_METHOD, {
-    threadId: session.bbThreadId,
+    threadId: session.kaiokenThreadId,
     deltas: outDeltas,
   });
 }
@@ -591,7 +591,7 @@ function announceSessionIdentity(
   }
   session.identityAnnounced = true;
   sendNotification(BRIDGE_NOTIFICATION_METHODS.threadIdentity, {
-    threadId: session.bbThreadId,
+    threadId: session.kaiokenThreadId,
     providerThreadId: codexThreadId,
     sessionRestorable: true,
   });
@@ -616,12 +616,12 @@ function toProviderRuntimeEvent(
 }
 
 function handleChildNotification(
-  bbThreadId: string,
+  kaiokenThreadId: string,
   serial: number,
   method: string,
   params: unknown,
 ): void {
-  const session = currentSession(bbThreadId, serial);
+  const session = currentSession(kaiokenThreadId, serial);
   if (!session) {
     return;
   }
@@ -656,7 +656,7 @@ function emitTerminalAccountErrorHint(
       ? "codex session restarted after an authentication failure so a new login can take effect."
       : "codex session restarted after a rate limit so a refreshed account state can take effect.";
   sendNotification(BRIDGE_NOTIFICATION_METHODS.providerRecovery, {
-    threadId: session.bbThreadId,
+    threadId: session.kaiokenThreadId,
     kind,
     message,
     retryable: false,
@@ -672,13 +672,13 @@ const codexChildToolCallParamsSchema = z.object({
 });
 
 function handleChildRequest(
-  bbThreadId: string,
+  kaiokenThreadId: string,
   serial: number,
   method: string,
   params: unknown,
   responder: CodexAppServerRequestResponder,
 ): void {
-  const session = currentSession(bbThreadId, serial);
+  const session = currentSession(kaiokenThreadId, serial);
   if (!session) {
     responder.error(
       BRIDGE_JSON_RPC_ERRORS.BRIDGE_ERROR,
@@ -698,7 +698,7 @@ function handleChildRequest(
     }
     void sendRuntimeRequest(BRIDGE_INBOUND_REQUEST_METHODS.toolCall, {
       providerThreadId: session.codexThreadId ?? parsed.data.threadId,
-      threadId: session.bbThreadId,
+      threadId: session.kaiokenThreadId,
       turnId: parsed.data.turnId,
       callId: parsed.data.callId,
       tool: parsed.data.tool,
@@ -747,7 +747,7 @@ function handleChildRequest(
 
   void sendRuntimeRequest(BRIDGE_INBOUND_REQUEST_METHODS.interactionRequest, {
     providerThreadId: session.codexThreadId ?? request.providerThreadId,
-    threadId: session.bbThreadId,
+    threadId: session.kaiokenThreadId,
     turnId: request.turnId,
     payload: request.payload,
     providerNativeIds: true,
@@ -789,11 +789,11 @@ function buildMacOsPermissionItemDelta(
 }
 
 function handleChildExit(
-  bbThreadId: string,
+  kaiokenThreadId: string,
   serial: number,
   info: CodexAppServerExitInfo,
 ): void {
-  const session = currentSession(bbThreadId, serial);
+  const session = currentSession(kaiokenThreadId, serial);
   if (!session) {
     return;
   }
@@ -812,7 +812,7 @@ function handleChildExit(
   );
   session.openCodexTurnIds.clear();
   sendNotification(BRIDGE_NOTIFICATION_METHODS.error, {
-    threadId: session.bbThreadId,
+    threadId: session.kaiokenThreadId,
     ...(session.codexThreadId !== null
       ? { providerThreadId: session.codexThreadId }
       : {}),
@@ -936,7 +936,7 @@ async function constructThreadSession(
     })),
   );
   const session: CodexBridgeSession = {
-    bbThreadId: args.threadId,
+    kaiokenThreadId: args.threadId,
     codexThreadId:
       args.request.kind === "resume" ? args.request.providerThreadId : null,
     serial,
@@ -1021,11 +1021,11 @@ async function constructThreadSession(
     };
 
     let method: string;
-    let params: BbThreadStartParams | BbThreadResumeParams | BbThreadForkParams;
+    let params: KaiokenThreadStartParams | KaiokenThreadResumeParams | KaiokenThreadForkParams;
     switch (args.request.kind) {
       case "start": {
         method = "thread/start";
-        const startParams: BbThreadStartParams = {
+        const startParams: KaiokenThreadStartParams = {
           ...sharedConstructionParams,
           ephemeral: false,
           experimentalRawEvents: true,
@@ -1035,7 +1035,7 @@ async function constructThreadSession(
       }
       case "resume": {
         method = "thread/resume";
-        const resumeParams: BbThreadResumeParams = {
+        const resumeParams: KaiokenThreadResumeParams = {
           threadId: args.request.providerThreadId,
           excludeTurns: true,
           ...sharedConstructionParams,
@@ -1045,7 +1045,7 @@ async function constructThreadSession(
       }
       case "fork": {
         method = "thread/fork";
-        const forkParams: BbThreadForkParams = {
+        const forkParams: KaiokenThreadForkParams = {
           threadId: args.request.sourceProviderThreadId,
           ...(args.request.sourceProviderCheckpointId !== undefined
             ? {
@@ -1096,13 +1096,13 @@ class CodexSessionReleasedError extends Error {
 function registerResumableSession(session: CodexBridgeSession): void {
   if (
     session.codexThreadId === null ||
-    sessionsByBbThreadId.has(session.bbThreadId)
+    sessionsByBbThreadId.has(session.kaiokenThreadId)
   ) {
     return;
   }
   sessionSerialCounter += 1;
-  sessionsByBbThreadId.set(session.bbThreadId, {
-    bbThreadId: session.bbThreadId,
+  sessionsByBbThreadId.set(session.kaiokenThreadId, {
+    kaiokenThreadId: session.kaiokenThreadId,
     codexThreadId: session.codexThreadId,
     serial: sessionSerialCounter,
     connection: null,
@@ -1135,7 +1135,7 @@ async function rebuildThreadSession(
   let replacement: ConstructedCodexSession;
   try {
     replacement = await constructThreadSession({
-      threadId: session.bbThreadId,
+      threadId: session.kaiokenThreadId,
       cwd: session.construction.cwd,
       options,
       instructionMode: session.construction.instructionMode,
@@ -1151,7 +1151,7 @@ async function rebuildThreadSession(
     throw error;
   }
   sendNotification(BRIDGE_NOTIFICATION_METHODS.sessionReplaced, {
-    threadId: replacement.session.bbThreadId,
+    threadId: replacement.session.kaiokenThreadId,
     providerThreadId: replacement.codexThreadId,
     reason,
     contextLost: false,
@@ -1238,10 +1238,10 @@ function retireModelListConnection(connection: CodexAppServerConnection): void {
 }
 
 async function withChildForThread<T>(
-  bbThreadId: string,
+  kaiokenThreadId: string,
   fn: (connection: CodexAppServerConnection) => Promise<T>,
 ): Promise<T> {
-  const session = sessionsByBbThreadId.get(bbThreadId);
+  const session = sessionsByBbThreadId.get(kaiokenThreadId);
   if (
     session &&
     !session.closing &&
@@ -1402,7 +1402,7 @@ function scheduleZeroWorkTurnSettlement(args: {
   }
   const serial = session.serial;
   const timer = setTimeout(() => {
-    const live = currentSession(session.bbThreadId, serial);
+    const live = currentSession(session.kaiokenThreadId, serial);
     if (!live || live.openCodexTurnIds.size > 0) {
       return;
     }

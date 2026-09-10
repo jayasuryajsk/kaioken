@@ -20,9 +20,9 @@ import {
   type AppDefaultKeybindings,
   type AppKeybindings,
   type AppShortcut,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { useSystemConfig } from "@/hooks/queries/system-queries";
-import { getBbDesktopInfo } from "@/lib/bb-desktop";
+import { getBbDesktopInfo } from "@/lib/kaioken-desktop";
 import {
   formatAppShortcut,
   formatAppShortcutAria,

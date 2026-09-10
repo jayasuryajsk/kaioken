@@ -53,7 +53,7 @@ const AUTHORIZATION_PATTERN =
   /("|\\")[Aa]uthorization\1\s*:\s*("|\\")(?:(?!\2)[^\\]|\\.)*\2/g;
 const EMAIL_PATTERN = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
 const SECRET_ENV_KEY = /(KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL|COOKIE|AUTH)/i;
-const RECORD_DIR_ENV = "BB_PROVIDER_BRIDGE_RECORD_DIR";
+const RECORD_DIR_ENV = "KAIOKEN_PROVIDER_BRIDGE_RECORD_DIR";
 
 function parseArgs(argv) {
   const positional = [];

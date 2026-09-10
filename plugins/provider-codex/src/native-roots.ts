@@ -1,13 +1,13 @@
 import type { Dirent } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { PluginProviderDeclaration } from "@get-bb/plugin-sdk";
+import type { PluginProviderDeclaration } from "@get-kaioken/plugin-sdk";
 import {
   experimental_filterResolvedNativeRoots,
   experimental_resolveVendorPluginRoots,
   type ExperimentalNativeRootsResolveAnswer,
   type ExperimentalVendorPlugin,
-} from "@get-bb/plugin-sdk/host";
+} from "@get-kaioken/plugin-sdk/host";
 import { z } from "zod";
 import { resolveCodexHome } from "./codex-home.js";
 

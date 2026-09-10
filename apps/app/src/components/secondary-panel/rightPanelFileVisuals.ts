@@ -1,4 +1,4 @@
-import type { IconName } from "@bb/shared-ui/icon";
+import type { IconName } from "@kaioken/shared-ui/icon";
 
 interface RightPanelFileVisual {
   iconName: IconName;

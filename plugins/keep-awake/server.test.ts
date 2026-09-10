@@ -1,21 +1,21 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import {
   createFakePluginHost,
   makeHostResponse,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it, vi } from "vitest";
 import plugin from "./server.js";
 
 type HostChangedSubscription = Extract<
-  Parameters<BbPluginApi["sdk"]["subscribe"]>[0],
+  Parameters<KaiokenPluginApi["sdk"]["subscribe"]>[0],
   { event: "host:changed" }
 >;
 type HostChangedEvent = Parameters<HostChangedSubscription["callback"]>[0];
 type RealtimeConnectionSubscription = Extract<
-  Parameters<BbPluginApi["sdk"]["subscribe"]>[0],
+  Parameters<KaiokenPluginApi["sdk"]["subscribe"]>[0],
   { event: "realtime:connection" }
 >;
-type SdkSubscription = Parameters<BbPluginApi["sdk"]["subscribe"]>[0];
+type SdkSubscription = Parameters<KaiokenPluginApi["sdk"]["subscribe"]>[0];
 type HostResponse = ReturnType<typeof makeHostResponse>;
 
 function isHostChangedSubscription(
@@ -51,7 +51,7 @@ function enabledInput(input: unknown): boolean {
 function lifecycleSubscriptions(): {
   emitHost(changes: HostChangedEvent["changes"]): void;
   emitReconnect(): void;
-  subscribe: BbPluginApi["sdk"]["subscribe"];
+  subscribe: KaiokenPluginApi["sdk"]["subscribe"];
 } {
   let hostCallback: HostChangedSubscription["callback"] | null = null;
   let realtimeCallback: RealtimeConnectionSubscription["callback"] | null =

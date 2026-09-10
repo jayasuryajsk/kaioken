@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { decodeClaudeCodeJsonRpcRequest } from "../commands.js";
 
 const baseThreadStartParams = {
-  threadId: "bb-thread-1",
+  threadId: "kaioken-thread-1",
   cwd: "/tmp/worktree",
   instructionMode: "append",
   options: {

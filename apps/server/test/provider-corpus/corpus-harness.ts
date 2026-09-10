@@ -11,12 +11,12 @@ import {
   noopNotifier,
   threads,
   upsertHost,
-} from "@bb/db";
-import type { DbConnection } from "@bb/db";
-import { defaultFeatureFlags } from "@bb/domain";
-import type { Thread } from "@bb/domain";
-import type { ThreadTimelineResponse } from "@bb/server-contract";
-import type { CorpusThread } from "@bb/test-helpers";
+} from "@kaioken/db";
+import type { DbConnection } from "@kaioken/db";
+import { defaultFeatureFlags } from "@kaioken/domain";
+import type { Thread } from "@kaioken/domain";
+import type { ThreadTimelineResponse } from "@kaioken/server-contract";
+import type { CorpusThread } from "@kaioken/test-helpers";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { resolveRepoRelativeFile } from "./env-file-path.js";
@@ -34,11 +34,11 @@ import {
   truncateTimelineResponseOutputs,
 } from "../../src/services/threads/timeline-output-truncation.js";
 
-export const SNAPSHOT_MODE_ENV = "BB_PROVIDER_CORPUS_SNAPSHOT";
+export const SNAPSHOT_MODE_ENV = "KAIOKEN_PROVIDER_CORPUS_SNAPSHOT";
 
-export const SNAPSHOT_ROWS_DIR_ENV = "BB_PROVIDER_CORPUS_SNAPSHOT_DIR";
+export const SNAPSHOT_ROWS_DIR_ENV = "KAIOKEN_PROVIDER_CORPUS_SNAPSHOT_DIR";
 
-export const ALLOWLIST_FILE_ENV = "BB_PROVIDER_CORPUS_ALLOWLIST";
+export const ALLOWLIST_FILE_ENV = "KAIOKEN_PROVIDER_CORPUS_ALLOWLIST";
 
 export function resolveSnapshotRowsDir(
   snapshotsDir: string,
@@ -326,7 +326,7 @@ export function unifiedJsonDiff(
   label: string,
   maxLines = 200,
 ): string {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "bb-corpus-diff-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kaioken-corpus-diff-"));
   try {
     const expectedPath = path.join(dir, "expected.json");
     const actualPath = path.join(dir, "actual.json");

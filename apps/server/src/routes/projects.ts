@@ -20,7 +20,7 @@ import {
   setProjectGitRemoteUrlIfMissing,
   isSqliteUniqueConstraintOnColumns,
   type ReorderProjectResult,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   projectListIncludeOptionSchema,
   publicApiRoutes,
@@ -31,7 +31,7 @@ import {
   type ProjectResponse,
   type ProjectWithThreadsResponse,
   type PublicApiSchema,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type { Hono } from "hono";
 import type { AppDeps } from "../types.js";
 import { COMMAND_TIMEOUT_MS } from "../constants.js";
@@ -47,7 +47,7 @@ import {
   requirePublicProject,
   requirePublicStandardProject,
 } from "../services/lib/entity-lookup.js";
-import { PROMPT_HISTORY_ENTRY_LIMIT } from "@bb/domain";
+import { PROMPT_HISTORY_ENTRY_LIMIT } from "@kaioken/domain";
 import { toThreadListEntryResponses } from "../services/threads/thread-runtime-display.js";
 import { callHostRetryableOnlineRpc } from "../services/hosts/online-rpc.js";
 import { runLiveHostCommand } from "../services/hosts/live-command.js";

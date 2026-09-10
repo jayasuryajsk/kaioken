@@ -6,8 +6,8 @@ import type {
   EnvironmentLifecycleNoopReason,
   EnvironmentProviderSelection,
   EnvironmentStatus,
-} from "@bb/domain";
-import { evaluateEnvironmentLifecycleEvent } from "@bb/domain";
+} from "@kaioken/domain";
+import { evaluateEnvironmentLifecycleEvent } from "@kaioken/domain";
 import type { DbConnection, DbTransaction } from "../connection.js";
 import type { DbNotifier } from "../notifier.js";
 import { environments } from "../schema.js";

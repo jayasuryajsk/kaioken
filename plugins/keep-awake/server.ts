@@ -1,4 +1,4 @@
-import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
+import { defineRpcContract, type KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { keepAwakeHostContract } from "./contract.js";
 
@@ -70,7 +70,7 @@ function normalizeConfiguration(
   };
 }
 
-export default async function keepAwakePlugin(bb: BbPluginApi): Promise<void> {
+export default async function keepAwakePlugin(bb: KaiokenPluginApi): Promise<void> {
   const host = bb.hosts.experimental_client({
     contract: keepAwakeHostContract,
   });
@@ -131,22 +131,22 @@ export default async function keepAwakePlugin(bb: BbPluginApi): Promise<void> {
       {
         name: "status",
         summary: "Show whether Keep Awake is enabled and which hosts it uses",
-        usage: "bb keep-awake status [--json]",
+        usage: "kaioken keep-awake status [--json]",
       },
       {
         name: "enable",
         summary: "Enable Keep Awake",
-        usage: "bb keep-awake enable [--json]",
+        usage: "kaioken keep-awake enable [--json]",
       },
       {
         name: "disable",
         summary: "Disable Keep Awake",
-        usage: "bb keep-awake disable [--json]",
+        usage: "kaioken keep-awake disable [--json]",
       },
       {
         name: "hosts",
         summary: "Show or replace the Keep Awake host selection",
-        usage: "bb keep-awake hosts [all|<host-id>...] [--json]",
+        usage: "kaioken keep-awake hosts [all|<host-id>...] [--json]",
       },
     ],
     async run(argv) {
@@ -183,7 +183,7 @@ export default async function keepAwakePlugin(bb: BbPluginApi): Promise<void> {
         return {
           exitCode: 1,
           stderr:
-            "Usage: bb keep-awake <status|enable|disable|hosts> [arguments] [--json]",
+            "Usage: kaioken keep-awake <status|enable|disable|hosts> [arguments] [--json]",
         };
       }
       if (args.length > 0) {

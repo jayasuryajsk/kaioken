@@ -7,19 +7,19 @@ import type {
   DragOverEvent,
   DragStartEvent,
 } from "@dnd-kit/core";
-import type { ThreadListEntry } from "@bb/domain";
+import type { ThreadListEntry } from "@kaioken/domain";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildSectionThreadList,
   CHRONOLOGICAL_CONTAINER_ID,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   collectSectionThreadDndLookup,
   SectionThreadProjectionGate,
   useSectionThreadDnd,
 } from "./useSectionThreadDnd";
-import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
+import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 
 function createThread(overrides: Partial<ThreadListEntry>): ThreadListEntry {
   return makeThreadListEntry({

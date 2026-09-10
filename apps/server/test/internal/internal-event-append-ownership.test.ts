@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
-import { events, getThread, listQueuedThreadMessages } from "@bb/db";
-import { threadScope, turnScope } from "@bb/domain";
+import { events, getThread, listQueuedThreadMessages } from "@kaioken/db";
+import { threadScope, turnScope } from "@kaioken/domain";
 import {
   groupHostDaemonEvents,
   hostDaemonEventBatchResponseSchema,
   type HostDaemonEventEnvelope,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { describe, expect, it } from "vitest";
 import { buildThreadTimeline } from "../../src/services/threads/timeline.js";
 import {
@@ -268,7 +268,7 @@ describe("internal event append ownership", () => {
     }
   });
 
-  it("accepts a batch carrying a provider/unhandled event for a turn bb never started", async () => {
+  it("accepts a batch carrying a provider/unhandled event for a turn kaioken never started", async () => {
     const { harness, session, thread } = await setupEventRoute();
     try {
       const response = await postEventBatch({

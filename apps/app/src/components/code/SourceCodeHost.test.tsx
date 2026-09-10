@@ -2,7 +2,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { act } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { PluginSourceCodeRendererProps } from "@get-bb/plugin-sdk";
+import type { PluginSourceCodeRendererProps } from "@get-kaioken/plugin-sdk";
 import {
   resetPluginSlotStoreForTest,
   setPluginSlotRegistrations,
@@ -13,21 +13,21 @@ import { PluginSourceCode } from "@/components/plugin/PluginSourceCode";
 import { SourceCodeHost } from "./SourceCodeHost";
 import { makePluginRegistrationSet } from "@/test/fixtures/plugins";
 
-const bbSourceCode = vi.hoisted(() => ({
+const kaiokenSourceCode = vi.hoisted(() => ({
   loaded: false,
   lastProps: null as Record<string, unknown> | null,
 }));
 
-vi.mock("./BbSourceCode", async () => {
+vi.mock("./KaiokenSourceCode", async () => {
   const React = await import("react");
-  bbSourceCode.loaded = true;
+  kaiokenSourceCode.loaded = true;
   return {
     default: (props: Record<string, unknown>) => {
-      bbSourceCode.lastProps = props;
+      kaiokenSourceCode.lastProps = props;
       return React.createElement(
         "div",
-        { "data-testid": "bb-source-code" },
-        "bb source",
+        { "data-testid": "kaioken-source-code" },
+        "kaioken source",
       );
     },
   };
@@ -48,8 +48,8 @@ function registerSourceCodeRenderer(
 }
 
 beforeEach(() => {
-  bbSourceCode.loaded = false;
-  bbSourceCode.lastProps = null;
+  kaiokenSourceCode.loaded = false;
+  kaiokenSourceCode.lastProps = null;
   received.length = 0;
   resetPluginSlotStoreForTest();
   resetDeprecatedAliasWarningsForTests();
@@ -63,7 +63,7 @@ afterEach(() => {
 });
 
 describe("SourceCodeHost", () => {
-  it("keeps BB's renderer chunk unloaded when a replacement never delegates", async () => {
+  it("keeps Kaioken's renderer chunk unloaded when a replacement never delegates", async () => {
     registerSourceCodeRenderer((props) => {
       received.push(props);
       return <div data-testid="plugin-source">plugin source</div>;
@@ -75,10 +75,10 @@ describe("SourceCodeHost", () => {
     await act(async () => {
       await Promise.resolve();
     });
-    expect(bbSourceCode.loaded).toBe(false);
+    expect(kaiokenSourceCode.loaded).toBe(false);
   });
 
-  it("hands the replacement resolved semantic props, not BB's host-only inputs", async () => {
+  it("hands the replacement resolved semantic props, not Kaioken's host-only inputs", async () => {
     registerSourceCodeRenderer((props) => {
       received.push(props);
       return <div data-testid="plugin-source">plugin source</div>;
@@ -107,7 +107,7 @@ describe("SourceCodeHost", () => {
     expect(Object.keys(props ?? {})).not.toContain("scrollToHighlightedLines");
   });
 
-  it("loads BB's renderer only when the replacement delegates", async () => {
+  it("loads Kaioken's renderer only when the replacement delegates", async () => {
     registerSourceCodeRenderer(({ path, Original }) =>
       path.endsWith(".md") ? <div>plugin source</div> : <Original />,
     );
@@ -121,13 +121,13 @@ describe("SourceCodeHost", () => {
       />,
     );
 
-    expect(await screen.findByTestId("bb-source-code")).toBeDefined();
-    expect(bbSourceCode.loaded).toBe(true);
-    expect(bbSourceCode.lastProps?.cacheKey).toBe("rev-2:src/app.ts");
-    expect(bbSourceCode.lastProps?.scrollToHighlightedLines).toBe(true);
+    expect(await screen.findByTestId("kaioken-source-code")).toBeDefined();
+    expect(kaiokenSourceCode.loaded).toBe(true);
+    expect(kaiokenSourceCode.lastProps?.cacheKey).toBe("rev-2:src/app.ts");
+    expect(kaiokenSourceCode.lastProps?.scrollToHighlightedLines).toBe(true);
   });
 
-  it("falls back to BB's renderer when the replacement crashes", async () => {
+  it("falls back to Kaioken's renderer when the replacement crashes", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
     registerSourceCodeRenderer(() => {
@@ -136,20 +136,20 @@ describe("SourceCodeHost", () => {
 
     render(<SourceCodeHost content={CONTENT} path="src/app.ts" />);
 
-    expect(await screen.findByTestId("bb-source-code")).toBeDefined();
+    expect(await screen.findByTestId("kaioken-source-code")).toBeDefined();
   });
 
-  it("resolves presentation defaults for BB's renderer", async () => {
+  it("resolves presentation defaults for Kaioken's renderer", async () => {
     render(<SourceCodeHost content={CONTENT} path="src/app.ts" />);
 
-    await screen.findByTestId("bb-source-code");
-    expect(bbSourceCode.lastProps?.overflow).toBe("scroll");
-    expect(bbSourceCode.lastProps?.highlightedLines).toBeNull();
+    await screen.findByTestId("kaioken-source-code");
+    expect(kaiokenSourceCode.lastProps?.overflow).toBe("scroll");
+    expect(kaiokenSourceCode.lastProps?.highlightedLines).toBeNull();
   });
 });
 
 describe("experimental_SourceCode", () => {
-  it("shares the replacement with BB's own surfaces", async () => {
+  it("shares the replacement with Kaioken's own surfaces", async () => {
     registerSourceCodeRenderer((props) => {
       received.push(props);
       return <div data-testid="plugin-source">plugin source</div>;
@@ -160,12 +160,12 @@ describe("experimental_SourceCode", () => {
     await screen.findByTestId("plugin-source");
     expect(received.at(-1)?.content).toBe(CONTENT);
     expect(received.at(-1)?.highlightedLines).toBeNull();
-    expect(bbSourceCode.loaded).toBe(false);
+    expect(kaiokenSourceCode.loaded).toBe(false);
   });
 });
 
 describe("SourceCodeHost experimental_Original alias", () => {
-  it("delegates to BB's renderer through the alias and warns once across renders", async () => {
+  it("delegates to Kaioken's renderer through the alias and warns once across renders", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     let renders = 0;
     registerSourceCodeRenderer(({ experimental_Original: LegacyOriginal }) => {
@@ -180,8 +180,8 @@ describe("SourceCodeHost experimental_Original alias", () => {
     const { rerender } = render(
       <SourceCodeHost content={CONTENT} path="src/app.ts" />,
     );
-    expect(await screen.findByTestId("bb-source-code")).toBeDefined();
-    expect(bbSourceCode.lastProps?.overflow).toBe("scroll");
+    expect(await screen.findByTestId("kaioken-source-code")).toBeDefined();
+    expect(kaiokenSourceCode.lastProps?.overflow).toBe("scroll");
 
     rerender(
       <SourceCodeHost content={CONTENT} path="src/app.ts" overflow="wrap" />,
@@ -189,11 +189,11 @@ describe("SourceCodeHost experimental_Original alias", () => {
     await act(async () => {
       await Promise.resolve();
     });
-    expect(bbSourceCode.lastProps?.overflow).toBe("wrap");
+    expect(kaiokenSourceCode.lastProps?.overflow).toBe("wrap");
     expect(renders).toBe(2);
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith(
-      "experimental_Original is deprecated; use Original. Removed in bb 0.42",
+      "experimental_Original is deprecated; use Original. Removed in kaioken 0.42",
     );
   });
 
@@ -203,7 +203,7 @@ describe("SourceCodeHost experimental_Original alias", () => {
 
     render(<SourceCodeHost content={CONTENT} path="src/app.ts" />);
 
-    expect(await screen.findByTestId("bb-source-code")).toBeDefined();
+    expect(await screen.findByTestId("kaioken-source-code")).toBeDefined();
     expect(warn).not.toHaveBeenCalled();
   });
 });

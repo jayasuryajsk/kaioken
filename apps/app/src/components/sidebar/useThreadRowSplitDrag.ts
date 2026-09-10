@@ -1,6 +1,6 @@
 import { useCallback, type PointerEvent as ReactPointerEvent } from "react";
 import { useStore } from "jotai";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import { useRouteNavigate } from "@/components/ui/app-route-anchor";
 import { getThreadRoutePath } from "@/lib/route-paths";
 import { splitLayoutAtom } from "@/lib/split-layout/atoms";

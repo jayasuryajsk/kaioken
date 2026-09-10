@@ -126,7 +126,7 @@ export const rules = {
 
 export default {
   meta: {
-    name: "bb",
+    name: "kaioken",
   },
   rules,
 };

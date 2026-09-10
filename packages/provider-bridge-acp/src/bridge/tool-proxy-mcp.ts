@@ -1,18 +1,18 @@
-import { dynamicToolSchema } from "@bb/domain";
-import type { DynamicTool } from "@bb/domain";
-import { buildBridgeToolCallContent as experimental_buildBridgeToolCallContent } from "@bb/provider-bridge-protocol/bridge-kit";
+import { dynamicToolSchema } from "@kaioken/domain";
+import type { DynamicTool } from "@kaioken/domain";
+import { buildBridgeToolCallContent as experimental_buildBridgeToolCallContent } from "@kaioken/provider-bridge-protocol/bridge-kit";
 import { createConnection } from "node:net";
 import { createInterface } from "node:readline";
 import { z } from "zod";
 
-export const ACP_BRIDGE_MCP_SERVER_NAME = "bb-bridge";
+export const ACP_BRIDGE_MCP_SERVER_NAME = "kaioken-bridge";
 
-const ENV_HOST = "BB_ACP_DYNAMIC_TOOL_HOST";
-const ENV_PORT = "BB_ACP_DYNAMIC_TOOL_PORT";
-const ENV_TOKEN = "BB_ACP_DYNAMIC_TOOL_TOKEN";
-const ENV_THREAD_ID = "BB_ACP_DYNAMIC_TOOL_THREAD_ID";
-const ENV_TOOLS = "BB_ACP_DYNAMIC_TOOLS";
-const ENV_PROGRESS_INTERVAL_MS = "BB_ACP_DYNAMIC_TOOL_PROGRESS_INTERVAL_MS";
+const ENV_HOST = "KAIOKEN_ACP_DYNAMIC_TOOL_HOST";
+const ENV_PORT = "KAIOKEN_ACP_DYNAMIC_TOOL_PORT";
+const ENV_TOKEN = "KAIOKEN_ACP_DYNAMIC_TOOL_TOKEN";
+const ENV_THREAD_ID = "KAIOKEN_ACP_DYNAMIC_TOOL_THREAD_ID";
+const ENV_TOOLS = "KAIOKEN_ACP_DYNAMIC_TOOLS";
+const ENV_PROGRESS_INTERVAL_MS = "KAIOKEN_ACP_DYNAMIC_TOOL_PROGRESS_INTERVAL_MS";
 
 export interface AcpMcpServerConfig {
   name: string;
@@ -245,7 +245,7 @@ async function handleRequest(
         toolCount: env.tools.length,
       }).catch((error) => {
         process.stderr.write(
-          `bb-bridge MCP: failed to report initialize: ${
+          `kaioken-bridge MCP: failed to report initialize: ${
             error instanceof Error ? error.message : String(error)
           }\n`,
         );

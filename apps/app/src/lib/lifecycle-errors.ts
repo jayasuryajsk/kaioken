@@ -1,9 +1,9 @@
-import { assertNever } from "@bb/core-ui";
-import { BbHttpError } from "@bb/sdk/browser";
+import { assertNever } from "@kaioken/core-ui";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 import {
   lifecycleApiErrorSchema,
   type LifecycleApiError,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { HttpError } from "./api";
 
 type LifecycleErrorSeverity = "info" | "warning" | "error";
@@ -430,7 +430,7 @@ function describeDispatchHookFailed({
 }
 
 export function parseLifecycleError(error: unknown): LifecycleApiError | null {
-  if (!(error instanceof HttpError) && !(error instanceof BbHttpError)) {
+  if (!(error instanceof HttpError) && !(error instanceof KaiokenHttpError)) {
     return null;
   }
 

@@ -18,7 +18,7 @@ function renderSection(overrides?: {
   return render(
     <GeneralSettingsSection
       desktopBrowserAvailable={false}
-      managedBranchPrefix={overrides?.managedBranchPrefix ?? "bb/"}
+      managedBranchPrefix={overrides?.managedBranchPrefix ?? "kaioken/"}
       managedBranchPrefixDisabled={false}
       navigateToThreadAfterCreate={false}
       onManagedBranchPrefixChange={
@@ -76,7 +76,7 @@ describe("new branch prefix setting", () => {
     const input = branchPrefixInput();
     fireEvent.change(input, { target: { value: "team/" } });
     fireEvent.keyDown(input, { key: "Enter" });
-    await waitFor(() => expect(input.value).toBe("bb/"));
+    await waitFor(() => expect(input.value).toBe("kaioken/"));
   });
 
   it("refuses an invalid prefix and restores the saved value", () => {
@@ -87,7 +87,7 @@ describe("new branch prefix setting", () => {
     expect(input.getAttribute("aria-invalid")).toBe("true");
     fireEvent.blur(input);
     expect(onChange).not.toHaveBeenCalled();
-    expect(input.value).toBe("bb/");
+    expect(input.value).toBe("kaioken/");
   });
 
   it("reverts the draft on Escape", () => {
@@ -96,7 +96,7 @@ describe("new branch prefix setting", () => {
     const input = branchPrefixInput();
     fireEvent.change(input, { target: { value: "sawyer/" } });
     fireEvent.keyDown(input, { key: "Escape" });
-    expect(input.value).toBe("bb/");
+    expect(input.value).toBe("kaioken/");
     expect(onChange).not.toHaveBeenCalled();
   });
 });

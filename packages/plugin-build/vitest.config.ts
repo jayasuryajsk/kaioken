@@ -13,7 +13,7 @@ export default defineWorkspaceTestConfig({
     },
     projects: sharedWorkerProjects({
       pkgDir: __dirname,
-      name: "@bb/plugin-build",
+      name: "@kaioken/plugin-build",
       include: ["src/**/*.test.ts"],
     }),
   },

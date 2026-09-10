@@ -39,7 +39,7 @@ beforeEach(() => {
   mocks.useThreadStorageLocation.mockReturnValue({
     data: {
       hostId: "host_remote",
-      storageRootPath: "/var/lib/bb/thread-storage/thr_1",
+      storageRootPath: "/var/lib/kaioken/thread-storage/thr_1",
     },
     isError: false,
     isLoading: false,
@@ -76,7 +76,7 @@ describe("useResolvedLiveFileTarget", () => {
 
       expect(result.current).toEqual({
         status: "available",
-        absolutePath: "/var/lib/bb/thread-storage/thr_1/reports/summary.md",
+        absolutePath: "/var/lib/kaioken/thread-storage/thr_1/reports/summary.md",
         openContext,
       });
       expect(mocks.useThreadStorageLocation).toHaveBeenCalledWith("thr_1", {

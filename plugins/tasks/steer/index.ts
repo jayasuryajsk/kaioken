@@ -1,4 +1,4 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import type { TasksStore } from "../db";
 import { isSideChatShapedThread } from "../shared/side-chat";
 
@@ -27,7 +27,7 @@ function steerPrompt(
   return (
     `New comment on task ${taskKey} from ${authorName}: ${body}\n\n` +
     "Treat this as updated context for your work on this task; " +
-    `reply via bb tasks comment ${taskKey} when relevant.`
+    `reply via kaioken tasks comment ${taskKey} when relevant.`
   );
 }
 
@@ -36,7 +36,7 @@ function errorMessage(error: unknown): string {
 }
 
 export async function deliverCommentToLatestAgent(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksStore,
   input: DeliverCommentInput,
 ): Promise<CommentDeliveryResult> {

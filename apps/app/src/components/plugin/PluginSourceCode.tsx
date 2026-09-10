@@ -1,4 +1,4 @@
-import type { SourceCodeProps } from "@get-bb/plugin-sdk";
+import type { SourceCodeProps } from "@get-kaioken/plugin-sdk";
 import { SourceCodeHost } from "@/components/code/SourceCodeHost";
 
 export function PluginSourceCode({

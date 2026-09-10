@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
-import type { WorkspaceDiffTarget } from "@bb/domain";
+import type { WorkspaceDiffTarget } from "@kaioken/domain";
 import type {
   DiffPatchEntry,
   EnvironmentDiffPatchResponse,
-} from "@bb/server-contract";
-import { createDeferredPromise } from "@bb/test-helpers";
+} from "@kaioken/server-contract";
+import { createDeferredPromise } from "@kaioken/test-helpers";
 import { sdk } from "@/lib/sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";

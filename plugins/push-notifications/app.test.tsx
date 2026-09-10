@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, waitFor } from "@testing-library/react";
-import { loadPluginApp, renderSlot } from "@get-bb/plugin-sdk/testing/app";
+import { loadPluginApp, renderSlot } from "@get-kaioken/plugin-sdk/testing/app";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const app = await loadPluginApp(() => import("./app.js"));

@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type {
-  BbPluginApi,
+  KaiokenPluginApi,
   PluginThreadEventPayloads,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { EnvHttpProxyAgent, fetch as undiciFetch } from "undici";
 import type { Dispatcher } from "undici";
 import { z } from "zod";
@@ -130,7 +130,7 @@ export interface PushSender {
 }
 
 export interface CreatePushSenderArgs {
-  bb: BbPluginApi;
+  bb: KaiokenPluginApi;
   subscriptions: PushSubscriptionStore;
   getExpoPushUrl(): Promise<string>;
   getDeliverySettings(): Promise<{

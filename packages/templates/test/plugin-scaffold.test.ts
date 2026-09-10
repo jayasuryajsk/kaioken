@@ -1,7 +1,7 @@
 import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { PLUGIN_SDK_VERSION } from "@bb/domain";
+import { PLUGIN_SDK_VERSION } from "@kaioken/domain";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   resolvePluginSdkLayout,
@@ -13,19 +13,19 @@ describe("scaffoldPlugin SDK dependency", () => {
   let workDir: string;
 
   beforeEach(async () => {
-    workDir = await mkdtemp(join(tmpdir(), "bb-scaffold-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-scaffold-"));
   });
 
   afterEach(async () => {
     await rm(workDir, { recursive: true, force: true });
   });
 
-  it("pins @get-bb/plugin-sdk exactly and vendors no declarations", async () => {
-    const targetDir = join(workDir, "bb-plugin-todo");
+  it("pins @get-kaioken/plugin-sdk exactly and vendors no declarations", async () => {
+    const targetDir = join(workDir, "kaioken-plugin-todo");
     await scaffoldPlugin({
       targetDir,
-      packageName: "bb-plugin-todo",
-      bbVersion: "0.9.0",
+      packageName: "kaioken-plugin-todo",
+      kaiokenVersion: "0.9.0",
     });
 
     await expect(access(join(targetDir, "types"))).rejects.toThrow();
@@ -46,8 +46,8 @@ describe("scaffoldPlugin SDK dependency", () => {
     const pkg = JSON.parse(
       await readFile(join(targetDir, "package.json"), "utf8"),
     );
-    expect(pkg.devDependencies["@get-bb/plugin-sdk"]).toBe(PLUGIN_SDK_VERSION);
-    expect(pkg.dependencies["@get-bb/plugin-sdk"]).toBeUndefined();
+    expect(pkg.devDependencies["@get-kaioken/plugin-sdk"]).toBe(PLUGIN_SDK_VERSION);
+    expect(pkg.dependencies["@get-kaioken/plugin-sdk"]).toBeUndefined();
     expect(pkg.engines).toEqual({
       bb: ">=0.9",
       bbPluginSdk: `>=${PLUGIN_SDK_VERSION}`,
@@ -64,10 +64,10 @@ describe("scaffoldPlugin SDK dependency", () => {
 
     const readme = await readFile(join(targetDir, "README.md"), "utf8");
     expect(readme).toContain(
-      "node_modules/@get-bb/plugin-sdk/bundled-types/bb-plugin-sdk.d.ts",
+      "node_modules/@get-kaioken/plugin-sdk/bundled-types/kaioken-plugin-sdk.d.ts",
     );
     expect(readme).toContain(
-      "sync this plugin's SDK surface to the running BB",
+      "sync this plugin's SDK surface to the running Kaioken",
     );
     expect(readme).not.toContain("rewrite types/");
     expect(readme).toContain("https://github.com/get-bb/bb");
@@ -75,7 +75,7 @@ describe("scaffoldPlugin SDK dependency", () => {
     const components = JSON.parse(
       await readFile(join(targetDir, "components.json"), "utf8"),
     );
-    expect(components.registries["@bb"]).toBe(
+    expect(components.registries["@kaioken"]).toBe(
       "https://raw.githubusercontent.com/get-bb/bb/desktop-v0.9.0/packages/plugin-registry/r/{name}.json",
     );
     expect(pkg.dependencies["@radix-ui/react-checkbox"]).toBeDefined();
@@ -83,18 +83,18 @@ describe("scaffoldPlugin SDK dependency", () => {
   });
 
   it("writes a store overview that follows the marketplace content rules", async () => {
-    const targetDir = join(workDir, "bb-plugin-todo");
+    const targetDir = join(workDir, "kaioken-plugin-todo");
     await scaffoldPlugin({
       targetDir,
-      packageName: "bb-plugin-todo",
-      bbVersion: "0.9.0",
+      packageName: "kaioken-plugin-todo",
+      kaiokenVersion: "0.9.0",
     });
 
     const overview = await readFile(
       join(targetDir, "PLUGIN_OVERVIEW.md"),
       "utf8",
     );
-    expect(overview).toContain("bb todo list");
+    expect(overview).toContain("kaioken todo list");
     expect(overview).toMatch(/^[^#]/u);
     expect([...overview].length).toBeGreaterThan(700);
     expect([...overview].length).toBeLessThanOrEqual(4000);
@@ -109,35 +109,35 @@ describe("scaffoldPlugin SDK dependency", () => {
   });
 
   it("uses the canonical id in a scoped package scaffold", async () => {
-    const targetDir = join(workDir, "bb-plugin-scoped");
+    const targetDir = join(workDir, "kaioken-plugin-scoped");
     await scaffoldPlugin({
       targetDir,
-      packageName: "@acme/bb-plugin-scoped",
-      bbVersion: "0.9.0",
+      packageName: "@acme/kaioken-plugin-scoped",
+      kaiokenVersion: "0.9.0",
     });
 
     const pkg = JSON.parse(
       await readFile(join(targetDir, "package.json"), "utf8"),
     );
-    expect(pkg.name).toBe("@acme/bb-plugin-scoped");
+    expect(pkg.name).toBe("@acme/kaioken-plugin-scoped");
     expect(pkg.bb.name).toBe("Scoped");
 
     const readme = await readFile(join(targetDir, "README.md"), "utf8");
-    expect(readme).toContain("bb plugin reload scoped");
-    expect(readme).toContain("bb plugin config scoped");
+    expect(readme).toContain("kaioken plugin reload scoped");
+    expect(readme).toContain("kaioken plugin config scoped");
 
     const server = await readFile(join(targetDir, "server.ts"), "utf8");
-    expect(server).toContain("bb plugin config scoped");
-    expect(server).not.toContain("bb plugin config @acme/");
+    expect(server).toContain("kaioken plugin config scoped");
+    expect(server).not.toContain("kaioken plugin config @acme/");
     expect(server).toContain('name: "scoped"');
-    expect(server).toContain("bb scoped list");
+    expect(server).toContain("kaioken scoped list");
     const app = await readFile(join(targetDir, "app.tsx"), "utf8");
-    expect(app).toContain("bb scoped add");
+    expect(app).toContain("kaioken scoped add");
     const skill = await readFile(
       join(targetDir, "skills", "example-todos", "SKILL.md"),
       "utf8",
     );
-    expect(skill).toContain("bb scoped list");
+    expect(skill).toContain("kaioken scoped list");
     expect(skill).not.toContain("@acme/");
   });
 });
@@ -146,7 +146,7 @@ describe("resolvePluginSdkLayout", () => {
   let workDir: string;
 
   beforeEach(async () => {
-    workDir = await mkdtemp(join(tmpdir(), "bb-layout-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-layout-"));
   });
 
   afterEach(async () => {
@@ -154,11 +154,11 @@ describe("resolvePluginSdkLayout", () => {
   });
 
   it("reports the npm layout with its exact pin for a fresh scaffold", async () => {
-    const targetDir = join(workDir, "bb-plugin-new-style");
+    const targetDir = join(workDir, "kaioken-plugin-new-style");
     await scaffoldPlugin({
       targetDir,
-      packageName: "bb-plugin-new-style",
-      bbVersion: "0.9.0",
+      packageName: "kaioken-plugin-new-style",
+      kaiokenVersion: "0.9.0",
     });
 
     await expect(resolvePluginSdkLayout(targetDir)).resolves.toEqual({
@@ -168,20 +168,20 @@ describe("resolvePluginSdkLayout", () => {
   });
 
   it("reports the vendored layout for a legacy plugin, which still refreshes", async () => {
-    const targetDir = join(workDir, "bb-plugin-legacy");
+    const targetDir = join(workDir, "kaioken-plugin-legacy");
     await scaffoldPlugin({
       targetDir,
-      packageName: "bb-plugin-legacy",
-      bbVersion: "0.9.0",
+      packageName: "kaioken-plugin-legacy",
+      kaiokenVersion: "0.9.0",
     });
     const pkgPath = join(targetDir, "package.json");
     const pkg = JSON.parse(await readFile(pkgPath, "utf8"));
-    delete pkg.devDependencies["@get-bb/plugin-sdk"];
+    delete pkg.devDependencies["@get-kaioken/plugin-sdk"];
     await writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
     const tsconfigPath = join(targetDir, "tsconfig.json");
     const tsconfig = JSON.parse(await readFile(tsconfigPath, "utf8"));
     tsconfig.compilerOptions.paths = {
-      "@get-bb/plugin-sdk": ["./types/bb-plugin-sdk.d.ts"],
+      "@get-kaioken/plugin-sdk": ["./types/kaioken-plugin-sdk.d.ts"],
     };
     await writeFile(tsconfigPath, `${JSON.stringify(tsconfig, null, 2)}\n`);
 
@@ -192,21 +192,21 @@ describe("resolvePluginSdkLayout", () => {
 
     const files = await syncPluginTypes({ rootDir: targetDir, app: false });
     expect(files).toEqual([
-      { path: "types/bb-plugin-sdk.d.ts", outcome: "written" },
+      { path: "types/kaioken-plugin-sdk.d.ts", outcome: "written" },
     ]);
     const vendored = await readFile(
-      join(targetDir, "types", "bb-plugin-sdk.d.ts"),
+      join(targetDir, "types", "kaioken-plugin-sdk.d.ts"),
       "utf8",
     );
-    expect(vendored).toContain("interface BbPluginApi");
+    expect(vendored).toContain("interface KaiokenPluginApi");
   });
 
   it("stays vendored while declarations exist but the path map is gone", async () => {
-    const targetDir = join(workDir, "bb-plugin-half-migrated");
+    const targetDir = join(workDir, "kaioken-plugin-half-migrated");
     await scaffoldPlugin({
       targetDir,
-      packageName: "bb-plugin-half-migrated",
-      bbVersion: "0.9.0",
+      packageName: "kaioken-plugin-half-migrated",
+      kaiokenVersion: "0.9.0",
     });
     await syncPluginTypes({ rootDir: targetDir, app: false });
 

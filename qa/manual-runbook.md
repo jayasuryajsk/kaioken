@@ -1,6 +1,6 @@
 # Real-Provider CLI/API E2E Manual Runbook
 
-This runbook covers the thorough non-app end-to-end validation pass for bb's
+This runbook covers the thorough non-app end-to-end validation pass for kaioken's
 server, host daemon, CLI, API, database state, and real provider paths. It is
 written against the current standalone persistent-host setup and intentionally
 does not claim generic "Full QA" or release readiness by itself.
@@ -18,7 +18,7 @@ state, and logs. This pass does not cover app UI, Electron, or browser behavior.
   change. Its verdict is scoped to the changed behavior.
 - **Real-provider CLI/API E2E** is this non-app provider gate. The automated
   companion is `pnpm exec turbo run test:integration`, including real-provider
-  coverage under `tests/integration/real/**` and `@bb/agent-runtime`; this
+  coverage under `tests/integration/real/**` and `@kaioken/agent-runtime`; this
   manual runbook adds operator-driven CLI/API, standalone server + daemon,
   restart, lifecycle, API, DB, and log checks.
 - **Smoke QA** is a shallow liveness check on a running app or surface. It is
@@ -45,12 +45,12 @@ Treat the CLI matrix as a product-surface check, not a wishlist of possible
 commands.
 
 - Thread recovery is validated with the existing lifecycle commands:
-  `bb thread stop`, `bb thread tell`, `bb thread spawn`, archive/unarchive, and
+  `kaioken thread stop`, `kaioken thread tell`, `kaioken thread spawn`, archive/unarchive, and
   the recovery checks below. When the provider-retry plugin is enabled,
-  `bb provider-retry retry <thread-id>` is the manual path for a failed,
+  `kaioken provider-retry retry <thread-id>` is the manual path for a failed,
   accepted provider rate-limit turn; inspect the thread before using it. For
-  other failed or interrupted threads, send a fresh turn with `bb thread tell`,
-  or create a replacement with `bb thread spawn` when a new thread is the right
+  other failed or interrupted threads, send a fresh turn with `kaioken thread tell`,
+  or create a replacement with `kaioken thread spawn` when a new thread is the right
   recovery path.
 
 ## Prerequisites
@@ -73,11 +73,11 @@ sqlite3 --version
 
 Default-path QA must not use generic OpenAI API-key routes. Clear ambient
 `OPENAI_API_KEY` before a normal pass. To intentionally validate API-key routes,
-set `BB_QA_OPENAI_API_KEY` and record that the pass is opt-in.
+set `KAIOKEN_QA_OPENAI_API_KEY` and record that the pass is opt-in.
 
 ```bash
-if [ -n "${OPENAI_API_KEY:-}" ] && [ -z "${BB_QA_OPENAI_API_KEY:-}" ]; then
-  echo "OPENAI_API_KEY is set. Unset it for default-path QA, or set BB_QA_OPENAI_API_KEY for an explicit API-key route pass."
+if [ -n "${OPENAI_API_KEY:-}" ] && [ -z "${KAIOKEN_QA_OPENAI_API_KEY:-}" ]; then
+  echo "OPENAI_API_KEY is set. Unset it for default-path QA, or set KAIOKEN_QA_OPENAI_API_KEY for an explicit API-key route pass."
   false
 fi
 ```
@@ -95,12 +95,12 @@ Start an isolated server + daemon pair and load the exported QA environment:
 ```bash
 eval "$(pnpm --silent qa:standalone:start --format env)"
 jq . "$STATE_PATH"
-SERVER_DB_PATH=$(jq -er '.server.dataDir + "/bb.db"' "$STATE_PATH")
+SERVER_DB_PATH=$(jq -er '.server.dataDir + "/kaioken.db"' "$STATE_PATH")
 SERVER_LOG_DIR=$(jq -er '(.paths.serverDataDir // .server.dataDir) + "/logs"' "$STATE_PATH")
 DAEMON_LOG_DIR=$(jq -er '(.paths.daemonDataDir // .daemon.dataDir) + "/logs"' "$STATE_PATH")
 DAEMON_RESTART_PID_PATH=$(jq -er '.paths.daemonRestartPidPath' "$STATE_PATH")
 
-bb() { env -u BB_CLI node apps/cli/dist/index.js "$@"; }
+kaioken() { env -u KAIOKEN_CLI node apps/cli/dist/index.js "$@"; }
 ```
 
 The machine-facing contract is the exported env block. The state file at `$STATE_PATH`
@@ -111,16 +111,16 @@ Basic health checks:
 ```bash
 curl -fsS "$BB_SERVER_URL/api/v1/system/config" | jq
 curl -fsS "$BB_SERVER_URL/api/v1/hosts" | jq
-bb status
-bb provider list
+kaioken status
+kaioken provider list
 ```
 
 Resolve current provider models before spawning real-provider threads:
 
 ```bash
-CODEX_MODEL=$(bb provider models codex --json | jq -er '([.[] | select(.isDefault)][0].model // .[0].model)')
-CLAUDE_MODEL=$(bb provider models claude-code --json | jq -er '([.[] | select(.model == "claude-haiku-4-5")][0].model // [.[] | select(.isDefault)][0].model // .[0].model)')
-PI_MODELS_JSON=$(bb provider models pi --json)
+CODEX_MODEL=$(kaioken provider models codex --json | jq -er '([.[] | select(.isDefault)][0].model // .[0].model)')
+CLAUDE_MODEL=$(kaioken provider models claude-code --json | jq -er '([.[] | select(.model == "claude-haiku-4-5")][0].model // [.[] | select(.isDefault)][0].model // .[0].model)')
+PI_MODELS_JSON=$(kaioken provider models pi --json)
 # Keep Pi preference order in sync with packages/test-helpers/src/provider-models.ts.
 PI_MODEL=$(printf '%s\n' "$PI_MODELS_JSON" | jq -er '
   [.[] | select(.model == "openai-codex/gpt-5.5")][0].model
@@ -140,8 +140,8 @@ printf 'codex: %s\nclaude-code: %s\npi: %s\n' "$CODEX_MODEL" "$CLAUDE_MODEL" "$P
 
 case "$PI_MODEL" in
   openai/*)
-    if [ "${BB_QA_ALLOW_OPENAI_API_KEY_MODELS:-}" != "1" ]; then
-      echo "Pi resolved to generic OpenAI API-key model $PI_MODEL. Pick a subscription-backed model or set BB_QA_ALLOW_OPENAI_API_KEY_MODELS=1 for an explicit API-key route pass."
+    if [ "${KAIOKEN_QA_ALLOW_OPENAI_API_KEY_MODELS:-}" != "1" ]; then
+      echo "Pi resolved to generic OpenAI API-key model $PI_MODEL. Pick a subscription-backed model or set KAIOKEN_QA_ALLOW_OPENAI_API_KEY_MODELS=1 for an explicit API-key route pass."
       false
     fi
     ;;
@@ -260,7 +260,7 @@ pnpm qa:standalone:cleanup
 Spawn an unmanaged Codex thread and wait for it to finish:
 
 ```bash
-SMOKE_THREAD_ID=$(bb thread spawn \
+SMOKE_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider codex \
   --model "$CODEX_MODEL" \
@@ -268,18 +268,18 @@ SMOKE_THREAD_ID=$(bb thread spawn \
   --prompt "Say hello from the smoke pass" \
   --json | jq -r '.id')
 
-bb thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
-bb thread show "$SMOKE_THREAD_ID"
-bb thread output "$SMOKE_THREAD_ID"
-bb thread log "$SMOKE_THREAD_ID" --format json | jq '.[-10:]'
+kaioken thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
+kaioken thread show "$SMOKE_THREAD_ID"
+kaioken thread output "$SMOKE_THREAD_ID"
+kaioken thread log "$SMOKE_THREAD_ID" --format json | jq '.[-10:]'
 ```
 
 Send a follow-up after idle:
 
 ```bash
-bb thread tell "$SMOKE_THREAD_ID" "Now say goodbye from the smoke pass"
-bb thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
-bb thread output "$SMOKE_THREAD_ID"
+kaioken thread tell "$SMOKE_THREAD_ID" "Now say goodbye from the smoke pass"
+kaioken thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
+kaioken thread output "$SMOKE_THREAD_ID"
 ```
 
 Create a parent thread and child thread, then verify the first bootstrap reaches
@@ -288,7 +288,7 @@ malformed host-RPC message invariants require automated boundary tests.
 
 ```bash
 THREAD_PROTOCOL_STARTED_AT=$(date -u +"%Y-%m-%dT%H:%M")
-PROTOCOL_PARENT_ID=$(bb thread spawn \
+PROTOCOL_PARENT_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider codex \
   --model "$CODEX_MODEL" \
@@ -297,9 +297,9 @@ PROTOCOL_PARENT_ID=$(bb thread spawn \
   --prompt "Say hello from the parent protocol smoke check." \
   --json | jq -r '.id')
 
-bb thread wait "$PROTOCOL_PARENT_ID" --status idle --timeout 240
+kaioken thread wait "$PROTOCOL_PARENT_ID" --status idle --timeout 240
 
-PROTOCOL_CHILD_ID=$(bb thread spawn \
+PROTOCOL_CHILD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --parent-thread "$PROTOCOL_PARENT_ID" \
   --provider codex \
@@ -309,15 +309,15 @@ PROTOCOL_CHILD_ID=$(bb thread spawn \
   --prompt "Say hello from the child protocol smoke check." \
   --json | jq -r '.id')
 
-bb thread wait "$PROTOCOL_CHILD_ID" --status idle --timeout 240
-bb thread show "$PROTOCOL_PARENT_ID" --json | jq '.thread | {id, parentThreadId, providerId, status}'
-bb thread show "$PROTOCOL_CHILD_ID" --json | jq '.thread | {id, parentThreadId, providerId, status}'
-bb thread output "$PROTOCOL_CHILD_ID"
-if bb manager list; then
-  echo "expected bb manager list to fail"
+kaioken thread wait "$PROTOCOL_CHILD_ID" --status idle --timeout 240
+kaioken thread show "$PROTOCOL_PARENT_ID" --json | jq '.thread | {id, parentThreadId, providerId, status}'
+kaioken thread show "$PROTOCOL_CHILD_ID" --json | jq '.thread | {id, parentThreadId, providerId, status}'
+kaioken thread output "$PROTOCOL_CHILD_ID"
+if kaioken manager list; then
+  echo "expected kaioken manager list to fail"
   exit 1
 fi
-bb manager list 2>&1 | rg "Managers were replaced by parent threads|bb thread"
+kaioken manager list 2>&1 | rg "Managers were replaced by parent threads|kaioken thread"
 printf 'thread protocol smoke started at UTC minute: %s\n' "$THREAD_PROTOCOL_STARTED_AT"
 rg -n "invalid-message|1008|host_unavailable|command_result_type_mismatch|Ignoring host RPC response" \
   "$SERVER_LOG_DIR" "$DAEMON_LOG_DIR" || true
@@ -327,14 +327,14 @@ Expected result:
 
 - the parent and child threads reach `idle`
 - the child thread reports the parent thread ID
-- `bb manager list` exits non-zero with a parent-thread replacement message
+- `kaioken manager list` exits non-zero with a parent-thread replacement message
 - server and daemon logs have no matching protocol disconnect or host-RPC
   mismatch entries at or after `$THREAD_PROTOCOL_STARTED_AT`
 
 Create a managed worktree thread and inspect workspace status:
 
 ```bash
-WORKTREE_THREAD_ID=$(bb thread spawn \
+WORKTREE_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider codex \
   --model "$CODEX_MODEL" \
@@ -343,15 +343,15 @@ WORKTREE_THREAD_ID=$(bb thread spawn \
   --prompt "Create a file named smoke.txt and briefly confirm it" \
   --json | jq -r '.id')
 
-bb thread wait "$WORKTREE_THREAD_ID" --status idle --timeout 120
+kaioken thread wait "$WORKTREE_THREAD_ID" --status idle --timeout 120
 WORKTREE_ENV_ID=$(curl -fsS "$BB_SERVER_URL/api/v1/threads/$WORKTREE_THREAD_ID" | jq -r '.environmentId')
 
-bb thread show "$WORKTREE_THREAD_ID"
-bb thread output "$WORKTREE_THREAD_ID"
-bb thread show "$WORKTREE_THREAD_ID" --work-status
-bb thread show "$WORKTREE_THREAD_ID" --git-diff --diff-target uncommitted
-bb thread show "$WORKTREE_THREAD_ID" --git-diff --diff-target branch_committed
-bb thread show "$WORKTREE_THREAD_ID" --git-diff --diff-target all
+kaioken thread show "$WORKTREE_THREAD_ID"
+kaioken thread output "$WORKTREE_THREAD_ID"
+kaioken thread show "$WORKTREE_THREAD_ID" --work-status
+kaioken thread show "$WORKTREE_THREAD_ID" --git-diff --diff-target uncommitted
+kaioken thread show "$WORKTREE_THREAD_ID" --git-diff --diff-target branch_committed
+kaioken thread show "$WORKTREE_THREAD_ID" --git-diff --diff-target all
 curl -fsS "$BB_SERVER_URL/api/v1/environments/$WORKTREE_ENV_ID" | jq
 curl -fsS "$BB_SERVER_URL/api/v1/environments/$WORKTREE_ENV_ID/status" | jq
 curl -fsS "$BB_SERVER_URL/api/v1/environments/$WORKTREE_ENV_ID/diff/branches" | jq
@@ -365,7 +365,7 @@ OpenAI API-key inference.
 WORKTREE_ENV_PATH=$(curl -fsS "$BB_SERVER_URL/api/v1/environments/$WORKTREE_ENV_ID" | jq -er '.path')
 printf 'helper inference commit smoke\n' > "$WORKTREE_ENV_PATH/helper-inference-smoke.txt"
 
-bb environment commit "$WORKTREE_ENV_ID" --json | jq -e '.action == "commit" and (.commitSha | type == "string")'
+kaioken environment commit "$WORKTREE_ENV_ID" --json | jq -e '.action == "commit" and (.commitSha | type == "string")'
 ```
 
 Verify merge-base environment metadata:
@@ -373,37 +373,37 @@ Verify merge-base environment metadata:
 ```bash
 MERGE_BASE_BRANCH=$(curl -fsS "$BB_SERVER_URL/api/v1/environments/$WORKTREE_ENV_ID" | jq -er '.defaultBranch // "main"')
 
-bb environment update "$WORKTREE_ENV_ID" --merge-base-branch "$MERGE_BASE_BRANCH"
-bb environment show "$WORKTREE_ENV_ID" --json | jq -e --arg branch "$MERGE_BASE_BRANCH" '.mergeBaseBranch == $branch'
-bb thread show "$WORKTREE_THREAD_ID" --work-status --git-diff --diff-target all
+kaioken environment update "$WORKTREE_ENV_ID" --merge-base-branch "$MERGE_BASE_BRANCH"
+kaioken environment show "$WORKTREE_ENV_ID" --json | jq -e --arg branch "$MERGE_BASE_BRANCH" '.mergeBaseBranch == $branch'
+kaioken thread show "$WORKTREE_THREAD_ID" --work-status --git-diff --diff-target all
 
-bb environment update "$WORKTREE_ENV_ID" --clear-merge-base-branch
-bb environment show "$WORKTREE_ENV_ID" --json | jq -e '.mergeBaseBranch == null'
+kaioken environment update "$WORKTREE_ENV_ID" --clear-merge-base-branch
+kaioken environment show "$WORKTREE_ENV_ID" --json | jq -e '.mergeBaseBranch == null'
 ```
 
 Archive and unarchive the smoke thread:
 
 ```bash
-bb thread archive "$SMOKE_THREAD_ID"
+kaioken thread archive "$SMOKE_THREAD_ID"
 curl -fsS "$BB_SERVER_URL/api/v1/threads/$SMOKE_THREAD_ID" | jq
 
-if bb thread tell "$SMOKE_THREAD_ID" "This should fail while archived"; then
+if kaioken thread tell "$SMOKE_THREAD_ID" "This should fail while archived"; then
   echo "expected archived thread tell to fail"
   false
 else
   echo "archived thread tell was blocked"
 fi
 
-bb thread unarchive "$SMOKE_THREAD_ID"
-bb thread tell "$SMOKE_THREAD_ID" "Say something after unarchive"
-bb thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
-bb thread output "$SMOKE_THREAD_ID"
+kaioken thread unarchive "$SMOKE_THREAD_ID"
+kaioken thread tell "$SMOKE_THREAD_ID" "Say something after unarchive"
+kaioken thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
+kaioken thread output "$SMOKE_THREAD_ID"
 ```
 
 Verify archive cleanup for a dirty managed worktree:
 
 ```bash
-DIRTY_ARCHIVE_THREAD_ID=$(bb thread spawn \
+DIRTY_ARCHIVE_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider codex \
   --model "$CODEX_MODEL" \
@@ -412,13 +412,13 @@ DIRTY_ARCHIVE_THREAD_ID=$(bb thread spawn \
   --prompt "Say exactly: dirty archive setup" \
   --json | jq -r '.id')
 
-bb thread wait "$DIRTY_ARCHIVE_THREAD_ID" --status idle --timeout 120
+kaioken thread wait "$DIRTY_ARCHIVE_THREAD_ID" --status idle --timeout 120
 DIRTY_ARCHIVE_ENV_ID=$(curl -fsS "$BB_SERVER_URL/api/v1/threads/$DIRTY_ARCHIVE_THREAD_ID" | jq -r '.environmentId')
 DIRTY_ARCHIVE_ENV_PATH=$(curl -fsS "$BB_SERVER_URL/api/v1/environments/$DIRTY_ARCHIVE_ENV_ID" | jq -er '.path')
 printf 'dirty archive safety\n' > "$DIRTY_ARCHIVE_ENV_PATH/dirty-archive.txt"
-bb thread show "$DIRTY_ARCHIVE_THREAD_ID" --work-status
+kaioken thread show "$DIRTY_ARCHIVE_THREAD_ID" --work-status
 
-bb thread archive "$DIRTY_ARCHIVE_THREAD_ID"
+kaioken thread archive "$DIRTY_ARCHIVE_THREAD_ID"
 
 curl -fsS "$BB_SERVER_URL/api/v1/threads/$DIRTY_ARCHIVE_THREAD_ID" | jq -e '.archivedAt != null'
 DIRTY_ARCHIVE_ENV_STATUS=$(curl -fsS "$BB_SERVER_URL/api/v1/environments/$DIRTY_ARCHIVE_ENV_ID" | jq -r '.status')
@@ -428,7 +428,7 @@ test -e "$DIRTY_ARCHIVE_ENV_PATH"
 # A last-live archived managed environment remains revivable during the five-minute
 # archive grace period. Permanently deleting the thread removes that revival path
 # and makes the environment immediately eligible for destruction.
-bb thread delete "$DIRTY_ARCHIVE_THREAD_ID" --yes
+kaioken thread delete "$DIRTY_ARCHIVE_THREAD_ID" --yes
 
 for i in $(seq 1 60); do
   DIRTY_ARCHIVE_ENV_STATUS=$(curl -fsS "$BB_SERVER_URL/api/v1/environments/$DIRTY_ARCHIVE_ENV_ID" | jq -r '.status')
@@ -443,9 +443,9 @@ Expected result:
 
 - The unmanaged thread reaches `idle`, shows output, and accepts a follow-up.
 - The worktree thread reaches `idle`, the environment reports `isWorktree: true`, and workspace status/diff routes return data for uncommitted, branch-committed, and combined targets.
-- `bb environment commit` succeeds with helper-generated commit text without requiring `OPENAI_API_KEY`.
-- Environment merge-base metadata can be set, reflected by `bb environment show`, used by thread status/diff output, and cleared.
-- Archiving blocks `bb thread tell`; unarchiving restores normal operation.
+- `kaioken environment commit` succeeds with helper-generated commit text without requiring `OPENAI_API_KEY`.
+- Environment merge-base metadata can be set, reflected by `kaioken environment show`, used by thread status/diff output, and cleared.
+- Archiving blocks `kaioken thread tell`; unarchiving restores normal operation.
 - Archiving the last live dirty managed worktree puts it in `retiring` and preserves it during the undo grace period; permanently deleting its archived thread then destroys the environment and removes the worktree even while uncommitted or unmerged work remains.
 
 ## Multi-Thread and Shared Environment
@@ -453,7 +453,7 @@ Expected result:
 Create thread A and capture its environment:
 
 ```bash
-THREAD_A_ID=$(bb thread spawn \
+THREAD_A_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider codex \
   --model "$CODEX_MODEL" \
@@ -461,15 +461,15 @@ THREAD_A_ID=$(bb thread spawn \
   --prompt "Say exactly: THREAD A HELLO" \
   --json | jq -r '.id')
 
-bb thread wait "$THREAD_A_ID" --status idle --timeout 120
+kaioken thread wait "$THREAD_A_ID" --status idle --timeout 120
 THREAD_A_ENV_ID=$(curl -fsS "$BB_SERVER_URL/api/v1/threads/$THREAD_A_ID" | jq -r '.environmentId')
-bb thread output "$THREAD_A_ID"
+kaioken thread output "$THREAD_A_ID"
 ```
 
 Create thread B in the same project source path and let the server reuse the ready direct-workspace environment implicitly:
 
 ```bash
-THREAD_B_ID=$(bb thread spawn \
+THREAD_B_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider codex \
   --model "$CODEX_MODEL" \
@@ -477,42 +477,42 @@ THREAD_B_ID=$(bb thread spawn \
   --prompt "Say exactly: THREAD B WORLD" \
   --json | jq -r '.id')
 
-bb thread wait "$THREAD_B_ID" --status idle --timeout 120
+kaioken thread wait "$THREAD_B_ID" --status idle --timeout 120
 THREAD_B_ENV_ID=$(curl -fsS "$BB_SERVER_URL/api/v1/threads/$THREAD_B_ID" | jq -r '.environmentId')
 
 printf 'thread A env: %s\nthread B env: %s\n' "$THREAD_A_ENV_ID" "$THREAD_B_ENV_ID"
-bb thread output "$THREAD_B_ID"
+kaioken thread output "$THREAD_B_ID"
 ```
 
 Alternate follow-ups across the two sibling threads:
 
 ```bash
-bb thread tell "$THREAD_A_ID" "Say exactly: FOLLOW UP A"
-bb thread wait "$THREAD_A_ID" --status idle --timeout 120
+kaioken thread tell "$THREAD_A_ID" "Say exactly: FOLLOW UP A"
+kaioken thread wait "$THREAD_A_ID" --status idle --timeout 120
 
-bb thread tell "$THREAD_B_ID" "Say exactly: FOLLOW UP B"
-bb thread wait "$THREAD_B_ID" --status idle --timeout 120
+kaioken thread tell "$THREAD_B_ID" "Say exactly: FOLLOW UP B"
+kaioken thread wait "$THREAD_B_ID" --status idle --timeout 120
 
-bb thread output "$THREAD_A_ID"
-bb thread output "$THREAD_B_ID"
-bb thread log "$THREAD_A_ID" --format json | jq '.[-8:]'
-bb thread log "$THREAD_B_ID" --format json | jq '.[-8:]'
+kaioken thread output "$THREAD_A_ID"
+kaioken thread output "$THREAD_B_ID"
+kaioken thread log "$THREAD_A_ID" --format json | jq '.[-8:]'
+kaioken thread log "$THREAD_B_ID" --format json | jq '.[-8:]'
 ```
 
 Archive thread A and verify thread B still works:
 
 ```bash
-bb thread archive "$THREAD_A_ID"
-bb thread tell "$THREAD_B_ID" "Say exactly: STILL WORKING"
-bb thread wait "$THREAD_B_ID" --status idle --timeout 120
-bb thread output "$THREAD_B_ID"
-bb thread unarchive "$THREAD_A_ID"
+kaioken thread archive "$THREAD_A_ID"
+kaioken thread tell "$THREAD_B_ID" "Say exactly: STILL WORKING"
+kaioken thread wait "$THREAD_B_ID" --status idle --timeout 120
+kaioken thread output "$THREAD_B_ID"
+kaioken thread unarchive "$THREAD_A_ID"
 ```
 
 Run a mixed-provider pass in separate environments:
 
 ```bash
-CLAUDE_THREAD_ID=$(bb thread spawn \
+CLAUDE_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider claude-code \
   --model "$CLAUDE_MODEL" \
@@ -521,7 +521,7 @@ CLAUDE_THREAD_ID=$(bb thread spawn \
   --prompt "Say exactly: CLAUDE THREAD" \
   --json | jq -r '.id')
 
-PI_THREAD_ID=$(bb thread spawn \
+PI_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider pi \
   --model "$PI_MODEL" \
@@ -530,14 +530,14 @@ PI_THREAD_ID=$(bb thread spawn \
   --prompt "Say exactly: PI THREAD" \
   --json | jq -r '.id')
 
-bb thread wait "$CLAUDE_THREAD_ID" --status idle --timeout 120
-bb thread wait "$PI_THREAD_ID" --status idle --timeout 180
+kaioken thread wait "$CLAUDE_THREAD_ID" --status idle --timeout 120
+kaioken thread wait "$PI_THREAD_ID" --status idle --timeout 180
 CLAUDE_ENV_ID=$(curl -fsS "$BB_SERVER_URL/api/v1/threads/$CLAUDE_THREAD_ID" | jq -r '.environmentId')
 PI_ENV_ID=$(curl -fsS "$BB_SERVER_URL/api/v1/threads/$PI_THREAD_ID" | jq -r '.environmentId')
 
 printf 'claude env: %s\npi env: %s\n' "$CLAUDE_ENV_ID" "$PI_ENV_ID"
-bb thread output "$CLAUDE_THREAD_ID"
-bb thread output "$PI_THREAD_ID"
+kaioken thread output "$CLAUDE_THREAD_ID"
+kaioken thread output "$PI_THREAD_ID"
 ```
 
 Expected result:
@@ -560,9 +560,9 @@ eval "$RESTART_DAEMON_COMMAND"
 DAEMON_PID=$(cat "$DAEMON_RESTART_PID_PATH")
 
 curl -fsS "$BB_SERVER_URL/api/v1/hosts" | jq
-bb thread tell "$SMOKE_THREAD_ID" "Check recovery after daemon restart"
-bb thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
-bb thread output "$SMOKE_THREAD_ID"
+kaioken thread tell "$SMOKE_THREAD_ID" "Check recovery after daemon restart"
+kaioken thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
+kaioken thread output "$SMOKE_THREAD_ID"
 ```
 
 Provisioning failure and next-message retry:
@@ -571,20 +571,20 @@ Provisioning failure and next-message retry:
 # Commit a supported setup hook that fails exactly once across worktrees in the
 # disposable repository. The marker lives in the shared Git directory, so the
 # first failed worktree can be removed without losing it.
-cat > "$PROJECT_ROOT/.bb-env-setup.sh" <<'EOF'
+cat > "$PROJECT_ROOT/.kaioken-env-setup.sh" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-MARKER="$(git rev-parse --path-format=absolute --git-common-dir)/bb-qa-provision-failed-once"
+MARKER="$(git rev-parse --path-format=absolute --git-common-dir)/kaioken-qa-provision-failed-once"
 if [ ! -e "$MARKER" ]; then
   touch "$MARKER"
   echo "intentional one-time QA setup failure" >&2
   exit 42
 fi
 EOF
-git -C "$PROJECT_ROOT" add .bb-env-setup.sh
+git -C "$PROJECT_ROOT" add .kaioken-env-setup.sh
 git -C "$PROJECT_ROOT" commit -m "qa: fail one worktree setup"
 
-PROVISION_RETRY_THREAD_ID=$(bb thread spawn \
+PROVISION_RETRY_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider codex \
   --model "$CODEX_MODEL" \
@@ -593,23 +593,23 @@ PROVISION_RETRY_THREAD_ID=$(bb thread spawn \
   --prompt "Say exactly: initial provisioning should fail" \
   --json | jq -r '.id')
 
-bb thread wait "$PROVISION_RETRY_THREAD_ID" --status error --timeout 120
+kaioken thread wait "$PROVISION_RETRY_THREAD_ID" --status error --timeout 120
 PROVISION_RETRY_ENV_ID=$(curl -fsS "$BB_SERVER_URL/api/v1/threads/$PROVISION_RETRY_THREAD_ID" | jq -er '.environmentId')
 curl -fsS "$BB_SERVER_URL/api/v1/environments/$PROVISION_RETRY_ENV_ID" | jq -e '.status == "error"'
-bb thread log "$PROVISION_RETRY_THREAD_ID" --format json \
+kaioken thread log "$PROVISION_RETRY_THREAD_ID" --format json \
   | jq -e 'any(.[]; .type == "system/error" and (.data.code // .code // null) == "thread_provisioning_failed")'
 
 # Retry only after the first provisioning RPC has completed as a real failure.
 # This next message starts a fresh provision; it does not recover an in-flight
 # RPC or rely on a persisted provisioning-attempt identifier.
-bb thread tell "$PROVISION_RETRY_THREAD_ID" "Say exactly: provisioning retry ok" --mode auto
-bb thread wait "$PROVISION_RETRY_THREAD_ID" --status idle --timeout 180
-bb thread output "$PROVISION_RETRY_THREAD_ID"
+kaioken thread tell "$PROVISION_RETRY_THREAD_ID" "Say exactly: provisioning retry ok" --mode auto
+kaioken thread wait "$PROVISION_RETRY_THREAD_ID" --status idle --timeout 180
+kaioken thread output "$PROVISION_RETRY_THREAD_ID"
 curl -fsS "$BB_SERVER_URL/api/v1/environments/$PROVISION_RETRY_ENV_ID" | jq -e '.status == "ready"'
 
-PROVISION_RETRY_MARKER="$(git -C "$PROJECT_ROOT" rev-parse --path-format=absolute --git-common-dir)/bb-qa-provision-failed-once"
+PROVISION_RETRY_MARKER="$(git -C "$PROJECT_ROOT" rev-parse --path-format=absolute --git-common-dir)/kaioken-qa-provision-failed-once"
 rm -f "$PROVISION_RETRY_MARKER"
-git -C "$PROJECT_ROOT" rm .bb-env-setup.sh
+git -C "$PROJECT_ROOT" rm .kaioken-env-setup.sh
 git -C "$PROJECT_ROOT" commit -m "qa: remove one-time setup failure"
 ```
 
@@ -634,7 +634,7 @@ for _ in $(seq 1 60); do
 done
 test "$HOST_STATUS" != "connected"
 
-if bb thread tell "$SMOKE_THREAD_ID" "This should fail while the host is offline"; then
+if kaioken thread tell "$SMOKE_THREAD_ID" "This should fail while the host is offline"; then
   echo "expected offline host send to fail"
   false
 else
@@ -643,9 +643,9 @@ fi
 
 eval "$RESTART_DAEMON_COMMAND"
 DAEMON_PID=$(cat "$DAEMON_RESTART_PID_PATH")
-bb thread tell "$SMOKE_THREAD_ID" "Say exactly: offline retry ok"
-bb thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
-bb thread output "$SMOKE_THREAD_ID"
+kaioken thread tell "$SMOKE_THREAD_ID" "Say exactly: offline retry ok"
+kaioken thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
+kaioken thread output "$SMOKE_THREAD_ID"
 ```
 
 Expected result:
@@ -659,7 +659,7 @@ Expected result:
 Daemon hot-replace mid-RPC:
 
 ```bash
-HOT_REPLACE_THREAD_ID=$(bb thread spawn \
+HOT_REPLACE_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider codex \
   --model "$CODEX_MODEL" \
@@ -667,15 +667,15 @@ HOT_REPLACE_THREAD_ID=$(bb thread spawn \
   --prompt "Write 80 detailed bullet points about the history of operating systems." \
   --json | jq -r '.id')
 
-bb thread wait "$HOT_REPLACE_THREAD_ID" --status active --timeout 30
+kaioken thread wait "$HOT_REPLACE_THREAD_ID" --status active --timeout 30
 OLD_DAEMON_PID=$DAEMON_PID
 eval "$RESTART_DAEMON_COMMAND"
 DAEMON_PID=$(cat "$DAEMON_RESTART_PID_PATH")
 test "$DAEMON_PID" != "$OLD_DAEMON_PID"
 
 curl -fsS "$BB_SERVER_URL/api/v1/hosts" | jq
-bb thread show "$HOT_REPLACE_THREAD_ID"
-bb thread log "$HOT_REPLACE_THREAD_ID" --format json | jq '.[-12:]'
+kaioken thread show "$HOT_REPLACE_THREAD_ID"
+kaioken thread log "$HOT_REPLACE_THREAD_ID" --format json | jq '.[-12:]'
 ```
 
 Expected result:
@@ -690,11 +690,11 @@ Expected result:
 Kill the daemon during active work:
 
 ```bash
-bb thread tell "$SMOKE_THREAD_ID" "Write 80 detailed bullet points about the history of computing."
-bb thread wait "$SMOKE_THREAD_ID" --status active --timeout 30
+kaioken thread tell "$SMOKE_THREAD_ID" "Write 80 detailed bullet points about the history of computing."
+kaioken thread wait "$SMOKE_THREAD_ID" --status active --timeout 30
 
 kill -TERM "$DAEMON_PID"
-bb thread show "$SMOKE_THREAD_ID"
+kaioken thread show "$SMOKE_THREAD_ID"
 
 eval "$RESTART_DAEMON_COMMAND"
 DAEMON_PID=$(cat "$DAEMON_RESTART_PID_PATH")
@@ -705,18 +705,18 @@ if [ "$THREAD_STATE" = "active" ]; then
   # The disconnect settlement can race this snapshot: `wait` may observe that
   # the thread already became `error` and correctly return non-zero. Re-read
   # state instead of treating that expected terminal transition as a QA failure.
-  bb thread wait "$SMOKE_THREAD_ID" --status idle --timeout 180 || true
+  kaioken thread wait "$SMOKE_THREAD_ID" --status idle --timeout 180 || true
 fi
 
 THREAD_STATE=$(curl -fsS "$BB_SERVER_URL/api/v1/threads/$SMOKE_THREAD_ID" | jq -r '.status')
 if [ "$THREAD_STATE" != "idle" ]; then
-  bb thread tell "$SMOKE_THREAD_ID" "Say exactly: recovery ok" --mode auto
-  bb thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
+  kaioken thread tell "$SMOKE_THREAD_ID" "Say exactly: recovery ok" --mode auto
+  kaioken thread wait "$SMOKE_THREAD_ID" --status idle --timeout 120
 fi
 
-bb thread output "$SMOKE_THREAD_ID"
-bb thread log "$SMOKE_THREAD_ID" --format json | jq '.[-12:]'
-bb thread log "$SMOKE_THREAD_ID" --format json \
+kaioken thread output "$SMOKE_THREAD_ID"
+kaioken thread log "$SMOKE_THREAD_ID" --format json | jq '.[-12:]'
+kaioken thread log "$SMOKE_THREAD_ID" --format json \
   | jq -e 'any(.[]; .type == "system/error" and (.data.code // .code // null) == "thread_command_failed")'
 ```
 
@@ -747,7 +747,7 @@ Use the resolved model for each provider:
 - `pi`: `--model "$PI_MODEL"`
 
 ```bash
-PROVIDER_THREAD_ID=$(bb thread spawn \
+PROVIDER_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider <provider-id> \
   --model <provider-model> \
@@ -755,25 +755,25 @@ PROVIDER_THREAD_ID=$(bb thread spawn \
   --prompt "Say exactly: hello world" \
   --json | jq -r '.id')
 
-bb thread wait "$PROVIDER_THREAD_ID" --status idle --timeout 120
-bb thread output "$PROVIDER_THREAD_ID"
+kaioken thread wait "$PROVIDER_THREAD_ID" --status idle --timeout 120
+kaioken thread output "$PROVIDER_THREAD_ID"
 
-bb thread tell "$PROVIDER_THREAD_ID" "Repeat the previous answer in uppercase"
-bb thread wait "$PROVIDER_THREAD_ID" --status idle --timeout 120
-bb thread output "$PROVIDER_THREAD_ID"
+kaioken thread tell "$PROVIDER_THREAD_ID" "Repeat the previous answer in uppercase"
+kaioken thread wait "$PROVIDER_THREAD_ID" --status idle --timeout 120
+kaioken thread output "$PROVIDER_THREAD_ID"
 
-bb thread tell "$PROVIDER_THREAD_ID" "Write a very long essay about computing history"
-bb thread wait "$PROVIDER_THREAD_ID" --status active --timeout 30
-bb thread stop "$PROVIDER_THREAD_ID"
-bb thread wait "$PROVIDER_THREAD_ID" --status idle --timeout 120
-bb thread show "$PROVIDER_THREAD_ID"
-bb thread log "$PROVIDER_THREAD_ID" --format json | jq '.[-10:]'
+kaioken thread tell "$PROVIDER_THREAD_ID" "Write a very long essay about computing history"
+kaioken thread wait "$PROVIDER_THREAD_ID" --status active --timeout 30
+kaioken thread stop "$PROVIDER_THREAD_ID"
+kaioken thread wait "$PROVIDER_THREAD_ID" --status idle --timeout 120
+kaioken thread show "$PROVIDER_THREAD_ID"
+kaioken thread log "$PROVIDER_THREAD_ID" --format json | jq '.[-10:]'
 ```
 
 For workspace interaction, repeat on a worktree thread:
 
 ```bash
-PROVIDER_WORKTREE_THREAD_ID=$(bb thread spawn \
+PROVIDER_WORKTREE_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider <provider-id> \
   --model <provider-model> \
@@ -782,10 +782,10 @@ PROVIDER_WORKTREE_THREAD_ID=$(bb thread spawn \
   --prompt "Create hello.txt containing hello world" \
   --json | jq -r '.id')
 
-bb thread wait "$PROVIDER_WORKTREE_THREAD_ID" --status idle --timeout 120
+kaioken thread wait "$PROVIDER_WORKTREE_THREAD_ID" --status idle --timeout 120
 PROVIDER_WORKTREE_ENV_ID=$(curl -fsS "$BB_SERVER_URL/api/v1/threads/$PROVIDER_WORKTREE_THREAD_ID" | jq -r '.environmentId')
 
-bb thread output "$PROVIDER_WORKTREE_THREAD_ID"
+kaioken thread output "$PROVIDER_WORKTREE_THREAD_ID"
 curl -fsS "$BB_SERVER_URL/api/v1/environments/$PROVIDER_WORKTREE_ENV_ID/status" | jq
 ```
 
@@ -794,9 +794,9 @@ Run a pending-interaction pass with permission-restricted turns:
 ```bash
 # Codex sandboxes commonly permit the OS temp directory. Put the disposable
 # target under the user home so it is reliably outside the managed worktree.
-APPROVAL_DIR=$(mktemp -d "${HOME:?}/.bb-approval-smoke.XXXXXX")
+APPROVAL_DIR=$(mktemp -d "${HOME:?}/.kaioken-approval-smoke.XXXXXX")
 APPROVAL_FILE="$APPROVAL_DIR/approval-smoke.txt"
-APPROVAL_THREAD_ID=$(bb thread spawn \
+APPROVAL_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider codex \
   --model "$CODEX_MODEL" \
@@ -808,7 +808,7 @@ APPROVAL_THREAD_ID=$(bb thread spawn \
 
 APPROVAL_INTERACTION_ID=
 for _ in {1..60}; do
-  APPROVAL_INTERACTION_ID=$(bb thread interactions list "$APPROVAL_THREAD_ID" --json | jq -r '.[0].id // empty')
+  APPROVAL_INTERACTION_ID=$(kaioken thread interactions list "$APPROVAL_THREAD_ID" --json | jq -r '.[0].id // empty')
   if [ -n "$APPROVAL_INTERACTION_ID" ]; then
     break
   fi
@@ -816,28 +816,28 @@ for _ in {1..60}; do
 done
 test -n "$APPROVAL_INTERACTION_ID"
 
-bb thread interactions show "$APPROVAL_INTERACTION_ID" "$APPROVAL_THREAD_ID"
+kaioken thread interactions show "$APPROVAL_INTERACTION_ID" "$APPROVAL_THREAD_ID"
 
-if bb thread tell "$APPROVAL_THREAD_ID" "This should be blocked while an interaction is pending"; then
+if kaioken thread tell "$APPROVAL_THREAD_ID" "This should be blocked while an interaction is pending"; then
   echo "expected tell to be blocked while the interaction is pending"
   false
 else
   echo "tell was blocked while the interaction was pending"
 fi
 
-bb thread interactions approve "$APPROVAL_INTERACTION_ID" "$APPROVAL_THREAD_ID"
-bb thread wait "$APPROVAL_THREAD_ID" --status idle --timeout 180
-bb thread output "$APPROVAL_THREAD_ID"
-bb thread interactions list "$APPROVAL_THREAD_ID" --json | jq
+kaioken thread interactions approve "$APPROVAL_INTERACTION_ID" "$APPROVAL_THREAD_ID"
+kaioken thread wait "$APPROVAL_THREAD_ID" --status idle --timeout 180
+kaioken thread output "$APPROVAL_THREAD_ID"
+kaioken thread interactions list "$APPROVAL_THREAD_ID" --json | jq
 test "$(cat "$APPROVAL_FILE")" = "APPROVED"
 ```
 
 Verify denial handling with a separate interaction:
 
 ```bash
-DENY_DIR=$(mktemp -d "${HOME:?}/.bb-denial-smoke.XXXXXX")
+DENY_DIR=$(mktemp -d "${HOME:?}/.kaioken-denial-smoke.XXXXXX")
 DENY_FILE="$DENY_DIR/denied-smoke.txt"
-DENY_THREAD_ID=$(bb thread spawn \
+DENY_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider codex \
   --model "$CODEX_MODEL" \
@@ -849,7 +849,7 @@ DENY_THREAD_ID=$(bb thread spawn \
 
 DENY_INTERACTION_ID=
 for _ in {1..60}; do
-  DENY_INTERACTION_ID=$(bb thread interactions list "$DENY_THREAD_ID" --json | jq -r '.[0].id // empty')
+  DENY_INTERACTION_ID=$(kaioken thread interactions list "$DENY_THREAD_ID" --json | jq -r '.[0].id // empty')
   if [ -n "$DENY_INTERACTION_ID" ]; then
     break
   fi
@@ -857,21 +857,21 @@ for _ in {1..60}; do
 done
 test -n "$DENY_INTERACTION_ID"
 
-bb thread interactions show "$DENY_INTERACTION_ID" "$DENY_THREAD_ID"
-bb thread interactions deny "$DENY_INTERACTION_ID" "$DENY_THREAD_ID"
-if bb thread wait "$DENY_THREAD_ID" --status idle --timeout 180; then
-  bb thread output "$DENY_THREAD_ID"
+kaioken thread interactions show "$DENY_INTERACTION_ID" "$DENY_THREAD_ID"
+kaioken thread interactions deny "$DENY_INTERACTION_ID" "$DENY_THREAD_ID"
+if kaioken thread wait "$DENY_THREAD_ID" --status idle --timeout 180; then
+  kaioken thread output "$DENY_THREAD_ID"
 else
-  bb thread show "$DENY_THREAD_ID"
+  kaioken thread show "$DENY_THREAD_ID"
 fi
-bb thread log "$DENY_THREAD_ID" --format json | jq '.[-12:]'
+kaioken thread log "$DENY_THREAD_ID" --format json | jq '.[-12:]'
 test ! -e "$DENY_FILE"
 ```
 
 For `claude-code`, also verify grant semantics with a permission-grant interaction:
 
 ```bash
-GRANT_THREAD_ID=$(bb thread spawn \
+GRANT_THREAD_ID=$(kaioken thread spawn \
   --project "$BB_PROJECT_ID" \
   --provider claude-code \
   --model "$CLAUDE_MODEL" \
@@ -883,7 +883,7 @@ GRANT_THREAD_ID=$(bb thread spawn \
 
 GRANT_INTERACTION_ID=
 for _ in {1..60}; do
-  GRANT_INTERACTION_ID=$(bb thread interactions list "$GRANT_THREAD_ID" --json | jq -r '.[0].id // empty')
+  GRANT_INTERACTION_ID=$(kaioken thread interactions list "$GRANT_THREAD_ID" --json | jq -r '.[0].id // empty')
   if [ -n "$GRANT_INTERACTION_ID" ]; then
     break
   fi
@@ -891,10 +891,10 @@ for _ in {1..60}; do
 done
 test -n "$GRANT_INTERACTION_ID"
 
-bb thread interactions show "$GRANT_INTERACTION_ID" "$GRANT_THREAD_ID"
-bb thread interactions grant "$GRANT_INTERACTION_ID" "$GRANT_THREAD_ID" --scope turn
-bb thread wait "$GRANT_THREAD_ID" --status idle --timeout 180
-bb thread output "$GRANT_THREAD_ID"
+kaioken thread interactions show "$GRANT_INTERACTION_ID" "$GRANT_THREAD_ID"
+kaioken thread interactions grant "$GRANT_INTERACTION_ID" "$GRANT_THREAD_ID" --scope turn
+kaioken thread wait "$GRANT_THREAD_ID" --status idle --timeout 180
+kaioken thread output "$GRANT_THREAD_ID"
 
 rm -f "$APPROVAL_FILE" "$DENY_FILE"
 rmdir "$APPROVAL_DIR" "$DENY_DIR"
@@ -904,8 +904,8 @@ Expected result:
 
 - `accept-edits` turns allow workspace changes but surface pending interactions
   for the explicit outside-workspace probes; inspect them with
-  `bb thread interactions list/show`.
-- `bb thread tell` reports the message as held while the thread is awaiting
+  `kaioken thread interactions list/show`.
+- `kaioken thread tell` reports the message as held while the thread is awaiting
   user interaction and delivers it after the interaction settles;
   `--mode start` is still rejected with 409 `awaiting_user_interaction`.
 - `approve`, `deny`, and `grant` resolve their matching interaction kinds.

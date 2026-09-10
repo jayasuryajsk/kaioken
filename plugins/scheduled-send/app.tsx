@@ -1,4 +1,4 @@
-// bb-plugin-scheduled-send frontend — "Send later…" in the composer's + menu.
+// kaioken-plugin-scheduled-send frontend — "Send later…" in the composer's + menu.
 //
 // The plugin owns the *time*, and nothing else. `useComposer()`'s
 // `experimental_submit({ sendAt })` runs the composer's own submit pipeline
@@ -25,30 +25,30 @@ import {
   useSyncExternalStore,
 } from "react";
 import { toast } from "sonner";
-import { Button } from "@bb/shared-ui/button";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
-import { Input } from "@bb/shared-ui/input";
-import { Label } from "@bb/shared-ui/label";
+} from "@kaioken/shared-ui/dialog";
+import { Input } from "@kaioken/shared-ui/input";
+import { Label } from "@kaioken/shared-ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bb/shared-ui/select";
+} from "@kaioken/shared-ui/select";
 import {
   definePluginApp,
   useComposer,
   useComposerView,
   type ComposerView,
   type PluginComposerScope,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import {
   DEFAULT_SCHEDULE_PRESET_ID,
   MAX_SCHEDULE_AHEAD_MS,

@@ -1,5 +1,5 @@
 import { useMemo, useSyncExternalStore } from "react";
-import type { PluginComposerScope } from "@get-bb/plugin-sdk";
+import type { PluginComposerScope } from "@get-kaioken/plugin-sdk";
 import {
   resolveComposerActions,
   resolveComposerBanners,

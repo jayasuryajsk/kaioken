@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CREATE_PLUGIN_PROMPT } from "@bb/client-core";
+import { CREATE_PLUGIN_PROMPT } from "@kaioken/client-core";
 import {
   BROWSE_ARCHETYPES,
   UTILITY_EXAMPLES,
@@ -10,7 +10,7 @@ import {
 } from "./browse-hero-archetypes";
 import { BrowseArchetypeCards } from "./BrowseArchetypeCards";
 import { BrowseHeroCarousel } from "./BrowseHeroCarousel";
-import { TooltipProvider } from "@bb/shared-ui/tooltip";
+import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
 import { MINI_APP_SCENES } from "./MiniAppScenes";
 
 const openComposer = vi.fn<(seed: string | undefined) => void>();
@@ -42,7 +42,7 @@ describe("BrowseHeroCarousel", () => {
     render(<BrowseHeroCarousel autoplay={false} />);
 
     const heading = screen.getByRole("heading", { level: 2 });
-    expect(heading.textContent).toContain("Turn bb into");
+    expect(heading.textContent).toContain("Turn kaioken into");
     expect(heading.textContent).toContain(BROWSE_ARCHETYPES[0]?.noun);
     expect(screen.getByText("Plugin")).toBeTruthy();
     expect(

@@ -2,7 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import type { DesktopBrowserImportFailureReason } from "@bb/host-daemon-contract";
+import type { DesktopBrowserImportFailureReason } from "@kaioken/host-daemon-contract";
 
 export interface ImportedCookie {
   url: string;
@@ -71,7 +71,7 @@ export async function withCookieDatabaseSnapshot<T>(
   cookiePath: string,
   use: (database: DatabaseSync) => T | Promise<T>,
 ): Promise<T> {
-  const directory = await mkdtemp(join(tmpdir(), "bb-cookie-import-"));
+  const directory = await mkdtemp(join(tmpdir(), "kaioken-cookie-import-"));
   const snapshotPath = join(directory, basename(cookiePath));
   try {
     const source = openReadOnlyDatabase(cookiePath);

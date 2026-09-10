@@ -1,4 +1,4 @@
-import { BbHttpError } from "@bb/sdk/browser";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 import { describe, expect, it } from "vitest";
 import {
   describeMutationErrorToast,
@@ -8,7 +8,7 @@ import {
 
 describe("getMutationErrorMessage", () => {
   it("prefers the server error body message over the HTTP status line", () => {
-    const error = new BbHttpError({
+    const error = new KaiokenHttpError({
       status: 409,
       message: "Conflict",
       code: "section_name_conflict",
@@ -20,7 +20,7 @@ describe("getMutationErrorMessage", () => {
   });
 
   it("strips the HTTP prefix when the body has no message", () => {
-    const error = new BbHttpError({
+    const error = new KaiokenHttpError({
       status: 500,
       message: "Internal Server Error",
       code: null,
@@ -64,7 +64,7 @@ describe("describeMutationErrorToast", () => {
   });
 
   it("uses the meta headline with the server detail as description", () => {
-    const error = new BbHttpError({
+    const error = new KaiokenHttpError({
       status: 400,
       message: "Bad Request",
       code: "invalid",

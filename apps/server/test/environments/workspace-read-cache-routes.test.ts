@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { GitHostPullRequest, WorkspaceWorkingTree } from "@bb/domain";
-import type { HostDaemonOnlineRpcResult } from "@bb/host-daemon-contract";
+import type { GitHostPullRequest, WorkspaceWorkingTree } from "@kaioken/domain";
+import type { HostDaemonOnlineRpcResult } from "@kaioken/host-daemon-contract";
 import {
   listQueuedCommands,
   reportQueuedCommandSuccess,
@@ -48,10 +48,10 @@ function rawPullRequest(
     number: 42,
     title: "Cache the PR probe",
     state: "OPEN",
-    url: "https://github.com/acme/bb/pull/42",
+    url: "https://github.com/acme/kaioken/pull/42",
     isDraft: false,
     baseRefName: "main",
-    headRefName: "bb/pr-cache",
+    headRefName: "kaioken/pr-cache",
     updatedAt: "2026-06-16T12:30:00Z",
     checks: [],
     reviewDecision: null,
@@ -72,7 +72,7 @@ function seedGitEnvironment(harness: TestAppHarness, suffix: string) {
   const environment = seedEnvironment(harness.deps, {
     hostId: host.id,
     projectId: project.id,
-    branchName: "bb/pr-cache",
+    branchName: "kaioken/pr-cache",
     defaultBranch: "main",
     path: `/tmp/workspace-read-cache-${suffix}`,
     environmentProviderId: "git-worktree",
@@ -228,7 +228,7 @@ describe("workspace read caches on the environment routes", () => {
       await reportQueuedCommandSuccess(
         harness,
         dirtyCommand,
-        workspaceStatus("bb/pr-cache", "untracked"),
+        workspaceStatus("kaioken/pr-cache", "untracked"),
       );
       await expect(readJson(await dirtyRead)).resolves.toMatchObject({
         workspace: { workingTree: { state: "untracked" } },
@@ -263,7 +263,7 @@ describe("workspace read caches on the environment routes", () => {
       await reportQueuedCommandSuccess(
         harness,
         preflightCommand,
-        workspaceStatus("bb/pr-cache", "untracked"),
+        workspaceStatus("kaioken/pr-cache", "untracked"),
       );
       const diffCommand = await waitForQueuedCommand(
         harness,
@@ -304,7 +304,7 @@ describe("workspace read caches on the environment routes", () => {
       await reportQueuedCommandSuccess(
         harness,
         refreshedCommand,
-        workspaceStatus("bb/pr-cache", "clean"),
+        workspaceStatus("kaioken/pr-cache", "clean"),
       );
       const refreshedResponse = await refreshedRead;
       expect(refreshedResponse.status).toBe(200);

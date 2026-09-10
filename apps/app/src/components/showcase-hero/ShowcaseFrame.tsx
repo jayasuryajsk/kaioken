@@ -1,5 +1,5 @@
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import type { ShowcaseArchetype, ShowcaseScenes } from "./showcase-archetype";
 import { accentInk, accentTint, neutral } from "./showcase-tokens";
 

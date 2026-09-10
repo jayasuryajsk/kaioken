@@ -3,14 +3,14 @@
   "name": "toggle-group",
   "type": "registry:ui",
   "title": "toggle-group",
-  "description": "BB ui \"toggle-group\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"toggle-group\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-toggle-group",
     "class-variance-authority"
   ],
   "registryDependencies": [
-    "@bb/toggle",
-    "@bb/utils"
+    "@kaioken/toggle",
+    "@kaioken/utils"
   ],
   "files": [
     {

@@ -42,7 +42,7 @@ it("keeps trusted automation pull requests open", () => {
       PR_NUMBER: "123",
       GITHUB_REPOSITORY: "get-bb/bb",
     });
-  for (const author of ["bb-slop-cop[bot]", "dependabot[bot]"]) {
+  for (const author of ["kaioken-slop-cop[bot]", "dependabot[bot]"]) {
     const result = gate(author);
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("--remove-label needs-approval");

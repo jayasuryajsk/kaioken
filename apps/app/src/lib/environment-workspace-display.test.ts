@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { EnvironmentDisplayInfo } from "@bb/core-ui";
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
+import type { EnvironmentDisplayInfo } from "@kaioken/core-ui";
+import type { SystemEnvironmentProvider } from "@kaioken/server-contract";
 import {
   findEnvironmentDisplayProvider,
   getEnvironmentDisplayIconName,

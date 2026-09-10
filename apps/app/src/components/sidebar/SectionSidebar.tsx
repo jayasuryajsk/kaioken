@@ -4,10 +4,10 @@ import {
   type ReactNode,
 } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@bb/shared-ui/button";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { COARSE_POINTER_ICON_SIZE_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { COARSE_POINTER_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   Sidebar,
   SidebarContent,
@@ -16,14 +16,14 @@ import {
 import { SidebarHistoryNavigationControls } from "@/components/sidebar/SidebarHistoryNavigationControls";
 import { PROJECT_LIST_ACTION_BUTTON_CLASS } from "@/components/sidebar/ProjectList";
 import { SIDEBAR_STANDARD_ROW_PADDING_CLASS } from "@/components/sidebar/sidebarRowClasses";
-import { CHROME_SECTION_LABEL_CLASS } from "@bb/shared-ui/chrome-style-tokens";
+import { CHROME_SECTION_LABEL_CLASS } from "@kaioken/shared-ui/chrome-style-tokens";
 import {
   CHROME_ROW_CLASS,
   getBbDesktopInfo,
   MACOS_CHROME_CONTROL_NO_DRAG_CLASS,
   MACOS_WINDOW_DRAG_CLASS,
   shouldUseMacosDesktopChrome,
-} from "@/lib/bb-desktop";
+} from "@/lib/kaioken-desktop";
 
 export function SectionSidebarIcon({ name }: { name: IconName }) {
   return <Icon name={name} className={COARSE_POINTER_ICON_SIZE_CLASS} />;

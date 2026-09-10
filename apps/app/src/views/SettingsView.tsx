@@ -5,7 +5,7 @@ import {
   useLocation,
   matchPath,
 } from "react-router-dom";
-import "@bb/shared-ui/icon-extended";
+import "@kaioken/shared-ui/icon-extended";
 import {
   builtInThemes,
   defaultAppSettings,
@@ -15,23 +15,23 @@ import {
   type AppTheme,
   type FaviconColorPreference,
   type PluginThemeMeta,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   WorkspaceOpenTarget,
   WorkspaceOpenTargetId,
-} from "@bb/host-daemon-contract";
-import { Button } from "@bb/shared-ui/button";
-import { Icon } from "@bb/shared-ui/icon";
-import { Input } from "@bb/shared-ui/input";
-import { Switch } from "@bb/shared-ui/switch";
-import { COARSE_POINTER_ICON_SIZE_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
+} from "@kaioken/host-daemon-contract";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { Input } from "@kaioken/shared-ui/input";
+import { Switch } from "@kaioken/shared-ui/switch";
+import { COARSE_POINTER_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
+} from "@kaioken/shared-ui/dropdown-menu";
 import { PageShell } from "@/components/ui/page-shell.js";
 import {
   SettingsSection,
@@ -74,7 +74,7 @@ import {
 } from "@/hooks/mutations/settings-mutations";
 import { useSystemConfig } from "@/hooks/queries/system-queries";
 import { useWorkspaceOpenTargets } from "@/hooks/useWorkspaceOpenTargets";
-import { isDesktopBrowserAvailable } from "@/lib/bb-desktop";
+import { isDesktopBrowserAvailable } from "@/lib/kaioken-desktop";
 import {
   FAVICON_COLOR_VALUES,
   getFaviconGlyphHref,
@@ -87,7 +87,7 @@ import {
   getRootComposeRoutePath,
 } from "@/lib/route-paths";
 import { useNavigateToThreadAfterCreatePreference } from "@/lib/root-compose-create-preference";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   resolvePreferredWorkspaceOpenTarget,
   supportsWorkspaceOpenTargetCapability,
@@ -101,7 +101,7 @@ import type { LocalHostDaemonAccessState } from "@/lib/local-host-daemon-access"
 import { openUrlInExternalBrowser } from "@/lib/url-open-routing";
 
 const LOCAL_EDITOR_INTEGRATION_DOCS_URL =
-  "https://github.com/get-bb/bb/blob/main/docs/multiple-devices.md#open-bb-from-another-browser";
+  "https://github.com/get-bb/bb/blob/main/docs/multiple-devices.md#open-kaioken-from-another-browser";
 
 interface ThemePreferenceOption {
   label: string;
@@ -251,9 +251,9 @@ const SETTINGS_DROPDOWN_CONTENT_CLASS =
   "min-w-[var(--radix-dropdown-menu-trigger-width)]";
 
 const CREATE_CUSTOM_PALETTE_PROMPT =
-  "Create a custom bb palette. First run `bb theme dir` to find the custom theme directory. Ask me for the palette name and visual direction, then create `<theme-dir>/<name>/theme.css` with light and dark theme variables compatible with bb's theme tokens.";
+  "Create a custom kaioken palette. First run `kaioken theme dir` to find the custom theme directory. Ask me for the palette name and visual direction, then create `<theme-dir>/<name>/theme.css` with light and dark theme variables compatible with kaioken's theme tokens.";
 const PALETTE_SETTING_DESCRIPTION =
-  "Palettes change bb's colors, including syntax colors in diffs and file previews. Choose a built-in palette or create one from a prompt.";
+  "Palettes change kaioken's colors, including syntax colors in diffs and file previews. Choose a built-in palette or create one from a prompt.";
 
 interface PaletteMenuItemProps {
   active: boolean;
@@ -500,10 +500,10 @@ export function LocalOpenTargetSettingsSection({
     const accessDenied = accessState === "denied";
     const accessAvailable = accessState === "available";
     const descriptionText = accessDenied
-      ? "Your browser blocked access to bb on this device. Allow local network access for this site in browser settings, then reload bb."
+      ? "Your browser blocked access to kaioken on this device. Allow local network access for this site in browser settings, then reload kaioken."
       : accessAvailable
-        ? "bb couldn’t connect to its local editor helper. Make sure the bb desktop app or CLI is running on this device, then retry. If it is already running, a remote browser origin may need to be configured."
-        : "Connect this browser to bb on this device so it can discover installed editors. bb only contacts the local helper after you choose Enable; your browser may ask for local network access.";
+        ? "kaioken couldn’t connect to its local editor helper. Make sure the kaioken desktop app or CLI is running on this device, then retry. If it is already running, a remote browser origin may need to be configured."
+        : "Connect this browser to kaioken on this device so it can discover installed editors. kaioken only contacts the local helper after you choose Enable; your browser may ask for local network access.";
     const buttonLabel = accessRequestPending
       ? accessAvailable
         ? "Retrying…"
@@ -634,7 +634,7 @@ function ManagedBranchPrefixSetting({
       label={MANAGED_BRANCH_PREFIX_SETTING_LABEL}
       description={
         valid ? (
-          `bb puts this in front of every branch it creates for a worktree, such as ${draft}${MANAGED_BRANCH_PREFIX_EXAMPLE_SLUG}. Leave it empty for no prefix.`
+          `kaioken puts this in front of every branch it creates for a worktree, such as ${draft}${MANAGED_BRANCH_PREFIX_EXAMPLE_SLUG}. Leave it empty for no prefix.`
         ) : (
           <span className="text-destructive" role="alert">
             This prefix cannot start a valid git branch name.
@@ -931,7 +931,7 @@ export function GeneralSettingsSection({
         {desktopBrowserAvailable ? (
           <SettingsWithControl
             label={IN_APP_BROWSER_LINK_SETTING_LABEL}
-            description="Open web links inside bb."
+            description="Open web links inside kaioken."
           >
             <Switch
               checked={openLinksInAppBrowser}
@@ -1032,7 +1032,7 @@ export function ExperimentsSettingsSection({
 
         <SettingsWithControl
           label={MOBILE_APP_EXPERIMENT_LABEL}
-          description="Pair the bb mobile app over bb connect: shows Add mobile device under Remote access and enables bb connect machine-code."
+          description="Pair the kaioken mobile app over kaioken connect: shows Add mobile device under Remote access and enables kaioken connect machine-code."
         >
           <Switch
             checked={mobileAppEnabled}

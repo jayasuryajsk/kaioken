@@ -6,7 +6,7 @@ import {
   schema,
   validateLabel,
   type ConnectDb,
-} from "@bb/connect-db";
+} from "@kaioken/connect-db";
 import { verifyMachineCredentialDetails } from "./session.js";
 import { MACHINE_CREDENTIAL_HEADER } from "./protocol-headers.js";
 import type { Env } from "./tunnel-do.js";

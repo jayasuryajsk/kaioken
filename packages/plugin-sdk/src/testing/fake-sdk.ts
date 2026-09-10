@@ -1,6 +1,6 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 
-type BbSdk = BbPluginApi["sdk"];
+type KaiokenSdk = KaiokenPluginApi["sdk"];
 
 /**
  * Recordable `bb.sdk` stand-in for {@link createFakePluginHost}. Every call
@@ -25,7 +25,7 @@ type LooseStub<F> = F extends (...args: infer A) => unknown
   : never;
 
 /**
- * Stub implementations keyed like `BbSdk`: an object per area with a subset
+ * Stub implementations keyed like `KaiokenSdk`: an object per area with a subset
  * of its methods, or a function for the root-level members (`on`).
  */
 type FakeSdkOverrideTree<T> = {
@@ -34,7 +34,7 @@ type FakeSdkOverrideTree<T> = {
     : FakeSdkOverrideTree<T[K]>;
 };
 
-export type FakeSdkOverrides = FakeSdkOverrideTree<BbSdk>;
+export type FakeSdkOverrides = FakeSdkOverrideTree<KaiokenSdk>;
 
 export interface FakeSdkHarness {
   /** Every `bb.sdk` call in order, including ones whose stub threw. */
@@ -70,7 +70,7 @@ function withSpawnAttribution(pluginId: string, args: unknown[]): unknown[] {
 export function createFakeSdk(options: {
   pluginId: string;
   overrides?: FakeSdkOverrides;
-}): { sdk: BbSdk; harness: FakeSdkHarness } {
+}): { sdk: KaiokenSdk; harness: FakeSdkHarness } {
   const calls: FakeSdkCall[] = [];
   const stubs = new Map<string, (...args: unknown[]) => unknown>();
 
@@ -133,7 +133,7 @@ export function createFakeSdk(options: {
     },
   };
 
-  // The proxy is the genuinely unknowable boundary: it answers any BbSdk
+  // The proxy is the genuinely unknowable boundary: it answers any KaiokenSdk
   // shape at runtime, and the type is re-imposed here once.
-  return { sdk: node("") as BbSdk, harness };
+  return { sdk: node("") as KaiokenSdk, harness };
 }

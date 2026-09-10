@@ -1,5 +1,5 @@
-import { jsonValueSchema } from "@bb/domain";
-import type { JsonValue } from "@get-bb/plugin-sdk";
+import { jsonValueSchema } from "@kaioken/domain";
+import type { JsonValue } from "@get-kaioken/plugin-sdk";
 
 export function serializePluginPanelParams(
   params: JsonValue | undefined,

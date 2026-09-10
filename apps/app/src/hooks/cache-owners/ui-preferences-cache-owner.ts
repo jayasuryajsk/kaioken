@@ -1,5 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import type { UiPreferencesResponse } from "@bb/server-contract";
+import type { UiPreferencesResponse } from "@kaioken/server-contract";
 import { uiPreferencesQueryKey } from "../queries/query-keys";
 
 export function getCachedUiPreferences(

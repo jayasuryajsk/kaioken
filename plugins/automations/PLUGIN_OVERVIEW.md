@@ -1,4 +1,4 @@
-Schedule work once or on a repeat, and let bb run it while you do something else. An automation can start an agent thread with a prompt, or run a stored script on the bb server.
+Schedule work once or on a repeat, and let kaioken run it while you do something else. An automation can start an agent thread with a prompt, or run a stored script on the kaioken server.
 
 ## What you get
 
@@ -9,6 +9,6 @@ Schedule work once or on a repeat, and let bb run it while you do something else
 
 ## For agents
 
-Agents get the `automations` skill and the `bb automation` command: `create`, `list`, `show`, `update`, `pause`, `resume`, `run`, `runs`, and `delete`. All commands accept `--json`. Threads that an automation starts cannot create automations.
+Agents get the `automations` skill and the `kaioken automation` command: `create`, `list`, `show`, `update`, `pause`, `resume`, `run`, `runs`, and `delete`. All commands accept `--json`. Threads that an automation starts cannot create automations.
 
-Scripts run on the machine that hosts the bb server. Agent runs use the providers you already have installed.
+Scripts run on the machine that hosts the kaioken server. Agent runs use the providers you already have installed.

@@ -8,8 +8,8 @@ import {
   migrate,
   noopNotifier,
   upsertHost,
-} from "@bb/db";
-import { DEFAULT_MANAGED_BRANCH_PREFIX } from "@bb/domain";
+} from "@kaioken/db";
+import { DEFAULT_MANAGED_BRANCH_PREFIX } from "@kaioken/domain";
 import { ApiError } from "../../src/errors.js";
 import {
   buildSuggestedBranchName,
@@ -41,7 +41,7 @@ describe("buildSuggestedBranchName", () => {
         title: null,
         threadId: "thr_abc123def456",
       }),
-    ).toBe("bb/thr_abc123def456");
+    ).toBe("kaioken/thr_abc123def456");
   });
 
   it("includes a sanitized slug before the full thread ID", () => {
@@ -51,7 +51,7 @@ describe("buildSuggestedBranchName", () => {
         title: "Fix login flow!",
         threadId: "thr_abc123def456",
       }),
-    ).toBe("bb/fix-login-flow-thr_abc123def456");
+    ).toBe("kaioken/fix-login-flow-thr_abc123def456");
   });
 
   it("falls back to the full thread ID when the slug is empty after sanitizing", () => {
@@ -61,7 +61,7 @@ describe("buildSuggestedBranchName", () => {
         title: "!!!",
         threadId: "thr_abc123def456",
       }),
-    ).toBe("bb/thr_abc123def456");
+    ).toBe("kaioken/thr_abc123def456");
   });
 
   it("produces unique names for threads with the same slug", () => {

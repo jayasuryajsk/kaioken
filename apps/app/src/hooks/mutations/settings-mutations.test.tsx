@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
-import type { SystemConfigResponse } from "@bb/server-contract";
+import type { SystemConfigResponse } from "@kaioken/server-contract";
 import {
   defaultAppSettings,
   type AppKeybindingOverrides,
   type AppKeybindings,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   modelCatalogCacheKey,

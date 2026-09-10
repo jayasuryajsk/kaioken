@@ -1,7 +1,7 @@
-# The bb Provider Bridge Protocol
+# The kaioken Provider Bridge Protocol
 
 The one JSON-RPC contract between the agent runtime and every provider
-bridge process. Message schemas live in `@bb/provider-bridge-protocol` and
+bridge process. Message schemas live in `@kaioken/provider-bridge-protocol` and
 are the source of truth for both sides; this document adds what schemas
 cannot express — the division of labor and the grammar: **the bridge knows
 the dialect, the runtime knows the timeline.** A bridge parses its
@@ -25,7 +25,7 @@ export const experimental_providerBridge = experimental_defineProviderBridge({
 });
 ```
 
-`bb plugin build` bundles the artifact to `dist/host.js`; the server records
+`kaioken plugin build` bundles the artifact to `dist/host.js`; the server records
 it content-addressed and hands hosts `{pluginId, digest}`; the daemon
 downloads, verifies, caches and runs it — through a bootstrap that owns
 everything outside the protocol: argv, the plugin-scoped `dataDir`/`tempDir`
@@ -36,17 +36,17 @@ host RPC entry. First-party bridges use exactly this path —
 and `examples/plugins/echo-provider` the smallest.
 
 The bundle is self-contained (only node builtins stay external) and may not
-import bb's private `@bb/*` workspace packages at all — an installed plugin
+import kaioken's private `@kaioken/*` workspace packages at all — an installed plugin
 cannot resolve them. Everything a bridge compiles against is published at
-**`@get-bb/plugin-sdk/provider-bridge`**: the protocol schemas (including
+**`@get-kaioken/plugin-sdk/provider-bridge`**: the protocol schemas (including
 the `thread/delta` grammar), the bridge kit (JSON-RPC plumbing, tool-call
 and interaction codecs, visibility, dialect-parsing helpers), and the domain
 vocabulary the params reference, and the testing kit a bridge proves itself
 with — the conformance scenarios, the real delta assembler, the JSON-RPC
 harness and the calibration normalizer — is published beside it as
-**`@get-bb/plugin-sdk/provider-bridge/testing`**. In-repo, those are
-implemented by `@bb/provider-bridge-protocol` (the grammar, the
-`assembler`, `conformance` and `testing` subpaths) and `@bb/domain`.
+**`@get-kaioken/plugin-sdk/provider-bridge/testing`**. In-repo, those are
+implemented by `@kaioken/provider-bridge-protocol` (the grammar, the
+`assembler`, `conformance` and `testing` subpaths) and `@kaioken/domain`.
 
 ## Transport
 
@@ -151,18 +151,18 @@ shape, streamed text (`item.textDelta`/`item.textClose`), `usage`,
 `contextWindow`, errors/warnings, `unhandled` diagnostics, session lifecycle
 (`session.reset`, `session.ended`) — never a raw provider event and never a
 finished `ThreadEvent`. The schemas in
-`@bb/provider-bridge-protocol/src/thread-delta.ts` are the source of truth
+`@kaioken/provider-bridge-protocol/src/thread-delta.ts` are the source of truth
 for the grammar.
 
-The runtime's **delta assembler** (`@bb/agent-runtime`, one per bridge
+The runtime's **delta assembler** (`@kaioken/agent-runtime`, one per bridge
 adapter) consumes the deltas and owns every timeline invariant:
 
 - **Id minting.** Turn and item ids are assembler-minted
   (entropy + serial, the #1224 discipline held centrally, reset per
   `session.reset`). Deltas carry provider-native join keys (tool-call ids,
   stream keys, parent refs, optional provider turn ids) and the assembler
-  holds the bidirectional provider↔bb maps — both for scoping incoming
-  deltas and for reverse-mapping bb ids on the command plane
+  holds the bidirectional provider↔kaioken maps — both for scoping incoming
+  deltas and for reverse-mapping kaioken ids on the command plane
   (`turn/steer.expectedTurnId`, `thread/stop.activeTurnId`) and on
   provider-native interaction requests (`providerNativeIds: true`). An
   `interaction/request` carries an approval, a user question, or a
@@ -176,7 +176,7 @@ adapter) consumes the deltas and owns every timeline invariant:
   `item.close` always carries the full terminal item shape and is applied
   uniformly (paired close, reclassifying dual-settle, or bare
   close-without-open); repeated closes for a settled provider-identified
-  key are deduped and an explicit reopen reuses the same bb id.
+  key are deduped and an explicit reopen reuses the same kaioken id.
 - **Accumulation.** Streamed text, cumulative output snapshots (diffed into
   deltas/resets), and progress-event throttling.
 - **One streaming dialect.** Every text stream is an item keyed like every
@@ -251,14 +251,14 @@ range is what gates a bridge: every bridge in this repo reports
   until the v2 paths are deleted; required when the shape is `extension`.
   Conformance rule `presentation/icon-namespaced-declared` checks the
   namespaced form for bridges that opt in with an `icons: { pluginId, names }`
-  fixture field (no result when the field is omitted); a `server: "bb"` tool
+  fixture field (no result when the field is omitted); a `server: "kaioken"` tool
   row is exempt, its glyph being checked against the tool's own plugin.
-- **bb-injected tools carry their presentation.** Every `dynamicTools[]`
+- **kaioken-injected tools carry their presentation.** Every `dynamicTools[]`
   definition on `thread/start`, `thread/resume` and `thread/fork` carries the
   `presentation` the server resolved for it (from the owning plugin's
-  `presentation`, or a generic label and the plugin's glyph). A bridge stamps that presentation, beside `server: "bb"`,
+  `presentation`, or a generic label and the plugin's glyph). A bridge stamps that presentation, beside `server: "kaioken"`,
   on the `item.open`/`item.close` of every call to the tool, so no tool-name
-  table labels bb tools anywhere downstream. Optional on the wire: a definition recorded before the field existed
+  table labels kaioken tools anywhere downstream. Optional on the wire: a definition recorded before the field existed
   presents generically, and the committed recordings predate it, so it stays
   optional until those are re-minted.
 - **Extension kinds** `"<pluginId>/<name>"`: the `extension` item shape
@@ -362,13 +362,13 @@ Three identifier families, three owners:
 
 | Identifier                              | Minted by                   | Notes                                                                                                                                                                                                |
 | --------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `threadId`                              | bb server                   | Opaque to the provider; echoed verbatim.                                                                                                                                                             |
-| `providerThreadId`                      | the provider                | Its session handle (rollout id, session id). Returned on the `thread/start`/`thread/resume`/`thread/fork` result (required) and echoed by `thread/identity`; never used to scope bb events directly. |
+| `threadId`                              | kaioken server                   | Opaque to the provider; echoed verbatim.                                                                                                                                                             |
+| `providerThreadId`                      | the provider                | Its session handle (rollout id, session id). Returned on the `thread/start`/`thread/resume`/`thread/fork` result (required) and echoed by `thread/identity`; never used to scope kaioken events directly. |
 | turn ids and item ids on `ThreadEvent`s | **the runtime's assembler** | Never the provider, never the bridge.                                                                                                                                                                |
 
 The central-minting rule is the #1320 lesson made structural: a provider can
-inject arbitrary identifiers on its own wire, but the ids that reach bb's
-persistence are always minted by bb-owned assembler code. Bridges forward
+inject arbitrary identifiers on its own wire, but the ids that reach kaioken's
+persistence are always minted by kaioken-owned assembler code. Bridges forward
 provider-native ids as vouched join keys on deltas; the assembler translates
 in both directions, so a bridge does zero id translation — including for a
 provider that mints its own turn ids (codex).
@@ -415,7 +415,7 @@ it:
    active turn as interrupted (the bridge emits the settling deltas —
    `turn.boundary { interrupted }` plus explicit closes for provider-owned
    open items); `release` detaches an idle session and must not fabricate an
-   interruption (#1584). The bb turn ids these commands carry are
+   interruption (#1584). The kaioken turn ids these commands carry are
    reverse-mapped to the bridge's provider-native turn ids by the adapter,
    so the bridge compares its own ids.
 6. **After `thread/stop` the bridge holds nothing for the thread.** The
@@ -450,7 +450,7 @@ Assembler-owned invariants over the assembled timeline:
 3. Item ids are unique across the life of a thread, including resumes: the
    assembler's maps survive within a session and `session.reset` (mandatory
    at every provider session construction) starts a fresh provider id space
-   so reused provider-native ids mint fresh bb ids.
+   so reused provider-native ids mint fresh kaioken ids.
 4. Completion follows content from the bridge's perspective: if the provider
    emits completion before the content it refers to (codex `item.close`
    before the stdout record), the bridge holds the close delta and flushes
@@ -487,7 +487,7 @@ carries the whole item, so refusing it would lose real content.
    of a session and apply at the next construction.
 4. Fork: absent `sourceProviderCheckpointId` means fork at the tip. A
    `fork: "tip"` bridge rejects checkpoint forks with
-   `FORK_CHECKPOINT_UNSUPPORTED` rather than cloning history the bb timeline
+   `FORK_CHECKPOINT_UNSUPPORTED` rather than cloning history the kaioken timeline
    does not show.
 5. Open work is what the timeline says it is. A `backgroundTask` item and a
    `delegation` item that are still pending are live provider work, and the
@@ -514,7 +514,7 @@ Consumers must NOT assume:
 - That a request's response arrives before notifications caused by the
   request (`turn/started` may precede the `turn/start` response).
 - Anything about `provider/raw` — it is droppable at any pressure point and
-  carries no ids the runtime treats as bb identifiers.
+  carries no ids the runtime treats as kaioken identifiers.
 
 ## Parsing discipline
 
@@ -523,7 +523,7 @@ fields (forward skew between plugin and daemon versions is normal). One
 malformed entry degrades to one missing entry — a bad model in `model/list`
 drops that model, not the listing; a malformed notification is logged and
 dropped without poisoning the stream. But a `thread/delta` payload must be
-a valid delta: what it assembles into enters bb's persistence, so the core
+a valid delta: what it assembles into enters kaioken's persistence, so the core
 stays strict.
 
 ## Child processes
@@ -540,7 +540,7 @@ must not leak their own inherited env downward (#1366, #1545).
 
 ## Record mode
 
-Set `BB_PROVIDER_BRIDGE_RECORD_DIR` to a directory and every bridge process
+Set `KAIOKEN_PROVIDER_BRIDGE_RECORD_DIR` to a directory and every bridge process
 tees the lines that cross its two boundaries into NDJSON files. The bootstrap
 (`bridge-worker-entry.ts`) records the runtime wire for every bridge, first-
 or third-party. A bridge that spawns its provider child records the provider
@@ -549,9 +549,9 @@ right after `spawn()`; the call is a no-op when record mode is off. A bridge
 whose provider pipe belongs to an SDK checks
 `experimental_isProviderBridgeRecording()` and takes the spawn over (the
 Claude bridge does this through the Agent SDK's `spawnClaudeCodeProcess`
-seam). The pi bridge also records the bb extension's channel (fd 3 / fd 4)
+seam). The pi bridge also records the kaioken extension's channel (fd 3 / fd 4)
 on the same two provider lanes, each message wrapped as
-`{ "bbChannel": <message> }`, so a replay can route it back onto the fds.
+`{ "kaiokenChannel": <message> }`, so a replay can route it back onto the fds.
 
 Layout: `<dir>/<threadId>/<direction>.ndjson`, with `_process` for lines that
 belong to no thread (`initialize`, `model/list`, provider health, and the
@@ -566,7 +566,7 @@ answer. Nothing buffers: each line is appended as it crosses.
 The daemon forwards the variable to the bridges it spawns and the runtime
 appends the provider id, so a daemon started with it writes
 `<dir>/<providerId>/<threadId>/…`. `withoutBridgeRuntimeEnv` and the
-`BB_*` allowlist both strip the variable from provider children, so a
+`KAIOKEN_*` allowlist both strip the variable from provider children, so a
 recorded provider never records itself.
 
 Recordings are the input of the parity harness
@@ -574,7 +574,7 @@ Recordings are the input of the parity harness
 lanes replay into a fake child (`replay-provider-child.mjs`, for which the
 recording is the script), the runtime lanes replay into a bridge, and two
 checkouts are diffed on the assembled events and projected rows with
-`pnpm parity --old <checkout> --new .` (`@bb/provider-parity`). Each leg
+`pnpm parity --old <checkout> --new .` (`@kaioken/provider-parity`). Each leg
 assembles and projects with its own checkout's code. Differences a migration
 PR intends go in `recordings/parity-allowlist.json` with the PR and reason;
 an entry that masks nothing is reported stale and fails the run.
@@ -590,7 +590,7 @@ and `UPDATE_PARITY_ROW_COUNTS=1` rewrites the pins deliberately. Raw
 recordings stay out of git.
 
 A recording is never rewritten. When a bridge change alters what the bridge
-emits for a recording, `pnpm --filter @bb/provider-parity rerecord
+emits for a recording, `pnpm --filter @kaioken/provider-parity rerecord
 [--plan-with <recording-time checkout>]` writes the bridge's current output
 to `bridge→runtime.current.ndjson` beside the recorded lane; the self-suite
 pins and compares against that file when it exists, while `pnpm parity`

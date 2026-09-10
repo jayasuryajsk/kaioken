@@ -9,8 +9,8 @@ import {
   describePendingInteractionToolUse,
   formatPendingInteractionSubjectDetailLines,
   type PendingInteractionToolUseAsk,
-} from "@bb/core-ui";
-import { extractShellCommandFromString } from "@bb/thread-view";
+} from "@kaioken/core-ui";
+import { extractShellCommandFromString } from "@kaioken/thread-view";
 import {
   isPluginPendingInteraction,
   type ApprovalPendingInteractionPayload,
@@ -19,9 +19,9 @@ import {
   type PendingInteractionApprovalSubject,
   type PendingInteractionResolution,
   type PendingInteractionUserQuestionQuestion,
-} from "@bb/domain";
-import { Button } from "@bb/shared-ui/button";
-import { Icon } from "@bb/shared-ui/icon";
+} from "@kaioken/domain";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { MarkdownPreview } from "@/components/ui/markdown-preview.js";
 import { getDetailScrollMaxHeightClass } from "@/components/ui/detail-scroll-size.js";
 import { UserQuestionAnswerForm } from "@/components/thread/user-questions/UserQuestionInteractionContent.js";
@@ -38,7 +38,7 @@ import {
 } from "@/components/thread/timeline/presentation-display";
 import { PluginCompactIconMask } from "@/components/plugin/PluginIcon";
 import { usePluginIconUrl } from "@/lib/plugin-logos";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 interface ThreadPendingInteractionBannerProps {
   interaction: PendingInteraction;

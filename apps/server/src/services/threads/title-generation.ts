@@ -1,6 +1,6 @@
-import { renderTemplate } from "@bb/templates";
-import { getThread, updateThread } from "@bb/db";
-import type { PromptInput } from "@bb/domain";
+import { renderTemplate } from "@kaioken/templates";
+import { getThread, updateThread } from "@kaioken/db";
+import type { PromptInput } from "@kaioken/domain";
 import type { AppDeps, LoggedWorkSessionDeps } from "../../types.js";
 import { Type } from "@earendil-works/pi-ai";
 import {

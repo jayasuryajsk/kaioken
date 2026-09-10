@@ -2,14 +2,14 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { runGit } from "@bb/host-workspace";
+import { runGit } from "@kaioken/host-workspace";
 import { listWorkspacePaths } from "./file-list.js";
 import { listHostPaths } from "./host-files.js";
 
 const roots: string[] = [];
 
 async function createRoot() {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "bb-workspace-paths-"));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-workspace-paths-"));
   roots.push(root);
   return root;
 }

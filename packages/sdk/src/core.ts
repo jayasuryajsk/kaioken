@@ -2,7 +2,7 @@ import {
   createDesktopBrowsersArea,
   type ExperimentalDesktopBrowsersArea,
 } from "./areas/desktop-browsers.js";
-import type { BbSdkContext, BbSdkTransport } from "./transport.js";
+import type { KaiokenSdkContext, KaiokenSdkTransport } from "./transport.js";
 import {
   createEnvironmentsArea,
   type EnvironmentsArea,
@@ -14,7 +14,7 @@ import { createProjectsArea, type ProjectsArea } from "./areas/projects.js";
 import { createProvidersArea, type ProvidersArea } from "./areas/providers.js";
 import { createPluginsArea, type PluginsArea } from "./areas/plugins.js";
 import { createBbRealtimeClient } from "./realtime-client.js";
-import type { BbRealtime } from "./realtime-types.js";
+import type { KaiokenRealtime } from "./realtime-types.js";
 import { createStatusArea, type StatusArea } from "./areas/status.js";
 import { createSkillsArea, type SkillsArea } from "./areas/skills.js";
 import { createThemeArea, type ThemeArea } from "./areas/theme.js";
@@ -27,18 +27,18 @@ import {
 } from "./areas/thread-sections.js";
 
 export type * from "./public-types.js";
-export { createBuiltinPlanCommandTextInput } from "@bb/domain";
+export { createBuiltinPlanCommandTextInput } from "@kaioken/domain";
 
 export interface CreateBbSdkArgs {
-  context?: BbSdkContext;
-  transport: BbSdkTransport;
+  context?: KaiokenSdkContext;
+  transport: KaiokenSdkTransport;
 }
 
 export interface CreateBbSdkWithGuideArgs extends CreateBbSdkArgs {
   guide: GuideArea;
 }
 
-export interface BbSdkAreas extends BbRealtime {
+export interface KaiokenSdkAreas extends KaiokenRealtime {
   experimental_desktopBrowsers: ExperimentalDesktopBrowsersArea;
   environments: EnvironmentsArea;
   files: FilesArea;
@@ -55,20 +55,20 @@ export interface BbSdkAreas extends BbRealtime {
   threads: ThreadsArea;
 }
 
-export interface BbSdk extends BbSdkAreas {
+export interface KaiokenSdk extends KaiokenSdkAreas {
   guide: GuideArea;
 }
 
-export function createBbSdk(args: CreateBbSdkWithGuideArgs): BbSdk;
-export function createBbSdk(args: CreateBbSdkArgs): BbSdkAreas;
+export function createBbSdk(args: CreateBbSdkWithGuideArgs): KaiokenSdk;
+export function createBbSdk(args: CreateBbSdkArgs): KaiokenSdkAreas;
 export function createBbSdk(
   args: CreateBbSdkArgs | CreateBbSdkWithGuideArgs,
-): BbSdkAreas | BbSdk {
+): KaiokenSdkAreas | KaiokenSdk {
   const sdkContext = { transport: args.transport };
   const realtime = createBbRealtimeClient({
     transport: args.transport,
   });
-  const areas: BbSdkAreas = {
+  const areas: KaiokenSdkAreas = {
     experimental_desktopBrowsers: createDesktopBrowsersArea(sdkContext),
     environments: createEnvironmentsArea(sdkContext),
     files: createFilesArea(sdkContext),

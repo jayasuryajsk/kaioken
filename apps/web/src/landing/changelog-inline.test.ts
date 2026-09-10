@@ -20,8 +20,8 @@ describe("ChangelogInline", () => {
   });
 
   it("renders inline code inside bold text", () => {
-    expect(render("**Run `bb plugin install` now.**")).toBe(
-      "<strong>Run <code>bb plugin install</code> now.</strong>",
+    expect(render("**Run `kaioken plugin install` now.**")).toBe(
+      "<strong>Run <code>kaioken plugin install</code> now.</strong>",
     );
   });
 

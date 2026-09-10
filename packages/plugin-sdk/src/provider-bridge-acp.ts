@@ -1,17 +1,17 @@
 /**
- * `@get-bb/plugin-sdk/provider-bridge/acp` — the published ACP bridge kit.
+ * `@get-kaioken/plugin-sdk/provider-bridge/acp` — the published ACP bridge kit.
  *
  * The Agent Client Protocol (https://agentclientprotocol.com) is one wire
- * protocol spoken by many agents, so bb runs all of them through one generic
+ * protocol spoken by many agents, so kaioken runs all of them through one generic
  * bridge: the agent to launch arrives per command in the provider options,
- * and nothing in the bridge is bb-first-party. A plugin that wants to add an
+ * and nothing in the bridge is kaioken-first-party. A plugin that wants to add an
  * ACP agent re-exports the bridge from its `bb.host` artifact and registers
  * its providers as any other plugin does:
  *
  * ```ts
  * // host.ts (the plugin's `bb.host` entry)
  * export { experimental_acpProviderBridge as experimental_providerBridge }
- *   from "@get-bb/plugin-sdk/provider-bridge/acp";
+ *   from "@get-kaioken/plugin-sdk/provider-bridge/acp";
  *
  * // server.ts
  * bb.providers.register({
@@ -42,28 +42,28 @@
  * consumes are not published: the surface grows with a consumer, not ahead
  * of one.
  */
-import type { AcpLaunchSpec } from "@bb/provider-bridge-acp";
+import type { AcpLaunchSpec } from "@kaioken/provider-bridge-acp";
 
-export { acpProviderBridge as experimental_acpProviderBridge } from "@bb/provider-bridge-acp";
+export { acpProviderBridge as experimental_acpProviderBridge } from "@kaioken/provider-bridge-acp";
 export type {
   AcpClassifiedToolCall,
   AcpClientRequestOutcome,
   AcpDelegationReport,
   AcpDialect,
   AcpToolIdentity,
-} from "@bb/provider-bridge-acp";
+} from "@kaioken/provider-bridge-acp";
 
 export {
   acpAgentProbeSchema as experimental_acpAgentProbeSchema,
   probeAcpAgent as experimental_probeAcpAgent,
-} from "@bb/provider-bridge-acp";
+} from "@kaioken/provider-bridge-acp";
 export type {
   AcpAgentProbe,
   AcpAgentProbeRequest,
-} from "@bb/provider-bridge-acp";
+} from "@kaioken/provider-bridge-acp";
 
-export { acpLaunchSpecSchema as experimental_acpLaunchSpecSchema } from "@bb/provider-bridge-acp";
-export type { AcpLaunchSpec } from "@bb/provider-bridge-acp";
+export { acpLaunchSpecSchema as experimental_acpLaunchSpecSchema } from "@kaioken/provider-bridge-acp";
+export type { AcpLaunchSpec } from "@kaioken/provider-bridge-acp";
 /**
  * @deprecated The bridge reads the parsed `AcpLaunchSpec` directly; the
  * profile it used to derive from the spec carried the same fields under
@@ -78,5 +78,5 @@ export type {
   AcpToolCallStatus,
   AcpToolCallUpdateEvent,
   AcpToolKind,
-} from "@bb/provider-bridge-acp";
-export type { AgentModelCatalog as AcpAgentModelCatalog } from "@bb/provider-bridge-acp";
+} from "@kaioken/provider-bridge-acp";
+export type { AgentModelCatalog as AcpAgentModelCatalog } from "@kaioken/provider-bridge-acp";

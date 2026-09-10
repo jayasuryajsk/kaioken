@@ -1,4 +1,4 @@
-import type { HostPlatform } from "@bb/host-daemon-contract";
+import type { HostPlatform } from "@kaioken/host-daemon-contract";
 
 export function resolveHostPlatform(
   nodePlatform: NodeJS.Platform = process.platform,

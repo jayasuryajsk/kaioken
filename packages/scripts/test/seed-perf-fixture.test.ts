@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createConnection, migrate } from "@bb/db";
-import { parseStoredThreadEvent } from "@bb/domain";
+import { createConnection, migrate } from "@kaioken/db";
+import { parseStoredThreadEvent } from "@kaioken/domain";
 import { seedPerfFixture } from "../src/lib/seed-perf-fixture.js";
 
 interface SeededEventRow {

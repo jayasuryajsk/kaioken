@@ -17,7 +17,7 @@ import {
   type SystemChangeKind,
   type ThreadEventItemPresentation,
   type ToolCallResponse,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   type ExperimentalPluginWebSocketContext,
   type ExperimentalPluginWebSocketHandlers,
@@ -30,7 +30,7 @@ import {
   type StandardSchemaV1,
   type StandardSchemaV1Issue,
   type StandardSchemaV1Result,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import {
   assertNoRecursiveJsonSchemaReferences,
   enforcePluginCliOutputLimit,
@@ -40,24 +40,24 @@ import {
   RESERVED_AGENT_TOOL_NAMES,
   adoptHttpRouteResponse,
   validatePluginProviderEnvEntries,
-} from "@get-bb/plugin-sdk/internal/host-policy";
+} from "@get-kaioken/plugin-sdk/internal/host-policy";
 import {
   buildPluginApp,
   buildPluginHost,
   createPluginDevLoop,
-} from "@bb/plugin-build";
+} from "@kaioken/plugin-build";
 import { getPluginBuildToolchain } from "./build-toolchain.js";
 import {
   marketplacePublisherLabel,
   pluginPublisherLabel,
 } from "../plugin-catalog/marketplace-publishers.js";
 import { legacyMarketplaceCategory } from "../plugin-catalog/legacy-marketplace-category.js";
-import { deleteSecretFile, readOrCreateSecretFile } from "@bb/secret-storage";
+import { deleteSecretFile, readOrCreateSecretFile } from "@kaioken/secret-storage";
 import {
   ROOT_PLUGIN_SOURCE_SELECTION,
   type PluginCapabilitySummary,
   type PluginSourceSelection,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   claimPluginScheduledRun,
   deleteAllPluginSettings,
@@ -74,7 +74,7 @@ import {
   setInstalledPluginEnabled,
   type InstalledPluginRow,
   type PluginMarketplaceRow,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   BUNDLED_MARKETPLACE_NAME,
   entryScreenshotUrls,
@@ -100,7 +100,7 @@ import {
 import { readPluginManifest, type PluginManifest } from "./manifest.js";
 import { listBundledPluginRegistrations } from "./builtin-registry.js";
 import {
-  type BbPluginApi,
+  type KaiokenPluginApi,
   type PluginAgentConfigurationContext,
   type PluginAgentToolContext,
   type PluginAgentToolRecord,
@@ -187,7 +187,7 @@ export interface PluginService {
   hooks: PluginHookProvider;
   environmentProviders: PluginEnvironmentProviderBridge;
   /**
-   * Bind the in-process BB SDK to the running server. Call once the HTTP
+   * Bind the in-process Kaioken SDK to the running server. Call once the HTTP
    * listener is up, before start(): bb.sdk throws until this runs.
    */
   bindSdk(args: { baseUrl: string }): void;
@@ -236,7 +236,7 @@ export interface PluginService {
     enabled: boolean,
   ): Promise<PluginListEntry | undefined>;
   reload(id?: string): Promise<PluginReloadOutcome>;
-  getApi(id: string): BbPluginApi | undefined;
+  getApi(id: string): KaiokenPluginApi | undefined;
   /**
    * Whether this plugin's runtime is live right now. Core uses it to decide
    * whether a `plugin:<id>` owner still exists — a queue wait whose owner is
@@ -2234,7 +2234,7 @@ export function createPluginService(deps: PluginServiceDeps): PluginService {
         },
       );
       if (outcome.ok) return outcome.value;
-      return fail(`bb ${registration.name} failed: ${outcome.error}`);
+      return fail(`kaioken ${registration.name} failed: ${outcome.error}`);
     },
 
     listSkillRootContributions() {

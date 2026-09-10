@@ -1,4 +1,4 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import {
   claimAutomationScheduledRun,
@@ -20,18 +20,18 @@ export const SWEEP_INTERVAL_MS = 10_000;
 const hostListSchema = z.array(
   z.object({ status: z.enum(["connected", "disconnected"]) }).passthrough(),
 );
-type SweepApi = Pick<BbPluginApi, "realtime" | "log"> & {
+type SweepApi = Pick<KaiokenPluginApi, "realtime" | "log"> & {
   sdk: {
     hosts: { list(): Promise<unknown> };
     threads: {
       get(
-        args: Parameters<BbPluginApi["sdk"]["threads"]["get"]>[0],
+        args: Parameters<KaiokenPluginApi["sdk"]["threads"]["get"]>[0],
       ): Promise<unknown>;
       send(
-        args: Parameters<BbPluginApi["sdk"]["threads"]["send"]>[0],
+        args: Parameters<KaiokenPluginApi["sdk"]["threads"]["send"]>[0],
       ): Promise<unknown>;
       spawn(
-        args: Parameters<BbPluginApi["sdk"]["threads"]["spawn"]>[0],
+        args: Parameters<KaiokenPluginApi["sdk"]["threads"]["spawn"]>[0],
       ): Promise<unknown>;
     };
   };
@@ -132,7 +132,7 @@ async function processDueAutomation(
 }
 
 async function hasConnectedHost(
-  bb: Pick<BbPluginApi, "log"> & {
+  bb: Pick<KaiokenPluginApi, "log"> & {
     sdk: { hosts: { list(): Promise<unknown> } };
   },
 ): Promise<boolean> {

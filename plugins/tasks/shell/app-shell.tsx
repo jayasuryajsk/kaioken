@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { PluginNavPanelProps } from "@get-bb/plugin-sdk/app";
+import type { PluginNavPanelProps } from "@get-kaioken/plugin-sdk/app";
 import { useProjects } from "./data.js";
 import {
   parseTasksRoute,
@@ -16,8 +16,8 @@ import { DetailView } from "../views/detail/index.js";
 import { NewTaskDialog } from "../views/manage/new-task-dialog.js";
 import { NewProjectDialog } from "../views/manage/new-project-dialog.js";
 import { ManagePanel } from "../views/manage/manage-panel.js";
-import { Button } from "@bb/shared-ui/button";
-import { Icon } from "@bb/shared-ui/icon";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { TasksRefreshProvider } from "./refresh.js";
 
 const BOARD_MIN_WIDTH = 448;

@@ -1,4 +1,4 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import {
   closeAutomationRun,
@@ -20,16 +20,16 @@ import type { AutomationExecution } from "./rpc-types.js";
 type RunFailureHandler = (error: unknown) => void;
 type AgentThreadsSdk = {
   get(
-    args: Parameters<BbPluginApi["sdk"]["threads"]["get"]>[0],
+    args: Parameters<KaiokenPluginApi["sdk"]["threads"]["get"]>[0],
   ): Promise<unknown>;
   send(
-    args: Parameters<BbPluginApi["sdk"]["threads"]["send"]>[0],
+    args: Parameters<KaiokenPluginApi["sdk"]["threads"]["send"]>[0],
   ): Promise<unknown>;
   spawn(
-    args: Parameters<BbPluginApi["sdk"]["threads"]["spawn"]>[0],
+    args: Parameters<KaiokenPluginApi["sdk"]["threads"]["spawn"]>[0],
   ): Promise<unknown>;
 };
-type AgentRunApi = Pick<BbPluginApi, "realtime" | "log"> & {
+type AgentRunApi = Pick<KaiokenPluginApi, "realtime" | "log"> & {
   sdk: { threads: AgentThreadsSdk };
 };
 
@@ -79,7 +79,7 @@ function renderAutomationDueMessage(args: {
   automationId: string;
   prompt: string;
 }): string {
-  return `[bb automation due:${args.automationId}]\n\n${args.prompt}`;
+  return `[kaioken automation due:${args.automationId}]\n\n${args.prompt}`;
 }
 
 function isThreadReusable(thread: SdkThread): boolean {
@@ -143,7 +143,7 @@ export async function executeAgentRun(
 }
 
 function settleDispatchFailure(
-  bb: Pick<BbPluginApi, "log">,
+  bb: Pick<KaiokenPluginApi, "log">,
   db: Db,
   args: AgentRunArgs,
   error: unknown,
@@ -226,7 +226,7 @@ async function reuseTargetThreadForRun(
 }
 
 function closeRunForUnusableTargetThread(
-  bb: Pick<BbPluginApi, "log">,
+  bb: Pick<KaiokenPluginApi, "log">,
   db: Db,
   args: AgentRunArgs & { targetThreadId: string; detail: string },
 ): void {
@@ -247,7 +247,7 @@ function closeRunForUnusableTargetThread(
 }
 
 export async function executeScriptRun(
-  bb: Pick<BbPluginApi, "realtime" | "log">,
+  bb: Pick<KaiokenPluginApi, "realtime" | "log">,
   db: Db,
   args: {
     pluginDataDir: string;
@@ -304,7 +304,7 @@ export async function executeScriptRun(
 }
 
 export function closeAutomationRunForSettledThread(
-  bb: Pick<BbPluginApi, "realtime">,
+  bb: Pick<KaiokenPluginApi, "realtime">,
   db: Db,
   args: { threadId: string; status: "idle" | "failed"; error?: string | null },
 ): void {
@@ -433,7 +433,7 @@ async function reconcileOutcome(
 }
 
 export function disableAutomationsForDeletedThreadEvent(
-  bb: Pick<BbPluginApi, "realtime">,
+  bb: Pick<KaiokenPluginApi, "realtime">,
   db: Db,
   threadId: string,
 ): void {

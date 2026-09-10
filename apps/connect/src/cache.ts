@@ -1,7 +1,7 @@
 import { rebuiltResponse } from "./response-encoding.js";
 
-const CACHE_HOST = "https://bb-connect-asset-cache.internal";
-const SHELL_CACHE_HOST = "https://bb-connect-shell-cache.internal";
+const CACHE_HOST = "https://kaioken-connect-asset-cache.internal";
+const SHELL_CACHE_HOST = "https://kaioken-connect-shell-cache.internal";
 const MIN_CACHEABLE_MAX_AGE = 300;
 const SHELL_CACHE_CONTROL = "no-cache";
 const SHELL_STORE_CACHE_CONTROL = "max-age=300";

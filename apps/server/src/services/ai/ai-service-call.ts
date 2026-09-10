@@ -1,4 +1,4 @@
-import type { ExperimentalAiServiceErrorCode } from "@get-bb/plugin-sdk/ai-services";
+import type { ExperimentalAiServiceErrorCode } from "@get-kaioken/plugin-sdk/ai-services";
 import { ApiError } from "../../errors.js";
 
 export const AI_SERVICE_ERROR_CODES: Record<

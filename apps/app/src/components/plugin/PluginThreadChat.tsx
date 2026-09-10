@@ -3,15 +3,15 @@ import { useNavigate } from "react-router-dom";
 import type {
   ThreadChatMessageAction,
   ThreadChatProps,
-} from "@get-bb/plugin-sdk";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
+} from "@get-kaioken/plugin-sdk";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import {
   formatEnvironmentDisplay,
   type EnvironmentDisplayHostContext,
-} from "@bb/core-ui";
-import { EmptyStatePanel } from "@bb/shared-ui/empty-state";
-import { Skeleton } from "@bb/shared-ui/skeleton";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/core-ui";
+import { EmptyStatePanel } from "@kaioken/shared-ui/empty-state";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import type { PromptMentionLinkResolver } from "@/components/promptbox/editor/prompt-mention-link";
 import { ThreadEnvironmentSummary } from "@/components/promptbox/ThreadEnvironmentSummary";
 import { EmbeddedThreadChat } from "@/components/thread/embedded-chat";
@@ -33,7 +33,7 @@ import {
 } from "@/lib/environment-workspace-display";
 import { useSystemEnvironmentProviders } from "@/hooks/queries/environment-provider-queries";
 import { formatWorkspaceCheckoutDisplay } from "@/lib/workspace-checkout-display";
-import { BbHttpError } from "@/lib/sdk";
+import { KaiokenHttpError } from "@/lib/sdk";
 import {
   getProjectComposeRoutePath,
   getThreadRoutePath,
@@ -236,7 +236,7 @@ function PluginThreadChatBody({
   ]);
 
   const isThreadMissing =
-    threadQuery.error instanceof BbHttpError &&
+    threadQuery.error instanceof KaiokenHttpError &&
     threadQuery.error.status === 404;
   if (isThreadMissing) {
     return (

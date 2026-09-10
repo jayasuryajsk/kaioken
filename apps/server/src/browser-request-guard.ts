@@ -1,7 +1,7 @@
 import {
   buildLocalAppOrigins,
   type BuildLocalAppOriginsArgs,
-} from "@bb/config/local-app-origins";
+} from "@kaioken/config/local-app-origins";
 import type { ServerRuntimeConfig } from "./types.js";
 
 interface BrowserRequestGuardDeps {
@@ -147,7 +147,7 @@ export function browserRequestProblem(
   if (origin !== undefined && !isTrustedOrigin(context, deps, origin)) {
     return {
       status: 403,
-      error: `origin "${origin}" is not a local BB app origin`,
+      error: `origin "${origin}" is not a local Kaioken app origin`,
     };
   }
 

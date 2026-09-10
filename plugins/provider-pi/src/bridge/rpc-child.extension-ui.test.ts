@@ -7,11 +7,11 @@ function childScript(script: string): { command: string; args: string[] } {
 
 it("auto-cancels extension ui requests when no handler is installed", async () => {
   vi.stubEnv(
-    "BB_PI_BRIDGE_COMMAND",
+    "KAIOKEN_PI_BRIDGE_COMMAND",
     process.execPath,
   );
   vi.stubEnv(
-    "BB_PI_BRIDGE_ARGS",
+    "KAIOKEN_PI_BRIDGE_ARGS",
     JSON.stringify([
       "-e",
       [
@@ -53,8 +53,8 @@ it("forwards extension ui requests to the installed handler", async () => {
     "setTimeout(() => process.exit(), 50);",
   ].join("\n");
   const { command, args } = childScript(script);
-  vi.stubEnv("BB_PI_BRIDGE_COMMAND", command);
-  vi.stubEnv("BB_PI_BRIDGE_ARGS", JSON.stringify(args));
+  vi.stubEnv("KAIOKEN_PI_BRIDGE_COMMAND", command);
+  vi.stubEnv("KAIOKEN_PI_BRIDGE_ARGS", JSON.stringify(args));
   const child = new PiRpcChild({
     cwd: process.cwd(),
     env: process.env,
@@ -73,9 +73,9 @@ it("forwards extension ui requests to the installed handler", async () => {
 });
 
 it("respondToExtensionUi writes the response line to pi stdin", async () => {
-  vi.stubEnv("BB_PI_BRIDGE_COMMAND", process.execPath);
+  vi.stubEnv("KAIOKEN_PI_BRIDGE_COMMAND", process.execPath);
   vi.stubEnv(
-    "BB_PI_BRIDGE_ARGS",
+    "KAIOKEN_PI_BRIDGE_ARGS",
     JSON.stringify([
       "-e",
       [

@@ -10,9 +10,9 @@ import {
   type LoadCommonConfigArgs,
 } from "./common.js";
 import {
-  BB_APP_URL_ENV,
-  BB_DEV_APP_PORT_ENV,
-  DEFAULT_BB_APP_URL,
+  KAIOKEN_APP_URL_ENV,
+  KAIOKEN_DEV_APP_PORT_ENV,
+  DEFAULT_KAIOKEN_APP_URL,
 } from "./env-vars.js";
 import { assignIfDefined } from "./objects.js";
 import { loadHostDaemonPortValue } from "./ports.js";
@@ -21,10 +21,10 @@ import { validatePortNumber } from "./runtime.js";
 import { loadServerUrlValue } from "./server-url.js";
 
 interface HostDaemonConnectionConfig {
-  BB_APP_URL: string;
-  BB_DEV_APP_PORT?: number;
-  BB_HOST_DAEMON_PORT: number;
-  BB_SERVER_URL: string;
+  KAIOKEN_APP_URL: string;
+  KAIOKEN_DEV_APP_PORT?: number;
+  KAIOKEN_HOST_DAEMON_PORT: number;
+  KAIOKEN_SERVER_URL: string;
 }
 
 interface HostDaemonConfig extends CommonConfig, HostDaemonConnectionConfig {}
@@ -52,7 +52,7 @@ function resolveHostDaemonPort(
 ): number {
   if (args.hostDaemonPort !== undefined) {
     return validatePortNumber({
-      name: "BB_HOST_DAEMON_PORT",
+      name: "KAIOKEN_HOST_DAEMON_PORT",
       value: args.hostDaemonPort,
     });
   }
@@ -65,22 +65,22 @@ export function loadHostDaemonConnectionConfig(
 ): HostDaemonConnectionConfig {
   const loader = resolveEnvLoader(args);
   const config: HostDaemonConnectionConfig = {
-    BB_APP_URL: validateOptionalUrl(
-      "BB_APP_URL",
+    KAIOKEN_APP_URL: validateOptionalUrl(
+      "KAIOKEN_APP_URL",
       readEnvVarWithDefault({
         context: loader.context,
-        defaultValue: DEFAULT_BB_APP_URL,
-        definition: BB_APP_URL_ENV,
+        defaultValue: DEFAULT_KAIOKEN_APP_URL,
+        definition: KAIOKEN_APP_URL_ENV,
         env: loader.env,
       }),
     ),
-    BB_HOST_DAEMON_PORT: resolveHostDaemonPort({
+    KAIOKEN_HOST_DAEMON_PORT: resolveHostDaemonPort({
       ...args,
       env: loader.env,
       homeDir: loader.context.homeDir,
       mode: loader.mode,
     }),
-    BB_SERVER_URL: loadServerUrlValue({
+    KAIOKEN_SERVER_URL: loadServerUrlValue({
       ...args,
       env: loader.env,
       homeDir: loader.context.homeDir,
@@ -89,12 +89,12 @@ export function loadHostDaemonConnectionConfig(
   };
   const devAppPort = readOptionalEnvVar({
     context: loader.context,
-    definition: BB_DEV_APP_PORT_ENV,
+    definition: KAIOKEN_DEV_APP_PORT_ENV,
     env: loader.env,
   });
 
   assignIfDefined({
-    key: "BB_DEV_APP_PORT",
+    key: "KAIOKEN_DEV_APP_PORT",
     target: config,
     value: devAppPort,
   });
@@ -118,7 +118,7 @@ export function loadHostDaemonStartConfig(
     const config = loadHostDaemonConfig(args);
     return {
       connectionConfig: config,
-      dataDir: config.BB_DATA_DIR,
+      dataDir: config.KAIOKEN_DATA_DIR,
     };
   }
 

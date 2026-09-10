@@ -1,16 +1,16 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
-import type { ThreadListEntry, ThreadWithRuntime } from "@bb/domain";
-import { makeThreadWithRuntime as makeThreadWithRuntimeFixture } from "@bb/test-helpers/domain-fixtures";
+import type { ThreadListEntry, ThreadWithRuntime } from "@kaioken/domain";
+import { makeThreadWithRuntime as makeThreadWithRuntimeFixture } from "@kaioken/test-helpers/domain-fixtures";
 import type {
   SidebarBootstrapResponse,
   ThreadResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { sdk } from "@/lib/sdk";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
-import { makeThreadListEntry as makeThreadListEntryFixture } from "@bb/test-helpers/domain-fixtures";
+import { makeThreadListEntry as makeThreadListEntryFixture } from "@kaioken/test-helpers/domain-fixtures";
 import { makeThreadResponse as makeThreadResponseFixture } from "@/test/fixtures/thread-responses";
 import {
   makeProjectWithThreadsResponse,

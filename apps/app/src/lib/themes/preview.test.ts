@@ -12,7 +12,7 @@ const COMMITTED = ":root { --canvas: white; }";
 const PREVIEW = ":root { --canvas: black; }";
 
 function styleText(): string | null {
-  return document.getElementById("bb-app-theme")?.textContent ?? null;
+  return document.getElementById("kaioken-app-theme")?.textContent ?? null;
 }
 
 afterEach(() => {

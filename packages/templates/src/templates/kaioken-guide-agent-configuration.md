@@ -1,0 +1,102 @@
+---
+kind: instruction
+title: kaioken Guide — Agent Configuration
+summary: User and workspace files that customize agent instructions and skills.
+intent: Document the user and workspace files that shape agent behavior for threads.
+editingNotes: Keep accurate against the server's agent-instructions reader and skill loader.
+---
+Agent configuration
+
+kaioken reads agent configuration from the app data dir and from a project's .kaioken/
+directory. These files shape how agents behave in provider-backed threads.
+
+User instructions (<dataDir>/AGENTS.md):
+
+  Add an AGENTS.md file to the kaioken data dir (usually ~/.kaioken/AGENTS.md) to give
+  every provider-backed thread across all projects default user-level
+  instructions. kaioken reads <dataDir>/AGENTS.md and appends its contents to the
+  thread system prompt for all providers when a provider session starts.
+
+Workspace instructions (.kaioken/AGENTS.md):
+
+  Add a .kaioken/AGENTS.md file to a workspace to give every thread that runs there
+  repo-specific instructions. kaioken reads <workspace>/.kaioken/AGENTS.md and appends its
+  contents to the thread system prompt for all providers, after any
+  <dataDir>/AGENTS.md instructions, when a provider session starts. Track it with
+  git so fresh managed worktrees include it.
+
+  Only the plural AGENTS.md is read, only from the exact data-dir and
+  workspace-root .kaioken/ locations above (kaioken does not walk parent directories), and
+  an empty file is ignored. This is kaioken's own provider-agnostic instruction
+  injection, separate from provider-native files such as CLAUDE.md or a
+  repo-root AGENTS.md.
+
+Skills (.kaioken/skills/):
+
+  A skill is a reusable instruction file that kaioken injects into a thread and
+  exposes to the agent as a slash command. Place project skills under
+  .kaioken/skills/<name>/SKILL.md in a workspace. Each SKILL.md has YAML frontmatter
+  with `name` (lowercase, hyphenated, matching the directory) and `description`,
+  followed by the instruction body.
+
+  kaioken resolves skills from three sources, in increasing precedence:
+
+    plugin     Skills from enabled plugins, including the bundled Kaioken guide.
+    user       <dataDir>/skills (e.g. ~/.kaioken/skills).
+    project    <workspace>/.kaioken/skills.
+
+  A project skill overrides a user or plugin skill with the same name. Two
+  skills with the same name within one source collide and are both dropped.
+
+  Use `kaioken skill list` to inspect installed and discovered skills and copy the
+  opaque skill ID. `kaioken skill show|files <skill-id>` reads that exact skill;
+  `kaioken skill show <skill-id> --json` returns the revision required by `kaioken skill
+  update <skill-id> --revision <sha256>`. `kaioken skill delete <skill-id>` and
+  update are restricted to editable, user-owned skills. These workspace-scoped
+  commands default to `KAIOKEN_PROJECT_ID`, then the personal project; pass
+  `--project` or `--environment` when a different workspace is required.
+
+  Use `kaioken skill search` to browse skills.sh, `kaioken skill registry detail
+  <registry-skill-id>` to inspect metadata and the bounded file preview, and
+  `kaioken skill install <registry-skill-id>` to install that canonical registry
+  identity into kaioken user skills. Registry commands are server-wide and do not
+  accept workspace selectors.
+
+  Use `kaioken skill install-cli-skills` to copy kaioken's built-in CLI skills into a
+  machine's global agent skill roots (`~/.agents/skills` and
+  `~/.claude/skills`) so agents running outside kaioken can drive it. It installs on
+  every connected machine unless you pass `--machine <id-or-name>`, which is
+  repeatable. Settings → Skills exposes the same action; it asks which machines
+  only when more than one is enrolled. Machines install independently, so the
+  command reports each machine's outcome and exits non-zero if any failed. The
+  install replaces a previously installed copy of the same skill and leaves
+  other skills alone. `kaioken skill cli-skills-status` reports whether each machine
+  is installed, out of date, missing, or unknown (disconnected or unreachable);
+  the settings row shows the same as a badge.
+
+  Use the skill-creator skill to author and iterate on skills.
+
+Kaioken guide plugin:
+
+  The enabled-by-default Kaioken guide plugin owns the Kaioken introduction and the
+  kaioken-cli, kaioken-plugin-authoring, skill-creator, and submit-a-plugin skills. Settings → Installed
+  plugins → Kaioken guide exposes introduction, a master skills switch, and one
+  switch per skill. All default to true. Use:
+
+    kaioken plugin config kaioken-guide set introduction false
+    kaioken plugin config kaioken-guide set skills false
+    kaioken plugin config kaioken-guide set kaiokenCli false
+    kaioken plugin config kaioken-guide set pluginAuthoring false
+    kaioken plugin config kaioken-guide set skillCreator false
+    kaioken plugin config kaioken-guide set submitPlugin false
+
+  Changes apply when agent configuration is next assembled. They do not erase
+  existing conversation text or disable independently installed copies.
+
+Connect agent instructions:
+
+  Settings → Installed plugins → Connect → Tell agents about remote access
+  controls the message telling remotely used agents to expose public server
+  links. It defaults to true and still requires active/recent remote usage.
+  Use `kaioken plugin config connect set sendRemoteInstructions false` to turn it
+  off. Port sharing remains available.

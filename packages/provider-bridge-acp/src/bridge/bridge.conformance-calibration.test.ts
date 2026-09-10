@@ -6,9 +6,9 @@ import { afterEach, beforeEach, expect, it } from "vitest";
 import {
   formatConformanceReport,
   runBridgeConformance,
-} from "@bb/provider-bridge-protocol/conformance";
-import { captureBridgeJsonRpcOutput } from "@bb/provider-bridge-protocol/testing";
-import type { CapturedBridgeJsonRpcOutput } from "@bb/provider-bridge-protocol/testing";
+} from "@kaioken/provider-bridge-protocol/conformance";
+import { captureBridgeJsonRpcOutput } from "@kaioken/provider-bridge-protocol/testing";
+import type { CapturedBridgeJsonRpcOutput } from "@kaioken/provider-bridge-protocol/testing";
 
 import { handleLine } from "./bridge.js";
 
@@ -21,7 +21,7 @@ let output: CapturedBridgeJsonRpcOutput;
 let workspaceDir: string;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "bb-acp-conformance-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "kaioken-acp-conformance-"));
   output = captureBridgeJsonRpcOutput();
 });
 

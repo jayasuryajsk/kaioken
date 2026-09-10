@@ -127,12 +127,12 @@ export function describeUnreachableServer(
 
   if (blockedCode !== undefined) {
     return (
-      `Cannot reach bb at ${baseUrl}: ${blockedCode} — the connection was blocked. ` +
-      `bb may still be running; check sandbox or firewall rules for this shell.`
+      `Cannot reach kaioken at ${baseUrl}: ${blockedCode} — the connection was blocked. ` +
+      `kaioken may still be running; check sandbox or firewall rules for this shell.`
     );
   }
   if (refused) {
-    return `bb is not running at ${baseUrl} — open the bb app, then re-run this command.`;
+    return `kaioken is not running at ${baseUrl} — open the kaioken app, then re-run this command.`;
   }
   if (timedOut || retryable) {
     const tried =
@@ -140,11 +140,11 @@ export function describeUnreachableServer(
         ? ` after ${attempts} attempts (last window ${timeoutMs}ms)`
         : ` within ${timeoutMs}ms`;
     return (
-      `bb did not respond at ${baseUrl}${tried} — it may be busy or temporarily unreachable. ` +
+      `kaioken did not respond at ${baseUrl}${tried} — it may be busy or temporarily unreachable. ` +
       `No server response was received and your command did not run; re-run it.`
     );
   }
-  return `Cannot reach bb at ${baseUrl}: ${
+  return `Cannot reach kaioken at ${baseUrl}: ${
     messages.length > 0 ? messages.join(": ") : String(cause)
   }`;
 }

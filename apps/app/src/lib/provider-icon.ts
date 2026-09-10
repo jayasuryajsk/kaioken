@@ -1,7 +1,7 @@
 import type { CSSProperties, ComponentType } from "react";
 import { createElement, useSyncExternalStore } from "react";
-import { isPresentationTintColor, type ProviderInfo } from "@bb/domain";
-import { Icon, ICON_NAMES, type IconName } from "@bb/shared-ui/icon";
+import { isPresentationTintColor, type ProviderInfo } from "@kaioken/domain";
+import { Icon, ICON_NAMES, type IconName } from "@kaioken/shared-ui/icon";
 import { getPluginSlotSnapshot, subscribePluginSlots } from "./plugin-slots";
 
 interface ProviderIconInfo {

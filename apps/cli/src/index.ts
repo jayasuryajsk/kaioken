@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import { maybeReexecViaBbCli } from "./bb-cli-reexec.js";
+import { maybeReexecViaBbCli } from "./kaioken-cli-reexec.js";
 import {
   CORE_COMMAND_GROUPS,
   type CommandGroupDeps,
@@ -15,8 +15,8 @@ maybeReexecViaBbCli();
 const program = new Command();
 
 program
-  .name("bb")
-  .description("BB CLI - manage your AI coding agents")
+  .name("kaioken")
+  .description("Kaioken CLI - manage your AI coding agents")
   .enablePositionalOptions()
   .version(resolveBbCliVersion());
 
@@ -65,8 +65,8 @@ async function tryPluginCommandProxy(
     );
     if (disabled !== null) {
       console.error(
-        `bb ${candidate} is provided by the "${disabled.id}" plugin, which is disabled — ` +
-          `run \`bb plugin enable ${disabled.id}\` or enable it in Plugins.`,
+        `kaioken ${candidate} is provided by the "${disabled.id}" plugin, which is disabled — ` +
+          `run \`kaioken plugin enable ${disabled.id}\` or enable it in Plugins.`,
       );
       process.exit(1);
     }
@@ -106,15 +106,15 @@ async function main(): Promise<void> {
     return `
 
 Current context:
-  BB_PROJECT_ID: ${project}
-  BB_THREAD_ID: ${thread}
-  BB_SERVER_URL: ${context.serverUrl}
+  KAIOKEN_PROJECT_ID: ${project}
+  KAIOKEN_THREAD_ID: ${thread}
+  KAIOKEN_SERVER_URL: ${context.serverUrl}
 
 Quick start:
-  bb status
-  bb project list
-  bb thread show <id>
-  bb thread spawn --project <id> --provider codex --prompt "..."
+  kaioken status
+  kaioken project list
+  kaioken thread show <id>
+  kaioken thread spawn --project <id> --provider codex --prompt "..."
 `;
   });
 

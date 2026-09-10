@@ -1,7 +1,7 @@
-import type { BbRuntimeMode } from "@bb/config/runtime";
+import type { KaiokenRuntimeMode } from "@kaioken/config/runtime";
 
 export function resolveNodeEnvironment(
-  mode: BbRuntimeMode,
+  mode: KaiokenRuntimeMode,
 ): "development" | "production" {
   return mode === "dev" ? "development" : "production";
 }

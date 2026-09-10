@@ -5,9 +5,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.setConfig({ testTimeout: 120_000 });
-import { buildPluginApp, resolvePluginBuildToolchain } from "@bb/plugin-build";
+import { buildPluginApp, resolvePluginBuildToolchain } from "@kaioken/plugin-build";
 function testToolchain() {
-  return resolvePluginBuildToolchain(join(tmpdir(), "bb-toolchain-unused"));
+  return resolvePluginBuildToolchain(join(tmpdir(), "kaioken-toolchain-unused"));
 }
 
 const SIMPLE_NOTES_DIR = fileURLToPath(
@@ -27,7 +27,7 @@ describe("Docs official plugin frontend bundle", () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await mkdtemp(join(tmpdir(), "bb-simple-notes-bundle-"));
+    root = await mkdtemp(join(tmpdir(), "kaioken-simple-notes-bundle-"));
   });
 
   afterEach(async () => {

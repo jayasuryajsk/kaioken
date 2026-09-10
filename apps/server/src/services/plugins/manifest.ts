@@ -7,13 +7,13 @@ import {
   isPluginOwnedIconPath,
   pluginPackageJsonSchema,
   type UiCodeThemeDeclaration,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { resolvePluginCodeThemePath } from "../system/code-themes.js";
 import {
   resolveManifestPath,
   assertValidPluginCompactIconSvg,
   assertValidPluginIconSvg,
-} from "@bb/plugin-build";
+} from "@kaioken/plugin-build";
 
 export interface PluginManifest {
   id: string;
@@ -30,7 +30,7 @@ export interface PluginManifest {
     };
     icons: ReadonlyMap<string, string>;
   };
-  bbEngineRange: string | undefined;
+  kaiokenEngineRange: string | undefined;
   bbPluginSdkRange: string | undefined;
   serverEntry: string;
   appEntry: string | undefined;
@@ -282,7 +282,7 @@ export async function readPluginManifest(
       ...(brandingLogo === undefined ? {} : { logo: brandingLogo }),
       icons: brandingIcons,
     },
-    bbEngineRange: engines?.bb,
+    kaiokenEngineRange: engines?.bb,
     bbPluginSdkRange: engines?.bbPluginSdk,
     serverEntry,
     appEntry: bb.app ? resolveManifestPath(rootDir, bb.app, "bb.app") : undefined,

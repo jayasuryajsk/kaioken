@@ -1,7 +1,7 @@
 import type {
   PendingInteraction,
   ProviderPendingInteraction,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { ThreadPendingInteractionBanner } from "@/components/thread/pending-interactions/ThreadPendingInteractionBanner";
 import { ThreadPromptContextBanner } from "@/components/promptbox/banner/ThreadPromptContextBanner";
 import { StoryCard, StoryRow } from "../../../../.ladle/story-card";
@@ -40,8 +40,8 @@ const commandApproval: PendingInteraction = {
     subject: {
       kind: "command",
       itemId: "item_cmd",
-      command: "git push origin bb/promptbox-stories",
-      cwd: "/workspace/bb",
+      command: "git push origin kaioken/promptbox-stories",
+      cwd: "/workspace/kaioken",
       actions: [],
       sessionGrant: null,
     },
@@ -60,8 +60,8 @@ const longCommandApproval: PendingInteraction = {
       kind: "command",
       itemId: "item_cmd_long",
       command:
-        "pnpm exec turbo run typecheck --filter=@bb/app --filter=@bb/server --filter=@bb/domain --filter=@bb/server-contract --force",
-      cwd: "/workspace/bb",
+        "pnpm exec turbo run typecheck --filter=@kaioken/app --filter=@kaioken/server --filter=@kaioken/domain --filter=@kaioken/server-contract --force",
+      cwd: "/workspace/kaioken",
       actions: [],
       sessionGrant: null,
     },
@@ -137,8 +137,8 @@ const permissionGrant: PendingInteraction = {
       permissions: {
         network: null,
         fileSystem: {
-          read: ["/workspace/bb/apps/app", "/workspace/bb/packages"],
-          write: ["/workspace/bb/apps/app/src/components/promptbox"],
+          read: ["/workspace/kaioken/apps/app", "/workspace/kaioken/packages"],
+          write: ["/workspace/kaioken/apps/app/src/components/promptbox"],
         },
       },
     },

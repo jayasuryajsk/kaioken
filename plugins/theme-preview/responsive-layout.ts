@@ -25,7 +25,7 @@ export function contentInsetForWidth(width: number): number {
 // ---------------------------------------------------------------------------
 // The mock window is a fluid layout, never a scaled bitmap: every component
 // keeps its natural size and panels join or leave the composition the way
-// bb's own responsive layout behaves. The panel widths mirror the running
+// kaioken's own responsive layout behaves. The panel widths mirror the running
 // app (fixture-anatomy guards the sources they mirror); every threshold
 // derives from them, so a panel-width change moves the breakpoints with it.
 // ---------------------------------------------------------------------------
@@ -63,7 +63,7 @@ export function frameCompositionForWidth(width: number): FrameComposition {
   };
 }
 
-/** Continuous in width, clamped to the heights a bb window plausibly has. */
+/** Continuous in width, clamped to the heights a kaioken window plausibly has. */
 export function frameHeightForWidth(width: number): number {
   return Math.min(720, Math.max(430, Math.round(width * 0.56)));
 }

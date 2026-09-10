@@ -1,4 +1,4 @@
-import type { ProvisioningTranscriptEntry, WorkspaceStatus } from "@bb/domain";
+import type { ProvisioningTranscriptEntry, WorkspaceStatus } from "@kaioken/domain";
 import type {
   CommitOptions,
   CommitResult,

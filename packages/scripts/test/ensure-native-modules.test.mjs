@@ -137,7 +137,7 @@ describe("ensure-native-modules", () => {
   });
 
   it("detaches a hardlinked native binary before verification", () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), "bb-native-repair-"));
+    const tempRoot = mkdtempSync(join(tmpdir(), "kaioken-native-repair-"));
     try {
       const packageJsonPath = join(tempRoot, "better-sqlite3", "package.json");
       const binaryPath = join(
@@ -188,7 +188,7 @@ describe("ensure-native-modules", () => {
   });
 
   it("detaches a matching native binary without a repair", () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), "bb-native-verify-"));
+    const tempRoot = mkdtempSync(join(tmpdir(), "kaioken-native-verify-"));
     try {
       const packageJsonPath = join(tempRoot, "better-sqlite3", "package.json");
       const binaryPath = join(

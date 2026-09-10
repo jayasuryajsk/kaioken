@@ -30,7 +30,7 @@ import {
   providerResolvedNativeRootsSchema,
   type ProviderResolvedNativeRootInput,
   type ProviderResolvedNativeRoots,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { defineRpcContract } from "./rpc-contract.js";
 
 export const experimental_nativeRootsResolveInputSchema = z
@@ -40,7 +40,7 @@ export const experimental_nativeRootsResolveInputSchema = z
      * (the ACP plugin registers one per agent) from one host entry.
      */
     providerId: z.string().min(1),
-    /** The workspace, or null when bb lists without one (user roots only). */
+    /** The workspace, or null when kaioken lists without one (user roots only). */
     cwd: z.string().min(1).nullable(),
   })
   .strict();

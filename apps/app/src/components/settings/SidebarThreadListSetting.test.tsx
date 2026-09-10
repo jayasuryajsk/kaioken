@@ -22,7 +22,7 @@ afterEach(() => {
 });
 
 describe("SidebarThreadListSetting", () => {
-  it("defaults to automatic and lets the user pin BB's list", async () => {
+  it("defaults to automatic and lets the user pin Kaioken's list", async () => {
     setPluginSlotRegistrations(
       "inbox",
       makePluginRegistrationSet({

@@ -11,20 +11,20 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createStandaloneBuiltinCompactCommandInput } from "@bb/domain";
-import type { DynamicTool, ReasoningLevel } from "@bb/domain";
+import { createStandaloneBuiltinCompactCommandInput } from "@kaioken/domain";
+import type { DynamicTool, ReasoningLevel } from "@kaioken/domain";
 import {
   PROVIDER_BRIDGE_PROTOCOL_VERSION,
   THREAD_DELTA_NOTIFICATION_METHOD,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 import {
   assembleCapturedThreadEvents,
   captureBridgeJsonRpcOutput,
-} from "@bb/provider-bridge-protocol/testing";
+} from "@kaioken/provider-bridge-protocol/testing";
 import type {
   BridgeJsonRpcOutputMessage,
   CapturedBridgeJsonRpcOutput,
-} from "@bb/provider-bridge-protocol/testing";
+} from "@kaioken/provider-bridge-protocol/testing";
 
 import { handleLine } from "./bridge.js";
 import { ACP_BRIDGE_NO_ACTIVE_TURN_ERROR_CODE } from "../bridge-protocol.js";
@@ -115,10 +115,10 @@ function threadEventsOfType(type: string): Record<string, unknown>[] {
   return threadEvents().filter((event) => event.type === type);
 }
 
-const bbThreadIdByProviderThreadId = new Map<string, string>();
+const kaiokenThreadIdByProviderThreadId = new Map<string, string>();
 
-function bbThreadIdFor(providerThreadId: string): string {
-  const recorded = bbThreadIdByProviderThreadId.get(providerThreadId);
+function kaiokenThreadIdFor(providerThreadId: string): string {
+  const recorded = kaiokenThreadIdByProviderThreadId.get(providerThreadId);
   if (recorded !== undefined) {
     return recorded;
   }
@@ -134,7 +134,7 @@ function bbThreadIdFor(providerThreadId: string): string {
       return params.threadId;
     }
   }
-  throw new Error(`No bb thread id recorded for ${providerThreadId}`);
+  throw new Error(`No kaioken thread id recorded for ${providerThreadId}`);
 }
 
 const CLIENT_REQUEST_ID = "creq_abcdefghjk";
@@ -240,13 +240,13 @@ interface StartThreadArgs extends AgentLaunchArgs {
 }
 
 async function startThread(args?: StartThreadArgs): Promise<{
-  bbThreadId: string;
+  kaiokenThreadId: string;
   providerThreadId: string;
 }> {
   nextThreadSerial += 1;
-  const bbThreadId = `thread-${nextThreadSerial}`;
+  const kaiokenThreadId = `thread-${nextThreadSerial}`;
   const id = sendRequest("thread/start", {
-    threadId: bbThreadId,
+    threadId: kaiokenThreadId,
     cwd: workspaceDir,
     instructionMode: "append",
     options: executionOptions({
@@ -289,13 +289,13 @@ async function startThread(args?: StartThreadArgs): Promise<{
     throw new Error("thread/start did not return a providerThreadId");
   }
   startedProviderThreadIds.push(result.providerThreadId);
-  bbThreadIdByProviderThreadId.set(result.providerThreadId, bbThreadId);
-  return { bbThreadId, providerThreadId: result.providerThreadId };
+  kaiokenThreadIdByProviderThreadId.set(result.providerThreadId, kaiokenThreadId);
+  return { kaiokenThreadId, providerThreadId: result.providerThreadId };
 }
 
 async function stopThread(providerThreadId: string): Promise<void> {
   const id = sendRequest("thread/stop", {
-    threadId: bbThreadIdFor(providerThreadId),
+    threadId: kaiokenThreadIdFor(providerThreadId),
     providerThreadId,
     intent: "interrupt",
     activeTurnId: null,
@@ -410,7 +410,7 @@ function sendTurnRequest(
   params: Record<string, unknown>,
 ): number {
   return sendRequest(method, {
-    threadId: bbThreadIdFor(providerThreadId),
+    threadId: kaiokenThreadIdFor(providerThreadId),
     providerThreadId,
     clientRequestId: CLIENT_REQUEST_ID,
     options: executionOptions({}),
@@ -557,7 +557,7 @@ function callDynamicToolBridge(args: {
 }
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "bb-acp-bridge-test-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "kaioken-acp-bridge-test-"));
   output = captureBridgeJsonRpcOutput();
 });
 
@@ -574,7 +574,7 @@ describe("acp bridge", () => {
   it("answers initialize and lists grouped models without spawning an agent", async () => {
     const initializeId = sendRequest("initialize", {
       protocolVersion: PROVIDER_BRIDGE_PROTOCOL_VERSION,
-      client: { name: "bb", version: "1.0.0" },
+      client: { name: "kaioken", version: "1.0.0" },
     });
     expect((await waitForResponse(initializeId)).result).toMatchObject({
       protocolVersion: PROVIDER_BRIDGE_PROTOCOL_VERSION,
@@ -861,7 +861,7 @@ describe("acp bridge", () => {
       );
       const providerThreadId = providerThreadIdOf(response);
       startedProviderThreadIds.push(providerThreadId);
-      bbThreadIdByProviderThreadId.set(providerThreadId, threadId);
+      kaiokenThreadIdByProviderThreadId.set(providerThreadId, threadId);
     },
   );
 
@@ -1540,12 +1540,12 @@ describe("acp bridge", () => {
   });
 
   it("starts a session and runs a prompt turn end to end", async () => {
-    const { bbThreadId, providerThreadId } = await startThread();
+    const { kaiokenThreadId, providerThreadId } = await startThread();
     expect(providerThreadId).toMatch(/^fake-sess-\d+$/);
 
     const identity = notifications("thread/identity").at(-1);
     expect(identity?.params).toEqual({
-      threadId: bbThreadId,
+      threadId: kaiokenThreadId,
       providerThreadId,
       sessionRestorable: false,
     });
@@ -1632,7 +1632,7 @@ describe("acp bridge", () => {
     });
   });
 
-  it("keeps a non-auth session failure untyped when the agent advertises a login bb cannot perform", async () => {
+  it("keeps a non-auth session failure untyped when the agent advertises a login kaioken cannot perform", async () => {
     const response = await startThreadResponse({
       FAKE_ACP_AUTH_METHODS: "agent.login",
       FAKE_ACP_AUTH_OPTIONAL: "1",
@@ -1646,7 +1646,7 @@ describe("acp bridge", () => {
     expect(response.error?.data).toBeUndefined();
   });
 
-  it("keeps an agent exit during session/new untyped when the agent advertises a login bb cannot perform", async () => {
+  it("keeps an agent exit during session/new untyped when the agent advertises a login kaioken cannot perform", async () => {
     const response = await startThreadResponse({
       FAKE_ACP_AUTH_METHODS: "agent.login",
       FAKE_ACP_AUTH_OPTIONAL: "1",
@@ -1720,7 +1720,7 @@ describe("acp bridge", () => {
   });
 
   it("forwards ACP dynamic tool calls through the runtime tool-call contract", async () => {
-    const { bbThreadId, providerThreadId } = await startThread({
+    const { kaiokenThreadId, providerThreadId } = await startThread({
       dynamicTools: [
         {
           name: "update_environment_directory",
@@ -1757,10 +1757,10 @@ describe("acp bridge", () => {
     const env = new Map(
       mcpServerConfig.env.map(({ name, value }) => [name, value]),
     );
-    const host = env.get("BB_ACP_DYNAMIC_TOOL_HOST");
-    const port = Number(env.get("BB_ACP_DYNAMIC_TOOL_PORT"));
-    const threadId = env.get("BB_ACP_DYNAMIC_TOOL_THREAD_ID");
-    const token = env.get("BB_ACP_DYNAMIC_TOOL_TOKEN");
+    const host = env.get("KAIOKEN_ACP_DYNAMIC_TOOL_HOST");
+    const port = Number(env.get("KAIOKEN_ACP_DYNAMIC_TOOL_PORT"));
+    const threadId = env.get("KAIOKEN_ACP_DYNAMIC_TOOL_THREAD_ID");
+    const token = env.get("KAIOKEN_ACP_DYNAMIC_TOOL_TOKEN");
     if (!host || !Number.isInteger(port) || !threadId || !token) {
       throw new Error("MCP server config is missing dynamic tool bridge env");
     }
@@ -1785,7 +1785,7 @@ describe("acp bridge", () => {
     expect(forwarded.params).toMatchObject({
       arguments: { path: "/tmp/next-worktree" },
       providerThreadId,
-      threadId: bbThreadId,
+      threadId: kaiokenThreadId,
       tool: "update_environment_directory",
       turnId: null,
     });
@@ -1813,7 +1813,7 @@ describe("acp bridge", () => {
   });
 
   it("keeps the dynamic-tool TCP server alive after a client reset on initialize", async () => {
-    const { bbThreadId, providerThreadId } = await startThread({
+    const { kaiokenThreadId, providerThreadId } = await startThread({
       dynamicTools: [
         {
           name: "update_environment_directory",
@@ -1849,10 +1849,10 @@ describe("acp bridge", () => {
     const env = new Map(
       mcpServerConfig.env.map(({ name, value }) => [name, value]),
     );
-    const host = env.get("BB_ACP_DYNAMIC_TOOL_HOST");
-    const port = Number(env.get("BB_ACP_DYNAMIC_TOOL_PORT"));
-    const threadId = env.get("BB_ACP_DYNAMIC_TOOL_THREAD_ID");
-    const token = env.get("BB_ACP_DYNAMIC_TOOL_TOKEN");
+    const host = env.get("KAIOKEN_ACP_DYNAMIC_TOOL_HOST");
+    const port = Number(env.get("KAIOKEN_ACP_DYNAMIC_TOOL_PORT"));
+    const threadId = env.get("KAIOKEN_ACP_DYNAMIC_TOOL_THREAD_ID");
+    const token = env.get("KAIOKEN_ACP_DYNAMIC_TOOL_TOKEN");
     if (!host || !Number.isInteger(port) || !threadId || !token) {
       throw new Error("MCP server config is missing dynamic tool bridge env");
     }
@@ -1913,7 +1913,7 @@ describe("acp bridge", () => {
       arguments: { path: "/tmp/next-worktree" },
       callId: "test-dynamic-tool-call-after-reset",
       providerThreadId,
-      threadId: bbThreadId,
+      threadId: kaiokenThreadId,
       tool: "update_environment_directory",
       turnId: null,
     });
@@ -2004,7 +2004,7 @@ describe("acp bridge", () => {
     const prompt: unknown = JSON.parse(
       readFileSync(promptLog, "utf8").trim().split("\n")[0] ?? "null",
     );
-    expect(prompt).toContain("Available bb skills:");
+    expect(prompt).toContain("Available kaioken skills:");
     expect(prompt).toContain(
       "- deploy: Ship the app. (SKILL.md: /staged/acp-skills/deploy/SKILL.md)",
     );
@@ -2044,7 +2044,7 @@ describe("acp bridge", () => {
   });
 
   it("forwards permission requests to the runtime in ask mode", async () => {
-    const { bbThreadId, providerThreadId } = await startThread({
+    const { kaiokenThreadId, providerThreadId } = await startThread({
       permissionMode: "accept-edits",
       permissionEscalation: "ask",
     });
@@ -2063,7 +2063,7 @@ describe("acp bridge", () => {
       "forwarded permission request",
     );
     expect(forwarded.params).toMatchObject({
-      threadId: bbThreadId,
+      threadId: kaiokenThreadId,
       providerThreadId,
       turnId: null,
       payload: {
@@ -2184,7 +2184,7 @@ describe("acp bridge", () => {
   });
 
   it("denies client fs writes outside the workspace in accept-edits mode", async () => {
-    const outsideDir = mkdtempSync(join(tmpdir(), "bb-acp-outside-"));
+    const outsideDir = mkdtempSync(join(tmpdir(), "kaioken-acp-outside-"));
     const targetPath = join(outsideDir, "outside.txt");
     try {
       const { providerThreadId } = await startThread({
@@ -2206,7 +2206,7 @@ describe("acp bridge", () => {
   });
 
   it("allows canonical accept-edits writes into a configured extra write root", async () => {
-    const outsideDir = mkdtempSync(join(tmpdir(), "bb-acp-extra-root-"));
+    const outsideDir = mkdtempSync(join(tmpdir(), "kaioken-acp-extra-root-"));
     const targetPath = join(outsideDir, "outside.txt");
     try {
       const threadId = "thread-canonical-extra-root";
@@ -2575,7 +2575,7 @@ describe("acp bridge", () => {
     });
     await waitForResponse(steerId);
     const stopId = sendRequest("thread/stop", {
-      threadId: bbThreadIdFor(providerThreadId),
+      threadId: kaiokenThreadIdFor(providerThreadId),
       providerThreadId,
       intent: "interrupt",
       activeTurnId: null,
@@ -2606,7 +2606,7 @@ describe("acp bridge", () => {
     await waitForResponse(turnId);
 
     const stopId = sendRequest("thread/stop", {
-      threadId: bbThreadIdFor(providerThreadId),
+      threadId: kaiokenThreadIdFor(providerThreadId),
       providerThreadId,
       intent: "interrupt",
       activeTurnId: null,
@@ -2620,7 +2620,7 @@ describe("acp bridge", () => {
   });
 
   it("settles the interrupted turn itself when the agent ignores session/cancel", async () => {
-    const { bbThreadId, providerThreadId } = await startThread({
+    const { kaiokenThreadId, providerThreadId } = await startThread({
       envVars: { FAKE_ACP_IGNORE_CANCEL: "1" },
     });
     const turnId = sendTurnRequest("turn/start", providerThreadId, {
@@ -2629,7 +2629,7 @@ describe("acp bridge", () => {
     await waitForResponse(turnId);
 
     const stopId = sendRequest("thread/stop", {
-      threadId: bbThreadId,
+      threadId: kaiokenThreadId,
       providerThreadId,
       intent: "interrupt",
       activeTurnId: null,
@@ -2812,7 +2812,7 @@ describe("acp bridge", () => {
     startedProviderThreadIds.pop();
 
     const resumeId = sendRequest("thread/resume", {
-      threadId: first.bbThreadId,
+      threadId: first.kaiokenThreadId,
       cwd: workspaceDir,
       instructionMode: "append",
       options: executionOptions({
@@ -2862,12 +2862,12 @@ describe("acp bridge", () => {
     const first = await startThread({
       envVars: { FAKE_ACP_LOAD_SESSION: "1" },
     });
-    expect(resetIndexesFor(first.bbThreadId)).toHaveLength(1);
+    expect(resetIndexesFor(first.kaiokenThreadId)).toHaveLength(1);
 
     await stopThread(first.providerThreadId);
     startedProviderThreadIds.pop();
     const resumeId = sendRequest("thread/resume", {
-      threadId: first.bbThreadId,
+      threadId: first.kaiokenThreadId,
       cwd: workspaceDir,
       instructionMode: "append",
       options: executionOptions({
@@ -2882,8 +2882,8 @@ describe("acp bridge", () => {
     const resumeResponse = await waitForResponse(resumeId);
     expect(resumeResponse.error).toBeUndefined();
     startedProviderThreadIds.push(first.providerThreadId);
-    const resets = resetIndexesFor(first.bbThreadId);
-    const identities = identityIndexesFor(first.bbThreadId);
+    const resets = resetIndexesFor(first.kaiokenThreadId);
+    const identities = identityIndexesFor(first.kaiokenThreadId);
     expect(resets).toHaveLength(2);
     expect(identities).toHaveLength(2);
     expect(resets[0]).toBeGreaterThan(identities[0] ?? Infinity);
@@ -2913,7 +2913,7 @@ describe("acp bridge", () => {
       throw new Error("thread/fork did not return a providerThreadId");
     }
     startedProviderThreadIds.push(forkResult.providerThreadId);
-    bbThreadIdByProviderThreadId.set(
+    kaiokenThreadIdByProviderThreadId.set(
       forkResult.providerThreadId,
       "thread-fork-reset",
     );
@@ -2924,11 +2924,11 @@ describe("acp bridge", () => {
   });
 
   it("holds an agent update written with the session/new response until thread/identity is out", async () => {
-    const { bbThreadId } = await startThread({
+    const { kaiokenThreadId } = await startThread({
       envVars: { FAKE_ACP_UPDATES_WITH_SESSION_RESPONSE: "1" },
     });
 
-    const wire = messagesForThread(bbThreadId);
+    const wire = messagesForThread(kaiokenThreadId);
     const identityIndex = wire.findIndex(
       (message) => message.method === "thread/identity",
     );
@@ -2940,7 +2940,7 @@ describe("acp bridge", () => {
     const kinds = wire.flatMap(deltaKindsOf);
     expect(kinds[0]).toBe("session.reset");
     expect(kinds).toContain("item.textDelta");
-    expect(contextWindowDeltasFor(bbThreadId)).toEqual([
+    expect(contextWindowDeltasFor(kaiokenThreadId)).toEqual([
       { used: 12_345, size: 200_000 },
     ]);
   });
@@ -2970,7 +2970,7 @@ describe("acp bridge", () => {
       await waitForResponse(forkId),
     );
     startedProviderThreadIds.push(forkedProviderThreadId);
-    bbThreadIdByProviderThreadId.set(forkedProviderThreadId, forkThreadId);
+    kaiokenThreadIdByProviderThreadId.set(forkedProviderThreadId, forkThreadId);
 
     const wire = messagesForThread(forkThreadId);
     const identityIndex = wire.findIndex(
@@ -2994,7 +2994,7 @@ describe("acp bridge", () => {
     startedProviderThreadIds.pop();
 
     const resumeId = sendRequest("thread/resume", {
-      threadId: first.bbThreadId,
+      threadId: first.kaiokenThreadId,
       cwd: workspaceDir,
       instructionMode: "append",
       options: executionOptions({
@@ -3034,7 +3034,7 @@ describe("acp bridge", () => {
     startedProviderThreadIds.pop();
 
     const resumeId = sendRequest("thread/resume", {
-      threadId: first.bbThreadId,
+      threadId: first.kaiokenThreadId,
       cwd: workspaceDir,
       instructionMode: "append",
       options: executionOptions({
@@ -3067,7 +3067,7 @@ describe("acp bridge", () => {
     startedProviderThreadIds.pop();
 
     const resumeId = sendRequest("thread/resume", {
-      threadId: first.bbThreadId,
+      threadId: first.kaiokenThreadId,
       cwd: workspaceDir,
       instructionMode: "append",
       options: executionOptions({
@@ -3110,7 +3110,7 @@ describe("acp bridge", () => {
     startedProviderThreadIds.pop();
 
     const resumeId = sendRequest("thread/resume", {
-      threadId: first.bbThreadId,
+      threadId: first.kaiokenThreadId,
       cwd: workspaceDir,
       instructionMode: "append",
       options: executionOptions({
@@ -3172,7 +3172,7 @@ describe("acp bridge", () => {
   });
 
   it("reports unexpected agent exits as a single provider error", async () => {
-    const { bbThreadId, providerThreadId } = await startThread();
+    const { kaiokenThreadId, providerThreadId } = await startThread();
     const turnId = sendTurnRequest("turn/start", providerThreadId, {
       input: [{ type: "text", text: "die", mentions: [] }],
     });
@@ -3183,7 +3183,7 @@ describe("acp bridge", () => {
       return errorNotifications.length > 0 ? errorNotifications : undefined;
     }, "agent exit error notification");
     expect(errors).toHaveLength(1);
-    expect(errors[0]?.params).toMatchObject({ threadId: bbThreadId });
+    expect(errors[0]?.params).toMatchObject({ threadId: kaiokenThreadId });
     startedProviderThreadIds.pop();
   });
 
@@ -3283,7 +3283,7 @@ describe("acp bridge", () => {
       await waitForResponse(secondStartId),
     );
     startedProviderThreadIds.push(liveProviderThreadId);
-    bbThreadIdByProviderThreadId.set(liveProviderThreadId, threadId);
+    kaiokenThreadIdByProviderThreadId.set(liveProviderThreadId, threadId);
 
     const first = await waitForResponse(firstStartId);
     expect(first.result).toBeUndefined();
@@ -3314,13 +3314,13 @@ describe("acp bridge", () => {
       options: executionOptions({
         providerOptions: {
           acpLaunchSpec: acpLaunchSpec({
-            agent: { command: "definitely-not-a-real-binary-bb", args: [] },
+            agent: { command: "definitely-not-a-real-binary-kaioken", args: [] },
           }),
         },
       }),
     });
     const response = await waitForResponse(id);
-    expect(response.error?.message).toMatch(/definitely-not-a-real-binary-bb/);
+    expect(response.error?.message).toMatch(/definitely-not-a-real-binary-kaioken/);
   });
 
   it("rejects thread/start without an ACP launch spec", async () => {

@@ -1,4 +1,4 @@
-import type { ThreadEvent } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import { createBridgeProtocolAdapter } from "./bridge-protocol-adapter.js";
 import type { ProviderExecutionContext } from "./provider-adapter.js";
@@ -560,17 +560,17 @@ describe("provider-native id translation", () => {
     const [started] = feedDeltas(adapter, "t_1", [
       { kind: "turn.open", providerTurnId: "codex-turn-1" },
     ]);
-    const bbTurnId =
+    const kaiokenTurnId =
       started?.type === "turn/started" && started.scope.kind === "turn"
         ? started.scope.turnId
         : "";
-    expect(bbTurnId).not.toBe("");
+    expect(kaiokenTurnId).not.toBe("");
 
     const steer = adapter.buildCommandPlan({
       type: "turn/steer",
       threadId: "t_1",
       providerThreadId: "p_1",
-      expectedTurnId: bbTurnId,
+      expectedTurnId: kaiokenTurnId,
       input: [],
       clientRequestId: "creq_abcdefghjk",
       options: fullModeOptions,
@@ -583,7 +583,7 @@ describe("provider-native id translation", () => {
       type: "thread/stop",
       threadId: "t_1",
       providerThreadId: "p_1",
-      activeTurnId: bbTurnId,
+      activeTurnId: kaiokenTurnId,
     });
     expect(stop).toMatchObject({
       params: { intent: "interrupt", activeTurnId: "codex-turn-1" },
@@ -614,9 +614,9 @@ describe("provider-native id translation", () => {
         providerTurnId: "codex-turn-1",
       },
     ]);
-    const bbItemId =
+    const kaiokenItemId =
       events[1]?.type === "item/started" ? events[1].item.id : "";
-    const bbTurnId =
+    const kaiokenTurnId =
       events[0]?.type === "turn/started" && events[0].scope.kind === "turn"
         ? events[0].scope.turnId
         : "";
@@ -646,8 +646,8 @@ describe("provider-native id translation", () => {
       params,
     });
     expect(decoded).toMatchObject({
-      turnId: bbTurnId,
-      payload: { subject: { itemId: bbItemId } },
+      turnId: kaiokenTurnId,
+      payload: { subject: { itemId: kaiokenItemId } },
     });
 
     const unmarked = adapter.decodeInteractiveRequest?.({
@@ -672,9 +672,9 @@ describe("provider-native id translation", () => {
         providerTurnId: "codex-turn-1",
       },
     ]);
-    const bbItemId =
+    const kaiokenItemId =
       events[1]?.type === "item/started" ? events[1].item.id : "";
-    const bbTurnId =
+    const kaiokenTurnId =
       events[0]?.type === "turn/started" && events[0].scope.kind === "turn"
         ? events[0].scope.turnId
         : "";
@@ -692,6 +692,6 @@ describe("provider-native id translation", () => {
         providerNativeIds: true,
       },
     });
-    expect(decoded).toMatchObject({ turnId: bbTurnId, callId: bbItemId });
+    expect(decoded).toMatchObject({ turnId: kaiokenTurnId, callId: kaiokenItemId });
   });
 });

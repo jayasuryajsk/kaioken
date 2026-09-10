@@ -1,11 +1,11 @@
-import { upsertHost } from "@bb/db";
-import { isLoopbackAddress } from "@bb/config/loopback";
+import { upsertHost } from "@kaioken/db";
+import { isLoopbackAddress } from "@kaioken/config/loopback";
 import {
   hostDaemonEnrollKeyRequestSchema,
   hostDaemonEnrollRequestSchema,
   typedRoutes,
   type HostDaemonInternalSchema,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import type { Hono } from "hono";
 import type { AppDeps } from "../types.js";
 import { ApiError } from "../errors.js";

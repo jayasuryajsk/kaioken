@@ -44,7 +44,7 @@ describe("client system notifications", () => {
   ])(
     "uses the appropriate notification icon on $platform",
     async ({ platform, icon }) => {
-      if (platform !== "web") vi.stubGlobal("bbDesktop", { platform });
+      if (platform !== "web") vi.stubGlobal("kaiokenDesktop", { platform });
       const delivery = createClientDelivery(vi.fn());
       await delivery.deliver(
         { ...message, channels: [platform === "web" ? "web" : "desktop"] },
@@ -84,7 +84,7 @@ describe("client system notifications", () => {
     TestNotification.permission = "denied";
     await delivery.deliver(message, true);
     expect(TestNotification.instances).toHaveLength(0);
-    vi.stubGlobal("bbDesktop", {});
+    vi.stubGlobal("kaiokenDesktop", {});
     TestNotification.permission = "granted";
     await delivery.deliver(message, true);
     await delivery.deliver({ ...message, channels: ["desktop"] }, true);
@@ -94,10 +94,10 @@ describe("client system notifications", () => {
 
   it("does not deliver in the mobile WebView and survives unavailable storage", async () => {
     const delivery = createClientDelivery(vi.fn());
-    vi.stubGlobal("bb", { native: {} });
+    vi.stubGlobal("kaioken", { native: {} });
     await delivery.deliver(message, true);
     expect(TestNotification.instances).toHaveLength(0);
-    vi.stubGlobal("bb", undefined);
+    vi.stubGlobal("kaioken", undefined);
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("Unavailable");
     });

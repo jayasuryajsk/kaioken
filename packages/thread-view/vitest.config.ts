@@ -8,7 +8,7 @@ export default defineWorkspaceTestConfig({
     silent: "passed-only",
     projects: sharedWorkerProjects({
       pkgDir: __dirname,
-      name: "@bb/thread-view",
+      name: "@kaioken/thread-view",
       include: ["test/**/*.test.ts"],
     }),
   },

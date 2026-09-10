@@ -9,7 +9,7 @@ import {
   useRpc,
   type PluginNavPanelProps,
   type PluginThreadPanelProps,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import {
   buildSuggestions,
   matchesQuery,
@@ -23,9 +23,9 @@ import {
 } from "./app-logic.js";
 import type { githubRpcContract } from "./server.js";
 import { toast } from "sonner";
-import { Badge } from "@bb/shared-ui/badge";
-import { Button } from "@bb/shared-ui/button";
-import { DelayedLoading } from "@bb/shared-ui/delayed-loading";
+import { Badge } from "@kaioken/shared-ui/badge";
+import { Button } from "@kaioken/shared-ui/button";
+import { DelayedLoading } from "@kaioken/shared-ui/delayed-loading";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,18 +34,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
-import { Input } from "@bb/shared-ui/input";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { Input } from "@kaioken/shared-ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bb/shared-ui/select";
-import { Skeleton } from "@bb/shared-ui/skeleton";
-import { Tabs, TabsList, TabsTrigger } from "@bb/shared-ui/tabs";
-import { Textarea } from "@bb/shared-ui/textarea";
+} from "@kaioken/shared-ui/select";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@kaioken/shared-ui/tabs";
+import { Textarea } from "@kaioken/shared-ui/textarea";
 import { EmptyState } from "@/components/empty-state";
 import { Markdown } from "@/components/markdown-lite";
 
@@ -150,13 +150,13 @@ function relativeTime(iso: string): string {
 const PANEL_PATH = "github";
 
 function useSubPathRoute(subPath: string): [Route, (route: Route) => void] {
-  const bbNavigate = useBbNavigate();
+  const kaiokenNavigate = useBbNavigate();
   const route = useMemo(() => parseSubPath(subPath), [subPath]);
   const navigate = useCallback(
     (next: Route) => {
-      bbNavigate.toPluginPanel(PANEL_PATH, { subPath: routeToSubPath(next) });
+      kaiokenNavigate.toPluginPanel(PANEL_PATH, { subPath: routeToSubPath(next) });
     },
-    [bbNavigate],
+    [kaiokenNavigate],
   );
   return [route, navigate];
 }
@@ -348,7 +348,7 @@ function ThreadPills({ links }: { links: ThreadLink[] | undefined }) {
       {links.map((link, index) => (
         <Badge
           key={link.threadId}
-          title={`Open BB thread ${link.threadId}`}
+          title={`Open Kaioken thread ${link.threadId}`}
           onClick={(event) => {
             event.stopPropagation();
             navigate.toThread(link.threadId);
@@ -2151,7 +2151,7 @@ function PanelHeader() {
   );
 }
 
-const QUERY_KEY = "bb-plugin-github:query";
+const QUERY_KEY = "kaioken-plugin-github:query";
 const DEFAULT_QUERY = "is:open ";
 
 function GithubPanel({ subPath }: PluginNavPanelProps) {
@@ -2268,7 +2268,7 @@ function GithubPanelBody({
   }
   if (status !== null && status.repos.length === 0) {
     return (
-      <EmptyState message="No GitHub repos tracked yet. Create a BB project whose checkout has a GitHub origin remote, or add repos via the extraRepos plugin setting." />
+      <EmptyState message="No GitHub repos tracked yet. Create a Kaioken project whose checkout has a GitHub origin remote, or add repos via the extraRepos plugin setting." />
     );
   }
 

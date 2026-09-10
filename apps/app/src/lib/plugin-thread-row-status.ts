@@ -1,5 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
-import type { PluginComposerThreadRowStatus } from "@get-bb/plugin-sdk";
+import type { PluginComposerThreadRowStatus } from "@get-kaioken/plugin-sdk";
 
 type ThreadRowStatusListener = () => void;
 type ThreadRowStatusOwner = string | symbol;

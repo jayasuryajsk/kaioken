@@ -4,7 +4,7 @@ import path from "node:path";
 import type {
   ExperimentalClaudePluginRoots,
   ExperimentalVendorPluginRoots,
-} from "@get-bb/plugin-sdk/host";
+} from "@get-kaioken/plugin-sdk/host";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   filterClaudeNativeRoots,
@@ -66,7 +66,7 @@ async function writePlugin(
 }
 
 beforeEach(async () => {
-  tempRoot = await mkdtemp(path.join(tmpdir(), "bb-claude-native-roots-"));
+  tempRoot = await mkdtemp(path.join(tmpdir(), "kaioken-claude-native-roots-"));
 });
 
 afterEach(async () => {

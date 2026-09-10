@@ -4,15 +4,15 @@ import {
   PERSONAL_PROJECT_ID,
   type Host,
   type ThreadListEntry,
-} from "@bb/domain";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
+} from "@kaioken/domain";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import type {
   PluginSidebarProject,
   PluginSidebarThread,
   PluginSidebarThreadActions,
   PluginSidebarThreadPullRequestState,
   PluginSidebarThreadsState,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { useThreadActions } from "@/components/thread/ThreadActionsProvider";
 import {
   getEnvironmentPullRequestFromResponse,

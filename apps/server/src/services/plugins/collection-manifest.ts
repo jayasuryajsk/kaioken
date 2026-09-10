@@ -1,14 +1,14 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
-import type { PluginSourceSelection } from "@bb/server-contract";
+import type { PluginSourceSelection } from "@kaioken/server-contract";
 import {
   normalizePluginSubdirectory,
   realPathInside,
 } from "./install-sources.js";
 import { readPluginManifest } from "./manifest.js";
 
-const COLLECTION_MANIFEST_PATH = ".bb/plugins.json";
+const COLLECTION_MANIFEST_PATH = ".kaioken/plugins.json";
 export const COLLECTION_SCHEMA_URL =
   "https://getbb.app/schemas/plugins.schema.json";
 
@@ -98,7 +98,7 @@ export async function readPluginCollectionManifest(
   try {
     realPath = await realPathInside(
       checkoutDir,
-      join(checkoutDir, ".bb", "plugins.json"),
+      join(checkoutDir, ".kaioken", "plugins.json"),
       COLLECTION_MANIFEST_PATH,
     );
   } catch (error) {

@@ -25,20 +25,20 @@ import {
 import { DispatchControl } from "./threads.js";
 import { DEFAULT_COLOR } from "../manage/shared.js";
 import {
-  BbProjectLinkPicker,
-  bbProjectLinkStateFor,
+  KaiokenProjectLinkPicker,
+  kaiokenProjectLinkStateFor,
   emptyBbProjectLinkState,
   resolveBbProjectLink,
-  type BbProjectLinkState,
-} from "../manage/bb-project-link.js";
-import type { BbProjectOption } from "../../shared/contract.js";
-import { Button } from "@bb/shared-ui/button";
+  type KaiokenProjectLinkState,
+} from "../manage/kaioken-project-link.js";
+import type { KaiokenProjectOption } from "../../shared/contract.js";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
+} from "@kaioken/shared-ui/dropdown-menu";
 import {
   Command,
   CommandEmpty,
@@ -46,10 +46,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@bb/shared-ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@bb/shared-ui/popover";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@kaioken/shared-ui/popover";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 export interface TaskPropertyUpdate {
   status?: TaskStatus;
@@ -320,23 +320,23 @@ function LabelsMenu({
 
 function DispatchTargetMenu({
   project,
-  bbProjects,
+  kaiokenProjects,
   onError,
   triggerClassName,
 }: {
   project: Project;
-  bbProjects: readonly BbProjectOption[];
+  kaiokenProjects: readonly KaiokenProjectOption[];
   onError: (message: string) => void;
   triggerClassName: string;
 }) {
   const rpc = useTasksRpc();
   const [open, setOpen] = useState(false);
-  const [state, setState] = useState<BbProjectLinkState>(
+  const [state, setState] = useState<KaiokenProjectLinkState>(
     emptyBbProjectLinkState,
   );
   const [saving, setSaving] = useState(false);
   const linkedBbProjectId = project.linkedBbProjectId;
-  const linkedName = bbProjects.find(
+  const linkedName = kaiokenProjects.find(
     (candidate) => candidate.id === linkedBbProjectId,
   )?.name;
   const resolved = resolveBbProjectLink(state);
@@ -363,7 +363,7 @@ function DispatchTargetMenu({
     <Popover
       open={open}
       onOpenChange={(next) => {
-        if (next) setState(bbProjectLinkStateFor(linkedBbProjectId));
+        if (next) setState(kaiokenProjectLinkStateFor(linkedBbProjectId));
         setOpen(next);
       }}
     >
@@ -380,16 +380,16 @@ function DispatchTargetMenu({
             </span>
           ) : (
             <span className="truncate text-muted-foreground">
-              Link a bb project…
+              Link a kaioken project…
             </span>
           )}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 p-3">
-        <BbProjectLinkPicker
+        <KaiokenProjectLinkPicker
           state={state}
           onStateChange={setState}
-          bbProjects={bbProjects}
+          kaiokenProjects={kaiokenProjects}
           noneLabel={linkedBbProjectId !== null ? "Unlink" : "Not linked"}
         />
         <div className="mt-2.5 flex items-center justify-between gap-2">
@@ -442,8 +442,8 @@ export function PropertiesRail({
     task.labelIds.includes(label.id),
   );
   const active = threads.filter(isActiveThread);
-  const bbProjects = useTasksQuery(
-    async (query) => (await query.call("listBbProjects")).bbProjects,
+  const kaiokenProjects = useTasksQuery(
+    async (query) => (await query.call("listBbProjects")).kaiokenProjects,
     ["projects:changed"],
   );
   return (
@@ -503,7 +503,7 @@ export function PropertiesRail({
       {project !== undefined ? (
         <DispatchTargetMenu
           project={project}
-          bbProjects={bbProjects.data ?? []}
+          kaiokenProjects={kaiokenProjects.data ?? []}
           onError={onError}
           triggerClassName={RAIL_ROW_CLASS}
         />

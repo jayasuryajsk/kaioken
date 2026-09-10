@@ -1,6 +1,6 @@
-import { fuzzyMatchText } from "@bb/fuzzy-match";
-import type { PromptMentionSuggestion } from "@bb/client-core";
-import { compareCodepoint } from "@bb/client-core";
+import { fuzzyMatchText } from "@kaioken/fuzzy-match";
+import type { PromptMentionSuggestion } from "@kaioken/client-core";
+import { compareCodepoint } from "@kaioken/client-core";
 
 type ProjectMentionSuggestion = Extract<
   PromptMentionSuggestion,

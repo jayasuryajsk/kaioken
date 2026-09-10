@@ -11,9 +11,9 @@ import {
   type TimelineTitleSegment,
   type TimelineTitleSegmentAccent,
   type TimelineTitleTone,
-} from "@bb/thread-view";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { Icon } from "@bb/shared-ui/icon";
+} from "@kaioken/thread-view";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { isIconName } from "./presentation-display.js";
 import { DiffStatsTally } from "@/components/ui/diff-stats-tally.js";
 import { RouteAnchor } from "@/components/ui/app-route-anchor.js";

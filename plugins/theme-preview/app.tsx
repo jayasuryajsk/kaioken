@@ -1,12 +1,12 @@
-import { definePluginApp, useBbNavigate, useRealtime, useRpc } from "@get-bb/plugin-sdk/app";
-import { Badge as BbBadge } from "@bb/shared-ui/badge";
-import { Button as BbButton } from "@bb/shared-ui/button";
-import { Checkbox as BbCheckbox } from "@bb/shared-ui/checkbox";
-import { CHROME_SECTION_LABEL_CLASS } from "@bb/shared-ui/chrome-style-tokens";
+import { definePluginApp, useBbNavigate, useRealtime, useRpc } from "@get-kaioken/plugin-sdk/app";
+import { Badge as KaiokenBadge } from "@kaioken/shared-ui/badge";
+import { Button as KaiokenButton } from "@kaioken/shared-ui/button";
+import { Checkbox as KaiokenCheckbox } from "@kaioken/shared-ui/checkbox";
+import { CHROME_SECTION_LABEL_CLASS } from "@kaioken/shared-ui/chrome-style-tokens";
 import {
   COARSE_POINTER_ICON_SIZE_CLASS,
   COARSE_POINTER_ROW_HEIGHT_CLASS,
-} from "@bb/shared-ui/coarse-pointer-sizing";
+} from "@kaioken/shared-ui/coarse-pointer-sizing";
 import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@bb/shared-ui/dialog";
+} from "@kaioken/shared-ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,35 +26,35 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
+} from "@kaioken/shared-ui/dropdown-menu";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from "@bb/shared-ui/hover-card";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { Input as BbInput } from "@bb/shared-ui/input";
+} from "@kaioken/shared-ui/hover-card";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { Input as KaiokenInput } from "@kaioken/shared-ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@bb/shared-ui/popover";
+} from "@kaioken/shared-ui/popover";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
   SelectTrigger,
-} from "@bb/shared-ui/select";
-import { Switch as BbSwitch } from "@bb/shared-ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bb/shared-ui/tabs";
+} from "@kaioken/shared-ui/select";
+import { Switch as KaiokenSwitch } from "@kaioken/shared-ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@kaioken/shared-ui/tabs";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/tooltip";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { toast } from "sonner";
 import {
   useEffect,
@@ -91,9 +91,9 @@ import {
 
 // ---------------------------------------------------------------------------
 // Everything reads the theme's CSS custom properties directly, and the mock
-// mirrors what bb actually paints: surfaces, radii and borders were measured
+// mirrors what kaioken actually paints: surfaces, radii and borders were measured
 // off the running app rather than invented, so a palette fails here the same
-// way it fails there. Decoration bb's theme does not touch — icons, window
+// way it fails there. Decoration kaioken's theme does not touch — icons, window
 // chrome, nav lists — is left out on purpose.
 // ---------------------------------------------------------------------------
 
@@ -164,31 +164,31 @@ function Badge({ children, tone = "outline" }: { children: ReactNode; tone?: Ton
     merged: "border-transparent bg-pr-merged/15 text-pr-merged",
   };
   return (
-    <BbBadge
+    <KaiokenBadge
       variant="outline"
       className={cn("h-5 gap-1 whitespace-nowrap px-1.5 py-0 text-[11px] font-medium", tones[tone])}
     >
       {children}
-    </BbBadge>
+    </KaiokenBadge>
   );
 }
 
 type ButtonVariant = "default" | "secondary" | "outline" | "ghost" | "destructive";
 function Button({ children, variant = "default", size = "md", disabled = false }: { children: ReactNode; variant?: ButtonVariant; size?: "sm" | "md"; disabled?: boolean }) {
   return (
-    <BbButton asChild variant={variant} size={size === "sm" ? "sm" : "default"}>
+    <KaiokenButton asChild variant={variant} size={size === "sm" ? "sm" : "default"}>
       <span aria-disabled={disabled || undefined} className={cn("pointer-events-none", disabled && "opacity-50")}>{children}</span>
-    </BbButton>
+    </KaiokenButton>
   );
 }
 
 function Switch({ on }: { on: boolean }) {
-  return <BbSwitch checked={on} tabIndex={-1} aria-hidden className="pointer-events-none" />;
+  return <KaiokenSwitch checked={on} tabIndex={-1} aria-hidden className="pointer-events-none" />;
 }
 
 function TextInput({ focused = false, value, placeholder, width = 190 }: { focused?: boolean; value?: string; placeholder?: string; width?: number }) {
   return (
-    <BbInput
+    <KaiokenInput
       readOnly
       tabIndex={-1}
       value={value ?? ""}
@@ -200,14 +200,14 @@ function TextInput({ focused = false, value, placeholder, width = 190 }: { focus
 }
 
 // ---------------------------------------------------------------------------
-// Sidebar. Carries bb's real `fixed bg-sidebar` classes so any theme block
+// Sidebar. Carries kaioken's real `fixed bg-sidebar` classes so any theme block
 // scoped to that selector (token overrides, the noise overlay) applies here
 // exactly as it does in the app.
 // ---------------------------------------------------------------------------
 
 const sidebarScope: CSSProperties = { position: "relative", inset: "auto", zIndex: "auto" };
 
-// From bb's sidebarRowClasses.ts: hover paints bg-sidebar-accent with
+// From kaioken's sidebarRowClasses.ts: hover paints bg-sidebar-accent with
 // sidebar-accent-foreground text; the open thread's row paints bg-state-active
 // (CONTEXT_SELECTION_SURFACE_CLASS); open-in-split resolves sidebar-accent 50%
 // against the sidebar unless the theme overrides the variable.
@@ -241,20 +241,20 @@ function MockSidebarRow({ label, state = "rest", dot, icon, interactive = false 
   const className = cn(
     MOCK_SIDEBAR_ROW_CLASS,
     state === "hover" && "bg-sidebar-accent text-sidebar-accent-foreground",
-    state === "selected" && "bb-sidebar-selected-row bg-state-active text-sidebar-foreground",
-    state === "split" && "bb-sidebar-open-in-split-row",
+    state === "selected" && "kaioken-sidebar-selected-row bg-state-active text-sidebar-foreground",
+    state === "split" && "kaioken-sidebar-open-in-split-row",
   );
   if (interactive) {
-    return <BbButton type="button" size="sm" variant="ghost" aria-current={state === "selected" ? "page" : undefined} data-tp-sidebar-row="" data-tp-sidebar-state={state} className={className}>{content}</BbButton>;
+    return <KaiokenButton type="button" size="sm" variant="ghost" aria-current={state === "selected" ? "page" : undefined} data-tp-sidebar-row="" data-tp-sidebar-state={state} className={className}>{content}</KaiokenButton>;
   }
-  return <BbButton asChild size="sm" variant="ghost" className={cn(className, "pointer-events-none cursor-default")}><div data-tp-sidebar-row="" data-tp-sidebar-state={state}>{content}</div></BbButton>;
+  return <KaiokenButton asChild size="sm" variant="ghost" className={cn(className, "pointer-events-none cursor-default")}><div data-tp-sidebar-row="" data-tp-sidebar-state={state}>{content}</div></KaiokenButton>;
 }
 
 function Sidebar({ selected, split, hover }: { selected?: boolean; split?: boolean; hover?: boolean }) {
   return (
     <MockSidebarPanel>
       <div className="flex min-h-0 flex-1 flex-col px-2 py-2">
-        <div className="flex h-8 items-center px-2 text-sm font-semibold">bb-plugins</div>
+        <div className="flex h-8 items-center px-2 text-sm font-semibold">kaioken-plugins</div>
         <MockSidebarRow label="New thread" />
         <MockSidebarLabel>Today</MockSidebarLabel>
         <MockSidebarRow label="Endless theme family — blacklight" state={selected ? "selected" : "rest"} dot="unread" />
@@ -354,7 +354,7 @@ const TOC_MESSAGES = {
   ],
 } as const;
 
-/** A compact projection of bb's real thread ToC popover, held open so every
+/** A compact projection of kaioken's real thread ToC popover, held open so every
  * theme can be judged against the same transient surface. */
 function ThreadTocFixture() {
   const [tab, setTab] = useState<keyof typeof TOC_MESSAGES>("you");
@@ -378,7 +378,7 @@ function ThreadTocFixture() {
           </TabsList>
           <TabsContent value={tab} style={{ display: "flex", flexDirection: "column", gap: 1, marginTop: 3 }}>
             {messages.map((message, index) => (
-              <BbButton
+              <KaiokenButton
                 key={message}
                 variant="ghost"
                 size="sm"
@@ -387,7 +387,7 @@ function ThreadTocFixture() {
                 onClick={() => setActive(index)}
               >
                 <span style={{ display: "-webkit-box", WebkitBoxOrient: "vertical", WebkitLineClamp: 2, overflow: "hidden" }}>{message}</span>
-              </BbButton>
+              </KaiokenButton>
             ))}
           </TabsContent>
         </Tabs>
@@ -403,7 +403,7 @@ const NEW_THREAD_ACTIONS = [
   { icon: "MessageSquarePlus", title: "New thread", description: "Start a new conversation" },
   { icon: "FolderGit", title: "Automatically import my projects", description: "Find repos touched in the last 30 days" },
   { icon: "FolderPlus", title: "New project", description: "Create one from a local folder" },
-  { icon: "Explore", title: "Learn what bb can do", description: "Get a tour of its capabilities" },
+  { icon: "Explore", title: "Learn what kaioken can do", description: "Get a tour of its capabilities" },
 ] as const;
 
 function Thread({ title = "Endless theme family — blacklight pass", active = true, narrow = false, brief = false, empty = false, showToc = false, story = "blacklight" }: { title?: string; active?: boolean; narrow?: boolean; brief?: boolean; empty?: boolean; showToc?: boolean; story?: "blacklight" | "specimen" }) {
@@ -413,16 +413,16 @@ function Thread({ title = "Endless theme family — blacklight pass", active = t
     <div style={{ flex: 1, minWidth: 0, minHeight: 0, background: v("canvas", v("background")), color: v("foreground"), display: "flex", flexDirection: "column", fontFamily: SANS, position: "relative" }}>
       {empty ? (
         <div data-tp-new-welcome="" style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: narrow ? 22 : 34, padding: `0 ${pad}px` }}>
-          <div role="img" aria-label="bb" style={{ fontSize: narrow ? 28 : 34, lineHeight: 1, fontWeight: 700, letterSpacing: "-0.08em", color: v("foreground") }}>bb</div>
+          <div role="img" aria-label="kaioken" style={{ fontSize: narrow ? 28 : 34, lineHeight: 1, fontWeight: 700, letterSpacing: "-0.08em", color: v("foreground") }}>kaioken</div>
           <div style={{ width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", gap: 4 }}>
             {NEW_THREAD_ACTIONS.map((action) => (
-              <BbButton key={action.title} type="button" variant="ghost" className="h-auto w-full cursor-pointer justify-start gap-3 px-3 py-2.5 text-left">
+              <KaiokenButton key={action.title} type="button" variant="ghost" className="h-auto w-full cursor-pointer justify-start gap-3 px-3 py-2.5 text-left">
                 <Icon name={action.icon} className="size-5 shrink-0 text-subtle-foreground" />
                 <span style={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                   <span style={{ fontSize: 13, fontWeight: 500, color: v("foreground") }}>{action.title}</span>
                   <span style={{ fontSize: 12, color: v("muted-foreground") }}>{action.description}</span>
                 </span>
-              </BbButton>
+              </KaiokenButton>
             ))}
           </div>
         </div>
@@ -431,7 +431,7 @@ function Thread({ title = "Endless theme family — blacklight pass", active = t
           <div style={{ height: 48, display: "flex", alignItems: "center", gap: 10, padding: `0 ${pad}px`, flex: "none", position: "relative" }}>
             <span style={{ fontSize: 13.5, fontWeight: 600, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{title}</span>
             <Badge tone="success"><Dot color={v("success")} size={6} /> Running</Badge>
-            {narrow ? null : <Badge tone="outline">bb/endless-theme-plugin</Badge>}
+            {narrow ? null : <Badge tone="outline">kaioken/endless-theme-plugin</Badge>}
           </div>
           {showToc ? <ThreadTocFixture /> : null}
           {/* Anchored at the bottom like a scrolled thread: messages keep their
@@ -513,8 +513,8 @@ function InfoPanel() {
         <div className="flex flex-col gap-3.5 px-4 py-3.5">
           <div>
             {kv("Environment", "Worktree")}
-            {kv("Directory", <span style={{ fontFamily: MONO, fontSize: 12 }}>~/Code/bb</span>)}
-            {kv("Branch", <span style={{ fontFamily: MONO, fontSize: 12 }}>bb/endless-theme</span>)}
+            {kv("Directory", <span style={{ fontFamily: MONO, fontSize: 12 }}>~/Code/kaioken</span>)}
+            {kv("Branch", <span style={{ fontFamily: MONO, fontSize: 12 }}>kaioken/endless-theme</span>)}
             {kv("Compare to", <span style={{ fontFamily: MONO, fontSize: 12 }}>main</span>)}
             {kv("Status", <Badge tone="success">Clean</Badge>)}
             {kv("Pull request", <Badge tone="merged">Merged #42</Badge>)}
@@ -536,10 +536,10 @@ function InfoPanel() {
 
 function SettingsPage({ narrow = false, themeName, mode }: { narrow?: boolean; themeName: string; mode: Mode }) {
   const control = (label: string, value: ReactNode) => (
-    <BbButton type="button" variant="outline" size="sm" aria-label={label} className="h-7 w-full min-w-0 cursor-pointer justify-between border-border/60 bg-card px-2 text-xs sm:w-36">
+    <KaiokenButton type="button" variant="outline" size="sm" aria-label={label} className="h-7 w-full min-w-0 cursor-pointer justify-between border-border/60 bg-card px-2 text-xs sm:w-36">
       <span style={{ minWidth: 0, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{value}</span>
       <Icon name="ChevronDown" className="size-3.5 shrink-0 text-muted-foreground" />
-    </BbButton>
+    </KaiokenButton>
   );
   const row = (label: string, description: string | null, child: ReactNode) => (
     <div key={label} style={{ display: "flex", flexDirection: narrow ? "column" : "row", alignItems: narrow ? "stretch" : description ? "flex-start" : "center", justifyContent: "space-between", gap: narrow ? 10 : 20 }}>
@@ -558,9 +558,9 @@ function SettingsPage({ narrow = false, themeName, mode }: { narrow?: boolean; t
           <div style={{ borderRadius: RADIUS_LG, border: `1px solid ${v("border")}`, background: v("card"), padding: "14px 16px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {row("Theme", null, control("Theme", mode === "light" ? "Light" : "Dark"))}
-              {row("Palette", "Palettes change bb's colors, including syntax colors in diffs and file previews. Choose a built-in palette or create one from a prompt.", control("Palette", themeName))}
+              {row("Palette", "Palettes change kaioken's colors, including syntax colors in diffs and file previews. Choose a built-in palette or create one from a prompt.", control("Palette", themeName))}
               {row("Favicon color", "Tint browser tabs to tell instances apart.", control("Favicon color", <span style={{ display: "flex", alignItems: "center", gap: 8 }}><span aria-hidden style={{ width: 12, height: 12, borderRadius: 3, background: v("foreground") }} />Default</span>))}
-              {row("Fade inactive splits", "Fade out splits that do not have focus.", <BbSwitch checked aria-label="Fade inactive splits" />)}
+              {row("Fade inactive splits", "Fade out splits that do not have focus.", <KaiokenSwitch checked aria-label="Fade inactive splits" />)}
             </div>
           </div>
         </section>
@@ -605,9 +605,9 @@ function SplitPaneFixture({ focused, children }: { focused: boolean; children: R
 }
 
 // ---------------------------------------------------------------------------
-// The frame. A fluid mock of a bb window: components keep their natural
+// The frame. A fluid mock of a kaioken window: components keep their natural
 // sizes, and panels join or leave the composition with width exactly the way
-// bb's own responsive layout behaves. Nothing here is scaled or zoomed.
+// kaioken's own responsive layout behaves. Nothing here is scaled or zoomed.
 // ---------------------------------------------------------------------------
 
 function FrameView({ view, composition, themeName, mode }: { view: View; composition: FrameComposition; themeName: string; mode: Mode }) {
@@ -683,7 +683,7 @@ const ALL_TOKENS = [
   ...COLOR_GROUPS.flatMap((group) => group.tokens),
   "warning-text", "destructive-text",
   "font-sans", "font-mono", "text-sm", "text-sm--line-height",
-  "spacing", "tracking-normal", "bb-sidebar-row-height", "icon-stroke-width",
+  "spacing", "tracking-normal", "kaioken-sidebar-row-height", "icon-stroke-width",
   "radius", "radius-sm", "radius-md", "radius-lg", "radius-xl",
   "shadow-x", "shadow-y", "shadow-blur", "shadow-spread",
   "shadow-color", "shadow-opacity", "tp-shadow-color", "tp-shadow-opacity-percent",
@@ -1030,12 +1030,12 @@ function StyleSheetSection({ computed, radii }: { computed: Computed; radii: Rec
   );
 }
 // Area 2 — interactive overlays. Every launcher is a real button that opens a
-// real bb surface, so it carries a full affordance set: pointer cursor, hover
+// real kaioken surface, so it carries a full affordance set: pointer cursor, hover
 // fill, focus ring, and an open (selected) state. Radix triggers publish
 // `data-state="open"`; the two hover surfaces are controlled here.
 // ---------------------------------------------------------------------------
 
-// bb's standard hover delay (the app's tooltips use 300ms); the close delay
+// kaioken's standard hover delay (the app's tooltips use 300ms); the close delay
 // is the grace period for crossing the gap from trigger to card.
 const HOVER_OPEN_DELAY_MS = 300;
 const HOVER_CLOSE_DELAY_MS = 150;
@@ -1086,7 +1086,7 @@ function OverlaySpecimens({ vertical = false }: { vertical?: boolean }) {
     >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <BbButton variant="outline" size="sm" className={OVERLAY_TRIGGER_CLASS}><OverlayTriggerLabel>Menu</OverlayTriggerLabel></BbButton>
+          <KaiokenButton variant="outline" size="sm" className={OVERLAY_TRIGGER_CLASS}><OverlayTriggerLabel>Menu</OverlayTriggerLabel></KaiokenButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuLabel>Thread</DropdownMenuLabel>
@@ -1099,7 +1099,7 @@ function OverlaySpecimens({ vertical = false }: { vertical?: boolean }) {
       </DropdownMenu>
       <Dialog>
         <DialogTrigger asChild>
-          <BbButton variant="outline" size="sm" className={OVERLAY_TRIGGER_CLASS}><OverlayTriggerLabel>Dialog</OverlayTriggerLabel></BbButton>
+          <KaiokenButton variant="outline" size="sm" className={OVERLAY_TRIGGER_CLASS}><OverlayTriggerLabel>Dialog</OverlayTriggerLabel></KaiokenButton>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -1108,17 +1108,17 @@ function OverlaySpecimens({ vertical = false }: { vertical?: boolean }) {
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
-              <BbButton variant="outline" size="sm">Cancel</BbButton>
+              <KaiokenButton variant="outline" size="sm">Cancel</KaiokenButton>
             </DialogClose>
             <DialogClose asChild>
-              <BbButton size="sm">Archive</BbButton>
+              <KaiokenButton size="sm">Archive</KaiokenButton>
             </DialogClose>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       <Popover>
         <PopoverTrigger asChild>
-          <BbButton variant="outline" size="sm" className={OVERLAY_TRIGGER_CLASS}><OverlayTriggerLabel>Popover</OverlayTriggerLabel></BbButton>
+          <KaiokenButton variant="outline" size="sm" className={OVERLAY_TRIGGER_CLASS}><OverlayTriggerLabel>Popover</OverlayTriggerLabel></KaiokenButton>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-56 p-1">
           <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">On this page</div>
@@ -1130,7 +1130,7 @@ function OverlaySpecimens({ vertical = false }: { vertical?: boolean }) {
       <TooltipProvider delayDuration={HOVER_OPEN_DELAY_MS}>
         <Tooltip open={tooltip.open} onOpenChange={tooltip.setOpen}>
           <TooltipTrigger asChild>
-            <BbButton
+            <KaiokenButton
               variant="outline"
               size="sm"
               data-tp-tooltip-trigger=""
@@ -1142,7 +1142,7 @@ function OverlaySpecimens({ vertical = false }: { vertical?: boolean }) {
               onClick={(event) => { event.preventDefault(); tooltip.show(); }}
             >
               <OverlayTriggerLabel>Tooltip</OverlayTriggerLabel>
-            </BbButton>
+            </KaiokenButton>
           </TooltipTrigger>
           <TooltipContent
             data-tp-tooltip-content=""
@@ -1164,7 +1164,7 @@ function OverlaySpecimens({ vertical = false }: { vertical?: boolean }) {
         closeDelay={HOVER_CLOSE_DELAY_MS}
       >
         <HoverCardTrigger asChild>
-          <BbButton
+          <KaiokenButton
             variant="outline"
             size="sm"
             data-tp-hovercard-trigger=""
@@ -1172,14 +1172,14 @@ function OverlaySpecimens({ vertical = false }: { vertical?: boolean }) {
             onClick={() => setHoverCardOpen((open) => !open)}
           >
             <OverlayTriggerLabel>Hover card</OverlayTriggerLabel>
-          </BbButton>
+          </KaiokenButton>
         </HoverCardTrigger>
         <HoverCardContent
           data-tp-hovercard-content=""
           align="start"
           sideOffset={6}
           collisionPadding={12}
-          // Sized to its trigger like bb's select content, so the two line up
+          // Sized to its trigger like kaioken's select content, so the two line up
           // instead of the card being shunted sideways to avoid a collision.
           style={{ width: "max(var(--radix-hover-card-trigger-width), 15rem)" }}
           className="p-3"
@@ -1188,29 +1188,29 @@ function OverlaySpecimens({ vertical = false }: { vertical?: boolean }) {
             <span style={{ fontSize: 13, fontWeight: 600 }}>Endless theme family</span>
             <Badge tone="success"><Dot color={v("success")} size={6} /> Running</Badge>
           </div>
-          <div style={{ marginTop: 6, fontFamily: MONO, fontSize: 12, color: v("muted-foreground") }}>bb/endless-theme</div>
+          <div style={{ marginTop: 6, fontFamily: MONO, fontSize: 12, color: v("muted-foreground") }}>kaioken/endless-theme</div>
           <div style={{ marginTop: 6, fontSize: 12.5, lineHeight: "18px", color: v("muted-foreground") }}>Sidebar reads true black with the orange seam; blue selection at .20.</div>
           {/* Controls live inside the card: acting on them must not dismiss it. */}
           <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
-            <BbButton
+            <KaiokenButton
               variant="outline"
               size="sm"
               className="h-7 flex-1 cursor-pointer px-2 text-xs"
             >
               Copy branch
-            </BbButton>
-            <BbButton
+            </KaiokenButton>
+            <KaiokenButton
               size="sm"
               className="h-7 flex-1 cursor-pointer px-2 text-xs"
             >
               Open in split
-            </BbButton>
+            </KaiokenButton>
           </div>
         </HoverCardContent>
       </HoverCard>
-      <BbButton variant="outline" size="sm" className={OVERLAY_TRIGGER_CLASS} onClick={() => toast.success("Reference sheet updated", { description: "themes/endless-color.css" })}>
+      <KaiokenButton variant="outline" size="sm" className={OVERLAY_TRIGGER_CLASS} onClick={() => toast.success("Reference sheet updated", { description: "themes/endless-color.css" })}>
         <OverlayTriggerLabel>Toast</OverlayTriggerLabel>
-      </BbButton>
+      </KaiokenButton>
     </div>
   );
 }
@@ -1230,12 +1230,12 @@ function ComponentsSection() {
       <div data-tp-block="buttons" style={compactBlock(true)}>
         <h3 data-tp-role="category" style={{ ...TEXT_CATEGORY, marginBottom: 8 }}>Buttons</h3>
         <div data-tp-button-grid="" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 6 }}>
-          <BbButton size="sm" className="h-7 min-w-0 cursor-pointer px-2 text-xs">Default</BbButton>
-          <BbButton size="sm" variant="secondary" className="h-7 min-w-0 cursor-pointer px-2 text-xs">Secondary</BbButton>
-          <BbButton size="sm" variant="outline" className="h-7 min-w-0 cursor-pointer px-2 text-xs">Outline</BbButton>
-          <BbButton size="sm" variant="ghost" className="h-7 min-w-0 cursor-pointer px-2 text-xs">Ghost</BbButton>
-          <BbButton size="sm" variant="destructive" className="h-7 min-w-0 cursor-pointer px-2 text-xs">Delete</BbButton>
-          <BbButton size="sm" variant="outline" className="h-7 min-w-0 px-2 text-xs" disabled>Disabled</BbButton>
+          <KaiokenButton size="sm" className="h-7 min-w-0 cursor-pointer px-2 text-xs">Default</KaiokenButton>
+          <KaiokenButton size="sm" variant="secondary" className="h-7 min-w-0 cursor-pointer px-2 text-xs">Secondary</KaiokenButton>
+          <KaiokenButton size="sm" variant="outline" className="h-7 min-w-0 cursor-pointer px-2 text-xs">Outline</KaiokenButton>
+          <KaiokenButton size="sm" variant="ghost" className="h-7 min-w-0 cursor-pointer px-2 text-xs">Ghost</KaiokenButton>
+          <KaiokenButton size="sm" variant="destructive" className="h-7 min-w-0 cursor-pointer px-2 text-xs">Delete</KaiokenButton>
+          <KaiokenButton size="sm" variant="outline" className="h-7 min-w-0 px-2 text-xs" disabled>Disabled</KaiokenButton>
         </div>
       </div>
       <div data-tp-block="badges" style={compactBlock(true)}>
@@ -1248,21 +1248,21 @@ function ComponentsSection() {
       <div data-tp-block="inputs" style={compactBlock(true)}>
         <h3 data-tp-role="category" style={{ ...TEXT_CATEGORY, marginBottom: 8 }}>Inputs</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <BbInput className="h-7 px-2 text-xs" aria-label="Search threads" placeholder="Search threads…" value={search} onChange={(event) => setSearch(event.target.value)} />
-          <BbInput className="h-7 px-2 text-xs" aria-label="Disabled input" value="Disabled" disabled readOnly />
+          <KaiokenInput className="h-7 px-2 text-xs" aria-label="Search threads" placeholder="Search threads…" value={search} onChange={(event) => setSearch(event.target.value)} />
+          <KaiokenInput className="h-7 px-2 text-xs" aria-label="Disabled input" value="Disabled" disabled readOnly />
         </div>
       </div>
       <div data-tp-block="switch" style={toggleBlock}>
         <h3 data-tp-role="category" style={{ ...TEXT_CATEGORY, marginBottom: 8 }}>Switch</h3>
         <div data-tp-toggle-controls="" style={toggleControls}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", ...compactLabel }}>
-            <BbSwitch checked={notify} onCheckedChange={setNotify} className="cursor-pointer" /> Notifications
+            <KaiokenSwitch checked={notify} onCheckedChange={setNotify} className="cursor-pointer" /> Notifications
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", ...compactLabel }}>
-            <BbSwitch checked={compact} onCheckedChange={setCompact} className="cursor-pointer" /> Compact rows
+            <KaiokenSwitch checked={compact} onCheckedChange={setCompact} className="cursor-pointer" /> Compact rows
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 6, ...compactLabel, color: v("muted-foreground") }}>
-            <BbSwitch checked disabled /> Disabled
+            <KaiokenSwitch checked disabled /> Disabled
           </label>
         </div>
       </div>
@@ -1270,13 +1270,13 @@ function ComponentsSection() {
         <h3 data-tp-role="category" style={{ ...TEXT_CATEGORY, marginBottom: 8 }}>Checkbox</h3>
         <div data-tp-toggle-controls="" style={toggleControls}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", ...compactLabel }}>
-            <BbCheckbox checked={checked} onCheckedChange={(next) => setChecked(next === true)} className="cursor-pointer" /> Include drafts
+            <KaiokenCheckbox checked={checked} onCheckedChange={(next) => setChecked(next === true)} className="cursor-pointer" /> Include drafts
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", ...compactLabel }}>
-            <BbCheckbox checked={agreed} onCheckedChange={(next) => setAgreed(next === true)} className="cursor-pointer" /> Watch this branch
+            <KaiokenCheckbox checked={agreed} onCheckedChange={(next) => setAgreed(next === true)} className="cursor-pointer" /> Watch this branch
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 6, ...compactLabel, color: v("muted-foreground") }}>
-            <BbCheckbox checked disabled /> Disabled
+            <KaiokenCheckbox checked disabled /> Disabled
           </label>
         </div>
       </div>
@@ -1305,7 +1305,7 @@ function StageRail() {
 }
 
 // ---------------------------------------------------------------------------
-// The theme control: bb's own select, one option per theme. Every row
+// The theme control: kaioken's own select, one option per theme. Every row
 // previews the theme it names — its prominent colours as chips, its face as
 // live type — so the choice is made on appearance rather than on an id.
 // ---------------------------------------------------------------------------
@@ -1505,11 +1505,11 @@ function ThemePicker({
   );
 }
 
-// Light/dark is a per-client preference in bb, stored in localStorage under
+// Light/dark is a per-client preference in kaioken, stored in localStorage under
 // `bb.theme` as "light" | "dark" | "system" and mirrored onto the document's
 // `.dark` class. Writing the key (not just the class) is what makes the choice
 // stick and what keeps Settings → Appearance showing the same thing; the
-// storage event tells bb's own control to re-read it.
+// storage event tells kaioken's own control to re-read it.
 const MODE_KEY = "bb.theme";
 
 function useColorMode(): [Mode, (next: Mode) => void] {

@@ -17,17 +17,17 @@ import {
   type ProjectExecutionDefaults,
   type ReasoningLevel,
   type ServiceTier,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   NewThreadRequest,
   PluginEnvironmentProviderInputsChange,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import type {
   CreateExecutionInputSources,
   SidebarBootstrapResponse,
   SystemEnvironmentProvider,
   SystemExecutionOptionsModelLoadError,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type { ProjectSelectorCreateProjectConfig } from "@/components/pickers/ProjectSelector";
 import {
   encodeReuseValue,
@@ -41,7 +41,7 @@ import {
   type NewThreadPromptBoxProps,
 } from "@/components/promptbox/NewThreadPromptBox";
 import { withAppPromptActions } from "@/components/promptbox/PromptBoxActionsMenu";
-import { buildProviderPromptActionProps } from "@bb/client-core";
+import { buildProviderPromptActionProps } from "@kaioken/client-core";
 import type { PromptMentionLinkResolver } from "@/components/promptbox/editor/prompt-mention-link";
 import type { PromptBoxHandle } from "@/components/promptbox/PromptBoxInternal";
 import { type PluginComposerHost } from "@/components/plugin/plugin-composer-host";
@@ -81,7 +81,7 @@ import {
   promptDraftToInput,
   type PromptDraftAttachment,
   type PromptDraftState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   getProjectComposeRoutePath,
   getThreadRoutePath,

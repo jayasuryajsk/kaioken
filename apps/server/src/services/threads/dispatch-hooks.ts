@@ -1,4 +1,4 @@
-import { getEnvironment } from "@bb/db";
+import { getEnvironment } from "@kaioken/db";
 import {
   QUEUED_MESSAGE_WAIT_REASON_MAX_LENGTH,
   type Environment,
@@ -7,20 +7,20 @@ import {
   type PromptInput,
   type Thread,
   type ThreadQueuedMessage,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   ExecutionInputFieldSource,
   StartedOnBehalfOf,
   ThreadCreateOrigin,
   ThreadResponse,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type {
   MessageDispatchHookContext,
   PluginDispatchAttemptKind,
   PluginDispatchEnvironmentIntent,
   PluginDispatchExecution,
   PluginDispatchExecutionSources,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { ApiError } from "../../errors.js";
 import type { AppDeps } from "../../types.js";

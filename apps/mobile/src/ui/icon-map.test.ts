@@ -59,7 +59,7 @@ function webIconMapEntries(): Map<string, string> {
 }
 
 describe("ICON_MAP", () => {
-  it("has the same names bound to the same glyphs as @bb/shared-ui", () => {
+  it("has the same names bound to the same glyphs as @kaioken/shared-ui", () => {
     const web = webIconMapEntries();
     const mobile = iconMapEntries(readFileSync(MOBILE_ICON_MAP_PATH, "utf8"), {
       start: "const ICON_MAP = {",

@@ -4,11 +4,11 @@ import type {
   ExperimentalDesktopBrowserImportOutcome,
   ExperimentalDesktopBrowserImportSources,
   ExperimentalDesktopBrowserScope,
-} from "@bb/sdk";
+} from "@kaioken/sdk";
 import {
   DESKTOP_BROWSER_IMPORT_FAILURE_COPY,
   desktopBrowserImportSourceIdSchema,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { action } from "../action.js";
 import { createCliBbSdk } from "../client.js";
 
@@ -311,16 +311,16 @@ export function registerBrowserCommands(
     browser
       .command("import-cookies")
       .description(
-        "Copy signed-in cookies from an installed browser into the BB browser",
+        "Copy signed-in cookies from an installed browser into the Kaioken browser",
       ),
   )
     .requiredOption(
       "--from <source>",
-      "Source browser ID from `bb browser import-sources`",
+      "Source browser ID from `kaioken browser import-sources`",
     )
     .requiredOption(
       "--profile <directory>",
-      "Source profile directory as printed by `bb browser import-sources`",
+      "Source profile directory as printed by `kaioken browser import-sources`",
     )
     .option(
       "--into <target>",

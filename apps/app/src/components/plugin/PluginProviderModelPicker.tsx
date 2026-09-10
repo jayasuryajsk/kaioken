@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import type {
   ExperimentalProviderModelPickerProps,
   ExperimentalProviderModelPickerValue,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { ModelReasoningPicker } from "@/components/pickers/ModelReasoningPicker";
 import {
   formatModelLabel,

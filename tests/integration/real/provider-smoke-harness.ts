@@ -8,9 +8,9 @@ import {
   type ClientTurnRequestId,
   type ThreadEventRow,
   type ThreadExecutionOptions,
-} from "@bb/domain";
-import type { ThreadTimelineResponse } from "@bb/server-contract";
-import { resolvePreferredTestModel } from "@bb/test-helpers";
+} from "@kaioken/domain";
+import type { ThreadTimelineResponse } from "@kaioken/server-contract";
+import { resolvePreferredTestModel } from "@kaioken/test-helpers";
 import {
   getAvailableModels,
   getThread,

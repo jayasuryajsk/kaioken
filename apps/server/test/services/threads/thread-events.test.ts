@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
-import { events, getThread, threads } from "@bb/db";
+import { events, getThread, threads } from "@kaioken/db";
 import {
   createStandaloneBuiltinCompactCommandInput,
   threadScope,
   turnScope,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   appendClientTurnEvent,

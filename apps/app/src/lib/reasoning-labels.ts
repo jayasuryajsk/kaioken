@@ -1,4 +1,4 @@
-import type { ProviderInfo, ReasoningLevel } from "@bb/domain";
+import type { ProviderInfo, ReasoningLevel } from "@kaioken/domain";
 
 const FALLBACK_REASONING_LABELS: Record<ReasoningLevel, string> = {
   none: "None",

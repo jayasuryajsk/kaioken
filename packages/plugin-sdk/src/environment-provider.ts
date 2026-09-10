@@ -1,12 +1,12 @@
-import type { Environment, Host, Project } from "@bb/domain";
-import type { ThreadResponse } from "@bb/server-contract";
+import type { Environment, Host, Project } from "@kaioken/domain";
+import type { ThreadResponse } from "@kaioken/server-contract";
 import type {
   JsonValue,
   PluginEnvironmentProviderRequirements,
   PluginEnvironmentValidateDecision,
   StandardSchemaV1,
   StandardSchemaV1InferOutput,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 
 export type PluginEnvironmentProviderInputsSchema =
   | StandardSchemaV1

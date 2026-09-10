@@ -9,7 +9,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import type { ComposerView } from "@get-bb/plugin-sdk";
+import type { ComposerView } from "@get-kaioken/plugin-sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   resetPluginSlotStoreForTest,
@@ -173,7 +173,7 @@ describe("ComposerActionsSlot overflow", () => {
 
     const view = render(
       <ComposerActionsSlot view={VIEW}>
-        <button type="button">BB action</button>
+        <button type="button">Kaioken action</button>
       </ComposerActionsSlot>,
     );
 
@@ -181,6 +181,6 @@ describe("ComposerActionsSlot overflow", () => {
       Array.from(view.container.querySelectorAll("button"), (element) =>
         element.textContent?.trim(),
       ),
-    ).toEqual(["Plugin action", "BB action"]);
+    ).toEqual(["Plugin action", "Kaioken action"]);
   });
 });

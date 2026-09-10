@@ -1,10 +1,10 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import {
   PLUGIN_GUIDE_SURFACE_PROVIDER_ID,
   pluginSurfaceAgentContext,
-} from "@bb/plugin-api-map/agent-reference";
+} from "@kaioken/plugin-api-map/agent-reference";
 
-export default function plugin(bb: BbPluginApi) {
+export default function plugin(bb: KaiokenPluginApi) {
   bb.ui.registerMentionProvider({
     id: PLUGIN_GUIDE_SURFACE_PROVIDER_ID,
     label: "Plugin Guide",

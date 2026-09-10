@@ -21,9 +21,9 @@ import interWoff2 from "@fontsource-variable/inter/files/inter-latin-wght-normal
 import landingCss from "../landing/landing.css?url";
 import changelogCss from "../landing/changelog.css?url";
 
-const PAGE_TITLE = "Changelog — bb";
+const PAGE_TITLE = "Changelog — kaioken";
 const PAGE_DESCRIPTION =
-  "New features, improvements, and fixes in every bb release.";
+  "New features, improvements, and fixes in every kaioken release.";
 
 export const Route = createFileRoute("/changelog")({
   head: () => ({
@@ -67,7 +67,7 @@ function ByMachineSidebar() {
         <div
           className="sidebar-card"
           role="img"
-          aria-label="bb sidebar grouped by machine, with threads running on two computers"
+          aria-label="kaioken sidebar grouped by machine, with threads running on two computers"
         >
           <div className="side-label">Sawyer&rsquo;s MacBook Air</div>
           <ul className="threads">

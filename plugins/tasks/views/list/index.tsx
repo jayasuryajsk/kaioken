@@ -4,10 +4,10 @@ import { useProjects } from "../../shell/data.js";
 import { useTasksNavigation } from "../../shell/routes.js";
 import { NewTaskDialog } from "../manage/new-task-dialog.js";
 import { DetailToasts, useDetailToasts } from "../detail/toast.js";
-import { Button } from "@bb/shared-ui/button";
-import { DelayedLoading } from "@bb/shared-ui/delayed-loading";
-import { Icon } from "@bb/shared-ui/icon";
-import { Skeleton } from "@bb/shared-ui/skeleton";
+import { Button } from "@kaioken/shared-ui/button";
+import { DelayedLoading } from "@kaioken/shared-ui/delayed-loading";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
 import { useLabels, useListTasks, useTaskListMeta } from "./data.js";
 import {
   EMPTY_FILTERS,

@@ -1,4 +1,4 @@
-import type { JsonValue, ThreadEventPlanStep } from "@bb/domain";
+import type { JsonValue, ThreadEventPlanStep } from "@kaioken/domain";
 import type {
   TimelineActivityIntent,
   TimelineApprovalStatus,
@@ -31,12 +31,12 @@ import type {
   TimelineWebFetchWorkRow,
   TimelineWebSearchWorkRow,
   TimelineWorkflowWorkRow,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type {
   SystemMessageKind,
   SystemMessageSubject,
   ThreadTurnInitiator,
-} from "@bb/domain";
+} from "@kaioken/domain";
 
 interface RowBaseOverrideArgs {
   createdAt?: number;
@@ -526,7 +526,7 @@ export function commandRow({
   callId,
   command,
   createdAt,
-  cwd = "/workspace/bb",
+  cwd = "/workspace/kaioken",
   durationMs = 2_300,
   exitCode,
   id = DEFAULT_COMMAND_ID,

@@ -14,8 +14,8 @@ import { SidebarStickyTier } from "@/components/ui/sidebar.js";
 import {
   COARSE_POINTER_COMPACT_ROW_HEIGHT_CLASS,
   COARSE_POINTER_ROW_ACTION_SIZE_CLASS,
-} from "@bb/shared-ui/coarse-pointer-sizing";
-import { LIST_HOVER_TRANSITION } from "@bb/shared-ui/motion";
+} from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { LIST_HOVER_TRANSITION } from "@kaioken/shared-ui/motion";
 import {
   SIDEBAR_HOVER_ACTIONS_CLASS,
   SIDEBAR_HOVER_ACTIONS_FADE_CLASS,
@@ -23,8 +23,8 @@ import {
   SIDEBAR_HOVER_ACTIONS_MOBILE_ALWAYS_VALUE,
   SIDEBAR_HOVER_ACTIONS_ROW_CLASS,
 } from "@/components/ui/sidebar-hover-actions.js";
-import { cn } from "@bb/shared-ui/lib/utils";
-import type { CollapsedChildActivity } from "@bb/client-core";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import type { CollapsedChildActivity } from "@kaioken/client-core";
 import {
   SIDEBAR_ROW_BASE_CLASS,
   SIDEBAR_GROUP_TEXT_CLASS,

@@ -1,8 +1,8 @@
 import { Fragment, type ReactElement, type ReactNode } from "react";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { buttonVariants } from "@bb/shared-ui/button";
-import { COARSE_POINTER_TOOLBAR_ACTION_BUTTON_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { Icon } from "@bb/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { buttonVariants } from "@kaioken/shared-ui/button";
+import { COARSE_POINTER_TOOLBAR_ACTION_BUTTON_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { Icon } from "@kaioken/shared-ui/icon";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +10,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@bb/shared-ui/tooltip";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@kaioken/shared-ui/tooltip";
 
 const SPLIT_BUTTON_TOOLBAR_CLASS = COARSE_POINTER_TOOLBAR_ACTION_BUTTON_CLASS;
 

@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import {
   createFakePluginHost,
   makeThreadResponse,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it, vi } from "vitest";
 import { buildAttachmentUrl, registerAttachments } from "../attachments";
 import { tasksRpcContract } from "../shared/contract";
@@ -387,14 +387,14 @@ describe("Tasks RPC domain API", () => {
     await harness.dispose();
   });
 
-  it("lists bb workspace projects as id/name options", async () => {
+  it("lists kaioken workspace projects as id/name options", async () => {
     const { bb, harness } = createFakePluginHost({
       pluginId: "tasks",
       sdk: {
         projects: {
           list: async () => [
             { id: "proj_personal", name: "Personal", extra: "dropped" },
-            { id: "proj_bb", name: "bb" },
+            { id: "proj_bb", name: "kaioken" },
           ],
         },
       },
@@ -404,9 +404,9 @@ describe("Tasks RPC domain API", () => {
     const result = tasksRpcContract.listBbProjects.output.parse(
       await harness.callRpc("listBbProjects", null),
     );
-    expect(result.bbProjects).toEqual([
+    expect(result.kaiokenProjects).toEqual([
       { id: "proj_personal", name: "Personal" },
-      { id: "proj_bb", name: "bb" },
+      { id: "proj_bb", name: "kaioken" },
     ]);
     expect(harness.sdk.callsTo("projects.list")).toEqual([
       [{ includePersonal: true }],
@@ -414,7 +414,7 @@ describe("Tasks RPC domain API", () => {
     await harness.dispose();
   });
 
-  it("lists machines as id/name options from the BB SDK", async () => {
+  it("lists machines as id/name options from the Kaioken SDK", async () => {
     const { bb, harness } = createFakePluginHost({
       pluginId: "tasks",
       sdk: {
@@ -1112,7 +1112,7 @@ describe("Tasks RPC domain API", () => {
         outcome: "available",
         pullRequest: makePullRequest({
           number: 12,
-          url: "https://github.com/acme/bb/pull/12",
+          url: "https://github.com/acme/kaioken/pull/12",
           state: "open",
           updatedAt: "2026-07-15T10:00:00.000Z",
         }),
@@ -1122,7 +1122,7 @@ describe("Tasks RPC domain API", () => {
         pullRequest: makePullRequest({
           number: 9,
           title: "Older merged work",
-          url: "https://github.com/acme/bb/pull/9",
+          url: "https://github.com/acme/kaioken/pull/9",
           state: "merged",
           updatedAt: "2026-07-16T09:00:00.000Z",
         }),
@@ -1191,7 +1191,7 @@ describe("Tasks RPC domain API", () => {
       })),
     ).toEqual([
       {
-        url: "https://github.com/acme/bb/pull/9",
+        url: "https://github.com/acme/kaioken/pull/9",
         number: 9,
         title: "Older merged work",
         state: "merged",
@@ -1199,7 +1199,7 @@ describe("Tasks RPC domain API", () => {
         threadIds: ["thr_merger000"],
       },
       {
-        url: "https://github.com/acme/bb/pull/12",
+        url: "https://github.com/acme/kaioken/pull/12",
         number: 12,
         title: "Fix the pill",
         state: "open",
@@ -1348,7 +1348,7 @@ describe("Tasks RPC domain API", () => {
       outcome: "available",
       pullRequest: makePullRequest({
         number: 21,
-        url: "https://github.com/acme/bb/pull/21",
+        url: "https://github.com/acme/kaioken/pull/21",
       }),
     });
     resolvers.get("env_b")!({ outcome: "absent" });
@@ -1375,7 +1375,7 @@ describe("Tasks RPC domain API", () => {
           number: 30,
           title: "Before merge",
           state: "open",
-          url: "https://github.com/acme/bb/pull/30",
+          url: "https://github.com/acme/kaioken/pull/30",
           updatedAt: "2026-07-15T08:00:00.000Z",
         }),
       },
@@ -1385,7 +1385,7 @@ describe("Tasks RPC domain API", () => {
           number: 30,
           title: "After merge",
           state: "merged",
-          url: "https://github.com/acme/bb/pull/30",
+          url: "https://github.com/acme/kaioken/pull/30",
           updatedAt: "2026-07-16T12:00:00.000Z",
         }),
       },
@@ -1438,7 +1438,7 @@ describe("Tasks RPC domain API", () => {
       })),
     ).toEqual([
       {
-        url: "https://github.com/acme/bb/pull/30",
+        url: "https://github.com/acme/kaioken/pull/30",
         number: 30,
         title: "After merge",
         state: "merged",
@@ -1469,9 +1469,9 @@ function makePullRequest(
     number: 12,
     title: "Fix the pill",
     state: "open" as const,
-    url: "https://github.com/acme/bb/pull/12",
+    url: "https://github.com/acme/kaioken/pull/12",
     baseRefName: "main",
-    headRefName: "bb/fix-the-pill",
+    headRefName: "kaioken/fix-the-pill",
     updatedAt: "2026-07-15T10:00:00.000Z",
     checks: {
       state: "passing" as const,

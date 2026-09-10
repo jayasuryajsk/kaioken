@@ -1,5 +1,5 @@
-import { countProjectSources, getProject, setExperiments } from "@bb/db";
-import { defaultExperiments } from "@bb/domain";
+import { countProjectSources, getProject, setExperiments } from "@kaioken/db";
+import { defaultExperiments } from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import {
   listQueuedCommands,

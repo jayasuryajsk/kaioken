@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getEnvironment } from "@bb/db";
+import { getEnvironment } from "@kaioken/db";
 import {
   registerTestHostRpcCapture,
   reportQueuedCommandSuccess,
@@ -140,7 +140,7 @@ describe("public environments", () => {
       const environment = seedEnvironment(harness.deps, {
         hostId: host.id,
         projectId: project.id,
-        branchName: "bb/stale",
+        branchName: "kaioken/stale",
         defaultBranch: "main",
         path: "/tmp/current-branch-env",
         environmentProviderId: "git-worktree",
@@ -212,7 +212,7 @@ describe("public environments", () => {
       const environment = seedEnvironment(harness.deps, {
         hostId: host.id,
         projectId: project.id,
-        branchName: "bb/stale",
+        branchName: "kaioken/stale",
         defaultBranch: "main",
         path: "/tmp/detached-branch-env",
         environmentProviderId: "git-worktree",

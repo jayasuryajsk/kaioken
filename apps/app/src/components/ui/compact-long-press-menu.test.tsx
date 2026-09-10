@@ -8,8 +8,8 @@ import {
   screen,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CompactViewportOverrideProvider } from "@bb/shared-ui/hooks/use-compact-viewport";
-import { DropdownMenuItem } from "@bb/shared-ui/dropdown-menu";
+import { CompactViewportOverrideProvider } from "@kaioken/shared-ui/hooks/use-compact-viewport";
+import { DropdownMenuItem } from "@kaioken/shared-ui/dropdown-menu";
 import { CompactLongPressMenu } from "./compact-long-press-menu";
 
 const LONG_PRESS_MS = 700;

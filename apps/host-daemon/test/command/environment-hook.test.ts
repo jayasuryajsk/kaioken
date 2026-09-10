@@ -12,9 +12,9 @@ afterEach(cleanupTempDirs);
 
 it("streams hook output and cancels the process before the run RPC settles", async () => {
   const harness = createHarness();
-  const path = await makeTempDir("bb-hook-dispatch-");
+  const path = await makeTempDir("kaioken-hook-dispatch-");
   await writeFile(
-    join(path, ".bb-env-setup.sh"),
+    join(path, ".kaioken-env-setup.sh"),
     "echo running-hook\nsleep 120\n",
   );
   const output: string[] = [];
@@ -44,13 +44,13 @@ it("streams hook output and cancels the process before the run RPC settles", asy
     ),
   ).rejects.toThrow("cancelled");
   expect(output).toContain("running-hook");
-  expect(output).toContain(".bb-env-setup.sh cancelled");
+  expect(output).toContain(".kaioken-env-setup.sh cancelled");
 });
 
 it("reconciles running and completed hook IDs without executing a second shell", async () => {
-  const path = await makeTempDir("bb-hook-resume-");
+  const path = await makeTempDir("kaioken-hook-resume-");
   await writeFile(
-    join(path, ".bb-env-setup.sh"),
+    join(path, ".kaioken-env-setup.sh"),
     "echo once >> marker\nwhile [ ! -f proceed ]; do sleep 0.05; done\n",
   );
   const options = createHarness().dispatchOptions({ dataDir: path });
@@ -77,8 +77,8 @@ it("reconciles running and completed hook IDs without executing a second shell",
 });
 
 it("rejects unknown recovery and cancels delayed dispatch within this daemon", async () => {
-  const path = await makeTempDir("bb-hook-unknown-");
-  await writeFile(join(path, ".bb-env-setup.sh"), "echo unsafe > marker\n");
+  const path = await makeTempDir("kaioken-hook-unknown-");
+  await writeFile(join(path, ".kaioken-env-setup.sh"), "echo unsafe > marker\n");
   const options = createHarness().dispatchOptions({ dataDir: path });
   await expect(
     dispatchOnlineRpcCommand(
@@ -116,9 +116,9 @@ it("rejects unknown recovery and cancels delayed dispatch within this daemon", a
 });
 
 it("reports unknown after daemon memory is lost without rerunning the script", async () => {
-  const path = await makeTempDir("bb-hook-daemon-restart-");
+  const path = await makeTempDir("kaioken-hook-daemon-restart-");
   await writeFile(
-    join(path, ".bb-env-setup.sh"),
+    join(path, ".kaioken-env-setup.sh"),
     "echo started > started\nsleep 120\necho unsafe > completed\n",
   );
   const firstOptions = createHarness().dispatchOptions({ dataDir: path });

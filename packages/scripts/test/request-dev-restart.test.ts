@@ -3,7 +3,7 @@ import os from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
+import { HOST_DAEMON_PROTOCOL_VERSION } from "@kaioken/host-daemon-contract";
 import {
   parseTarget,
   readRunningSupervisorPid,
@@ -47,7 +47,7 @@ describe("request-dev-restart", () => {
   });
 
   it("reads a valid running supervisor pid", async () => {
-    const dataDir = await makeTempDir("bb-request-restart-");
+    const dataDir = await makeTempDir("kaioken-request-restart-");
     const serviceDir = join(dataDir, "dev-supervisors");
     const pidPath = join(serviceDir, "server.pid");
     await fs.mkdir(serviceDir, { recursive: true });
@@ -59,8 +59,8 @@ describe("request-dev-restart", () => {
   });
 
   it("resolves restart supervisor files from the current checkout data dir", () => {
-    vi.stubEnv("BB_DATA_DIR", "/tmp/wrong-bb-data");
-    vi.stubEnv("BB_HOST_DAEMON_PORT", "1234");
+    vi.stubEnv("KAIOKEN_DATA_DIR", "/tmp/wrong-kaioken-data");
+    vi.stubEnv("KAIOKEN_HOST_DAEMON_PORT", "1234");
     const expectedDataDir = expectedDevDataDir({
       homeDir: os.homedir(),
       repoRoot,
@@ -162,7 +162,7 @@ describe("request-dev-restart", () => {
   });
 
   it("removes stale pid files", async () => {
-    const dataDir = await makeTempDir("bb-request-restart-");
+    const dataDir = await makeTempDir("kaioken-request-restart-");
     const serviceDir = join(dataDir, "dev-supervisors");
     const pidPath = join(serviceDir, "server.pid");
     await fs.mkdir(serviceDir, { recursive: true });

@@ -25,7 +25,7 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuTrigger,
-} from "@bb/shared-ui/context-menu";
+} from "@kaioken/shared-ui/context-menu";
 import type {
   Components,
   ExtraProps,
@@ -45,7 +45,7 @@ import {
   type RehypeKatex,
 } from "./markdown-katex-loader.js";
 import { CopyButton } from "./copy-button.js";
-import { Icon } from "@bb/shared-ui/icon";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { RouteAnchor } from "./app-route-anchor.js";
 import {
   getMarkdownCodeLanguage,
@@ -89,7 +89,7 @@ import {
 } from "./markdown-message-directives.js";
 import { normalizePromptBlockquoteBoundaries } from "./markdown-prompt-blockquote-boundaries.js";
 import { MarkdownMermaidDiagram } from "./markdown-mermaid-diagram.js";
-import type { PromptTextMention } from "@bb/domain";
+import type { PromptTextMention } from "@kaioken/domain";
 import type { PromptMentionLinkResolver } from "@/components/promptbox/editor/prompt-mention-link";
 import type { TimelineTitleLinkResolver } from "@/components/thread/timeline/TimelineTitleView.js";
 import { usePreferredTheme, type Theme } from "@/hooks/useTheme";
@@ -98,7 +98,7 @@ import {
   useRewriteLocalhostLinksPreference,
 } from "@/lib/localhost-link-rewrite-preference";
 import { resolveRouteHref } from "@/lib/route-paths";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import remarkDirective from "remark-directive";
 import { PromptMentionPill } from "@/components/thread/timeline/ConversationMessageMentions.js";
 import {
@@ -753,7 +753,7 @@ function MarkdownCode({
         </div>
         <pre
           className={cn(
-            "bb-code-highlight px-3 pb-3 pt-1",
+            "kaioken-code-highlight px-3 pb-3 pt-1",
             softWrap
               ? "whitespace-pre-wrap [overflow-wrap:anywhere]"
               : "overflow-x-auto",
@@ -1276,14 +1276,14 @@ function buildMarkdownComponents({
   };
 
   if (threadMentions !== undefined) {
-    components["bb-thread-mention"] = buildThreadMentionComponent({
+    components["kaioken-thread-mention"] = buildThreadMentionComponent({
       mentions: threadMentions.mentions,
       resolveSegmentLinkHref: threadMentions.resolveLinkHref,
     });
   }
 
   if (promptMentions !== undefined) {
-    components["bb-prompt-mention"] = buildPromptMentionComponent({
+    components["kaioken-prompt-mention"] = buildPromptMentionComponent({
       mentions: promptMentions.mentions,
       resolveLinkHref: promptMentions.resolveLinkHref,
       resolveMentionLink: promptMentions.resolveMentionLink,
@@ -1291,7 +1291,7 @@ function buildMarkdownComponents({
   }
 
   if (messageDirectives !== undefined) {
-    components["bb-message-directive"] = buildMessageDirectiveComponent({
+    components["kaioken-message-directive"] = buildMessageDirectiveComponent({
       mounts: messageDirectives.mounts,
       message: messageDirectives.message,
       openWorkspaceFile: messageDirectives.openWorkspaceFile,

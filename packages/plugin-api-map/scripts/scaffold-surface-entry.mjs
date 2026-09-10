@@ -136,7 +136,7 @@ export function buildSurfaceEntryScaffold(input) {
     surface: {
       id: input.id,
       title: input.title.trim(),
-      summary: `TODO: Describe where ${input.title.trim()} appears in bb. With this, a plugin can:`,
+      summary: `TODO: Describe where ${input.title.trim()} appears in kaioken. With this, a plugin can:`,
       bullets: [
         "TODO: Describe the first user-visible capability",
         "TODO: Describe the second user-visible capability",
@@ -166,7 +166,7 @@ export function renderSurfaceEntryScaffold(input) {
 
 function usage() {
   return `Usage:
-  pnpm exec turbo run scaffold:surface-entry --filter=@bb/plugin-api-map -- \\
+  pnpm exec turbo run scaffold:surface-entry --filter=@kaioken/plugin-api-map -- \\
     --id <surface-id> --title <title> --group <group-id> \\
     --source <repo-path> --api-symbol <SDK-symbol> \\
     [--transient] [--outcome] [--replacement] [--no-spatial-owner]

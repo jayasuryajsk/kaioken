@@ -5,7 +5,7 @@ import {
   getThread,
   listEvents,
   setQueuedThreadMessageGroupBoundary,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   PERSONAL_PROJECT_ID,
   encodeClientTurnRequestIdNumber,
@@ -15,11 +15,11 @@ import {
   type ClientTurnRequestId,
   type EnvironmentProviderSelection,
   type PromptInput,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   threadResponseSchema,
   threadTimelineResponseSchema,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { describe, expect, it } from "vitest";
 import { appendClientTurnEventInTransaction } from "../../src/services/threads/thread-events.js";
 import { sendQueuedMessage } from "../../src/services/threads/queued-messages.js";

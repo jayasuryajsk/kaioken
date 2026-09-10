@@ -6,15 +6,15 @@ import {
   type UiPreferenceEntry,
   type UiPreferenceKey,
   type UiPreferenceValue,
-} from "@bb/domain";
-import type { UiPreferencesResponse } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { UiPreferencesResponse } from "@kaioken/server-contract";
 import { appToast } from "@/components/ui/app-toast";
 import {
   getCachedUiPreferences,
   invalidateCachedUiPreferences,
   setCachedUiPreferences,
 } from "@/hooks/cache-owners/ui-preferences-cache-owner";
-import { BbHttpError, sdk } from "../sdk";
+import { KaiokenHttpError, sdk } from "../sdk";
 import {
   clearLegacyLocalUiPreference,
   readLegacyLocalUiPreference,
@@ -191,7 +191,7 @@ async function refetchUiPreferences(
 }
 
 function isUiPreferenceConflict(error: unknown): boolean {
-  return error instanceof BbHttpError && error.status === 409;
+  return error instanceof KaiokenHttpError && error.status === 409;
 }
 
 function recordServerEntry<Key extends UiPreferenceKey>(

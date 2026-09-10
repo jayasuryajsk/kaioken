@@ -1,4 +1,4 @@
-import type { PermissionEscalation } from "@bb/domain";
+import type { PermissionEscalation } from "@kaioken/domain";
 
 export interface InteractiveRequestPolicyInput {
   permissionEscalation: PermissionEscalation | null;

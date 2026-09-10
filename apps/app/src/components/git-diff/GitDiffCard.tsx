@@ -1,6 +1,6 @@
 import { memo, useEffect, useMemo, useState } from "react";
 import { useIntersectionObserver } from "usehooks-ts";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import type { DiffPresentation } from "@/components/code/code-rendering";
 import {
   GitDiffCardBody,

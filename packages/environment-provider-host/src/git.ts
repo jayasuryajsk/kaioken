@@ -1,7 +1,7 @@
 import {
   experimental_sanitizeInheritedChildProcessEnv as sanitizeInheritedChildProcessEnv,
   experimental_spawnPortableOutputProcess as spawnPortableOutputProcess,
-} from "@get-bb/plugin-sdk/host";
+} from "@get-kaioken/plugin-sdk/host";
 import path from "node:path";
 
 const MAX_OUTPUT_BYTES = 16 * 1024 * 1024;

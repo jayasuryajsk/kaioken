@@ -4,7 +4,7 @@ import {
   experimental_useCodeTheme,
   useRpc,
   type PluginFileOpenerProps,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 import type * as MonacoNs from "monaco-editor";
 import type { rpcContract } from "./server.js";
 import { CLAIMED_EXTENSIONS, languageForPath } from "./lib/languages.js";
@@ -14,7 +14,7 @@ import {
   setOverflowWidgetsTheme,
 } from "./lib/monaco-loader.js";
 import { applyCodeTheme, editorBackground } from "./lib/monaco-theme.js";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { FileToolbar, type SaveIndicator } from "./components/FileToolbar.js";
 import { FileTreePanel } from "./components/FileTreePanel.js";
 import type { FlatEntry } from "./lib/file-tree.js";

@@ -7,7 +7,7 @@ import { performance } from "node:perf_hooks";
 import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Hono } from "hono";
-import { terminalWebSocketQuerySchema } from "@bb/server-contract";
+import { terminalWebSocketQuerySchema } from "@kaioken/server-contract";
 import { compress } from "hono/compress";
 import { cors } from "hono/cors";
 import type { ServerAppDeps } from "./types.js";
@@ -76,9 +76,9 @@ import {
 } from "./ws/terminal-protocol.js";
 import {
   createBbAppArtifactService,
-  type BbAppArtifactService,
-} from "./services/install/bb-app-artifact.js";
-import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
+  type KaiokenAppArtifactService,
+} from "./services/install/kaioken-app-artifact.js";
+import { HOST_DAEMON_PROTOCOL_VERSION } from "@kaioken/host-daemon-contract";
 import {
   createPluginCatalogService,
   type PluginCatalogService,
@@ -133,7 +133,7 @@ function normalizeInternalAuthPath(path: string): string {
 }
 
 interface CreateAppOptions {
-  bbAppArtifactService?: BbAppArtifactService;
+  kaiokenAppArtifactService?: KaiokenAppArtifactService;
   slowApiRequestLogThresholdMs?: number;
   staticDir?: string;
 }
@@ -425,8 +425,8 @@ export function createApp(
   });
   const slowApiRequestLogThresholdMs =
     options?.slowApiRequestLogThresholdMs ?? SLOW_API_REQUEST_LOG_THRESHOLD_MS;
-  const bbAppArtifactService =
-    options?.bbAppArtifactService ??
+  const kaiokenAppArtifactService =
+    options?.kaiokenAppArtifactService ??
     createBbAppArtifactService({
       dataDir: deps.config.dataDir,
       serverEntryUrl: import.meta.url,
@@ -485,12 +485,12 @@ export function createApp(
   });
   app.get("/install/version", async (context) => {
     return context.json({
-      version: await bbAppArtifactService.getVersion(),
+      version: await kaiokenAppArtifactService.getVersion(),
       protocolVersion: HOST_DAEMON_PROTOCOL_VERSION,
     });
   });
-  app.get("/install/bb-app.tgz", async (context) => {
-    const artifact = await bbAppArtifactService.getArtifact();
+  app.get("/install/kaioken-app.tgz", async (context) => {
+    const artifact = await kaiokenAppArtifactService.getArtifact();
     const etag = `"sha256-${artifact.digest}"`;
     const headers = {
       "cache-control": "public, max-age=300",
@@ -598,7 +598,7 @@ export function createApp(
       requestQueuedMessageDispatch(deps, { kind: "plugin-recheck" });
     },
     watchBuiltinPluginSources:
-      process.env.BB_MANAGED_DEV_BUILTIN_PLUGIN_HOT_RELOAD === "1",
+      process.env.KAIOKEN_MANAGED_DEV_BUILTIN_PLUGIN_HOT_RELOAD === "1",
   });
   // Messages queued while a thread awaited user interaction stop waiting once
   // that interaction settles (#1650); the idle drain then delivers them.
@@ -771,7 +771,7 @@ export function createApp(
   );
 
   if (!options?.staticDir) {
-    app.get("/", (context) => context.text("bb server"));
+    app.get("/", (context) => context.text("kaioken server"));
   }
 
   if (options?.staticDir) {

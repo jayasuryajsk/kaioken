@@ -5,7 +5,7 @@ import { parsePost, stripMarkdown } from "./parse-post";
 const SAMPLE = `---
 title: An Agentic IDE That Builds Itself
 date: 2026-08-05
-lede: I'm excited to show **bb**.
+lede: I'm excited to show **kaioken**.
 sourceLabel: This post first appeared as an X Article
 sourceHref: https://x.com/sawyerhood/status/2085039905529597982
 ---
@@ -16,9 +16,9 @@ tweet:https://x.com/brian_lovin/status/2084345751266857079
 
 ## No Two Installs Look Alike
 
-Here is **bb** the first time you open it:
+Here is **kaioken** the first time you open it:
 
-![bb the first time you open it](/blog/first-open.jpg)
+![kaioken the first time you open it](/blog/first-open.jpg)
 *Threads on the left!*
 
 - **A task system.** Agents can read issues.
@@ -35,11 +35,11 @@ describe("parsePost", () => {
     expect(post.title).toBe("An Agentic IDE That Builds Itself");
     expect(post.dateIso).toBe("2026-08-05");
     expect(post.date).toBe("August 5, 2026");
-    expect(post.lede).toBe("I'm excited to show **bb**.");
+    expect(post.lede).toBe("I'm excited to show **kaioken**.");
     expect(post.sourceHref).toContain("x.com/sawyerhood");
     expect(post.cover).toEqual({
       src: "/blog/first-open.jpg",
-      alt: "bb the first time you open it",
+      alt: "kaioken the first time you open it",
     });
     expect(post.blocks).toEqual([
       { kind: "paragraph", text: "This started as a passion project." },
@@ -51,12 +51,12 @@ describe("parsePost", () => {
       { kind: "heading", text: "No Two Installs Look Alike" },
       {
         kind: "paragraph",
-        text: "Here is **bb** the first time you open it:",
+        text: "Here is **kaioken** the first time you open it:",
       },
       {
         kind: "image",
         src: "/blog/first-open.jpg",
-        alt: "bb the first time you open it",
+        alt: "kaioken the first time you open it",
         caption: "Threads on the left!",
       },
       {
@@ -112,8 +112,8 @@ lede: Hi
 
 describe("stripMarkdown", () => {
   it("drops markers so the lede can go in a meta tag", () => {
-    expect(stripMarkdown("I'm excited to show **bb**, an [IDE](/).")).toBe(
-      "I'm excited to show bb, an IDE.",
+    expect(stripMarkdown("I'm excited to show **kaioken**, an [IDE](/).")).toBe(
+      "I'm excited to show kaioken, an IDE.",
     );
   });
 });

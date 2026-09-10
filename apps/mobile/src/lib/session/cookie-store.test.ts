@@ -3,7 +3,7 @@ import { installSessionCookie, sessionCookieSpec } from "./cookie-store";
 
 const session = {
   cookie: {
-    name: "__Secure-bb-connect.desktop_session",
+    name: "__Secure-kaioken-connect.desktop_session",
     value: "abc.def",
     domain: ".getbb.app",
     expiresAt: Date.UTC(2026, 7, 18, 11),
@@ -13,7 +13,7 @@ const session = {
 describe("sessionCookieSpec", () => {
   it("marks the cookie Secure only for https servers", () => {
     expect(sessionCookieSpec(session, "https://bee.getbb.app")).toEqual({
-      name: "__Secure-bb-connect.desktop_session",
+      name: "__Secure-kaioken-connect.desktop_session",
       value: "abc.def",
       domain: ".getbb.app",
       path: "/",

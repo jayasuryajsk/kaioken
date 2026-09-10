@@ -7,13 +7,13 @@ import {
   pluginMarketplaceCollectionSchema,
   type PluginMarketplaceCategory,
   type PluginMarketplaceCollection,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   CURATED_PLUGIN_MARKETPLACE_NAME,
   pluginMarketplaceNameSchema,
   ROOT_PLUGIN_SOURCE_SELECTION,
   type PluginSourceSelection,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import semver from "semver";
 import { z } from "zod";
 import { formatIssues } from "../plugins/collection-manifest.js";

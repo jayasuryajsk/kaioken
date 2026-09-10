@@ -3,14 +3,14 @@
   "name": "calendar",
   "type": "registry:ui",
   "title": "calendar",
-  "description": "BB ui \"calendar\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"calendar\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "lucide-react",
     "react-day-picker"
   ],
   "registryDependencies": [
-    "@bb/button",
-    "@bb/utils"
+    "@kaioken/button",
+    "@kaioken/utils"
   ],
   "files": [
     {

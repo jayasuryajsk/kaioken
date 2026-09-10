@@ -7,7 +7,7 @@ import {
   defaultAppSettings,
   PERSONAL_PROJECT_ID,
   type ThreadListEntry,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   act,
   cleanup,
@@ -26,8 +26,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   NewThreadRequest,
   PluginEnvironmentProviderInputsProps,
-} from "@get-bb/plugin-sdk";
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
+} from "@get-kaioken/plugin-sdk";
+import type { SystemEnvironmentProvider } from "@kaioken/server-contract";
 import {
   NewThreadComposer,
   type NewThreadComposerState,
@@ -39,8 +39,8 @@ import {
 import { encodeReuseValue } from "@/components/pickers/environment-picker-value";
 import { useRootComposeReuseEnvironment } from "@/lib/root-compose-selection";
 import { getPromptDraftAccessor } from "@/hooks/usePromptDraftStorage";
-import { buildThreadHandoffLocationState } from "@bb/client-core";
-import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
+import { buildThreadHandoffLocationState } from "@kaioken/client-core";
+import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 import { makeProjectWithThreadsResponse } from "@/test/fixtures/projects";
 import { RootComposeView } from "@/views/RootComposeView";
 import { PluginNewThreadComposer } from "./PluginNewThreadComposer";
@@ -1107,7 +1107,7 @@ describe("PluginNewThreadComposer seeding", () => {
         {
           type: "localFile",
           name: "unrelated.txt",
-          path: ".bb/attachments/unrelated.txt",
+          path: ".kaioken/attachments/unrelated.txt",
           mimeType: "text/plain",
           sizeBytes: 5,
         },
@@ -1296,7 +1296,7 @@ describe("PluginNewThreadComposer seeding", () => {
     mocks.uploadAttachment.mockResolvedValue({
       type: "localFile",
       name: "notes.txt",
-      path: ".bb/attachments/notes.txt",
+      path: ".kaioken/attachments/notes.txt",
       mimeType: "text/plain",
       sizeBytes: 5,
     });
@@ -1321,7 +1321,7 @@ describe("PluginNewThreadComposer seeding", () => {
     expect(mocks.copyAttachments).toHaveBeenCalledWith({
       projectId: "proj_2",
       sourceProjectId: "proj_1",
-      paths: [".bb/attachments/notes.txt"],
+      paths: [".kaioken/attachments/notes.txt"],
     });
     expect(latestPromptBoxProps().project.value).toBe("proj_1");
     expect(latestPromptBoxProps().attachments.items).toHaveLength(1);

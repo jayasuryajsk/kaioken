@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import type { ThreadListEntry } from "@bb/domain";
-import type { ProjectResponse } from "@bb/server-contract";
+import type { ThreadListEntry } from "@kaioken/domain";
+import type { ProjectResponse } from "@kaioken/server-contract";
 import {
   BRANCH_NAMES,
   HOST_IDS,
@@ -18,7 +18,7 @@ import {
   type ProjectListRowModel,
 } from "./ProjectListProjects";
 import type { ProjectThreadListState } from "./ProjectRow";
-import { compareStandardThreads } from "@bb/client-core";
+import { compareStandardThreads } from "@kaioken/client-core";
 import { ThreadRow, type ThreadRowOptions } from "./ThreadRow";
 
 export default {
@@ -64,7 +64,7 @@ const HIDDEN_ROLLUP_COMBOS: readonly (readonly RollupSignal[])[] =
   });
 
 function makeProject(overrides: Partial<ProjectResponse> = {}) {
-  return makeSharedProject({ id: PROJECT_IDS.bb, name: "bb", ...overrides });
+  return makeSharedProject({ id: PROJECT_IDS.bb, name: "kaioken", ...overrides });
 }
 
 function makeThread(
@@ -285,7 +285,7 @@ function makeWorktreeComboThreads(combo: readonly RollupSignal[]) {
   const environmentFields = {
     environmentId,
     environmentHostId: HOST_IDS.local,
-    environmentBranchName: `bb/status-${key}`,
+    environmentBranchName: `kaioken/status-${key}`,
     environmentProviderId: "git-worktree",
     queuedWork: "none",
   } satisfies Partial<ThreadListEntry>;

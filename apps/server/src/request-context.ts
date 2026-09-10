@@ -4,10 +4,10 @@ import {
   APP_SURFACE_HEADER_NAME,
   parseRequestAppSurface,
   type RequestAppSurface,
-} from "@bb/config/app-surface";
+} from "@kaioken/config/app-surface";
 import type { Context } from "hono";
 
-export const TRUSTED_REMOTE_ADDRESS_CONTEXT_KEY = "bbTrustedRemoteAddress";
+export const TRUSTED_REMOTE_ADDRESS_CONTEXT_KEY = "kaiokenTrustedRemoteAddress";
 const GATE_AUTH_HEADER_NAME = "x-bb-gate-auth";
 const GATE_MACHINE_ID_HEADER_NAME = "x-bb-gate-machine-id";
 type GateAuthKind = "machine" | "session";

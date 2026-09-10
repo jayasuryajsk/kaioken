@@ -3,14 +3,14 @@
   "name": "checkbox",
   "type": "registry:ui",
   "title": "checkbox",
-  "description": "BB ui \"checkbox\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"checkbox\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-checkbox"
   ],
   "registryDependencies": [
-    "@bb/icon",
-    "@bb/motion",
-    "@bb/utils"
+    "@kaioken/icon",
+    "@kaioken/motion",
+    "@kaioken/utils"
   ],
   "files": [
     {

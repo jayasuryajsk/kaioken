@@ -7,9 +7,9 @@ import {
   migrate,
   upsertInstalledPlugin,
   type DbConnection,
-} from "@bb/db";
-import { PLUGIN_SDK_MAJOR, PLUGIN_SDK_VERSION } from "@bb/domain";
-import type { Logger } from "@bb/logger";
+} from "@kaioken/db";
+import { PLUGIN_SDK_MAJOR, PLUGIN_SDK_VERSION } from "@kaioken/domain";
+import type { Logger } from "@kaioken/logger";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import {
   createPluginService,
@@ -60,7 +60,7 @@ describe("prebuilt server bundle loading", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-prebuilt-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-prebuilt-"));
     service = createPluginService({
       aiServices: createAiServiceRegistry(),
       telemetry: createNoopTelemetryService(),
@@ -114,11 +114,11 @@ describe("prebuilt server bundle loading", () => {
   }
 
   it("prefers a fresh dist/server.js for git installs (source never evaluated)", async () => {
-    const rootDir = await writePrebuiltPlugin("bb-plugin-gitdist");
+    const rootDir = await writePrebuiltPlugin("kaioken-plugin-gitdist");
     upsertInstalledPlugin(db, {
-      ...gitPersistence("https://github.com/acme/bb-plugin-gitdist", "v1"),
+      ...gitPersistence("https://github.com/acme/kaioken-plugin-gitdist", "v1"),
       id: "gitdist",
-      source: "git:github.com/acme/bb-plugin-gitdist@v1",
+      source: "git:github.com/acme/kaioken-plugin-gitdist@v1",
       rootDir,
       version: "0.1.0",
       enabled: true,
@@ -138,21 +138,21 @@ describe("prebuilt server bundle loading", () => {
   });
 
   it("never prefers dist for path installs — edited source must win", async () => {
-    const rootDir = await writePrebuiltPlugin("bb-plugin-pathsrc");
+    const rootDir = await writePrebuiltPlugin("kaioken-plugin-pathsrc");
     const entry = await service.installPath(rootDir);
     expect(entry.status).toBe("error");
     expect(entry.statusDetail).toContain("source must not load");
   });
 
   it("pre-1.0: falls back to source when the dist SDK version differs within major 0", async () => {
-    const rootDir = await writePrebuiltPlugin("bb-plugin-minordist", {
+    const rootDir = await writePrebuiltPlugin("kaioken-plugin-minordist", {
       sdkMajor: PLUGIN_SDK_MAJOR,
       sdkVersion: `${PLUGIN_SDK_MAJOR}.999.0`,
     });
     upsertInstalledPlugin(db, {
-      ...gitPersistence("https://github.com/acme/bb-plugin-minordist", "v1"),
+      ...gitPersistence("https://github.com/acme/kaioken-plugin-minordist", "v1"),
       id: "minordist",
-      source: "git:github.com/acme/bb-plugin-minordist@v1",
+      source: "git:github.com/acme/kaioken-plugin-minordist@v1",
       rootDir,
       version: "0.1.0",
       enabled: true,
@@ -165,14 +165,14 @@ describe("prebuilt server bundle loading", () => {
   });
 
   it("falls back to source when the dist meta's SDK major mismatches", async () => {
-    const rootDir = await writePrebuiltPlugin("bb-plugin-staledist", {
+    const rootDir = await writePrebuiltPlugin("kaioken-plugin-staledist", {
       sdkMajor: 999,
       sdkVersion: "999.0.0",
     });
     upsertInstalledPlugin(db, {
-      ...gitPersistence("https://github.com/acme/bb-plugin-staledist", "v1"),
+      ...gitPersistence("https://github.com/acme/kaioken-plugin-staledist", "v1"),
       id: "staledist",
-      source: "git:github.com/acme/bb-plugin-staledist@v1",
+      source: "git:github.com/acme/kaioken-plugin-staledist@v1",
       rootDir,
       version: "0.1.0",
       enabled: true,

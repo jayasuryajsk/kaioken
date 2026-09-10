@@ -3,14 +3,14 @@
   "name": "navigation-menu",
   "type": "registry:ui",
   "title": "navigation-menu",
-  "description": "BB ui \"navigation-menu\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"navigation-menu\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-navigation-menu",
     "class-variance-authority",
     "lucide-react"
   ],
   "registryDependencies": [
-    "@bb/utils"
+    "@kaioken/utils"
   ],
   "files": [
     {

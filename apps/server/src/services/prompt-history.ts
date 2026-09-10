@@ -6,7 +6,7 @@ import {
   type DbQueryConnection,
   type QueuedThreadMessageRow,
   type StoredPromptHistoryEntryRow,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   promptInputSchema,
   takeVisiblePromptHistoryEntries,
@@ -15,7 +15,7 @@ import {
   type Thread,
   type ThreadTurnInitiator,
   type TurnRequestTarget,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { z } from "zod";
 import { toThreadQueuedMessage } from "./threads/thread-queued-messages.js";
 import type { AppDeps } from "../types.js";

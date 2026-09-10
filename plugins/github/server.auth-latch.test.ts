@@ -9,7 +9,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import { createFakePluginHost } from "@get-kaioken/plugin-sdk/testing";
 import plugin from "./server";
 
 let binDir: string;
@@ -30,7 +30,7 @@ function ghCalls(): string[] {
 }
 
 beforeEach(() => {
-  binDir = mkdtempSync(join(tmpdir(), "bb-1758-gh-"));
+  binDir = mkdtempSync(join(tmpdir(), "kaioken-1758-gh-"));
   offlineFlag = join(binDir, "gh-offline");
   noTokenFlag = join(binDir, "gh-no-token");
   badSecondaryFlag = join(binDir, "gh-bad-secondary");

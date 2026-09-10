@@ -10,7 +10,7 @@ import {
 import { MemoryRouter } from "react-router-dom";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { defaultAppSettings, type AppCommandId } from "@bb/domain";
+import { defaultAppSettings, type AppCommandId } from "@kaioken/domain";
 import {
   AppCommandProvider,
   useAppCommandContext,
@@ -210,7 +210,7 @@ vi.mock("@/hooks/queries/system-queries", () => ({
   }),
 }));
 
-vi.mock("@/lib/bb-desktop", () => ({
+vi.mock("@/lib/kaioken-desktop", () => ({
   getBbDesktopInfo: () => null,
 }));
 

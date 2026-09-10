@@ -1,5 +1,5 @@
-import type { Environment, Thread } from "@bb/domain";
-import type { CreateThreadRequest } from "@bb/server-contract";
+import type { Environment, Thread } from "@kaioken/domain";
+import type { CreateThreadRequest } from "@kaioken/server-contract";
 import {
   createHostThread,
   createProject,

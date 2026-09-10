@@ -1,4 +1,4 @@
-import type { ThreadStatus } from "@bb/domain";
+import type { ThreadStatus } from "@kaioken/domain";
 
 type PreStartThreadStatus = Extract<ThreadStatus, "starting">;
 

@@ -1,7 +1,7 @@
 import type {
   ProjectBranchesArgs,
   ProjectBranchesResult,
-} from "@bb/sdk/browser";
+} from "@kaioken/sdk/browser";
 import { request, requestOptions } from "./api";
 import { apiClient } from "./api-server";
 

@@ -1,4 +1,4 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { registerConnectCli } from "./cli.js";
 import { createKvCredentialStore } from "./credential.js";
 import {
@@ -16,13 +16,13 @@ import {
   REMOTE_ACTIVITY_INSTRUCTIONS_MS,
 } from "./types.js";
 
-export default async function plugin(bb: BbPluginApi) {
+export default async function plugin(bb: KaiokenPluginApi) {
   const settings = bb.settings.define({
     sendRemoteInstructions: {
       type: "boolean",
       label: "Tell agents about remote access",
       description:
-        "When you use BB remotely, tell agents to share servers through Connect. Applies to new agent sessions.",
+        "When you use Kaioken remotely, tell agents to share servers through Connect. Applies to new agent sessions.",
       default: true,
     },
   });
@@ -36,7 +36,7 @@ export default async function plugin(bb: BbPluginApi) {
   const getLoopbackBaseUrl = () =>
     resolveLocalCloudLoopbackUrl(
       tunnel.getCredential()?.serverUrl,
-      process.env.BB_DEV_APP_PORT,
+      process.env.KAIOKEN_DEV_APP_PORT,
     ) ?? bb.server.loopbackBaseUrl;
 
   const shares = new ShareRegistry({
@@ -82,8 +82,8 @@ export default async function plugin(bb: BbPluginApi) {
           REMOTE_ACTIVITY_INSTRUCTIONS_MS);
     if (!recent) return null;
     return (
-      `The user is currently viewing this bb remotely at ${status.url}. ` +
-      "Port shares work from a thread on any enrolled host: when you start an HTTP server they should see, run `bb connect expose <port>` from that thread. " +
+      `The user is currently viewing this kaioken remotely at ${status.url}. ` +
+      "Port shares work from a thread on any enrolled host: when you start an HTTP server they should see, run `kaioken connect expose <port>` from that thread. " +
       "The command returns the correct public URL for the thread's host; give it to them as a markdown link because a localhost URL will not work remotely."
     );
   });

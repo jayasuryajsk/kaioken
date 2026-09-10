@@ -17,11 +17,11 @@ export const Route = createFileRoute("/marketplace_/author/$github")({
   head: ({ loaderData, params }) => {
     const author = loaderData?.[0]?.author;
     const title = author
-      ? `${author.name} plugins — bb Plugin Marketplace`
-      : "Plugin author — bb Plugin Marketplace";
+      ? `${author.name} plugins — kaioken Plugin Marketplace`
+      : "Plugin author — kaioken Plugin Marketplace";
     const description = author
-      ? `Find bb plugins from ${author.name}.`
-      : "Find community plugins for bb.";
+      ? `Find kaioken plugins from ${author.name}.`
+      : "Find community plugins for kaioken.";
     const github = author?.github ?? params.github;
     const path = `/marketplace/author/${encodeURIComponent(github)}`;
     return {

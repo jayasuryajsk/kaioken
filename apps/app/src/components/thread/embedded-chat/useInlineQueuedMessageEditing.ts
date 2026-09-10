@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ThreadQueuedMessage } from "@bb/domain";
+import type { ThreadQueuedMessage } from "@kaioken/domain";
 import type { QueuedMessageEditRequest } from "@/components/promptbox/banner/QueuedMessagesList";
-import type { PromptDraftState } from "@bb/client-core";
-import { queuedInputToDraft } from "@bb/client-core";
+import type { PromptDraftState } from "@kaioken/client-core";
+import { queuedInputToDraft } from "@kaioken/client-core";
 import type { InlineComposerDraftSession } from "./useActiveComposerDraft";
 
 export interface InlineQueuedMessageEditState {

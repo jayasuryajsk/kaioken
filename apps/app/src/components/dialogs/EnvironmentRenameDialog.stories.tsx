@@ -15,14 +15,14 @@ const noop = () => {};
 const unnamedTarget: EnvironmentRenameDialogTarget = {
   id: "env_unnamed",
   currentName: "",
-  branchName: "bb/support-environment-renaming",
+  branchName: "kaioken/support-environment-renaming",
   canClearName: false,
 };
 
 const customNameTarget: EnvironmentRenameDialogTarget = {
   id: "env_named",
   currentName: "Review workspace",
-  branchName: "bb/support-environment-renaming",
+  branchName: "kaioken/support-environment-renaming",
   canClearName: true,
 };
 
@@ -39,7 +39,7 @@ export function BranchContext() {
             target={{
               id: "env_named",
               currentName: "Design system polish",
-              branchName: "bb/design-system-polish",
+              branchName: "kaioken/design-system-polish",
               canClearName: true,
             }}
             pending={false}

@@ -5,9 +5,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.setConfig({ testTimeout: 60_000 });
-import { buildPluginApp, resolvePluginBuildToolchain } from "@bb/plugin-build";
+import { buildPluginApp, resolvePluginBuildToolchain } from "@kaioken/plugin-build";
 function testToolchain() {
-  return resolvePluginBuildToolchain(join(tmpdir(), "bb-toolchain-unused"));
+  return resolvePluginBuildToolchain(join(tmpdir(), "kaioken-toolchain-unused"));
 }
 
 const GITHUB_DIR = fileURLToPath(
@@ -27,7 +27,7 @@ describe("GitHub official plugin frontend bundle", () => {
   let root: string;
 
   beforeEach(async () => {
-    root = await mkdtemp(join(tmpdir(), "bb-github-bundle-"));
+    root = await mkdtemp(join(tmpdir(), "kaioken-github-bundle-"));
   });
 
   afterEach(async () => {
@@ -44,7 +44,7 @@ describe("GitHub official plugin frontend bundle", () => {
         return name !== "dist" && name !== "node_modules";
       },
     });
-    const sharedUiLink = join(pluginDir, "node_modules", "@bb", "shared-ui");
+    const sharedUiLink = join(pluginDir, "node_modules", "@kaioken", "shared-ui");
     await mkdir(dirname(sharedUiLink), { recursive: true });
     await symlink(
       fileURLToPath(new URL("../../../../packages/shared-ui", import.meta.url)),

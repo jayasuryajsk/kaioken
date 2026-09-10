@@ -12,8 +12,8 @@ import {
 } from "@tanstack/react-query";
 import { createStore, Provider } from "jotai";
 import { useNavigate } from "react-router-dom";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
-import type { SidebarBootstrapResponse } from "@bb/server-contract";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
+import type { SidebarBootstrapResponse } from "@kaioken/server-contract";
 import {
   BRANCH_NAMES,
   HOST_IDS,
@@ -24,7 +24,7 @@ import {
 } from "../../../.ladle/story-fixtures";
 import { ProjectActionsProvider } from "@/components/project/ProjectActionsProvider";
 import { ThreadActionsProvider } from "@/components/thread/ThreadActionsProvider";
-import { Icon } from "@bb/shared-ui/icon";
+import { Icon } from "@kaioken/shared-ui/icon";
 import {
   ProjectList,
   ProjectListActionButtons,
@@ -78,9 +78,9 @@ interface SidebarFrameProps {
 const noop = () => {};
 const SIDEBAR_NAVIGATION_STORY_QUERY_KEY = sidebarNavigationQueryKey();
 
-const bbProject = makeProject({
+const kaiokenProject = makeProject({
   id: "proj_story_bb",
-  name: "bb",
+  name: "kaioken",
 });
 const docsProject = makeProject({
   id: "proj_story_docs",
@@ -128,11 +128,11 @@ const loadedSidebarNavigation = makeSidebarBootstrapResponse({
   }),
   projects: [
     makeProjectWithThreadsResponse({
-      ...bbProject,
+      ...kaiokenProject,
       threads: [
         makeThreadListEntry({
           id: "thr_story_pinned",
-          projectId: bbProject.id,
+          projectId: kaiokenProject.id,
           title: "Improve sidebar loading state",
           titleFallback: "Improve sidebar loading state",
           pinnedAt: 200,
@@ -143,7 +143,7 @@ const loadedSidebarNavigation = makeSidebarBootstrapResponse({
         }),
         makeThreadListEntry({
           id: "thr_story_pinned_child",
-          projectId: bbProject.id,
+          projectId: kaiokenProject.id,
           parentThreadId: "thr_story_pinned",
           title: "Verify Ladle coverage",
           titleFallback: "Verify Ladle coverage",
@@ -153,7 +153,7 @@ const loadedSidebarNavigation = makeSidebarBootstrapResponse({
         }),
         makeThreadListEntry({
           id: "thr_story_active",
-          projectId: bbProject.id,
+          projectId: kaiokenProject.id,
           title: "Ship realtime sidebar updates",
           titleFallback: "Ship realtime sidebar updates",
           status: "active",
@@ -167,7 +167,7 @@ const loadedSidebarNavigation = makeSidebarBootstrapResponse({
         }),
         makeThreadListEntry({
           id: "thr_story_ancestor",
-          projectId: bbProject.id,
+          projectId: kaiokenProject.id,
           title: "Rework the command palette",
           titleFallback: "Rework the command palette",
           latestAttentionAt: 176,
@@ -176,7 +176,7 @@ const loadedSidebarNavigation = makeSidebarBootstrapResponse({
         }),
         makeThreadListEntry({
           id: "thr_story_ancestor_child",
-          projectId: bbProject.id,
+          projectId: kaiokenProject.id,
           parentThreadId: "thr_story_ancestor",
           title: "Wire async command loading",
           titleFallback: "Wire async command loading",
@@ -186,7 +186,7 @@ const loadedSidebarNavigation = makeSidebarBootstrapResponse({
         }),
         makeThreadListEntry({
           id: "thr_story_worktree_a",
-          projectId: bbProject.id,
+          projectId: kaiokenProject.id,
           environmentId: "env_story_sidebar",
           environmentName: "Sidebar polish",
           environmentBranchName: BRANCH_NAMES.feature,
@@ -200,7 +200,7 @@ const loadedSidebarNavigation = makeSidebarBootstrapResponse({
         }),
         makeThreadListEntry({
           id: "thr_story_worktree_b",
-          projectId: bbProject.id,
+          projectId: kaiokenProject.id,
           environmentId: "env_story_sidebar",
           environmentName: "Sidebar polish",
           environmentBranchName: BRANCH_NAMES.feature,

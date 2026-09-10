@@ -7,7 +7,7 @@ export default {
 };
 
 const projects: readonly ProjectSelectorOption[] = [
-  { id: "proj_bb", name: "bb" },
+  { id: "proj_bb", name: "kaioken" },
   { id: "proj_pierre", name: "pierre" },
 ];
 

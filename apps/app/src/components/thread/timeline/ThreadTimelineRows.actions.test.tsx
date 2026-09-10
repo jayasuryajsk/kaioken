@@ -12,9 +12,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useState, type ComponentProps, type ReactElement } from "react";
 import { MemoryRouter, useNavigate } from "react-router-dom";
-import { COMPACT_VIEWPORT_QUERY } from "@bb/shared-ui/hooks/use-compact-viewport";
-import { POINTER_COARSE_QUERY } from "@bb/shared-ui/hooks/use-pointer-coarse";
-import type { PluginMessageActionRegistration } from "@get-bb/plugin-sdk";
+import { COMPACT_VIEWPORT_QUERY } from "@kaioken/shared-ui/hooks/use-compact-viewport";
+import { POINTER_COARSE_QUERY } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
+import type { PluginMessageActionRegistration } from "@get-kaioken/plugin-sdk";
 import {
   conversationRow,
   delegationRow,
@@ -992,7 +992,7 @@ describe("ThreadTimelineRows actions", () => {
     expect(
       container
         .querySelector('[data-timeline-row-id="side_chat_message"]')
-        ?.classList.contains("bb-search-flash"),
+        ?.classList.contains("kaioken-search-flash"),
     ).toBe(false);
   });
 
@@ -1053,9 +1053,9 @@ describe("ThreadTimelineRows actions", () => {
     });
 
     await waitFor(() =>
-      expect(nestedRow.classList.contains("bb-search-flash")).toBe(true),
+      expect(nestedRow.classList.contains("kaioken-search-flash")).toBe(true),
     );
-    expect(parentRow?.classList.contains("bb-search-flash")).toBe(false);
+    expect(parentRow?.classList.contains("kaioken-search-flash")).toBe(false);
   });
 
   it("cancels the follow-up search reveals when the rows unmount", () => {
@@ -1142,7 +1142,7 @@ describe("ThreadTimelineRows actions", () => {
     });
 
     await waitFor(() =>
-      expect(olderRow.classList.contains("bb-search-flash")).toBe(true),
+      expect(olderRow.classList.contains("kaioken-search-flash")).toBe(true),
     );
   });
 
@@ -1500,7 +1500,7 @@ describe("ThreadTimelineRows actions", () => {
     });
 
     await waitFor(() =>
-      expect(nestedRow.classList.contains("bb-search-flash")).toBe(true),
+      expect(nestedRow.classList.contains("kaioken-search-flash")).toBe(true),
     );
   });
 });

@@ -11,10 +11,10 @@ describe("workspaceInitials", () => {
     expect(workspaceInitials("Studio")).toBe("ST");
     expect(workspaceInitials("x")).toBe("X");
   });
-  it("falls back to bb for empty or punctuation-only labels", () => {
-    expect(workspaceInitials(null)).toBe("bb");
-    expect(workspaceInitials("   ")).toBe("bb");
-    expect(workspaceInitials("--")).toBe("bb");
+  it("falls back to kaioken for empty or punctuation-only labels", () => {
+    expect(workspaceInitials(null)).toBe("kaioken");
+    expect(workspaceInitials("   ")).toBe("kaioken");
+    expect(workspaceInitials("--")).toBe("kaioken");
   });
   it("skips punctuation inside words", () => {
     expect(workspaceInitials("'quoted' (host)")).toBe("QH");

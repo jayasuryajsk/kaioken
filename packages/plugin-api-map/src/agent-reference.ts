@@ -69,8 +69,8 @@ export function createPluginSurfaceAgentReference(
   };
   const context = [
     `Plugin Guide surface: ${surface.title} (${surface.id}).`,
-    `Relevant @get-bb/plugin-sdk symbols: ${surface.apiSymbols.join(", ")}.`,
-    "Use the bb-plugin-authoring skill and the authoritative @get-bb/plugin-sdk declarations to build a similar plugin capability.",
+    `Relevant @get-kaioken/plugin-sdk symbols: ${surface.apiSymbols.join(", ")}.`,
+    "Use the kaioken-plugin-authoring skill and the authoritative @get-kaioken/plugin-sdk declarations to build a similar plugin capability.",
   ].join("\n");
   return { identity, resource, clipboard, context };
 }

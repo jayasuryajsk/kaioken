@@ -3,8 +3,8 @@ import { useIsSidebarShowing } from "@/components/ui/sidebar.js";
 import {
   COARSE_POINTER_HEADER_ICON_BUTTON_CLASS,
   COARSE_POINTER_HEADER_REDUCED_GLYPH_ICON_BUTTON_CLASS,
-} from "@bb/shared-ui/coarse-pointer-sizing";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
+} from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import {
   BROWSER_COLLAPSED_HEADER_RESERVE_CLASS,
   CHROME_ROW_CLASS,
@@ -16,9 +16,9 @@ import {
   MACOS_WINDOW_NO_DRAG_CLASS,
   shouldReserveMacosTrafficLights,
   shouldUseMacosDesktopChrome,
-} from "@/lib/bb-desktop";
+} from "@/lib/kaioken-desktop";
 import { useDesktopWindowState } from "@/hooks/useDesktopWindowState";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 export const HEADER_ICON_BUTTON_CLASS = COARSE_POINTER_HEADER_ICON_BUTTON_CLASS;
 

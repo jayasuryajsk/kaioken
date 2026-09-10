@@ -1,33 +1,33 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import type { Host, PermissionMode } from "@bb/domain";
-import { RETRY_ACTION_ICON } from "@bb/domain/update-state";
-import type { HostPlatform } from "@bb/host-daemon-contract";
-import { Button } from "@bb/shared-ui/button";
+import type { Host, PermissionMode } from "@kaioken/domain";
+import { RETRY_ACTION_ICON } from "@kaioken/domain/update-state";
+import type { HostPlatform } from "@kaioken/host-daemon-contract";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
+} from "@kaioken/shared-ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   ResourceRowDetailChevron,
   targetsResourceAction,
-} from "@bb/shared-ui/resource-list";
+} from "@kaioken/shared-ui/resource-list";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
+} from "@kaioken/shared-ui/tooltip";
 import { AddMachineDialog } from "@/components/dialogs/AddMachineDialog";
 import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
 import { appToast } from "@/components/ui/app-toast";
@@ -67,7 +67,7 @@ const PERMISSION_MODE_PRESENTATION: Record<
 const MACHINES_SECTION_DESCRIPTION =
   "Computers that can run your tasks. Pair a machine to run projects and threads on it.";
 
-const PRIMARY_REMOVE_DISABLED_REASON = "bb's primary machine can't be removed.";
+const PRIMARY_REMOVE_DISABLED_REASON = "kaioken's primary machine can't be removed.";
 
 const MACHINE_MENU_ITEM_CLASS = "min-h-9 px-2.5 py-2";
 

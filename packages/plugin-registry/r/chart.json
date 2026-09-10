@@ -3,12 +3,12 @@
   "name": "chart",
   "type": "registry:ui",
   "title": "chart",
-  "description": "BB ui \"chart\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"chart\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "recharts"
   ],
   "registryDependencies": [
-    "@bb/utils"
+    "@kaioken/utils"
   ],
   "files": [
     {

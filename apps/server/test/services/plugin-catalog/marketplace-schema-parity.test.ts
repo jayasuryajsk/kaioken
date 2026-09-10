@@ -68,7 +68,7 @@ function manifestWith(entry: Record<string, unknown>): Record<string, unknown> {
         description: "An Acme plugin.",
         icon: "ZoomIn",
         author: { name: "Acme" },
-        source: { npm: { package: "bb-plugin-acme" } },
+        source: { npm: { package: "kaioken-plugin-acme" } },
         ...entry,
       },
     ],
@@ -84,7 +84,7 @@ function rangeFixture(label: string, range: string, valid: boolean): Fixture {
     label,
     valid,
     manifest: manifestWith({
-      source: { npm: { package: "bb-plugin-acme", range } },
+      source: { npm: { package: "kaioken-plugin-acme", range } },
     }),
   };
 }
@@ -144,7 +144,7 @@ const fixtures: readonly Fixture[] = [
     valid: false,
     manifest: manifestWith({
       source: {
-        npm: { package: "bb-plugin-acme", range: "^1.0.0", tag: "beta" },
+        npm: { package: "kaioken-plugin-acme", range: "^1.0.0", tag: "beta" },
       },
     }),
   },
@@ -291,14 +291,14 @@ const v2Fixtures: readonly Fixture[] = [
     label: "partial prerelease range",
     valid: true,
     manifest: manifestV2With({
-      source: { npm: { package: "bb-plugin-acme", range: "1.x-alpha" } },
+      source: { npm: { package: "kaioken-plugin-acme", range: "1.x-alpha" } },
     }),
   },
   {
     label: "partial range with build metadata",
     valid: true,
     manifest: manifestV2With({
-      source: { npm: { package: "bb-plugin-acme", range: "1.2+build" } },
+      source: { npm: { package: "kaioken-plugin-acme", range: "1.2+build" } },
     }),
   },
   {
@@ -306,7 +306,7 @@ const v2Fixtures: readonly Fixture[] = [
     valid: true,
     manifest: manifestV2With({
       source: {
-        npm: { package: "bb-plugin-acme", range: ">=1.2.3-alpha" },
+        npm: { package: "kaioken-plugin-acme", range: ">=1.2.3-alpha" },
       },
     }),
   },
@@ -314,7 +314,7 @@ const v2Fixtures: readonly Fixture[] = [
     label: "double equals partial range",
     valid: true,
     manifest: manifestV2With({
-      source: { npm: { package: "bb-plugin-acme", range: "==1.2" } },
+      source: { npm: { package: "kaioken-plugin-acme", range: "==1.2" } },
     }),
   },
   {
@@ -323,7 +323,7 @@ const v2Fixtures: readonly Fixture[] = [
     manifest: manifestV2With({
       source: {
         npm: {
-          package: "bb-plugin-acme",
+          package: "kaioken-plugin-acme",
           range: ">=1.0.0 ".repeat(33).trim(),
         },
       },
@@ -336,7 +336,7 @@ const v2Fixtures: readonly Fixture[] = [
       author: { name: "Acme", url: "HTTPS://example.com/acme" },
       source: {
         npm: {
-          package: "bb-plugin-acme",
+          package: "kaioken-plugin-acme",
           registry: "HTTPS://registry.example.com/",
         },
       },
@@ -354,7 +354,7 @@ const v2Fixtures: readonly Fixture[] = [
     valid: true,
     manifest: manifestV2With({
       source: {
-        npm: { package: "bb-plugin-acme", registry: "https://" },
+        npm: { package: "kaioken-plugin-acme", registry: "https://" },
       },
     }),
   },
@@ -456,7 +456,7 @@ describe("published marketplace schema parity", () => {
     const manifests = [
       manifestV2With({
         source: {
-          npm: { package: "bb-plugin-acme", regsitry: "https://npm.test/" },
+          npm: { package: "kaioken-plugin-acme", regsitry: "https://npm.test/" },
         },
       }),
       manifestV2With({
@@ -506,7 +506,7 @@ describe("published marketplace schema parity", () => {
           description: "An Acme plugin.",
           icon: "ZoomIn",
           author: { name: "Acme" },
-          source: { npm: { package: `bb-plugin-acme-${index}` } },
+          source: { npm: { package: `kaioken-plugin-acme-${index}` } },
         })),
       };
 

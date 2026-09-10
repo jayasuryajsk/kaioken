@@ -1,4 +1,4 @@
-import { findEnvironmentLaunchPathClaim, getEnvironmentLaunch } from "@bb/db";
+import { findEnvironmentLaunchPathClaim, getEnvironmentLaunch } from "@kaioken/db";
 import type { WorkSessionDeps } from "../../types.js";
 import { ApiError } from "../../errors.js";
 

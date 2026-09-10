@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { permissionModeSchema } from "@bb/domain";
+import { permissionModeSchema } from "@kaioken/domain";
 import {
   pathsExistRequestSchema,
   providerCliInstallEventSchema,
@@ -10,7 +10,7 @@ import {
   type ProviderCliInstallEvent,
   type ProviderCliInstallRequest,
   type ProviderCliStatusResponse,
-} from "@bb/host-daemon-contract/local";
+} from "@kaioken/host-daemon-contract/local";
 
 export const hostDirectoryQuerySchema = z.object({
   path: z.string().min(1).optional(),

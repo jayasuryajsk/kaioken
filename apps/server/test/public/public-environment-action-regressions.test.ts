@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getEnvironment } from "@bb/db";
-import type { GitHostPullRequest } from "@bb/domain";
+import { getEnvironment } from "@kaioken/db";
+import type { GitHostPullRequest } from "@kaioken/domain";
 import { readJson } from "../helpers/json.js";
 import {
   reportQueuedCommandSuccess,
@@ -20,10 +20,10 @@ function rawPullRequest(
     number: 42,
     title: "Add pull request actions",
     state: "OPEN",
-    url: "https://github.com/acme/bb/pull/42",
+    url: "https://github.com/acme/kaioken/pull/42",
     isDraft: false,
     baseRefName: "main",
-    headRefName: "bb/pr-actions",
+    headRefName: "kaioken/pr-actions",
     updatedAt: "2026-06-16T12:30:00Z",
     checks: [],
     reviewDecision: null,
@@ -99,7 +99,7 @@ describe("public environment action regressions", () => {
       const environment = seedEnvironment(harness.deps, {
         hostId: host.id,
         projectId: project.id,
-        branchName: "bb/stale",
+        branchName: "kaioken/stale",
         defaultBranch: "main",
         path: "/tmp/commit-observed-branch-env",
       });

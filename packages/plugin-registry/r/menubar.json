@@ -3,14 +3,14 @@
   "name": "menubar",
   "type": "registry:ui",
   "title": "menubar",
-  "description": "BB ui \"menubar\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"menubar\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-menubar",
     "lucide-react"
   ],
   "registryDependencies": [
-    "@bb/portal-scope",
-    "@bb/utils"
+    "@kaioken/portal-scope",
+    "@kaioken/utils"
   ],
   "files": [
     {

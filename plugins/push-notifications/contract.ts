@@ -1,4 +1,4 @@
-import { defineRpcContract } from "@get-bb/plugin-sdk";
+import { defineRpcContract } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 
 export const DEFAULT_EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";

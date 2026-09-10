@@ -1,4 +1,4 @@
-import { defineRpcContract } from "@get-bb/plugin-sdk";
+import { defineRpcContract } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import {
   TASK_SORTS,
@@ -688,7 +688,7 @@ export const tasksRpcContract = defineRpcContract({
     input: z.null(),
     output: z
       .object({
-        bbProjects: z.array(
+        kaiokenProjects: z.array(
           z
             .object({ id: z.string().startsWith("proj_"), name: z.string() })
             .strict(),
@@ -736,9 +736,9 @@ export type TaskPullRequest = z.infer<typeof taskPullRequestSchema>;
 export type Preset = z.infer<typeof presetSchema>;
 export type TasksDomainError = z.infer<typeof tasksDomainErrorSchema>;
 export type TaskMutationResult = z.infer<typeof taskMutationResultSchema>;
-export type BbProjectOption = z.infer<
+export type KaiokenProjectOption = z.infer<
   (typeof tasksRpcContract)["listBbProjects"]["output"]
->["bbProjects"][number];
+>["kaiokenProjects"][number];
 export type SidebarProjectSummary = z.infer<
   (typeof tasksRpcContract)["sidebarSummary"]["output"]
 >["projects"][number];

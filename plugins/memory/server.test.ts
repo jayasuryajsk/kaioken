@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createFakePluginHost,
   type FakePluginHost,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import memoryPlugin from "./server";
 
 async function loadPlugin(): Promise<FakePluginHost> {
@@ -56,7 +56,7 @@ async function addMemory(
   };
 }
 
-describe("bb-plugin-memory", () => {
+describe("kaioken-plugin-memory", () => {
   it("registers a CLI and instruction catalog without native agent tools", async () => {
     const host = await loadPlugin();
     expect(host.harness.registrations.cli?.name).toBe("memory");
@@ -122,7 +122,7 @@ describe("bb-plugin-memory", () => {
     });
     expect(instructions?.length).toBeLessThanOrEqual(3_900);
     expect(instructions).toContain("Showing");
-    expect(instructions).toContain("bb memory catalog --scope all --json");
+    expect(instructions).toContain("kaioken memory catalog --scope all --json");
     expect(instructions).not.toContain("Private details");
   }, 20_000);
 
@@ -200,7 +200,7 @@ describe("bb-plugin-memory", () => {
       "reason",
     ]);
     expect(missingProject.exitCode).toBe(1);
-    expect(missingProject.stderr).toContain("requires a BB project context");
+    expect(missingProject.stderr).toContain("requires a Kaioken project context");
   });
 
   it("uses optimistic versions for updates and forgetting", async () => {

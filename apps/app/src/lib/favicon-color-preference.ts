@@ -7,12 +7,12 @@ import {
   type AppThemeSelection,
   type FaviconColor,
   type FaviconColorPreference,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   DARK_COLOR_SCHEME_QUERY,
   getMediaQuerySnapshot,
   subscribeMediaQuery,
-} from "@bb/shared-ui/hooks/use-media-query";
+} from "@kaioken/shared-ui/hooks/use-media-query";
 import { invalidateSystemConfig } from "@/hooks/cache-owners/system-cache-effects";
 import { useSystemConfig } from "@/hooks/queries/system-queries";
 import { sdk } from "@/lib/sdk";

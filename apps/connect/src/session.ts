@@ -9,7 +9,7 @@ import {
   profile,
   server,
   session,
-} from "@bb/connect-db";
+} from "@kaioken/connect-db";
 
 const LABEL_TTL_MS = 15_000;
 const SESSION_TTL_MS = 20_000;

@@ -1,22 +1,22 @@
 import type {
-  BbPluginApi,
+  KaiokenPluginApi,
   MessageDispatchHookContext,
   PluginDispatchAttemptKind,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import {
   createFakePluginHost,
   makeHostResponse,
   makeMessageDispatchHookContext,
   makeThreadResponse,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it, vi } from "vitest";
 import plugin from "./server.js";
 
 type RunningThread = Awaited<
-  ReturnType<BbPluginApi["sdk"]["threads"]["listRunning"]>
+  ReturnType<KaiokenPluginApi["sdk"]["threads"]["listRunning"]>
 >[number];
 type HostResponse = ReturnType<typeof makeHostResponse>;
-type SdkSubscription = Parameters<BbPluginApi["sdk"]["subscribe"]>[0];
+type SdkSubscription = Parameters<KaiokenPluginApi["sdk"]["subscribe"]>[0];
 type HostChangedSubscription = Extract<
   SdkSubscription,
   { event: "host:changed" }
@@ -73,11 +73,11 @@ interface SetupOptions {
   hosts?: HostResponse[] | (() => HostResponse[]);
   running?: RunningThread[];
   detectedParallelism?: number;
-  subscribe?: BbPluginApi["sdk"]["subscribe"];
+  subscribe?: KaiokenPluginApi["sdk"]["subscribe"];
 }
 
 async function setup(options: SetupOptions = {}) {
-  const subscribe: BbPluginApi["sdk"]["subscribe"] = () => () => {};
+  const subscribe: KaiokenPluginApi["sdk"]["subscribe"] = () => () => {};
   const fake = createFakePluginHost({
     pluginId: PLUGIN_ID,
     sdk: {
@@ -108,7 +108,7 @@ async function setup(options: SetupOptions = {}) {
 
 function hostChanges(): {
   emitHostConnected(hostId: string): void;
-  subscribe: BbPluginApi["sdk"]["subscribe"];
+  subscribe: KaiokenPluginApi["sdk"]["subscribe"];
 } {
   let callback: HostChangedSubscription["callback"] | null = null;
   return {

@@ -9,7 +9,7 @@ import {
   type AppTheme,
   type DeclaredCodeTheme,
   type FaviconColorPreference,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { readCustomThemeCodeTheme } from "./code-themes.js";
 
 const THEME_DIR_NAME = "theme";

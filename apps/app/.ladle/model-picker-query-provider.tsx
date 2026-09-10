@@ -5,8 +5,8 @@ import type {
   ProviderComposerAction,
   ProviderInfo,
   ReasoningLevel,
-} from "@bb/domain";
-import type { SystemExecutionOptionsResponse } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { SystemExecutionOptionsResponse } from "@kaioken/server-contract";
 import { systemExecutionOptionsQueryKey } from "../src/hooks/queries/query-keys";
 import type { PickerOption } from "../src/components/pickers/OptionPicker";
 import type { ModelPickerOption } from "../src/components/pickers/model-picker-option";

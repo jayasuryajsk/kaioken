@@ -10,9 +10,9 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import type { ComposerView, PluginComposerScope } from "@get-bb/plugin-sdk";
-import { isComposerDraftEmpty } from "@get-bb/plugin-sdk/internal/composer-view";
-import type { PromptDraftState } from "@bb/client-core";
+import type { ComposerView, PluginComposerScope } from "@get-kaioken/plugin-sdk";
+import { isComposerDraftEmpty } from "@get-kaioken/plugin-sdk/internal/composer-view";
+import type { PromptDraftState } from "@kaioken/client-core";
 
 export interface PluginComposerHost {
   scope: PluginComposerScope;

@@ -1,5 +1,5 @@
-import { loadCliConfig, type CliConfig } from "@bb/config/cli";
-import { toOptionalString } from "@bb/config/strings";
+import { loadCliConfig, type CliConfig } from "@kaioken/config/cli";
+import { toOptionalString } from "@kaioken/config/strings";
 
 const VALID_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
 
@@ -34,18 +34,18 @@ function validateId(value: string, source: string): string {
 }
 
 export function resolveServerUrl(context: CliRuntimeContext): string {
-  return context.cliConfig.BB_SERVER_URL;
+  return context.cliConfig.KAIOKEN_SERVER_URL;
 }
 
 export function resolveContextProjectId(): string | undefined {
-  const fromEnv = toOptionalString(process.env.BB_PROJECT_ID);
-  if (fromEnv) return validateId(fromEnv, "BB_PROJECT_ID");
+  const fromEnv = toOptionalString(process.env.KAIOKEN_PROJECT_ID);
+  if (fromEnv) return validateId(fromEnv, "KAIOKEN_PROJECT_ID");
   return undefined;
 }
 
 export function resolveContextThreadId(): string | undefined {
-  const fromEnv = toOptionalString(process.env.BB_THREAD_ID);
-  if (fromEnv) return validateId(fromEnv, "BB_THREAD_ID");
+  const fromEnv = toOptionalString(process.env.KAIOKEN_THREAD_ID);
+  if (fromEnv) return validateId(fromEnv, "KAIOKEN_THREAD_ID");
   return undefined;
 }
 
@@ -85,7 +85,7 @@ export function requireThreadIdOrSelf(
   if (opts.self) {
     const envThreadId = resolveContextThreadId();
     if (!envThreadId) {
-      throw new Error("--self requires BB_THREAD_ID to be set.");
+      throw new Error("--self requires KAIOKEN_THREAD_ID to be set.");
     }
     return envThreadId;
   }
@@ -107,6 +107,6 @@ export function resolveContextSnapshot(
   return {
     projectId: resolveContextProjectId(),
     threadId: resolveContextThreadId(),
-    serverUrl: context.cliConfig.BB_SERVER_URL,
+    serverUrl: context.cliConfig.KAIOKEN_SERVER_URL,
   };
 }

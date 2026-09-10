@@ -9,13 +9,13 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import type { IconName } from "@bb/shared-ui/icon";
+import type { IconName } from "@kaioken/shared-ui/icon";
 import type { PromptMentionLinkResolver } from "@/components/promptbox/editor/prompt-mention-link";
 import {
   getFollowUpPromptPlaceholder,
   getCompactFollowUpPromptPlaceholder,
 } from "@/components/promptbox/follow-up-placeholder";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import type {
   PendingInteraction,
   PromptInput,
@@ -26,12 +26,12 @@ import type {
   ThreadTimelineModelFallback,
   ThreadTimelinePendingTodos,
   ThreadWithRuntime,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   PullRequestMergeMethod,
   ThreadTimelineResponse,
   TimelineWorkflowWorkRow,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type { ChildThreadPendingAttention } from "@/hooks/queries/child-thread-pending-interactions";
 import { ThreadPendingInteractionBanner } from "@/components/thread/pending-interactions/ThreadPendingInteractionBanner";
 import {
@@ -99,13 +99,13 @@ import { promptHistoryEntriesToDrafts } from "@/lib/prompt-history";
 import { usePromptHistoryEnabled } from "@/hooks/usePromptHistoryEnabled";
 import { getProjectComposeRoutePath } from "@/lib/route-paths";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
-import { buildThreadHandoffLocationState } from "@bb/client-core";
+import { buildThreadHandoffLocationState } from "@kaioken/client-core";
 import {
   emptyPromptDraftState,
   promptDraftToInput,
   type PromptDraftAttachment,
   type PromptDraftState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   FollowUpPromptBox,
   type FollowUpComposerProps,
@@ -122,7 +122,7 @@ import {
   resolveDefaultExecutionOptionsState,
   shouldQueueFollowUpMessage,
   type FollowUpExecutionSelection,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 const ignorePromptBannerFileClick = () => {};
 

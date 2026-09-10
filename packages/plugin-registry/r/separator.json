@@ -3,12 +3,12 @@
   "name": "separator",
   "type": "registry:ui",
   "title": "separator",
-  "description": "BB ui \"separator\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"separator\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-separator"
   ],
   "registryDependencies": [
-    "@bb/utils"
+    "@kaioken/utils"
   ],
   "files": [
     {

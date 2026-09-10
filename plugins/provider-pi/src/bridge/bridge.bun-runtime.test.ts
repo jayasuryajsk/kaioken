@@ -14,7 +14,7 @@ let nextId = 2000;
 
 beforeEach(async () => {
   harness = await startFakePiBridge({
-    prefix: "bb-pi-bun-",
+    prefix: "kaioken-pi-bun-",
     initialize: true,
   });
 });
@@ -54,7 +54,7 @@ it.skipIf(bunBinary() === null)(
       dynamicTools: [
         {
           name: "bb_probe",
-          description: "A bb tool.",
+          description: "A kaioken tool.",
           inputSchema: {
             type: "object",
             properties: { value: { type: "string" } },

@@ -1,5 +1,5 @@
 import { getEventListeners } from "node:events";
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import { createFakePluginHost } from "@get-kaioken/plugin-sdk/testing";
 import { expect, it } from "vitest";
 import { migrations } from "./data.js";
 import { createWorkflowService } from "./service.js";

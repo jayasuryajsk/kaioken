@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
-import { PLUGIN_CATALOG_CATEGORIES as BUILTIN_DISCOVERY_CATEGORIES } from "@bb/domain";
+import { PLUGIN_CATALOG_CATEGORIES as BUILTIN_DISCOVERY_CATEGORIES } from "@kaioken/domain";
 import {
   deletePluginMarketplace,
   getInstalledPlugin,
@@ -17,7 +17,7 @@ import {
   upsertPluginMarketplace,
   type DbConnection,
   type PluginMarketplaceRow,
-} from "@bb/db";
+} from "@kaioken/db";
 import type {
   InstalledPlugin,
   PluginCatalogAuthor,
@@ -29,7 +29,7 @@ import type {
   PluginCatalogStatus,
   PluginMarketplace,
   PluginMarketplaceRefreshResult,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   builtinPluginSource,
   listBundledPluginRegistrations,
@@ -373,11 +373,11 @@ export function createPluginCatalogService(deps: {
   }
 
   function compatibilityProblem(ranges: {
-    bbRange: string | undefined;
+    kaiokenRange: string | undefined;
     sdkRange: string | undefined;
   }): string | null {
     const compatibility = evaluateCompatibility({
-      bbRange: ranges.bbRange,
+      kaiokenRange: ranges.kaiokenRange,
       sdkRange: ranges.sdkRange,
       appVersion: deps.appVersion,
     });
@@ -476,7 +476,7 @@ export function createPluginCatalogService(deps: {
       manifest === null
         ? null
         : compatibilityProblem({
-            bbRange: manifest.bbEngineRange,
+            kaiokenRange: manifest.kaiokenEngineRange,
             sdkRange: manifest.bbPluginSdkRange,
           });
     const category = marketplaceEntryCategory(catalog, entry);
@@ -1072,7 +1072,7 @@ export function createPluginCatalogService(deps: {
           const name = materialized.catalog.name;
           if (isReservedMarketplace(name)) {
             throw new Error(
-              `marketplace name "${name}" is reserved for a marketplace that ships with bb`,
+              `marketplace name "${name}" is reserved for a marketplace that ships with kaioken`,
             );
           }
           if (getPluginMarketplace(deps.db, name) !== undefined) {
@@ -1244,7 +1244,7 @@ export function createPluginCatalogService(deps: {
           );
         }
         const problem = compatibilityProblem({
-          bbRange: manifest.bbEngineRange,
+          kaiokenRange: manifest.kaiokenEngineRange,
           sdkRange: manifest.bbPluginSdkRange,
         });
         return {
@@ -1296,7 +1296,7 @@ export function createPluginCatalogService(deps: {
             );
           }
           const problem = compatibilityProblem({
-            bbRange: manifest.bbEngineRange,
+            kaiokenRange: manifest.kaiokenEngineRange,
             sdkRange: manifest.bbPluginSdkRange,
           });
           if (problem !== null) throw new Error(`install refused: ${problem}`);

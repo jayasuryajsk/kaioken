@@ -1,4 +1,4 @@
-import type { Thread } from "@bb/domain";
+import type { Thread } from "@kaioken/domain";
 import {
   ConfirmDeleteDialog,
   ConfirmDeleteDialogContent,

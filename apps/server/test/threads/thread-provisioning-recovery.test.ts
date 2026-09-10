@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
-import { environments, getEnvironment, getThread, listEvents } from "@bb/db";
+import { environments, getEnvironment, getThread, listEvents } from "@kaioken/db";
 import {
   encodeClientTurnRequestIdNumber,
   threadScope,
   type ResolvedThreadExecutionOptions,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import { runThreadLifecycleSweep } from "../../src/services/system/periodic-sweeps.js";
 import {
@@ -313,7 +313,7 @@ describe("thread provisioning recovery", () => {
         path: "/tmp/ready-retry-after-lost-provision",
         status: "ready",
         environmentProviderId: "personal-workspace",
-        environmentProviderPluginId: "bb-plugin-environment-personal-workspace",
+        environmentProviderPluginId: "kaioken-plugin-environment-personal-workspace",
         isGitRepo: false,
       });
       const thread = seedThread(harness.deps, {
@@ -394,7 +394,7 @@ describe("thread provisioning recovery", () => {
         path: "/tmp/error-retry-before-late-ready",
         status: "error",
         environmentProviderId: "personal-workspace",
-        environmentProviderPluginId: "bb-plugin-environment-personal-workspace",
+        environmentProviderPluginId: "kaioken-plugin-environment-personal-workspace",
         isGitRepo: false,
       });
       harness.db
@@ -404,7 +404,7 @@ describe("thread provisioning recovery", () => {
         .run();
       installFakeEnvironmentProvider({
         id: "personal-workspace",
-        pluginId: "bb-plugin-environment-personal-workspace",
+        pluginId: "kaioken-plugin-environment-personal-workspace",
         displayName: "Personal workspace",
         requires: {
           projectCheckout: false,

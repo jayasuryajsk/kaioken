@@ -6,7 +6,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
-import { getBbDesktopInfo, isDesktopBrowserAvailable } from "@/lib/bb-desktop";
+import { getBbDesktopInfo, isDesktopBrowserAvailable } from "@/lib/kaioken-desktop";
 import { shellOpenExternal } from "@/lib/native-shell";
 import {
   openUrlByPreference,

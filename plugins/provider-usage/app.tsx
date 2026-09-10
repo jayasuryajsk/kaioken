@@ -13,23 +13,23 @@ import {
   experimental_useSidebarThreads,
   type ExperimentalSidebarFooterDisclosureProps,
   useBbContext,
-} from "@get-bb/plugin-sdk/app";
-import { ICON_NAMES, Icon, type IconName } from "@bb/shared-ui/icon";
-import { Button } from "@bb/shared-ui/button";
+} from "@get-kaioken/plugin-sdk/app";
+import { ICON_NAMES, Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { LIST_HOVER_TRANSITION } from "@bb/shared-ui/motion";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { LIST_HOVER_TRANSITION } from "@kaioken/shared-ui/motion";
 import {
   OPTION_BASE_CLASS_NAME,
   OPTION_INTERACTIVE_CLASS_NAME,
   OPTION_MENU_CONTENT_CLASS_NAME,
   OPTION_TRIGGER_CONTENT_CLASS_NAME,
-} from "@bb/shared-ui/option-display";
+} from "@kaioken/shared-ui/option-display";
 import {
   providerUsageTone,
   usageRpcSuccessSchema,

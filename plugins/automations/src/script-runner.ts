@@ -19,8 +19,8 @@ const SCRIPT_OUTPUT_MAX_BYTES = 1024 * 1024;
 
 let resolvedBbPath: string | null = null;
 
-const BB_NOT_INJECTED_WARNING =
-  "[bb] warning: could not locate the bb CLI, so `bb` is not on PATH for this script.";
+const KAIOKEN_NOT_INJECTED_WARNING =
+  "[kaioken] warning: could not locate the kaioken CLI, so `kaioken` is not on PATH for this script.";
 
 async function commandWorks(command: string, args: string[]): Promise<boolean> {
   try {
@@ -31,28 +31,28 @@ async function commandWorks(command: string, args: string[]): Promise<boolean> {
   }
 }
 
-export function bbBinaryCandidates(env: NodeJS.ProcessEnv): string[] {
+export function kaiokenBinaryCandidates(env: NodeJS.ProcessEnv): string[] {
   const candidates: string[] = [];
   const pushIfAbsolute = (candidate: string): void => {
     if (isAbsolute(candidate)) {
       candidates.push(candidate);
     }
   };
-  const fromCli = env.BB_CLI?.trim();
+  const fromCli = env.KAIOKEN_CLI?.trim();
   if (fromCli !== undefined && fromCli.length > 0) {
     pushIfAbsolute(fromCli);
   }
-  const fromCliDir = env.BB_CLI_DIR?.trim();
+  const fromCliDir = env.KAIOKEN_CLI_DIR?.trim();
   if (fromCliDir !== undefined && fromCliDir.length > 0) {
-    pushIfAbsolute(join(fromCliDir, "bb"));
+    pushIfAbsolute(join(fromCliDir, "kaioken"));
   }
   for (const entry of (env.PATH ?? "").split(delimiter)) {
     const trimmed = entry.trim();
     if (trimmed.length > 0) {
-      pushIfAbsolute(join(trimmed, "bb"));
+      pushIfAbsolute(join(trimmed, "kaioken"));
     }
   }
-  candidates.push("/opt/homebrew/bin/bb", "/usr/local/bin/bb");
+  candidates.push("/opt/homebrew/bin/kaioken", "/usr/local/bin/kaioken");
   return candidates;
 }
 
@@ -71,7 +71,7 @@ async function resolveBbBinary(
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<string | null> {
   if (resolvedBbPath !== null) return resolvedBbPath;
-  for (const candidate of bbBinaryCandidates(env)) {
+  for (const candidate of kaiokenBinaryCandidates(env)) {
     if (!(await isExecutableFile(candidate))) continue;
     if (await commandWorks(candidate, ["--version"])) {
       resolvedBbPath = candidate;
@@ -82,15 +82,15 @@ async function resolveBbBinary(
 }
 
 export function scriptPathEnv(
-  bbPath: string | null,
+  kaiokenPath: string | null,
   inheritedPath: string | undefined,
 ): string {
   const basePath = inheritedPath ?? "";
-  if (bbPath === null || !isAbsolute(bbPath)) {
+  if (kaiokenPath === null || !isAbsolute(kaiokenPath)) {
     return basePath;
   }
-  const bbDir = dirname(bbPath);
-  return basePath.length > 0 ? `${bbDir}${delimiter}${basePath}` : bbDir;
+  const kaiokenDir = dirname(kaiokenPath);
+  return basePath.length > 0 ? `${kaiokenDir}${delimiter}${basePath}` : kaiokenDir;
 }
 
 export function isWakeAgentSuppressed(output: string): boolean {
@@ -281,19 +281,19 @@ export async function executeStoredScript(args: {
   const interpreter =
     args.interpreter ?? resolveDefaultInterpreter(args.scriptFile);
   const command = resolveInterpreterCommand(interpreter);
-  const bbPath = await resolveBbBinary();
-  const warning = bbPath === null ? `${BB_NOT_INJECTED_WARNING}\n` : "";
+  const kaiokenPath = await resolveBbBinary();
+  const warning = kaiokenPath === null ? `${KAIOKEN_NOT_INJECTED_WARNING}\n` : "";
   const scriptEnv: NodeJS.ProcessEnv = {
     ...process.env,
     ...(args.env ?? {}),
-    PATH: scriptPathEnv(bbPath, process.env.PATH),
-    BB_SERVER_URL: args.serverUrl,
-    BB_PROJECT_ID: args.projectId,
-    BB_AUTOMATION_ID: args.automationId,
-    BB_AUTOMATION_RUN_ID: args.runId,
+    PATH: scriptPathEnv(kaiokenPath, process.env.PATH),
+    KAIOKEN_SERVER_URL: args.serverUrl,
+    KAIOKEN_PROJECT_ID: args.projectId,
+    KAIOKEN_AUTOMATION_ID: args.automationId,
+    KAIOKEN_AUTOMATION_RUN_ID: args.runId,
   };
-  if (bbPath !== null) {
-    scriptEnv.BB_CLI = bbPath;
+  if (kaiokenPath !== null) {
+    scriptEnv.KAIOKEN_CLI = kaiokenPath;
   }
   const cwd = scriptsRoot(args.pluginDataDir);
   await mkdir(cwd, { recursive: true });

@@ -48,7 +48,7 @@ function jsonResponse(value: object, status = 200): Response {
   });
 }
 
-describe("bb plugin update commands", () => {
+describe("kaioken plugin update commands", () => {
   setupCommandOutputTestEnvironment();
 
   const register: CommandRegistrar = (program) =>
@@ -76,7 +76,7 @@ describe("bb plugin update commands", () => {
             outcome: "incompatible",
             devMode: true,
             installed: version("1.0.0"),
-            blocked: { version: "2.0.0", reasons: ["requires bb >= 9"] },
+            blocked: { version: "2.0.0", reasons: ["requires kaioken >= 9"] },
           },
           {
             id: "e",
@@ -93,7 +93,7 @@ describe("bb plugin update commands", () => {
     const output = collectLogPayloads(vi.mocked(console.log)).join("\n");
     expect(output).toContain("update available");
     expect(output).toContain("pinned");
-    expect(output).toContain("2.0.0: requires bb >= 9");
+    expect(output).toContain("2.0.0: requires kaioken >= 9");
     expect(output).toContain(
       "incompatible [dev build: engines.bb not enforced]",
     );
@@ -214,10 +214,10 @@ describe("bb plugin update commands", () => {
 
     const output = collectLogPayloads(vi.mocked(console.log)).join("\n");
     expect(output).toContain(
-      'command: bb plugin run shadower — Shadow threads (core command "bb thread" takes precedence)',
+      'command: kaioken plugin run shadower — Shadow threads (core command "kaioken thread" takes precedence)',
     );
-    expect(output).toContain("command: bb notes — Take notes");
-    expect(output).not.toContain('core command "bb notes"');
+    expect(output).toContain("command: kaioken notes — Take notes");
+    expect(output).not.toContain('core command "kaioken notes"');
   });
 
   it("skips pinned plugins with manual reinstall guidance", async () => {
@@ -253,7 +253,7 @@ describe("bb plugin update commands", () => {
               id: "bad",
               outcome: "incompatible",
               installed: version("1"),
-              blocked: { version: "2", reasons: ["requires newer bb"] },
+              blocked: { version: "2", reasons: ["requires newer kaioken"] },
             },
             {
               id: "good",
@@ -278,7 +278,7 @@ describe("bb plugin update commands", () => {
 
     const output = collectLogPayloads(vi.mocked(console.log)).join("\n");
     expect(output).toContain("pin: skipped — pinned");
-    expect(output).toContain("bad: skipped — incompatible: requires newer bb");
+    expect(output).toContain("bad: skipped — incompatible: requires newer kaioken");
     expect(output).toContain("good: updated and activated 1 → 2");
     expect(JSON.parse(String(fetchMock.mock.calls[2]?.[1]?.body))).toEqual({});
   });

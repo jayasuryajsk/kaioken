@@ -5,7 +5,7 @@ import type {
   TerminalListResponse,
   TerminalSession,
   UpdateTerminalRequest,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { sdk } from "@/lib/sdk";
 import {
   applyTerminalSessionClose,

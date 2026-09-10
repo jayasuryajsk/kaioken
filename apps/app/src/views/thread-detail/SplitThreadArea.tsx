@@ -1,5 +1,5 @@
-import { cn } from "@bb/shared-ui/lib/utils";
-import { PANE_FOCUS_APP_COMMAND_IDS } from "@bb/domain";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { PANE_FOCUS_APP_COMMAND_IDS } from "@kaioken/domain";
 import { useAtom, useAtomValue, useStore } from "jotai";
 import {
   Fragment,
@@ -23,7 +23,7 @@ import {
   type ThreadRoutePathArgs,
 } from "@/lib/route-paths";
 import { useIsMutating } from "@tanstack/react-query";
-import { BbHttpError } from "@/lib/sdk";
+import { KaiokenHttpError } from "@/lib/sdk";
 import { useThread } from "@/hooks/queries/thread-queries";
 import { useSplitWorkspaceActive } from "@/hooks/useSplitWorkspaceActive";
 import {
@@ -81,9 +81,9 @@ import {
 import { AppBreadcrumbs } from "@/components/layout/AppBreadcrumbs";
 import { resourceRouteLabelAtom } from "@/components/layout/resourceRouteLabelAtom";
 import { resolveAutomationBreadcrumbs } from "@/components/tools/tools-navigation";
-import { Button } from "@bb/shared-ui/button";
-import { Icon } from "@bb/shared-ui/icon";
-import { CHROME_SUBTLE_ICON_BUTTON_FOREGROUND_CLASS } from "@bb/shared-ui/chrome-style-tokens";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { CHROME_SUBTLE_ICON_BUTTON_FOREGROUND_CLASS } from "@kaioken/shared-ui/chrome-style-tokens";
 import { usePluginNavPanelChrome } from "@/lib/plugin-nav-panel-chrome";
 import {
   PluginPanelHeaderActions,
@@ -103,7 +103,7 @@ import {
   getBbDesktopInfo,
   MACOS_WINDOW_NO_DRAG_CLASS,
   shouldUseMacosDesktopChrome,
-} from "@/lib/bb-desktop";
+} from "@/lib/kaioken-desktop";
 import { SplitWorkspaceSecondaryPanelHost } from "./SplitWorkspaceSecondaryPanelHost";
 import { SecondaryPanelHostLayoutContext } from "@/components/secondary-panel/SecondaryPanelHostLayoutContext";
 import {
@@ -1453,7 +1453,7 @@ function PaneStaleWatcher({ threadId, onStale }: PaneStaleWatcherProps) {
       mutation.options.meta?.lifecycleOperation === "archive_thread",
   });
   const isGone =
-    isError && error instanceof BbHttpError && error.status === 404;
+    isError && error instanceof KaiokenHttpError && error.status === 404;
   const isDeleted =
     isSuccess && thread !== undefined && thread.deletedAt !== null;
   const isConfirmedArchived =

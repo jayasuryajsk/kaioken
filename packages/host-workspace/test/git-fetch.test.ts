@@ -12,7 +12,7 @@ function quote(value: string): string {
 }
 
 async function initRepo(): Promise<string> {
-  const repo = await fs.mkdtemp(path.join(os.tmpdir(), "bb-git-fetch-"));
+  const repo = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-git-fetch-"));
   tempDirs.push(repo);
   await runGit(["init", "-b", "main"], { cwd: repo });
   await runGit(

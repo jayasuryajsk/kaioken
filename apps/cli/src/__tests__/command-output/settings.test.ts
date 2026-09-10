@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { defaultAppSettings, defaultExperiments } from "@bb/domain";
+import { defaultAppSettings, defaultExperiments } from "@kaioken/domain";
 import {
   runCommand,
   setupCommandOutputTestEnvironment,
@@ -8,7 +8,7 @@ import {
 import type { CommandRegistrar } from "../helpers/command-output-harness.js";
 import { registerSettingsCommands } from "../../commands/settings.js";
 
-describe("bb settings commands", () => {
+describe("kaioken settings commands", () => {
   setupCommandOutputTestEnvironment();
 
   const register: CommandRegistrar = (program) =>

@@ -43,7 +43,7 @@ import {
   type InitializeResult,
   type ThreadDelta,
   type ThreadEventContextWindowUsage,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import type { ImageContent } from "@earendil-works/pi-ai";
 import { createPiDeltaTranslator } from "../delta-translation.js";
 import {
@@ -51,7 +51,7 @@ import {
   buildPiTurnOptions,
   type PiSessionParams,
 } from "../session-params.js";
-import { BB_PI_EXTENSION_SOURCE } from "./bb-pi-extension.js";
+import { KAIOKEN_PI_EXTENSION_SOURCE } from "./kaioken-pi-extension.js";
 import {
   createExtensionUiCoordinator,
   type ExtensionUiCoordinator,
@@ -229,7 +229,7 @@ function requireScratchDir(): string {
   if (scratchDir === null) {
     scratchDir = join(
       tmpdir(),
-      `bb-pi-bridge-${process.pid}-${Math.random().toString(16).slice(2)}`,
+      `kaioken-pi-bridge-${process.pid}-${Math.random().toString(16).slice(2)}`,
     );
     scratchDirIsPrivate = true;
     mkdirSync(scratchDir, { recursive: true });
@@ -239,8 +239,8 @@ function requireScratchDir(): string {
 
 function requireExtensionPath(): string {
   if (extensionPath === null) {
-    const path = join(requireScratchDir(), "bb-pi-extension.mjs");
-    writeFileSync(path, BB_PI_EXTENSION_SOURCE, "utf8");
+    const path = join(requireScratchDir(), "kaioken-pi-extension.mjs");
+    writeFileSync(path, KAIOKEN_PI_EXTENSION_SOURCE, "utf8");
     extensionPath = path;
   }
   return extensionPath;
@@ -562,7 +562,7 @@ async function handleRequest(
         request.params.providerThreadId,
       );
       const requestedCwd = request.params.cwd;
-      // The persisted cwd is stale when bb already moved the thread to a
+      // The persisted cwd is stale when kaioken already moved the thread to a
       // new environment directory and the old one was removed; resume at
       // the requested, existing cwd instead of failing the whole turn.
       if (missingCwd !== null && !existsSync(requestedCwd ?? "")) {
@@ -1035,7 +1035,7 @@ async function reconcileTurnOptions(
   const construction = threadSession.construction;
   const shellEnvOverrides =
     options.envVars && Object.keys(options.envVars).length > 0
-      ? { BB_THREAD_ID: threadId, ...buildShellEnvOverrides(options.envVars) }
+      ? { KAIOKEN_THREAD_ID: threadId, ...buildShellEnvOverrides(options.envVars) }
       : undefined;
   const environmentChanged =
     shellEnvOverrides !== undefined &&

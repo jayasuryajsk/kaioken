@@ -1,4 +1,4 @@
--- bb connect — machines (execution hosts reached through the tunnel).
+-- kaioken connect — machines (execution hosts reached through the tunnel).
 -- See src/schema.ts `machine`.
 
 CREATE TABLE machine (

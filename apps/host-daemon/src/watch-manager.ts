@@ -1,21 +1,21 @@
-import type { DiscoveredWorkspaceProperties } from "@bb/domain";
+import type { DiscoveredWorkspaceProperties } from "@kaioken/domain";
 import {
   provisionWorkspace,
   type HostWorkspace,
   type ProvisionWorkspaceArgs,
-} from "@bb/host-workspace";
+} from "@kaioken/host-workspace";
 import type {
   HostDaemonEnvironmentChange,
   HostDaemonWatchSet,
   HostDaemonWatchSetThreadStorageTarget,
   HostDaemonWatchSetWorkspaceTarget,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import type {
   HostWatcher,
   ThreadStorageWatchError,
   WorkspaceStatusWatchChangeKind,
   WorkspaceWatchError,
-} from "@bb/host-watcher";
+} from "@kaioken/host-watcher";
 import { reconnectProvisionArgsFromWorkspaceContext } from "./workspace-provision-target.js";
 import { userExecutableProcessOptions } from "./user-executable-env.js";
 

@@ -3,7 +3,7 @@
 import type { ComponentProps, ReactNode } from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CompactViewportOverrideProvider } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { CompactViewportOverrideProvider } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import {
   PaneContext,
   type PaneContextValue,
@@ -37,7 +37,7 @@ interface RenderRootComposeArgs {
 }
 
 type TestDesktopWindow = {
-  bbDesktop?: { platform: "macos" };
+  kaiokenDesktop?: { platform: "macos" };
 };
 
 const panelGroupState = vi.hoisted(() => ({
@@ -48,11 +48,11 @@ const panelGroupState = vi.hoisted(() => ({
 const noop = () => {};
 
 function setMacosDesktopChrome(): void {
-  (window as unknown as TestDesktopWindow).bbDesktop = { platform: "macos" };
+  (window as unknown as TestDesktopWindow).kaiokenDesktop = { platform: "macos" };
 }
 
 function clearDesktopChrome(): void {
-  delete (window as unknown as TestDesktopWindow).bbDesktop;
+  delete (window as unknown as TestDesktopWindow).kaiokenDesktop;
 }
 
 vi.mock("jotai", async (importOriginal) => ({
@@ -88,10 +88,10 @@ vi.mock("react-resizable-panels", async () => {
   return { Panel, PanelGroup };
 });
 
-vi.mock("@bb/shared-ui/responsive-overlay", async (importOriginal) => {
+vi.mock("@kaioken/shared-ui/responsive-overlay", async (importOriginal) => {
   const React = await import("react");
   const actual =
-    await importOriginal<typeof import("@bb/shared-ui/responsive-overlay")>();
+    await importOriginal<typeof import("@kaioken/shared-ui/responsive-overlay")>();
 
   const PersistentResponsiveDrawerShell = ({
     children,

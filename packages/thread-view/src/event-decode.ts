@@ -1,5 +1,5 @@
-import { buildThreadEvent, getThreadEventScopeTurnId } from "@bb/domain";
-import type { ThreadEvent, ThreadEventRow } from "@bb/domain";
+import { buildThreadEvent, getThreadEventScopeTurnId } from "@kaioken/domain";
+import type { ThreadEvent, ThreadEventRow } from "@kaioken/domain";
 import { assertNever } from "./assert-never.js";
 
 export function getEventTurnId(decoded: ThreadEvent): string | undefined {

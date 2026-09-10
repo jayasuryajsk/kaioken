@@ -1,4 +1,4 @@
-import { PLUGIN_SDK_VERSION } from "@bb/domain";
+import { PLUGIN_SDK_VERSION } from "@kaioken/domain";
 import {
   getInstalledPlugin,
   getPluginArtifact,
@@ -13,7 +13,7 @@ import {
   type PluginProvenance,
   type PluginSourceIntent,
   type PluginStateSnapshotRow,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   createPluginStateSnapshotOnDisk,
   readPluginSnapshotRegistration,
@@ -112,7 +112,7 @@ export function createPluginActivation(context: PluginActivationContext) {
     return {
       candidateVersion: snapshot.rollbackCandidateVersion,
       sourceFingerprint: snapshot.rollbackSourceFingerprint,
-      bbVersion: snapshot.rollbackBbVersion,
+      kaiokenVersion: snapshot.rollbackBbVersion,
       sdkVersion: snapshot.rollbackSdkVersion,
       detail: snapshot.rollbackDetail,
     };
@@ -312,7 +312,7 @@ export function createPluginActivation(context: PluginActivationContext) {
           !setPluginStateSnapshotRollbackPending(deps.db, snapshot.id, {
             candidateVersion,
             sourceFingerprint: sourceFingerprint(args.row),
-            bbVersion: deps.appVersion,
+            kaiokenVersion: deps.appVersion,
             sdkVersion: PLUGIN_SDK_VERSION,
             detail,
             updatedAt: now(),

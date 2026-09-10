@@ -1,9 +1,9 @@
-import { getThread } from "@bb/db";
-import type { ThreadEvent, ThreadEventWithItem } from "@bb/domain";
-import { isThreadEventWithItem, parseNamespacedGlyph } from "@bb/domain";
-import type { HostDaemonEventEnvelope } from "@bb/host-daemon-contract";
+import { getThread } from "@kaioken/db";
+import type { ThreadEvent, ThreadEventWithItem } from "@kaioken/domain";
+import { isThreadEventWithItem, parseNamespacedGlyph } from "@kaioken/domain";
+import type { HostDaemonEventEnvelope } from "@kaioken/host-daemon-contract";
 import { findPluginAgentTool } from "../services/plugins/plugin-agent-contributions.js";
-import { undeclaredIconProblem } from "@get-bb/plugin-sdk/internal/host-policy";
+import { undeclaredIconProblem } from "@get-kaioken/plugin-sdk/internal/host-policy";
 import type { AppDeps } from "../types.js";
 
 export type PresentationIconValidationDeps = Pick<
@@ -11,7 +11,7 @@ export type PresentationIconValidationDeps = Pick<
   "db" | "logger" | "providerRegistry"
 >;
 
-const BB_TOOL_SERVER = "bb";
+const KAIOKEN_TOOL_SERVER = "kaioken";
 
 interface PresentationIconSite {
   glyph: string;
@@ -38,7 +38,7 @@ function presentationIconSiteOf(
 
 function isRegisteredBbToolIcon(site: PresentationIconSite): boolean {
   const { item } = site.event;
-  if (item.type !== "toolCall" || item.server !== BB_TOOL_SERVER) {
+  if (item.type !== "toolCall" || item.server !== KAIOKEN_TOOL_SERVER) {
     return false;
   }
   const tool = findPluginAgentTool(item.tool);

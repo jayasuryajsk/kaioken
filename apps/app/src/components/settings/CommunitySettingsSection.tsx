@@ -1,6 +1,6 @@
-import { Button } from "@bb/shared-ui/button";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   SettingsSection,
   SettingsWithControl,
@@ -54,7 +54,7 @@ export function CommunitySettingsSection() {
   return (
     <SettingsSection
       title="Community"
-      description="Chat with other bb users and follow development on GitHub."
+      description="Chat with other kaioken users and follow development on GitHub."
     >
       <div className="space-y-5">
         <CommunityLinkRow
@@ -67,7 +67,7 @@ export function CommunitySettingsSection() {
         />
         <CommunityLinkRow
           label="GitHub"
-          description="Source code, issues, and releases for the bb project."
+          description="Source code, issues, and releases for the kaioken project."
           href={GITHUB_REPO_URL}
           icon="GithubLogo"
           openLabel="View on GitHub"

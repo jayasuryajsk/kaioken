@@ -2,18 +2,18 @@ import * as React from "react";
 import { flushSync } from "react-dom";
 import { Slot } from "@radix-ui/react-slot";
 
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { Button } from "@bb/shared-ui/button";
-import { COARSE_POINTER_HEADER_ICON_BUTTON_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { Skeleton } from "@bb/shared-ui/skeleton";
-import { Icon } from "@bb/shared-ui/icon";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Button } from "@kaioken/shared-ui/button";
+import { COARSE_POINTER_HEADER_ICON_BUTTON_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { Skeleton } from "@kaioken/shared-ui/skeleton";
+import { Icon } from "@kaioken/shared-ui/icon";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
+} from "@kaioken/shared-ui/tooltip";
 import { setCompactSidebarDrawerShowing } from "./sidebar-mobile-drawer-visibility.js";
 import {
   getCompactSecondaryPanelPresentation,
@@ -774,7 +774,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
         <div
           data-sidebar="panel"
           className={cn(
-            "fixed inset-y-0 z-10 flex h-(--bb-shell-height) w-(--sidebar-width) select-none flex-col bg-sidebar text-sidebar-foreground [transition:left_200ms_linear,right_200ms_linear,width_200ms_linear,visibility_0s_linear_0s]",
+            "fixed inset-y-0 z-10 flex h-(--kaioken-shell-height) w-(--sidebar-width) select-none flex-col bg-sidebar text-sidebar-foreground [transition:left_200ms_linear,right_200ms_linear,width_200ms_linear,visibility_0s_linear_0s]",
             "group-data-[collapsible=offcanvas]:invisible group-data-[collapsible=offcanvas]:[transition:left_200ms_linear,right_200ms_linear,width_200ms_linear,visibility_0s_linear_200ms]",
             "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]",
             "group-data-[collapsible=icon]:w-(--sidebar-width-icon) border-border-seam group-data-[side=left]:border-r group-data-[side=right]:border-l",
@@ -1007,7 +1007,7 @@ const SidebarMobilePanel = React.forwardRef<
           data-side="left"
           data-vaul-drawer-direction="left"
           className={cn(
-            "group fixed inset-y-0 left-0 z-0 flex h-(--bb-shell-height) w-(--sidebar-width-mobile) touch-pan-y select-none flex-col bg-sidebar text-sidebar-foreground outline-none",
+            "group fixed inset-y-0 left-0 z-0 flex h-(--kaioken-shell-height) w-(--sidebar-width-mobile) touch-pan-y select-none flex-col bg-sidebar text-sidebar-foreground outline-none",
             "border-border-seam data-[side=left]:border-r data-[side=right]:border-l",
             className,
           )}
@@ -1674,7 +1674,7 @@ interface SidebarStickyTierProps extends React.ComponentProps<"div"> {
 }
 
 type SidebarStickyParentLevelStyle = React.CSSProperties & {
-  "--bb-sidebar-sticky-parent-level": number;
+  "--kaioken-sidebar-sticky-parent-level": number;
 };
 
 const SidebarStickyStack = React.forwardRef<
@@ -1701,7 +1701,7 @@ const SidebarStickyTier = React.forwardRef<
     tier === "parent" && level !== undefined
       ? ({
           ...style,
-          "--bb-sidebar-sticky-parent-level": level,
+          "--kaioken-sidebar-sticky-parent-level": level,
         } satisfies SidebarStickyParentLevelStyle)
       : style;
   return (

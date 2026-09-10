@@ -1,14 +1,14 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { AgentRuntime } from "@bb/agent-runtime";
-import type { HostDaemonDaemonWsMessage } from "@bb/host-daemon-contract";
-import type { HostWorkspace } from "@bb/host-workspace";
+import type { AgentRuntime } from "@kaioken/agent-runtime";
+import type { HostDaemonDaemonWsMessage } from "@kaioken/host-daemon-contract";
+import type { HostWorkspace } from "@kaioken/host-workspace";
 import {
   createDeferredPromise,
   makeWorkspaceMergeBase,
   makeWorkspaceStatus,
-} from "@bb/test-helpers";
+} from "@kaioken/test-helpers";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { HostDaemonLogger } from "../logger.js";
 import { RuntimeManager } from "../runtime-manager.js";
@@ -306,7 +306,7 @@ function createHarnessWithOptions(
     createRuntime: () => runtime,
     provisionWorkspace: async () => workspace,
     shellEnv: {
-      BB_BASE_ENV: "1",
+      KAIOKEN_BASE_ENV: "1",
     },
   });
   const manager = new TerminalManager({
@@ -403,8 +403,8 @@ describe("TerminalManager", () => {
       rows: 30,
     });
     expect(harness.adapter.spawned[0]?.args.env).toMatchObject({
-      BB_BASE_ENV: "1",
-      BB_TERMINAL_SESSION_ID: "term-1",
+      KAIOKEN_BASE_ENV: "1",
+      KAIOKEN_TERMINAL_SESSION_ID: "term-1",
       COLORTERM: "truecolor",
       DISABLE_AUTO_TITLE: "true",
       FORCE_HYPERLINK: "1",
@@ -461,7 +461,7 @@ describe("TerminalManager", () => {
   });
 
   it("opens a PTY in a host path without an environment", async () => {
-    const cwd = await makeTempDir("bb-terminal-host-path-");
+    const cwd = await makeTempDir("kaioken-terminal-host-path-");
     const harness = createHarness();
 
     await harness.manager.handleMessage({
@@ -887,9 +887,9 @@ describe("TerminalManager", () => {
     ]);
   });
 
-  it("scrubs inherited bb runtime env vars before spawning a terminal", async () => {
-    vi.stubEnv("BB_DATA_DIR", "/tmp/leaked-bb-data");
-    vi.stubEnv("BB_HOST_DAEMON_PORT", "38887");
+  it("scrubs inherited kaioken runtime env vars before spawning a terminal", async () => {
+    vi.stubEnv("KAIOKEN_DATA_DIR", "/tmp/leaked-kaioken-data");
+    vi.stubEnv("KAIOKEN_HOST_DAEMON_PORT", "38887");
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("OPENAI_API_KEY", "external-secret");
 
@@ -898,18 +898,18 @@ describe("TerminalManager", () => {
 
     const env = harness.adapter.spawned[0]?.args.env;
     expect(env).toMatchObject({
-      BB_BASE_ENV: "1",
-      BB_TERMINAL_SESSION_ID: "term-1",
+      KAIOKEN_BASE_ENV: "1",
+      KAIOKEN_TERMINAL_SESSION_ID: "term-1",
       OPENAI_API_KEY: "external-secret",
     });
-    expect(env?.BB_DATA_DIR).toBeUndefined();
-    expect(env?.BB_HOST_DAEMON_PORT).toBeUndefined();
+    expect(env?.KAIOKEN_DATA_DIR).toBeUndefined();
+    expect(env?.KAIOKEN_HOST_DAEMON_PORT).toBeUndefined();
     expect(env?.NODE_ENV).toBeUndefined();
   });
 
   it("makes every available node-pty spawn-helper executable", async () => {
     const logger = createFakeLogger();
-    const packageDirectory = await makeTempDir("bb-node-pty-package-");
+    const packageDirectory = await makeTempDir("kaioken-node-pty-package-");
     const buildNativePath = path.join(
       packageDirectory,
       "build",
@@ -961,7 +961,7 @@ describe("TerminalManager", () => {
 
   it("makes an available prebuild-only node-pty spawn-helper executable", async () => {
     const logger = createFakeLogger();
-    const packageDirectory = await makeTempDir("bb-node-pty-package-");
+    const packageDirectory = await makeTempDir("kaioken-node-pty-package-");
     const prebuildHelperPath = path.join(
       packageDirectory,
       "prebuilds",
@@ -995,7 +995,7 @@ describe("TerminalManager", () => {
 
   it("logs and skips when no node-pty spawn-helper is present", async () => {
     const logger = createFakeLogger();
-    const packageDirectory = await makeTempDir("bb-node-pty-package-");
+    const packageDirectory = await makeTempDir("kaioken-node-pty-package-");
     const buildHelperPath = path.join(
       packageDirectory,
       "build",
@@ -1438,8 +1438,8 @@ describe("TerminalManager", () => {
       return;
     }
 
-    const workspacePath = await makeTempDir("bb-terminal-manager-real-");
-    const targetPath = await makeTempDir("bb-terminal-manager-target-");
+    const workspacePath = await makeTempDir("kaioken-terminal-manager-real-");
+    const targetPath = await makeTempDir("kaioken-terminal-manager-target-");
     const expectedWorkspacePath = await fs.realpath(workspacePath);
     const expectedTargetPath = await fs.realpath(targetPath);
     const messages: HostDaemonDaemonWsMessage[] = [];

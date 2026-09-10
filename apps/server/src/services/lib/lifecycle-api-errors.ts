@@ -1,4 +1,4 @@
-import type { Environment, Host, Thread, ThreadStatus } from "@bb/domain";
+import type { Environment, Host, Thread, ThreadStatus } from "@kaioken/domain";
 import type {
   EnvironmentNotReadyErrorDetails,
   HostUnavailableErrorDetails,
@@ -9,7 +9,7 @@ import type {
   ThreadEnvironmentUnavailableErrorDetails,
   ThreadNotWritableErrorDetails,
   ThreadNotWritableReason,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { ApiError } from "../../errors.js";
 
 type EnvironmentReadinessFields = Pick<Environment, "path" | "status">;

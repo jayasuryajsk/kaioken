@@ -7,7 +7,7 @@ import {
   setInstalledPluginUpdateState,
   type InstalledPluginRow,
   type PluginGitSelector,
-} from "@bb/db";
+} from "@kaioken/db";
 import { gitSelectorForRow } from "./git-source-intent.js";
 import {
   gitArtifactCacheDir,
@@ -228,7 +228,7 @@ export function createPluginUpdates(
           detail:
             `security check failed: ${url} now publishes "${ref}" as a branch, but this install ` +
             `${evidence === "tag" ? "recorded it as a tag" : "has no local record of its ref kind"}. ` +
-            `bb keeps the plugin pinned to ${row.gitResolvedCommit ?? "its recorded commit"} rather than ` +
+            `kaioken keeps the plugin pinned to ${row.gitResolvedCommit ?? "its recorded commit"} rather than ` +
             "tracking that branch. Remove the plugin and install it again to accept the new ref",
         };
       }
@@ -272,7 +272,7 @@ export function createPluginUpdates(
     }
     if (
       args.row.sourceKind === "npm" &&
-      args.row.sourceNpmRegistry?.includes("bb-source=github-release")
+      args.row.sourceNpmRegistry?.includes("kaioken-source=github-release")
     ) {
       return {
         outcome: "unavailable",
@@ -527,9 +527,9 @@ export function createPluginUpdates(
           ? {}
           : { registry: row.sourceNpmRegistry }),
         engines: {
-          ...(manifest?.bbEngineRange === undefined
+          ...(manifest?.kaiokenEngineRange === undefined
             ? {}
-            : { bb: manifest.bbEngineRange }),
+            : { bb: manifest.kaiokenEngineRange }),
           ...(manifest?.bbPluginSdkRange === undefined
             ? {}
             : { bbPluginSdk: manifest.bbPluginSdkRange }),
@@ -565,7 +565,7 @@ export function createPluginUpdates(
             ok: false,
             error:
               row.sourceKind === "path"
-                ? `plugin "${id}" is a local path source with no update channel; edit it in place and run \`bb plugin reload ${id}\`, or move it with \`bb plugin install path:<new directory>\` (settings, secrets, and schedules are kept)`
+                ? `plugin "${id}" is a local path source with no update channel; edit it in place and run \`kaioken plugin reload ${id}\`, or move it with \`kaioken plugin install path:<new directory>\` (settings, secrets, and schedules are kept)`
                 : `plugin "${id}" is pinned by its source intent; remove and reinstall it with an npm range, a git branch, or a git semver range to track updates`,
           };
         }

@@ -19,7 +19,7 @@ function settingsResponse(value: number): Response {
   );
 }
 
-describe("bb plugin config", () => {
+describe("kaioken plugin config", () => {
   setupCommandOutputTestEnvironment();
 
   const register: CommandRegistrar = (program) =>

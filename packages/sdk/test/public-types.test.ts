@@ -1,8 +1,8 @@
 import { describe, expectTypeOf, it } from "vitest";
 import type {
-  BbRealtime as RootBbRealtime,
-  BbSdk as RootBbSdk,
-  BbRealtimeConnectionEvent as RootRealtimeConnection,
+  KaiokenRealtime as RootBbRealtime,
+  KaiokenSdk as RootBbSdk,
+  KaiokenRealtimeConnectionEvent as RootRealtimeConnection,
   EnvironmentStatusResult as RootEnvironmentStatus,
   FileReadResult as RootFileRead,
   GuideRenderResult as RootGuideRender,
@@ -27,11 +27,11 @@ import type {
   ThemeSetInput as RootThemeSetInput,
   ThreadSectionListResult as RootThreadSectionList,
   ThreadSpawnResult as RootThreadSpawn,
-} from "@bb/sdk";
+} from "@kaioken/sdk";
 import type {
-  BbSdk as BrowserBbSdk,
+  KaiokenSdk as BrowserBbSdk,
   BrowserBbSdk as BrowserRuntimeBbSdk,
-  BbRealtimeConnectionEvent as BrowserRealtimeConnection,
+  KaiokenRealtimeConnectionEvent as BrowserRealtimeConnection,
   EnvironmentStatusResult as BrowserEnvironmentStatus,
   FileReadResult as BrowserFileRead,
   GuideRenderResult as BrowserGuideRender,
@@ -55,10 +55,10 @@ import type {
   ThemeSetInput as BrowserThemeSetInput,
   ThreadSectionListResult as BrowserThreadSectionList,
   ThreadSpawnResult as BrowserThreadSpawn,
-} from "@bb/sdk/browser";
+} from "@kaioken/sdk/browser";
 import type {
-  BbSdk as CoreBbSdk,
-  BbRealtimeConnectionEvent as CoreRealtimeConnection,
+  KaiokenSdk as CoreBbSdk,
+  KaiokenRealtimeConnectionEvent as CoreRealtimeConnection,
   EnvironmentStatusResult as CoreEnvironmentStatus,
   FileReadResult as CoreFileRead,
   GuideRenderResult as CoreGuideRender,
@@ -82,10 +82,10 @@ import type {
   ThemeSetInput as CoreThemeSetInput,
   ThreadSectionListResult as CoreThreadSectionList,
   ThreadSpawnResult as CoreThreadSpawn,
-} from "@bb/sdk/core";
+} from "@kaioken/sdk/core";
 import type {
-  BbSdk as NodeBbSdk,
-  BbRealtimeConnectionEvent as NodeRealtimeConnection,
+  KaiokenSdk as NodeBbSdk,
+  KaiokenRealtimeConnectionEvent as NodeRealtimeConnection,
   EnvironmentStatusResult as NodeEnvironmentStatus,
   FileReadResult as NodeFileRead,
   GuideRenderResult as NodeGuideRender,
@@ -109,8 +109,8 @@ import type {
   ThemeSetInput as NodeThemeSetInput,
   ThreadSectionListResult as NodeThreadSectionList,
   ThreadSpawnResult as NodeThreadSpawn,
-} from "@bb/sdk/node";
-import type { createBrowserBbSdk } from "@bb/sdk/browser";
+} from "@kaioken/sdk/node";
+import type { createBrowserBbSdk } from "@kaioken/sdk/browser";
 
 interface RootSurface {
   environmentStatus: RootEnvironmentStatus;

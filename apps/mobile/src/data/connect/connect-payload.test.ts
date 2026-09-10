@@ -40,7 +40,7 @@ describe("parseConnectPairingPayload", () => {
   it("reads a pairing URL and a bare code; rejects arbitrary QR contents", () => {
     expect(
       parseConnectPairingPayload(
-        "bb://connect?code=abcd-efgh&serverUrl=https%3A%2F%2Fbee.getbb.app",
+        "kaioken://connect?code=abcd-efgh&serverUrl=https%3A%2F%2Fbee.getbb.app",
       ),
     ).toEqual({
       code: "ABCD-EFGH",

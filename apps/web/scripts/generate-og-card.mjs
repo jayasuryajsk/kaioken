@@ -1,7 +1,7 @@
 // Renders scripts/og-card.html to public/og.png, the card platforms show when
-// a bb link is shared. Run it after editing the template:
+// a kaioken link is shared. Run it after editing the template:
 //
-//   pnpm --filter @bb/web og:card
+//   pnpm --filter @kaioken/web og:card
 //
 // Every path is resolved from this file, so the working directory doesn't
 // matter, and the font comes from the same @fontsource-variable/inter this app
@@ -33,7 +33,7 @@ const SCALE = 2;
 
 const here = (path) => fileURLToPath(new URL(path, import.meta.url));
 const TEMPLATE = here("./og-card.html");
-const LOGO = here("../../../assets/bb-logo.png");
+const LOGO = here("../../../assets/kaioken-logo.png");
 const OUTPUT = here("../public/og.png");
 
 const CHROME_CANDIDATES = [
@@ -131,18 +131,18 @@ async function main() {
   // The font and logo are copied in beside the page rather than linked where
   // they live: a file:// document may only read its own directory, so absolute
   // file URLs elsewhere on disk load as broken images.
-  const workDir = await mkdtemp(join(tmpdir(), "bb-og-card-"));
+  const workDir = await mkdtemp(join(tmpdir(), "kaioken-og-card-"));
   const profileDir = join(workDir, "profile");
   const pageFile = join(workDir, "card.html");
   await copyFile(font, join(workDir, "inter.woff2"));
-  await copyFile(LOGO, join(workDir, "bb-logo.png"));
+  await copyFile(LOGO, join(workDir, "kaioken-logo.png"));
 
   // replaceAll, not replace: the template's own comment names the placeholders,
   // so a first-occurrence swap rewrites the comment and leaves the real
   // attributes pointing at the literal token.
   const html = (await readFile(TEMPLATE, "utf8"))
     .replaceAll("__FONT_URL__", "inter.woff2")
-    .replaceAll("__LOGO_URL__", "bb-logo.png");
+    .replaceAll("__LOGO_URL__", "kaioken-logo.png");
   await writeFile(pageFile, html);
 
   const chromeBinary = await findChrome();

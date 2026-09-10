@@ -5,8 +5,8 @@ import {
   type DbConnection,
   type PluginMarketplaceIconRow,
   type UpsertPluginMarketplaceIconInput,
-} from "@bb/db";
-import { assertValidPluginCompactIconSvg } from "@bb/plugin-build";
+} from "@kaioken/db";
+import { assertValidPluginCompactIconSvg } from "@kaioken/plugin-build";
 import {
   assertPublicMarketplaceUrl,
   boundedResponseBytes,

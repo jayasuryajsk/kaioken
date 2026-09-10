@@ -8,21 +8,21 @@ import type {
   AgentRuntime,
   AgentRuntimeBridgeLaunch,
   AgentRuntimeProviderSession,
-} from "@bb/agent-runtime";
+} from "@kaioken/agent-runtime";
 import type {
   ClientTurnRequestId,
   AvailableModel,
   DynamicTool,
   GitHostPullRequest,
   PromptInput,
-} from "@bb/domain";
-import type { HostDaemonBridgeLaunch } from "@bb/host-daemon-contract";
-import { makeWorkspaceMergeBase, makeWorkspaceStatus } from "@bb/test-helpers";
+} from "@kaioken/domain";
+import type { HostDaemonBridgeLaunch } from "@kaioken/host-daemon-contract";
+import { makeWorkspaceMergeBase, makeWorkspaceStatus } from "@kaioken/test-helpers";
 import type {
   HostWorkspace,
   ProvisionWorkspaceArgs,
   PullRequestActionOptions,
-} from "@bb/host-workspace";
+} from "@kaioken/host-workspace";
 import { RuntimeManager } from "../../src/runtime-manager.js";
 import { listWorkspacePaths } from "../../src/command-handlers/file-list.js";
 import { noopEventSink } from "../../src/command-dispatch-support.js";
@@ -503,7 +503,7 @@ export function createHarness(
         ...unexpectedProviderMaintenance,
         runtimeManager: manager,
         threadStorageRootPath:
-          overrides.threadStorageRootPath ?? "/tmp/bb-test-thread-storage",
+          overrides.threadStorageRootPath ?? "/tmp/kaioken-test-thread-storage",
       };
     },
   };
@@ -520,7 +520,7 @@ export function makeDispatchOptions(
     fetchProjectAttachment: unexpectedProjectAttachmentFetch,
     fetchPluginHostArtifact: fetchDispatchTestArtifact,
     ...unexpectedProviderMaintenance,
-    threadStorageRootPath: "/tmp/bb-test-thread-storage",
+    threadStorageRootPath: "/tmp/kaioken-test-thread-storage",
     ...overrides,
   };
 }
@@ -552,7 +552,7 @@ export const DISPATCH_TEST_ARTIFACT_BYTES = Buffer.from(
 const DISPATCH_TEST_ARTIFACT_DIGEST = createHash("sha256")
   .update(DISPATCH_TEST_ARTIFACT_BYTES)
   .digest("hex");
-const DISPATCH_TEST_DATA_DIR = "/tmp/bb-test-data";
+const DISPATCH_TEST_DATA_DIR = "/tmp/kaioken-test-data";
 
 export const fetchDispatchTestArtifact = async (): Promise<Uint8Array> =>
   new Uint8Array(DISPATCH_TEST_ARTIFACT_BYTES);

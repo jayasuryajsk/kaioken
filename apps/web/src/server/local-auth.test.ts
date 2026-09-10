@@ -5,8 +5,8 @@ describe("resolveDevEmailPasswordEnabled", () => {
   it("enables credential auth only on the local Cloud origin", () => {
     expect(
       resolveDevEmailPasswordEnabled({
-        APP_URL: "http://bb.localhost:8787",
-        BASE_DOMAIN: "bb.localhost",
+        APP_URL: "http://kaioken.localhost:8787",
+        BASE_DOMAIN: "kaioken.localhost",
         DEV_EMAIL_PASSWORD_AUTH: "true",
       }),
     ).toBe(true);
@@ -30,8 +30,8 @@ describe("resolveDevEmailPasswordEnabled", () => {
   it("rejects ambiguous flag values", () => {
     expect(() =>
       resolveDevEmailPasswordEnabled({
-        APP_URL: "http://bb.localhost:8787",
-        BASE_DOMAIN: "bb.localhost",
+        APP_URL: "http://kaioken.localhost:8787",
+        BASE_DOMAIN: "kaioken.localhost",
         DEV_EMAIL_PASSWORD_AUTH: "1",
       }),
     ).toThrow("must be true when set");

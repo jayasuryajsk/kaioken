@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { loadPluginApp, renderSlot } from "@get-bb/plugin-sdk/testing/app";
+import { loadPluginApp, renderSlot } from "@get-kaioken/plugin-sdk/testing/app";
 import { GIT_WORKTREE_ENVIRONMENT_PROVIDER_ID } from "./provider-id.js";
 
 const app = await loadPluginApp(() => import("./app"));
@@ -45,14 +45,14 @@ describe("worktree inputs control", () => {
     });
   });
 
-  it("binds bb's branch picker to the picked machine and project", () => {
+  it("binds kaioken's branch picker to the picked machine and project", () => {
     const slot = renderSlot(inputsSlot(), {
       projectId: "project-1",
       hostId: "host-a",
       value: { branch: { kind: "named", name: "release" } },
       onChange: vi.fn(),
     });
-    const picker = slot.getByTestId("bb-branch-picker");
+    const picker = slot.getByTestId("kaioken-branch-picker");
     expect(picker.getAttribute("data-host-id")).toBe("host-a");
     expect(picker.getAttribute("data-project-id")).toBe("project-1");
     expect(slot.getByLabelText("Branch from:")).toHaveProperty(

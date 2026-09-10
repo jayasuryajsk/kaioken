@@ -3,7 +3,7 @@ import type {
   WorkspaceOpenTargetIcon,
   WorkspaceOpenTargetId,
   WorkspaceOpenTargetKind,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 
 interface LocalOpenTargetContext {
   kind: "local";

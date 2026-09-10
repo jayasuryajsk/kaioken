@@ -2,9 +2,9 @@ import type {
   Environment,
   WorkspaceFileStatus,
   WorkspaceFileStatusKind,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { WorkspaceChangedFilesSection } from "@/components/workspace/workspace-change-summary";
-import { makeEnvironment } from "@bb/test-helpers/domain-fixtures";
+import { makeEnvironment } from "@kaioken/test-helpers/domain-fixtures";
 import { describe, expect, it } from "vitest";
 import {
   resolveWorkspaceChangedFileOpenTarget,
@@ -64,19 +64,19 @@ describe("resolveThreadWorkspaceOpenPath", () => {
     expect(
       resolveEnvironmentOpenContext({
         environment: makeWorkspaceEnvironment({ hostId: "host-local" }),
-        serverOrigin: "https://bb.example.test",
+        serverOrigin: "https://kaioken.example.test",
         threadEnvironmentIsLocal: true,
       }),
     ).toEqual({ kind: "local" });
     expect(
       resolveEnvironmentOpenContext({
         environment: makeWorkspaceEnvironment({ hostId: "host-remote" }),
-        serverOrigin: "https://bb.example.test",
+        serverOrigin: "https://kaioken.example.test",
         threadEnvironmentIsLocal: false,
       }),
     ).toEqual({
       kind: "remote-ssh",
-      serverOrigin: "https://bb.example.test",
+      serverOrigin: "https://kaioken.example.test",
       hostId: "host-remote",
     });
   });

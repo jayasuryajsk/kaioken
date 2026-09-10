@@ -1,11 +1,11 @@
-import type { ExperimentalFileOpenOptions } from "@get-bb/plugin-sdk";
+import type { ExperimentalFileOpenOptions } from "@get-kaioken/plugin-sdk";
 import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
-} from "@bb/shared-ui/context-menu";
+} from "@kaioken/shared-ui/context-menu";
 import { useLocalOpenTargets } from "@/hooks/useLocalOpenTargets";
 import { useResolvedLiveFileTarget } from "@/hooks/useResolvedLiveFileTarget";
 import { useAppNavigationHost } from "@/lib/app-navigation-host";
@@ -59,7 +59,7 @@ export function ExperimentalFileLinkMenu({
                 navigation.openFilePreview({ ...intent, viewer: "builtin" })
               }
             >
-              BB preview
+              Kaioken preview
             </ContextMenuItem>
             {matchingOpeners.map((opener) => (
               <ContextMenuItem

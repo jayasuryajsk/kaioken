@@ -1,4 +1,4 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 
 /**
  * A queued retry as this plugin's surfaces need it. Structural rather than
@@ -26,7 +26,7 @@ export interface QueuedRetry {
  * whoever asked for it, which is exactly what these surfaces act on.
  */
 export async function listQueuedRetries(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   threadId?: string,
 ): Promise<QueuedRetry[]> {
   const rows = await bb.sdk.threads.queue.list(
@@ -42,7 +42,7 @@ export async function listQueuedRetries(
 }
 
 export async function findQueuedRetry(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   threadId: string,
 ): Promise<QueuedRetry | null> {
   const rows = await listQueuedRetries(bb, threadId);

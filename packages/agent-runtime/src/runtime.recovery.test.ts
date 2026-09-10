@@ -2,8 +2,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { ThreadEvent } from "@bb/domain";
-import { BRIDGE_JSON_RPC_ERRORS } from "@bb/provider-bridge-protocol";
+import type { ThreadEvent } from "@kaioken/domain";
+import { BRIDGE_JSON_RPC_ERRORS } from "@kaioken/provider-bridge-protocol";
 import { AgentRuntimeRecoveryError } from "./runtime.js";
 import {
   createScriptedEchoLaunch,
@@ -42,7 +42,7 @@ describe("runtime recovery hints", () => {
   const runtimes: AgentRuntime[] = [];
 
   beforeEach(() => {
-    workspacePath = mkdtempSync(join(tmpdir(), "bb-runtime-recovery-"));
+    workspacePath = mkdtempSync(join(tmpdir(), "kaioken-runtime-recovery-"));
   });
 
   afterEach(async () => {

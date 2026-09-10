@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import type { ThreadPullRequest } from "@bb/domain";
-import type { EnvironmentPullRequestResponse } from "@bb/server-contract";
+import type { ThreadPullRequest } from "@kaioken/domain";
+import type { EnvironmentPullRequestResponse } from "@kaioken/server-contract";
 import { sdk } from "@/lib/sdk";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -31,9 +31,9 @@ const pullRequestFixture: ThreadPullRequest = {
   number: 128,
   title: "Refresh PR state",
   state: "open",
-  url: "https://github.com/acme/bb/pull/128",
+  url: "https://github.com/acme/kaioken/pull/128",
   baseRefName: "main",
-  headRefName: "bb/pr-refresh",
+  headRefName: "kaioken/pr-refresh",
   updatedAt: "2026-06-16T12:30:00Z",
   checks: {
     state: "passing",

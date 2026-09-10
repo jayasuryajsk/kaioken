@@ -3,10 +3,10 @@ import {
   definePluginApp,
   useRpc,
   type StandardSchemaV1InferOutput,
-} from "@get-bb/plugin-sdk/app";
-import { Checkbox } from "@bb/shared-ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@bb/shared-ui/radio-group";
-import { Switch } from "@bb/shared-ui/switch";
+} from "@get-kaioken/plugin-sdk/app";
+import { Checkbox } from "@kaioken/shared-ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@kaioken/shared-ui/radio-group";
+import { Switch } from "@kaioken/shared-ui/switch";
 import type { keepAwakeRpcContract } from "./server.js";
 
 type ConfigurationView = StandardSchemaV1InferOutput<
@@ -148,7 +148,7 @@ function KeepAwakeSettings() {
             Prevent idle sleep
           </h3>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Keep selected Macs awake while bb is running. Closing the lid or
+            Keep selected Macs awake while kaioken is running. Closing the lid or
             choosing Sleep still sleeps the Mac.
           </p>
         </div>

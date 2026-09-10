@@ -7,11 +7,11 @@ import type {
   ServiceTier,
   EnvironmentWorkspaceDisplayKind,
   WorkspaceGitOperation,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   CreateExecutionInputSources,
   CreateThreadEnvironmentArgs,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type { JsonValue } from "./json-value.js";
 import type {
   PluginRpcCallArgs,
@@ -20,10 +20,10 @@ import type {
 } from "./rpc-contract.js";
 
 /**
- * The `@get-bb/plugin-sdk/app` contract (plugin design §5.2) — pure types with no
- * side effects. The BB app imports these to keep its real implementation in
+ * The `@get-kaioken/plugin-sdk/app` contract (plugin design §5.2) — pure types with no
+ * side effects. The Kaioken app imports these to keep its real implementation in
  * sync (`satisfies PluginSdkApp`). Plugin authors import the same shapes through
- * `@get-bb/plugin-sdk/app`.
+ * `@get-kaioken/plugin-sdk/app`.
  *
  * Per-slot props are versioned contracts: additive-only within an SDK major.
  */
@@ -189,20 +189,20 @@ export interface PluginThreadListProps {
    */
   onNavigate: () => void;
   /**
-   * Compatibility value for the former sidebar search field. BB now searches
+   * Compatibility value for the former sidebar search field. Kaioken now searches
    * threads in the quick palette, so the host always supplies "".
    *
    * @deprecated The quick palette owns thread search. Ignore this value.
    */
   searchQuery: string;
   /**
-   * BB's thread list, bound to this sidebar instance. Render it to delegate
+   * Kaioken's thread list, bound to this sidebar instance. Render it to delegate
    * conditionally without re-entering plugin replacement resolution.
    *
    * @experimental Audit before relying on this as a stable contract.
    */
   Original: ComponentType;
-  /** @deprecated Renamed to `Original` in SDK 0.4.16; removed in bb 0.42. */
+  /** @deprecated Renamed to `Original` in SDK 0.4.16; removed in kaioken 0.42. */
   experimental_Original?: ComponentType;
 }
 
@@ -252,13 +252,13 @@ export interface PluginFileOpenerProps {
   path: string;
   source: PluginFileOpenerSource;
   /**
-   * BB's file preview, bound to this file. Render it to delegate conditionally
+   * Kaioken's file preview, bound to this file. Render it to delegate conditionally
    * without re-entering plugin replacement resolution.
    *
    * @experimental Audit before relying on this as a stable contract.
    */
   Original: ComponentType;
-  /** @deprecated Renamed to `Original` in SDK 0.4.16; removed in bb 0.42. */
+  /** @deprecated Renamed to `Original` in SDK 0.4.16; removed in kaioken 0.42. */
   experimental_Original?: ComponentType;
 }
 
@@ -294,9 +294,9 @@ export interface ExperimentalDiffFullFileContents {
 }
 
 /**
- * Props of the host-owned `experimental_SourceCode` component — BB's source
+ * Props of the host-owned `experimental_SourceCode` component — Kaioken's source
  * viewer. The host owns syntax highlighting, gutters, wrapping, line-selection
- * presentation, and the live BB code theme; the caller owns loading the text
+ * presentation, and the live Kaioken code theme; the caller owns loading the text
  * and any surrounding chrome.
  */
 export interface SourceCodeProps {
@@ -316,11 +316,11 @@ export interface SourceCodeProps {
 }
 
 /**
- * Props of the host-owned `experimental_Diff` component — BB's diff viewer.
+ * Props of the host-owned `experimental_Diff` component — Kaioken's diff viewer.
  * The host owns patch normalization (a patch without a `diff --git` header is
  * completed from `path`), syntax highlighting, unified/split presentation,
  * gutters, line-selection presentation, optional full-file context expansion,
- * and the live BB code theme. Content that cannot be parsed as a patch
+ * and the live Kaioken code theme. Content that cannot be parsed as a patch
  * degrades to plain monospace text.
  */
 export interface DiffProps {
@@ -340,7 +340,7 @@ export interface DiffProps {
   showLineNumbers?: boolean;
   /**
    * Complete text for both file sides. When present and consistent with the
-   * patch, BB enables expand-context controls between hunks. The caller owns
+   * patch, Kaioken enables expand-context controls between hunks. The caller owns
    * loading these contents; omit the field to render from the patch alone.
    */
   experimental_fullFileContents?: ExperimentalDiffFullFileContents;
@@ -358,13 +358,13 @@ export interface PluginSourceCodeRendererProps {
   overflow: CodeOverflowMode;
   highlightedLines: SourceCodeLineRange | null;
   /**
-   * BB's source renderer, bound to this request. Render it to delegate
+   * Kaioken's source renderer, bound to this request. Render it to delegate
    * conditionally without re-entering plugin replacement resolution.
    *
    * @experimental Audit before relying on this as a stable contract.
    */
   Original: ComponentType;
-  /** @deprecated Renamed to `Original` in SDK 0.4.16; removed in bb 0.42. */
+  /** @deprecated Renamed to `Original` in SDK 0.4.16; removed in kaioken 0.42. */
   experimental_Original?: ComponentType;
 }
 
@@ -383,18 +383,18 @@ export interface PluginDiffRendererProps {
    * Caller-resolved text for both sides, or `null` when the caller supplied
    * only the patch. A replacement can use this to implement context expansion,
    * but must verify that the paths and hunk lines agree with `patch` before
-   * treating the contents as complete. BB's original renderer performs that
+   * treating the contents as complete. Kaioken's original renderer performs that
    * verification when it mounts.
    */
   experimental_fullFileContents: ExperimentalDiffFullFileContents | null;
   /**
-   * BB's diff renderer, bound to this request. Render it to delegate
+   * Kaioken's diff renderer, bound to this request. Render it to delegate
    * conditionally without re-entering plugin replacement resolution.
    *
    * @experimental Audit before relying on this as a stable contract.
    */
   Original: ComponentType;
-  /** @deprecated Renamed to `Original` in SDK 0.4.16; removed in bb 0.42. */
+  /** @deprecated Renamed to `Original` in SDK 0.4.16; removed in kaioken 0.42. */
   experimental_Original?: ComponentType;
 }
 
@@ -458,12 +458,12 @@ export interface PluginSettingsSectionRegistration {
 }
 
 /**
- * Render app-wide plugin UI outside BB's layout regions.
+ * Render app-wide plugin UI outside Kaioken's layout regions.
  *
  * The host mounts each registration once per app window through the ordinary
  * plugin React boundary. The component therefore keeps PluginContext, router,
  * query, realtime, and other app-level SDK contexts when it renders fixed UI
- * or creates a React portal. BB supplies no chrome, positioning, visibility,
+ * or creates a React portal. Kaioken supplies no chrome, positioning, visibility,
  * or interaction policy; the plugin owns those details and responsive
  * behavior. Registrations are additive and a crash hides only that overlay.
  */
@@ -504,7 +504,7 @@ export type ExperimentalPluginFixedTabReference<
 export type PluginFixedTabRegistration<Target extends JsonValue = never> =
   ExperimentalPluginFixedTabReference<Target> & {
     title: string;
-    /** Icon hint (BB icon name); unknown names fall back to a generic icon. */
+    /** Icon hint (Kaioken icon name); unknown names fall back to a generic icon. */
     icon: string;
     component: ComponentType<PluginNavPanelProps>;
     /** `flush` lets the component own padding and scrolling. */
@@ -520,14 +520,14 @@ export interface PluginNavPanelRegistration {
   /** Unique within the plugin; letters, digits, `-`, `_`. */
   id: string;
   title: string;
-  /** Icon hint (BB icon name); unknown names fall back to a generic icon. */
+  /** Icon hint (Kaioken icon name); unknown names fall back to a generic icon. */
   icon: string;
   /** URL segment under `/plugins/<pluginId>/`; letters, digits, `-`, `_`. */
   path: string;
   component: ComponentType<PluginNavPanelProps>;
   /**
    * Ordered, non-closable tabs shown in this page's host-owned right panel.
-   * BB owns selection and persistence and always includes its native Browser
+   * Kaioken owns selection and persistence and always includes its native Browser
    * and Terminal tools beside them. One tab is active in each visible split
    * pane, so multiple fixed-tab components can be mounted concurrently. A
    * component mounts only while its tab is active in a visible pane and the
@@ -607,7 +607,7 @@ export interface PluginThreadPanelActionRegistration {
   /** Label of the action row in the panel's new-tab launcher. */
   title: string;
   /**
-   * Icon hint (BB icon name) used when the plugin ships no logo; the
+   * Icon hint (Kaioken icon name) used when the plugin ships no logo; the
    * launcher row and opened tabs prefer the plugin's logo.
    */
   icon?: string;
@@ -649,7 +649,7 @@ export interface PluginNewThreadPanelActionRegistration {
   id: string;
   /** Label of the action row in the panel's new-tab launcher. */
   title: string;
-  /** Icon hint (BB icon name) used when the plugin ships no logo. */
+  /** Icon hint (Kaioken icon name) used when the plugin ships no logo. */
   icon?: string;
   /** Rendered inside every panel tab this action opens. */
   component: ComponentType<PluginNewThreadPanelProps>;
@@ -671,7 +671,7 @@ export interface PluginPendingInteractionRegistration {
    * splits on the slash to find this registration under its plugin.
    * `bb.ui.requestInput` validates `rendererId` against `/^[a-zA-Z0-9_-]+$/`;
    * an extension kind must match `/^[a-z0-9-]+\/[a-z0-9-]+$/`
-   * (`EXTENSION_KIND_PATTERN` in @bb/domain), so an id addressable both ways
+   * (`EXTENSION_KIND_PATTERN` in @kaioken/domain), so an id addressable both ways
    * uses lowercase letters, digits, and "-" only.
    */
   id: string;
@@ -697,7 +697,7 @@ export interface PluginSidebarFooterActionRegistration {
   id: string;
   /** Tooltip and accessible label for the icon button. */
   title: string;
-  /** Icon hint (BB icon name); unknown names fall back to a generic icon. */
+  /** Icon hint (Kaioken icon name); unknown names fall back to a generic icon. */
   icon: string;
   /**
    * Runs when the user activates the action (e.g. call `openSettings()`,
@@ -719,7 +719,7 @@ export interface ExperimentalSidebarFooterItemBase {
   id: string;
   /** Tooltip and accessible label for the host-rendered icon button. */
   label: string;
-  /** BB icon-name hint; unknown names fall back to a generic icon. */
+  /** Kaioken icon-name hint; unknown names fall back to a generic icon. */
   icon: string;
 }
 
@@ -765,11 +765,11 @@ export interface ExperimentalSidebarFooter {
 // ---------------------------------------------------------------------------
 
 /**
- * The one status bb would paint for a thread, already resolved through the
+ * The one status kaioken would paint for a thread, already resolved through the
  * host's precedence (attention before work; plan and goal before the generic
  * spinner). Draw your own glyph for it — the SDK ships no status component.
  *
- * Treat an unrecognized value as "none": bb adds kinds over time, and an
+ * Treat an unrecognized value as "none": kaioken adds kinds over time, and an
  * older plugin must degrade to drawing nothing rather than throwing.
  *
  * "draft" and "working-draft" are never reported here: an unsubmitted composer
@@ -868,7 +868,7 @@ export interface PluginSidebarThread {
 
 /**
  * The pull request for a thread's branch, narrowed to what a sidebar row
- * needs. `attention` is bb's rolled-up "does this need you" signal, so a row
+ * needs. `attention` is kaioken's rolled-up "does this need you" signal, so a row
  * can colour a badge without reading checks, review, and mergeability itself.
  */
 export interface PluginSidebarPullRequest {
@@ -944,7 +944,7 @@ export interface PluginCodeThemeTokenRule {
 }
 
 /**
- * The active code theme as a VS Code theme file: the same document BB's own
+ * The active code theme as a VS Code theme file: the same document Kaioken's own
  * highlighter renders from, so a plugin that embeds a third-party editor can
  * translate it into that editor's theme format rather than guessing colors
  * from CSS variables.
@@ -963,7 +963,7 @@ export interface PluginCodeThemeData {
 }
 
 /**
- * The code theme BB is currently rendering with (see
+ * The code theme Kaioken is currently rendering with (see
  * {@link PluginSdkApp.experimental_useCodeTheme}). `mode` and `name` change
  * the moment the user switches palette or light/dark; `theme` follows once
  * the theme file resolves, and keeps the previous document until then so a
@@ -985,7 +985,7 @@ export interface PluginCodeThemeState {
  */
 export interface PluginSidebarThreadActions {
   /**
-   * Navigate to a thread. `split: true` applies bb's split placement rules —
+   * Navigate to a thread. `split: true` applies kaioken's split placement rules —
    * a right split by default, focus when the thread is already open, replace
    * at the pane cap — and falls back to plain navigation where splits are off.
    */
@@ -1002,7 +1002,7 @@ export interface PluginSidebarThreadActions {
   /** Archives the thread AND its children, closing any panes showing them. */
   archive(threadId: string): void;
   /**
-   * Opens bb's delete confirmation, which counts child threads first. Deletion
+   * Opens kaioken's delete confirmation, which counts child threads first. Deletion
    * is destructive and recursive, so the host owns the confirmation: there is
    * deliberately no silent `delete`.
    */
@@ -1080,9 +1080,9 @@ export interface PluginSidebarThreadSplit {
  * scroll area. Registering activates the replacement while the plugin is
  * enabled. If multiple plugins register one, the first in deterministic slot
  * order is active by default; removing it reveals the next. The user can pin
- * BB's list or a specific provider under Settings → Appearance. A plugin can
+ * Kaioken's list or a specific provider under Settings → Appearance. A plugin can
  * also use its own setting and render `Original` conditionally.
- * An absent or crashing replacement falls back to BB's list rather than
+ * An absent or crashing replacement falls back to Kaioken's list rather than
  * leaving the user with no sidebar.
  *
  * The plugin gets the scrolling list and nothing else. The New-thread button,
@@ -1114,12 +1114,12 @@ export interface ExperimentalSidebarNavigationRegistration {
 /**
  * Register this plugin as a viewer/editor for file extensions. By default,
  * matching files render the first applicable opener in deterministic slot
- * order. The user can pin BB's preview or a specific opener per extension
+ * order. The user can pin Kaioken's preview or a specific opener per extension
  * under Settings → Files. The file tab's "Open with" menu can override that
  * choice for one open. A plugin can also use its own setting and render
  * `Original` conditionally. Applies to working-tree, host, and
  * thread-storage files — never to git-ref snapshots (diff views always use
- * BB's preview).
+ * Kaioken's preview).
  */
 export interface PluginFileOpenerRegistration {
   /** Unique within the plugin; letters, digits, `-`, `_`. */
@@ -1132,12 +1132,12 @@ export interface PluginFileOpenerRegistration {
 }
 
 /**
- * Replace BB's source-code renderer everywhere it renders supplied source
+ * Replace Kaioken's source-code renderer everywhere it renders supplied source
  * text — the native file preview and every plugin that calls
  * `experimental_SourceCode`. Like `experimental_threadList` this slot is
  * **exclusive**: one renderer at a time. Registering activates it while the
  * plugin is enabled; if several are registered the first in deterministic slot
- * order wins. A missing, disabled, or crashing replacement falls back to BB's
+ * order wins. A missing, disabled, or crashing replacement falls back to Kaioken's
  * renderer, and a replacement can render `Original` to delegate
  * per call (behind its own setting, by language, by size — whatever it needs).
  */
@@ -1152,7 +1152,7 @@ export interface PluginSourceCodeRendererRegistration {
 }
 
 /**
- * Replace BB's diff renderer everywhere it renders supplied diff content — the
+ * Replace Kaioken's diff renderer everywhere it renders supplied diff content — the
  * timeline file diffs, the environment diff panel's text bodies, and every
  * plugin that calls `experimental_Diff`. Exclusive, with the same activation,
  * fallback, and `Original` delegation rules as
@@ -1241,7 +1241,7 @@ export interface PluginMessageActionRegistration {
   id: string;
   /** Tooltip / menu label for the action. */
   title: string;
-  /** Icon hint (BB icon name); unknown names fall back to a generic icon. */
+  /** Icon hint (Kaioken icon name); unknown names fall back to a generic icon. */
   icon?: string;
   /**
    * Runs when the user activates the action. Errors (sync or async) are
@@ -1269,8 +1269,8 @@ export interface PluginCommandPaletteActionContext {
 }
 
 /**
- * A row in bb's quick palette (Mod+Shift+P), listed under the plugin's name
- * beside bb's own commands. Host-rendered: the plugin supplies a title and
+ * A row in kaioken's quick palette (Mod+Shift+P), listed under the plugin's name
+ * beside kaioken's own commands. Host-rendered: the plugin supplies a title and
  * `run`, and the host owns matching, ordering, and recency.
  */
 export interface PluginCommandPaletteActionRegistration {
@@ -1292,7 +1292,7 @@ export interface PluginCommandPaletteActionRegistration {
 }
 
 /**
- * Supply the inline React mark bb draws for one agent provider.
+ * Supply the inline React mark kaioken draws for one agent provider.
  *
  * A manifest `branding.icon` (or a provider's `logoUrl`) is fetched and drawn
  * through `<img>`, a separate document where `currentColor` resolves to black
@@ -1307,7 +1307,7 @@ export interface PluginCommandPaletteActionRegistration {
  */
 export interface PluginProviderIconRegistration {
   /**
-   * The provider this mark is for — the id bb knows the provider by (the
+   * The provider this mark is for — the id kaioken knows the provider by (the
    * provider declaration's id, e.g. `codex` or `acp-cursor`), not the plugin
    * id. Letters, digits, `-`, `_`.
    */
@@ -1500,7 +1500,7 @@ export interface PluginAppSlots {
   ): void;
   fileOpener(registration: PluginFileOpenerRegistration): void;
   /**
-   * Replace BB's source-code renderer (see
+   * Replace Kaioken's source-code renderer (see
    * {@link PluginSourceCodeRendererRegistration}). Experimental: see
    * docs/api_to_audit.md.
    */
@@ -1508,7 +1508,7 @@ export interface PluginAppSlots {
     registration: PluginSourceCodeRendererRegistration,
   ): void;
   /**
-   * Replace BB's diff renderer (see
+   * Replace Kaioken's diff renderer (see
    * {@link PluginDiffRendererRegistration}). Experimental: see
    * docs/api_to_audit.md.
    */
@@ -1553,7 +1553,7 @@ export interface PluginAppComposer {
   customize(registration: ComposerCustomization): void;
 }
 
-/** Stable lifecycle values for one content-script instance in one bb client. */
+/** Stable lifecycle values for one content-script instance in one kaioken client. */
 export interface PluginContentScriptContext {
   /** The id of the plugin that owns this script. */
   readonly pluginId: string;
@@ -1583,13 +1583,13 @@ export type PluginContentScriptDisposer = () => void | Promise<void>;
 
 /**
  * Trusted same-origin JavaScript/TypeScript mounted once per active frontend
- * generation in each bb app window or browser tab.
+ * generation in each kaioken app window or browser tab.
  */
 export interface PluginContentScriptRegistration {
   /** Unique within the plugin; letters, digits, `-`, `_`. */
   id: string;
   /**
-   * Install behavior into the bb app shell. The host awaits a returned
+   * Install behavior into the kaioken app shell. The host awaits a returned
    * promise, retains the plugin's imported frontend stylesheet for this
    * generation, contains failures, and calls the returned disposer exactly
    * once. Styling or decorating existing app-shell DOM belongs here rather
@@ -1657,7 +1657,7 @@ export interface PluginSettingsState {
   isLoading: boolean;
 }
 
-/** State of the app's shared realtime connection to the bb server. */
+/** State of the app's shared realtime connection to the kaioken server. */
 export type PluginRealtimeConnectionState =
   | "connecting"
   | "connected"
@@ -1705,7 +1705,7 @@ export interface ComposerCustomization {
 export interface ComposerPlusMenuItem {
   id: string;
   label: string;
-  /** BB icon name; unknown names fall back to the generic plugin icon. */
+  /** Kaioken icon name; unknown names fall back to the generic plugin icon. */
   icon?: string;
   /** Accessible description for the host-rendered row. */
   description?: string;
@@ -1754,7 +1754,7 @@ export interface PluginComposerTextEffect {
 
 /** Host-rendered status that temporarily replaces a thread's draft glyph. */
 export interface PluginComposerThreadRowStatus {
-  /** BB icon-name hint; unknown names fall back to the generic plugin icon. */
+  /** Kaioken icon-name hint; unknown names fall back to the generic plugin icon. */
   icon: string;
   /** Accessible label for the status glyph. */
   label: string;
@@ -1852,7 +1852,7 @@ export interface PluginComposerApi {
    * pipeline (a queued-message editor, a side chat), an empty draft, or a
    * composer that is not ready (still loading its execution defaults, missing
    * an environment). The rejection's message is safe to show to the user.
-   * Failures of the underlying request are reported by bb's own submit error
+   * Failures of the underlying request are reported by kaioken's own submit error
    * handling and restore the draft, exactly as an interactive failure does.
    *
    * Experimental: see docs/api_to_audit.md.
@@ -1893,7 +1893,7 @@ export interface ThreadChatMessageAction {
   id: string;
   /** Tooltip / menu label for the action. */
   title: string;
-  /** Icon hint (BB icon name); unknown names fall back to a generic icon. */
+  /** Icon hint (Kaioken icon name); unknown names fall back to a generic icon. */
   icon?: string;
   /**
    * Message roles the action applies to. Omitted = both user and assistant
@@ -1910,7 +1910,7 @@ export interface ThreadChatMessageAction {
 /**
  * Props of the host-owned `ThreadChat` component — one thread's chat
  * (timeline, and for the composer variants the full send/queue/draft
- * engine), rendered by the BB app inside a plugin slot. This is the
+ * engine), rendered by the Kaioken app inside a plugin slot. This is the
  * deliberate exception to the no-host-components rule (§5.5): a stable
  * product capability, not a UI kit. Versioned additive like slot props;
  * internal timeline rows, query hooks, and prompt-box configuration are
@@ -1978,7 +1978,7 @@ export type ExperimentalProviderModelPickerRouting =
  * Props of the host-owned `experimental_ProviderModelPicker` component.
  * Provider switches emit one coherent value after the live catalog resolves
  * its default model, reasoning level, and service-tier capability. Failed or
- * empty catalogs leave `value` unchanged. Omit `routing` to use bb's
+ * empty catalogs leave `value` unchanged. Omit `routing` to use kaioken's
  * primary-machine routing. Environment routing is required when a provider's
  * model catalog depends on the selected workspace.
  */
@@ -1997,9 +1997,9 @@ export interface ExperimentalProviderModelPickerProps {
 }
 
 /**
- * Props of the host-owned `experimental_BranchPicker` component — bb's branch
+ * Props of the host-owned `experimental_BranchPicker` component — kaioken's branch
  * picker bundled with its branch-options loading for the given host and
- * project, the control bb's own New Thread composer renders as "Branch from".
+ * project, the control kaioken's own New Thread composer renders as "Branch from".
  * The host owns fetching, searching, and refreshing the branch list; the
  * caller owns only the selection.
  */
@@ -2060,7 +2060,7 @@ export interface CheckoutState {
   operation: WorkspaceGitOperation;
 }
 
-/** Props of BB's controlled, host-resolved permission-mode picker. */
+/** Props of Kaioken's controlled, host-resolved permission-mode picker. */
 export interface ExperimentalPermissionModePickerProps {
   /** Provider whose supported modes determine the available choices. */
   providerId: string;
@@ -2094,7 +2094,7 @@ export interface ExperimentalPermissionModePickerProps {
  */
 export interface NewThreadRequest {
   /**
-   * The selected project id. Choosing "Don't work in a project" submits BB's
+   * The selected project id. Choosing "Don't work in a project" submits Kaioken's
    * personal-project id (not `null`) together with a `personal` workspace
    * environment. Forward those fields unchanged to `threads.spawn`; if the
    * plugin needs project metadata, request it from the plugin backend with
@@ -2126,11 +2126,11 @@ export interface NewThreadRequest {
 }
 
 /**
- * Props of the host-owned `experimental_NewThreadComposer` component — bb's
+ * Props of the host-owned `experimental_NewThreadComposer` component — kaioken's
  * full new-thread compose surface (prompt editor with @-mentions and expand,
  * attachments, provider/model/reasoning picker, voice, submit, and the row
  * beneath with project, environment, branch-from, and permission mode),
- * rendered by the BB app inside a plugin slot.
+ * rendered by the Kaioken app inside a plugin slot.
  *
  * It is the create-side counterpart to `ThreadChat`: same deliberate
  * exception to the no-host-components rule (§5.5), same additive versioning.
@@ -2231,7 +2231,7 @@ export interface NewThreadComposerProps {
 }
 
 /**
- * Props of the host-owned `Markdown` component — bb's chat message renderer
+ * Props of the host-owned `Markdown` component — kaioken's chat message renderer
  * (the same typography, spacing, and code styling as timeline messages).
  * Use it wherever plugin UI quotes or previews message content so it reads
  * like the rest of the chat. Like `ThreadChat`, this is a stable product
@@ -2244,7 +2244,7 @@ export interface MarkdownProps {
 }
 
 /**
- * Props for BB's semantic URL link. The host owns ordinary activation while
+ * Props for Kaioken's semantic URL link. The host owns ordinary activation while
  * retaining browser-owned anchor behavior for app routes, modifiers, explicit
  * targets, copying, and unsupported schemes. New top-level targets preserve
  * supplied `rel` tokens and receive safe defaults unless `opener` is explicit.
@@ -2268,14 +2268,14 @@ export type ExperimentalFileLocation =
   | { kind: "line"; line: number; column: number | null }
   | { kind: "range"; startLine: number; endLine: number };
 
-/** Options shared by BB's preview and preferred-external file intents. */
+/** Options shared by Kaioken's preview and preferred-external file intents. */
 export interface ExperimentalFileOpenOptions {
   target: ExperimentalLiveFileTarget;
   location: ExperimentalFileLocation | null;
 }
 
 /**
- * Props for BB's host-rendered semantic file link. Valid targets receive a
+ * Props for Kaioken's host-rendered semantic file link. Valid targets receive a
  * scheme-safe anchor href; traversal paths, ill-formed Unicode, and other
  * malformed runtime targets remain inert.
  */
@@ -2316,12 +2316,12 @@ export interface ExperimentalAppPanel {
 }
 
 /** Current app selection, derived from the route. */
-export interface BbContext {
+export interface KaiokenContext {
   projectId: string | null;
   threadId: string | null;
 }
 
-export interface BbNavigate {
+export interface KaiokenNavigate {
   toThread(threadId: string): void;
   toProject(projectId: string): void;
   /**
@@ -2348,12 +2348,12 @@ export interface BbNavigate {
    */
   openThreadPanel(options: PluginTargetedPanelActionOpenOptions): boolean;
   /**
-   * Open an HTTP(S) URL using this client's BB browser preference. Returns
+   * Open an HTTP(S) URL using this client's Kaioken browser preference. Returns
    * false for schemes the host does not own. Experimental: see
    * docs/api_to_audit.md.
    */
   openUrl(url: string): boolean;
-  /** Open a live file in this surface's shared BB preview panel. */
+  /** Open a live file in this surface's shared Kaioken preview panel. */
   experimental_openFilePreview(options: ExperimentalFileOpenOptions): boolean;
   /** Open a live file in this client's preferred external file target. */
   experimental_openFileExternally(
@@ -2363,11 +2363,11 @@ export interface BbNavigate {
 
 // ---------------------------------------------------------------------------
 // The whole runtime surface. Declaration-versus-runtime parity is tested
-// against the actual `@get-bb/plugin-sdk/app` module namespace.
+// against the actual `@get-kaioken/plugin-sdk/app` module namespace.
 //
 // Components are deliberately NOT part of this surface (removed 2026-07-03,
 // plugin design §5.5): plugins vendor shadcn-style component source from the
-// BB registry (`npx shadcn add @bb/<name>`) and own it. `bb plugin build`
+// Kaioken registry (`npx shadcn add @kaioken/<name>`) and own it. `kaioken plugin build`
 // shims react, the shared-singleton packages (portal radix families,
 // sonner, vaul, @pierre/diffs) and the host-resident libraries every plugin
 // would otherwise duplicate (clsx, tailwind-merge, class-variance-authority,
@@ -2377,8 +2377,8 @@ export interface BbNavigate {
 // ---------------------------------------------------------------------------
 
 /**
- * Everything `@get-bb/plugin-sdk/app` resolves to at runtime. The BB app builds
- * the real implementation and `satisfies` this interface; `bb plugin build`
+ * Everything `@get-kaioken/plugin-sdk/app` resolves to at runtime. The Kaioken app builds
+ * the real implementation and `satisfies` this interface; `kaioken plugin build`
  * shims the specifier to that object on `globalThis.__bbPluginRuntime`.
  */
 export interface PluginSdkApp {
@@ -2395,8 +2395,8 @@ export interface PluginSdkApp {
    */
   useRealtimeConnectionState(): PluginRealtimeConnectionState;
   useSettings(): PluginSettingsState;
-  useBbContext(): BbContext;
-  useBbNavigate(): BbNavigate;
+  useBbContext(): KaiokenContext;
+  useBbNavigate(): KaiokenNavigate;
   /** Select one of this plugin's eligible fixed tabs on the current surface. */
   experimental_useAppPanel(): ExperimentalAppPanel;
   /** Read or clear the owning tab's validated, session-scoped target. */
@@ -2456,7 +2456,7 @@ export interface PluginSdkApp {
   /**
    * The active code theme as a VS Code theme file (see
    * {@link PluginCodeThemeState}), for a plugin that renders code with an
-   * engine of its own and needs BB's palette to reach it. Experimental: see
+   * engine of its own and needs Kaioken's palette to reach it. Experimental: see
    * docs/api_to_audit.md.
    */
   experimental_useCodeTheme(): PluginCodeThemeState;
@@ -2472,7 +2472,7 @@ export interface PluginSdkApp {
    */
   Markdown: ComponentType<MarkdownProps>;
   /**
-   * A real anchor whose ordinary HTTP(S) activation uses BB's URL preference.
+   * A real anchor whose ordinary HTTP(S) activation uses Kaioken's URL preference.
    * Experimental: see docs/api_to_audit.md.
    */
   UrlLink: ComponentType<UrlLinkProps>;
@@ -2485,20 +2485,20 @@ export interface PluginSdkApp {
    */
   experimental_NewThreadComposer: ComponentType<NewThreadComposerProps>;
   /**
-   * BB's controlled provider/model/reasoning picker. Provider changes emit
+   * Kaioken's controlled provider/model/reasoning picker. Provider changes emit
    * only after the new provider's verified defaults and capabilities resolve,
    * so `onChange` always receives one coherent value. Experimental: see
    * docs/api_to_audit.md.
    */
   experimental_ProviderModelPicker: ComponentType<ExperimentalProviderModelPickerProps>;
   /**
-   * BB's controlled permission-mode picker. The host resolves provider
+   * Kaioken's controlled permission-mode picker. The host resolves provider
    * capabilities and the routed machine's permission ceiling. Experimental:
    * see docs/api_to_audit.md.
    */
   experimental_PermissionModePicker: ComponentType<ExperimentalPermissionModePickerProps>;
   /**
-   * BB's branch picker with its branch-options loading for one host and
+   * Kaioken's branch picker with its branch-options loading for one host and
    * project (see {@link BranchPickerProps}) — the same control
    * the New Thread composer renders as "Branch from". Experimental: see
    * docs/api_to_audit.md.
@@ -2516,14 +2516,14 @@ export interface PluginSdkApp {
   experimental_useCheckoutState(args: UseCheckoutStateArgs): CheckoutState;
   /**
    * The host-owned source viewer (see {@link SourceCodeProps}). Renders
-   * supplied source text with BB's syntax highlighting, gutters, and live code
+   * supplied source text with Kaioken's syntax highlighting, gutters, and live code
    * theme, and honours an active `experimental_sourceCodeRenderer`
    * replacement. Experimental: see docs/api_to_audit.md.
    */
   experimental_SourceCode: ComponentType<SourceCodeProps>;
   /**
    * The host-owned diff viewer (see {@link DiffProps}). Renders supplied patch
-   * content with BB's normalization, optional full-file context expansion,
+   * content with Kaioken's normalization, optional full-file context expansion,
    * syntax highlighting, unified/split presentation, and live code theme, and
    * honours an active
    * `experimental_diffRenderer` replacement. Experimental: see

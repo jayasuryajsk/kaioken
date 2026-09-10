@@ -1,4 +1,4 @@
-import type { ThreadTimelineGoal } from "@bb/domain";
+import type { ThreadTimelineGoal } from "@kaioken/domain";
 import {
   PROMPT_STACK_CARD_ROW_HEIGHT,
   PromptStackCard,
@@ -7,9 +7,9 @@ import {
   activityIconClass,
   activityRowClass,
   activityTextClass,
-} from "@bb/shared-ui/activity-row-styles";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/activity-row-styles";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 const GOAL_HEADER_GROUP_CLASS = activityRowClass(
   "active",

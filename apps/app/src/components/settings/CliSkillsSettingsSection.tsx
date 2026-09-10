@@ -1,11 +1,11 @@
 import { useState } from "react";
-import type { Host } from "@bb/domain";
+import type { Host } from "@kaioken/domain";
 import type {
   CliSkillMachineStatus,
   SystemCliSkillsStatusResponse,
   SystemInstallCliSkillsResponse,
-} from "@bb/server-contract";
-import { Button } from "@bb/shared-ui/button";
+} from "@kaioken/server-contract";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   SettingsSection,
   SettingsWithControl,
@@ -16,7 +16,7 @@ import { useInstallCliSkills } from "@/hooks/mutations/settings-mutations";
 import { useHosts } from "@/hooks/queries/host-queries";
 import { useCliSkillsStatus } from "@/hooks/queries/system-queries";
 
-const CLI_SKILLS_SETTING_LABEL = "bb CLI skills";
+const CLI_SKILLS_SETTING_LABEL = "kaioken CLI skills";
 
 interface CliSkillsSettingsSectionContentProps {
   hasConnectedMachine: boolean;
@@ -27,7 +27,7 @@ interface CliSkillsSettingsSectionContentProps {
 
 function installDescription(hasConnectedMachine: boolean): string {
   return hasConnectedMachine
-    ? "Install them into ~/.agents/skills and ~/.claude/skills so agents outside bb can use the bb CLI."
+    ? "Install them into ~/.agents/skills and ~/.claude/skills so agents outside kaioken can use the kaioken CLI."
     : "Connect a machine to install them into ~/.agents/skills and ~/.claude/skills.";
 }
 
@@ -83,7 +83,7 @@ function reportInstallResults(result: SystemInstallCliSkillsResponse): void {
   const failed = result.results.filter((entry) => !entry.ok);
   if (installed.length > 0) {
     appToast.success(
-      `Installed the bb CLI skills on ${installed
+      `Installed the kaioken CLI skills on ${installed
         .map((entry) => entry.hostName)
         .join(", ")}`,
     );

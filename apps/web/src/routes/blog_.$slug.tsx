@@ -25,10 +25,10 @@ export const Route = createFileRoute("/blog_/$slug")({
   head: ({ loaderData }) => {
     const post = loaderData?.post;
     if (!post) {
-      return { meta: [{ title: "Blog — bb" }] };
+      return { meta: [{ title: "Blog — kaioken" }] };
     }
     const description = stripMarkdown(post.lede);
-    const title = `${post.title} — bb`;
+    const title = `${post.title} — kaioken`;
     return {
       meta: [
         { title },

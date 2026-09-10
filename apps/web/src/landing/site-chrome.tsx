@@ -13,8 +13,8 @@ export function SiteNav({ current }: { current?: SiteNavPage }) {
   return (
     <nav className="nav">
       {}
-      <a className="logo" href="/" aria-label="bb">
-        <span className="bb-mark logo-mark" />
+      <a className="logo" href="/" aria-label="kaioken">
+        <span className="kaioken-mark logo-mark" />
       </a>
       <div className="nav-links">
         <a
@@ -59,7 +59,7 @@ export function SiteFooter() {
   const platform = useDesktopPlatform();
   return (
     <footer className="footer">
-      <span>bb is free and open source (MIT)</span>
+      <span>kaioken is free and open source (MIT)</span>
       <span>
         <a href="/blog">Blog</a>
         {" · "}

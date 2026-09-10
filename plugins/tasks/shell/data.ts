@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRealtime, useRpc } from "@get-bb/plugin-sdk/app";
+import { useRealtime, useRpc } from "@get-kaioken/plugin-sdk/app";
 import type { z } from "zod";
 import { tasksRpcContract, type TasksRpcContract } from "../shared/contract.js";
 import type { Task, TaskPriority, TaskStatus } from "../shared/contract.js";

@@ -10,9 +10,9 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 import type { AnySQLiteColumn } from "drizzle-orm/sqlite-core";
-import { threadStatusValues } from "@bb/domain/thread-status";
-import { threadOriginKindValues } from "@bb/domain/thread-origin-kind";
-import { threadVisibilityValues } from "@bb/domain/thread-visibility";
+import { threadStatusValues } from "@kaioken/domain/thread-status";
+import { threadOriginKindValues } from "@kaioken/domain/thread-origin-kind";
+import { threadVisibilityValues } from "@kaioken/domain/thread-visibility";
 import type {
   EnvironmentProviderSelection,
   JsonValue,
@@ -35,7 +35,7 @@ import type {
   ThreadEventScopeKind,
   ThreadEventType,
   ProjectKind,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type { RetainedEventOutputPath } from "./retained-event-output.js";
 
 export const authUsers = sqliteTable(

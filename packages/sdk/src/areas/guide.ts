@@ -1,4 +1,4 @@
-import { templateDefinitions, type TemplateId } from "@bb/templates/generated";
+import { templateDefinitions, type TemplateId } from "@kaioken/templates/generated";
 
 export interface GuideRenderArgs {
   chapter?: string;
@@ -14,17 +14,17 @@ export interface GuideArea {
 }
 
 const guideChapters: Record<string, TemplateId> = {
-  threads: "bbGuideThreads",
-  environments: "bbGuideEnvironments",
-  "agent-configuration": "bbGuideAgentConfiguration",
-  providers: "bbGuideProviders",
-  projects: "bbGuideProjects",
-  machines: "bbGuideMachines",
-  terminals: "bbGuideTerminals",
-  browser: "bbGuideBrowser",
-  customization: "bbGuideCustomization",
-  plugins: "bbGuidePlugins",
-  automations: "bbGuideAutomations",
+  threads: "kaiokenGuideThreads",
+  environments: "kaiokenGuideEnvironments",
+  "agent-configuration": "kaiokenGuideAgentConfiguration",
+  providers: "kaiokenGuideProviders",
+  projects: "kaiokenGuideProjects",
+  machines: "kaiokenGuideMachines",
+  terminals: "kaiokenGuideTerminals",
+  browser: "kaiokenGuideBrowser",
+  customization: "kaiokenGuideCustomization",
+  plugins: "kaiokenGuidePlugins",
+  automations: "kaiokenGuideAutomations",
 };
 
 const templateBodyById = new Map(
@@ -43,7 +43,7 @@ export function createGuideArea(): GuideArea {
   return {
     render(input = {}) {
       if (!input.chapter) {
-        return { content: renderStaticTemplate("bbGuideOverview") };
+        return { content: renderStaticTemplate("kaiokenGuideOverview") };
       }
       const templateId = guideChapters[input.chapter];
       if (!templateId) {

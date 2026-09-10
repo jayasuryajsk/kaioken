@@ -2,16 +2,16 @@ import { useContext } from "react";
 import { PluginContext } from "@/components/plugin/plugin-context";
 
 export function usePortalScopeProps(): {
-  "data-bb-portaled-overlay": "";
-  "data-bb-plugin-root"?: "";
-  "data-bb-plugin"?: string;
+  "data-kaioken-portaled-overlay": "";
+  "data-kaioken-plugin-root"?: "";
+  "data-kaioken-plugin"?: string;
 } {
   const pluginId = useContext(PluginContext);
   return pluginId === null
-    ? { "data-bb-portaled-overlay": "" }
+    ? { "data-kaioken-portaled-overlay": "" }
     : {
-        "data-bb-portaled-overlay": "",
-        "data-bb-plugin-root": "",
-        "data-bb-plugin": pluginId,
+        "data-kaioken-portaled-overlay": "",
+        "data-kaioken-plugin-root": "",
+        "data-kaioken-plugin": pluginId,
       };
 }

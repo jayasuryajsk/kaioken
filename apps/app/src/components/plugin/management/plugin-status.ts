@@ -1,5 +1,5 @@
-import type { PluginRuntimeStatus } from "@bb/server-contract";
-import type { IconName } from "@bb/shared-ui/icon";
+import type { PluginRuntimeStatus } from "@kaioken/server-contract";
+import type { IconName } from "@kaioken/shared-ui/icon";
 import type { PluginListItem } from "@/hooks/queries/plugin-settings-queries";
 
 export interface PluginRuntimeStatusPresentation {
@@ -44,20 +44,20 @@ function pluginRuntimeRecovery(plugin: PluginListItem): string {
         return "Fix the plugin, then reload it.";
       }
       if (plugin.provenance === "builtin") {
-        return "Reload the plugin. If it still fails, restart bb.";
+        return "Reload the plugin. If it still fails, restart kaioken.";
       }
       return "Reload the plugin. If it still fails, remove it and install it again.";
     case "incompatible":
       return plugin.provenance === "builtin"
-        ? "Update bb to load a compatible bundled plugin."
-        : "Install a version compatible with this bb.";
+        ? "Update kaioken to load a compatible bundled plugin."
+        : "Install a version compatible with this kaioken.";
     case "missing":
       return plugin.provenance === "builtin"
-        ? "Restart bb. If the files are still missing, reinstall bb."
+        ? "Restart kaioken. If the files are still missing, reinstall kaioken."
         : "Remove the plugin, then install it again from its source.";
     case "needs-configuration":
       return plugin.hasSettings
-        ? "Complete the Configuration section; bb reloads the plugin after you save."
+        ? "Complete the Configuration section; kaioken reloads the plugin after you save."
         : "Add the required configuration, then reload the plugin.";
     case "degraded":
       return "Wait a moment, then reload the plugin.";
@@ -73,7 +73,7 @@ function pluginRuntimeCondition(plugin: PluginListItem): string {
     case "error":
       return "The plugin couldn't start.";
     case "incompatible":
-      return "This plugin version isn't compatible with your version of bb.";
+      return "This plugin version isn't compatible with your version of kaioken.";
     case "missing":
       return "The plugin's files are missing.";
     case "needs-configuration":

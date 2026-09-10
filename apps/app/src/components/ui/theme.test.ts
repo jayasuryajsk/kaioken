@@ -117,7 +117,7 @@ function contrastRatio(foreground: OklchColor, background: OklchColor): number {
 describe("theme.css neutral ramp", () => {
   it("backs selected sticky sidebar rows with an opaque sidebar layer", () => {
     const rule = css.match(
-      /\[data-sidebar-sticky-tier\]\.bb-sidebar-selected-row\s*\{([^}]*)\}/s,
+      /\[data-sidebar-sticky-tier\]\.kaioken-sidebar-selected-row\s*\{([^}]*)\}/s,
     )?.[1];
 
     expect(rule).toContain(
@@ -128,7 +128,7 @@ describe("theme.css neutral ramp", () => {
 
   it("resolves the open-in-split thread tint to an opaque sidebar color", () => {
     const rule = css.match(
-      /\.bb-sidebar-open-in-split-row\s*\{([^}]*)\}/s,
+      /\.kaioken-sidebar-open-in-split-row\s*\{([^}]*)\}/s,
     )?.[1];
 
     expect(rule).toContain("color-mix(");
@@ -138,15 +138,15 @@ describe("theme.css neutral ramp", () => {
     expect(rule).not.toContain("transparent");
 
     const stickyRule = css.match(
-      /\[data-sidebar-sticky-tier\]\.bb-sidebar-open-in-split-row\s*\{([^}]*)\}/s,
+      /\[data-sidebar-sticky-tier\]\.kaioken-sidebar-open-in-split-row\s*\{([^}]*)\}/s,
     )?.[1];
     expect(stickyRule).toContain("background-image: linear-gradient(");
     expect(
-      stickyRule?.match(/var\(--bb-sidebar-open-in-split-background\)/g),
+      stickyRule?.match(/var\(--kaioken-sidebar-open-in-split-background\)/g),
     ).toHaveLength(2);
 
     const interactiveRule = css.match(
-      /\[data-sidebar-sticky-tier\]\.bb-sidebar-open-in-split-row:is\([^{]+\)\s*\{([^}]*)\}/s,
+      /\[data-sidebar-sticky-tier\]\.kaioken-sidebar-open-in-split-row:is\([^{]+\)\s*\{([^}]*)\}/s,
     )?.[1];
     expect(interactiveRule).toContain("background-image: linear-gradient(");
     expect(interactiveRule?.match(/var\(--sidebar-accent\)/g)).toHaveLength(2);
@@ -277,7 +277,7 @@ describe("theme.css semantic update surfaces", () => {
 
 describe("theme.css desktop portal hit testing", () => {
   it("carves portaled overlays out of native window drag regions", () => {
-    const rule = css.match(/\[data-bb-portaled-overlay\]\s*\{([^}]*)\}/)?.[1];
+    const rule = css.match(/\[data-kaioken-portaled-overlay\]\s*\{([^}]*)\}/)?.[1];
 
     expect(rule).toBeDefined();
     expect(rule).toMatch(/(?:^|\s)app-region:\s*no-drag;/);

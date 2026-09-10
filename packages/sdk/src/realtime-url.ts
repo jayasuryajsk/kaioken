@@ -1,7 +1,7 @@
-import type { BbSdkTransport } from "./transport.js";
+import type { KaiokenSdkTransport } from "./transport.js";
 
 export interface ResolveRealtimeUrlArgs {
-  transport: BbSdkTransport;
+  transport: KaiokenSdkTransport;
 }
 
 interface WebsocketUrlFromHttpUrlArgs {
@@ -72,6 +72,6 @@ export function resolveRealtimeUrl(args: ResolveRealtimeUrlArgs): string {
   }
 
   throw new Error(
-    "BB SDK realtime requires an absolute baseUrl or realtimeUrl in this runtime.",
+    "Kaioken SDK realtime requires an absolute baseUrl or realtimeUrl in this runtime.",
   );
 }

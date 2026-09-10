@@ -6,8 +6,8 @@ import {
   type GitBranchSelection,
   type Thread,
   type JsonValue,
-} from "@bb/domain";
-import type { CreateThreadEnvironmentArgs } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { CreateThreadEnvironmentArgs } from "@kaioken/server-contract";
 import { action } from "../../action.js";
 import { createCliBbSdk } from "../../client.js";
 import {
@@ -104,7 +104,7 @@ function resolveSpawnParentThreadId(args: {
   if (args.parentSelf) {
     const selfThreadId = resolveContextThreadId();
     if (!selfThreadId) {
-      throw new Error("--parent-self requires BB_THREAD_ID to be set.");
+      throw new Error("--parent-self requires KAIOKEN_THREAD_ID to be set.");
     }
     return selfThreadId;
   }
@@ -226,7 +226,7 @@ async function buildProviderSpawnEnvironment(args: {
       inputs = {};
     } else {
       throw new Error(
-        `The '${match.id}' environment provider needs --environment-inputs <json>; \`bb environment providers --json\` shows its schema.`,
+        `The '${match.id}' environment provider needs --environment-inputs <json>; \`kaioken environment providers --json\` shows its schema.`,
       );
     }
   }
@@ -271,7 +271,7 @@ export function registerSpawnCommand(
     )
     .option(
       "--base-branch <branch>",
-      "Exact Git ref; omit for bb's project default (use origin/<branch> for a remote ref)",
+      "Exact Git ref; omit for kaioken's project default (use origin/<branch> for a remote ref)",
     )
     .option(
       "--machine <id-or-name>",
@@ -279,7 +279,7 @@ export function registerSpawnCommand(
     )
     .option("--host <id-or-name>", "Alias for --machine")
     .option("--parent-thread <id>", "Parent thread ID for worker thread links")
-    .option("--parent-self", "Parent the new thread to BB_THREAD_ID")
+    .option("--parent-self", "Parent the new thread to KAIOKEN_THREAD_ID")
     .option("--provider <id>", PROVIDER_HELP)
     .option(
       "--model <model>",
@@ -312,11 +312,11 @@ export function registerSpawnCommand(
     )
     .option(
       "--environment-provider <id>",
-      "Run on an environment provider by id (list them with `bb environment providers`)",
+      "Run on an environment provider by id (list them with `kaioken environment providers`)",
     )
     .option(
       "--environment-inputs <json>",
-      "JSON value for an --environment-provider that declares inputs (`bb environment providers --json` shows the schema)",
+      "JSON value for an --environment-provider that declares inputs (`kaioken environment providers --json` shows the schema)",
     )
     .option("--send-at <when>", SEND_AT_HELP)
     .option("--origin-kind <kind>", "Thread origin: fork")

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { threadScope, turnScope, type ThreadEvent } from "@bb/domain";
+import { threadScope, turnScope, type ThreadEvent } from "@kaioken/domain";
 import {
   experimental_COMPACTION_PRESENTATION as COMPACTION_PRESENTATION,
   experimental_REASONING_PRESENTATION as REASONING_PRESENTATION,
-} from "@get-bb/plugin-sdk/provider-bridge";
-import { experimental_createDeltaAssembler as createDeltaAssembler } from "@get-bb/plugin-sdk/provider-bridge/testing";
-import type { DeltaAssembler } from "@get-bb/plugin-sdk/provider-bridge/testing";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
+import { experimental_createDeltaAssembler as createDeltaAssembler } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
+import type { DeltaAssembler } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 import type { ServerNotification as CodexServerNotification } from "./generated/codex-app-server/schema/ServerNotification.js";
 import type { RateLimitSnapshot } from "./generated/codex-app-server/schema/v2/RateLimitSnapshot.js";
 import type { Turn } from "./generated/codex-app-server/schema/v2/Turn.js";
@@ -982,7 +982,7 @@ describe("codex item translation", () => {
     );
   });
 
-  it("stamps bb-injected tool calls with server bb and the definition's presentation", () => {
+  it("stamps kaioken-injected tool calls with server kaioken and the definition's presentation", () => {
     const harness = createHarness();
     harness.translator.configureInjectedTools([
       {
@@ -1003,7 +1003,7 @@ describe("codex item translation", () => {
         startedAtMs: 0,
         item: {
           type: "dynamicToolCall",
-          id: "dyn-bb-1",
+          id: "dyn-kaioken-1",
           namespace: null,
           tool: "bb_workflow_run",
           arguments: { name: "review" },
@@ -1019,8 +1019,8 @@ describe("codex item translation", () => {
         type: "item/started",
         item: {
           type: "toolCall",
-          id: harness.itemId("dyn-bb-1"),
-          server: "bb",
+          id: harness.itemId("dyn-kaioken-1"),
+          server: "kaioken",
           tool: "bb_workflow_run",
           arguments: { name: "review" },
           status: "pending",

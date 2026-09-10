@@ -1,4 +1,4 @@
-import type { PluginCommandPaletteActionContext } from "@get-bb/plugin-sdk";
+import type { PluginCommandPaletteActionContext } from "@get-kaioken/plugin-sdk";
 import type { PluginThreadPanelOpenHandler } from "@/components/plugin/plugin-thread-panel-navigation";
 import type { PluginCommandPaletteActionSlot } from "@/lib/plugin-slots";
 import type { PaletteAction } from "./palette-action";

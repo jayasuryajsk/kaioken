@@ -9,7 +9,7 @@ import { promisify } from "node:util";
 import { app, BrowserWindow, nativeImage } from "electron";
 import { WebSocket, WebSocketServer } from "ws";
 import { z } from "zod";
-import { desktopBrowserResultSchemas } from "@bb/host-daemon-contract";
+import { desktopBrowserResultSchemas } from "@kaioken/host-daemon-contract";
 import {
   createDesktopBrowserCdpBridge,
   desktopBrowserCdpTargetId,
@@ -984,12 +984,12 @@ async function main() {
       2,
     ),
   );
-  console.log("BB_CDP_SMOKE_COMPLETE");
+  console.log("KAIOKEN_CDP_SMOKE_COMPLETE");
   app.quit();
 }
 
 main().catch((error) => {
   console.error(error instanceof Error ? error.stack : String(error));
-  console.log("BB_CDP_SMOKE_FAILED");
+  console.log("KAIOKEN_CDP_SMOKE_FAILED");
   app.exit(1);
 });

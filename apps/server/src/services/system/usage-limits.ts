@@ -1,8 +1,8 @@
 import type {
   ProviderUsage,
   ProviderUsageResponse,
-} from "@bb/host-daemon-contract";
-import type { SystemUsageLimitsQuery } from "@bb/server-contract";
+} from "@kaioken/host-daemon-contract";
+import type { SystemUsageLimitsQuery } from "@kaioken/server-contract";
 import type { AppDeps } from "../../types.js";
 import { COMMAND_TIMEOUT_MS } from "../../constants.js";
 import { callHostRetryableOnlineRpc } from "../hosts/online-rpc.js";

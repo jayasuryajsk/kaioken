@@ -24,8 +24,8 @@ const REPO_PLUGINS_DIRECTORY_NAME = "plugins";
 
 export const BUILTIN_PLUGINS = [
   {
-    name: "bb-guide",
-    pluginId: "bb-guide",
+    name: "kaioken-guide",
+    pluginId: "kaioken-guide",
     defaultEnabled: true,
   },
   {

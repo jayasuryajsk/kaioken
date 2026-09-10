@@ -23,10 +23,10 @@ import {
   upsertInstalledPlugin,
   upsertPluginMarketplace,
   type DbConnection,
-} from "@bb/db";
-import { PLUGIN_SDK_VERSION, type SystemChangeKind } from "@bb/domain";
-import type { Logger } from "@bb/logger";
-import { pluginListResponseSchema } from "@bb/server-contract";
+} from "@kaioken/db";
+import { PLUGIN_SDK_VERSION, type SystemChangeKind } from "@kaioken/domain";
+import type { Logger } from "@kaioken/logger";
+import { pluginListResponseSchema } from "@kaioken/server-contract";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import {
   createPluginService,
@@ -76,7 +76,7 @@ async function writeEsmPlugin(rootDir: string, id: string): Promise<void> {
   await writeFile(
     join(rootDir, "package.json"),
     JSON.stringify({
-      name: `bb-plugin-${id}`,
+      name: `kaioken-plugin-${id}`,
       version: "0.1.0",
       type: "module",
       bb: {
@@ -116,7 +116,7 @@ describe("plugin service", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-test-"));
     service = createPluginService({
       aiServices: createAiServiceRegistry(),
       telemetry: createNoopTelemetryService(),
@@ -160,9 +160,9 @@ describe("plugin service", () => {
 
   it("installs a path plugin, runs its factory, and reports running", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-greeter",
+      name: "kaioken-plugin-greeter",
       serverSource: `
-        import type { BbPluginApi } from "@get-bb/plugin-sdk";
+        import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
         export default function plugin(bb: any) {
           (globalThis as any).__greeterLoads = ((globalThis as any).__greeterLoads ?? 0) + 1;
           bb.log.info("hello from greeter");
@@ -179,7 +179,7 @@ describe("plugin service", () => {
     "reports starting while a %s factory is pending",
     async (mode) => {
       const rootDir = await writePlugin(workDir, {
-        name: "bb-plugin-starting",
+        name: "kaioken-plugin-starting",
         serverSource: `export default function plugin() { throw new Error("failed"); }`,
       });
       expect((await service.installPath(rootDir)).status).toBe("error");
@@ -241,7 +241,7 @@ describe("plugin service", () => {
   );
 
   it("summarizes user-facing capabilities and drops the live ones when disabled", async () => {
-    const rootDir = join(workDir, "bb-plugin-capabilities");
+    const rootDir = join(workDir, "kaioken-plugin-capabilities");
     await mkdir(join(rootDir, "skills", "review"), { recursive: true });
     await mkdir(join(rootDir, "skills", "triage"), { recursive: true });
     await mkdir(join(rootDir, "skills", "not-a-skill"), { recursive: true });
@@ -249,7 +249,7 @@ describe("plugin service", () => {
     await writeFile(join(rootDir, "skills", "triage", "SKILL.md"), "# triage");
     await writeFile(join(rootDir, "midnight.css"), ":root { --canvas: #000; }");
     await writePlugin(workDir, {
-      name: "bb-plugin-capabilities",
+      name: "kaioken-plugin-capabilities",
       bb: {
         themes: [
           {
@@ -326,11 +326,11 @@ describe("plugin service", () => {
 
   it("marks a throwing factory as error without affecting others", async () => {
     const bad = await writePlugin(workDir, {
-      name: "bb-plugin-bad",
+      name: "kaioken-plugin-bad",
       serverSource: `export default function plugin() { throw new Error("boom at load"); }`,
     });
     const good = await writePlugin(workDir, {
-      name: "bb-plugin-good",
+      name: "kaioken-plugin-good",
       serverSource: `export default function plugin() {}`,
     });
     await service.installPath(bad);
@@ -345,7 +345,7 @@ describe("plugin service", () => {
 
   it("reload re-runs the factory against current sources and runs dispose hooks LIFO", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-cycler",
+      name: "kaioken-plugin-cycler",
       serverSource: `
         export default function plugin(bb: any) {
           const g = globalThis as any;
@@ -371,7 +371,7 @@ describe("plugin service", () => {
   });
 
   it("reload re-reads an ESM plugin's entry and its submodules", async () => {
-    const rootDir = join(workDir, "bb-plugin-esm-reloader");
+    const rootDir = join(workDir, "kaioken-plugin-esm-reloader");
     await writeEsmPlugin(rootDir, "esm-reloader");
     const globals = globalThis as Record<string, unknown>;
 
@@ -389,7 +389,7 @@ describe("plugin service", () => {
   });
 
   it("reload re-reads a plugin's CommonJS children", async () => {
-    const rootDir = join(workDir, "bb-plugin-cjs-child");
+    const rootDir = join(workDir, "kaioken-plugin-cjs-child");
     await writeEsmPlugin(rootDir, "cjs-child");
     const writeSources = async (value: string): Promise<void> => {
       await writeFile(
@@ -422,8 +422,8 @@ describe("plugin service", () => {
   });
 
   it("reload of an imported plugin is visible to a plugin that imports it", async () => {
-    const importerDir = join(workDir, "bb-plugin-importer");
-    const importedDir = join(workDir, "bb-plugin-imported");
+    const importerDir = join(workDir, "kaioken-plugin-importer");
+    const importedDir = join(workDir, "kaioken-plugin-imported");
     await writeEsmPlugin(importerDir, "importer");
     await writeEsmPlugin(importedDir, "imported");
     await writeEsmSources(importedDir, "imported", "entry1", "sub1");
@@ -455,8 +455,8 @@ describe("plugin service", () => {
   });
 
   it("hides a failed reload's sources from a plugin that imports it", async () => {
-    const importerDir = join(workDir, "bb-plugin-fail-importer");
-    const importedDir = join(workDir, "bb-plugin-fail-imported");
+    const importerDir = join(workDir, "kaioken-plugin-fail-importer");
+    const importedDir = join(workDir, "kaioken-plugin-fail-imported");
     await writeEsmPlugin(importerDir, "fail-importer");
     await writeEsmPlugin(importedDir, "fail-imported");
     await writeEsmSources(importedDir, "failImported", "entry1", "sub1");
@@ -540,7 +540,7 @@ describe("plugin service", () => {
   });
 
   it("keeps a live plugin's lazy imports coherent after a failed reload", async () => {
-    const rootDir = join(workDir, "bb-plugin-rollback");
+    const rootDir = join(workDir, "kaioken-plugin-rollback");
     await writeEsmPlugin(rootDir, "rollbacker");
     await writeFile(join(rootDir, "lazy.js"), `export const LAZY = "lazy1";\n`);
     await writeFile(
@@ -572,7 +572,7 @@ describe("plugin service", () => {
 
   it("stale API handles throw after reload", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-staler",
+      name: "kaioken-plugin-staler",
       serverSource: `
         export default function plugin(bb: any) {
           (globalThis as any).__stalerApi = bb;
@@ -589,7 +589,7 @@ describe("plugin service", () => {
 
   it("marks initial engine mismatches incompatible and preserves a live plugin when reload finds its directory missing", async () => {
     const tooNew = await writePlugin(workDir, {
-      name: "bb-plugin-too-new",
+      name: "kaioken-plugin-too-new",
       engines: ">=99.0.0",
       serverSource: `export default function plugin() {}`,
     });
@@ -599,7 +599,7 @@ describe("plugin service", () => {
     );
 
     const vanishing = await writePlugin(workDir, {
-      name: "bb-plugin-vanishing",
+      name: "kaioken-plugin-vanishing",
       serverSource: `export default function plugin() {}`,
     });
     await service.installPath(vanishing);
@@ -640,7 +640,7 @@ describe("plugin service", () => {
         bundledPlugins: [],
       });
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-notify",
+      name: "kaioken-plugin-notify",
       version: "0.2.1",
       engines: ">=0.38.0 <0.39.0",
       serverSource: `export default function plugin() {}`,
@@ -669,20 +669,20 @@ describe("plugin service", () => {
     const entry = after.list().find((p) => p.id === "notify");
     expect(entry?.status).toBe("incompatible");
     expect(entry?.statusDetail).toBe(
-      "requires bb >=0.38.0 <0.39.0, this is 0.39.0",
+      "requires kaioken >=0.38.0 <0.39.0, this is 0.39.0",
     );
     expect(lines).toContain(
-      "warn plugin notify not loaded (incompatible): requires bb >=0.38.0 <0.39.0, this is 0.39.0",
+      "warn plugin notify not loaded (incompatible): requires kaioken >=0.38.0 <0.39.0, this is 0.39.0",
     );
     await after.stop();
   });
 
   it("keeps a persisted 0.4.8 scaffold plugin running after an SDK upgrade", async () => {
     const fixtureDir = new URL(
-      "../../fixtures/plugins/bb-plugin-sdk-0.4.8-scaffold/",
+      "../../fixtures/plugins/kaioken-plugin-sdk-0.4.8-scaffold/",
       import.meta.url,
     );
-    const rootDir = join(workDir, "bb-plugin-sdk-upgrade-fixture");
+    const rootDir = join(workDir, "kaioken-plugin-sdk-upgrade-fixture");
     await cp(fixtureDir, rootDir, { recursive: true });
     const manifest = JSON.parse(
       await readFile(join(rootDir, "package.json"), "utf8"),
@@ -691,7 +691,7 @@ describe("plugin service", () => {
       devDependencies: Record<string, string>;
     };
     expect(manifest.engines.bbPluginSdk).toBe(">=0.4.8");
-    expect(manifest.devDependencies["@get-bb/plugin-sdk"]).toBe("0.4.8");
+    expect(manifest.devDependencies["@get-kaioken/plugin-sdk"]).toBe("0.4.8");
     expect(semver.gt(PLUGIN_SDK_VERSION, "0.4.8")).toBe(true);
 
     upsertInstalledPlugin(db, {
@@ -756,7 +756,7 @@ describe("plugin service", () => {
       loadTimeoutMs: 2000,
     });
     const gated = await writePlugin(workDir, {
-      name: "bb-plugin-dev-gated",
+      name: "kaioken-plugin-dev-gated",
       engines: ">=0.9",
       serverSource: `export default function plugin() {}`,
     });
@@ -769,7 +769,7 @@ describe("plugin service", () => {
     const captured: TelemetryEvent[] = [];
     const tracked = createTelemetryTrackedService(captured);
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-tracked",
+      name: "kaioken-plugin-tracked",
       serverSource: "export default function plugin() {}",
     });
     const installed = await tracked.installPath(rootDir);
@@ -801,7 +801,7 @@ describe("plugin service", () => {
     const captured: TelemetryEvent[] = [];
     const tracked = createTelemetryTrackedService(captured);
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-reconciled",
+      name: "kaioken-plugin-reconciled",
       serverSource: "export default function plugin() {}",
     });
     await tracked.installPath(rootDir);
@@ -985,7 +985,7 @@ describe("plugin service", () => {
             icon: "Zap",
             category: "acme-tools",
             author: { name: "Acme" },
-            source: { npm: { package: "bb-plugin-installed-tool" } },
+            source: { npm: { package: "kaioken-plugin-installed-tool" } },
           },
         ],
       }),
@@ -1004,7 +1004,7 @@ describe("plugin service", () => {
 
   it("times out a hung factory and reports error", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-hang",
+      name: "kaioken-plugin-hang",
       serverSource: `export default function plugin() { return new Promise(() => {}); }`,
     });
     await service.installPath(rootDir);
@@ -1015,7 +1015,7 @@ describe("plugin service", () => {
 
   it("disable unloads and disposes; enable loads again", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-switchable",
+      name: "kaioken-plugin-switchable",
       serverSource: `export default function plugin(bb: any) {
         bb.onDispose(() => { (globalThis as any).__switchableDisposed = true; });
       }`,
@@ -1032,7 +1032,7 @@ describe("plugin service", () => {
 
   it("enables a disabled path plugin when it is reinstalled", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-reinstalled",
+      name: "kaioken-plugin-reinstalled",
       serverSource: `export default function plugin() {}`,
     });
     await service.install(rootDir, { kind: "root" });
@@ -1053,7 +1053,7 @@ describe("plugin service", () => {
   it("reports a settings change to the server once the plugin's own listeners ran", async () => {
     const changed: string[] = [];
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-observed",
+      name: "kaioken-plugin-observed",
       serverSource: `
         export default function plugin(bb) {
           const settings = bb.settings.define({
@@ -1108,11 +1108,11 @@ describe("plugin service", () => {
         globalThis.__movedCheckout = "${marker}";
       }`;
     const checkoutA = await writePlugin(join(workDir, "a"), {
-      name: "bb-plugin-moved",
+      name: "kaioken-plugin-moved",
       serverSource: serverSource("a"),
     });
     const checkoutB = await writePlugin(join(workDir, "b"), {
-      name: "bb-plugin-moved",
+      name: "kaioken-plugin-moved",
       serverSource: serverSource("b"),
     });
     await service.installPath(checkoutA);
@@ -1147,7 +1147,7 @@ describe("plugin service", () => {
         .all("moved"),
     ).toEqual([{ name: "sweep" }]);
 
-    const checkoutC = join(workDir, "c", "bb-plugin-moved");
+    const checkoutC = join(workDir, "c", "kaioken-plugin-moved");
     await mkdir(checkoutC, { recursive: true });
     await writeFile(join(checkoutC, "package.json"), "{ not json");
     await expect(service.installPath(checkoutC)).rejects.toThrowError();
@@ -1167,11 +1167,11 @@ describe("plugin service", () => {
         globalThis.__disabledMoveStarted = "${marker}";
       }`;
     const checkoutA = await writePlugin(join(workDir, "a"), {
-      name: "bb-plugin-dormant",
+      name: "kaioken-plugin-dormant",
       serverSource: serverSource("a"),
     });
     const checkoutB = await writePlugin(join(workDir, "b"), {
-      name: "bb-plugin-dormant",
+      name: "kaioken-plugin-dormant",
       serverSource: serverSource("b"),
     });
     await service.installPath(checkoutA);
@@ -1208,7 +1208,7 @@ describe("plugin service", () => {
 
   it("rejects a path move whose new checkout fails to start and keeps the old install running", async () => {
     const checkoutA = await writePlugin(join(workDir, "a"), {
-      name: "bb-plugin-brittle",
+      name: "kaioken-plugin-brittle",
       version: "0.2.0",
       serverSource: `
         export default function plugin(bb) {
@@ -1219,7 +1219,7 @@ describe("plugin service", () => {
         }`,
     });
     const checkoutB = await writePlugin(join(workDir, "b"), {
-      name: "bb-plugin-brittle",
+      name: "kaioken-plugin-brittle",
       version: "0.3.0",
       serverSource: `
         export default function plugin() {
@@ -1259,10 +1259,10 @@ describe("plugin service", () => {
       "data",
       "personal-workspaces",
       "env_test",
-      "bb-plugin-managed",
+      "kaioken-plugin-managed",
     );
     const written = await writePlugin(workDir, {
-      name: "bb-plugin-managed",
+      name: "kaioken-plugin-managed",
       serverSource: `export default function plugin() {}`,
     });
     await mkdir(dirname(managedRoot), { recursive: true });
@@ -1270,7 +1270,7 @@ describe("plugin service", () => {
 
     await service.installPath(managedRoot);
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("bb-managed workspace"),
+      expect.stringContaining("kaioken-managed workspace"),
     );
   });
 
@@ -1278,7 +1278,7 @@ describe("plugin service", () => {
     const warnSpy = vi.spyOn(logger, "warn");
     warnSpy.mockClear();
     const checkoutRoot = await writePlugin(join(workDir, "checkout"), {
-      name: "bb-plugin-attached",
+      name: "kaioken-plugin-attached",
       serverSource: `export default function plugin() {}`,
     });
     seedEnvironmentAtPath(db, {
@@ -1289,7 +1289,7 @@ describe("plugin service", () => {
 
     await service.installPath(checkoutRoot);
     expect(warnSpy).not.toHaveBeenCalledWith(
-      expect.stringContaining("bb-managed workspace"),
+      expect.stringContaining("kaioken-managed workspace"),
     );
   });
 
@@ -1297,7 +1297,7 @@ describe("plugin service", () => {
     const warnSpy = vi.spyOn(logger, "warn");
     warnSpy.mockClear();
     const ownedRoot = await writePlugin(join(workDir, "owned"), {
-      name: "bb-plugin-owned",
+      name: "kaioken-plugin-owned",
       serverSource: `export default function plugin() {}`,
     });
     seedEnvironmentAtPath(db, {
@@ -1308,7 +1308,7 @@ describe("plugin service", () => {
 
     await service.installPath(ownedRoot);
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("bb-managed workspace"),
+      expect.stringContaining("kaioken-managed workspace"),
     );
   });
 });
@@ -1325,7 +1325,7 @@ describe("plugins-changed broadcast", () => {
   beforeEach(async () => {
     db = createConnection(":memory:");
     migrate(db);
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-notify-test-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-notify-test-"));
     notifySystem = vi.fn<(changes: SystemChangeKind[]) => void>();
     providerRegistry = createProviderRegistryService();
     service = createPluginService({
@@ -1352,7 +1352,7 @@ describe("plugins-changed broadcast", () => {
 
   it("broadcasts plugins-changed on install, reload, and enable/disable", async () => {
     const rootDir = await writePlugin(workDir, {
-      name: "bb-plugin-notifier",
+      name: "kaioken-plugin-notifier",
       serverSource: `export default function plugin() {}`,
     });
     await service.installPath(rootDir);

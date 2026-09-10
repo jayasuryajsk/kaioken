@@ -18,16 +18,16 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Host } from "@bb/domain";
-import type { ProjectWithThreadsResponse } from "@bb/server-contract";
-import { Button } from "@bb/shared-ui/button";
-import "@bb/shared-ui/icon-extended";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+import type { Host } from "@kaioken/domain";
+import type { ProjectWithThreadsResponse } from "@kaioken/server-contract";
+import { Button } from "@kaioken/shared-ui/button";
+import "@kaioken/shared-ui/icon-extended";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   ResourceOverflowMenu,
   ResourceRowDetailChevron,
-} from "@bb/shared-ui/resource-list";
+} from "@kaioken/shared-ui/resource-list";
 import { ProjectPathDialog } from "@/components/dialogs/ProjectPathDialog";
 import {
   ProjectDeleteDialog,
@@ -54,7 +54,7 @@ import { useQuickCreateProject } from "@/hooks/useQuickCreateProject";
 import { getSettingsProjectRoutePath } from "@/lib/route-paths";
 
 const PROJECTS_SECTION_DESCRIPTION =
-  "Repositories bb can work in. Drag to change the order projects appear in the sidebar.";
+  "Repositories kaioken can work in. Drag to change the order projects appear in the sidebar.";
 
 const restrictDragToVerticalAxis: Modifier = ({ transform }) => ({
   ...transform,

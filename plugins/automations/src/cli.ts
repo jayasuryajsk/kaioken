@@ -1,9 +1,9 @@
 import { extname, isAbsolute, resolve } from "node:path";
 import type {
-  BbPluginApi,
+  KaiokenPluginApi,
   PluginCliContext,
   PluginCliResult,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import type { AutomationService } from "./service.js";
 import type {
@@ -267,7 +267,7 @@ function looksLikePath(value: string): boolean {
 }
 
 async function resolveConnectedHostId(
-  bb: Pick<BbPluginApi, "sdk">,
+  bb: Pick<KaiokenPluginApi, "sdk">,
 ): Promise<string> {
   const hosts = hostListSchema.parse(await bb.sdk.hosts.list());
   const host =
@@ -279,7 +279,7 @@ async function resolveConnectedHostId(
 }
 
 async function buildAgentEnvironment(
-  bb: Pick<BbPluginApi, "sdk">,
+  bb: Pick<KaiokenPluginApi, "sdk">,
   args: ParsedArgs,
 ): Promise<AgentEnvironment> {
   const environment = flag(args, "environment")?.trim();
@@ -330,7 +330,7 @@ const threadEnvironmentHostSchema = z
   .passthrough();
 
 async function resolveScriptFileHostId(
-  bb: Pick<BbPluginApi, "sdk">,
+  bb: Pick<KaiokenPluginApi, "sdk">,
   ctx: Pick<PluginCliContext, "threadId">,
   override: string | undefined,
 ): Promise<string | undefined> {
@@ -352,7 +352,7 @@ async function resolveScriptFileHostId(
       );
     }
     throw new Error(
-      `Unknown host "${query}"; run \`bb machine list\` to list hosts.`,
+      `Unknown host "${query}"; run \`kaioken machine list\` to list hosts.`,
     );
   }
   if (ctx.threadId === undefined) return undefined;
@@ -377,7 +377,7 @@ type ScriptFileSource = {
 };
 
 async function loadScriptFileSource(
-  bb: Pick<BbPluginApi, "sdk">,
+  bb: Pick<KaiokenPluginApi, "sdk">,
   args: ParsedArgs,
   ctx: Pick<PluginCliContext, "cwd" | "threadId">,
 ): Promise<ScriptFileSource | undefined> {
@@ -417,7 +417,7 @@ type BuiltExecution = {
 };
 
 async function buildExecution(
-  bb: Pick<BbPluginApi, "sdk">,
+  bb: Pick<KaiokenPluginApi, "sdk">,
   args: ParsedArgs,
   ctx: Pick<PluginCliContext, "cwd" | "threadId">,
 ): Promise<BuiltExecution> {
@@ -531,7 +531,7 @@ const COMPLETE_EXECUTION_FLAG_NAMES = [
 ] as const;
 
 async function buildAgentExecutionUpdate(
-  bb: Pick<BbPluginApi, "sdk">,
+  bb: Pick<KaiokenPluginApi, "sdk">,
   args: ParsedArgs,
 ): Promise<AgentExecutionUpdate | undefined> {
   const agentOptionNames = [
@@ -584,7 +584,7 @@ async function buildAgentExecutionUpdate(
 }
 
 async function buildUpdateRequest(
-  bb: Pick<BbPluginApi, "sdk">,
+  bb: Pick<KaiokenPluginApi, "sdk">,
   args: ParsedArgs,
   ctx: Pick<PluginCliContext, "cwd" | "threadId">,
 ): Promise<{
@@ -700,7 +700,7 @@ function refreshScriptFileCommand(
 ): string {
   if (automation.execution.mode !== "script") return "";
   const argv = [
-    "bb",
+    "kaioken",
     "automation",
     "update",
     automation.id,
@@ -824,20 +824,20 @@ function printRunTable(runs: AutomationRunResponse[]): string {
 function helpText(): string {
   return `Automation commands
 
-bb automation list --project <id>
-bb automation create --project <id> --name <name> (--cron <expr> --timezone <tz> | --at <datetime> | --in <duration>) (--prompt <text> --provider <id> --model <model> [--reasoning <level>] [--service-tier default|fast] | --script <inline> | --script-file <path> [--host <name-or-id>])
-bb automation show <automationId> --project <id>
-bb automation update <automationId> --project <id> [--name <name>] [schedule flags] [complete agent/script execution flags | --provider <id> --model <model> --reasoning <level> --service-tier default|fast|none]
-bb automation pause <automationId> --project <id>
-bb automation resume <automationId> --project <id>
-bb automation run <automationId> --project <id> [--idempotency-key <key>]
-bb automation runs <automationId> --project <id> [--limit <count>] [--output <runId>]
-bb automation delete <automationId> --project <id> --yes
+kaioken automation list --project <id>
+kaioken automation create --project <id> --name <name> (--cron <expr> --timezone <tz> | --at <datetime> | --in <duration>) (--prompt <text> --provider <id> --model <model> [--reasoning <level>] [--service-tier default|fast] | --script <inline> | --script-file <path> [--host <name-or-id>])
+kaioken automation show <automationId> --project <id>
+kaioken automation update <automationId> --project <id> [--name <name>] [schedule flags] [complete agent/script execution flags | --provider <id> --model <model> --reasoning <level> --service-tier default|fast|none]
+kaioken automation pause <automationId> --project <id>
+kaioken automation resume <automationId> --project <id>
+kaioken automation run <automationId> --project <id> [--idempotency-key <key>]
+kaioken automation runs <automationId> --project <id> [--limit <count>] [--output <runId>]
+kaioken automation delete <automationId> --project <id> --yes
 `;
 }
 
 export function registerAutomationCli(args: {
-  bb: Pick<BbPluginApi, "cli" | "sdk">;
+  bb: Pick<KaiokenPluginApi, "cli" | "sdk">;
   service: AutomationService;
 }): void {
   const { bb, service } = args;
@@ -848,51 +848,51 @@ export function registerAutomationCli(args: {
       {
         name: "list",
         summary: "List automations for a project",
-        usage: "bb automation list --project <id> [--json]",
+        usage: "kaioken automation list --project <id> [--json]",
       },
       {
         name: "create",
         summary: "Create an automation",
         usage:
-          "bb automation create --project <id> --name <name> [schedule flags] [mode flags]",
+          "kaioken automation create --project <id> --name <name> [schedule flags] [mode flags]",
       },
       {
         name: "show",
         summary: "Show automation details",
-        usage: "bb automation show <automationId> --project <id> [--json]",
+        usage: "kaioken automation show <automationId> --project <id> [--json]",
       },
       {
         name: "update",
         summary: "Update automation configuration",
-        usage: "bb automation update <automationId> --project <id> [flags]",
+        usage: "kaioken automation update <automationId> --project <id> [flags]",
       },
       {
         name: "pause",
         summary: "Pause an automation",
-        usage: "bb automation pause <automationId> --project <id> [--json]",
+        usage: "kaioken automation pause <automationId> --project <id> [--json]",
       },
       {
         name: "resume",
         summary: "Resume an automation",
-        usage: "bb automation resume <automationId> --project <id> [--json]",
+        usage: "kaioken automation resume <automationId> --project <id> [--json]",
       },
       {
         name: "run",
         summary: "Run an automation now",
         usage:
-          "bb automation run <automationId> --project <id> [--idempotency-key <key>] [--json]",
+          "kaioken automation run <automationId> --project <id> [--idempotency-key <key>] [--json]",
       },
       {
         name: "runs",
         summary: "List automation runs",
         usage:
-          "bb automation runs <automationId> --project <id> [--limit <count>] [--output <runId>] [--json]",
+          "kaioken automation runs <automationId> --project <id> [--limit <count>] [--output <runId>] [--json]",
       },
       {
         name: "delete",
         summary: "Delete an automation",
         usage:
-          "bb automation delete <automationId> --project <id> --yes [--json]",
+          "kaioken automation delete <automationId> --project <id> --yes [--json]",
       },
     ],
     async run(argv: string[], ctx: PluginCliContext): Promise<PluginCliResult> {

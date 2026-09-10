@@ -46,9 +46,9 @@ describe("formatAgentError", () => {
       formatAgentError({
         code: -32603,
         message: "Internal error",
-        data: { details: "bb-bridge: Transport closed" },
+        data: { details: "kaioken-bridge: Transport closed" },
       }),
-    ).toBe("Internal error: bb-bridge: Transport closed");
+    ).toBe("Internal error: kaioken-bridge: Transport closed");
   });
 
   it("keeps the message alone when there is no usable data", () => {
@@ -234,7 +234,7 @@ describe("ACP agent stdio lifecycle", () => {
   });
 
   it("ignores an ACP request emitted during SIGTERM", async () => {
-    const workspace = mkdtempSync(join(tmpdir(), "bb-acp-stop-"));
+    const workspace = mkdtempSync(join(tmpdir(), "kaioken-acp-stop-"));
     const lateWrite = join(workspace, "late-write.txt");
     const ready = deferred<void>();
     const exited = deferred<AcpAgentExitInfo>();

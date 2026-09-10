@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import type { Db } from "./data.js";
 import {
   automationOriginSchema,
@@ -110,8 +110,8 @@ export const legacyImportFileSchema = z
   .strict();
 
 type LegacyImportApi = {
-  storage: { kv: Pick<BbPluginApi["storage"]["kv"], "get" | "set"> };
-  log: Pick<BbPluginApi["log"], "info">;
+  storage: { kv: Pick<KaiokenPluginApi["storage"]["kv"], "get" | "set"> };
+  log: Pick<KaiokenPluginApi["log"], "info">;
 };
 
 async function fileExists(path: string): Promise<boolean> {

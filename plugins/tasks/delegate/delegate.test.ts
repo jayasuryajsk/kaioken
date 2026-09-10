@@ -1,7 +1,7 @@
 import {
   createFakePluginHost,
   makeThreadResponse,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it } from "vitest";
 import { createStore } from "../api";
 import type { Comment, Project, Task } from "../db";
@@ -327,7 +327,7 @@ describe("task delegation", () => {
     await harness.dispose();
   });
 
-  it("fails before spawning when the task project is not linked to bb", async () => {
+  it("fails before spawning when the task project is not linked to kaioken", async () => {
     const { bb, harness } = createFakePluginHost({
       pluginId: "tasks",
       sdk: { threads: { spawn: async () => ({ id: "thr_never" }) } },
@@ -349,7 +349,7 @@ describe("task delegation", () => {
       harness.callRpc("delegate", { taskId: task.id, presetId: preset.id }),
     ).rejects.toMatchObject({
       code: "handler_error",
-      message: 'Task project "Unlinked" is not linked to a bb project',
+      message: 'Task project "Unlinked" is not linked to a kaioken project',
     });
     expect(harness.sdk.callsTo("threads.spawn")).toEqual([]);
 
@@ -579,7 +579,7 @@ describe("delegation seed prompt", () => {
       ## Project context
 
       - Name: Tasks plugin
-      - Linked bb project: proj_tasks
+      - Linked kaioken project: proj_tasks
 
       ## Sub-tasks
 
@@ -588,7 +588,7 @@ describe("delegation seed prompt", () => {
       ## Attachments
 
       - delegation-notes.md · 01J00000000000000000000006
-        Fetch with: bb tasks attachment get 01J00000000000000000000006 --out <path>
+        Fetch with: kaioken tasks attachment get 01J00000000000000000000006 --out <path>
 
       ## Recent comments
 
@@ -602,7 +602,7 @@ describe("delegation seed prompt", () => {
 
       ## Report-back contract
 
-      You are working on task TASK-1. Use the bb tasks CLI: comment substantive updates (bb tasks comment TASK-1 --body ...), attach result artifacts, set status when done (bb tasks update TASK-1 --status in_review) or explain blockage in a comment. Your thread is already attached to the task.
+      You are working on task TASK-1. Use the kaioken tasks CLI: comment substantive updates (kaioken tasks comment TASK-1 --body ...), attach result artifacts, set status when done (kaioken tasks update TASK-1 --status in_review) or explain blockage in a comment. Your thread is already attached to the task.
 
       ## Preset instructions
 

@@ -20,12 +20,12 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from "@bb/shared-ui/context-menu";
-import { TERMINAL_DATA_MAX_BYTES } from "@bb/domain";
+} from "@kaioken/shared-ui/context-menu";
+import { TERMINAL_DATA_MAX_BYTES } from "@kaioken/domain";
 import type {
   TerminalServerMessage,
   TerminalSession,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { useAppThemeEpoch } from "@/hooks/useAppTheme";
 import { usePreferredTheme } from "@/hooks/useTheme";
 import type { MarkdownPreviewLinkHandler } from "@/components/ui/markdown-link";
@@ -38,7 +38,7 @@ import {
 } from "@/components/thread/timeline/SelectableMessageProse.js";
 import { TimelineSelectionMenu } from "@/components/thread/timeline/TimelineSelectionMenu.js";
 import { buildTerminalWebSocketUrl } from "./terminal-websocket-url";
-import { TerminalWebSocketTransport } from "@bb/client-core";
+import { TerminalWebSocketTransport } from "@kaioken/client-core";
 import { TerminalLinkOpenDialog } from "./TerminalLinkOpenDialog";
 import {
   createTerminalOsc8LinkHandler,

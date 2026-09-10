@@ -14,8 +14,8 @@ import {
   projects,
   threads,
   type DbQueryConnection,
-} from "@bb/db";
-import type { Thread, ThreadStatus } from "@bb/domain";
+} from "@kaioken/db";
+import type { Thread, ThreadStatus } from "@kaioken/domain";
 import type {
   AppDeps,
   LoggedPendingInteractionWorkSessionDeps,

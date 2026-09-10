@@ -17,7 +17,7 @@ import interWoff2 from "@fontsource-variable/inter/files/inter-latin-wght-normal
 import landingCss from "../landing/landing.css?url";
 import blogCss from "../blog/blog.css?url";
 
-const PAGE_TITLE = "Blog — bb";
+const PAGE_TITLE = "Blog — kaioken";
 const PAGE_DESCRIPTION = "Notes on building the IDE that builds itself.";
 
 export const Route = createFileRoute("/blog")({

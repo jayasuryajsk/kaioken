@@ -1,26 +1,26 @@
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
 import { useMemo } from "react";
-import type { Host } from "@bb/domain";
-import { Icon } from "@bb/shared-ui/icon";
-import { Button } from "@bb/shared-ui/button";
+import type { Host } from "@kaioken/domain";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
+} from "@kaioken/shared-ui/dropdown-menu";
 import {
   COARSE_POINTER_COMPACT_ICON_SIZE_CLASS,
   COARSE_POINTER_COMPACT_ICON_SIZE_SHRINK_CLASS,
   COARSE_POINTER_ICON_SIZE_CLASS,
-} from "@bb/shared-ui/coarse-pointer-sizing";
-import { LIST_HOVER_TRANSITION } from "@bb/shared-ui/motion";
+} from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { LIST_HOVER_TRANSITION } from "@kaioken/shared-ui/motion";
 import {
   selectPersistentHosts,
   selectPrimaryHost,
 } from "@/hooks/queries/host-queries";
 import { formatRelativeTime } from "@/lib/relative-time";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { formatHostUpdateStatus } from "@/lib/host-update-status";
 import {
   OPTION_BASE_CLASS_NAME,
@@ -28,7 +28,7 @@ import {
   OPTION_MENU_CONTENT_CLASS_NAME,
   OPTION_MUTED_CLASS_NAME,
   OPTION_TRIGGER_CONTENT_CLASS_NAME,
-} from "@bb/shared-ui/option-display";
+} from "@kaioken/shared-ui/option-display";
 
 const MACHINE_BADGE_CLASS_NAME =
   "shrink-0 rounded-sm border border-border bg-muted/40 px-1.5 py-0.5 text-2xs leading-none text-subtle-foreground";

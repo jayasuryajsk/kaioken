@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { BbDesktopVersionFeed } from "@bb/desktop-contract";
+import type { KaiokenDesktopVersionFeed } from "@kaioken/desktop-contract";
 import {
   createDesktopUpdateService,
   DESKTOP_UPDATE_ACTIVE_MIN_INTERVAL_MS,
@@ -9,21 +9,21 @@ import {
 
 const checkedAt = "2026-05-21T00:00:00.000Z";
 
-function createFeed(version: string): BbDesktopVersionFeed {
+function createFeed(version: string): KaiokenDesktopVersionFeed {
   return {
     channel: "latest",
     files: [
       {
         sha512: "BASE64_SHA512_FROM_ELECTRON_BUILDER",
         size: 123456789,
-        url: `bb-${version}-universal.zip`,
+        url: `kaioken-${version}-universal.zip`,
       },
     ],
     minimumSystemVersion: null,
-    path: `bb-${version}-universal.zip`,
+    path: `kaioken-${version}-universal.zip`,
     platform: "macos",
     releaseDate: checkedAt,
-    releaseName: `bb desktop ${version}`,
+    releaseName: `kaioken desktop ${version}`,
     releaseNotes: null,
     schemaVersion: 1,
     sha512: "BASE64_SHA512_FROM_ELECTRON_BUILDER",
@@ -70,14 +70,14 @@ describe("desktop update feed parsing", () => {
         {
           sha512: "BASE64_SHA512_FROM_ELECTRON_BUILDER",
           size: 123456789,
-          url: "bb-0.0.2-universal.zip",
+          url: "kaioken-0.0.2-universal.zip",
         },
       ],
       minimumSystemVersion: null,
-      path: "bb-0.0.2-universal.zip",
+      path: "kaioken-0.0.2-universal.zip",
       platform: "macos",
       releaseDate: checkedAt,
-      releaseName: "bb desktop 0.0.2",
+      releaseName: "kaioken desktop 0.0.2",
       releaseNotes: null,
       schemaVersion: 1,
       sha512: "BASE64_SHA512_FROM_ELECTRON_BUILDER",

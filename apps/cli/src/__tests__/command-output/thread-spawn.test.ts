@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import * as domain from "@bb/domain";
+import * as domain from "@kaioken/domain";
 import {
   setupCommandOutputTestEnvironment,
   collectLogLines,
@@ -12,7 +12,7 @@ import type { CommandRegistrar } from "../helpers/command-output-harness.js";
 import * as fixtures from "../helpers/command-output-fixtures.js";
 import { registerThreadCommands } from "../../commands/thread/index.js";
 
-describe("bb thread spawn command output", () => {
+describe("kaioken thread spawn command output", () => {
   setupCommandOutputTestEnvironment();
 
   const register: CommandRegistrar = (program) =>
@@ -22,8 +22,8 @@ describe("bb thread spawn command output", () => {
     return vi.spyOn(process.stderr, "write").mockImplementation(() => true);
   }
 
-  it("bb thread spawn sends project-default when the user relies on project defaults", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
+  it("kaioken thread spawn sends project-default when the user relies on project defaults", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-1",
       projectId: "proj-1",
@@ -53,7 +53,7 @@ describe("bb thread spawn command output", () => {
     expect(resolveLocalHostIdMock).not.toHaveBeenCalled();
   });
 
-  it("bb thread spawn forwards host-readable paths without reading them on the CLI machine", async () => {
+  it("kaioken thread spawn forwards host-readable paths without reading them on the CLI machine", async () => {
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-attachments",
       projectId: "proj-1",
@@ -89,7 +89,7 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn --plan opens the thread with the composer's /plan command mention", async () => {
+  it("kaioken thread spawn --plan opens the thread with the composer's /plan command mention", async () => {
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-plan",
       projectId: "proj-1",
@@ -134,8 +134,8 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn requires an explicit --project", async () => {
-    vi.stubEnv("BB_PROJECT_ID", undefined);
+  it("kaioken thread spawn requires an explicit --project", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", undefined);
     const post = vi.fn();
     const stderrWrite = captureCommanderErrors();
     stubServerApi({ "v1.threads.$post": post });
@@ -153,8 +153,8 @@ describe("bb thread spawn command output", () => {
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("bb thread spawn ignores BB_PROJECT_ID when --project is omitted", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-env");
+  it("kaioken thread spawn ignores KAIOKEN_PROJECT_ID when --project is omitted", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-env");
     const post = vi.fn();
     const stderrWrite = captureCommanderErrors();
     stubServerApi({ "v1.threads.$post": post });
@@ -172,7 +172,7 @@ describe("bb thread spawn command output", () => {
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("bb thread spawn lets the server resolve defaults for the personal project", async () => {
+  it("kaioken thread spawn lets the server resolve defaults for the personal project", async () => {
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-personal",
       projectId: domain.PERSONAL_PROJECT_ID,
@@ -210,8 +210,8 @@ describe("bb thread spawn command output", () => {
     expect(collectLogLines(vi.mocked(console.log))).toContain("  Project:  -");
   });
 
-  it("bb thread spawn forwards explicit execution overrides", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
+  it("kaioken thread spawn forwards explicit execution overrides", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-overrides",
       projectId: "proj-1",
@@ -262,7 +262,7 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn forwards hidden visibility", async () => {
+  it("kaioken thread spawn forwards hidden visibility", async () => {
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-hidden",
       projectId: "proj-1",
@@ -294,7 +294,7 @@ describe("bb thread spawn command output", () => {
     );
   });
 
-  it("bb thread spawn allows sections for hidden workers", async () => {
+  it("kaioken thread spawn allows sections for hidden workers", async () => {
     const thread: domain.Thread = fixtures.makeThread({
       sectionId: "sec_work",
       id: "thread-hidden-section",
@@ -329,19 +329,19 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn help lists product permission modes", async () => {
+  it("kaioken thread spawn help lists product permission modes", async () => {
     const helpOutput = await getHelpOutput(["thread", "spawn"], register);
     expect(helpOutput).toContain("--permission-mode <mode>");
     expect(helpOutput).toContain("--visibility <visibility>");
     expect(helpOutput).toContain("Exact Git ref");
     expect(helpOutput).toContain("origin/<branch> for a remote ref");
-    expect(helpOutput).toContain("bb environment providers");
-    expect(helpOutput).not.toContain("bb curl");
+    expect(helpOutput).toContain("kaioken environment providers");
+    expect(helpOutput).not.toContain("kaioken curl");
     expect(helpOutput).toMatch(/Permission mode: accept-edits, auto, or full/);
   });
 
-  it("bb thread spawn reports invalid permission mode choices", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
+  it("kaioken thread spawn reports invalid permission mode choices", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
 
     await expect(
       runCommand(
@@ -364,7 +364,7 @@ describe("bb thread spawn command output", () => {
     );
   });
 
-  it("bb thread spawn normalizes deprecated workspace-write to accept-edits", async () => {
+  it("kaioken thread spawn normalizes deprecated workspace-write to accept-edits", async () => {
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-legacy-permission",
       projectId: "proj-1",
@@ -392,8 +392,8 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn --json prints the raw thread", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
+  it("kaioken thread spawn --json prints the raw thread", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-json-spawn",
       projectId: "proj-1",
@@ -427,8 +427,8 @@ describe("bb thread spawn command output", () => {
     ).toEqual(thread);
   });
 
-  it("bb thread spawn prefixes model-catalog failures with context", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
+  it("kaioken thread spawn prefixes model-catalog failures with context", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
     const post = vi.fn(async () => {
       throw new Error(
         "HTTP 503: Unable to load codex models to resolve the default",
@@ -448,8 +448,8 @@ describe("bb thread spawn command output", () => {
     );
   });
 
-  it("bb thread spawn with --parent-thread forwards parent thread id", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
+  it("kaioken thread spawn with --parent-thread forwards parent thread id", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-2",
       projectId: "proj-1",
@@ -495,9 +495,9 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn does not default parent thread id from BB_THREAD_ID", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
-    vi.stubEnv("BB_THREAD_ID", "thread-context-parent");
+  it("kaioken thread spawn does not default parent thread id from KAIOKEN_THREAD_ID", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
+    vi.stubEnv("KAIOKEN_THREAD_ID", "thread-context-parent");
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-2",
       projectId: "proj-1",
@@ -540,9 +540,9 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn with --parent-self forwards BB_THREAD_ID as parent thread id", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
-    vi.stubEnv("BB_THREAD_ID", "thread-context-parent");
+  it("kaioken thread spawn with --parent-self forwards KAIOKEN_THREAD_ID as parent thread id", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
+    vi.stubEnv("KAIOKEN_THREAD_ID", "thread-context-parent");
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-2",
       projectId: "proj-1",
@@ -582,7 +582,7 @@ describe("bb thread spawn command output", () => {
     );
   });
 
-  it("bb thread spawn rejects --parent-self without BB_THREAD_ID", async () => {
+  it("kaioken thread spawn rejects --parent-self without KAIOKEN_THREAD_ID", async () => {
     const post = vi.fn(async () =>
       fixtures.makeThread({
         id: "thread-parent-self-missing-context",
@@ -612,13 +612,13 @@ describe("bb thread spawn command output", () => {
     ).rejects.toThrow("process.exit:1");
 
     expect(console.error).toHaveBeenCalledWith(
-      "Error: --parent-self requires BB_THREAD_ID to be set.",
+      "Error: --parent-self requires KAIOKEN_THREAD_ID to be set.",
     );
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("bb thread spawn rejects combining --parent-thread and --parent-self", async () => {
-    vi.stubEnv("BB_THREAD_ID", "thread-context-parent");
+  it("kaioken thread spawn rejects combining --parent-thread and --parent-self", async () => {
+    vi.stubEnv("KAIOKEN_THREAD_ID", "thread-context-parent");
     const post = vi.fn(async () =>
       fixtures.makeThread({
         id: "thread-conflicting-parent",
@@ -655,7 +655,7 @@ describe("bb thread spawn command output", () => {
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("bb thread spawn rejects invalid parent-thread values", async () => {
+  it("kaioken thread spawn rejects invalid parent-thread values", async () => {
     const post = vi.fn(async () =>
       fixtures.makeThread({
         id: "thread-invalid-parent",
@@ -691,8 +691,8 @@ describe("bb thread spawn command output", () => {
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("bb thread spawn forwards a valid --environment ID", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
+  it("kaioken thread spawn forwards a valid --environment ID", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-env-1",
       projectId: "proj-1",
@@ -737,9 +737,9 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn forwards an absolute --environment path as an unmanaged workspace", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
-    const workspacePath = "/Users/michael/Projects/bb";
+  it("kaioken thread spawn forwards an absolute --environment path as an unmanaged workspace", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
+    const workspacePath = "/Users/michael/Projects/kaioken";
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-env-path-1",
       projectId: "proj-1",
@@ -789,8 +789,8 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn rejects invalid non-path --environment IDs", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
+  it("kaioken thread spawn rejects invalid non-path --environment IDs", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
     const post = vi.fn();
     stubServerApi({ "v1.threads.$post": post });
 
@@ -820,8 +820,8 @@ describe("bb thread spawn command output", () => {
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("bb thread spawn forwards --new-environment", async () => {
-    vi.stubEnv("BB_PROJECT_ID", "proj-1");
+  it("kaioken thread spawn forwards --new-environment", async () => {
+    vi.stubEnv("KAIOKEN_PROJECT_ID", "proj-1");
     const thread: domain.Thread = fixtures.makeThread({
       id: "thread-env-1",
       projectId: "proj-1",
@@ -873,7 +873,7 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn targets an unambiguous machine name", async () => {
+  it("kaioken thread spawn targets an unambiguous machine name", async () => {
     const thread = fixtures.makeThread({
       id: "thread-machine",
       projectId: "proj-1",
@@ -921,7 +921,7 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn combines --host with an unmanaged path", async () => {
+  it("kaioken thread spawn combines --host with an unmanaged path", async () => {
     const post = vi.fn(async () =>
       fixtures.makeThread({
         id: "thread-machine-path",
@@ -971,7 +971,7 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn creates a managed worktree on the selected machine", async () => {
+  it("kaioken thread spawn creates a managed worktree on the selected machine", async () => {
     const post = vi.fn(async () =>
       fixtures.makeThread({
         id: "thread-machine-worktree",
@@ -1026,7 +1026,7 @@ describe("bb thread spawn command output", () => {
     });
   });
 
-  it("bb thread spawn rejects selecting a machine for a reused environment", async () => {
+  it("kaioken thread spawn rejects selecting a machine for a reused environment", async () => {
     const post = vi.fn();
     stubServerApi({ "v1.threads.$post": post });
 
@@ -1236,7 +1236,7 @@ describe("bb thread spawn command output", () => {
       [
         "a provider with inputs and none given",
         ["--environment-provider", "git-worktree"],
-        "Error: The 'git-worktree' environment provider needs --environment-inputs <json>; `bb environment providers --json` shows its schema.",
+        "Error: The 'git-worktree' environment provider needs --environment-inputs <json>; `kaioken environment providers --json` shows its schema.",
       ],
       [
         "inputs given to a provider without any",

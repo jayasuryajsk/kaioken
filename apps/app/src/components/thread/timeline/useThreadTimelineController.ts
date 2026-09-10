@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { ThreadTimelineResponse, TimelineRow } from "@bb/server-contract";
+import type { ThreadTimelineResponse, TimelineRow } from "@kaioken/server-contract";
 import {
   areTimelinePaginationCursorsEqual,
   buildLoadedTimelineState,
@@ -7,11 +7,11 @@ import {
   prependOlderTimelineRows,
   recoverLoadedTimelineAfterStaleCursor,
   type LoadedTimelineState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import { useConnectionAwareQueryState } from "@/hooks/queries/connection-aware-query-state";
 import { isTransientReadError } from "@/hooks/queries/query-helpers";
 import { useThreadTimeline } from "@/hooks/queries/thread-queries";
-import { BbHttpError, sdk } from "@/lib/sdk";
+import { KaiokenHttpError, sdk } from "@/lib/sdk";
 
 interface UseThreadTimelineControllerArgs {
   enabled?: boolean;
@@ -39,7 +39,7 @@ export interface UseThreadTimelineControllerResult {
 
 function isStaleTimelinePaginationCursorError(error: Error): boolean {
   return (
-    error instanceof BbHttpError &&
+    error instanceof KaiokenHttpError &&
     error.status === 400 &&
     error.code === "invalid_request"
   );

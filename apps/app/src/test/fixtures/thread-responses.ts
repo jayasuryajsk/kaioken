@@ -1,8 +1,8 @@
 import type {
   ThreadResponse,
   ThreadTimelineResponse,
-} from "@bb/server-contract";
-import { makeThreadWithRuntime } from "@bb/test-helpers/domain-fixtures";
+} from "@kaioken/server-contract";
+import { makeThreadWithRuntime } from "@kaioken/test-helpers/domain-fixtures";
 
 type ThreadResponseOverrides = Omit<Partial<ThreadResponse>, "runtime"> & {
   runtime?: Partial<ThreadResponse["runtime"]>;

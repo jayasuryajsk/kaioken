@@ -1,5 +1,5 @@
-import { changedMessageSchema, type ThreadChangedMessage } from "@bb/domain";
-import { getThread, markThreadDeleted } from "@bb/db";
+import { changedMessageSchema, type ThreadChangedMessage } from "@kaioken/domain";
+import { getThread, markThreadDeleted } from "@kaioken/db";
 import { describe, expect, it, vi } from "vitest";
 import {
   handleDaemonSocketClosed,

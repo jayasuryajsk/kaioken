@@ -1,5 +1,5 @@
-import { COARSE_POINTER_COMPACT_ICON_SIZE_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { Icon } from "@bb/shared-ui/icon";
+import { COARSE_POINTER_COMPACT_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { resolveRightPanelFileVisual } from "./rightPanelFileVisuals";
 
 interface RightPanelFileTabIconProps {

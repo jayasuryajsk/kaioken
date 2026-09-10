@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createThreadProvisioningId } from "@bb/db";
+import { createThreadProvisioningId } from "@kaioken/db";
 import {
   environmentProviderSelectionSchema,
   environmentMachineSelectionSchema,
@@ -10,7 +10,7 @@ import {
   type ClientTurnRequestId,
   type PromptInput,
   type ResolvedThreadExecutionOptions,
-} from "@bb/domain";
+} from "@kaioken/domain";
 
 const producedHostSchema = z.object({
   hostId: z.string().min(1),

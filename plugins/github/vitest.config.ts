@@ -15,7 +15,7 @@ export default defineWorkspaceTestConfig({
     projects: sharedWorkerProjects({
       pkgDir: import.meta.dirname,
       aliases: { "@": path.resolve(import.meta.dirname, ".") },
-      name: "bb-plugin-github",
+      name: "kaioken-plugin-github",
       include: ["**/*.test.{ts,tsx}"],
       exclude: ["node_modules/**"],
     }),

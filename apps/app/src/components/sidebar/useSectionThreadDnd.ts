@@ -13,20 +13,20 @@ import type {
   DragOverEvent,
   DragStartEvent,
 } from "@dnd-kit/core";
-import type { ThreadListEntry } from "@bb/domain";
+import type { ThreadListEntry } from "@kaioken/domain";
 import {
   usePinThread,
   useUnpinAndMoveThread,
   useUnpinThread,
   useUpdateThread,
 } from "@/hooks/mutations/thread-state-mutations";
-import type { NeighborReorderRequest } from "@bb/client-core";
+import type { NeighborReorderRequest } from "@kaioken/client-core";
 import {
   buildSidebarEntitySectionId,
   getSidebarDndItemId,
   reorderSidebarSectionOrder,
   type ProjectThreadItem,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   sidebarCollapsedThreadSectionsAtom,
   type SidebarSectionId,

@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import type { ThreadTimelinePendingTodos } from "@bb/domain";
-import type { ThreadTimelineResponse } from "@bb/server-contract";
+import type { ThreadTimelinePendingTodos } from "@kaioken/domain";
+import type { ThreadTimelineResponse } from "@kaioken/server-contract";
 import {
   createNodeBbSdk,
-  type BbSdk,
+  type KaiokenSdk,
   type FetchImplementation,
-} from "@bb/sdk/node";
+} from "@kaioken/sdk/node";
 
 import { fetchThreadPendingTodos, printPendingTodos } from "./pending-todos.js";
 
@@ -127,7 +127,7 @@ describe("fetchThreadPendingTodos", () => {
 
   interface SdkOverHttpBoundary {
     requestUrls: string[];
-    sdk: BbSdk;
+    sdk: KaiokenSdk;
   }
 
   function makeSdkOverHttpBoundary(

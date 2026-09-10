@@ -1,6 +1,6 @@
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { usePrefersReducedMotion } from "@bb/shared-ui/hooks/use-media-query";
-import bbLogoUrl from "../../../../assets/bb-logo.svg";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { usePrefersReducedMotion } from "@kaioken/shared-ui/hooks/use-media-query";
+import kaiokenLogoUrl from "../../../../assets/kaioken-logo.svg";
 
 interface RootComposeEmptyWelcomeProps {
   onCompose: (prompt?: string) => void;
@@ -9,10 +9,10 @@ interface RootComposeEmptyWelcomeProps {
 }
 
 const IMPORT_PROJECTS_PROMPT =
-  "Search my home directory (max depth 3) for git repositories touched in the last 30 days and import only those projects into bb using the cli";
+  "Search my home directory (max depth 3) for git repositories touched in the last 30 days and import only those projects into kaioken using the cli";
 
 const LEARN_PROMPT =
-  "What can bb do, and how can you (my agent) interact with it? Summarize bb's capabilities and how you'd use the bb CLI to work with threads and projects.";
+  "What can kaioken do, and how can you (my agent) interact with it? Summarize kaioken's capabilities and how you'd use the kaioken CLI to work with threads and projects.";
 
 interface WelcomeActionProps {
   icon: IconName;
@@ -60,7 +60,7 @@ export function RootComposeEmptyWelcome({
       <svg aria-hidden className="absolute h-0 w-0" focusable="false">
         <defs>
           <filter
-            id="bb-gloss"
+            id="kaioken-gloss"
             x="-40%"
             y="-40%"
             width="180%"
@@ -116,12 +116,12 @@ export function RootComposeEmptyWelcome({
       </svg>
       <div
         role="img"
-        aria-label="bb"
+        aria-label="kaioken"
         className="h-24 w-28 select-none"
-        style={{ filter: "url(#bb-gloss)" }}
+        style={{ filter: "url(#kaioken-gloss)" }}
       >
         <img
-          src={bbLogoUrl}
+          src={kaiokenLogoUrl}
           alt=""
           aria-hidden
           draggable={false}
@@ -150,7 +150,7 @@ export function RootComposeEmptyWelcome({
         />
         <WelcomeAction
           icon="Explore"
-          title="Learn what bb can do"
+          title="Learn what kaioken can do"
           description="Get a tour of its capabilities"
           onClick={() => onCompose(LEARN_PROMPT)}
         />

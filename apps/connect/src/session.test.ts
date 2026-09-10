@@ -17,7 +17,7 @@ import {
   server,
   session,
   user,
-} from "@bb/connect-db";
+} from "@kaioken/connect-db";
 
 import {
   MACHINE_LAST_SEEN_WRITE_INTERVAL_MS,
@@ -137,7 +137,7 @@ async function signedSessionCookie(
 }
 
 describe("resolveLabel — label → server row (multi-server)", () => {
-  it("resolves the primary bb by its backfilled handle-label subdomain", async () => {
+  it("resolves the primary kaioken by its backfilled handle-label subdomain", async () => {
     seedUser("acct-a");
     db.insert(profile)
       .values({ userId: "acct-a", handle: "sawyer", createdAt: now })
@@ -164,7 +164,7 @@ describe("resolveLabel — label → server row (multi-server)", () => {
     });
   });
 
-  it("resolves a second bb on the same account by its own claimed subdomain", async () => {
+  it("resolves a second kaioken on the same account by its own claimed subdomain", async () => {
     seedUser("acct-a");
     db.insert(profile)
       .values({ userId: "acct-a", handle: "sawyer", createdAt: now })
@@ -508,12 +508,12 @@ describe("account session refresh", () => {
 
     const setCookies = await refreshAccountSessionCookies(
       `better-auth.session_token=${cookie}`,
-      "http://bb.localhost:42745",
-      createAuthFetch("http://bb.localhost:42745", "bb.localhost"),
+      "http://kaioken.localhost:42745",
+      createAuthFetch("http://kaioken.localhost:42745", "kaioken.localhost"),
     );
     expect(setCookies).toHaveLength(1);
     expect(setCookies?.[0]).toContain("better-auth.session_token=");
-    expect(setCookies?.[0]).toContain("Domain=.bb.localhost");
+    expect(setCookies?.[0]).toContain("Domain=.kaioken.localhost");
     expect(setCookies?.[0]).not.toContain("Secure");
   });
 

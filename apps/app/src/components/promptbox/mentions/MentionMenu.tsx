@@ -9,8 +9,8 @@ import {
 import {
   providerCommandSection,
   type ProviderCommandSection,
-} from "@bb/server-contract";
-import { directoryFromPath } from "@bb/thread-view";
+} from "@kaioken/server-contract";
+import { directoryFromPath } from "@kaioken/thread-view";
 import { promptMentionResourceFromSuggestion } from "@/components/promptbox/editor/prompt-editor-serialization";
 import {
   promptCommandIconName,
@@ -18,16 +18,16 @@ import {
 } from "@/components/promptbox/mentions/prompt-mention-display";
 import { shouldLoadMoreCommandResults } from "@/components/promptbox/mentions/mention-menu-scroll";
 import { PluginIcon } from "@/components/plugin/PluginIcon";
-import { Icon } from "@bb/shared-ui/icon";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { TruncateStart } from "@/components/ui/truncate-start.js";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   EMPTY_ORDERED_MENTION_SUGGESTIONS,
   type ComposerCommandSuggestion,
   type OrderedMentionSuggestions,
   type PromptMentionSuggestion,
   type TypeaheadMenuState,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 export type TypeaheadSuggestion =
   | PromptMentionSuggestion

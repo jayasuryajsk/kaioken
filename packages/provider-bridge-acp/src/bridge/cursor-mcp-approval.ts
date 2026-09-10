@@ -129,7 +129,7 @@ async function writeApprovals(path: string, approvals: readonly string[]) {
 }
 
 async function acquireApprovalLock(path: string): Promise<() => Promise<void>> {
-  const lockPath = `${path}.bb-lock`;
+  const lockPath = `${path}.kaioken-lock`;
   const deadline = Date.now() + CURSOR_APPROVAL_LOCK_TIMEOUT_MS;
   await mkdir(dirname(path), { recursive: true });
   for (;;) {

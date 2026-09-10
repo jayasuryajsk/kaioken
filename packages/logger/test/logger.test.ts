@@ -4,12 +4,12 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 
-const LOGGER_IMPORT_SPECIFIER = "@bb/logger";
+const LOGGER_IMPORT_SPECIFIER = "@kaioken/logger";
 
 const tempDirs: string[] = [];
 
 function createTempDir(): string {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "bb-logger-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "kaioken-logger-"));
   tempDirs.push(tempDir);
   return tempDir;
 }
@@ -77,7 +77,7 @@ async function runLoggerInSubprocess(args: {
 
   const childEnv: NodeJS.ProcessEnv = {
     ...process.env,
-    BB_DATA_DIR: args.dataDir,
+    KAIOKEN_DATA_DIR: args.dataDir,
     TZ: args.timezone,
   };
   delete childEnv.VITEST;
@@ -180,7 +180,7 @@ describe("createLogger", () => {
   it("writes structured JSON to the component log file", async () => {
     const dataDir = createTempDir();
     vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("BB_DATA_DIR", dataDir);
+    vi.stubEnv("KAIOKEN_DATA_DIR", dataDir);
 
     const { createLogger } = await importFreshLogger();
     const logger = createLogger({ component: "server" });
@@ -201,7 +201,7 @@ describe("createLogger", () => {
   it("keeps parent context on child loggers", async () => {
     const dataDir = createTempDir();
     vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("BB_DATA_DIR", dataDir);
+    vi.stubEnv("KAIOKEN_DATA_DIR", dataDir);
 
     const { createLogger } = await importFreshLogger();
     const logger = createLogger({ component: "host-daemon" });
@@ -223,7 +223,7 @@ describe("createLogger", () => {
   it("rotates files when the active log exceeds the configured size", async () => {
     const dataDir = createTempDir();
     vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("BB_DATA_DIR", dataDir);
+    vi.stubEnv("KAIOKEN_DATA_DIR", dataDir);
 
     const { createLogger } = await importFreshLogger();
     const logger = createLogger({ component: "server" });
@@ -272,7 +272,7 @@ describe("createLogger", () => {
   it("uses a direct file destination when stream mode is requested", async () => {
     const dataDir = createTempDir();
     vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("BB_DATA_DIR", dataDir);
+    vi.stubEnv("KAIOKEN_DATA_DIR", dataDir);
 
     const { createLogger, transportSpy } =
       await importFreshLoggerWithPinoTransportSpy();
@@ -301,7 +301,7 @@ describe("createLogger", () => {
     const envDataDir = createTempDir();
     const explicitDataDir = createTempDir();
     vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("BB_DATA_DIR", envDataDir);
+    vi.stubEnv("KAIOKEN_DATA_DIR", envDataDir);
 
     const { createLogger } = await importFreshLogger();
     const logger = createLogger({
@@ -332,7 +332,7 @@ describe("createLogger", () => {
   it("serializes nested error causes", async () => {
     const dataDir = createTempDir();
     vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("BB_DATA_DIR", dataDir);
+    vi.stubEnv("KAIOKEN_DATA_DIR", dataDir);
 
     const { createLogger } = await importFreshLogger();
     const logger = createLogger({ component: "server" });

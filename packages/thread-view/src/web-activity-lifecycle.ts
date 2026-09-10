@@ -7,7 +7,7 @@ import {
   type ThreadEventItemStatus,
   type ThreadEventPlanStep,
   type ThreadEventSearchMode,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { getEventParentToolCallId } from "./event-decode.js";
 
 interface ItemActivityLifecycleBase {

@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { expect, it } from "vitest";
-import { threadEventSchema, type ThreadEvent } from "@bb/domain";
+import { threadEventSchema, type ThreadEvent } from "@kaioken/domain";
 import { replayRecording } from "./parity.js";
 
 function writeLane(
@@ -30,7 +30,7 @@ function writeLane(
 }
 
 it("waits for the exact planned tail and a quiet period before closing", async () => {
-  const dir = mkdtempSync(join(tmpdir(), "bb-parity-tail-test-"));
+  const dir = mkdtempSync(join(tmpdir(), "kaioken-parity-tail-test-"));
   const bridgePath = join(dir, "delayed-tail-bridge.mjs");
   const identity = {
     threadId: "thr_test",

@@ -1,10 +1,10 @@
-// Generates the self-contained `.d.ts` bundles that `bb plugin new` ships into
-// a scaffolded plugin's `types/` directory, so authors get real BbPluginApi /
-// @get-bb/plugin-sdk/app types WITHOUT the (unpublished) @bb/* workspace packages
+// Generates the self-contained `.d.ts` bundles that `kaioken plugin new` ships into
+// a scaffolded plugin's `types/` directory, so authors get real KaiokenPluginApi /
+// @get-kaioken/plugin-sdk/app types WITHOUT the (unpublished) @kaioken/* workspace packages
 // on disk.
 //
-// rollup-plugin-dts flattens @get-bb/plugin-sdk's own contracts plus every @bb/*
-// type it references (BbSdk, PromptInput, ThreadResponse, …) into the root
+// rollup-plugin-dts flattens @get-kaioken/plugin-sdk's own contracts plus every @kaioken/*
+// type it references (KaiokenSdk, PromptInput, ThreadResponse, …) into the root
 // file. Testing subpaths reuse that already-portable root declaration through
 // the package's own public name instead of flattening the same contracts a
 // second time. Genuine npm packages remain external imports and resolve from
@@ -12,7 +12,7 @@
 //
 // The output, bundled-types/*.d.ts, is NOT committed. It is the package's
 // published `types` surface and a build output of the turbo task
-// `@get-bb/plugin-sdk#build:types`; @bb/templates reads it at scaffold-embed
+// `@get-kaioken/plugin-sdk#build:types`; @kaioken/templates reads it at scaffold-embed
 // time by file path (no package edge, to avoid a dependency cycle), and the
 // in-repo plugins typecheck against it. Unchanged files are not rewritten so
 // mtimes stay stable for watchers.
@@ -55,55 +55,55 @@ const STUBBED_MODULES = new Map([
 ]);
 const outDir = path.join(pkgRoot, "bundled-types");
 const outputs = {
-  "bb-plugin-sdk.d.ts": path.join(pkgRoot, "src/index.ts"),
-  "bb-plugin-sdk-app.d.ts": path.join(pkgRoot, "src/app.ts"),
-  "bb-plugin-sdk-provider-bridge.d.ts": path.join(
+  "kaioken-plugin-sdk.d.ts": path.join(pkgRoot, "src/index.ts"),
+  "kaioken-plugin-sdk-app.d.ts": path.join(pkgRoot, "src/app.ts"),
+  "kaioken-plugin-sdk-provider-bridge.d.ts": path.join(
     pkgRoot,
     "src/provider-bridge.ts",
   ),
-  "bb-plugin-sdk-ai-services.d.ts": path.join(pkgRoot, "src/ai-services.ts"),
-  "bb-plugin-sdk-provider-bridge-testing.d.ts": path.join(
+  "kaioken-plugin-sdk-ai-services.d.ts": path.join(pkgRoot, "src/ai-services.ts"),
+  "kaioken-plugin-sdk-provider-bridge-testing.d.ts": path.join(
     pkgRoot,
     "src/provider-bridge-testing.ts",
   ),
-  "bb-plugin-sdk-provider-bridge-acp.d.ts": path.join(
+  "kaioken-plugin-sdk-provider-bridge-acp.d.ts": path.join(
     pkgRoot,
     "src/provider-bridge-acp.ts",
   ),
-  "bb-plugin-sdk-host.d.ts": path.join(pkgRoot, "src/host.ts"),
-  "bb-plugin-sdk-environment-provider.d.ts": path.join(
+  "kaioken-plugin-sdk-host.d.ts": path.join(pkgRoot, "src/host.ts"),
+  "kaioken-plugin-sdk-environment-provider.d.ts": path.join(
     pkgRoot,
     "src/environment-provider.ts",
   ),
-  "bb-plugin-sdk-internal-composer-customization-validation.d.ts": path.join(
+  "kaioken-plugin-sdk-internal-composer-customization-validation.d.ts": path.join(
     pkgRoot,
     "src/internal/composer-customization-validation.ts",
   ),
-  "bb-plugin-sdk-internal-composer-view.d.ts": path.join(
+  "kaioken-plugin-sdk-internal-composer-view.d.ts": path.join(
     pkgRoot,
     "src/internal/composer-view.ts",
   ),
-  "bb-plugin-sdk-internal-file-navigation-validation.d.ts": path.join(
+  "kaioken-plugin-sdk-internal-file-navigation-validation.d.ts": path.join(
     pkgRoot,
     "src/internal/file-navigation-validation.ts",
   ),
-  "bb-plugin-sdk-internal-host-policy.d.ts": path.join(
+  "kaioken-plugin-sdk-internal-host-policy.d.ts": path.join(
     pkgRoot,
     "src/internal/host-policy.ts",
   ),
-  "bb-plugin-sdk-internal-plugin-app-collector.d.ts": path.join(
+  "kaioken-plugin-sdk-internal-plugin-app-collector.d.ts": path.join(
     pkgRoot,
     "src/internal/plugin-app-collector.ts",
   ),
-  "bb-plugin-sdk-testing.d.ts": path.join(pkgRoot, "src/testing/index.ts"),
-  "bb-plugin-sdk-testing-app.d.ts": path.join(pkgRoot, "src/testing/app.tsx"),
-  "bb-plugin-sdk-testing-host.d.ts": path.join(pkgRoot, "src/testing/host.ts"),
+  "kaioken-plugin-sdk-testing.d.ts": path.join(pkgRoot, "src/testing/index.ts"),
+  "kaioken-plugin-sdk-testing-app.d.ts": path.join(pkgRoot, "src/testing/app.tsx"),
+  "kaioken-plugin-sdk-testing-host.d.ts": path.join(pkgRoot, "src/testing/host.ts"),
 };
 
 // Real npm packages the bundle imports from — kept external so they resolve
 // from the scaffold's devDependencies rather than being inlined.
 const EXTERNAL = [
-  /^@get-bb\/plugin-sdk$/,
+  /^@get-kaioken\/plugin-sdk$/,
   /^node:/,
   /^@testing-library\/react($|\/)/,
   /^better-sqlite3/,
@@ -113,9 +113,9 @@ const EXTERNAL = [
   /^zod($|\/)/,
 ];
 
-/** Resolve any `@bb/<pkg>[/<sub>]` to its `source` export target on disk. */
+/** Resolve any `@kaioken/<pkg>[/<sub>]` to its `source` export target on disk. */
 function resolveBbSource(id) {
-  const match = /^@bb\/([^/]+)(\/.*)?$/.exec(id);
+  const match = /^@kaioken\/([^/]+)(\/.*)?$/.exec(id);
   if (!match) return null;
   const pkgDir = path.join(pkgsDir, match[1]);
   const manifestPath = path.join(pkgDir, "package.json");
@@ -131,7 +131,7 @@ function resolveBbSource(id) {
 }
 
 const inlineWorkspace = {
-  name: "inline-bb-workspace",
+  name: "inline-kaioken-workspace",
   resolveId(id, importer) {
     // Redirect server-contract's non-portable modules to their loose stubs,
     // whether imported by bare specifier or by a sibling's relative path.
@@ -167,11 +167,11 @@ async function bundle(input) {
 }
 
 const HEADER = [
-  "// Portable type declarations for `@get-bb/plugin-sdk`. Unpublished BB",
+  "// Portable type declarations for `@get-kaioken/plugin-sdk`. Unpublished Kaioken",
   "// workspace contracts are flattened; public subpaths may reuse the",
-  "// package root without requiring any other @bb/* package.",
+  "// package root without requiring any other @kaioken/* package.",
   "//",
-  "// Confused by the API, or need a symbol that isn't here? Clone the BB repo",
+  "// Confused by the API, or need a symbol that isn't here? Clone the Kaioken repo",
   "// and read the real source: https://github.com/get-bb/bb",
 ].join("\n");
 

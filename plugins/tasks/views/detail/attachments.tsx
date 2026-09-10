@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Attachment } from "../../shared/contract.js";
 import { formatFileSize } from "../activity/time.js";
 import { ConfirmDialog } from "../../components/confirm-dialog.js";
-import { Icon } from "@bb/shared-ui/icon";
+import { Icon } from "@kaioken/shared-ui/icon";
 
 export function attachmentDownloadUrl(attachmentId: string): string {
   return `/api/v1/plugins/tasks/http/attachments/download?attachmentId=${encodeURIComponent(attachmentId)}`;

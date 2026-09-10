@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { PluginComposerThreadRowStatus } from "@get-bb/plugin-sdk";
+import type { PluginComposerThreadRowStatus } from "@get-kaioken/plugin-sdk";
 import { QueryClient } from "@tanstack/react-query";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
@@ -287,7 +287,7 @@ describe("reconcilePluginFrontends", () => {
           title: "Cold panel",
           component: ({ subPath }) => {
             const prepared = document.head.querySelector(
-              'link[data-bb-plugin-css-preload="hello"], link[data-bb-plugin-css="hello"]',
+              'link[data-kaioken-plugin-css-preload="hello"], link[data-kaioken-plugin-css="hello"]',
             );
             preparedDuringRender(prepared?.getAttribute("href") ?? null);
             return createElement("div", null, `cold panel body:${subPath}`);
@@ -324,7 +324,7 @@ describe("reconcilePluginFrontends", () => {
     );
     expect(container.textContent).toContain("cold panel body:notes/today.md");
     expect(
-      document.head.querySelector('link[data-bb-plugin-css="hello"]'),
+      document.head.querySelector('link[data-kaioken-plugin-css="hello"]'),
     ).not.toBeNull();
 
     act(() => root.unmount());
@@ -336,7 +336,7 @@ describe("reconcilePluginFrontends", () => {
     const deps = makeDeps([candidate("shell-owner", "v1")]);
     const events: string[] = [];
     const stylesheetIsActive = () =>
-      document.head.querySelector('link[data-bb-plugin-css="shell-owner"]') !==
+      document.head.querySelector('link[data-kaioken-plugin-css="shell-owner"]') !==
       null;
     deps.applyCss = applyPluginCss;
     deps.retainCss = retainPluginCss;
@@ -386,7 +386,7 @@ describe("reconcilePluginFrontends", () => {
     });
     const links = () => [
       ...document.head.querySelectorAll<HTMLLinkElement>(
-        'link[data-bb-plugin-css="hello"]',
+        'link[data-kaioken-plugin-css="hello"]',
       ),
     ];
     const container = document.createElement("div");
@@ -1137,7 +1137,7 @@ describe("applyPluginCss", () => {
   function links(pluginId: string): HTMLLinkElement[] {
     return [
       ...document.head.querySelectorAll<HTMLLinkElement>(
-        `link[data-bb-plugin-css="${pluginId}"]`,
+        `link[data-kaioken-plugin-css="${pluginId}"]`,
       ),
     ];
   }
@@ -1145,7 +1145,7 @@ describe("applyPluginCss", () => {
   function preloads(pluginId: string): HTMLLinkElement[] {
     return [
       ...document.head.querySelectorAll<HTMLLinkElement>(
-        `link[data-bb-plugin-css-preload="${pluginId}"]`,
+        `link[data-kaioken-plugin-css-preload="${pluginId}"]`,
       ),
     ];
   }
@@ -1377,20 +1377,20 @@ describe("applyPluginCss", () => {
     vi.useFakeTimers();
     const paletteCss = ":root { --canvas: rebeccapurple; }";
     applyAppThemeCss(paletteCss);
-    const palette = document.getElementById("bb-app-theme");
+    const palette = document.getElementById("kaioken-app-theme");
     expect(palette?.textContent).toBe(paletteCss);
 
     applyPluginCss("palette-owner", "/assets/app.css?h=palette-owner");
     preloads("palette-owner")[0]?.dispatchEvent(new Event("load"));
     expect(links("palette-owner")).toHaveLength(0);
-    expect(document.getElementById("bb-app-theme")).toBe(palette);
+    expect(document.getElementById("kaioken-app-theme")).toBe(palette);
     expect(palette?.textContent).toBe(paletteCss);
 
     const release = retainPluginCss("palette-owner");
     release();
     await vi.advanceTimersByTimeAsync(1_500);
     expect(links("palette-owner")).toHaveLength(0);
-    expect(document.getElementById("bb-app-theme")).toBe(palette);
+    expect(document.getElementById("kaioken-app-theme")).toBe(palette);
     expect(palette?.textContent).toBe(paletteCss);
 
     applyAppThemeCss("");

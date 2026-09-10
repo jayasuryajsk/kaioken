@@ -4,8 +4,8 @@ import {
   type AppSettings,
   type AppThemeSelection,
   type Experiments,
-} from "@bb/domain";
-import type { SystemInstallCliSkillsRequest } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { SystemInstallCliSkillsRequest } from "@kaioken/server-contract";
 import { sdk } from "@/lib/sdk";
 import {
   invalidateGeneralSettingsDependencies,
@@ -90,7 +90,7 @@ export function useUpdateKeyboardSettings() {
 export function useInstallCliSkills() {
   return useMutation({
     meta: {
-      errorMessage: "Failed to install the bb CLI skills.",
+      errorMessage: "Failed to install the kaioken CLI skills.",
     },
     mutationFn: (args: SystemInstallCliSkillsRequest) =>
       sdk.system.installCliSkills(args),

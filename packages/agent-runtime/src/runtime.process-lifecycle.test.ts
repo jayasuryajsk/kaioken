@@ -8,7 +8,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ThreadEvent } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
 import { createAgentRuntime } from "./runtime.js";
 import { createProviderForId } from "./provider-registry.js";
 import { RuntimeProviderProcessManager } from "./runtime-provider-process.js";
@@ -17,7 +17,7 @@ import type { BridgeProtocolAdapter } from "./bridge-protocol-adapter.js";
 import {
   parseJsonRpcLine,
   settleJsonRpcResponse,
-} from "@bb/provider-bridge-protocol/bridge-kit";
+} from "@kaioken/provider-bridge-protocol/bridge-kit";
 import {
   createScriptedEchoLaunch,
   createScriptedEchoProcessLog,
@@ -61,7 +61,7 @@ describe("createAgentRuntime process lifecycle", () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), "bb-runtime-test-"));
+    tmpDir = mkdtempSync(join(tmpdir(), "kaioken-runtime-test-"));
   });
 
   afterEach(() => {
@@ -1235,20 +1235,20 @@ describe("createAgentRuntime process lifecycle", () => {
     }
   });
 
-  it("scrubs inherited bb runtime env vars before spawning provider processes", async () => {
-    vi.stubEnv("BB_DATA_DIR", "/tmp/leaked-bb-data");
-    vi.stubEnv("BB_SERVER_PORT", "38886");
+  it("scrubs inherited kaioken runtime env vars before spawning provider processes", async () => {
+    vi.stubEnv("KAIOKEN_DATA_DIR", "/tmp/leaked-kaioken-data");
+    vi.stubEnv("KAIOKEN_SERVER_PORT", "38886");
     vi.stubEnv("NODE_ENV", "development");
     vi.stubEnv("OPENAI_API_KEY", "external-secret");
     const envScript = join(tmpDir, "env-provider.cjs");
     writeFileSync(
       envScript,
       `const values = [
-        process.env.BB_DATA_DIR ?? "missing",
-        process.env.BB_SERVER_PORT ?? "missing",
+        process.env.KAIOKEN_DATA_DIR ?? "missing",
+        process.env.KAIOKEN_SERVER_PORT ?? "missing",
         process.env.NODE_ENV ?? "missing",
         process.env.OPENAI_API_KEY ?? "missing",
-        process.env.BB_THREAD_ID ?? "missing"
+        process.env.KAIOKEN_THREAD_ID ?? "missing"
       ];
       process.stderr.write(values.join("|") + "\\n");
       setInterval(() => {}, 1000);`,
@@ -1256,7 +1256,7 @@ describe("createAgentRuntime process lifecycle", () => {
     const stderrLines: string[] = [];
     const manager = createProviderProcessManager({
       env: {
-        BB_THREAD_ID: "thr_explicit",
+        KAIOKEN_THREAD_ID: "thr_explicit",
       },
       onProcessExit: vi.fn(),
       onStderr: (line) => {
@@ -1310,7 +1310,7 @@ describe("createAgentRuntime process lifecycle", () => {
       `const values = [
         process.env.ELECTRON_RUN_AS_NODE ?? "missing",
         process.env.BRIDGE_ONLY ?? "missing",
-        process.env.BB_THREAD_ID ?? "missing"
+        process.env.KAIOKEN_THREAD_ID ?? "missing"
       ];
       process.stderr.write(values.join("|") + "\\n");
       setInterval(() => {}, 1000);`,
@@ -1322,7 +1322,7 @@ describe("createAgentRuntime process lifecycle", () => {
         ELECTRON_RUN_AS_NODE: "1",
       },
       env: {
-        BB_THREAD_ID: "thr_explicit",
+        KAIOKEN_THREAD_ID: "thr_explicit",
         ELECTRON_RUN_AS_NODE: "runtime",
       },
       onProcessExit: vi.fn(),

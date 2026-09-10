@@ -2,8 +2,8 @@ import type {
   InstalledPlugin,
   PluginSettingDescriptor,
   PluginSettingsResponse,
-} from "@bb/server-contract";
-import { pluginSettingsUpdateRequestSchema } from "@bb/server-contract";
+} from "@kaioken/server-contract";
+import { pluginSettingsUpdateRequestSchema } from "@kaioken/server-contract";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createPluginsClient } from "./plugin-client";
 import { pluginListQueryKey, pluginSettingsViewQueryKey } from "./query-keys";

@@ -10,25 +10,25 @@ import {
 import { flushSync } from "react-dom";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { CopyButton } from "../../ui/copy-button.js";
-import { Icon } from "@bb/shared-ui/icon";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
-import { usePointerCoarse } from "@bb/shared-ui/hooks/use-pointer-coarse";
-import { preventOverlayTriggerSelection } from "@bb/shared-ui/overlay-trigger";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
+import { usePointerCoarse } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
+import { preventOverlayTriggerSelection } from "@kaioken/shared-ui/overlay-trigger";
 import { copyToClipboardWithToast } from "@/lib/clipboard";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
+} from "@kaioken/shared-ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
-import { cn } from "@bb/shared-ui/lib/utils";
-import type { PromptDraftAttachment } from "@bb/client-core";
+} from "@kaioken/shared-ui/tooltip";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import type { PromptDraftAttachment } from "@kaioken/client-core";
 import { usePortalScopeProps } from "@/lib/portal-scope";
 import { PluginIcon, pluginIconName } from "@/components/plugin/PluginIcon";
 import type { ThreadTimelinePluginMessageAction } from "./types.js";

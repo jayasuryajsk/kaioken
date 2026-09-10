@@ -1,12 +1,12 @@
 import { useEffect, type CSSProperties } from "react";
-import { Button } from "@bb/shared-ui/button";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   Dialog,
   DialogClose,
   DialogContent,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
-import { Icon } from "@bb/shared-ui/icon";
+} from "@kaioken/shared-ui/dialog";
+import { Icon } from "@kaioken/shared-ui/icon";
 
 type ImageLightboxKeyAction = "close" | "next" | "previous";
 

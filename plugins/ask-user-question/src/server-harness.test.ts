@@ -3,7 +3,7 @@ import {
   createFakePluginHost,
   type FakePluginHost,
   makePluginAgentConfigurationContext,
-} from "@get-bb/plugin-sdk/testing";
+} from "@get-kaioken/plugin-sdk/testing";
 import plugin, { RENDERER_ID, TOOL_NAME } from "./server.js";
 import { TOOL_INPUT_JSON_SCHEMA } from "./tool-definition.js";
 import type { InteractionPayload, ToolResult } from "./contracts.js";

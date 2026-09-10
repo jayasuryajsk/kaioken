@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
-import type { PromptInput } from "@bb/domain";
-import type { HostDaemonCommandResult } from "@bb/host-daemon-contract";
-import { resolveContainedPath } from "@bb/process-utils";
+import type { PromptInput } from "@kaioken/domain";
+import type { HostDaemonCommandResult } from "@kaioken/host-daemon-contract";
+import { resolveContainedPath } from "@kaioken/process-utils";
 import type { RuntimeEntry } from "../runtime-manager.js";
 import {
   CommandDispatchError,

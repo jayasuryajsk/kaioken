@@ -1,4 +1,4 @@
-import type { PluginTurnFailedEvent } from "@get-bb/plugin-sdk";
+import type { PluginTurnFailedEvent } from "@get-kaioken/plugin-sdk";
 
 /**
  * How long after a reported reset to actually retry.

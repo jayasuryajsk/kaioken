@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import type { ResolvedThreadExecutionOptions } from "@bb/domain";
+import type { ResolvedThreadExecutionOptions } from "@kaioken/domain";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { sdk } from "@/lib/sdk";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";

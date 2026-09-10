@@ -1,6 +1,6 @@
 import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join, resolve, sep } from "node:path";
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import type { Attachment, TasksStore } from "../db";
 
 export const MAX_ATTACHMENT_SIZE_BYTES = 25 * 1024 * 1024;
@@ -44,7 +44,7 @@ interface DatabaseListRow {
 }
 
 type PluginHttpContext = Parameters<
-  Parameters<BbPluginApi["http"]["route"]>[2]
+  Parameters<KaiokenPluginApi["http"]["route"]>[2]
 >[0];
 
 class AttachmentRequestError extends Error {
@@ -87,7 +87,7 @@ function removeAttachmentDescriptionReferences(
   return markdown.replace(new RegExp(`!\\[[^\\]]*\\]\\(${url}\\)`, "g"), "");
 }
 
-function pluginDataDirectory(bb: BbPluginApi): string {
+function pluginDataDirectory(bb: KaiokenPluginApi): string {
   const main = bb.storage
     .database()
     .prepare<[], DatabaseListRow>("PRAGMA database_list")
@@ -122,7 +122,7 @@ function pathInside(root: string, blobPath: string): string {
 }
 
 export async function removeAttachmentBlobs(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksStore,
   attachments: readonly Pick<Attachment, "id" | "blobPath">[],
 ): Promise<void> {
@@ -419,7 +419,7 @@ function errorResponse(context: PluginHttpContext, error: unknown): Response {
 }
 
 export async function deleteAttachmentById(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksStore,
   attachmentId: string,
   options: {
@@ -466,7 +466,7 @@ export async function deleteAttachmentById(
 }
 
 export function publishAttachmentChanged(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksStore,
   attachment: Attachment,
 ): void {
@@ -487,7 +487,7 @@ export function publishAttachmentChanged(
 }
 
 export function registerAttachments(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksStore,
   options: {
     removeBlobs?: typeof removeAttachmentBlobs;

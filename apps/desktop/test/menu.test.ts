@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { BaseWindow, MenuItemConstructorOptions } from "electron";
 
 vi.mock("electron", () => ({
-  app: { name: "bb" },
+  app: { name: "kaioken" },
   Menu: { sendActionToFirstResponder: vi.fn() },
 }));
 
@@ -191,7 +191,7 @@ describe("application menu", () => {
     expect(note?.enabled).toBe(false);
     expect(note?.type).toBeUndefined();
     expect(note?.click).toBeUndefined();
-    expect(note?.label).toMatch(/sign in to bb Connect/u);
+    expect(note?.label).toMatch(/sign in to kaioken Connect/u);
   });
 
   it("builds a native Linux menu with the Linux DevTools accelerator", () => {

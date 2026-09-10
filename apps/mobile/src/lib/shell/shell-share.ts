@@ -1,4 +1,4 @@
-import type { BridgeSharePayload } from "@bb/mobile-bridge";
+import type { BridgeSharePayload } from "@kaioken/mobile-bridge";
 
 export interface NativeSharePayload {
   content:

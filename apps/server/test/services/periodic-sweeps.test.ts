@@ -9,9 +9,9 @@ import {
   listQueuedThreadMessages,
   RETAINED_EVENT_OUTPUT_TARGETS,
   retainedEventOutputs,
-} from "@bb/db";
-import { threadScope } from "@bb/domain";
-import type { PluginHookName } from "@get-bb/plugin-sdk";
+} from "@kaioken/db";
+import { threadScope } from "@kaioken/domain";
+import type { PluginHookName } from "@get-kaioken/plugin-sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   setPluginHookProvider,

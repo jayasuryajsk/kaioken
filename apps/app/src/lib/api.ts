@@ -1,5 +1,5 @@
-import { extractErrorMessage, toRecord } from "@bb/core-ui";
-import type { SystemVoiceTranscriptionResponse } from "@bb/server-contract";
+import { extractErrorMessage, toRecord } from "@kaioken/core-ui";
+import type { SystemVoiceTranscriptionResponse } from "@kaioken/server-contract";
 import { apiClient, toRelativeUrl } from "./api-server";
 import { appSurfaceRequestInit } from "./app-surface";
 import {
@@ -7,7 +7,7 @@ import {
   normalizeFilePreviewMimeType,
   type FilePreview,
   type FilePreviewTarget,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   buildThreadHostFileContentUrl,
   buildThreadStorageContentUrl,

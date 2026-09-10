@@ -5,10 +5,10 @@ import {
   encodeFrame,
   type Frame,
   type OpenHttpFrame,
-} from "@bb/tunnel-contract";
+} from "@kaioken/tunnel-contract";
 import { afterEach, describe, expect, it } from "vitest";
 import { WebSocket, WebSocketServer, type RawData } from "ws";
-import type { HostDaemonConnectTunnelIdentity } from "@bb/host-daemon-contract";
+import type { HostDaemonConnectTunnelIdentity } from "@kaioken/host-daemon-contract";
 import type { HostDaemonLogger } from "../logger.js";
 import {
   buildMachineSharePublicOrigin,
@@ -122,28 +122,28 @@ afterEach(async () => {
 describe("ConnectTunnelClient", () => {
   it("allows HTTP only for a local machine gate and derives ws URLs", () => {
     expect(
-      resolveTrustedConnectGate("http://owner.bb.localhost:42745"),
+      resolveTrustedConnectGate("http://owner.kaioken.localhost:42745"),
     ).toEqual({
-      apiOrigin: "http://owner.bb.localhost:42745",
-      baseDomain: "bb.localhost:42745",
+      apiOrigin: "http://owner.kaioken.localhost:42745",
+      baseDomain: "kaioken.localhost:42745",
     });
     expect(
       buildMachineTunnelUrl({
         label: "sawyer-air",
-        baseDomain: "bb.localhost:42745",
+        baseDomain: "kaioken.localhost:42745",
       }),
-    ).toBe("ws://sawyer-air.bb.localhost:42745/__tunnel?v=1");
+    ).toBe("ws://sawyer-air.kaioken.localhost:42745/__tunnel?v=1");
     expect(
       buildMachineSharePublicOrigin(
-        { label: "sawyer-air", baseDomain: "bb.localhost:42745" },
+        { label: "sawyer-air", baseDomain: "kaioken.localhost:42745" },
         4173,
       ),
-    ).toBe("http://sawyer-air--4173.bb.localhost:42745");
+    ).toBe("http://sawyer-air--4173.kaioken.localhost:42745");
     expect(() => resolveTrustedConnectGate("http://owner.getbb.app")).toThrow(
       "require HTTPS",
     );
     expect(() =>
-      resolveTrustedConnectGate("https://owner.bb.localhost:42745"),
+      resolveTrustedConnectGate("https://owner.kaioken.localhost:42745"),
     ).toThrow("HTTP for a local *.localhost");
   });
 

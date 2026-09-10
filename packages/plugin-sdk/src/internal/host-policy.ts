@@ -3,16 +3,16 @@ import {
   isNamespacedGlyph,
   isPluginOwnedIconPath,
   parseNamespacedGlyph,
-} from "@bb/domain/plugin-icon";
-import { RESERVED_BB_CLI_COMMANDS } from "@bb/domain/plugin-cli";
-import { PROVIDER_FORK_VALUES } from "@bb/domain/provider-fork";
+} from "@kaioken/domain/plugin-icon";
+import { RESERVED_KAIOKEN_CLI_COMMANDS } from "@kaioken/domain/plugin-cli";
+import { PROVIDER_FORK_VALUES } from "@kaioken/domain/provider-fork";
 import {
   jsonValueSchema,
   normalizeProviderNativeRoots,
   providerNativeRootsInputSchema,
   providerNativeRootsSchema,
   type ProviderNativeRoots,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { PLUGIN_CLI_OUTPUT_MAX_BYTES } from "../backend-contract.js";
 import type {
   PluginAgentToolPresentation,
@@ -48,19 +48,19 @@ import type {
 /**
  * Shared registration policy for the real plugin host and the in-process fake.
  *
- * These rules decide whether `bb.*.register()` throws. The fake host must
+ * These rules decide whether `kaioken.*.register()` throws. The fake host must
  * accept and reject the same names, schemas, and caps as production so plugin
  * unit tests are not lying about load-time behavior.
  */
 
-export { RESERVED_BB_CLI_COMMANDS };
+export { RESERVED_KAIOKEN_CLI_COMMANDS };
 
 export function pluginCliCollisionWarning(
   pluginId: string,
   commandName: string,
 ): string | null {
-  if (!RESERVED_BB_CLI_COMMANDS.includes(commandName)) return null;
-  return `CLI command "${commandName}" collides with core command "bb ${commandName}"; core keeps the short form. Use "bb plugin run ${pluginId}" to invoke this plugin.`;
+  if (!RESERVED_KAIOKEN_CLI_COMMANDS.includes(commandName)) return null;
+  return `CLI command "${commandName}" collides with core command "kaioken ${commandName}"; core keeps the short form. Use "kaioken plugin run ${pluginId}" to invoke this plugin.`;
 }
 
 /**
@@ -92,7 +92,7 @@ export const RPC_METHOD_PATTERN = /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*$/;
 // Service/schedule names appear in status text and plugin_schedules rows.
 export const BACKGROUND_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
 
-// CLI command names become `bb <name>` invocations.
+// CLI command names become `kaioken <name>` invocations.
 export const CLI_COMMAND_NAME_PATTERN = /^[a-z0-9-]+$/;
 
 // Agent tool names are shown to (and called by) the model.
@@ -883,7 +883,7 @@ const PROVIDER_MODEL_CATALOG_SCOPES = [
 
 /**
  * How far one `model/list` answer travels. Absent means `"workspace"`: a
- * bridge bb knows nothing about may read the workspace path, and probing per
+ * bridge kaioken knows nothing about may read the workspace path, and probing per
  * workspace is the answer that can only cost a redundant probe.
  */
 function validateProviderModelCatalogScope(
@@ -1403,7 +1403,7 @@ export function validatePluginProviderDeclaration(
   });
   // Maintenance support: an omitted object or key means the bridge does not
   // implement that request. Filled here once, then an explicit boolean
-  // everywhere inside bb.
+  // everywhere inside kaioken.
   const maintenance = declaration.maintenance ?? {};
   if (typeof maintenance !== "object" || maintenance === null) {
     throw new Error(`provider "${id}" maintenance must be an object`);
@@ -1884,7 +1884,7 @@ const RENAMED_AGENT_TOOL_FIELDS: ReadonlyMap<string, string> = new Map([
  * rule configure() output follows in the plugin service). The production
  * host and the fake host both call this before parsing `presentation`, so
  * a registration built against an older SDK fails a plugin's own unit test
- * with the message bb would give it.
+ * with the message kaioken would give it.
  */
 export function rejectStaleAgentToolFields(
   toolName: string,
@@ -1912,7 +1912,7 @@ export function rejectStaleAgentToolFields(
  * a plugin's object cannot smuggle prototypes or extra markup into the
  * persisted row. Labels share the status-label length cap. The production
  * host and the fake host both call this, so a presentation that registers
- * in a plugin unit test registers in bb, and one bb rejects is rejected
+ * in a plugin unit test registers in kaioken, and one kaioken rejects is rejected
  * with the same message.
  */
 export function parsePluginAgentToolPresentation(

@@ -1,9 +1,9 @@
 import type {
   PendingInteractionUserAnswer,
   PendingInteractionUserQuestionQuestion,
-} from "@bb/domain";
-import type { TimelineQuestionViewWorkRow } from "@bb/thread-view";
-import { formatPendingInteractionUserQuestionOptionLabel } from "@bb/core-ui";
+} from "@kaioken/domain";
+import type { TimelineQuestionViewWorkRow } from "@kaioken/thread-view";
+import { formatPendingInteractionUserQuestionOptionLabel } from "@kaioken/core-ui";
 
 interface QuestionWorkRowBodyProps {
   row: TimelineQuestionViewWorkRow;

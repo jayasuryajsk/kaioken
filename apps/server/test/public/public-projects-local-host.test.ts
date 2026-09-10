@@ -4,8 +4,8 @@ import {
   ensurePersonalProject,
   listPublicProjects,
   setExperiments,
-} from "@bb/db";
-import { defaultExperiments, PERSONAL_PROJECT_ID } from "@bb/domain";
+} from "@kaioken/db";
+import { defaultExperiments, PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import {
   reportQueuedCommandSuccess,
   waitForQueuedCommand,

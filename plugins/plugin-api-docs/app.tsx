@@ -2,9 +2,9 @@ import {
   copyPluginSurfaceAgentReference,
   firstPartyPluginId,
   ProductMap,
-} from "@bb/plugin-api-map";
+} from "@kaioken/plugin-api-map";
 import { useCallback, useEffect, useState } from "react";
-import { definePluginApp, useBbNavigate } from "@get-bb/plugin-sdk/app";
+import { definePluginApp, useBbNavigate } from "@get-kaioken/plugin-sdk/app";
 
 function useResolvablePluginIds(): ReadonlySet<string> | null {
   const [ids, setIds] = useState<ReadonlySet<string> | null>(null);
@@ -43,7 +43,7 @@ function useResolvablePluginIds(): ReadonlySet<string> | null {
 
 function PluginApiMapPage({ subPath }: { subPath: string }) {
   const resolvable = useResolvablePluginIds();
-  const bbNavigate = useBbNavigate();
+  const kaiokenNavigate = useBbNavigate();
   const pluginPageHref = useCallback(
     (displayName: string) => {
       const id = firstPartyPluginId(displayName);
@@ -54,12 +54,12 @@ function PluginApiMapPage({ subPath }: { subPath: string }) {
   );
   const onSlideChange = useCallback(
     (slideId: string) => {
-      bbNavigate.toPluginPanel("plugin-api", {
+      kaiokenNavigate.toPluginPanel("plugin-api", {
         subPath: slideId,
         replace: true,
       });
     },
-    [bbNavigate],
+    [kaiokenNavigate],
   );
   return (
     <div

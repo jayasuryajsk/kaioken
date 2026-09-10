@@ -1,8 +1,8 @@
-import type { BbDesktopInfo } from "@bb/desktop-contract";
+import type { KaiokenDesktopInfo } from "@kaioken/desktop-contract";
 
 interface MergeDesktopUpdateInfoArgs {
-  autoInfo: BbDesktopInfo | null;
-  feedInfo: BbDesktopInfo | null;
+  autoInfo: KaiokenDesktopInfo | null;
+  feedInfo: KaiokenDesktopInfo | null;
 }
 
 function latestCheckedAt(
@@ -20,7 +20,7 @@ function latestCheckedAt(
 
 export function mergeDesktopUpdateInfo(
   args: MergeDesktopUpdateInfoArgs,
-): BbDesktopInfo | null {
+): KaiokenDesktopInfo | null {
   const baseInfo = args.feedInfo ?? args.autoInfo;
   if (baseInfo === null) {
     return null;

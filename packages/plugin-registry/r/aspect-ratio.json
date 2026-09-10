@@ -3,7 +3,7 @@
   "name": "aspect-ratio",
   "type": "registry:ui",
   "title": "aspect-ratio",
-  "description": "BB ui \"aspect-ratio\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"aspect-ratio\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-aspect-ratio"
   ],

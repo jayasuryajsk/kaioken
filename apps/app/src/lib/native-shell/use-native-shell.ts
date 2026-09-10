@@ -1,4 +1,4 @@
-import type { SafeAreaInsets } from "@bb/mobile-bridge";
+import type { SafeAreaInsets } from "@kaioken/mobile-bridge";
 import { useEffect, useState } from "react";
 import { getNativeShell, type NativeShell } from "./native-shell";
 

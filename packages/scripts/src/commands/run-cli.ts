@@ -1,6 +1,6 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveCurrentDevProcessEnv } from "@bb/config/runtime";
+import { resolveCurrentDevProcessEnv } from "@kaioken/config/runtime";
 import { runScriptProcess } from "../lib/process-helpers.js";
 
 interface CliExecution {
@@ -22,9 +22,9 @@ export function resolveCliExecution(
   let args = ["apps/cli/dist/index.js", ...forwardedArgs];
   if (process.env.NODE_ENV !== "production") {
     const devEnv = resolveCurrentDevProcessEnv(repoRoot, process.env);
-    env.BB_SERVER_URL = process.env.BB_SERVER_URL ?? devEnv.BB_SERVER_URL;
-    env.BB_HOST_DAEMON_PORT =
-      process.env.BB_HOST_DAEMON_PORT ?? devEnv.BB_HOST_DAEMON_PORT;
+    env.KAIOKEN_SERVER_URL = process.env.KAIOKEN_SERVER_URL ?? devEnv.KAIOKEN_SERVER_URL;
+    env.KAIOKEN_HOST_DAEMON_PORT =
+      process.env.KAIOKEN_HOST_DAEMON_PORT ?? devEnv.KAIOKEN_HOST_DAEMON_PORT;
     args = [
       "--conditions=source",
       "--import",

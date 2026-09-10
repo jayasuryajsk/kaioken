@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import type { TimelineConversationAttachments } from "@bb/server-contract";
-import { fileNameFromPath } from "@bb/thread-view";
+import type { TimelineConversationAttachments } from "@kaioken/server-contract";
+import { fileNameFromPath } from "@kaioken/thread-view";
 import {
   ImageLightbox,
   getWrappedImageIndex,
 } from "../../ui/image-lightbox.js";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { buildProjectAttachmentContentUrl } from "@/lib/file-content-urls";
 import type {
   ThreadTimelineLocalFileLinkHandler,

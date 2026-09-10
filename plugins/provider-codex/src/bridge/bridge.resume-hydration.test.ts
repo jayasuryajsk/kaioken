@@ -8,7 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-bb/plugin-sdk/provider-bridge/testing";
+import { experimental_createBridgeJsonRpcTestHarness as createBridgeJsonRpcTestHarness } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 import { handleLine } from "./bridge.js";
 
 const THREAD_ID = "thr_resume_hydration";
@@ -28,13 +28,13 @@ let workspaceDir: string;
 let requestLogPath: string;
 
 beforeEach(() => {
-  workspaceDir = mkdtempSync(join(tmpdir(), "bb-codex-resume-hydration-"));
+  workspaceDir = mkdtempSync(join(tmpdir(), "kaioken-codex-resume-hydration-"));
   requestLogPath = join(workspaceDir, "requests.jsonl");
   const scriptPath = join(workspaceDir, "script.json");
   writeFileSync(scriptPath, JSON.stringify({ requestLogPath }), "utf8");
-  vi.stubEnv("BB_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
+  vi.stubEnv("KAIOKEN_CODEX_BRIDGE_APP_SERVER_COMMAND", process.execPath);
   vi.stubEnv(
-    "BB_CODEX_BRIDGE_APP_SERVER_ARGS",
+    "KAIOKEN_CODEX_BRIDGE_APP_SERVER_ARGS",
     JSON.stringify([fakeAppServerPath, scriptPath]),
   );
   harness = createBridgeJsonRpcTestHarness(handleLine);

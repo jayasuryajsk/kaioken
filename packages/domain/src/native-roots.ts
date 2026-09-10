@@ -88,7 +88,7 @@ export const providerNativeRootInputSchema = z.union([
       /**
        * A file, relative to a skill directory under this root, that marks the
        * directory as a vendor plugin rather than a skill (Claude's
-       * `.claude-plugin/plugin.json`): bb skips such a directory. The plugin
+       * `.claude-plugin/plugin.json`): kaioken skips such a directory. The plugin
        * that knows the vendor layout declares it; core names no vendor path.
        */
       skipIfManifest: nativeRootManifestPathSchema.optional(),

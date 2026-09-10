@@ -8,7 +8,7 @@ import {
   type PendingInteractionGrantablePermissionProfile,
   type PendingInteractionGrantedPermissionProfile,
   type PendingInteractionRequestedPermissionProfile,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import type { CodexMacOsPermissionItem } from "./extension-kinds.js";
 import { normalizePendingInteractionRequestedPermissionProfile } from "./pending-interaction-normalization.js";
 import type { CommandExecutionRequestApprovalResponse } from "./generated/codex-app-server/schema/v2/CommandExecutionRequestApprovalResponse.js";

@@ -54,7 +54,7 @@ calls it for each matching session and turn with the thread, project, and host
 ids, validates at most 32 environment entries, resolves registration conflicts
 in plugin load order, and sends the winning values to the host. A value may be
 a literal string or a server-relative path that the host expands against its
-authenticated `BB_SERVER_URL`. Contributions override the shell environment;
+authenticated `KAIOKEN_SERVER_URL`. Contributions override the shell environment;
 entries marked `secret` are masked in provider environment events. The resolver
 receives `ExperimentalPluginProviderEnvContext` and returns
 `ExperimentalPluginProviderEnvEntry` values.
@@ -82,28 +82,28 @@ an audit say so with the date and the open question. The first audit
 provider declaration's target-state fields and `maintenance`, tool
 `presentation`, `UrlLink` / `openUrl`, `fixedTabs`, and the shared `Original`
 delegation prop, and deleted the alias and status-label members; the next
-bb-app release's CHANGELOG entry records the renames for plugin authors.
+kaioken-app release's CHANGELOG entry records the renames for plugin authors.
 For a bridge built against 0.4.15 the renames are mechanical: on
-`@get-bb/plugin-sdk/provider-bridge` the sixteen `experimental_provider*Schema`
+`@get-kaioken/plugin-sdk/provider-bridge` the sixteen `experimental_provider*Schema`
 values and their sixteen `ExperimentalProvider*` types dropped the prefix
 (`experimental_providerHealthSchema` → `providerHealthSchema`,
 `ExperimentalProviderHealth` → `ProviderHealth`, …), as did the
 `BRIDGE_REQUEST_METHODS.experimentalProvider*` keys (the method strings on
-the wire are unchanged); on `@get-bb/plugin-sdk` the tool type
+the wire are unchanged); on `@get-kaioken/plugin-sdk` the tool type
 `PluginAgentToolExperimentalStatusLabels` is `PluginAgentToolLabels`, the
 type of `presentation.label`.
 
-## One-release compatibility windows (removal target: bb 0.42)
+## One-release compatibility windows (removal target: kaioken 0.42)
 
 - The app runtime keeps deprecated aliases for plugin bundles compiled
   against an SDK before 0.4.16: `experimental_UrlLink` (a wrapper component
   that warns on its first render, then renders `UrlLink`),
-  `BbNavigate.experimental_openUrl` (warns on its first call, then calls
+  `KaiokenNavigate.experimental_openUrl` (warns on its first call, then calls
   `openUrl`), and the delegation prop `experimental_Original` passed beside
   `Original` on the thread-list, file-opener, source-code renderer and diff
   renderer props (the timeline renderer never carried the old name; the
   alias warns on its first render). A bundle that never uses an alias never
-  warns. All go in bb 0.42. The two 0.4.14 `app` exports
+  warns. All go in kaioken 0.42. The two 0.4.14 `app` exports
   (`experimental_ProviderModelPicker`, `experimental_PermissionModePicker`)
   are present and stay experimental; neither carries an alias.
 - The deleted `bb.agents.experimental_registerProvider` throws with the
@@ -111,23 +111,23 @@ type of `presentation.label`.
 - Removed outright from a published subpath, with no alias and no throwing
   stub (an import fails to resolve): `ProviderInfo.experimental_providerHealth`
   / `experimental_providerUsage` / `experimental_providerInstallation`
-  (`@get-bb/plugin-sdk/app`, properties of the `ProviderInfo` rows
+  (`@get-kaioken/plugin-sdk/app`, properties of the `ProviderInfo` rows
   `experimental_useProviders` serves: a typed read no longer compiles and
   the served row has no such key; read `maintenance.health` /
   `maintenance.usage` / `maintenance.installation` — the server no longer
   serves the three booleans beside `maintenance`, and every client ships
   with the server, so no reader is left behind),
   `experimental_aiServiceKindSchema` and
-  `ExperimentalAiServiceKind` (`@get-bb/plugin-sdk/ai-services`; the pair
+  `ExperimentalAiServiceKind` (`@get-kaioken/plugin-sdk/ai-services`; the pair
   referenced only each other — the kind a service declares is
   `PluginAiServiceKind` on `PluginAiServiceDeclaration.kinds`, exported from
-  `@get-bb/plugin-sdk`, and there is no schema for it), `ExperimentalAiJsonValue`
-  (`@get-bb/plugin-sdk/ai-services`; none — import the domain type,
-  `JsonValue` from `@get-bb/plugin-sdk/provider-bridge`), and
-  `ExperimentalResolvedNativeRoot` (`@get-bb/plugin-sdk/host`; none — import
+  `@get-kaioken/plugin-sdk`, and there is no schema for it), `ExperimentalAiJsonValue`
+  (`@get-kaioken/plugin-sdk/ai-services`; none — import the domain type,
+  `JsonValue` from `@get-kaioken/plugin-sdk/provider-bridge`), and
+  `ExperimentalResolvedNativeRoot` (`@get-kaioken/plugin-sdk/host`; none — import
   the domain type, reachable as
   `ExperimentalNativeRootsResolveOutput["skills"][number]`), and from
-  `@get-bb/plugin-sdk/provider-bridge/testing` the three kit internals no
+  `@get-kaioken/plugin-sdk/provider-bridge/testing` the three kit internals no
   suite used: `experimental_ConformanceClient` and
   `experimental_checkItemOpensBeforeDelta` (none —
   `experimental_runBridgeConformance` drives the client and applies the
@@ -138,14 +138,14 @@ type of `presentation.label`.
 - Renamed declaration, tool and navPanel fields (`experimental_strings`,
   `experimental_presentation`, `experimental_fixedTabs`, …) are rejected at
   registration with a message naming the new field, from SDK 0.4.16 on.
-- `experimental_toConformanceMessages` (`@get-bb/plugin-sdk/provider-bridge/testing`)
+- `experimental_toConformanceMessages` (`@get-kaioken/plugin-sdk/provider-bridge/testing`)
   throws on call, naming its replacement: `experimental_runBridgeConformance`
   assembles `thread/delta` itself from the raw messages a transport's
   `takeMessages` returns and takes the bridge's `providerId`. A conformance
   suite written against the pre-0.4.16 transport shape fails with that message
-  instead of a missing export. Goes in bb 0.42.
+  instead of a missing export. Goes in kaioken 0.42.
 - Presentation-less `toolCall` rows pass through the legacy-data adapter
-  (`upgradeLegacyToolItem` in `@bb/domain`, applied when a stored row is
+  (`upgradeLegacyToolItem` in `@kaioken/domain`, applied when a stored row is
   parsed): keyed on the absence of `presentation`, it reshapes
   Read/Grep/Glob and read/grep/find/ls by name into `fileRead`/`search`
   items and suppresses the Task*/Todo*/ToolSearch bookkeeping calls,
@@ -161,11 +161,11 @@ type of `presentation.label`.
 
 ## Scheduled removals (next major)
 
-Unprefixed exports of `@get-bb/plugin-sdk/provider-bridge` that no longer
+Unprefixed exports of `@get-kaioken/plugin-sdk/provider-bridge` that no longer
 have a consumer in this repository. They are kept on the facade because a
 third-party bridge compiled against an SDK before 0.4.16 may import them;
 dropping a published name is a breaking change. The first eleven are
-re-exported from `@bb/domain`, where each still has core consumers:
+re-exported from `@kaioken/domain`, where each still has core consumers:
 
 - `acpNativeReasoningSchema`
 - `acpPermissionCliSchema`
@@ -183,7 +183,7 @@ The next four are aliases of definitions that moved when the host-daemon
 wire lost the typed ACP launch spec (protocol 155) and the claude-code
 runtime became a plugin: the ACP pair aliases the ACP kit's
 `experimental_acpLaunchSpecSchema` / `AcpLaunchSpec`
-(`@get-bb/plugin-sdk/provider-bridge/acp`, where a plugin that declares an
+(`@get-kaioken/plugin-sdk/provider-bridge/acp`, where a plugin that declares an
 ACP agent should read it) and the kit's normalizer; the task-tool pair is a
 copy kept in the SDK of what core used to share with the claude-code
 runtime, with no replacement. The type aliases `HostDaemonAcpLaunchSpec`
@@ -200,14 +200,14 @@ All fifteen values and both types: unreferenced by any first-party plugin;
 kept because 0.4.x published them; remove at the next major version. The
 `provider-bridge-scheduled-removals` SDK test holds the facade to this list.
 
-`AcpAgentProfile` on `@get-bb/plugin-sdk/provider-bridge/acp` is a deprecated
+`AcpAgentProfile` on `@get-kaioken/plugin-sdk/provider-bridge/acp` is a deprecated
 alias of `AcpLaunchSpec` for the same reason. The bridge used to derive a
 profile from the parsed launch spec (`providerId`, `agentCommand: { command,
 args }`, an `env` dropped when empty) and read only the spec's own fields
 from it, so the profile type went with the derivation; the published name
 stays until the next major version.
 
-`CONFORMANCE_ASSEMBLED_EVENT_METHOD` (`@get-bb/plugin-sdk/provider-bridge/testing`)
+`CONFORMANCE_ASSEMBLED_EVENT_METHOD` (`@get-kaioken/plugin-sdk/provider-bridge/testing`)
 is retired the same way: the conformance kit assembles `thread/delta` itself
 and reads nothing under that method, so the constant names a lane that no
 longer exists. Kept because 0.4.x published it; remove at the next major
@@ -222,7 +222,7 @@ synchronously without transforming their primitive value. The generated form
 autosaves one field at a time and displays the first validation issue beneath
 that field. A `PluginSettingsHandle` can call `experimental_set` to validate
 and persist its own fields, receive the effective values, fire `onChange`, and
-notify settings consumers just like a settings route or `bb plugin config`
+notify settings consumers just like a settings route or `kaioken plugin config`
 write.
 
 **Audit before stabilizing.**
@@ -393,7 +393,7 @@ a plugin should only see the rows whose wait it owns. Decide too whether
 `message.queued` firing on every rewritten wait is what a listener wants, or
 whether a separate `message.updated` belongs alongside it — the timeline event
 already distinguishes the two. `message.cancelled` fires when a queued row is
-deleted before it dispatched (the queued card's Delete, `bb thread queue`);
+deleted before it dispatched (the queued card's Delete, `kaioken thread queue`);
 rows that vanish with their thread fire the thread event instead. Confirm
 that split is the teardown signal a plugin holding resources for a waiting
 message needs before this is stable. For `turn.failed`, confirm the payload answers every
@@ -477,7 +477,7 @@ those providers at the server boundary.
    isWorktree comes from git inspection. EnvironmentStatus does not restore
    retiring/destroying; lifecycle is a separate read-only view.
 
-## `@get-bb/plugin-sdk/environment-provider`
+## `@get-kaioken/plugin-sdk/environment-provider`
 
 **What it does.** Exports the resource-operation contract for
 `bb.experimental_environments.register`. The SDK controller is removed.
@@ -511,7 +511,7 @@ Audit availability message ownership, create-time error presentation, the
 interaction between the `requires` floor and provider decisions, and whether
 the current decision timeout is appropriate before stabilizing it.
 
-## `app.slots.experimental_environmentProviderInputs`, `experimental_BranchPicker`, `experimental_useBranches` and `experimental_useCheckoutState` (`@get-bb/plugin-sdk/app`)
+## `app.slots.experimental_environmentProviderInputs`, `experimental_BranchPicker`, `experimental_useBranches` and `experimental_useCheckoutState` (`@get-kaioken/plugin-sdk/app`)
 
 **What it does.** The picker-side half of environment providers. The slot
 registers the control the New Thread environment picker renders beside this
@@ -532,7 +532,7 @@ picker with its branch-options loading (`{ hostId, projectId, value, onChange,
 label?, placeholder?, disabled }` — `label` is text before the branch, omitted
 means the branch alone; `placeholder` replaces the muted default base shown
 while nothing is picked), exported so a provider that runs on an enrolled
-machine can render bb's own branch control inside its inputs control — the
+machine can render kaioken's own branch control inside its inputs control — the
 worktree plugin's `app.tsx` does exactly that, emitting `{ branch: { kind:
 "named", name } }` for a pick, `{ branch: { kind: "default" } }` for a
 cleared pick and on mount — the same additive-versioning exception as
@@ -584,7 +584,7 @@ and `xml:base`), serves the bytes from the installed plugin directory at
 `/api/v1/plugins/<id>/assets/icons/<name>.svg?h=<hash>` with immutable
 caching, and rejects at ingest (`provider/unhandled`, reason naming the glyph)
 a namespaced glyph that is not the emitting plugin's own declared icon. The
-emitting plugin is the thread's provider plugin, except for a `server: "bb"`
+emitting plugin is the thread's provider plugin, except for a `server: "kaioken"`
 tool row: the bridge stamps the presentation the server resolved from the
 plugin that registered the tool, so that row's glyph is checked against the
 tool's plugin (it passes when the tool is still registered by the plugin the
@@ -611,7 +611,7 @@ A declared icon passes the strict set above at build and at load.
 `bb.branding.icon` (and a marketplace catalog icon) passes the
 document-shape check it always had — UTF-8, no doctype or processing
 instruction, well-formed XML, an `<svg>` root — at build and at load. An SVG
-`bb.branding.logo.light`/`.dark` is checked at `bb plugin build` only, and
+`bb.branding.logo.light`/`.dark` is checked at `kaioken plugin build` only, and
 only for script vectors: a `script`, `handler` or `listener` element in any
 namespace, an `on*` attribute, or an `href`/`xlink:href` whose scheme is
 `javascript:`. Nothing else, so an Illustrator `<!DOCTYPE svg PUBLIC …>`,
@@ -621,7 +621,7 @@ href="data:…">`, an `<a>`-wrapped logo and Latin-1 bytes all build. Install
 and load never refuse a logo or a path-shaped provider icon: the manifest
 reader, the served snapshot and the `bb.providers.register` call take the
 bytes as declared, so no installed plugin's tool-export artwork fails its
-load (a provider icon is named only in code, so `bb plugin build` cannot
+load (a provider icon is named only in code, so `kaioken plugin build` cannot
 reach it either). What keeps every such document inert is the response: the
 branding route (`/plugins/:id/assets/{icon,logo,logo-dark}`), the
 declared-icon route and the provider logo route
@@ -646,7 +646,7 @@ rows are never rewritten and simply fall back.
 
 **Kept experimental (2026-08-22).** it still accepts two input shapes (ordered `contentBlocks` and the legacy aggregate `{ content, images }`) though every first-party caller now passes the ordered form, and no image MIME/size policy exists at the server boundary; drop the legacy input and settle the policy, then stabilize.
 
-**What it does.** Converts a decoded bb tool-call response into the ordered
+**What it does.** Converts a decoded kaioken tool-call response into the ordered
 text and inline-image content blocks accepted by MCP and Pi tool result
 contracts. It preserves a legacy aggregate text/images input while first-party
 bridges migrate to ordered `contentBlocks`.
@@ -656,7 +656,7 @@ content-block vocabulary; decide whether legacy aggregate fields still need to
 be accepted; and define any image MIME validation, decoding, or payload-size
 policy at the server boundary before making the helper stable.
 
-## The ACP bridge kit (`@get-bb/plugin-sdk/provider-bridge/acp`)
+## The ACP bridge kit (`@get-kaioken/plugin-sdk/provider-bridge/acp`)
 
 **Kept experimental (2026-08-22).** Four members remain, each with an open
 question below; the fourteen exports no plugin consumed (the dialect
@@ -664,8 +664,8 @@ registry and ids, the raw line handler, the protocol constants, the launch
 profile and the model-catalog helpers) left the public surface in the
 stabilization audit — the kit grows with a consumer, not ahead of one.
 
-**What it does.** Publishes bb's generic Agent Client Protocol bridge so any
-plugin can add an ACP agent without bb-side code. `experimental_acpProviderBridge`
+**What it does.** Publishes kaioken's generic Agent Client Protocol bridge so any
+plugin can add an ACP agent without kaioken-side code. `experimental_acpProviderBridge`
 is the bridge a plugin re-exports from its `bb.host` artifact; the agent to
 launch arrives per command in `providerOptions.acpLaunchSpec`, so one
 implementation serves every agent. The bridge ships three dialects
@@ -703,7 +703,7 @@ plugin is owed when the spec grows a field.
 
 **What it does.** Names the directories a provider's own agent reads skills
 from, relative to the target host's home directory (`user`) or to the
-workspace (`project`). bb lists those skills beside its own and offers them in
+workspace (`project`). kaioken lists those skills beside its own and offers them in
 the composer. It replaces the one thing the server used to dig out of an ACP
 agent's launch spec: before the ACP tier was deleted, `GET /projects/:id/
 commands` read `acpLaunchSpec.nativeSkillRoots` out of a config record. A
@@ -712,7 +712,7 @@ core never reaches into a plugin's opaque bridge options for it. Validated at
 registration: `user` and `project` are relative paths only, no dot segments,
 no duplicates, at most 32 roots per side. The declaration is global; a
 directory only one host can name is the resolver's answer
-(`experimental_resolvesNativeRoots`), and bb scans each absolute path once
+(`experimental_resolvesNativeRoots`), and kaioken scans each absolute path once
 across the declared and resolved roots, the first in declaration order
 winning ([provider-plugin-api.md](provider-plugin-api.md) §1).
 
@@ -742,7 +742,7 @@ resolver's answer does.
 **What it does.** Names the directories a provider's agent reads its own
 slash commands from — flat directories of `*.md` prompt files, Claude Code's
 `.claude/commands` — in the same two-sided shape and with the same per-root
-options as `experimental_nativeSkillRoots`. bb offers the commands in the
+options as `experimental_nativeSkillRoots`. kaioken offers the commands in the
 composer beside the agent's skills. Added by stabilization S5 when the
 daemon's per-provider scan table was deleted: the claude-code plugin is the
 only first-party declarer.
@@ -754,7 +754,7 @@ two declarations or become one list of typed roots; confirm that a flat
 ## `PluginProviderDeclaration.experimental_resolvesNativeRoots`
 
 **What it does.** Declares that the plugin's `bb.host` entry implements
-`experimental_nativeRootsHostContract`. When bb lists a provider's commands or
+`experimental_nativeRootsHostContract`. When kaioken lists a provider's commands or
 skills it calls `resolveNativeRoots({ providerId, cwd })` on the workspace
 host (cached for ten seconds per plugin, provider, host and workspace;
 invalidated when the plugin's settings change or the provider re-registers)
@@ -774,7 +774,7 @@ plugin with host-only roots now resolves them this way.
 whether the server should detect the method on the host entry; and settle
 the cache TTL and the invalidation set against a real multi-host setup.
 
-## `experimental_nativeRootsHostContract` (`@get-bb/plugin-sdk/host`)
+## `experimental_nativeRootsHostContract` (`@get-kaioken/plugin-sdk/host`)
 
 **What it does.** The one-method RPC contract (`resolveNativeRoots`) a
 provider plugin's host entry serves when its declaration sets
@@ -790,7 +790,7 @@ third-party agent's layouts; decide whether the contract should accept a
 relative path the daemon resolves (so a plugin need not know the host home)
 and whether the 256-root cap per side is right.
 
-## `experimental_filterResolvedNativeRoots` (`@get-bb/plugin-sdk/host`)
+## `experimental_filterResolvedNativeRoots` (`@get-kaioken/plugin-sdk/host`)
 
 **What it does.** Checks a `resolveNativeRoots` answer root by root against
 the contract (path, origin, name prefix, the manifest marker's form, shape,
@@ -810,7 +810,7 @@ in the answer) so a plugin cannot forget to call the helper, and whether
 `dropped[].reason` is a contract a resolver's test may pin or free text for
 the log.
 
-## Vendor plugin roots (`experimental_resolveClaudePluginRoots` and `experimental_resolveVendorPluginRoots`, `@get-bb/plugin-sdk/host`)
+## Vendor plugin roots (`experimental_resolveClaudePluginRoots` and `experimental_resolveVendorPluginRoots`, `@get-kaioken/plugin-sdk/host`)
 
 **What it does.** The two readers a provider plugin's `resolveNativeRoots`
 handler calls for the vendor plugins installed on the host.
@@ -873,7 +873,7 @@ textarea below the label and description at the row's full width (six rows
 minimum, growing with its content to twenty-four, then scrolling; spellcheck
 off), on mobile a monospace multi-line `TextInput`. The stored value is the
 same string as before — the flag changes the editor, not the contract, so the
-CLI (`bb plugin config <id> set <key> <value>`) and `settings.get()` are
+CLI (`kaioken plugin config <id> set <key> <value>`) and `settings.get()` are
 unaffected and a plugin still parses the text itself (the ACP plugin's
 `customAgents` JSON array, the first consumer, parses on read and warns). A
 descriptor that sets it beside `secret: true` is refused at define time:
@@ -903,9 +903,9 @@ the server, so no client older than this field is served.
 **Kept experimental (2026-08-22).** a sunset member: its only consumer is the ACP plugin's reader of the deprecated `customAcpAgents` array, and it is deleted with that window (`LEGACY_CUSTOM_AGENTS_REMOVED_IN`). A bare data-directory path does not stabilize.
 
 **What it does.** The server's data directory — the one holding `config.json`,
-`bb.db` and `plugins/<id>/`. Added because a plugin cannot compute it: a dev
+`kaioken.db` and `plugins/<id>/`. Added because a plugin cannot compute it: a dev
 server derives its data dir from its repo root and instance id
-(`~/.bb-dev/<instance>`), so the ACP plugin's own `~/.bb` fallback made a dev
+(`~/.kaioken-dev/<instance>`), so the ACP plugin's own `~/.kaioken` fallback made a dev
 server read the production `config.json` while the server read another one.
 Its only consumer is that plugin's read of the deprecated `customAcpAgents`
 array.
@@ -913,18 +913,18 @@ array.
 **Audit before stabilizing.** Its one caller dies with the `customAcpAgents`
 deprecation window, so decide then whether anything else needs it. If it
 stays, decide whether a bare path is the right shape or whether a plugin
-should get named, read-only accessors for the bb-managed files it may read —
-a path invites writes into bb's directory, which `bb.storage` exists to
+should get named, read-only accessors for the kaioken-managed files it may read —
+a path invites writes into kaioken's directory, which `bb.storage` exists to
 prevent.
 
 ## `bb.server.experimental_appUrl`
 
 **What it does.** This value gives plugins the operator-configured public app
-URL from `BB_APP_URL`. It is `null` when the operator did not configure that
+URL from `KAIOKEN_APP_URL`. It is `null` when the operator did not configure that
 value. Plugins can read it before the server starts to listen.
 
-**Audit before stabilizing.** Decide whether `BB_EXTERNAL_URL` or the bb
-connect URL should supply this value when `BB_APP_URL` is empty. Confirm that
+**Audit before stabilizing.** Decide whether `KAIOKEN_EXTERNAL_URL` or the kaioken
+connect URL should supply this value when `KAIOKEN_APP_URL` is empty. Confirm that
 one public URL has clear behavior when a server has several access paths.
 
 ## Bridge record mode (`experimental_recordProviderChildIo` and `experimental_isProviderBridgeRecording`)
@@ -932,8 +932,8 @@ one public URL has clear behavior when a server has several access paths.
 **Kept experimental (2026-08-22).** the recording entry shape is now consumed by the public testing kit, so it is a de-facto fixture format that must be frozen together with `experimental_readBridgeRecording` / `replayRecording`; the `{ threadId | null }` scope is untested against a multiplexing bridge.
 
 **What it does.** `experimental_recordProviderChildIo` tees a provider
-child's stdio into the bridge record mode (`BB_PROVIDER_BRIDGE_RECORD_DIR`),
-scoped to the bb thread the child serves. It is a no-op when record mode is
+child's stdio into the bridge record mode (`KAIOKEN_PROVIDER_BRIDGE_RECORD_DIR`),
+scoped to the kaioken thread the child serves. It is a no-op when record mode is
 off, so a bridge calls it unconditionally after `spawn()`.
 `experimental_isProviderBridgeRecording` reports whether record mode is on,
 for a bridge whose provider pipe is owned by an SDK and must take the spawn
@@ -966,7 +966,7 @@ whether `retryable` should be per kind (only `sessionArchived` and
 `rateLimited` read it today) and whether the runtime should bound the
 `rateLimited` ladder from the hint rather than from a constant.
 
-## Provider maintenance toolkit (`experimental_resolveExecutablePath`, `experimental_readCliVersion`, `experimental_commandOutput`, `experimental_versionFrom`, `experimental_compareVersions`, `experimental_formatCommand`, `experimental_npmCommand`, `experimental_npmGlobalInstallCommand`, `experimental_npmLatestVersion`, `experimental_probeNpmGlobalPackage`, `experimental_npmGlobalInstallSource`, `experimental_installationVerification`, `experimental_downloadedInstallerCommand`, `experimental_clampPercent`) (`@get-bb/plugin-sdk/provider-bridge`)
+## Provider maintenance toolkit (`experimental_resolveExecutablePath`, `experimental_readCliVersion`, `experimental_commandOutput`, `experimental_versionFrom`, `experimental_compareVersions`, `experimental_formatCommand`, `experimental_npmCommand`, `experimental_npmGlobalInstallCommand`, `experimental_npmLatestVersion`, `experimental_probeNpmGlobalPackage`, `experimental_npmGlobalInstallSource`, `experimental_installationVerification`, `experimental_downloadedInstallerCommand`, `experimental_clampPercent`) (`@get-kaioken/plugin-sdk/provider-bridge`)
 
 **What it does.** The host-local probes and install-action plumbing behind a
 bridge's `provider/health`, `provider/usage` and `provider/installation/*`
@@ -1014,7 +1014,7 @@ dist-tag and `doctor` parsing) beside them.
    and `bash`; there is no Windows form. Decide whether it should refuse on
    win32 rather than hand the daemon a command that cannot run.
 
-## Presentation builders (`experimental_presentationTitle`, `experimental_presentationDetail`, `experimental_withTitle`, `experimental_presentationFileName`, `experimental_COMPACTION_PRESENTATION`, `experimental_REASONING_PRESENTATION`, `experimental_fileReadPresentation`, `experimental_searchPresentation`, `experimental_webSearchPresentation`, `experimental_webFetchPresentation`, `experimental_planStepsPresentation`, `experimental_toolPresentation`) (`@get-bb/plugin-sdk/provider-bridge`)
+## Presentation builders (`experimental_presentationTitle`, `experimental_presentationDetail`, `experimental_withTitle`, `experimental_presentationFileName`, `experimental_COMPACTION_PRESENTATION`, `experimental_REASONING_PRESENTATION`, `experimental_fileReadPresentation`, `experimental_searchPresentation`, `experimental_webSearchPresentation`, `experimental_webFetchPresentation`, `experimental_planStepsPresentation`, `experimental_toolPresentation`) (`@get-kaioken/plugin-sdk/provider-bridge`)
 
 **What it does.** The bridge kit's presentation building blocks for the
 grammar-v3 `presentation` a bridge stamps on every item it opens
@@ -1044,7 +1044,7 @@ tool is which kind, how a command headline is unwrapped, per-tool tables).
 **Audit before stabilizing.**
 
 1. **The wording is a product decision.** A third-party bridge that adopts
-   the constants inherits bb's English labels and glyph names; a bridge
+   the constants inherits kaioken's English labels and glyph names; a bridge
    that wants its own wording builds the object itself. Decide whether the
    labels should come from the host (localized, themed) rather than be
    persisted from the bridge before the constants are a promise.
@@ -1056,7 +1056,7 @@ tool is which kind, how a command headline is unwrapped, per-tool tables).
    its own uncollapsed variant. Decide which default a third-party bridge
    should get.
 
-## `experimental_readBoundedLines` (`@get-bb/plugin-sdk/provider-bridge`)
+## `experimental_readBoundedLines` (`@get-kaioken/plugin-sdk/provider-bridge`)
 
 **What it does.** The bridge kit's newline-delimited line reader, the one the
 daemon reads every bridge's stdout with and the bridge worker reads its stdin
@@ -1080,7 +1080,7 @@ unterminated line is emitted before it.
    reasonably want to fail the session instead. Decide whether the reader
    should offer a fail-closed mode before the signature is a promise.
 
-## Live-file navigation (`experimental_FileLink`, `BbNavigate.experimental_openFilePreview`, `BbNavigate.experimental_openFileExternally`, and `PluginFileOpenerSource.experimental_hostId`)
+## Live-file navigation (`experimental_FileLink`, `KaiokenNavigate.experimental_openFilePreview`, `KaiokenNavigate.experimental_openFileExternally`, and `PluginFileOpenerSource.experimental_hostId`)
 
 **Kept experimental (2026-08-22).** `experimental_hostId` is persisted inside opener-tab `paramsJson` (a rename needs a read-compat shim), Windows/UNC paths were never verified, and `experimental_openFilePreview` has no consumer.
 
@@ -1142,7 +1142,7 @@ unexpected-exit recovery without feature-specific core hooks.
 **Audit before stabilizing.**
 
 0a. **Process reap.** `experimental_killProcessesWithCwdUnder({ directory,
-   graceMs? })` from `@get-bb/plugin-sdk/host` is the same helper bb's own
+   graceMs? })` from `@get-kaioken/plugin-sdk/host` is the same helper kaioken's own
 daemon used to reap a managed workspace before removing it: SIGTERM to
 every process whose working directory is at or under the path, SIGKILL
 after the grace, returning what it signalled. Published for the worktree
@@ -1182,12 +1182,12 @@ before deleting the directory. Confirm the platform coverage (Linux
    retaining only the most recently materialized artifact digest per plugin is
    sufficient.
 7. **Environment.** Confirm executable discovery through normalized `PATH`
-   and stripping all daemon-owned `BB_*` variables.
+   and stripping all daemon-owned `KAIOKEN_*` variables.
 8. **Trust and dependencies.** V1 host plugins are trusted Node programs that
    may use `child_process`, filesystem, and network APIs. Decide whether later
    permissions, native artifacts, or an explicit dependency installer can be
    layered on without changing the RPC contract. Confirm rejecting all private
-   `@bb/*` imports from host bundles is the correct permanent boundary, and
+   `@kaioken/*` imports from host bundles is the correct permanent boundary, and
    audit the builder-supplied public SDK runtime against future host exports.
 9. **Composition boundary.** Confirm host RPC methods and signals should remain
    private to the owning plugin while allowing another daemon subsystem to
@@ -1414,7 +1414,7 @@ bridge as provider-scoped static options. Core does not interpret its keys.
    submit time, removed from the contract because nothing ever resolved one —
    returns as its own surface.
 5. **What a capability may be.** `supportsHostAiServices` was removed after
-   shipping: it declared that bb's voice-transcription and structured-inference
+   shipping: it declared that kaioken's voice-transcription and structured-inference
    features could route through the provider, which is a fact about the daemon
    bundle rather than about the provider. `supportsWorkflows` went the same
    way in WS2a: whether a session may use the Workflow tool is the Claude
@@ -1422,7 +1422,7 @@ bridge as provider-scoped static options. Core does not interpret its keys.
    `providerOptions`), not a fact core needs. Apply the same test to every
    remaining capability before stabilizing: a declaration may assert what the
    provider itself implements and an external consumer needs pre-session,
-   never what bb or its daemon can do with it.
+   never what kaioken or its daemon can do with it.
 6. **Static bridge options and visibility.** Confirm 64 KiB remains a suitable
    declaration-time limit, that opaque options should continue to be shared by
    every host rather than resolved per host, and whether deep-frozen plain JSON
@@ -1431,21 +1431,21 @@ bridge as provider-scoped static options. Core does not interpret its keys.
    installed-only provider, and that targeted requests may continue resolving
    a registered provider even while discovery says it is absent.
 
-## `@get-bb/plugin-sdk/provider-bridge` (the provider-bridge authoring surface)
+## `@get-kaioken/plugin-sdk/provider-bridge` (the provider-bridge authoring surface)
 
 **Kept experimental (2026-08-22).** `experimental_defineProviderBridge` / `experimental_apiVersion` are an artifact↔daemon contract (the bootstrap refuses anything but version 1 by name), and the deprecation window between independently-updating artifacts and daemons (item 4) is undecided.
 
 **What it does.** The published module a provider bridge compiles against. A
 bridge ships inside its plugin's `bb.host` artifact, and a host artifact may
-not import private `@bb/*` workspace packages, so everything a bridge needs is
+not import private `@kaioken/*` workspace packages, so everything a bridge needs is
 named here: `experimental_defineProviderBridge` (the export shape the
 daemon-side bootstrap looks for), the Provider Bridge Protocol's method
 vocabulary, the `thread/delta` grammar, and param schemas, the bridge kit's
 authoring helpers (JSON-RPC framing, tool-call and interaction codecs,
-visibility, dialect-parsing helpers), and the `@bb/domain` command-plane
+visibility, dialect-parsing helpers), and the `@kaioken/domain` command-plane
 vocabulary those params reference.
 Curated by hand — named exports only, never `export *`. Unlike
-`@get-bb/plugin-sdk` and `@get-bb/plugin-sdk/host`, it is NOT a build-time
+`@get-kaioken/plugin-sdk` and `@get-kaioken/plugin-sdk/host`, it is NOT a build-time
 runtime stub: it is pure schema and helper code with no daemon-pinned
 behavior, so a provider plugin depends on the SDK for real and the artifact
 build inlines the SDK's published, self-contained bundle.
@@ -1455,12 +1455,12 @@ build inlines the SDK's published, self-contained bundle.
 1. **Resolved (Aug 2026, the narrow-grammar cutover): the protocol owns its
    own timeline vocabulary.** Bridges no longer construct `ThreadEvent`s —
    they emit the protocol's own `thread/delta` grammar and the runtime's
-   assembler constructs every canonical event — so the `@bb/domain` event
+   assembler constructs every canonical event — so the `@kaioken/domain` event
    vocabulary (`ThreadEvent`, the item types, `threadScope`/`turnScope` and
    the scope helpers) left the surface with the kit's assembly machinery
    (turn-state registry, scoped-item-ids, accepted-user-messages, item
    constructors, unhandled-event builders). What still comes from
-   `@bb/domain` is deliberate and consumed by bridges today: the
+   `@kaioken/domain` is deliberate and consumed by bridges today: the
    command-plane and interaction surface the protocol's params are made of
    (`PromptInput`, `PendingInteraction*`, `DynamicTool`,
    `RuntimePermissionPolicy`, permission/reasoning/service-tier values,
@@ -1469,7 +1469,7 @@ build inlines the SDK's published, self-contained bundle.
    `ThreadEventPlanStep`, `ThreadEventTokenUsageBreakdown`,
    `ThreadEventContextWindowUsage`, `ThreadEventUserContent`). Those are
    shared server/app/runtime contracts, so the facade re-export (bundle
-   inlining, `@bb/domain` staying private) is the permanent answer for
+   inlining, `@kaioken/domain` staying private) is the permanent answer for
    them.
 2. **Surface size.** 184 names after the cutover (was ~190, then ~216 with
    the delta grammar added, then the assembly surface deleted: the
@@ -1480,9 +1480,9 @@ build inlines the SDK's published, self-contained bundle.
    `getMessageContentTypes` moved into the claude-code plugin,
    `normalizePendingInteractionRequestedPermissionProfile` (whole
    `pending-interaction-normalization` module plus test) into the codex
-   plugin, and the `cloneReasoningEfforts` helper out of `@bb/domain` into
+   plugin, and the `cloneReasoningEfforts` helper out of `@kaioken/domain` into
    claude-code's model catalog. The other named candidates turned out not to
-   be movable: they are `@bb/domain`/protocol definitions with core consumers
+   be movable: they are `@kaioken/domain`/protocol definitions with core consumers
    — the `acp*Cli`/`acpNativeReasoning` schemas are parsed by the ACP launch
    spec and config, and the workflow snapshot types are rendered by the app.
    The `claudeTaskTool*` schemas lost their last core consumer when the
@@ -1504,21 +1504,21 @@ build inlines the SDK's published, self-contained bundle.
    surface; and the shared accepted-user-message drain folded into the
    turn-state registry core.
 3. **Resolved (stabilization S2): the ACP launch spec is the ACP package's
-   own.** `acpLaunchSpecSchema` moved out of `@bb/host-daemon-contract` into
-   `@bb/provider-bridge-acp` and left this root entry; provider-scoped static
-   options are opaque to bb, and the shape is owned by the bridge that parses
+   own.** `acpLaunchSpecSchema` moved out of `@kaioken/host-daemon-contract` into
+   `@kaioken/provider-bridge-acp` and left this root entry; provider-scoped static
+   options are opaque to kaioken, and the shape is owned by the bridge that parses
    it and the plugin that stores it.
 4. **`experimental_apiVersion` 1.** The bootstrap accepts version 1 only and
    refuses anything else by name. Decide the deprecation window for a version
    bump (a plugin's artifact and the daemon update independently) before the
    first third-party bridge ships.
 
-## `@get-bb/plugin-sdk/provider-bridge/testing` (the provider-bridge testing kit)
+## `@get-kaioken/plugin-sdk/provider-bridge/testing` (the provider-bridge testing kit)
 
 **Kept experimental (2026-08-22).** items 3 and 6 below change the public shape (a pluggable replay child, pinning a grammar version in the exports).
 
 **What it does.** The published kit a bridge author proves a bridge with
-before shipping it, with no private `@bb/*` package in reach: the
+before shipping it, with no private `@kaioken/*` package in reach: the
 conformance kit (`experimental_runBridgeConformance`,
 `experimental_formatConformanceReport`) that drives a bridge through the
 canonical protocol scenarios — the transport hands it raw wire messages
@@ -1536,7 +1536,7 @@ notifications through it (`experimental_createBridgeDeltaEventCollector`,
 normalizer (`experimental_normalizeCalibrationEvents`,
 `experimental_describeCalibrationEvents`); and the recorded-replay harness —
 the regression oracle the first-party bridges use, keyed by the caller's
-provider id and bridge module rather than a list of bb's providers:
+provider id and bridge module rather than a list of kaioken's providers:
 `experimental_resolveProviderBridgeLaunch` (the bridge process as the
 runtime spawns it, through the bootstrap the kit ships beside its bundle),
 `experimental_replayRecording` (the recorded runtime lane in, the recorded
@@ -1550,8 +1550,8 @@ rewritten), and the recording readers (`experimental_readBridgeRecording`,
 Framework-agnostic (the stdout capture patches `process.stdout.write`
 itself; nothing imports a test runner). Curated by hand, named exports only.
 The echo example and every first-party bridge suite import only this entry
-and `@get-bb/plugin-sdk/provider-bridge` — the "zero first-party privilege"
-proof for the testing surface. In-repo the kit is `@bb/provider-bridge-
+and `@get-kaioken/plugin-sdk/provider-bridge` — the "zero first-party privilege"
+proof for the testing surface. In-repo the kit is `@kaioken/provider-bridge-
 protocol`'s `assembler`, `conformance`, and `testing` subpaths.
 
 **Audit before stabilizing.**
@@ -1598,7 +1598,7 @@ protocol`'s `assembler`, `conformance`, and `testing` subpaths.
    `ThreadEventExtensionItem`, `ThreadEventFileReadItem`,
    `ThreadEventSearchItem`, `ThreadEventPlanStepsItem`,
    `ThreadEventWebSearchItem`, `ThreadEventWebFetchItem`,
-   `ThreadEventBackgroundTaskItem`) as types, re-exported from `@bb/domain`
+   `ThreadEventBackgroundTaskItem`) as types, re-exported from `@kaioken/domain`
    and inlined into the bundled declarations. Before this a plugin test named
    the event type as `ReturnType<BridgeDeltaEventCollector["assembleMessage"]>[number]`.
    They are types only: a bridge never constructs an event (the assembler
@@ -1608,27 +1608,27 @@ protocol`'s `assembler`, `conformance`, and `testing` subpaths.
    Decide whether the kit should pin a grammar version in its exports (the
    assembler already names `ASSEMBLER_GRAMMAR_VERSIONS`) before stabilizing.
 
-## `experimental_scanPublicSdkOnly` (`@get-bb/plugin-sdk/testing`)
+## `experimental_scanPublicSdkOnly` (`@get-kaioken/plugin-sdk/testing`)
 
 **What it does.** Scans a plugin package for imports outside the public SDK:
 walks every `.ts`/`.tsx`/`.js` file below the package root (skipping
 `node_modules` and `dist`), and returns the files it read, each import
-specifier that is a private `@bb/*` package or falls outside the allowlist —
-`@get-bb/plugin-sdk` and its published subpaths, `zod`, `node:` built-ins,
+specifier that is a private `@kaioken/*` package or falls outside the allowlist —
+`@get-kaioken/plugin-sdk` and its published subpaths, `zod`, `node:` built-ins,
 relative paths that stay inside the package root, plus the public packages
 the plugin names in `allow`; test files may add the published testing
 subpaths and `vitest` — a relative path that resolves outside the package
 root (`outside-package`, unless an `allow` pattern names it), an `import()`
 or `require()` whose argument is not a string literal (`dynamic-specifier`),
-and the `@bb/*` names in the package.json dependency blocks. It returns data
+and the `@kaioken/*` names in the package.json dependency blocks. It returns data
 and imports no test runner; the suite asserts on it. The echo-provider
-example and the first-party ACP plugin run it over themselves: inside bb's
-monorepo a `@bb/*` import still typechecks and runs, and a relative path can
+example and the first-party ACP plugin run it over themselves: inside kaioken's
+monorepo a `@kaioken/*` import still typechecks and runs, and a relative path can
 climb into a private package's source, which is exactly why it needs a test.
 
 **Audit before stabilizing.**
 
-1. **The allowlist is bb's.** The default admits every published SDK subpath
+1. **The allowlist is kaioken's.** The default admits every published SDK subpath
    and `vitest`; a plugin on another runner or another schema library must
    name it in `allow`. Decide whether the defaults should read the plugin's
    own package.json dependencies instead of a fixed list.
@@ -1640,7 +1640,7 @@ climb into a private package's source, which is exactly why it needs a test.
    import (in a comment, say) is reported. Decide whether a parser is owed
    before the scan is a promise.
 
-## `app.experimental_useProviders` (`@get-bb/plugin-sdk/app`)
+## `app.experimental_useProviders` (`@get-kaioken/plugin-sdk/app`)
 
 **Kept experimental (2026-08-22).** the hook returns `ProviderInfo`, which carries the unresolved `icon` / `logoUrl` pair and `maintenance` (the pre-stabilization booleans an earlier draft served beside it were withdrawn before release; see "Removed outright" above); stabilizing the hook freezes that shape.
 
@@ -1657,7 +1657,7 @@ provider-retry) stops vendoring provider names, icons, and copy.
    `hostId` argument), so installed-only providers of another machine are not
    listed. Decide whether plugins need host-scoped listing before freezing the
    signature.
-2. **Icons.** Every provider bb ships now declares an SVG asset, served as
+2. **Icons.** Every provider kaioken ships now declares an SVG asset, served as
    `logoUrl` and drawn by the host as a `currentColor` mask (core vendors no
    brand marks), and a provider that declared a named glyph (`icon: "Zap"`)
    arrives as `icon: { glyph }` beside `logoUrl` (at most one of the two is
@@ -1668,24 +1668,24 @@ provider-retry) stops vendoring provider names, icons, and copy.
    (monochrome by construction) is the contract or a full-color logo path is
    owed.
 
-## `app.experimental_useCodeTheme` (`@get-bb/plugin-sdk/app`)
+## `app.experimental_useCodeTheme` (`@get-kaioken/plugin-sdk/app`)
 
 **What it does.** Returns `{ mode, name, theme }`: the app's active light/dark
-mode, the registered name of the code theme bb renders that mode with, and the
+mode, the registered name of the code theme kaioken renders that mode with, and the
 resolved VS Code theme document behind it (`type`, `fg`, `bg`, `colors`,
-`tokenColors`) — the same document bb's own highlighter paints from. It exists
+`tokenColors`) — the same document kaioken's own highlighter paints from. It exists
 for plugins that render code with an engine of their own (the Monaco file
 editor is the first): without it, an embedded editor can only follow
-light/dark and strands its syntax colors on a palette bb is not using.
+light/dark and strands its syntax colors on a palette kaioken is not using.
 `theme` is null only before the first resolve, and holds the previous document
 while a palette switch resolves, so a consumer never paints an unthemed frame.
 
 **Audit before stabilizing.**
 
 1. **Shape of the document.** `PluginCodeThemeData` mirrors Shiki's
-   `ThemeRegistrationResolved` minus the fields bb does not promise
+   `ThemeRegistrationResolved` minus the fields kaioken does not promise
    (`semanticTokenColors`, `include`, `displayName`). Decide whether freezing a
-   Shiki-shaped payload is right, or whether the contract should be bb's own
+   Shiki-shaped payload is right, or whether the contract should be kaioken's own
    normalized token model — a Shiki major that changes `settings` normalization
    changes what plugins receive.
 2. **Both modes at once.** The hook serves only the active mode. An editor that
@@ -1699,7 +1699,7 @@ while a palette switch resolves, so a consumer never paints an unthemed frame.
 4. **Consumer count.** One consumer today. Confirm a second engine (CodeMirror,
    xterm) needs the same payload before the prefix drops.
 
-## `app.slots.experimental_providerIcon` (`@get-bb/plugin-sdk/app`)
+## `app.slots.experimental_providerIcon` (`@get-kaioken/plugin-sdk/app`)
 
 **Kept experimental (2026-08-22).** zero shipped registrations — first-party
 agent and environment providers use declared glyphs or SVG assets,
@@ -1707,14 +1707,14 @@ and the provider catalogs' `glyph` / `logoUrl` icon metadata covers both forms
 without a frontend bundle; the open questions are id squatting and whether the
 slot should exist at all (deleting it is the owner's call).
 
-**What it does.** Lets a plugin frontend supply the React component bb draws
+**What it does.** Lets a plugin frontend supply the React component kaioken draws
 as one agent or environment provider's icon: `{ providerId, icon }`,
 where `icon` receives only the host's `className` (sizing; agent providers also
 have the declared `strings.iconTint`). The component wins over the provider's
 served `logoUrl`, which the host otherwise draws as a `currentColor` mask.
 Registrations are replaced wholesale with the rest of the plugin's slot set,
 so disable/uninstall/failed reload falls back to `logoUrl`, then the declared
-glyph, then the generic glyph. No provider bb ships registers the slot: each
+glyph, then the generic glyph. No provider kaioken ships registers the slot: each
 uses a declared glyph or SVG asset, which stays available without a frontend
 bundle (an icon-only bundle cost four JS+CSS fetches and four icon remounts at
 every boot).
@@ -1752,9 +1752,9 @@ every boot).
    the accessible label story: the host derives `ariaLabel` from its own
    provider data, falling back to the provider id, and the slot supplies none.
 
-## `experimental_ProviderModelPicker` (`@get-bb/plugin-sdk/app`)
+## `experimental_ProviderModelPicker` (`@get-kaioken/plugin-sdk/app`)
 
-**What it does.** Exposes bb's execution picker as a controlled
+**What it does.** Exposes kaioken's execution picker as a controlled
 `{ providerId, model, reasoningLevel, serviceTier? }` component for plugin
 frontends. The host adapter reuses `useThreadCreationOptions` for catalog,
 fallback, reasoning reconciliation, service-tier capability, retired-model,
@@ -1803,9 +1803,9 @@ bound in `apps/app/src/lib/plugin-sdk-app-impl.tsx`.
    Automations currently rely on the picker-owned loading/error UI. Environment,
    permission, and prompt submission stay separate controls.
 
-## `experimental_PermissionModePicker` (`@get-bb/plugin-sdk/app`)
+## `experimental_PermissionModePicker` (`@get-kaioken/plugin-sdk/app`)
 
-**What it does.** Exposes BB's permission picker as a controlled
+**What it does.** Exposes Kaioken's permission picker as a controlled
 `{ providerId, value, onChange, routing?, align?, disabled?, className? }`
 component. `align` accepts `"start"`, `"center"`, or `"end"` and defaults to
 `"end"` for compatibility with the prompt-row placement.
@@ -1842,7 +1842,7 @@ bound in `apps/app/src/lib/plugin-sdk-app-impl.tsx`.
    mode a provider supports and decide whether the picker should render an
    explicit unavailable state instead of the controller's existing fallback.
 
-## `app.slots.experimental_timelineRenderer` (`@get-bb/plugin-sdk/app`)
+## `app.slots.experimental_timelineRenderer` (`@get-kaioken/plugin-sdk/app`)
 
 **Kept experimental (2026-08-22).** zero consumers; every audit item is about the prop shape and none has a consumer to answer it — the first real renderer (a Codex extension-kind body, or the echo example) precedes stabilization.
 
@@ -1852,7 +1852,7 @@ the plugin's own extension item kinds (`"<pluginId>/<name>"`, as declared in
 `bb.providers.register({ extensionKinds })`) or `"tool"` for the
 generic tool items of the providers the plugin registered. Core kinds
 (messages, commands, file changes, reads, searches, delegations, plan steps)
-always use bb's renderers and are customized through the bridge's persisted
+always use kaioken's renderers and are customized through the bridge's persisted
 `presentation` alone (docs/provider-plugin-api.md §5, Q17). The component
 receives `{ row, payload, presentation, thread, Original }`; `Original` is
 the host's declarative base for the body. The row header (the presentation's
@@ -1890,12 +1890,12 @@ bundle loads in the same deferred boot pass as every other plugin's.
    sufficient for the first-party extension kinds before a third party
    relies on a web-only upgrade.
 
-## `experimental_NewThreadComposer` (`@get-bb/plugin-sdk/app`)
+## `experimental_NewThreadComposer` (`@get-kaioken/plugin-sdk/app`)
 
 **Kept experimental (2026-08-22).** zero consumers; items 1 (a newly required create-thread field going missing silently) and 6 (projectless switching) need a consumer to validate.
 
 **What it does.** The host-owned new-thread compose surface, the create-side
-counterpart to `ThreadChat`. It renders bb's full control set — prompt editor
+counterpart to `ThreadChat`. It renders kaioken's full control set — prompt editor
 with @-mentions and expand, `+` attachments, provider/model/reasoning picker,
 voice, submit, and the row beneath with project, environment, "Branch from:",
 and permission mode — and calls `onSubmit` with a `NewThreadRequest`
@@ -1971,9 +1971,9 @@ Implementation: the shared workflow is
    stabilizing, confirm unconditional project switching is right for embedded
    plugin workflows, rather than adding an explicit project-locking policy.
 
-## `app.slots.experimental_appOverlay` (`@get-bb/plugin-sdk/app`)
+## `app.slots.experimental_appOverlay` (`@get-kaioken/plugin-sdk/app`)
 
-**What it does.** Mounts an additive plugin React component once per BB app
+**What it does.** Mounts an additive plugin React component once per Kaioken app
 window, outside route-owned layout regions and inside `PluginSlotMount`. The
 component receives no props and owns its chrome, positioning, visibility,
 focus, and responsive behavior. It can call app-level SDK hooks and either
@@ -1992,7 +1992,7 @@ sibling overlays remain mounted.
    layouts and document which pane-local capabilities remain unavailable to a
    once-per-window owner, including composer and side-panel hosts.
 3. **Host-owned layer.** Decide whether arbitrary fixed/portalled content is
-   sufficient or BB should provide a named overlay root, z-index band,
+   sufficient or Kaioken should provide a named overlay root, z-index band,
    collision area, docking, or drag persistence.
 4. **Responsive and accessibility policy.** Audit keyboard access, focus
    restoration, escape behavior, compact drawers, reduced motion, and whether
@@ -2007,7 +2007,7 @@ sibling overlays remain mounted.
    standard slot-owned CSS retention are the right failure semantics for UI
    that may have no in-layout representation.
 
-## `app.slots.experimental_newThreadPanelAction` (`@get-bb/plugin-sdk/app`)
+## `app.slots.experimental_newThreadPanelAction` (`@get-kaioken/plugin-sdk/app`)
 
 **Kept experimental (2026-08-22).** zero consumers; item 5 (merging with `threadPanelAction`) is explicitly deferred until an external plugin adopts it.
 
@@ -2043,7 +2043,7 @@ Before stabilization, audit:
    re-litigate that in the stabilization audit; audit only whether the two
    _contexts_ should merge.
 
-## `app.experimental_sidebarFooter` (`@get-bb/plugin-sdk/app`)
+## `app.experimental_sidebarFooter` (`@get-kaioken/plugin-sdk/app`)
 
 **What it does.** Registers host-rendered icon items in the app sidebar footer.
 An item is either an `action`, whose `onActivate` callback runs when selected,
@@ -2082,12 +2082,12 @@ renders in the same footer row.
    disclosure replacement, plugin reload, crash isolation, and removal while
    open across desktop and compact sidebar layouts.
 
-## `app.slots.experimental_sidebarNavigation` (`@get-bb/plugin-sdk/app`)
+## `app.slots.experimental_sidebarNavigation` (`@get-kaioken/plugin-sdk/app`)
 
 **What it does.** Replaces the bounded sidebar navigation controls for New
 thread, Search threads, Plugins, Skills, and plugin panel destinations. The
 plugin receives semantic items, split-drag bindings, and one host activation callback.
-BB retains the drawer, thread list, footer, resize handle, and hidden-body
+Kaioken retains the drawer, thread list, footer, resize handle, and hidden-body
 shortcut policy.
 
 Search activation opens the quick palette. The removed inline sidebar search
@@ -2113,7 +2113,7 @@ the bounded controls and leaves the retained sidebar regions mounted.
 7. **Accessibility.** Validate labels, `aria-current`, shortcut metadata,
    disabled state, and focus order in third-party markup.
 
-## `app.slots.experimental_threadList` (`@get-bb/plugin-sdk/app`)
+## `app.slots.experimental_threadList` (`@get-kaioken/plugin-sdk/app`)
 
 **Kept experimental (2026-08-22).** examples only; no shipped consumer has tested the arbitration/fallback model or the accessibility contract.
 
@@ -2123,13 +2123,13 @@ one list at a time fills the scroll area. Automatic activation is the default.
 If several are registered, the first in the slot snapshot wins (plugin ids are
 sorted, then each plugin's registration order is preserved); removing the
 automatic winner reveals the next. The user can override that behavior under
-Settings → Appearance by pinning BB's list or a specific provider; the choice
+Settings → Appearance by pinning Kaioken's list or a specific provider; the choice
 is stored per client. A plugin-owned enable/disable setting can also live in
 the component, which renders `Original` when disabled.
 
-Fallbacks keep the sidebar usable: no automatic provider renders BB's list; an
-unavailable pinned provider temporarily renders BB's list without erasing the
-choice; and a crashing component renders BB's list (not the usual "plugin
+Fallbacks keep the sidebar usable: no automatic provider renders Kaioken's list; an
+unavailable pinned provider temporarily renders Kaioken's list without erasing the
+choice; and a crashing component renders Kaioken's list (not the usual "plugin
 crashed" chip, which in place of a whole sidebar would strand the user) plus
 one toast.
 
@@ -2153,18 +2153,18 @@ one toast.
    focus order, and the mobile close behavior when a plugin owns the markup —
    `onNavigate` is currently the plugin's responsibility to call.
 
-## AI services (`bb.experimental_aiServices.register`, `@get-bb/plugin-sdk/ai-services`)
+## AI services (`bb.experimental_aiServices.register`, `@get-kaioken/plugin-sdk/ai-services`)
 
 **Kept experimental (2026-08-22).** one consumer (the codex plugin); the 5 MB plugin-served transcription cap (the old direct path allowed 25 MB) and the host-pull alternative are still open; the reserved-id model is now one static SDK list (`SERVER_DIRECT_AI_SERVICE_IDS`), pinned to pi-ai's provider registry by plugin-ai-services.test.ts.
 
-**What it does.** Lets a plugin serve bb's own AI services — server-side
+**What it does.** Lets a plugin serve kaioken's own AI services — server-side
 helper inference (thread titles, commit messages: prompt + JSON Schema in,
 structured value out) and voice transcription — from its `bb.host` entry.
 `bb.experimental_aiServices.register({ id, displayName, kinds })` stages the
 service during the factory and lands it when the load commits; the host entry
 implements `experimental_aiServicesHostContract` (`ai.inference.complete`,
 `ai.voice.transcribe`), both carrying `serviceId`. Core routes the user's
-`BB_INFERENCE` / `BB_TRANSCRIPTION` (`<serviceId>/<model>`) to the plugin
+`KAIOKEN_INFERENCE` / `KAIOKEN_TRANSCRIPTION` (`<serviceId>/<model>`) to the plugin
 through the generic host RPC call on the primary host; failures ride the result
 (`{ ok: false, code }`) so core's retry/fallback policy stays generic. Ids the
 server serves itself (`openai` transcription, the builtin inference providers)
@@ -2173,12 +2173,12 @@ plugin cannot register them, so a plugin can never capture that traffic. A
 cross-plugin id collision fails the later plugin's load at the `register`
 call. The
 codex plugin is the first registrant (its ChatGPT client moved out of the
-daemon); `GET /system/config` and `bb settings ai-services` list the registered
+daemon); `GET /system/config` and `kaioken settings ai-services` list the registered
 options.
 
 **Audit before stabilizing.**
 
-1. **Chooser.** Confirm `BB_INFERENCE` / `BB_TRANSCRIPTION` strings stay the
+1. **Chooser.** Confirm `KAIOKEN_INFERENCE` / `KAIOKEN_TRANSCRIPTION` strings stay the
    setting, or move to a structured core setting whose options are the
    registered services (a picker needs per-service model lists, which the
    contract does not carry yet).
@@ -2196,7 +2196,7 @@ options.
 5. **Host choice.** Calls go to the primary host; decide whether a service may
    declare which host(s) can serve it.
 
-## `PluginFileOpenerSource.experimental_hostId` (`@get-bb/plugin-sdk/app`)
+## `PluginFileOpenerSource.experimental_hostId` (`@get-kaioken/plugin-sdk/app`)
 
 **Kept experimental (2026-08-22).** persisted in opener-tab `paramsJson`; items 3–4 (every source kind vs project-only; omission semantics) decide whether the stable name is `hostId?` or a required field.
 
@@ -2217,13 +2217,13 @@ files, thread-storage files, and project files that use the primary host.
    this remains compatible with persisted opener tabs created before the field
    existed.
 
-## `experimental_SourceCode` / `experimental_Diff` (`@get-bb/plugin-sdk/app`)
+## `experimental_SourceCode` / `experimental_Diff` (`@get-kaioken/plugin-sdk/app`)
 
 **Kept experimental (2026-08-22).** one consumer (the github plugin's `Diff`); items 2–4 (multi-file input, language override, worker pool at the component) all change the prop surface.
 
 **What it does.** Two host-owned renderers for supplied code content.
 `experimental_SourceCode` takes source text plus a path and owns syntax
-highlighting, gutters, wrapping, highlighted-line presentation, and the live BB
+highlighting, gutters, wrapping, highlighted-line presentation, and the live Kaioken
 code theme. `experimental_Diff` takes a single-file patch plus a path and
 optional `experimental_fullFileContents` for both text sides, and owns patch normalization
 (a patch without a `diff --git` header is completed from `path`, which is what
@@ -2233,7 +2233,7 @@ theme. Patch content that will not parse degrades to plain monospace text. The
 caller still owns loading file contents; omission means a patch-only render
 without context expansion.
 
-These are the same components BB's own file preview, timeline file diffs, and
+These are the same components Kaioken's own file preview, timeline file diffs, and
 environment diff panel render through, so an active
 `experimental_sourceCodeRenderer` / `experimental_diffRenderer` replacement
 covers first-party surfaces and plugin surfaces at once. Fetching files or git
@@ -2245,7 +2245,7 @@ behavior deliberately stay with the caller.
 1. **Prop surface.** Confirm content + path + presentation plus optional full
    diff sides is the right minimal contract, and decide whether `className`
    belongs in it at all — a
-   replacement never receives it today, so a `className` that only styles BB's
+   replacement never receives it today, so a `className` that only styles Kaioken's
    renderer is a quiet inconsistency.
 2. **Diff input shape.** Confirm single-file patch text is the right currency.
    Multi-file patches, `processFile`-style pre-parsed input, and per-hunk
@@ -2253,12 +2253,12 @@ behavior deliberately stay with the caller.
 3. **Language selection.** Highlighting is inferred from `path` only. Confirm
    an explicit language override is not needed before the names freeze, and
    that no implementation-library language union leaks in when it is added.
-4. **Worker pool.** Highlighting needs BB's Pierre worker pool from React
+4. **Worker pool.** Highlighting needs Kaioken's Pierre worker pool from React
    context. Thread panes and plugin nav panels provide one; homepage and
    settings sections do not, so a diff rendered there is unhighlighted rather
    than broken. Decide whether the host should provide the pool at the
    component instead of the surface.
-5. **Selection to chat.** BB's own surfaces pass a selection-to-composer
+5. **Selection to chat.** Kaioken's own surfaces pass a selection-to-composer
    handler that the public component withholds. Confirm plugins should reach
    that through `useComposer()` rather than a renderer prop.
 6. **Size and virtualization.** Neither component caps input size or
@@ -2266,24 +2266,24 @@ behavior deliberately stay with the caller.
 7. **Resolved (Aug 2026): context expansion takes resolved semantic data, not
    a loader callback.** `experimental_fullFileContents` carries required `old` and `new`
    `{ path, content }` objects. This keeps lazy loading, retries, and viewport
-   policy with the caller while letting BB's renderer and a replacement consume
+   policy with the caller while letting Kaioken's renderer and a replacement consume
    complete UTF-8 sides without exposing Pierre's `FileContents` type. A
    replacement always receives the caller-resolved field as an object or
    `null`, and owns patch-consistency validation if it uses those contents for
-   expansion. BB's original validates only when its lazy renderer mounts.
+   expansion. Kaioken's original validates only when its lazy renderer mounts.
 
-## `app.slots.experimental_sourceCodeRenderer` / `app.slots.experimental_diffRenderer` (`@get-bb/plugin-sdk/app`)
+## `app.slots.experimental_sourceCodeRenderer` / `app.slots.experimental_diffRenderer` (`@get-kaioken/plugin-sdk/app`)
 
 **Kept experimental (2026-08-22).** zero registrations; "two slots or one" changes the registration shape.
 
-**What it does.** Replaces BB's source or diff renderer everywhere it draws
+**What it does.** Replaces Kaioken's source or diff renderer everywhere it draws
 supplied content — the native file preview, timeline file diffs, the
 environment diff panel's file bodies, and every plugin calling the public
 components. Like `experimental_threadList` these slots are **exclusive**: one
 renderer each. Registering activates it while the plugin is enabled; if several
 are registered the first in slot snapshot order wins (plugin ids sorted, then
 each plugin's registration order). The user can override that under
-Settings → Appearance ("Source code" and "Diffs") by pinning BB's renderer or
+Settings → Appearance ("Source code" and "Diffs") by pinning Kaioken's renderer or
 a specific provider; the choice is per client, and it is the same
 automatic/built-in/named-provider model the sidebar thread list uses. There are
 deliberately no scope, extension, or enabled-by-setting filters on the
@@ -2291,10 +2291,10 @@ registration — conditional behavior belongs in the component, which decides pe
 call from its semantic props and renders `Original` when it does
 not want the render.
 
-Fallbacks: no registration renders BB's renderer; a disabled or uninstalled
-plugin reveals the next registration or BB's renderer; a component that throws
-renders BB's renderer through the slot's crash fallback. A pinned provider that
-is temporarily unavailable renders BB's renderer without erasing the pin.
+Fallbacks: no registration renders Kaioken's renderer; a disabled or uninstalled
+plugin reveals the next registration or Kaioken's renderer; a component that throws
+renders Kaioken's renderer through the slot's crash fallback. A pinned provider that
+is temporarily unavailable renders Kaioken's renderer without erasing the pin.
 
 **Audit before stabilizing.**
 
@@ -2305,7 +2305,7 @@ is temporarily unavailable renders BB's renderer without erasing the pin.
    now make an account-level pin cheap to add. Still open: the two renderers
    pin independently; confirm users do not instead expect one "code rendering"
    choice.
-2. **Resolved (Aug 2026): a crash swaps back to BB's renderer silently.**
+2. **Resolved (Aug 2026): a crash swaps back to Kaioken's renderer silently.**
    A diff card is not a whole sidebar — the reader still sees a correct diff,
    where a blank thread list strands them — so neither host passes `onCrash`.
    Authors are not left without a signal: `PluginSlotBoundary` still
@@ -2314,7 +2314,7 @@ is temporarily unavailable renders BB's renderer without erasing the pin.
    than letting cards crash one at a time.
 3. **Resolved (Aug 2026): the replacement is global, other plugins'
    surfaces included.** "Install this and every diff looks like X" is the
-   point; covering BB's surfaces but not the GitHub plugin's would be a
+   point; covering Kaioken's surfaces but not the GitHub plugin's would be a
    half-measure, and a plugin calling `experimental_Diff` would silently opt
    its users out. No first-party-only or own-surfaces-only scope. Audit this as
    precedent rather than as a fact about these two slots: no other slot lets a
@@ -2329,7 +2329,7 @@ is temporarily unavailable renders BB's renderer without erasing the pin.
 5. **Two slots or one.** Confirm source and diff should stay separately
    replaceable rather than one "code renderer" registration.
 
-## `experimental_useSidebarThreads` / `experimental_useSidebarThreadActions` (`@get-bb/plugin-sdk/app`)
+## `experimental_useSidebarThreads` / `experimental_useSidebarThreadActions` (`@get-kaioken/plugin-sdk/app`)
 
 **Kept experimental (2026-08-22).** zero consumers; items 4 (a paged/windowed read at 10k threads) and 5 (the draft indicator gap) are unresolvable without one and both change the contract.
 
@@ -2342,7 +2342,7 @@ optimistic updates, toasts, and cache invalidation are identical.
 
 `PluginSidebarThread` is a deliberate copy of the fields a sidebar needs, not a
 re-export of the internal `ThreadListEntry`. `indicator` is
-`resolveThreadListIndicator` already run by the host, so plugins inherit bb's
+`resolveThreadListIndicator` already run by the host, so plugins inherit kaioken's
 precedence (attention before work; plan and goal before the spinner) instead of
 reimplementing it, and `indicatorLabel` carries the matching accessible string.
 
@@ -2355,7 +2355,7 @@ reimplementing it, and `indicatorLabel` carries the matching accessible string.
    cannot turn a host id into a machine name — confirm resolution belongs here
    rather than in a separate hosts hook, and that falling back to the id for an
    unknown host is the right failure.
-2. **Indicator coupling.** `indicator` freezes bb's precedence into the
+2. **Indicator coupling.** `indicator` freezes kaioken's precedence into the
    contract. Confirm new kinds can ship without breaking plugins, and that the
    documented "treat unknown as none" rule is enough.
 3. **Unread semantics.** `isUnread` is plain read state, so it is true for
@@ -2378,7 +2378,7 @@ reimplementing it, and `indicatorLabel` carries the matching accessible string.
    close that gap (a per-thread draft hook) or keep it documented.
 6. **Action surface.** Destructive and dialog-bearing actions route through
    `useThreadActions()`, so `archive` closes panes and repairs the route, and
-   `requestDelete` opens bb's confirmation rather than deleting silently.
+   `requestDelete` opens kaioken's confirmation rather than deleting silently.
    Confirm that split (silent `rename`, host-confirmed delete) is the right
    line, and decide whether bulk actions and undo belong here.
 7. **Permission.** Decide whether `archive` and `requestDelete` need any plugin
@@ -2405,7 +2405,7 @@ reimplementing it, and `indicatorLabel` carries the matching accessible string.
    exposing the full `panes` array does not leak more layout state than a row
    needs.
 
-## `app.slots.experimental_threadHeaderAction` (`@get-bb/plugin-sdk/app`)
+## `app.slots.experimental_threadHeaderAction` (`@get-kaioken/plugin-sdk/app`)
 
 **Kept experimental (2026-08-22).** zero consumers; item 1 (merging behind one registration with `bb.ui.registerThreadAction`) is cheapest to decide before the first one.
 
@@ -2448,7 +2448,7 @@ deliberately: it mounts once, and a crash there should disable it everywhere.
 Confirm that split before stabilizing, and decide whether other multi-mount
 slots need the same treatment.
 
-## `useComposer().experimental_submit` (`@get-bb/plugin-sdk/app`)
+## `useComposer().experimental_submit` (`@get-kaioken/plugin-sdk/app`)
 
 **What it does.** Runs the composer's own submit pipeline with the draft that
 is on screen, queueing the result until `sendAt` instead of dispatching it.
@@ -2509,19 +2509,19 @@ too, after the host has restored the draft. Sole consumer:
 
 ## Desktop browser control
 
-`bb.sdk.experimental_desktopBrowsers` and the exported `ExperimentalDesktopBrowsersArea`, `ExperimentalDesktopBrowserScope`, `ExperimentalDesktopBrowserLease`, `ExperimentalDesktopBrowserCreateInput`, and `ExperimentalDesktopBrowserAcquireInput` expose explicit host/window/thread discovery, isolated tab creation, expiring control leases, scoped CDP connections, capture, reveal, close, release, disposable tab-state subscriptions, and cookie import from an installed browser through `listImportSources` and `importCookies` (`ExperimentalDesktopBrowserInstanceRequest`, `ExperimentalDesktopBrowserImportCookiesInput`, `ExperimentalDesktopBrowserImportSources`, `ExperimentalDesktopBrowserImportOutcome`). The matching core CLI is `bb browser`.
+`bb.sdk.experimental_desktopBrowsers` and the exported `ExperimentalDesktopBrowsersArea`, `ExperimentalDesktopBrowserScope`, `ExperimentalDesktopBrowserLease`, `ExperimentalDesktopBrowserCreateInput`, and `ExperimentalDesktopBrowserAcquireInput` expose explicit host/window/thread discovery, isolated tab creation, expiring control leases, scoped CDP connections, capture, reveal, close, release, disposable tab-state subscriptions, and cookie import from an installed browser through `listImportSources` and `importCookies` (`ExperimentalDesktopBrowserInstanceRequest`, `ExperimentalDesktopBrowserImportCookiesInput`, `ExperimentalDesktopBrowserImportSources`, `ExperimentalDesktopBrowserImportOutcome`). The matching core CLI is `kaioken browser`.
 
-Before stabilization, audit cookie import authorization: any caller with server access can copy the desktop user's browser sessions into a BB profile, including an automation profile an agent controls, with OS consent only where the platform demands it (macOS Keychain for Chromium, Full Disk Access for Safari; none for Firefox or keyring-free Linux Chromium). Decide whether imports into automation profiles need an explicit handoff like personal-tab control, and whether the daemon should require a desktop-side confirmation. Also audit personal-profile handoff policy, per-tab mutual exclusion and child-target scope, native popup handling, debugger detachment, daemon/desktop disconnect and reconnect generations, expiry and cancellation races, bounded screenshot bytes, and cross-platform desktop startup. Connection credentials must remain private to workers on the browser host. `subscribe` polls every two seconds with one outstanding request; it is state observation, not a lossless event log. Cloud browsers and external provider registration are outside this surface.
+Before stabilization, audit cookie import authorization: any caller with server access can copy the desktop user's browser sessions into a Kaioken profile, including an automation profile an agent controls, with OS consent only where the platform demands it (macOS Keychain for Chromium, Full Disk Access for Safari; none for Firefox or keyring-free Linux Chromium). Decide whether imports into automation profiles need an explicit handoff like personal-tab control, and whether the daemon should require a desktop-side confirmation. Also audit personal-profile handoff policy, per-tab mutual exclusion and child-target scope, native popup handling, debugger detachment, daemon/desktop disconnect and reconnect generations, expiry and cancellation races, bounded screenshot bytes, and cross-platform desktop startup. Connection credentials must remain private to workers on the browser host. `subscribe` polls every two seconds with one outstanding request; it is state observation, not a lossless event log. Cloud browsers and external provider registration are outside this surface.
 
-## Host process primitives (`@get-bb/plugin-sdk/host`)
+## Host process primitives (`@get-kaioken/plugin-sdk/host`)
 
 `experimental_spawnPortableOutputProcess`,
 `experimental_sanitizeInheritedChildProcessEnv`, and
 `ExperimentalSanitizeInheritedChildProcessEnvArgs` expose output-only child
 process spawning and inherited-environment sanitization for host-local plugin
 operations. The private environment host module uses these for git commands.
-Core runs `.bb-env-setup.sh` after an owned-path create and
-`.bb-env-teardown.sh` before removal; providers must not run those hooks.
+Core runs `.kaioken-env-setup.sh` after an owned-path create and
+`.kaioken-env-teardown.sh` before removal; providers must not run those hooks.
 The unused public process-group kill and platform-check exports were removed.
 
 Before stabilization, audit command cancellation, inherited environment filtering,
@@ -2535,7 +2535,7 @@ and portable output handling for host-local plugin commands on every supported O
   including after failure. Stabilize after restart, cancellation,
   competing checkout, and path-reservation behavior has been audited.
 
-## `TimelineOutputPreview.experimental_fullOutputAvailability` (`@get-bb/plugin-sdk`)
+## `TimelineOutputPreview.experimental_fullOutputAvailability` (`@get-kaioken/plugin-sdk`)
 
 **What it does.** Distinguishes why a timeline row contains a preview instead
 of the full completed output. `available` means an explicit detail read can

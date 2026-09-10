@@ -6,14 +6,14 @@ export * from "./errors.js";
 export * from "./public-api.js";
 export * from "./thread-timeline.js";
 
-export { typedRoutes } from "@bb/hono-typed-routes";
+export { typedRoutes } from "@kaioken/hono-typed-routes";
 
 export {
   TERMINAL_COLS_MAX,
   TERMINAL_DATA_MAX_BASE64_LENGTH,
   TERMINAL_DATA_MAX_BYTES,
   TERMINAL_ROWS_MAX,
-} from "@bb/domain";
+} from "@kaioken/domain";
 
 export {
   changedMessageLenientSchema,
@@ -39,7 +39,7 @@ export {
   threadChangeKindSchema,
   threadChangeMetadataSchema,
   THREAD_CHANGE_KINDS,
-} from "@bb/domain";
+} from "@kaioken/domain";
 
 export type {
   ChangedMessage,
@@ -61,4 +61,4 @@ export type {
   ThreadChangedMessage,
   UnsubscribeMessage,
   JsonValue,
-} from "@bb/domain";
+} from "@kaioken/domain";

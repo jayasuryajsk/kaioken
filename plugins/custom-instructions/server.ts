@@ -1,4 +1,4 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 
 export const MAX_CUSTOM_INSTRUCTIONS_LENGTH = 4096;
@@ -29,13 +29,13 @@ function parseInstructionsInput(input: unknown): string {
   return parsed.data;
 }
 
-export default async function plugin(bb: BbPluginApi) {
+export default async function plugin(bb: KaiokenPluginApi) {
   const settings = bb.settings.define({
     instructions: {
       type: "string",
       label: "Custom instructions",
       description:
-        "Give agents extra instructions and context for tasks on this bb host.",
+        "Give agents extra instructions and context for tasks on this kaioken host.",
       experimental_multiline: true,
       experimental_schema: customInstructionsSchema,
       default: "",
@@ -67,17 +67,17 @@ export default async function plugin(bb: BbPluginApi) {
       {
         name: "get",
         summary: "Print the current custom instructions",
-        usage: "bb instructions get [--json]",
+        usage: "kaioken instructions get [--json]",
       },
       {
         name: "set",
         summary: "Replace the custom instructions",
-        usage: "bb instructions set <text...> [--json]",
+        usage: "kaioken instructions set <text...> [--json]",
       },
       {
         name: "clear",
         summary: "Clear the custom instructions",
-        usage: "bb instructions clear [--json]",
+        usage: "kaioken instructions clear [--json]",
       },
     ],
     async run(argv) {
@@ -117,7 +117,7 @@ export default async function plugin(bb: BbPluginApi) {
       }
       return {
         exitCode: 1,
-        stderr: "Usage: bb instructions get|set <text...>|clear [--json]",
+        stderr: "Usage: kaioken instructions get|set <text...>|clear [--json]",
       };
     },
   });

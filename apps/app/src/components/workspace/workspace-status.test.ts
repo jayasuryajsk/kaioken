@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { WorkspaceStatus } from "@bb/domain";
+import type { WorkspaceStatus } from "@kaioken/domain";
 import {
   makeWorkspaceMergeBase,
   makeWorkspaceStatus,
   makeWorkspaceWorkingTree,
-} from "@bb/test-helpers";
-import { BbHttpError } from "@bb/sdk/browser";
+} from "@kaioken/test-helpers";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 import { getGitStatusDisplay } from "./workspace-status";
 
 interface MakeStatusOptions {
@@ -167,7 +167,7 @@ describe("workspace-status", () => {
   });
 
   it("reports a missing workspace when the path is gone", () => {
-    const error = new BbHttpError({
+    const error = new KaiokenHttpError({
       status: 502,
       message: "Managed workspace path does not exist",
       code: "path_not_found",
@@ -183,7 +183,7 @@ describe("workspace-status", () => {
   });
 
   it("reports lifecycle-aware workspace errors before generic fallbacks", () => {
-    const error = new BbHttpError({
+    const error = new KaiokenHttpError({
       status: 409,
       message: "Environment unavailable",
       code: "environment_not_ready",

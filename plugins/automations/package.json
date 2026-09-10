@@ -1,5 +1,5 @@
 {
-  "name": "bb-plugin-automations",
+  "name": "kaioken-plugin-automations",
   "version": "0.1.0",
   "description": "Schedule recurring and one-shot agent or script work.",
   "private": true,
@@ -26,22 +26,22 @@
     ]
   },
   "keywords": [
-    "bb-plugin"
+    "kaioken-plugin"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
-    "@bb/shared-ui": "workspace:*",
+    "@kaioken/shared-ui": "workspace:*",
     "@radix-ui/react-slot": "^1.3.0",
     "cron-parser": "^5.5.0",
     "cronstrue": "^3.14.0",
     "zod": "^4.3.6",
-    "@bb/domain": "workspace:*"
+    "@kaioken/domain": "workspace:*"
   },
   "devDependencies": {
-    "@get-bb/plugin-sdk": "workspace:*",
+    "@get-kaioken/plugin-sdk": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.19",
     "@radix-ui/react-dropdown-menu": "^2.1.20",
     "@testing-library/react": "^16.3.2",

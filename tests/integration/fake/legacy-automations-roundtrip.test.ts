@@ -9,7 +9,7 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { createConnection } from "@bb/db";
+import { createConnection } from "@kaioken/db";
 import { exportLegacyAutomationsForPluginImport } from "../../../apps/server/src/legacy-automations-export.js";
 import {
   getAutomation,
@@ -124,7 +124,7 @@ function insertLegacyAutomation(
 
 describe("legacy automation export/import round trip", () => {
   it("exports kernel rows that the automations plugin schema can parse and ingest", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "bb-legacy-roundtrip-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "kaioken-legacy-roundtrip-"));
     const legacyDb = createConnection(":memory:");
     const pluginDb = createConnection(":memory:");
     try {

@@ -201,7 +201,7 @@ export function marketplaceAssetUrl(declared: string): string {
 }
 
 export function marketplaceInstallCommand(entryId: string): string {
-  return `bb plugin install ${entryId}`;
+  return `kaioken plugin install ${entryId}`;
 }
 
 export function marketplaceRepositoryUrl(entry: MarketplaceV2Entry): string {

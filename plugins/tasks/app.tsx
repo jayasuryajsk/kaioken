@@ -1,4 +1,4 @@
-import { definePluginApp } from "@get-bb/plugin-sdk/app";
+import { definePluginApp } from "@get-kaioken/plugin-sdk/app";
 import { TasksAppShell } from "./shell/app-shell.js";
 import { TasksSidebarAccessory } from "./shell/sidebar-accessory.js";
 import { TasksNavigationPanel } from "./shell/navigation-panel.js";

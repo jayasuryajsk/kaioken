@@ -1,10 +1,10 @@
-import { threadScope, turnScope } from "@bb/domain";
+import { threadScope, turnScope } from "@kaioken/domain";
 import type {
   ThreadEvent,
   ThreadEventBackgroundTaskItem,
   WorkflowProgressSnapshot,
-} from "@bb/domain";
-import type { TimelineRow, TimelineWorkflowWorkRow } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { TimelineRow, TimelineWorkflowWorkRow } from "@kaioken/server-contract";
 import { describe, expect, it } from "vitest";
 import {
   buildThreadTimelineFromEvents,

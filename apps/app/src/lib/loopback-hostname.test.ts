@@ -5,8 +5,8 @@ describe("isLoopbackHostname", () => {
   it.each([
     "localhost",
     "LOCALHOST.",
-    "bb.localhost",
-    "pr1608.bb.localhost",
+    "kaioken.localhost",
+    "pr1608.kaioken.localhost",
     "127.0.0.1",
     "127.255.255.254",
     "::1",

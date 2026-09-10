@@ -201,7 +201,7 @@ describe("finalizeListedPaths", () => {
 
 describe("listPathsRecursively", () => {
   it("returns slash-separated relative paths for nested entries", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "bb-file-list-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-file-list-"));
     try {
       await fs.mkdir(path.join(root, "src", "components"), {
         recursive: true,
@@ -240,7 +240,7 @@ describe("listPathsRecursively", () => {
   });
 
   it("lists dot-prefixed entries only when hidden entries are included", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "bb-file-list-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-file-list-"));
     try {
       await fs.mkdir(path.join(root, ".github", "workflows"), {
         recursive: true,
@@ -274,7 +274,7 @@ describe("listPathsRecursively", () => {
   });
 
   it("skips excluded names at any depth and never lists .git", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "bb-file-list-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-file-list-"));
     try {
       await fs.mkdir(path.join(root, ".git"), { recursive: true });
       await fs.writeFile(path.join(root, ".git", "HEAD"), "");
@@ -325,7 +325,7 @@ describe("listPathsRecursively", () => {
   });
 
   it("does not return symlinked files as regular path entries", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "bb-file-list-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-file-list-"));
     try {
       await fs.writeFile(path.join(root, "state.json"), "{}");
       await fs.symlink(
@@ -358,7 +358,7 @@ describe("listPathsRecursively", () => {
   });
 
   it("does not overflow the call stack merging a large subdirectory", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "bb-file-list-"));
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "kaioken-file-list-"));
     try {
       const nested = path.join(root, "many");
       await fs.mkdir(nested, { recursive: true });

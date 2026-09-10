@@ -3,8 +3,8 @@ import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-reg
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { createConnection, migrate } from "@bb/db";
-import type { Logger } from "@bb/logger";
+import { createConnection, migrate } from "@kaioken/db";
+import type { Logger } from "@kaioken/logger";
 import { createPluginRuntime } from "../../../src/services/plugins/plugin-runtime.js";
 import { testLogger } from "../../helpers/test-app.js";
 import { createNoopTelemetryService } from "../../../src/services/system/telemetry.js";
@@ -23,7 +23,7 @@ async function createRuntime() {
       logger: testLogger as unknown as Logger,
       aiServices: createAiServiceRegistry(),
       telemetry: createNoopTelemetryService(),
-      dataDir: await mkdtemp(join(tmpdir(), "bb-dev-build-problems-")),
+      dataDir: await mkdtemp(join(tmpdir(), "kaioken-dev-build-problems-")),
       appVersion: "0.9.0",
     },
     nextCronRunAt: () => Number.MAX_SAFE_INTEGER,

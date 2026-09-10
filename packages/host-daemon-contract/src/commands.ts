@@ -30,7 +30,7 @@ import {
   FILE_LIST_EXCLUDE_NAMES_MAX,
   FILE_LIST_LIMIT_MAX,
   FILE_LIST_QUERY_MAX_LENGTH,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { z } from "zod";
 import {
   pathsExistRequestSchema,
@@ -48,7 +48,7 @@ import {
   providerUsageResultSchema,
   providerUsageSchema,
   providerUsageWindowSchema,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 
 export {
   HOST_ARTIFACT_MAX_BYTES,
@@ -68,7 +68,7 @@ export {
   FILE_LIST_EXCLUDE_NAMES_MAX,
   FILE_LIST_LIMIT_MAX,
   FILE_LIST_QUERY_MAX_LENGTH,
-} from "@bb/domain";
+} from "@kaioken/domain";
 const INJECTED_SKILL_NAME_PATTERN =
   /^(?!.*--)[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/u;
 
@@ -689,9 +689,9 @@ const hostListCommandsCommandSchema = z
   .strict();
 
 const skillRootKindSchema = z.enum([
-  "bb-project",
-  "bb-data-dir",
-  "bb-builtin",
+  "kaioken-project",
+  "kaioken-data-dir",
+  "kaioken-builtin",
   "provider-project",
   "provider-user",
   "shared-project",
@@ -720,8 +720,8 @@ const hostListSkillsCommandSchema = z
   .strict();
 
 export const deletableSkillScopeSchema = z.enum([
-  "bb-user",
-  "bb-project",
+  "kaioken-user",
+  "kaioken-project",
   "provider-user",
   "provider-project",
 ]);
@@ -736,20 +736,20 @@ const hostDeleteSkillCommandSchema = z
   })
   .strict()
   .superRefine((command, context) => {
-    if (command.scope === "bb-project" && command.cwd === null) {
+    if (command.scope === "kaioken-project" && command.cwd === null) {
       context.addIssue({
         code: "custom",
         path: ["cwd"],
-        message: "cwd is required to delete a bb-project skill",
+        message: "cwd is required to delete a kaioken-project skill",
       });
     }
     const isBbScope =
-      command.scope === "bb-user" || command.scope === "bb-project";
+      command.scope === "kaioken-user" || command.scope === "kaioken-project";
     if (isBbScope && command.rootPath !== null) {
       context.addIssue({
         code: "custom",
         path: ["rootPath"],
-        message: "rootPath must be null for a bb skill",
+        message: "rootPath must be null for a kaioken skill",
       });
     }
     if (!isBbScope && command.rootPath === null) {
@@ -761,7 +761,7 @@ const hostDeleteSkillCommandSchema = z
     }
   });
 
-const writableBbSkillScopeSchema = z.enum(["bb-user", "bb-project"]);
+const writableBbSkillScopeSchema = z.enum(["kaioken-user", "kaioken-project"]);
 
 const hostWriteSkillCommandSchema = z
   .object({
@@ -774,11 +774,11 @@ const hostWriteSkillCommandSchema = z
   })
   .strict()
   .superRefine((command, context) => {
-    if (command.scope === "bb-project" && command.cwd === null) {
+    if (command.scope === "kaioken-project" && command.cwd === null) {
       context.addIssue({
         code: "custom",
         path: ["cwd"],
-        message: "cwd is required to edit a bb-project skill",
+        message: "cwd is required to edit a kaioken-project skill",
       });
     }
   });
@@ -870,7 +870,7 @@ export { providerHealthSchema };
 export type {
   ProviderHealth,
   ProviderHealthResult,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 
 const provisionInitiatorSchema = z
   .object({
@@ -1224,12 +1224,12 @@ const workspaceCommitResultSchema = z.object({
 const workspacePullRequestActionResultSchema = z.object({}).strict();
 
 export { providerUsageWindowSchema };
-export type { ProviderUsageWindow } from "@bb/provider-bridge-protocol";
+export type { ProviderUsageWindow } from "@kaioken/provider-bridge-protocol";
 
 export type {
   ProviderUsage,
   ProviderUsageResult,
-} from "@bb/provider-bridge-protocol";
+} from "@kaioken/provider-bridge-protocol";
 
 export const providerUsageResponseSchema = z.record(
   z.string().min(1),

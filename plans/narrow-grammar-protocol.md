@@ -3,13 +3,13 @@
 Status: **cutover complete, live QA PASSED** (2026-08-18, branch
 `narrow-grammar-prototype` @ `c0c9b2d8b`). All four bridges emit
 `thread/delta`; the `thread/event` path is deleted; protocol version bumped
-to 2; `docs/api_to_audit.md` item 1 for `@get-bb/plugin-sdk/provider-bridge`
+to 2; `docs/api_to_audit.md` item 1 for `@get-kaioken/plugin-sdk/provider-bridge`
 is resolved as "the protocol owns its own timeline vocabulary".
 
 ## Live QA results (2026-08-18)
 
 All four providers were exercised against a real dev instance
-(`bb-worktrees-env_2vsqhpeg8u-bb-b304d5affc6b`) with real provider CLIs:
+(`kaioken-worktrees-env_2vsqhpeg8u-kaioken-b304d5affc6b`) with real provider CLIs:
 turn lifecycle, tool items, streaming, usage events, mid-turn steer,
 interrupt, bridge-release resume (id-collision check), fork, provider
 specialties, plus an archive→unarchive→resume round trip and a final
@@ -63,7 +63,7 @@ QA threads deleted, dev instance stopped, no stray processes.
 
 Today a bridge owes the runtime finished canonical `ThreadEvent`s: it opens
 turns, mints and scopes item ids, queues accepted input, settles items, and
-constructs `@bb/domain` shapes — which is why the bridge kit carries the
+constructs `@kaioken/domain` shapes — which is why the bridge kit carries the
 turn-state registry, scoped-item-ids, accepted-user-messages, and item
 constructors (~1,000 published lines), and why the SDK must re-export the
 domain event vocabulary. The revision splits the job along the line the
@@ -88,16 +88,16 @@ the session transcript)
   session replacement, and child death; pi stamps a checkpoint pulled from the
   live SDK at `agent_end`. None of that is parseable from provider events.
 - **Provider heuristics stay bridge-side.** Claude's background-task machine
-  (which *changes the bb turn boundary*: completion-blocking tasks suppress
+  (which *changes the kaioken turn boundary*: completion-blocking tasks suppress
   the provider's terminal signal), codex's delegation parent-linking FIFO, and
   ACP's tool-call reclassification all remain provider code — they conclude,
   and stamp conclusions onto deltas (`parentRef`, withheld `turn.boundary`,
   re-typed `item.close`). The assembler never guesses provider semantics.
 - **Central id minting must be bidirectional.** Steer (`expectedTurnId`),
-  interrupt, fork checkpoints, and approval payloads translate bb ids back to
+  interrupt, fork checkpoints, and approval payloads translate kaioken ids back to
   provider keys. Deltas therefore carry provider-native join keys
   (toolCallId, contentIndex, provider turn id) and the assembler owns the
-  bb↔provider id maps both ways. Bridges' entropy-prefix discipline (#1224)
+  kaioken↔provider id maps both ways. Bridges' entropy-prefix discipline (#1224)
   moves into the assembler (which restarts too, so it keeps the
   entropy+serial trick — centrally, once).
 - **The assembler answers turn-id questions the bridge can no longer ask.**
@@ -162,7 +162,7 @@ bridge-side (it is command-plane + timer and emits an ordinary
 
 - Bridge: dialect parsing, delta emission, provider heuristics
   (task-blocking, delegation linking, reclassification), command plane.
-- Runtime assembler (new, in `@bb/agent-runtime`, behind the
+- Runtime assembler (new, in `@kaioken/agent-runtime`, behind the
   `translateEvent` seam at `bridge-protocol-adapter.ts:488`): turn/item id
   minting (entropy+serial, both-way provider maps), accepted-input queue +
   terminal-turn invariant, delta-first synthesis + settle/reopen dedup,
@@ -175,9 +175,9 @@ bridge-side (it is command-plane + timer and emits an ordinary
 
 ## Prototype plan (this branch)
 
-1. Delta schemas + `thread/delta` method in `@bb/provider-bridge-protocol`
+1. Delta schemas + `thread/delta` method in `@kaioken/provider-bridge-protocol`
    (additive; protocol version untouched — dual-path).
-2. Assembler in `@bb/agent-runtime` (`delta-assembler.ts`), unit-tested
+2. Assembler in `@kaioken/agent-runtime` (`delta-assembler.ts`), unit-tested
    against the invariants named above; wired into `translateEvent` so
    `thread/delta` and `thread/event` coexist.
 3. Convert **pi** (in-repo, no SDK publish loop; carries the terminal-turn
@@ -205,9 +205,9 @@ smaller protocol and the conformance kit churns once.
 Built as planned: schemas (`provider-bridge-protocol/src/thread-delta.ts`),
 assembler (`agent-runtime/src/delta-assembler.ts` behind `translateEvent`),
 pi converted, equivalence suite ported. All of
-`@bb/provider-bridge-protocol` + `@bb/agent-runtime` typecheck/test green
+`@kaioken/provider-bridge-protocol` + `@kaioken/agent-runtime` typecheck/test green
 (incl. pi's canonical conformance suite, run through a real assembler shim);
-`@bb/server` typecheck untouched-green. Real-API integration tests were not
+`@kaioken/server` typecheck untouched-green. Real-API integration tests were not
 run (no provider credentials in the prototype environment).
 
 ### Line deltas
@@ -299,7 +299,7 @@ Converted as assessed: the envelope layer mapped ~1:1 onto deltas and the
 translator's assembly half is deleted. All acp plugin suites (144 tests,
 incl. the canonical conformance run and the ported equivalence suite) pass
 through the new path; provider-bridge-protocol, agent-runtime, plugin-sdk
-green; @bb/server typecheck untouched-green.
+green; @kaioken/server typecheck untouched-green.
 
 ### Line deltas
 
@@ -373,7 +373,7 @@ equivalence suites, the calibration golden — unchanged event stream —,
 zero-work, child-exit, archived-resume, session-signature, and the full
 conformance run against real fake app-server children); agent-runtime
 (incl. pi), acp, provider-bridge-protocol, plugin-sdk all green as a shared-
-assembler regression check; @bb/server typecheck untouched-green.
+assembler regression check; @kaioken/server typecheck untouched-green.
 
 ### Line deltas
 
@@ -396,7 +396,7 @@ assembler regression check; @bb/server typecheck untouched-green.
 
 10. **Vouched provider-turn keys**: optional `providerTurnId` on turn.open/
     turn.boundary/input.accepted and every turn-scoped delta. The assembler
-    holds both-way provider↔bb TURN maps (mirroring the item maps), mints on
+    holds both-way provider↔kaioken TURN maps (mirroring the item maps), mints on
     first sight without emitting `turn/started`, and keyed deltas bypass the
     current-turn machinery entirely — several provider turns can be open at
     once (codex multiplexes subagent child turns onto one thread) and a
@@ -436,12 +436,12 @@ assembler regression check; @bb/server typecheck untouched-green.
 18. **`session.reset {}`** — the provider id-space boundary: emitted by the
     bridge at every session construction (start/resume/fork/rebuild), it
     drops the thread's whole assembly state so reused codex-native ids mint
-    fresh bb ids (cross-resume id uniqueness under central minting; the fake
+    fresh kaioken ids (cross-resume id uniqueness under central minting; the fake
     app-server restarts its counters per process, and the old bridge's
     per-session serial prefix did the same job).
 19. **Generic settle/reopen dedup moved into the assembler**: a repeated
     `item.close` for a settled provider-identified key is dropped and an
-    explicit `item.open` reopens the key under the SAME bb id (codex retries
+    explicit `item.open` reopens the key under the SAME kaioken id (codex retries
     terminal notifications after approvals; deterministic prefix ids used to
     make the reopen id-stable, the map reuse does now). Channel-keyed items
     (acp fs-writes, compactions) are exempt — those families legitimately
@@ -451,7 +451,7 @@ assembler regression check; @bb/server typecheck untouched-green.
 ### The command plane under central minting (reverse mapping)
 
 - `turn/steer.expectedTurnId` and `thread/stop.activeTurnId` are translated
-  bb→provider in `bridge-protocol-adapter.buildCommandPlan` via the
+  kaioken→provider in `bridge-protocol-adapter.buildCommandPlan` via the
   assembler's reverse turn map; unmapped ids pass through unchanged, so
   thread/event bridges and delta bridges without native turn ids (pi, acp)
   see exactly what they saw before. The codex bridge uses the ids verbatim
@@ -515,7 +515,7 @@ event-translation base/tool-call/usage shards and the task suite driving the
 same fixtures through deltas + a real assembler; the bridge suite; the
 scripted-session calibration golden — **byte-identical event stream** —; and
 the full conformance run). Regression: provider-bridge-protocol,
-agent-runtime (incl. pi), acp, codex, plugin-sdk all green; @bb/server
+agent-runtime (incl. pi), acp, codex, plugin-sdk all green; @kaioken/server
 typecheck untouched-green.
 
 ### The decomposition (bridge dialect vs. generic grammar/assembler)
@@ -551,9 +551,9 @@ typecheck untouched-green.
   opaque-task pinning protected bridge-side state that now lives in the
   bridge's own per-session translator, so nothing assembler-side needs it).
 
-### The turn mirror (how per-turn dialect decisions survive without bb ids)
+### The turn mirror (how per-turn dialect decisions survive without kaioken ids)
 
-The old translator compared bb turn ids for the armed rejection, fallback
+The old translator compared kaioken turn ids for the armed rejection, fallback
 dedup, the compaction guard, the synthetic no-response rule, and
 `resolveProviderTerminalTurn`. The bridge now keys those off a deterministic
 MIRROR of the assembler's current-turn machine: since turn opening/closing is
@@ -652,11 +652,11 @@ protocol dialect remains:
 - **SDK surface**: 192 exports at the branch base → 216 mid-branch (the
   delta grammar's schemas/types added) → **184** after the cutover
   deletions (the assembly machinery, the orphaned
-  `buildEditDiff`/`withParentToolCallId`, and every `@bb/domain` re-export
+  `buildEditDiff`/`withParentToolCallId`, and every `@kaioken/domain` re-export
   with zero bridge consumers: the ThreadEvent event vocabulary,
   `threadScope`/`turnScope` + scope helpers, `NONE_REASONING_EFFORT`,
   `createStandaloneBuiltinCompactCommandInput`). Audit item 1 resolved:
-  the protocol owns its timeline vocabulary; what remains from `@bb/domain`
+  the protocol owns its timeline vocabulary; what remains from `@kaioken/domain`
   is the command-plane/interaction surface the params are made of plus the
   enum/status types the delta shapes reference.
 - **Per-bridge translator deltas across the branch** (from the stage

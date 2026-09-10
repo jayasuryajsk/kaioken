@@ -21,7 +21,7 @@ import {
   type ProviderRawEvent,
   experimental_COMPACTION_PRESENTATION as COMPACTION_PRESENTATION,
   experimental_planStepsPresentation as planStepsPresentation,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import {
   claudeApiRetryMessageSchema,
   claudeAssistantMessageSchema,

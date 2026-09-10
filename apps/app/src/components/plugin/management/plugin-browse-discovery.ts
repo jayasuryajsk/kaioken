@@ -1,5 +1,5 @@
-import { PLUGIN_CATALOG_CATEGORIES, pluginCatalogCategory } from "@bb/domain";
-import type { PluginCatalogCollection } from "@bb/server-contract";
+import { PLUGIN_CATALOG_CATEGORIES, pluginCatalogCategory } from "@kaioken/domain";
+import type { PluginCatalogCollection } from "@kaioken/server-contract";
 import type {
   PluginCatalogSearchEntry,
   PluginCatalogSearchData,

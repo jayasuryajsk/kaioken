@@ -1,11 +1,11 @@
-import { updateHost } from "@bb/db";
+import { updateHost } from "@kaioken/db";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import type { HostDaemonOnlineRpcRequestMessage } from "@bb/host-daemon-contract";
+import type { HostDaemonOnlineRpcRequestMessage } from "@kaioken/host-daemon-contract";
 import {
   systemExecutionOptionsResponseSchema,
   systemProviderInfoSchema,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { availableModelFixture } from "../helpers/available-models.js";
 import { readJson } from "../helpers/json.js";
 import { registerHostRpcResponder } from "../helpers/host-rpc.js";

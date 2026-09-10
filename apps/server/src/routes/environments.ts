@@ -4,12 +4,12 @@ import {
   countLiveThreadsInEnvironment,
   listEnvironments,
   updateEnvironmentMetadata,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   environmentStatusValues,
   type EnvironmentStatus,
   type ThreadPullRequest,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   publicApiRoutes,
   typedRoutes,
@@ -17,7 +17,7 @@ import {
   type EnvironmentDiffFileQuery,
   type EnvironmentDiffQuery,
   type PublicApiSchema,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type { Hono } from "hono";
 import type { AppDeps } from "../types.js";
 import {

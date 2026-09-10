@@ -1,6 +1,6 @@
-import type { Environment, WorkspaceStatus } from "@bb/domain";
-import { makeWorkspaceStatus as makeSharedWorkspaceStatus } from "@bb/test-helpers";
-import { makeEnvironment } from "@bb/test-helpers/domain-fixtures";
+import type { Environment, WorkspaceStatus } from "@kaioken/domain";
+import { makeWorkspaceStatus as makeSharedWorkspaceStatus } from "@kaioken/test-helpers";
+import { makeEnvironment } from "@kaioken/test-helpers/domain-fixtures";
 import { describe, expect, it } from "vitest";
 import {
   resolveEffectiveMergeBaseBranch,
@@ -15,7 +15,7 @@ function makeMergeBaseEnvironment(
 ): Environment {
   return makeEnvironment({
     baseBranch: null,
-    branchName: "bb/thread",
+    branchName: "kaioken/thread",
     createdAt: 1,
     hostId: "host-1",
     id: "env-1",
@@ -30,8 +30,8 @@ function makeWorkspaceStatus(
   overrides: Partial<WorkspaceStatus> = {},
 ): WorkspaceStatus {
   return makeSharedWorkspaceStatus({
-    branch: { currentBranch: "bb/thread", defaultBranch: "main" },
-    checkout: { kind: "branch", branchName: "bb/thread", headSha: null },
+    branch: { currentBranch: "kaioken/thread", defaultBranch: "main" },
+    checkout: { kind: "branch", branchName: "kaioken/thread", headSha: null },
     ...overrides,
   });
 }
@@ -106,7 +106,7 @@ describe("resolveEffectiveMergeBaseBranch", () => {
         environment: makeMergeBaseEnvironment({ baseBranch: "release" }),
         workspaceStatus: makeWorkspaceStatus({
           branch: {
-            currentBranch: "bb/thread",
+            currentBranch: "kaioken/thread",
             defaultBranch: "main",
           },
         }),
@@ -120,7 +120,7 @@ describe("resolveEffectiveMergeBaseBranch", () => {
         environment: makeMergeBaseEnvironment({ defaultBranch: "master" }),
         workspaceStatus: makeWorkspaceStatus({
           branch: {
-            currentBranch: "bb/thread",
+            currentBranch: "kaioken/thread",
             defaultBranch: "main",
           },
         }),

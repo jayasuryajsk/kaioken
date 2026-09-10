@@ -27,7 +27,7 @@ function createCookieStore(): DesktopCookieStore {
 const COOKIE = {
   domain: ".getbb.app",
   expiresAt: 1_800_000,
-  name: "__Secure-bb-connect.desktop_session",
+  name: "__Secure-kaioken-connect.desktop_session",
   value: "signed-session",
 };
 
@@ -60,7 +60,7 @@ describe("installConnectDesktopSession", () => {
       domain: ".getbb.app",
       expirationDate: 1800,
       httpOnly: true,
-      name: "__Secure-bb-connect.desktop_session",
+      name: "__Secure-kaioken-connect.desktop_session",
       path: "/",
       sameSite: "lax",
       secure: true,
@@ -68,7 +68,7 @@ describe("installConnectDesktopSession", () => {
       value: "signed-session",
     });
     expect(get).toHaveBeenCalledWith({
-      name: "__Secure-bb-connect.desktop_session",
+      name: "__Secure-kaioken-connect.desktop_session",
       url: "https://laptop.getbb.app",
     });
   });

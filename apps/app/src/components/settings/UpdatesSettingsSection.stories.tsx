@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
-import type { Host } from "@bb/domain";
-import { UPDATE_ACTION_ICON } from "@bb/domain/update-state";
+import type { Host } from "@kaioken/domain";
+import { UPDATE_ACTION_ICON } from "@kaioken/domain/update-state";
 import {
   HOST_DAEMON_PROTOCOL_VERSION,
   type ProviderCliKey,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import type { ProviderCliIssue } from "@/components/provider-cli/provider-cli-install";
 import type { UpdateInventoryMachine } from "@/hooks/useUpdateInventory";
 import { SettingsStoryChrome } from "../../../.ladle/story-settings-chrome";
@@ -18,8 +18,8 @@ import {
   StoryStates as Story,
 } from "../../../.ladle/story-states";
 import {
-  BbAppUpdateRows,
-  BbDaemonUpdateRow,
+  KaiokenAppUpdateRows,
+  KaiokenDaemonUpdateRow,
   ChangelogPreviewCard,
   MachineUpdatesFleetSection,
   MachineUpdatesRows,
@@ -42,7 +42,7 @@ const NPM_VERSION = {
   source: "npm" as const,
   updateAvailable: false,
   isDevelopment: false,
-  upgradeCommand: "npx bb-app@latest",
+  upgradeCommand: "npx kaioken-app@latest",
 };
 
 const DESKTOP_UPDATE = {
@@ -159,7 +159,7 @@ function StoryMachineSection({
   return (
     <MachineUpdatesSection machine={machine} isThisMachine={false}>
       {app ? (
-        <BbAppUpdateRows
+        <KaiokenAppUpdateRows
           systemVersion={appUpdate ? undefined : NPM_VERSION}
           desktopInfo={appUpdate ? DESKTOP_UPDATE : null}
           isDesktop={appUpdate}
@@ -168,7 +168,7 @@ function StoryMachineSection({
         />
       ) : null}
       {showDaemon ? (
-        <BbDaemonUpdateRow
+        <KaiokenDaemonUpdateRow
           machine={machine}
           now={STORY_NOW}
           retryUpdatePending={false}
@@ -327,7 +327,7 @@ export function UpdateStates() {
         renderedNote="The real Updates section"
       >
         <Group
-          title="bb"
+          title="kaioken"
           note="The app itself, and the machine daemons it runs."
         />
 
@@ -336,7 +336,7 @@ export function UpdateStates() {
           note="Nothing to do. The settled state stays visually quiet."
         >
           <StoryAppState>
-            <BbAppUpdateRows
+            <KaiokenAppUpdateRows
               systemVersion={NPM_VERSION}
               desktopInfo={null}
               isDesktop={false}
@@ -351,7 +351,7 @@ export function UpdateStates() {
           note="The app version check is still in progress."
         >
           <StoryAppState>
-            <BbAppUpdateRows
+            <KaiokenAppUpdateRows
               systemVersion={undefined}
               desktopInfo={null}
               isDesktop={false}
@@ -366,7 +366,7 @@ export function UpdateStates() {
           note="A web install cannot replace itself, so its action copies the upgrade command."
         >
           <StoryAppState>
-            <BbAppUpdateRows
+            <KaiokenAppUpdateRows
               systemVersion={{
                 ...NPM_VERSION,
                 latestVersion: "0.39.0",
@@ -385,7 +385,7 @@ export function UpdateStates() {
           note="The desktop shell is fetching the update automatically."
         >
           <StoryAppState>
-            <BbAppUpdateRows
+            <KaiokenAppUpdateRows
               systemVersion={undefined}
               desktopInfo={{
                 ...DESKTOP_UPDATE,
@@ -405,7 +405,7 @@ export function UpdateStates() {
           note="The update is ready and needs one explicit relaunch."
         >
           <StoryAppState>
-            <BbAppUpdateRows
+            <KaiokenAppUpdateRows
               systemVersion={undefined}
               desktopInfo={DESKTOP_UPDATE}
               isDesktop
@@ -420,7 +420,7 @@ export function UpdateStates() {
           note="The red caption states the failure; the neutral Retry button is the recovery."
         >
           <StoryAppState>
-            <BbAppUpdateRows
+            <KaiokenAppUpdateRows
               systemVersion={undefined}
               desktopInfo={{
                 ...DESKTOP_UPDATE,
@@ -436,7 +436,7 @@ export function UpdateStates() {
         </State>
 
         <State
-          name="Machine updating bb"
+          name="Machine updating kaioken"
           note="The enrolled daemon is applying its required update automatically."
         >
           <StoryMachineSection machine={daemonUpdating} />
@@ -444,7 +444,7 @@ export function UpdateStates() {
 
         <State
           name="Machine offline"
-          note="bb cannot currently reach this machine."
+          note="kaioken cannot currently reach this machine."
         >
           <StoryMachineSection machine={daemonOffline} />
         </State>
@@ -463,7 +463,7 @@ export function UpdateStates() {
 
         <State
           name="Update available"
-          note="bb has an installer it can run for this provider."
+          note="kaioken has an installer it can run for this provider."
         >
           <StoryMachineSection machine={providerUpdate} />
         </State>
@@ -488,7 +488,7 @@ export function UpdateStates() {
 
         <State
           name="Update in terminal"
-          note="The CLI was installed outside bb, so the update must run in its own package manager."
+          note="The CLI was installed outside kaioken, so the update must run in its own package manager."
         >
           <StoryMachineSection machine={providerManual} />
         </State>
@@ -509,7 +509,7 @@ export function UpdateStates() {
 
         <State
           name="Status check failed"
-          note="The machine is connected, but bb could not inspect its provider CLIs."
+          note="The machine is connected, but kaioken could not inspect its provider CLIs."
         >
           <StoryMachineSection machine={providerCheckFailed} />
         </State>

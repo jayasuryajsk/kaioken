@@ -4,16 +4,16 @@ import {
   getThread,
   listIdleThreadsWithQueuedMessages,
   listQueuedThreadMessages,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   applyEnvironmentLifecycleEvent,
   requireEnvironmentLifecycleEventApplied,
-} from "@bb/db/internal-environment-lifecycle";
+} from "@kaioken/db/internal-environment-lifecycle";
 import {
   encodeClientTurnRequestIdNumber,
   threadScope,
   type EnvironmentStatus,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { describe, expect, it } from "vitest";
 import { readJson } from "../helpers/json.js";
 import {

@@ -1,9 +1,9 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import type { AgentEnvironment, PermissionMode } from "./rpc-types.js";
 
 type ProviderPermissionApi = {
   sdk: {
-    providers: Pick<BbPluginApi["sdk"]["providers"], "list">;
+    providers: Pick<KaiokenPluginApi["sdk"]["providers"], "list">;
   };
 };
 

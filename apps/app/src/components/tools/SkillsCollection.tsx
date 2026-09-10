@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import type { SkillProvider, SkillSummary } from "@bb/server-contract";
+import type { SkillProvider, SkillSummary } from "@kaioken/server-contract";
 import {
   ResourceInfiniteScrollSentinel,
   useResourceInfiniteItems,
   useResourceViewportPageSize,
-} from "@bb/shared-ui/resource-pagination";
+} from "@kaioken/shared-ui/resource-pagination";
 import {
   ResourceCollectionPage,
   ResourceCollectionViewport,
@@ -17,8 +17,8 @@ import {
   ResourceRowDetailChevron,
   ResourceSortMenu,
   ResourceToolbar,
-} from "@bb/shared-ui/resource-list";
-import { BbLogo } from "@/components/ui/bb-logo";
+} from "@kaioken/shared-ui/resource-list";
+import { KaiokenLogo } from "@/components/ui/kaioken-logo";
 import {
   ConfirmDeleteDialog,
   ConfirmDeleteDialogContent,
@@ -28,12 +28,12 @@ import { ProvenancePill } from "@/components/tools/ProvenancePill";
 import { SkillDetailView } from "@/components/tools/SkillDetailView";
 import { TOOLS_PAGE_BAND_CLASSES } from "@/components/tools/tools-navigation";
 import { skillScopeLabel } from "@/components/tools/skill-taxonomy";
-import type { ProviderInfo } from "@bb/domain";
+import type { ProviderInfo } from "@kaioken/domain";
 import { ProviderIconMark } from "@/components/settings/ProviderIconMark";
 import { getProviderIconInfo } from "@/lib/provider-icon";
 import type { MarkdownLinkRouting } from "@/components/ui/markdown-link-routing";
 
-type ResourceProviderFilter = "bb" | SkillProvider;
+type ResourceProviderFilter = "kaioken" | SkillProvider;
 export type ProviderRoster = ReadonlyMap<string, ProviderInfo>;
 type ResourceSkillSourceFilter = "included" | "bb-official" | "user";
 type ResourceSortMode = "provider" | "alpha";
@@ -54,23 +54,23 @@ function providerLabel(
   provider: SkillProvider | null,
   providerRoster: ProviderRoster,
 ): string {
-  if (provider === null) return "bb";
+  if (provider === null) return "kaioken";
   return providerRoster.get(provider)?.displayName ?? provider;
 }
 
 function skillProviderFilterId(skill: SkillSummary): ResourceProviderFilter {
-  return skill.provider ?? "bb";
+  return skill.provider ?? "kaioken";
 }
 
 function providerFilterLabel(
   provider: ResourceProviderFilter,
   providerRoster: ProviderRoster,
 ): string {
-  return provider === "bb" ? "bb" : providerLabel(provider, providerRoster);
+  return provider === "kaioken" ? "bb" : providerLabel(provider, providerRoster);
 }
 
 function skillSourceFilterId(skill: SkillSummary): ResourceSkillSourceFilter {
-  if (skill.scope === "bb-builtin") return "bb-official";
+  if (skill.scope === "kaioken-builtin") return "bb-official";
   if (skill.scope === "plugin") return "included";
   return "user";
 }
@@ -139,12 +139,12 @@ export function SkillProvenanceTooltip({
     <span className="inline-flex items-center gap-1.5">
       <span>{prefix}</span>
       <span
-        data-provider-icon={providerId ?? "bb"}
+        data-provider-icon={providerId ?? "kaioken"}
         aria-hidden="true"
         className="flex size-3.5 shrink-0 items-center justify-center"
       >
         {providerId === null ? (
-          <BbLogo className="size-3.5 brightness-0 invert" />
+          <KaiokenLogo className="size-3.5 brightness-0 invert" />
         ) : (
           <ProviderLogo
             providerId={providerId}
@@ -174,7 +174,7 @@ function SkillLeading({
       />
     );
   }
-  return <BbLogo className="size-6" />;
+  return <KaiokenLogo className="size-6" />;
 }
 
 function skillDescription(
@@ -218,7 +218,7 @@ function skillMutationDisabledReason(
   skill: SkillSummary,
   providerRoster: ProviderRoster,
 ): string {
-  if (skill.scope === "bb-builtin") return "Built-in skill";
+  if (skill.scope === "kaioken-builtin") return "Built-in skill";
   if (skill.scope === "plugin") return "Bundled with plugin";
   return `Bundled with ${providerLabel(skill.provider, providerRoster)}`;
 }
@@ -234,11 +234,11 @@ const SKILLS_BROWSE_DESCRIPTION = (
     >
       skills.sh
     </a>
-    . Install one and every agent you use in bb can run it.
+    . Install one and every agent you use in kaioken can run it.
   </>
 );
 const SKILLS_LIBRARY_DESCRIPTION =
-  "The skills on this bb host — yours, your providers', and those bundled with plugins. They work with every agent you use in bb.";
+  "The skills on this kaioken host — yours, your providers', and those bundled with plugins. They work with every agent you use in kaioken.";
 
 const PREFETCH_HOVER_INTENT_MS = 150;
 
@@ -279,7 +279,7 @@ function SkillRow({
         leading={<SkillLeading skill={skill} providerRoster={providerRoster} />}
         title={skill.name}
         titleMeta={
-          skill.scope === "bb-builtin" ? (
+          skill.scope === "kaioken-builtin" ? (
             <ProvenancePill label="BB Official" />
           ) : skill.scope === "plugin" ? (
             <ProvenancePill
@@ -341,7 +341,7 @@ export function SkillsOverview({
 }: SkillsOverviewProps) {
   const [providerFilters, setProviderFilters] = useState<
     ResourceProviderFilter[]
-  >(["bb"]);
+  >(["kaioken"]);
   const [sourceFilters, setSourceFilters] = useState<
     ResourceSkillSourceFilter[]
   >([]);
@@ -373,13 +373,13 @@ export function SkillsOverview({
   const providerBucketCount = providerCounts.size;
   const providerOptions = useMemo(() => {
     const present = new Set<ResourceProviderFilter>([
-      "bb",
+      "kaioken",
       ...providerCounts.keys(),
       ...providerFilters,
     ]);
     const ordered = [...present].sort((left, right) =>
-      left === "bb" || right === "bb"
-        ? Number(left !== "bb") - Number(right !== "bb")
+      left === "kaioken" || right === "kaioken"
+        ? Number(left !== "kaioken") - Number(right !== "kaioken")
         : providerFilterLabel(left, providerRoster).localeCompare(
             providerFilterLabel(right, providerRoster),
           ),
@@ -388,8 +388,8 @@ export function SkillsOverview({
       id: provider,
       label: providerFilterLabel(provider, providerRoster),
       leading:
-        provider === "bb" ? (
-          <BbLogo className="size-4" />
+        provider === "kaioken" ? (
+          <KaiokenLogo className="size-4" />
         ) : (
           <ProviderLogo
             providerId={provider}
@@ -433,10 +433,10 @@ export function SkillsOverview({
       );
     });
     return [...filtered].sort((left, right) => {
-      if (providerFilters.length === 1 && providerFilters[0] === "bb") {
+      if (providerFilters.length === 1 && providerFilters[0] === "kaioken") {
         const officialResult =
-          Number(left.scope !== "bb-builtin") -
-          Number(right.scope !== "bb-builtin");
+          Number(left.scope !== "kaioken-builtin") -
+          Number(right.scope !== "kaioken-builtin");
         if (officialResult !== 0) return officialResult;
       }
       const base =
@@ -500,7 +500,7 @@ export function SkillsOverview({
       <ResourceListPanel>
         {libraryList.items.map((skill) => (
           <SkillRow
-            key={`${skill.scope}-${skill.provider ?? "bb"}-${skill.name}-${skill.filePath}`}
+            key={`${skill.scope}-${skill.provider ?? "kaioken"}-${skill.name}-${skill.filePath}`}
             skill={skill}
             providerRoster={providerRoster}
             onSelect={() => onSelectSkill(skill)}
@@ -540,7 +540,7 @@ export function SkillsOverview({
               action={
                 <CreateWithTemplatesButton
                   kind="skill"
-                  label="New bb skill"
+                  label="New kaioken skill"
                   onCreate={onCreateSkill}
                 />
               }
@@ -692,10 +692,10 @@ export function SkillDetailDialogView({
       title={skill.name}
       path={skill.filePath}
       titleBadge={
-        skill.scope === "bb-builtin"
+        skill.scope === "kaioken-builtin"
           ? {
               label: "BB Official",
-              tooltip: "Ships with bb",
+              tooltip: "Ships with kaioken",
               accessibleLabel: `${skill.name} is BB Official`,
             }
           : bundledPluginName !== null

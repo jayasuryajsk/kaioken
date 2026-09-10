@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ClientTurnRequestId, ThreadEvent } from "@bb/domain";
-import { threadScope, turnScope } from "@bb/domain";
+import type { ClientTurnRequestId, ThreadEvent } from "@kaioken/domain";
+import { threadScope, turnScope } from "@kaioken/domain";
 import type { DeltaItemShape, ThreadDelta } from "../thread-delta.js";
 import {
   createDeltaAssembler,
@@ -427,7 +427,7 @@ describe("delta assembler", () => {
     });
   });
 
-  it("maps parentRef through the provider→bb id map for nested items", () => {
+  it("maps parentRef through the provider→kaioken id map for nested items", () => {
     const assembler = createAssembler();
     assemble(assembler, { kind: "turn.open" });
     const parentStarted = assemble(assembler, {
@@ -510,11 +510,11 @@ describe("delta assembler", () => {
     ]);
   });
 
-  it("addresses output deltas by the minted bb item id", () => {
+  it("addresses output deltas by the minted kaioken item id", () => {
     const assembler = createAssembler();
     assemble(assembler, { kind: "turn.open" });
     const started = assemble(assembler, bashOpen("tc-1"));
-    const bbItemId =
+    const kaiokenItemId =
       started[0]?.type === "item/started" ? started[0].item.id : "";
     const events = assemble(assembler, {
       kind: "command.outputSnapshot",
@@ -522,10 +522,10 @@ describe("delta assembler", () => {
       text: "OUT\n",
     });
     expect(events).toEqual([
-      expect.objectContaining({ itemId: bbItemId, delta: "OUT\n" }),
+      expect.objectContaining({ itemId: kaiokenItemId, delta: "OUT\n" }),
     ]);
-    expect(assembler.getBbItemId(THREAD_ID, "tc-1")).toBe(bbItemId);
-    expect(assembler.getProviderItemId(THREAD_ID, bbItemId)).toBe("tc-1");
+    expect(assembler.getBbItemId(THREAD_ID, "tc-1")).toBe(kaiokenItemId);
+    expect(assembler.getProviderItemId(THREAD_ID, kaiokenItemId)).toBe("tc-1");
   });
 
   it("drops snapshots for items it never saw open", () => {

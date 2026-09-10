@@ -11,7 +11,7 @@ export default defineWorkspaceTestConfig({
     testTimeout: 20_000,
     projects: sharedWorkerProjects({
       pkgDir: __dirname,
-      name: "bb-plugin-theme-preview",
+      name: "kaioken-plugin-theme-preview",
       include: ["**/*.test.{ts,tsx}"],
       exclude: ["node_modules/**"],
     }),

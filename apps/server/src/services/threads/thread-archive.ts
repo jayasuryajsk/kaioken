@@ -6,9 +6,9 @@ import {
   listLiveThreadsInEnvironment,
   listNonDeletedChildThreads,
   listUnarchivedHiddenSourceThreads,
-} from "@bb/db";
-import type { EnvironmentRow } from "@bb/db";
-import type { Thread } from "@bb/domain";
+} from "@kaioken/db";
+import type { EnvironmentRow } from "@kaioken/db";
+import type { Thread } from "@kaioken/domain";
 import type { AppDeps } from "../../types.js";
 import {
   threadEnvironmentUnavailableDetails,

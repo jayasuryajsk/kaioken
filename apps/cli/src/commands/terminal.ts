@@ -1,17 +1,17 @@
 import { Buffer } from "node:buffer";
 import { Command } from "commander";
-import { TERMINAL_DATA_MAX_BYTES } from "@bb/domain";
+import { TERMINAL_DATA_MAX_BYTES } from "@kaioken/domain";
 import {
-  BbHttpError,
-  type BbSdk,
+  KaiokenHttpError,
+  type KaiokenSdk,
   type TerminalCreateScope,
   type TerminalListScope,
-} from "@bb/sdk";
-import { createNodeWebsocketFactory } from "@bb/sdk/node-websocket";
+} from "@kaioken/sdk";
+import { createNodeWebsocketFactory } from "@kaioken/sdk/node-websocket";
 import {
   terminalServerMessageSchema,
   type TerminalSession,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { action, CliExitError } from "../action.js";
 import { createCliBbSdk } from "../client.js";
 import { renderBorderlessTable } from "../table.js";
@@ -740,7 +740,7 @@ async function waitForTerminal(args: {
 
 async function readTerminalOutputForWait(args: {
   query: ReturnType<typeof terminalOutputQuery>;
-  sdk: BbSdk;
+  sdk: KaiokenSdk;
   terminalId: string;
 }) {
   return args.sdk.terminals
@@ -761,7 +761,7 @@ async function readTerminalOutputForWait(args: {
 
 function isTerminalOutputUnavailable(error: unknown): boolean {
   return (
-    error instanceof BbHttpError &&
+    error instanceof KaiokenHttpError &&
     error.status === 409 &&
     error.code === "terminal_output_unavailable"
   );

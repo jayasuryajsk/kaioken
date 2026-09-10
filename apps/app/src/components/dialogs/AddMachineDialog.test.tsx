@@ -8,12 +8,12 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import type { Host } from "@bb/domain";
-import { makeHost as host } from "@bb/test-helpers/domain-fixtures";
-import type { InstalledPlugin } from "@bb/server-contract";
+import type { Host } from "@kaioken/domain";
+import { makeHost as host } from "@kaioken/test-helpers/domain-fixtures";
+import type { InstalledPlugin } from "@kaioken/server-contract";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { BbHttpError, sdk } from "@/lib/sdk";
+import { KaiokenHttpError, sdk } from "@/lib/sdk";
 import { hostsQueryKey } from "@/hooks/queries/query-keys";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
 import { AddMachineDialog } from "./AddMachineDialog";
@@ -55,9 +55,9 @@ function connectPlugin(
   });
 }
 
-function notRunningRpcError(status: string): BbHttpError {
+function notRunningRpcError(status: string): KaiokenHttpError {
   const message = `plugin "connect" is not running (status: ${status})`;
-  return new BbHttpError({
+  return new KaiokenHttpError({
     body: { ok: false, error: message },
     code: null,
     message,
@@ -119,7 +119,7 @@ describe("AddMachineDialog", () => {
     expect(command.closest("[data-add-machine-command]")).not.toBeNull();
     expect(
       screen.getByText(
-        /It installs bb and keeps the machine connected to this server/u,
+        /It installs kaioken and keeps the machine connected to this server/u,
       ),
     ).toBeDefined();
     expect(screen.getByText(/Code expires in \d+:\d{2}/)).toBeDefined();
@@ -160,7 +160,7 @@ describe("AddMachineDialog", () => {
       expiresAt: Date.now() + 15 * 60 * 1000,
     });
     vi.mocked(sdk.plugins.callRpc).mockRejectedValue(
-      new BbHttpError({
+      new KaiokenHttpError({
         body: {
           ok: false,
           error: { code: "handler_error", message: "not_paired" },
@@ -220,7 +220,7 @@ describe("AddMachineDialog", () => {
       expiresAt: Date.now() + 15 * 60 * 1000,
     });
     vi.mocked(sdk.plugins.callRpc).mockRejectedValue(
-      new BbHttpError({
+      new KaiokenHttpError({
         body: {
           ok: false,
           error: { code: "handler_error", message: "not_paired" },

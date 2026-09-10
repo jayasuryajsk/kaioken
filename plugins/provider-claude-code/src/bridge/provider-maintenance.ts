@@ -22,7 +22,7 @@ import {
   experimental_readCliVersion as readCliVersion,
   experimental_resolveExecutablePath as resolveExecutablePath,
   experimental_versionFrom as versionFrom,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import { z } from "zod";
 
 const execFileAsync = promisify(execFile);
@@ -51,7 +51,7 @@ const claudeAccountSchema = z.object({
 });
 
 function claudeExecutable(): string {
-  return process.env.BB_CLAUDE_CODE_EXECUTABLE?.trim() || "claude";
+  return process.env.KAIOKEN_CLAUDE_CODE_EXECUTABLE?.trim() || "claude";
 }
 
 function claudeDistTags(value: string | null): {

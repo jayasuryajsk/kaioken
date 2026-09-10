@@ -4,22 +4,22 @@ import {
   sanitizeInheritedChildProcessEnv,
   spawnPortableOutputProcess,
   supportsProcessGroups,
-} from "@bb/process-utils";
+} from "@kaioken/process-utils";
 import fs from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 import path from "node:path";
-import { WorkspaceError } from "bb-environment-provider-host/git";
-import { createTerminalOutputLineReader } from "bb-environment-provider-host/terminal-output";
+import { WorkspaceError } from "kaioken-environment-provider-host/git";
+import { createTerminalOutputLineReader } from "kaioken-environment-provider-host/terminal-output";
 import {
   createProvisionCancelledError,
   emitOutput,
   emitStep,
   throwIfProvisionAborted,
   type ProgressCallback,
-} from "bb-environment-provider-host/transcript";
+} from "kaioken-environment-provider-host/transcript";
 
-export const DEFAULT_ENV_SETUP_SCRIPT_NAME = ".bb-env-setup.sh";
-export const DEFAULT_ENV_TEARDOWN_SCRIPT_NAME = ".bb-env-teardown.sh";
+export const DEFAULT_ENV_SETUP_SCRIPT_NAME = ".kaioken-env-setup.sh";
+export const DEFAULT_ENV_TEARDOWN_SCRIPT_NAME = ".kaioken-env-teardown.sh";
 
 export interface RunSetupScriptArgs {
   workspacePath: string;

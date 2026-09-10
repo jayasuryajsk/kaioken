@@ -1,4 +1,4 @@
-/* bb landing — editorial, themed to match the bb app in both schemes.
+/* kaioken landing — editorial, themed to match the kaioken app in both schemes.
    Tokens mirror apps/app/src/components/ui/theme.css: a neutral zero-chroma
    ink-over-canvas ramp, inverted-neutral primary button, and the app's own
    chromatic tokens (file-accent, success, diff-added/removed, warning-text).
@@ -160,21 +160,21 @@ code,
   }
 }
 
-/* The bb mark ships as two files: the light one is the app-icon tile (white,
+/* The kaioken mark ships as two files: the light one is the app-icon tile (white,
    baked into the PNG) which would glare on the dark canvas, the dark one is
    the brand's white glyph on transparent, matching the dark favicons. Naming
    them from two declarations means the browser only fetches the one the
    winning rule needs — a pair of <img> toggled with display:none downloads
    both, on every page, for one visible mark. */
-.bb-mark {
+.kaioken-mark {
   display: block;
   flex-shrink: 0;
-  background-image: url("../assets/bb-icon.png");
+  background-image: url("../assets/kaioken-icon.png");
   background-size: 100% 100%;
 }
 
-.dark .bb-mark {
-  background-image: url("../assets/bb-icon-dark.png");
+.dark .kaioken-mark {
+  background-image: url("../assets/kaioken-icon-dark.png");
 }
 
 .logo-mark {
@@ -689,7 +689,7 @@ code,
   letter-spacing: -0.01em;
 }
 
-/* ── Hero app mock (interactive recreation of the bb app) ───────── */
+/* ── Hero app mock (interactive recreation of the kaioken app) ───────── */
 
 .mockup-wrap {
   margin: 14px 0 8px;
@@ -1947,7 +1947,7 @@ html.js .mock[data-construct]:not(.constructing):not(.constructed) {
   min-width: 0;
 }
 
-/* ── Band visual: Telegram-style chat with the bb bot ───────────── */
+/* ── Band visual: Telegram-style chat with the kaioken bot ───────────── */
 
 .tg {
   width: 100%;
@@ -2015,7 +2015,7 @@ html.js .mock[data-construct]:not(.constructing):not(.constructed) {
   object-fit: cover;
 }
 
-/* wallpaper + messages. --tg-card is Telegram's own surface colour, not a bb
+/* wallpaper + messages. --tg-card is Telegram's own surface colour, not a kaioken
    token: the mock imitates a foreign app, so its values are deliberately
    literal in both schemes, like the wallpaper and the outgoing green bubble. */
 .tg-feed {
@@ -2097,7 +2097,7 @@ html.js .mock[data-construct]:not(.constructing):not(.constructed) {
   white-space: nowrap;
 }
 
-/* The bb spawn command the bot runs, shown inline in its message. */
+/* The kaioken spawn command the bot runs, shown inline in its message. */
 .tg-cmd {
   display: block;
   margin-top: 6px;
@@ -2111,7 +2111,7 @@ html.js .mock[data-construct]:not(.constructing):not(.constructed) {
   text-overflow: ellipsis;
 }
 
-/* the bb thread card the bot spawns */
+/* the kaioken thread card the bot spawns */
 .tg-thread {
   width: 100%;
   background: var(--tg-card);
@@ -2285,7 +2285,7 @@ html.js .mock[data-construct]:not(.constructing):not(.constructed) {
     linear-gradient(165deg, oklch(0.26 0.025 155), oklch(0.2 0.03 140));
 }
 
-/* ── Band 3 visual: mobile bb app mock ──────────────────────────── */
+/* ── Band 3 visual: mobile kaioken app mock ──────────────────────────── */
 
 .mockup-wrap-customize {
   width: min(100%, 360px);

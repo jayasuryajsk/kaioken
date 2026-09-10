@@ -9,9 +9,9 @@ import {
   type Ref,
   type RefObject,
 } from "react";
-import type { Host, ProjectSource, PromptTextMention } from "@bb/domain";
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
-import type { ComposerView } from "@get-bb/plugin-sdk";
+import type { Host, ProjectSource, PromptTextMention } from "@kaioken/domain";
+import type { SystemEnvironmentProvider } from "@kaioken/server-contract";
+import type { ComposerView } from "@get-kaioken/plugin-sdk";
 import type { ComposerTextEffectSource } from "@/lib/composer-text-effects";
 import { ComposerBannersSlot } from "@/components/plugin/PluginComposerBanners";
 import { PROMPT_STACK_TRACK_CLASS } from "@/components/promptbox/banner/PromptStackCard";
@@ -65,7 +65,7 @@ import { useHostDaemon } from "@/hooks/useHostDaemon";
 import {
   isPlanModePrompt,
   permissionDisplayForPromptMode,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 
 const NEW_THREAD_PROMPT_BOX_MIN_HEIGHT = 80;
 const DEFAULT_NEW_THREAD_COMPOSER_SCOPE = {

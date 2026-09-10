@@ -1,5 +1,5 @@
-import type { ChangedMessage, EnvironmentChangeKind } from "@bb/domain";
-import type { HostDaemonOnlineRpcResult } from "@bb/host-daemon-contract";
+import type { ChangedMessage, EnvironmentChangeKind } from "@kaioken/domain";
+import type { HostDaemonOnlineRpcResult } from "@kaioken/host-daemon-contract";
 
 const IGNORED_ENVIRONMENT_CHANGES: ReadonlySet<EnvironmentChangeKind> = new Set(
   ["metadata-changed", "thread-storage-changed"],

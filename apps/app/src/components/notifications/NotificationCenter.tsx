@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { Popover, PopoverAnchor, PopoverContent } from "@bb/shared-ui/popover";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
+import { Popover, PopoverAnchor, PopoverContent } from "@kaioken/shared-ui/popover";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/tooltip";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { useAppCommandHandler } from "@/components/commands/AppCommandProvider";
 import { appToast, iconForTone } from "@/components/ui/app-toast";
 import { copyTextToClipboard } from "@/lib/clipboard";

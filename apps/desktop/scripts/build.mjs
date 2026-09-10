@@ -36,7 +36,7 @@ function readPackageVersion(packageJsonText, label) {
  */
 function readBuildCommit(env) {
   const injected =
-    env.BB_DESKTOP_COMMIT?.trim() ?? env.GITHUB_SHA?.trim() ?? "";
+    env.KAIOKEN_DESKTOP_COMMIT?.trim() ?? env.GITHUB_SHA?.trim() ?? "";
   if (injected.length > 0) {
     return injected;
   }
@@ -52,7 +52,7 @@ function readBuildCommit(env) {
 }
 
 function readBuildDate(env) {
-  const injected = env.BB_DESKTOP_BUILD_DATE?.trim() ?? "";
+  const injected = env.KAIOKEN_DESKTOP_BUILD_DATE?.trim() ?? "";
   if (injected.length > 0) {
     return injected;
   }
@@ -76,14 +76,14 @@ const desktopBuildDate = readBuildDate(process.env);
 const commonOptions = {
   bundle: true,
   define: {
-    "process.env.BB_DESKTOP_BUILD_DATE": JSON.stringify(desktopBuildDate),
-    "process.env.BB_DESKTOP_COMMIT": JSON.stringify(desktopCommit),
-    "process.env.BB_DESKTOP_PLUGIN_SDK_VERSION":
+    "process.env.KAIOKEN_DESKTOP_BUILD_DATE": JSON.stringify(desktopBuildDate),
+    "process.env.KAIOKEN_DESKTOP_COMMIT": JSON.stringify(desktopCommit),
+    "process.env.KAIOKEN_DESKTOP_PLUGIN_SDK_VERSION":
       JSON.stringify(pluginSdkVersion),
-    "process.env.BB_DESKTOP_RELEASE_CHANNEL": JSON.stringify(
+    "process.env.KAIOKEN_DESKTOP_RELEASE_CHANNEL": JSON.stringify(
       desktopReleaseChannel,
     ),
-    "process.env.BB_DESKTOP_VERSION": JSON.stringify(desktopVersion),
+    "process.env.KAIOKEN_DESKTOP_VERSION": JSON.stringify(desktopVersion),
   },
   legalComments: "none",
   platform: "node",
@@ -131,11 +131,11 @@ await Promise.all([
   }),
   build({
     ...commonOptions,
-    entryPoints: [resolve(packageRoot, "src", "bb-app-bridge.ts")],
-    external: ["bb-app", "bb-app/*"],
+    entryPoints: [resolve(packageRoot, "src", "kaioken-app-bridge.ts")],
+    external: ["kaioken-app", "kaioken-app/*"],
     format: "esm",
-    outfile: resolve(distDir, "bb-app-bridge.mjs"),
+    outfile: resolve(distDir, "kaioken-app-bridge.mjs"),
   }),
 ]);
 
-process.stdout.write("@bb/desktop: built Electron entries\n");
+process.stdout.write("@kaioken/desktop: built Electron entries\n");

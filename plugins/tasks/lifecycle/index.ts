@@ -1,4 +1,4 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { publishCommentsChanged, type TasksApiStore } from "../api";
 import type { TaskThread, TaskThreadLiveStatus } from "../db";
 import { createSystemComment, publishThreadsChanged } from "../delegate";
@@ -7,7 +7,7 @@ const TERMINAL_LIVE_STATUSES = new Set<TaskThreadLiveStatus>(["completed"]);
 export const THREAD_STATUS_RECONCILE_INTERVAL_MS = 5 * 60_000;
 export const THREAD_STATUS_IDLE_INTERVAL_MS = 60_000;
 
-type SdkThread = Awaited<ReturnType<BbPluginApi["sdk"]["threads"]["get"]>>;
+type SdkThread = Awaited<ReturnType<KaiokenPluginApi["sdk"]["threads"]["get"]>>;
 
 function liveStatusFromThread(thread: SdkThread): TaskThreadLiveStatus {
   if (thread.status === "error") return "failed";
@@ -56,7 +56,7 @@ function sdkErrorCode(error: unknown): string | undefined {
 }
 
 function transitionThread(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksApiStore,
   thread: TaskThread,
   liveStatus: TaskThreadLiveStatus,
@@ -85,7 +85,7 @@ function transitionThread(
 }
 
 function transitionTrackedThread(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksApiStore,
   threadId: string,
   liveStatus: TaskThreadLiveStatus,
@@ -96,7 +96,7 @@ function transitionTrackedThread(
 }
 
 async function reconcileTrackedThread(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksApiStore,
   trackedThread: TaskThread,
 ): Promise<void> {
@@ -119,7 +119,7 @@ async function reconcileTrackedThread(
 }
 
 async function reconcileTrackedThreads(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksApiStore,
 ): Promise<void> {
   const nonTerminalThreads = trackedThreads(store).filter(
@@ -156,7 +156,7 @@ function waitForNextReconciliation(
 }
 
 export async function registerLifecycle(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   store: TasksApiStore,
 ): Promise<void> {
   bb.events.on("thread.created", ({ thread }) => {

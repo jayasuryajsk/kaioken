@@ -21,9 +21,9 @@ export function describeServerUrl(serverUrl: string): string {
   try {
     parsed = new URL(serverUrl);
   } catch {
-    return "the saved bb server";
+    return "the saved kaioken server";
   }
-  return `the bb server at ${parsed.origin}`;
+  return `the kaioken server at ${parsed.origin}`;
 }
 
 function formatLoadFailure(error: unknown): string {
@@ -52,7 +52,7 @@ export async function loadRemoteServerPage(
         "Window ▸ Server to retry this server or switch to " +
         `${BUILTIN_SERVER_NAME}.`,
       logs: "",
-      title: "Could not reach this bb server",
+      title: "Could not reach this kaioken server",
     });
     return false;
   }

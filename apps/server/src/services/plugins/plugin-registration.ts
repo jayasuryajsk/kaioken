@@ -1,4 +1,4 @@
-import { findProviderEnvironmentContainingPath } from "@bb/db";
+import { findProviderEnvironmentContainingPath } from "@kaioken/db";
 import { realpathSync } from "node:fs";
 import { resolve } from "node:path";
 import { isBbManagedWorkspacePath } from "../threads/workspace-paths.js";
@@ -15,7 +15,7 @@ import {
   type PluginExactResolution,
   type PluginProvenance,
   type PluginSourceIntent,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   BUNDLED_PLUGINS,
   builtinPluginSource,
@@ -25,7 +25,7 @@ import {
   BUNDLED_MARKETPLACE_NAME,
   CURATED_MARKETPLACE_NAME,
 } from "../plugin-catalog/marketplace-manifest.js";
-import type { PluginSourceSelection } from "@bb/server-contract";
+import type { PluginSourceSelection } from "@kaioken/server-contract";
 import type { TelemetryEvent } from "../system/telemetry.js";
 import { resolveSelectedSubdirectory } from "./collection-manifest.js";
 import {
@@ -302,7 +302,7 @@ export function createPluginRegistration(context: PluginRegistrationContext) {
       identity.sourceIntent.kind === "git"
     ) {
       throw new Error(
-        `plugin "${pluginId}" is already installed; use \`bb plugin update ${pluginId}\` or remove it before reinstalling`,
+        `plugin "${pluginId}" is already installed; use \`kaioken plugin update ${pluginId}\` or remove it before reinstalling`,
       );
     }
   }
@@ -424,7 +424,7 @@ export function createPluginRegistration(context: PluginRegistrationContext) {
       findProviderEnvironmentContainingPath(deps.db, rootDir) !== null
     ) {
       logger.warn(
-        `plugin "${rootDir}" is installed from inside a bb-managed workspace; ` +
+        `plugin "${rootDir}" is installed from inside a kaioken-managed workspace; ` +
           "its source will be deleted when that environment is destroyed (e.g. when the owning thread is archived). " +
           "Reinstall from a stable path outside the managed workspace to avoid losing it.",
       );

@@ -7,7 +7,7 @@ import {
   formatPendingInteractionSummary,
   formatPendingInteractionUserQuestionOptionLabel,
   summarizePendingInteractionRequestedPermissions,
-} from "@bb/core-ui";
+} from "@kaioken/core-ui";
 import {
   isApprovalPendingInteraction,
   isApprovalPendingInteractionPayload,
@@ -30,7 +30,7 @@ import {
   PendingInteractionResolution,
   type UserQuestionPendingInteraction,
   type UserQuestionPendingInteractionPayload,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { action } from "../../action.js";
 import { createCliBbSdk } from "../../client.js";
 import { renderBorderlessTable } from "../../table.js";
@@ -337,7 +337,7 @@ function printPluginRequestInteraction(
   );
   console.log(`  Data: ${JSON.stringify(interaction.payload.data)}`);
   console.log(
-    "  Answer: bb thread interactions respond <interactionId> --value '<json>'",
+    "  Answer: kaioken thread interactions respond <interactionId> --value '<json>'",
   );
 }
 
@@ -638,7 +638,7 @@ function buildBinaryResolution(
     approvalInteraction.payload.subject.kind === "permission_grant"
   ) {
     throw new Error(
-      `Interaction ${interaction.id} is a permission grant; use bb thread interactions grant.`,
+      `Interaction ${interaction.id} is a permission grant; use kaioken thread interactions grant.`,
     );
   }
   const decision = pickApprovalDecision(approvalInteraction, action);
@@ -707,7 +707,7 @@ export function registerInteractionCommands(
   interactions
     .command("list [id]")
     .description("List interactions for a thread")
-    .option("--self", "Target the current thread (from BB_THREAD_ID)")
+    .option("--self", "Target the current thread (from KAIOKEN_THREAD_ID)")
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(
@@ -756,7 +756,7 @@ export function registerInteractionCommands(
   interactions
     .command("show <interactionId> [id]")
     .description("Show an interaction")
-    .option("--self", "Target the current thread (from BB_THREAD_ID)")
+    .option("--self", "Target the current thread (from KAIOKEN_THREAD_ID)")
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(
@@ -785,7 +785,7 @@ export function registerInteractionCommands(
     .description(
       "Approve a command, file-change, or plan interaction for this turn",
     )
-    .option("--self", "Target the current thread (from BB_THREAD_ID)")
+    .option("--self", "Target the current thread (from KAIOKEN_THREAD_ID)")
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(
@@ -817,7 +817,7 @@ export function registerInteractionCommands(
   interactions
     .command("grant <interactionId> [id]")
     .description("Grant a permission interaction")
-    .option("--self", "Target the current thread (from BB_THREAD_ID)")
+    .option("--self", "Target the current thread (from KAIOKEN_THREAD_ID)")
     .option("--json", "Print machine-readable JSON output")
     .option("--scope <scope>", "Grant scope: turn or session")
     .action(
@@ -851,7 +851,7 @@ export function registerInteractionCommands(
   interactions
     .command("answer <interactionId> [id]")
     .description("Answer a user-question interaction")
-    .option("--self", "Target the current thread (from BB_THREAD_ID)")
+    .option("--self", "Target the current thread (from KAIOKEN_THREAD_ID)")
     .option("--json", "Print machine-readable JSON output")
     .option(
       "--choice <questionId=value>",
@@ -900,7 +900,7 @@ export function registerInteractionCommands(
     .description(
       "Answer a plugin form (a plugin's request or a provider's plugin-defined request) with a JSON value",
     )
-    .option("--self", "Target the current thread (from BB_THREAD_ID)")
+    .option("--self", "Target the current thread (from KAIOKEN_THREAD_ID)")
     .option("--json", "Print machine-readable JSON output")
     .requiredOption(
       "--value <json>",
@@ -939,7 +939,7 @@ export function registerInteractionCommands(
   interactions
     .command("deny <interactionId> [id]")
     .description("Deny a command, file-change, plan, or permission interaction")
-    .option("--self", "Target the current thread (from BB_THREAD_ID)")
+    .option("--self", "Target the current thread (from KAIOKEN_THREAD_ID)")
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(

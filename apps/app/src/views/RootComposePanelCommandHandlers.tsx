@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAppCommandHandler } from "@/components/commands/AppCommandProvider";
-import { getBbDesktopInfo } from "@/lib/bb-desktop";
+import { getBbDesktopInfo } from "@/lib/kaioken-desktop";
 
 interface RootComposePanelCommandHandlersProps {
   isFocused: boolean;

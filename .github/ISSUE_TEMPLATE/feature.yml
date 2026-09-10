@@ -1,5 +1,5 @@
 name: Feature request
-description: A workflow you could not complete, or behavior bb should have. Open the issue before a PR for features and UI changes.
+description: A workflow you could not complete, or behavior kaioken should have. Open the issue before a PR for features and UI changes.
 labels: []
 body:
   - type: markdown
@@ -10,7 +10,7 @@ body:
     id: workflow
     attributes:
       label: The workflow
-      description: What were you trying to do, step by step, and where did bb stop you or make it awkward?
+      description: What were you trying to do, step by step, and where did kaioken stop you or make it awkward?
     validations:
       required: true
   - type: textarea

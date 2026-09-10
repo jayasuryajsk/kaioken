@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import type { HostDaemonSessionOpenResponse } from "@bb/host-daemon-contract";
+import type { HostDaemonSessionOpenResponse } from "@kaioken/host-daemon-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { HostDaemonLogger } from "./logger.js";
 import { ServerResponseError, type ServerClient } from "./server-client.js";
@@ -166,7 +166,7 @@ function createConnectionFixture(args: ConnectionFixtureArgs = {}) {
   });
   const setSession = vi.fn();
   const connection = new ServerConnection({
-    dataDir: "/tmp/bb-server-connection-test",
+    dataDir: "/tmp/kaioken-server-connection-test",
     hostId: "host-server-connection-test",
     hostKey: "host-key-server-connection-test",
     hostName: "Server Connection Test Host",

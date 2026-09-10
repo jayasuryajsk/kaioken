@@ -8,12 +8,12 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   parseStartBbArgs,
   runNativeModulePreflight,
-} from "../../../scripts/start-bb.mjs";
+} from "../../../scripts/start-kaioken.mjs";
 
 const testDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(testDir, "..", "..", "..");
 const startBbUrl = pathToFileURL(
-  resolve(repoRoot, "scripts/start-bb.mjs"),
+  resolve(repoRoot, "scripts/start-kaioken.mjs"),
 ).href;
 const spawnedPids = [];
 const scratchDirs = [];
@@ -56,7 +56,7 @@ async function waitForExit(child, timeoutMs) {
       once(child, "exit"),
       new Promise((_, rejectPromise) => {
         timeout = setTimeout(
-          () => rejectPromise(new Error("start-bb fixture did not stop")),
+          () => rejectPromise(new Error("start-kaioken fixture did not stop")),
           timeoutMs,
         );
       }),
@@ -123,8 +123,8 @@ afterEach(async () => {
   }
 });
 
-describe("start-bb", () => {
-  it("keeps the worktree policy marker out of bb-app arguments", () => {
+describe("start-kaioken", () => {
+  it("keeps the worktree policy marker out of kaioken-app arguments", () => {
     expect(
       parseStartBbArgs(["--worktree-runtime-policy", "--server-port", "4000"]),
     ).toEqual({
@@ -138,7 +138,7 @@ describe("start-bb", () => {
   });
 
   it("uses a fresh process after a native binary changes", async () => {
-    const fixtureRoot = mkdtempSync(join(tmpdir(), "bb-native-preflight-"));
+    const fixtureRoot = mkdtempSync(join(tmpdir(), "kaioken-native-preflight-"));
     scratchDirs.push(fixtureRoot);
     const binaryPath = join(fixtureRoot, "native-binary.txt");
     const observationsPath = join(fixtureRoot, "observations.txt");
@@ -187,7 +187,7 @@ describe("start-bb", () => {
         "process.exitCode = result.code ?? (result.signal === null ? 1 : 0);",
       ].join("\n");
       await expectSignalStopsProcessTree({
-        errorLabel: "start-bb fixture",
+        errorLabel: "start-kaioken fixture",
         expectedPidCount: 2,
         fixtureSource,
       });
@@ -198,7 +198,7 @@ describe("start-bb", () => {
   posixIt(
     "stops a blocked native repair process group after SIGTERM",
     async () => {
-      const fixtureRoot = mkdtempSync(join(tmpdir(), "bb-native-signal-"));
+      const fixtureRoot = mkdtempSync(join(tmpdir(), "kaioken-native-signal-"));
       scratchDirs.push(fixtureRoot);
       const scriptPath = join(fixtureRoot, "blocked-repair.mjs");
       writeFileSync(

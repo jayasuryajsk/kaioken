@@ -1,14 +1,14 @@
 import { atom } from "jotai";
-import { DEFAULTS } from "@bb/config/defaults";
-import { defaultAppSettings, defaultAppTheme } from "@bb/domain";
-import type { WorkspaceOpenTarget } from "@bb/host-daemon-contract";
+import { DEFAULTS } from "@kaioken/config/defaults";
+import { defaultAppSettings, defaultAppTheme } from "@kaioken/domain";
+import type { WorkspaceOpenTarget } from "@kaioken/host-daemon-contract";
 import type { HostDaemonStatusSnapshot } from "./api-host-daemon";
-import type { SystemConfigResponse } from "@bb/server-contract";
+import type { SystemConfigResponse } from "@kaioken/server-contract";
 import { systemConfigQueryOptions } from "@/hooks/queries/system-queries";
 import { markSystemConfigStale } from "@/hooks/cache-owners/system-config-cache-owner";
 import { appQueryClient } from "./app-query-client";
 import { fetchHostStatus, fetchWorkspaceOpenTargets } from "./api-host-daemon";
-import { getBbDesktopInfo } from "./bb-desktop";
+import { getBbDesktopInfo } from "./kaioken-desktop";
 import {
   getBrowserLocalNetworkPermissionQuery,
   resolveLocalHostDaemonAccess,

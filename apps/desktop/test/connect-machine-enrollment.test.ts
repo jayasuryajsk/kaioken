@@ -73,7 +73,7 @@ describe("enrollDesktopMachine", () => {
     ).resolves.toMatchObject({ credential: { handle: "laptop" }, ok: true });
   });
 
-  it("reports an unpaired bb without calling the gate", async () => {
+  it("reports an unpaired kaioken without calling the gate", async () => {
     const fetchImpl = vi.fn(
       async () =>
         new Response(
@@ -92,7 +92,7 @@ describe("enrollDesktopMachine", () => {
       }),
     ).resolves.toEqual({
       code: "not_paired",
-      detail: "this bb is not paired with bb Connect",
+      detail: "this kaioken is not paired with kaioken Connect",
       ok: false,
     });
     expect(fetchImpl).toHaveBeenCalledTimes(1);

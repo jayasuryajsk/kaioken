@@ -1,4 +1,4 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import {
   ECHO_GREETING_ENV,
   ECHO_MODEL,
@@ -11,7 +11,7 @@ import {
   type EchoProviderOptions,
 } from "./src/vocabulary.js";
 
-export default function plugin(bb: BbPluginApi) {
+export default function plugin(bb: KaiokenPluginApi) {
   bb.settings.define({
     shout: {
       type: "boolean",

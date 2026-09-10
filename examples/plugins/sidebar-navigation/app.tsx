@@ -3,7 +3,7 @@ import {
   definePluginApp,
   type ExperimentalSidebarNavigationItem,
   type ExperimentalSidebarNavigationProps,
-} from "@get-bb/plugin-sdk/app";
+} from "@get-kaioken/plugin-sdk/app";
 
 const HOST_ICON: Record<
   Extract<ExperimentalSidebarNavigationItem["icon"], { kind: "host" }>["name"],
@@ -88,7 +88,7 @@ function SidebarNavigation({
           className="flex-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
           onClick={() => setShowOriginal(true)}
         >
-          Use BB navigation
+          Use Kaioken navigation
         </button>
         <button
           type="button"

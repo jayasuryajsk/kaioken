@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   MenuHoverProvider,
   useMenuItemHover,
-} from "@bb/shared-ui/menu-item-hover";
+} from "@kaioken/shared-ui/menu-item-hover";
 
 function HoverItem({ label }: { label: string }) {
   const { hoverProps } = useMenuItemHover();

@@ -1,6 +1,6 @@
-import { isSettledWorkflowAgentState } from "@bb/domain";
-import type { TimelineWorkflowWorkRow } from "@bb/server-contract";
-import { durationToCompactString } from "@bb/thread-view";
+import { isSettledWorkflowAgentState } from "@kaioken/domain";
+import type { TimelineWorkflowWorkRow } from "@kaioken/server-contract";
+import { durationToCompactString } from "@kaioken/thread-view";
 import { AnimatedBody } from "@/components/promptbox/banner/AnimatedBody";
 import {
   PROMPT_STACK_CARD_ROW_HEIGHT,
@@ -13,10 +13,10 @@ import {
   activityMetaClass,
   activityRowClass,
   activityTextClass,
-} from "@bb/shared-ui/activity-row-styles";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { WorkflowPhaseStrip } from "@bb/shared-ui/workflow-progress";
+} from "@kaioken/shared-ui/activity-row-styles";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { WorkflowPhaseStrip } from "@kaioken/shared-ui/workflow-progress";
 
 const BODY_ID = "thread-workflow-card-body";
 const TOGGLE_ID = "thread-workflow-card-toggle";

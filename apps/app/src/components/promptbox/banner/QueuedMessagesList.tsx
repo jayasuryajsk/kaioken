@@ -53,16 +53,16 @@ import type {
   PromptInput,
   PromptTextMention,
   ThreadQueuedMessage,
-} from "@bb/domain";
-import { Button } from "@bb/shared-ui/button";
+} from "@kaioken/domain";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
-import { Icon } from "@bb/shared-ui/icon";
+} from "@kaioken/shared-ui/dropdown-menu";
+import { Icon } from "@kaioken/shared-ui/icon";
 import {
   PROMPT_STACK_EDGE_CARET_BUTTON_WIDTH_CLASS,
   PromptStackCard,
@@ -77,12 +77,12 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@bb/shared-ui/tooltip";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/tooltip";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import {
   countQueuedMessageAttachments,
   formatQueuedMessagePreview,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   collectLeadQueuedMessageGroupIds,
   preserveLeadQueuedMessageGroupAfterReorder,
@@ -334,7 +334,7 @@ function CompactQueuedMarkdownPreview({
   const components = useMemo<Components>(
     () => ({
       ...QUEUED_MARKDOWN_COMPONENTS,
-      "bb-prompt-mention": buildPromptMentionComponent({
+      "kaioken-prompt-mention": buildPromptMentionComponent({
         mentions: promptMentionSubstitution.mentions,
         resolveMentionLink,
       }),

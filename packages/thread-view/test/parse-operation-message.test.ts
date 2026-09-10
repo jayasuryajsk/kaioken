@@ -5,7 +5,7 @@ import type {
   SystemThreadProvisioningStatus,
   ThreadEvent,
   ThreadEventRow,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { decodeThreadEventRow } from "../src/event-decode.js";
 import {
   finalizeOperationMessage,

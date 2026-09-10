@@ -6,16 +6,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { serve } from "@hono/node-server";
 import type { AddressInfo } from "node:net";
-import { createConnection, type DbConnection } from "@bb/db";
-import { defaultFeatureFlags, type HostType } from "@bb/domain";
+import { createConnection, type DbConnection } from "@kaioken/db";
+import { defaultFeatureFlags, type HostType } from "@kaioken/domain";
 import { initDb } from "../../src/db.js";
 import { createApp } from "../../src/server.js";
 import { PendingInteractionLifecycle } from "../../src/services/interactions/pending-interactions.js";
 import { createMachineAuthService } from "../../src/services/machine-auth.js";
 import { createProviderRegistryService } from "../../src/services/providers/provider-registry.js";
 import { registerFirstPartyProviders } from "./provider-registry.js";
-import { validatePluginProviderDeclaration } from "@get-bb/plugin-sdk/internal/host-policy";
-import type { PluginProviderDeclaration } from "@get-bb/plugin-sdk";
+import { validatePluginProviderDeclaration } from "@get-kaioken/plugin-sdk/internal/host-policy";
+import type { PluginProviderDeclaration } from "@get-kaioken/plugin-sdk";
 import { buildPluginProviderRegistration } from "../../src/services/providers/plugin-provider-registration.js";
 import { SkillTreeRegistry } from "../../src/services/skills/injected-skills.js";
 import { PluginHostArtifactRegistry } from "../../src/services/plugins/plugin-host-artifact-registry.js";
@@ -25,7 +25,7 @@ import {
   createAppVersionService,
   type AppVersionService,
 } from "../../src/services/system/app-version.js";
-import { createBbAppManagedConfigReloader } from "../../src/services/system/bb-app-managed-config.js";
+import { createBbAppManagedConfigReloader } from "../../src/services/system/kaioken-app-managed-config.js";
 import { createNoopTelemetryService } from "../../src/services/system/telemetry.js";
 import { TerminalSessionLifecycle } from "../../src/services/terminals/terminal-session-lifecycle.js";
 import { createLifecycleDedupers } from "../../src/lifecycle-dedupers.js";
@@ -142,7 +142,7 @@ export async function createTestAppHarness(
     seedFirstPartyProviders = true,
     ...configOverrides
   } = overrides;
-  const dataDir = await mkdtemp(join(tmpdir(), "bb-server-test-"));
+  const dataDir = await mkdtemp(join(tmpdir(), "kaioken-server-test-"));
   const db = createTestDb();
   const hub = new NotificationHubImpl();
   const watchInterests = new WatchInterestCoordinator({ db, hub });
@@ -207,7 +207,7 @@ export async function createTestAppHarness(
     serverPort: 3334,
     sharedSkillRoots: { user: [], project: [] },
     transcriptionModel: "test/mock-transcription",
-    appUrl: "https://bb.example.test",
+    appUrl: "https://kaioken.example.test",
     ...configOverrides,
   };
   const terminalSessions = new TerminalSessionLifecycle({
@@ -221,7 +221,7 @@ export async function createTestAppHarness(
     logger: testLogger,
     openTimeoutMs: 50,
   });
-  const bbAppManagedConfig = await createBbAppManagedConfigReloader({
+  const kaiokenAppManagedConfig = await createBbAppManagedConfigReloader({
     config,
     hub,
     logger: testLogger,
@@ -252,7 +252,7 @@ export async function createTestAppHarness(
     });
   const deps: ServerAppDeps = {
     appVersion,
-    bbAppManagedConfig,
+    kaiokenAppManagedConfig,
     config,
     db,
     hub,

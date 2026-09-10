@@ -5,8 +5,8 @@ import type {
   Experiments,
   UiPreferenceKey,
   UiPreferenceValue,
-} from "@bb/domain";
-import type { ProviderUsageResponse } from "@bb/host-daemon-contract";
+} from "@kaioken/domain";
+import type { ProviderUsageResponse } from "@kaioken/host-daemon-contract";
 import type {
   SystemAttentionResponse,
   SystemConfigReloadResponse,
@@ -24,8 +24,8 @@ import type {
   SystemVoiceTranscriptionResponse,
   UiPreferenceResponse,
   UiPreferencesResponse,
-} from "@bb/server-contract";
-import { systemVoiceTranscriptionResponseSchema } from "@bb/server-contract";
+} from "@kaioken/server-contract";
+import { systemVoiceTranscriptionResponseSchema } from "@kaioken/server-contract";
 import { signalRequestArgs, type CreateSdkAreaArgs } from "./common.js";
 
 export interface SystemAttentionArgs {

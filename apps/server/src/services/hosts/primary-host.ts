@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { listPublicHosts, type DbConnection } from "@bb/db";
-import { HOST_ID_FILE_NAME } from "@bb/host-daemon-contract";
+import { listPublicHosts, type DbConnection } from "@kaioken/db";
+import { HOST_ID_FILE_NAME } from "@kaioken/host-daemon-contract";
 import { ApiError } from "../../errors.js";
 import type { AppDeps } from "../../types.js";
 import {

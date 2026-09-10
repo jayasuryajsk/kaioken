@@ -1,6 +1,6 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { experimental_buildBridgeToolCallContent as buildBridgeToolCallContent } from "@get-bb/plugin-sdk/provider-bridge";
+import { experimental_buildBridgeToolCallContent as buildBridgeToolCallContent } from "@get-kaioken/plugin-sdk/provider-bridge";
 import type { ImageContent } from "@earendil-works/pi-ai";
 import {
   NO_REQUEST_TIMEOUT,
@@ -80,7 +80,7 @@ interface ChannelReply {
 const PI_TRANSIENT_AUTH_RETRY_DELAY_MS = 250;
 const PI_TRANSIENT_AUTH_MAX_RETRIES = 8;
 function readinessTimeoutMs(): number {
-  const configured = Number(process.env.BB_PI_BRIDGE_READINESS_TIMEOUT_MS);
+  const configured = Number(process.env.KAIOKEN_PI_BRIDGE_READINESS_TIMEOUT_MS);
   return Number.isFinite(configured) && configured > 0 ? configured : 60_000;
 }
 const CHANNEL_REQUEST_TIMEOUT_MS = 30_000;
@@ -243,7 +243,7 @@ export class PiRpcSession {
       cwd: this.options.cwd,
       env: buildPiChildEnv({
         ...(this.options.shellEnvOverrides ?? {}),
-        PI_BB_TOOLS_FILE: toolsFilePath,
+        PI_KAIOKEN_TOOLS_FILE: toolsFilePath,
       }),
       args,
       onEvent: (event) => {

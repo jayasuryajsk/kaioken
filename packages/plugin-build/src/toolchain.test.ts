@@ -20,7 +20,7 @@ describe("plugin build toolchain", () => {
   let baseDir: string;
 
   beforeEach(async () => {
-    baseDir = await mkdtemp(join(tmpdir(), "bb-toolchain-"));
+    baseDir = await mkdtemp(join(tmpdir(), "kaioken-toolchain-"));
   });
 
   afterEach(async () => {
@@ -67,7 +67,7 @@ describe("plugin build toolchain", () => {
   });
 
   describe("fetched toolchain", () => {
-    it.runIf(process.env.BB_TEST_TOOLCHAIN_FETCH === "1")(
+    it.runIf(process.env.KAIOKEN_TEST_TOOLCHAIN_FETCH === "1")(
       "builds a plugin frontend with nothing resolvable locally",
       async () => {
         const fetchEvents: string[] = [];
@@ -87,7 +87,7 @@ describe("plugin build toolchain", () => {
         await writeFile(
           join(pluginDir, "package.json"),
           JSON.stringify({
-            name: "bb-plugin-fetched",
+            name: "kaioken-plugin-fetched",
             version: "0.1.0",
             bb: {
               name: "Fetched",
@@ -104,7 +104,7 @@ describe("plugin build toolchain", () => {
         );
         await writeFile(
           join(pluginDir, "app.tsx"),
-          `import { definePluginApp } from "@get-bb/plugin-sdk/app";\n` +
+          `import { definePluginApp } from "@get-kaioken/plugin-sdk/app";\n` +
             `export default definePluginApp({});\n`,
         );
 

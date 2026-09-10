@@ -1,10 +1,10 @@
-import { assertNever } from "@bb/core-ui";
+import { assertNever } from "@kaioken/core-ui";
 import type {
   Thread,
   ThreadListEntry,
   ThreadQueuedWork,
   ThreadWithRuntime,
-} from "@bb/domain";
+} from "@kaioken/domain";
 // Imported from the defining leaf module, not the timeline barrel: the sidebar
 // thread list reaches this helper before first paint, and the barrel would pull
 // the whole timeline (and @pierre/diffs, Shiki, KaTeX behind it) onto the boot

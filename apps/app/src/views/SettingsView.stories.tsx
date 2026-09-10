@@ -8,13 +8,13 @@ import {
   type Host,
   defaultAppSettings,
   type AppSettings,
-} from "@bb/domain";
-import { makeHost } from "@bb/test-helpers/domain-fixtures";
+} from "@kaioken/domain";
+import { makeHost } from "@kaioken/test-helpers/domain-fixtures";
 import type {
   ProviderUsage,
   WorkspaceOpenTarget,
   WorkspaceOpenTargetId,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { UsageLimitsSettingsSectionContent } from "@/components/settings/UsageLimitsSettingsSection";
 import { VoiceInputSettingsSectionContent } from "@/components/settings/VoiceInputSettingsSection";
 import { ArchivedThreadsSettingsSection } from "@/components/settings/ArchivedThreadsSettingsSection";

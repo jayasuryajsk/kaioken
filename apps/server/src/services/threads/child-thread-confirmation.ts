@@ -1,5 +1,5 @@
-import { countNonDeletedAssignedChildThreads } from "@bb/db";
-import type { Thread } from "@bb/domain";
+import { countNonDeletedAssignedChildThreads } from "@kaioken/db";
+import type { Thread } from "@kaioken/domain";
 import type { AppDeps } from "../../types.js";
 import { ApiError } from "../../errors.js";
 

@@ -1,7 +1,7 @@
 {
-  "name": "bb-plugin-github",
+  "name": "kaioken-plugin-github",
   "version": "0.2.1",
-  "description": "Browse GitHub issues and pull requests in BB, then send them to agents.",
+  "description": "Browse GitHub issues and pull requests in Kaioken, then send them to agents.",
   "private": true,
   "license": "MIT",
   "homepage": "https://github.com/get-bb/bb#readme",
@@ -27,7 +27,7 @@
   },
   "bb": {
     "name": "GitHub",
-    "description": "Browse GitHub issues and pull requests in BB, then send them to agents.",
+    "description": "Browse GitHub issues and pull requests in Kaioken, then send them to agents.",
     "branding": {
       "icon": "Github"
     },
@@ -35,7 +35,7 @@
     "app": "./app.tsx"
   },
   "keywords": [
-    "bb-plugin"
+    "kaioken-plugin"
   ],
   "scripts": {
     "build": "node --conditions=source --import tsx ../../scripts/build-official-plugins.mjs github",
@@ -43,7 +43,7 @@
     "test": "vitest run --config vitest.config.ts"
   },
   "devDependencies": {
-    "@get-bb/plugin-sdk": "workspace:*",
+    "@get-kaioken/plugin-sdk": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.19",
     "@radix-ui/react-dropdown-menu": "^2.1.20",
     "@types/node": "^22.0.0",
@@ -58,7 +58,7 @@
     "vitest": "^4.1.1"
   },
   "dependencies": {
-    "@bb/shared-ui": "workspace:*",
+    "@kaioken/shared-ui": "workspace:*",
     "@radix-ui/react-slot": "^1.3.0",
     "zod": "^4.3.6"
   }

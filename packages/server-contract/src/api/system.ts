@@ -13,9 +13,9 @@ import {
   permissionModeSchema,
   pluginThemeMetaSchema,
   providerInfoSchema,
-} from "@bb/domain";
-import { providerHealthSchema as providerHealthSchema } from "@bb/provider-bridge-protocol/provider-maintenance";
-import { hostPlatformSchema } from "@bb/host-daemon-contract/local";
+} from "@kaioken/domain";
+import { providerHealthSchema as providerHealthSchema } from "@kaioken/provider-bridge-protocol/provider-maintenance";
+import { hostPlatformSchema } from "@kaioken/host-daemon-contract/local";
 
 export const systemExecutionOptionsModelLoadErrorCodeSchema = z.enum([
   "provider_unavailable",
@@ -84,8 +84,8 @@ export interface SystemVoiceTranscriptionForm {
   [key: string]: string | Blob;
 }
 
-export { providerInfoSchema as systemProviderInfoSchema } from "@bb/domain";
-export type { ProviderInfo as SystemProviderInfo } from "@bb/domain";
+export { providerInfoSchema as systemProviderInfoSchema } from "@kaioken/domain";
+export type { ProviderInfo as SystemProviderInfo } from "@kaioken/domain";
 
 export const systemVoiceTranscriptionResponseSchema = z.object({
   text: z.string(),

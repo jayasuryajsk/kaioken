@@ -1,6 +1,6 @@
-import type { WorkspaceDiffTarget } from "@bb/domain";
-import type { ThreadListFilters, ThreadSearchFilters } from "@bb/client-core";
-import type { EnvironmentFilePreviewSource } from "@bb/client-core";
+import type { WorkspaceDiffTarget } from "@kaioken/domain";
+import type { ThreadListFilters, ThreadSearchFilters } from "@kaioken/client-core";
+import type { EnvironmentFilePreviewSource } from "@kaioken/client-core";
 import {
   DEFAULT_THREAD_STORAGE_FILE_LIST_OPTIONS,
   type ThreadStorageFileListOptions,

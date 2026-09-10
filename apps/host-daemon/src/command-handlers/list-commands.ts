@@ -6,8 +6,8 @@ import type {
   ProviderNativeRootSet,
   ProviderNativeRoots,
   ProviderResolvedNativeRoot,
-} from "@bb/domain";
-import type { HostDaemonOnlineRpcResult } from "@bb/host-daemon-contract";
+} from "@kaioken/domain";
+import type { HostDaemonOnlineRpcResult } from "@kaioken/host-daemon-contract";
 import {
   CommandDispatchError,
   type CommandOf,

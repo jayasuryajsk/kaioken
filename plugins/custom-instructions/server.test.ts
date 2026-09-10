@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createFakePluginHost } from "@get-bb/plugin-sdk/testing";
+import { createFakePluginHost } from "@get-kaioken/plugin-sdk/testing";
 import plugin, { MAX_CUSTOM_INSTRUCTIONS_LENGTH } from "./server";
 
 describe("custom instructions plugin", () => {
@@ -16,7 +16,7 @@ describe("custom instructions plugin", () => {
         type: "string",
         label: "Custom instructions",
         description:
-          "Give agents extra instructions and context for tasks on this bb host.",
+          "Give agents extra instructions and context for tasks on this kaioken host.",
         experimental_multiline: true,
         experimental_schema: expect.any(Object),
         default: "",

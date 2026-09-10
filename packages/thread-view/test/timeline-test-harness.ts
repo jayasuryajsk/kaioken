@@ -2,7 +2,7 @@ import {
   encodeClientTurnRequestIdNumber,
   threadScope,
   turnScope,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   ApprovalPendingInteractionResolution,
   ClientTurnRequestId,
@@ -20,8 +20,8 @@ import type {
   ThreadTimelinePendingTodos,
   ThreadTurnInitiator,
   TurnRequestTarget,
-} from "@bb/domain";
-import type { TimelineRow } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { TimelineRow } from "@kaioken/server-contract";
 import type {
   BuildEventProjectionOptions,
   EventProjection,

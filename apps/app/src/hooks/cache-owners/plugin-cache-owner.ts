@@ -3,7 +3,7 @@ import {
   pluginListQueryOptions,
   type PluginSettingsView,
 } from "../queries/plugin-settings-queries";
-import type { InstalledPlugin } from "@bb/server-contract";
+import type { InstalledPlugin } from "@kaioken/server-contract";
 import {
   allPluginCatalogSearchQueryKeyPrefix,
   allPluginListQueryKeyPrefix,

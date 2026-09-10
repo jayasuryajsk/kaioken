@@ -16,7 +16,7 @@ import {
   type PendingInteractionRow,
   type DbNotifier,
   type DbTransaction,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   isApprovalPendingInteractionPayload,
   isPluginPendingInteractionPayload,
@@ -29,8 +29,8 @@ import {
   type PendingInteractionCreate,
   type PendingInteractionResolution,
   type ThreadChangeMetadata,
-} from "@bb/domain";
-import type { HostDaemonCommand } from "@bb/host-daemon-contract";
+} from "@kaioken/domain";
+import type { HostDaemonCommand } from "@kaioken/host-daemon-contract";
 import type { CommandResultReportForType } from "../../internal/command-result-side-effects.js";
 import { ApiError } from "../../errors.js";
 import type { AppDeps, LoggedWorkSessionDeps } from "../../types.js";

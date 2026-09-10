@@ -1,12 +1,12 @@
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadHostDaemonStartConfig } from "@bb/config/host-daemon";
-import { loadHostDaemonEntrypointConfig } from "@bb/config/host-daemon-entrypoint";
+import { loadHostDaemonStartConfig } from "@kaioken/config/host-daemon";
+import { loadHostDaemonEntrypointConfig } from "@kaioken/config/host-daemon-entrypoint";
 import {
   installSafeProcessDiagnostics,
   writeSafeProcessDiagnosticReport,
-} from "@bb/process-utils";
+} from "@kaioken/process-utils";
 
 interface ReportStartupFailureArgs {
   diagnosticsLogsDir: string;
@@ -18,7 +18,7 @@ type MainFailureHandler = (error: unknown) => void;
 const entrypointDir = dirname(fileURLToPath(import.meta.url));
 
 function resolveEntrypointBridgeBundleDir(): string | undefined {
-  return existsSync(join(entrypointDir, "bb-provider-bridge-worker.mjs"))
+  return existsSync(join(entrypointDir, "kaioken-provider-bridge-worker.mjs"))
     ? entrypointDir
     : undefined;
 }
@@ -51,17 +51,17 @@ async function runHostDaemonEntrypoint(): Promise<void> {
   const hostDaemonEntrypointConfig = loadHostDaemonEntrypointConfig();
   const hostDaemonModule = await import("./start-host-daemon.js");
   const daemon = await hostDaemonModule.startHostDaemon({
-    bbExecutableDirectory: hostDaemonEntrypointConfig.BB_CLI_DIR,
+    kaiokenExecutableDirectory: hostDaemonEntrypointConfig.KAIOKEN_CLI_DIR,
     bridgeBundleDir:
-      hostDaemonEntrypointConfig.BB_BRIDGE_DIR ??
+      hostDaemonEntrypointConfig.KAIOKEN_BRIDGE_DIR ??
       resolveEntrypointBridgeBundleDir(),
-    machineCredential: hostDaemonEntrypointConfig.BB_CONNECT_MACHINE_CREDENTIAL,
-    connectMachineId: hostDaemonEntrypointConfig.BB_CONNECT_MACHINE_ID,
-    autoUpdate: hostDaemonEntrypointConfig.BB_HOST_DAEMON_AUTO_UPDATE,
-    enrollKey: hostDaemonEntrypointConfig.BB_HOST_ENROLL_KEY,
-    hostId: hostDaemonEntrypointConfig.BB_HOST_ID,
-    hostName: hostDaemonEntrypointConfig.BB_HOST_NAME,
-    hostType: hostDaemonEntrypointConfig.BB_HOST_TYPE,
+    machineCredential: hostDaemonEntrypointConfig.KAIOKEN_CONNECT_MACHINE_CREDENTIAL,
+    connectMachineId: hostDaemonEntrypointConfig.KAIOKEN_CONNECT_MACHINE_ID,
+    autoUpdate: hostDaemonEntrypointConfig.KAIOKEN_HOST_DAEMON_AUTO_UPDATE,
+    enrollKey: hostDaemonEntrypointConfig.KAIOKEN_HOST_ENROLL_KEY,
+    hostId: hostDaemonEntrypointConfig.KAIOKEN_HOST_ID,
+    hostName: hostDaemonEntrypointConfig.KAIOKEN_HOST_NAME,
+    hostType: hostDaemonEntrypointConfig.KAIOKEN_HOST_TYPE,
   });
   await daemon.waitUntilStopped();
 }

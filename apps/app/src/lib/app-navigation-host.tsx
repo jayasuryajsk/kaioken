@@ -3,7 +3,7 @@ import type {
   ExperimentalAppPanelSurface,
   ExperimentalFileOpenOptions,
   JsonValue,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import type { FileOpenerOverride } from "@/lib/plugin-slot-resolvers";
 
 interface AppUrlOpenIntent {

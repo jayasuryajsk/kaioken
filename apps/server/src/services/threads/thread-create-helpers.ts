@@ -5,10 +5,10 @@ import {
   getProject,
   getThread,
   isSqliteForeignKeyConstraint,
-} from "@bb/db";
-import type { DbNotifier } from "@bb/db";
-import type { HostDaemonCommand } from "@bb/host-daemon-contract";
-import type { LocalPathProjectSource } from "@bb/domain";
+} from "@kaioken/db";
+import type { DbNotifier } from "@kaioken/db";
+import type { HostDaemonCommand } from "@kaioken/host-daemon-contract";
+import type { LocalPathProjectSource } from "@kaioken/domain";
 import type { AppDeps } from "../../types.js";
 import { ApiError } from "../../errors.js";
 import { emitPluginThreadCreated } from "../plugins/plugin-thread-events.js";

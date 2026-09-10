@@ -14,7 +14,7 @@ function buildSharePayload(
   platform: "ios" | "android" | "web" | "windows" | "macos",
   { title, url }: ThreadShareContent,
 ): SharePayload {
-  const label = title.trim().length > 0 ? title.trim() : "bb thread";
+  const label = title.trim().length > 0 ? title.trim() : "kaioken thread";
   return {
     content:
       platform === "ios"

@@ -7,7 +7,7 @@ import {
 } from "react";
 import { useSetAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
-import type { ProjectResponse } from "@bb/server-contract";
+import type { ProjectResponse } from "@kaioken/server-contract";
 import { useRouteState } from "@/hooks/useRouteState";
 import {
   useAddLocalProjectSource,

@@ -1,4 +1,4 @@
-import type { BuiltInThemeId } from "@bb/domain";
+import type { BuiltInThemeId } from "@kaioken/domain";
 import { VariableContextProvider } from "nativewind";
 import {
   createContext,

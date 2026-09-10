@@ -3,8 +3,8 @@ import {
   getWrappedImageIndex,
   ImageLightbox,
 } from "@/components/ui/image-lightbox.js";
-import { Icon } from "@bb/shared-ui/icon";
-import type { PromptDraftAttachment } from "@bb/client-core";
+import { Icon } from "@kaioken/shared-ui/icon";
+import type { PromptDraftAttachment } from "@kaioken/client-core";
 import { toUserAttachmentImageSrc } from "@/lib/user-attachment-images";
 import {
   getLocalAttachmentPreviewSrc,

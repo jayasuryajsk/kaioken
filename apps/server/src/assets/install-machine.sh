@@ -6,7 +6,7 @@ usage() {
   cat >&2 <<'EOF'
 Usage: install.sh --join-code <code> --host-id <host-id> --server <url> [--machine-code <code>] [--host-daemon-port <port>]
 
-The first three options are required. --machine-code is required through bb connect.
+The first three options are required. --machine-code is required through kaioken connect.
 By default, the installer assigns this enrolled daemon its own local API port.
 EOF
   exit 2
@@ -122,20 +122,20 @@ done
 [ -n "$host_id" ] || usage
 [ -n "$server_url" ] || usage
 
-printf '\n  %s\n\n' "$(bold "bb machine setup")"
+printf '\n  %s\n\n' "$(bold "kaioken machine setup")"
 active_step "Setting up this machine as $host_id for $server_url"
 
 case "$(uname -s)" in
   Darwin) platform=darwin ;;
   Linux) platform=linux ;;
   *)
-    fail_step "bb machine installation supports macOS and Linux only."
+    fail_step "kaioken machine installation supports macOS and Linux only."
     exit 1
     ;;
 esac
 
 if ! command -v node >/dev/null 2>&1; then
-  fail_step "bb-app requires Node.js 22.19 or newer (22.19, 24, and 26 are tested), but node is not on PATH."
+  fail_step "kaioken-app requires Node.js 22.19 or newer (22.19, 24, and 26 are tested), but node is not on PATH."
   exit 1
 fi
 node_version=$(node -p 'process.versions.node')
@@ -148,14 +148,14 @@ node_supported=$(node -e '
   process.exit(supported ? 0 : 1);
 ' && echo yes || echo no)
 if [ "$node_supported" != yes ]; then
-  fail_step "Node.js $node_version is too old; bb-app requires Node.js 22.19 or newer (22.19, 24, and 26 are tested)."
+  fail_step "Node.js $node_version is too old; kaioken-app requires Node.js 22.19 or newer (22.19, 24, and 26 are tested)."
   exit 1
 fi
 node_bin=$(command -v node)
 
 require_npm() {
   if ! command -v npm >/dev/null 2>&1; then
-    fail_step "bb-app installation requires npm."
+    fail_step "kaioken-app installation requires npm."
     exit 1
   fi
 }
@@ -170,8 +170,8 @@ server_host=$(node -e '
 service_slug=$(printf '%s' "$server_host" | tr '.' '-')
 
 # Each server gets its own data dir and daemon instance, so one machine can
-# serve several bb servers and a full local bb install keeps ~/.bb to itself.
-data_dir=${BB_DATA_DIR:-"$HOME/.bb-machines/$server_host"}
+# serve several kaioken servers and a full local kaioken install keeps ~/.kaioken to itself.
+data_dir=${KAIOKEN_DATA_DIR:-"$HOME/.kaioken-machines/$server_host"}
 mkdir -p "$data_dir"
 mkdir -p "$data_dir/logs"
 canonical_data_dir=$(node -e '
@@ -181,14 +181,14 @@ canonical_data_dir=$(node -e '
 # Keep the package private to this enrollment. Besides avoiding system-prefix
 # permissions, this lets one machine follow servers running different builds.
 machine_npm_prefix="$canonical_data_dir/npm"
-# bb-app depends on native add-ons whose binaries are fetched or built by npm
+# kaioken-app depends on native add-ons whose binaries are fetched or built by npm
 # lifecycle scripts. npm >= 12 blocks dependency install scripts by default
 # for global installs unless they are named in --allow-scripts (the installed
 # package's own package.json#allowScripts is not consulted for -g / npx).
 # npm 10 ignores the unknown flag; npm 11 accepts it.
 bb_app_native_modules="better-sqlite3,node-pty,@parcel/watcher"
 bb_app_allow_scripts="--allow-scripts=$bb_app_native_modules"
-port_registry_dir="$HOME/.bb-machines/host-daemon-ports"
+port_registry_dir="$HOME/.kaioken-machines/host-daemon-ports"
 mkdir -p "$port_registry_dir"
 
 valid_port() {
@@ -289,7 +289,7 @@ release_port_for_data_dir() {
 # per-port mkdir is the allocation lock: concurrent installers cannot claim the
 # same port even after its availability probe closes.
 register_existing_default_ports() {
-  for existing_data_dir in "$HOME/.bb-machines"/*; do
+  for existing_data_dir in "$HOME/.kaioken-machines"/*; do
     [ -d "$existing_data_dir" ] || continue
     existing_port_file="$existing_data_dir/host-daemon-port"
     [ -f "$existing_port_file" ] || continue
@@ -332,7 +332,7 @@ if [ -n "$requested_host_daemon_port" ]; then
     exit 2
   fi
   if ! claim_port_for_data_dir "$requested_host_daemon_port" "$canonical_data_dir"; then
-    fail_step "Host daemon local API port $requested_host_daemon_port is reserved by another bb enrollment."
+    fail_step "Host daemon local API port $requested_host_daemon_port is reserved by another kaioken enrollment."
     detail "Choose another value for --host-daemon-port and rerun this command." >&2
     exit 1
   fi
@@ -370,17 +370,17 @@ fi
 complete_step "Using local host-daemon port $host_daemon_port"
 
 # The server's own build is always installed when it offers one: version
-# strings cannot distinguish unpublished builds, so an existing bb-app is
+# strings cannot distinguish unpublished builds, so an existing kaioken-app is
 # trusted only when the server provides no package (404) or is unreachable.
-package_url="${server_url%/}/install/bb-app.tgz"
-package_dir=$(mktemp -d "${TMPDIR:-/tmp}/bb-app.XXXXXX")
-package_file="$package_dir/bb-app.tgz"
+package_url="${server_url%/}/install/kaioken-app.tgz"
+package_dir=$(mktemp -d "${TMPDIR:-/tmp}/kaioken-app.XXXXXX")
+package_file="$package_dir/kaioken-app.tgz"
 package_headers="$package_dir/headers"
 host_artifact_digest_file="$data_dir/host-artifact.sha256"
 installed_artifact_digest=
-if [ -x "$machine_npm_prefix/bin/bb-app" ] && \
-   [ -x "$machine_npm_prefix/bin/bb" ] && \
-   [ -f "$machine_npm_prefix/lib/node_modules/bb-app/host-daemon/dist/daemon-bundle.mjs" ]; then
+if [ -x "$machine_npm_prefix/bin/kaioken-app" ] && \
+   [ -x "$machine_npm_prefix/bin/kaioken" ] && \
+   [ -f "$machine_npm_prefix/lib/node_modules/kaioken-app/host-daemon/dist/daemon-bundle.mjs" ]; then
   installed_artifact_digest=$(node -e '
     const fs = require("node:fs");
     try {
@@ -395,7 +395,7 @@ curl_output_mode=--progress-meter
 if [ ! -t 2 ]; then
   curl_output_mode=--silent
 fi
-active_step "Downloading the server's bb-app package (timeout: 5 minutes)"
+active_step "Downloading the server's kaioken-app package (timeout: 5 minutes)"
 if [ -n "$installed_artifact_digest" ]; then
   package_status=$(curl "$curl_output_mode" --show-error --location \
     --connect-timeout "$CURL_CONNECT_TIMEOUT_SECONDS" \
@@ -439,65 +439,65 @@ elif [ "$package_status" -ge 200 ] && [ "$package_status" -lt 300 ]; then
     ' "$package_file")
     if [ "$downloaded_digest" != "$package_digest" ]; then
       rm -rf "$package_dir"
-      fail_step "The downloaded bb host artifact failed SHA-256 verification."
+      fail_step "The downloaded kaioken host artifact failed SHA-256 verification."
       detail "Expected $package_digest but received $downloaded_digest." >&2
       exit 1
     fi
   fi
   require_npm
-  complete_step "Downloaded the server's bb-app package"
-  active_step "Installing the server's bb-app build"
+  complete_step "Downloaded the server's kaioken-app package"
+  active_step "Installing the server's kaioken-app build"
   rm -f "$host_artifact_digest_file"
   if ! npm install -g "$bb_app_allow_scripts" --prefix "$machine_npm_prefix" "$package_file"; then
     rm -rf "$package_dir"
-    fail_step "Could not install bb-app for this machine. Check the npm error above, then rerun this command."
+    fail_step "Could not install kaioken-app for this machine. Check the npm error above, then rerun this command."
     exit 1
   fi
   bb_app_npm_prefix=$machine_npm_prefix
-  complete_step "Installed the server's bb-app build"
-elif command -v bb-app >/dev/null 2>&1; then
+  complete_step "Installed the server's kaioken-app build"
+elif command -v kaioken-app >/dev/null 2>&1; then
   rm -f "$host_artifact_digest_file"
-  bb_app=$(command -v bb-app)
+  bb_app=$(command -v kaioken-app)
   if [ "$package_status" = 404 ]; then
-    warning_step "The server does not provide its bb-app package; using bb-app at $bb_app"
+    warning_step "The server does not provide its kaioken-app package; using kaioken-app at $bb_app"
   else
-    warning_step "Could not download the server's bb-app package (HTTP $package_status); using bb-app at $bb_app"
+    warning_step "Could not download the server's kaioken-app package (HTTP $package_status); using kaioken-app at $bb_app"
   fi
 elif [ "$package_status" = 404 ]; then
   require_npm
   rm -f "$host_artifact_digest_file"
-  warning_step "The server does not provide its bb-app package"
-  active_step "Installing bb-app from the npm registry"
-  if ! npm install -g "$bb_app_allow_scripts" --prefix "$machine_npm_prefix" bb-app; then
+  warning_step "The server does not provide its kaioken-app package"
+  active_step "Installing kaioken-app from the npm registry"
+  if ! npm install -g "$bb_app_allow_scripts" --prefix "$machine_npm_prefix" kaioken-app; then
     rm -rf "$package_dir"
-    fail_step "Could not install bb-app for this machine. Check the npm error above, then rerun this command."
+    fail_step "Could not install kaioken-app for this machine. Check the npm error above, then rerun this command."
     exit 1
   fi
   bb_app_npm_prefix=$machine_npm_prefix
-  complete_step "Installed bb-app from the npm registry"
+  complete_step "Installed kaioken-app from the npm registry"
 else
   rm -rf "$package_dir"
-  fail_step "Could not download the server's bb-app package from $package_url (HTTP $package_status)."
+  fail_step "Could not download the server's kaioken-app package from $package_url (HTTP $package_status)."
   exit 1
 fi
 rm -rf "$package_dir"
 
 if [ -n "$bb_app_npm_prefix" ]; then
-  bb_app="$bb_app_npm_prefix/bin/bb-app"
+  bb_app="$bb_app_npm_prefix/bin/kaioken-app"
   if [ ! -x "$bb_app" ]; then
-    fail_step "npm installed bb-app, but did not create the expected executable at $bb_app."
+    fail_step "npm installed kaioken-app, but did not create the expected executable at $bb_app."
     exit 1
   fi
   # Fail loudly if npm skipped the native add-on install scripts (npm >= 12
   # allowScripts policy, or ignore-scripts=true in an npmrc). Without this
   # check the join only fails later, in the daemon, with a raw stack trace.
-  bb_app_root="$bb_app_npm_prefix/lib/node_modules/bb-app"
+  bb_app_root="$bb_app_npm_prefix/lib/node_modules/kaioken-app"
   if ! node -e '
     const root = process.argv[1];
     require(root + "/node_modules/node-pty");
     require(root + "/node_modules/@parcel/watcher");
   ' "$bb_app_root" >/dev/null 2>&1; then
-    fail_step "npm installed bb-app, but its host native add-ons (node-pty, @parcel/watcher) did not load."
+    fail_step "npm installed kaioken-app, but its host native add-ons (node-pty, @parcel/watcher) did not load."
     detail "npm did not run their install scripts. Check the npm warnings above. If they mention allowScripts or ignore-scripts, rerun this command with: npm_config_allow_scripts=$bb_app_native_modules npm_config_ignore_scripts=false" >&2
     exit 1
   fi
@@ -519,10 +519,10 @@ if [ -n "$machine_code" ]; then
     url.hash = "";
     process.stdout.write(url.origin);
   ' "$server_url" 2>/dev/null) || {
-    fail_step "Could not derive the bb connect apex from $server_url."
+    fail_step "Could not derive the kaioken connect apex from $server_url."
     exit 1
   }
-  active_step "Authorizing this machine with bb connect"
+  active_step "Authorizing this machine with kaioken connect"
   redeem_response=$(curl -fsS \
     --connect-timeout "$CURL_CONNECT_TIMEOUT_SECONDS" \
     --max-time "$MACHINE_CODE_REDEEM_TIMEOUT_SECONDS" \
@@ -530,7 +530,7 @@ if [ -n "$machine_code" ]; then
     -H 'content-type: application/json' \
     --data "{\"code\":\"$machine_code\"}" \
     "$connect_apex/api/connect/redeem-machine") || {
-    fail_step "Could not redeem the bb connect machine code."
+    fail_step "Could not redeem the kaioken connect machine code."
     exit 1
   }
   printf '%s' "$redeem_response" | node -e '
@@ -560,10 +560,10 @@ if [ -n "$machine_code" ]; then
       fs.renameSync(temporary, configPath);
     });
   ' "$data_dir" "$server_url" || {
-    fail_step "The bb connect machine-code response was invalid."
+    fail_step "The kaioken connect machine-code response was invalid."
     exit 1
   }
-  complete_step "Authorized this machine with bb connect"
+  complete_step "Authorized this machine with kaioken connect"
 fi
 
 auth_matches_host() {
@@ -600,7 +600,7 @@ if [ "$already_joined" = no ]; then
   active_step "Joining $server_url as $host_id"
   detail "Join progress is logged to $join_log"
   # The daemon passes this prefix back to npm during protocol self-updates.
-  BB_APP_NPM_PREFIX="$bb_app_npm_prefix" BB_DATA_DIR="$data_dir" nohup "$bb_app" host-daemon join \
+  KAIOKEN_APP_NPM_PREFIX="$bb_app_npm_prefix" KAIOKEN_DATA_DIR="$data_dir" nohup "$bb_app" host-daemon join \
     --auto-update \
     --host-daemon-port "$host_daemon_port" \
     --join-code "$join_code" \
@@ -620,7 +620,7 @@ if [ "$already_joined" = no ]; then
     fi
     if ! kill -0 "$join_pid" 2>/dev/null; then
       wait "$join_pid" || true
-      fail_step "bb host daemon exited before it connected to $server_url."
+      fail_step "kaioken host daemon exited before it connected to $server_url."
       detail "See $join_log" >&2
       exit 1
     fi
@@ -640,12 +640,12 @@ fi
 
 # Tests and source-development smoke runs can leave the enrolled daemon in the
 # foreground-supervised process without modifying the user's service manager.
-if [ "${BB_INSTALL_SKIP_SERVICE:-0}" = 1 ]; then
+if [ "${KAIOKEN_INSTALL_SKIP_SERVICE:-0}" = 1 ]; then
   if [ -z "$join_pid" ] && ! daemon_status_matches "$host_daemon_port" no; then
     daemon_log="$data_dir/install-daemon.log"
     active_step "Starting the host daemon"
     detail "Host daemon output is logged to $daemon_log"
-    BB_APP_NPM_PREFIX="$bb_app_npm_prefix" BB_DATA_DIR="$data_dir" nohup "$bb_app" host-daemon \
+    KAIOKEN_APP_NPM_PREFIX="$bb_app_npm_prefix" KAIOKEN_DATA_DIR="$data_dir" nohup "$bb_app" host-daemon \
       --auto-update \
       --host-daemon-port "$host_daemon_port" \
       --server-url "$server_url" >"$daemon_log" 2>&1 &
@@ -654,7 +654,7 @@ if [ "${BB_INSTALL_SKIP_SERVICE:-0}" = 1 ]; then
     if ! wait_for_daemon_connection "the host daemon"; then
       kill "$join_pid" 2>/dev/null || true
       wait "$join_pid" 2>/dev/null || true
-      fail_step "The bb host daemon did not connect to $server_url."
+      fail_step "The kaioken host daemon did not connect to $server_url."
       detail "See $daemon_log" >&2
       exit 1
     fi
@@ -674,7 +674,7 @@ if [ -n "$join_pid" ]; then
 fi
 rm -f "$data_dir/install-daemon.pid"
 
-active_step "Installing the persistent bb host daemon service"
+active_step "Installing the persistent kaioken host daemon service"
 
 xml_escape() {
   printf '%s' "$1" | sed \
@@ -718,8 +718,8 @@ if [ "$platform" = darwin ]; then
   </array>
   <key>EnvironmentVariables</key>
   <dict>
-    <key>BB_APP_NPM_PREFIX</key><string>$escaped_bb_app_npm_prefix</string>
-    <key>BB_DATA_DIR</key><string>$escaped_data_dir</string>
+    <key>KAIOKEN_APP_NPM_PREFIX</key><string>$escaped_bb_app_npm_prefix</string>
+    <key>KAIOKEN_DATA_DIR</key><string>$escaped_data_dir</string>
   </dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
@@ -730,18 +730,18 @@ if [ "$platform" = darwin ]; then
 EOF
   launchctl bootout "gui/$(id -u)" "$service_file" >/dev/null 2>&1 || true
   if ! launchctl_error=$(launchctl bootstrap "gui/$(id -u)" "$service_file" 2>&1); then
-    fail_step "Could not register the bb host-daemon launch agent $service_label."
+    fail_step "Could not register the kaioken host-daemon launch agent $service_label."
     [ -z "$launchctl_error" ] || detail "launchctl: $launchctl_error" >&2
     exit 1
   fi
   if ! wait_for_daemon_connection "the launch agent"; then
-    fail_step "The bb host-daemon launch agent started but did not connect to $server_url."
+    fail_step "The kaioken host-daemon launch agent started but did not connect to $server_url."
     detail "See $data_dir/logs/launchd.log for the daemon error." >&2
     exit 1
   fi
   complete_step "Installed and started the launch agent"
   printf '\n'
-  log "$(green "●")" "$(bold "bb machine is ready")"
+  log "$(green "●")" "$(bold "kaioken machine is ready")"
   printf '\n'
   ready_row "server" "$(cyan "$server_url")"
   ready_row "daemon" "http://127.0.0.1:$host_daemon_port"
@@ -751,7 +751,7 @@ EOF
   detail "Uninstall: launchctl bootout gui/$(id -u) '$service_file' && rm '$service_file'"
 else
   service_dir="$HOME/.config/systemd/user"
-  service_name="bb-host-daemon-$service_slug"
+  service_name="kaioken-host-daemon-$service_slug"
   service_file="$service_dir/$service_name.service"
   mkdir -p "$service_dir"
   escaped_node_bin=$(systemd_escape "$node_bin")
@@ -761,14 +761,14 @@ else
   escaped_data_dir=$(systemd_escape "$data_dir")
   cat >"$service_file" <<EOF
 [Unit]
-Description=bb host daemon for $server_host
+Description=kaioken host daemon for $server_host
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 ExecStart="$escaped_node_bin" "$escaped_bb_app" host-daemon --auto-update --host-daemon-port "$host_daemon_port" --server-url "$escaped_server"
-Environment="BB_APP_NPM_PREFIX=$escaped_bb_app_npm_prefix"
-Environment="BB_DATA_DIR=$escaped_data_dir"
+Environment="KAIOKEN_APP_NPM_PREFIX=$escaped_bb_app_npm_prefix"
+Environment="KAIOKEN_DATA_DIR=$escaped_data_dir"
 Restart=always
 RestartSec=2
 
@@ -777,25 +777,25 @@ WantedBy=default.target
 EOF
   systemctl --user daemon-reload
   if ! systemctl_error=$(systemctl --user enable "$service_name.service" 2>&1); then
-    fail_step "The bb host-daemon systemd service could not be enabled."
+    fail_step "The kaioken host-daemon systemd service could not be enabled."
     [ -z "$systemctl_error" ] || detail "systemctl: $systemctl_error" >&2
     detail "Inspect it with: journalctl --user -u $service_name.service" >&2
     exit 1
   fi
   if ! systemctl_error=$(systemctl --user restart "$service_name.service" 2>&1); then
-    fail_step "The bb host-daemon systemd service was enabled, but it could not be restarted."
+    fail_step "The kaioken host-daemon systemd service was enabled, but it could not be restarted."
     [ -z "$systemctl_error" ] || detail "systemctl: $systemctl_error" >&2
     detail "Inspect it with: journalctl --user -u $service_name.service" >&2
     exit 1
   fi
   if ! wait_for_daemon_connection "the systemd service"; then
-    fail_step "The bb host-daemon systemd service started but did not connect to $server_url."
+    fail_step "The kaioken host-daemon systemd service started but did not connect to $server_url."
     detail "Inspect it with: journalctl --user -u $service_name.service" >&2
     exit 1
   fi
   complete_step "Installed and started the systemd user service"
   printf '\n'
-  log "$(green "●")" "$(bold "bb machine is ready")"
+  log "$(green "●")" "$(bold "kaioken machine is ready")"
   printf '\n'
   ready_row "server" "$(cyan "$server_url")"
   ready_row "daemon" "http://127.0.0.1:$host_daemon_port"

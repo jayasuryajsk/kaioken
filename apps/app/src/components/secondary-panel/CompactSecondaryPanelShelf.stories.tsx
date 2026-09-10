@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Icon } from "@bb/shared-ui/icon";
+import { Icon } from "@kaioken/shared-ui/icon";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   createGitDiffFixedPanelTab,

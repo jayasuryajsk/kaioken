@@ -113,12 +113,12 @@ describe("Markdown file preview image routing", () => {
   it("routes absolute and file-relative images in thread-storage Markdown previews", () => {
     renderMarkdownFilePreview({
       content: [
-        "![absolute](/Users/me/.bb/thread-storage/thr_preview/generated.png)",
+        "![absolute](/Users/me/.kaioken/thread-storage/thr_preview/generated.png)",
         "![relative](screenshots/chart.png)",
       ].join("\n\n"),
       imageContent: { kind: "thread-storage", threadId: "thr_preview" },
       path: "reports/nested/report.md",
-      rootPath: "/Users/me/.bb/thread-storage/thr_preview",
+      rootPath: "/Users/me/.kaioken/thread-storage/thr_preview",
     });
 
     expect(

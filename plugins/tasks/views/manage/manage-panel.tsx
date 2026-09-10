@@ -14,12 +14,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bb/shared-ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@bb/shared-ui/tabs";
-import { Button } from "@bb/shared-ui/button";
-import { Input } from "@bb/shared-ui/input";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@kaioken/shared-ui/tabs";
+import { Button } from "@kaioken/shared-ui/button";
+import { Input } from "@kaioken/shared-ui/input";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { ConfirmDialog } from "../../components/confirm-dialog.js";
 import {
   PERMISSION_LABELS,

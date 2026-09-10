@@ -7,9 +7,9 @@ import {
   getProjectExecutionDefaults,
   hosts,
   type DbConnection,
-} from "@bb/db";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
-import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
+} from "@kaioken/db";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
+import { HOST_DAEMON_PROTOCOL_VERSION } from "@kaioken/host-daemon-contract";
 import { initDb } from "../../src/db.js";
 import { createApp } from "../../src/server.js";
 import { readJson } from "../helpers/json.js";
@@ -61,7 +61,7 @@ describe("server skeleton", () => {
   it("serves install version metadata without auth", async () => {
     const harness = await createTestAppHarness();
     const { app } = createApp(harness.deps, {
-      bbAppArtifactService: {
+      kaiokenAppArtifactService: {
         getArtifact: async () => ({
           digest: "a".repeat(64),
           path: "/unused",
@@ -82,7 +82,7 @@ describe("server skeleton", () => {
     }
   });
 
-  it("serves the cached server bb-app tarball without auth", async () => {
+  it("serves the cached server kaioken-app tarball without auth", async () => {
     const harness = await createTestAppHarness();
     const tarballPath = join(harness.config.dataDir, "fixture.tgz");
     writeFileSync(tarballPath, "tarball-bytes");
@@ -93,16 +93,16 @@ describe("server skeleton", () => {
       size: 13,
     }));
     const { app } = createApp(harness.deps, {
-      bbAppArtifactService: { getArtifact, getVersion: async () => "test" },
+      kaiokenAppArtifactService: { getArtifact, getVersion: async () => "test" },
     });
     try {
-      const response = await app.request("/install/bb-app.tgz");
+      const response = await app.request("/install/kaioken-app.tgz");
       expect(response.status).toBe(200);
       expect(response.headers.get("content-type")).toBe("application/gzip");
       expect(response.headers.get("etag")).toBe(`"sha256-${digest}"`);
       expect(response.headers.get("x-bb-artifact-sha256")).toBe(digest);
       expect(await response.text()).toBe("tarball-bytes");
-      const unchanged = await app.request("/install/bb-app.tgz", {
+      const unchanged = await app.request("/install/kaioken-app.tgz", {
         headers: { "if-none-match": `"sha256-${digest}"` },
       });
       expect(unchanged.status).toBe(304);
@@ -281,9 +281,9 @@ describe("server skeleton", () => {
   });
 
   it("warns when startup finds future-dated applied migrations", () => {
-    const dataDir = mkdtempSync(join(tmpdir(), "bb-server-db-startup-"));
+    const dataDir = mkdtempSync(join(tmpdir(), "kaioken-server-db-startup-"));
     try {
-      const dbPath = join(dataDir, "bb.db");
+      const dbPath = join(dataDir, "kaioken.db");
       const seedDb = initDb(dbPath);
       let futureCreatedAt: number;
       try {

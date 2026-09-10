@@ -1,6 +1,6 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
-import type { PluginEnvironmentProviderProgress } from "@get-bb/plugin-sdk/environment-provider";
-import { reportHostProgress } from "bb-environment-provider-host/progress";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
+import type { PluginEnvironmentProviderProgress } from "@get-kaioken/plugin-sdk/environment-provider";
+import { reportHostProgress } from "kaioken-environment-provider-host/progress";
 import { z } from "zod";
 import {
   checkoutBranchSelectionSchema,
@@ -34,7 +34,7 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export default async function checkoutPlugin(bb: BbPluginApi): Promise<void> {
+export default async function checkoutPlugin(bb: KaiokenPluginApi): Promise<void> {
   const host = bb.hosts.experimental_client({
     contract: checkoutHostContract,
     experimental_signals: checkoutHostSignals,

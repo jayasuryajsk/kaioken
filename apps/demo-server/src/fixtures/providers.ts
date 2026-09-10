@@ -1,5 +1,5 @@
-import type { AvailableModel, ProviderInfo } from "@bb/domain";
-import type { SystemExecutionOptionsResponse } from "@bb/server-contract";
+import type { AvailableModel, ProviderInfo } from "@kaioken/domain";
+import type { SystemExecutionOptionsResponse } from "@kaioken/server-contract";
 
 function provider(
   info: Pick<

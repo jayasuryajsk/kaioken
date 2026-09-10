@@ -1,7 +1,7 @@
-export const BB_MOBILE_IOS_APP_ID = "9QCU24SXK5.app.getbb.mobile";
-export const BB_MOBILE_ANDROID_PACKAGE = "app.getbb.mobile";
+export const KAIOKEN_MOBILE_IOS_APP_ID = "9QCU24SXK5.app.getbb.mobile";
+export const KAIOKEN_MOBILE_ANDROID_PACKAGE = "app.getbb.mobile";
 
-const BB_MOBILE_APP_LINK_PATHS: readonly string[] = [
+const KAIOKEN_MOBILE_APP_LINK_PATHS: readonly string[] = [
   "/threads/*",
   "/projects/*",
   "/settings/*",
@@ -16,8 +16,8 @@ function buildAppleAppSiteAssociation(): Record<string, unknown> {
     applinks: {
       details: [
         {
-          appIDs: [BB_MOBILE_IOS_APP_ID],
-          components: BB_MOBILE_APP_LINK_PATHS.map((path) => ({
+          appIDs: [KAIOKEN_MOBILE_IOS_APP_ID],
+          components: KAIOKEN_MOBILE_APP_LINK_PATHS.map((path) => ({
             "/": path,
           })),
         },
@@ -44,7 +44,7 @@ function buildAndroidAssetLinks(
       relation: ["delegate_permission/common.handle_all_urls"],
       target: {
         namespace: "android_app",
-        package_name: BB_MOBILE_ANDROID_PACKAGE,
+        package_name: KAIOKEN_MOBILE_ANDROID_PACKAGE,
         sha256_cert_fingerprints: [...sha256CertFingerprints],
       },
     },

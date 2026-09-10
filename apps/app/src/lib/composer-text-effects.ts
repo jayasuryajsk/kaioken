@@ -1,5 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
-import type { PluginComposerTextEffect } from "@get-bb/plugin-sdk";
+import type { PluginComposerTextEffect } from "@get-kaioken/plugin-sdk";
 
 type ComposerTextEffectListener = () => void;
 type ComposerTextEffectOwner = string | symbol;

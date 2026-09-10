@@ -3,12 +3,12 @@ import type {
   ExperimentalAiInferenceCompleteOutput,
   ExperimentalAiVoiceTranscribeInput,
   ExperimentalAiVoiceTranscribeOutput,
-} from "@get-bb/plugin-sdk/ai-services";
+} from "@get-kaioken/plugin-sdk/ai-services";
 import type {
   PluginAiServiceDeclaration,
   PluginAiServiceKind,
-} from "@get-bb/plugin-sdk";
-import { aiServiceAlreadyRegisteredMessage } from "@get-bb/plugin-sdk/internal/host-policy";
+} from "@get-kaioken/plugin-sdk";
+import { aiServiceAlreadyRegisteredMessage } from "@get-kaioken/plugin-sdk/internal/host-policy";
 
 export interface AiServiceCallOptions {
   hostId: string;

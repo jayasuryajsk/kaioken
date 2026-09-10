@@ -6,17 +6,17 @@ import type {
   PromptTextMention,
   ThreadQueuedMessage,
   WorkspaceStatus,
-} from "@bb/domain";
-import { makeThreadQueuedMessage } from "@bb/test-helpers/domain-fixtures";
+} from "@kaioken/domain";
+import { makeThreadQueuedMessage } from "@kaioken/test-helpers/domain-fixtures";
 import {
   formatEnvironmentDisplay,
   type EnvironmentDisplayHostContext,
-} from "@bb/core-ui";
-import { EMPTY_ORDERED_MENTION_SUGGESTIONS } from "@bb/client-core";
+} from "@kaioken/core-ui";
+import { EMPTY_ORDERED_MENTION_SUGGESTIONS } from "@kaioken/client-core";
 import type {
   SystemExecutionOptionsModelLoadError,
   ThreadContextWindowUsage,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   FollowUpPromptBox,
   type FollowUpSubmitMode,
@@ -72,15 +72,15 @@ import type {
   ExecutionPermissionConfig,
 } from "@/components/promptbox/ExecutionControls";
 import { PageShell } from "@/components/ui/page-shell.js";
-import { promptDraftToInput, type PromptDraftState } from "@bb/client-core";
-import { queuedInputToDraft } from "@bb/client-core";
+import { promptDraftToInput, type PromptDraftState } from "@kaioken/client-core";
+import { queuedInputToDraft } from "@kaioken/client-core";
 
 export default {
   title: "promptbox/Follow Up Prompt Box",
 };
 
 const noop = () => {};
-const STORY_BRANCH_NAME = "bb/design-system-polish";
+const STORY_BRANCH_NAME = "kaioken/design-system-polish";
 
 const baseExecution = makeExecutionControlsProps({
   provider: {
@@ -260,7 +260,7 @@ const longHostEnvironmentSummary: ReactNode = makeEnvironmentSummary({
     status: "ready",
   }),
   host: localEnvironmentDisplayHost,
-  projectName: "bb UI QA",
+  projectName: "kaioken UI QA",
   machineName: "Bersabel's MacBook Pro",
   hasMultipleMachines: true,
   branchName: STORY_BRANCH_NAME,

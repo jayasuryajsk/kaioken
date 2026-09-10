@@ -2,9 +2,9 @@
 
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { BbDesktopCloseWindowRequestHandler } from "@bb/desktop-contract";
+import type { KaiokenDesktopCloseWindowRequestHandler } from "@kaioken/desktop-contract";
 import { AppCommandProvider } from "@/components/commands/AppCommandProvider";
-import { createBbDesktopApi } from "@/test/bb-desktop-test-utils";
+import { createBbDesktopApi } from "@/test/kaioken-desktop-test-utils";
 import { RootComposePanelCommandHandlers } from "./RootComposePanelCommandHandlers";
 
 const commandFixture = vi.hoisted(() => ({
@@ -72,7 +72,7 @@ function dispatchControlShortcut(key: string): KeyboardEvent {
 
 afterEach(() => {
   cleanup();
-  delete window.bbDesktop;
+  delete window.kaiokenDesktop;
 });
 
 describe("RootComposePanelCommandHandlers", () => {
@@ -81,8 +81,8 @@ describe("RootComposePanelCommandHandlers", () => {
     const firstClose = vi.fn(() => true);
     const secondToggle = vi.fn();
     const secondClose = vi.fn(() => true);
-    const desktopCloseHandlers = new Set<BbDesktopCloseWindowRequestHandler>();
-    window.bbDesktop = {
+    const desktopCloseHandlers = new Set<KaiokenDesktopCloseWindowRequestHandler>();
+    window.kaiokenDesktop = {
       ...createBbDesktopApi(desktopInfo),
       onCloseWindowRequest(listener) {
         desktopCloseHandlers.add(listener);

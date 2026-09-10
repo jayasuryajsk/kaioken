@@ -25,7 +25,7 @@ import {
   withoutBridgeRuntimeEnv,
   type BridgeToolCallRequest,
   experimental_defineProviderBridge,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 import { randomUUID } from "node:crypto";
 import { join as joinPath, resolve as resolvePath } from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -1150,7 +1150,7 @@ function buildSessionTrackingHooks(
             hookEventName: "PreToolUse",
             permissionDecision: "deny",
             permissionDecisionReason:
-              "bb has disabled Claude Code native subagents; use bb delegation instead.",
+              "kaioken has disabled Claude Code native subagents; use kaioken delegation instead.",
           },
         };
       }
@@ -1164,7 +1164,7 @@ function buildSessionTrackingHooks(
             hookEventName: "PreToolUse",
             permissionDecision: "deny",
             permissionDecisionReason:
-              "bb has disabled the Claude Code Workflow tool.",
+              "kaioken has disabled the Claude Code Workflow tool.",
           },
         };
       }

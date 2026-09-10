@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ThreadEvent } from "@bb/domain";
-import { createBridgeDeltaEventCollector } from "@bb/provider-bridge-protocol/testing";
+import type { ThreadEvent } from "@kaioken/domain";
+import { createBridgeDeltaEventCollector } from "@kaioken/provider-bridge-protocol/testing";
 import {
   assembleRecordedEvents,
   compareParity,
@@ -21,13 +21,13 @@ import {
   type ParityRowProjector,
   type ParityRun,
   type RecordedCell,
-} from "@bb/provider-bridge-protocol/testing/parity";
+} from "@kaioken/provider-bridge-protocol/testing/parity";
 import {
   buildThreadTimelineFromEvents,
   compactThreadTimelineSummaryEvents,
   THREAD_TIMELINE_EXCLUDED_EVENT_TYPES,
   type ThreadEventWithMeta,
-} from "@bb/thread-view";
+} from "@kaioken/thread-view";
 
 export {
   compareParity,
@@ -37,7 +37,7 @@ export {
   type ParityComparison,
   type ParityRun,
   type RecordedCell,
-} from "@bb/provider-bridge-protocol/testing/parity";
+} from "@kaioken/provider-bridge-protocol/testing/parity";
 
 export const RECORDINGS_ROOT = resolve(
   dirname(fileURLToPath(import.meta.url)),

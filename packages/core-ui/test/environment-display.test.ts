@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Environment } from "@bb/domain";
+import type { Environment } from "@kaioken/domain";
 import {
   formatEnvironmentDisplay,
   resolveEnvironmentDisplayName,
@@ -97,7 +97,7 @@ describe("formatEnvironmentDisplay", () => {
     it("labels a branch-bearing row by its provider, since the branch is shown beside it", () => {
       const result = formatEnvironmentDisplay({
         environment: makeEnvironment({
-          branchName: "bb/feature",
+          branchName: "kaioken/feature",
           environmentProviderId: "git-worktree",
         }),
         host: localHostContext,
@@ -112,7 +112,7 @@ describe("formatEnvironmentDisplay", () => {
       const result = formatEnvironmentDisplay({
         environment: makeEnvironment({
           name: "Review workspace",
-          branchName: "bb/feature",
+          branchName: "kaioken/feature",
           environmentProviderId: "git-worktree",
         }),
         host: localHostContext,
@@ -175,7 +175,7 @@ describe("formatEnvironmentDisplay", () => {
         environment: makeEnvironment({
           status: "provisioning",
           environmentProviderId: "git-worktree",
-          branchName: "bb/feature",
+          branchName: "kaioken/feature",
         }),
         host: remoteHostContext,
         providerLookup: worktreeProviderLookup,
@@ -263,13 +263,13 @@ describe("resolveEnvironmentDisplayName", () => {
       resolveEnvironmentDisplayName(
         {
           name: null,
-          branchName: "bb/feature",
+          branchName: "kaioken/feature",
           path: null,
           environmentProviderId: "modal-sandbox",
         },
         loadingProviderLookup,
       ),
-    ).toBe("bb/feature");
+    ).toBe("kaioken/feature");
   });
 
   it("names a branchless row by its folder before its provider", () => {
@@ -278,7 +278,7 @@ describe("resolveEnvironmentDisplayName", () => {
         {
           name: null,
           branchName: null,
-          path: "/Users/bb/.bb/plugins/environment-personal-workspace/host-data/workspaces/thr_k72wqg7tcs/",
+          path: "/Users/kaioken/.kaioken/plugins/environment-personal-workspace/host-data/workspaces/thr_k72wqg7tcs/",
           environmentProviderId: "personal-workspace",
         },
         {
@@ -296,7 +296,7 @@ describe("resolveEnvironmentDisplayName", () => {
         {
           name: null,
           branchName: null,
-          path: "C:\\bb\\workspaces\\thr_win",
+          path: "C:\\kaioken\\workspaces\\thr_win",
           environmentProviderId: "personal-workspace",
         },
         noProviderLookup,

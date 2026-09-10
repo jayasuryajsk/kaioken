@@ -66,7 +66,7 @@ function PushProfileSection({ profile }: { profile: ServerProfile }) {
       <ActionSheet
         controller={permissionSheet}
         title="Allow push notifications?"
-        message={`bb will ask this phone for permission, then register it with ${profile.label}.`}
+        message={`kaioken will ask this phone for permission, then register it with ${profile.label}.`}
         actions={[
           {
             key: "enable",

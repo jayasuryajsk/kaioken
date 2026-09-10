@@ -25,7 +25,7 @@ Conventions:
   (`GET /threads/:id?include=environment,host`, seeds thread/environment/host
   caches, prefetches the timeline), the timeline window with `afterSequence`
   deltas (`timeline-fetch.ts`, pure), the loaded-window controller over the
-  `@bb/client-core` merge/paging helpers, pending interactions, queued
+  `@kaioken/client-core` merge/paging helpers, pending interactions, queued
   messages, the thread's default execution options (what the follow-up
   composer seeds its pills with; invalidated after an accepted send, a
   history rewrite, and realtime `environment-changed`), lazy turn details,
@@ -39,7 +39,7 @@ Conventions:
   written into the pending list before the realtime refetch; pure, tested
   helpers for the question form state (shared by the native `user_question`
   and the `ask-user-question` plugin payload), approval presentation, plugin
-  payload parsing (`@bb/plugin-interaction-contracts`), and the child-thread
+  payload parsing (`@kaioken/plugin-interaction-contracts`), and the child-thread
   attention roll-up (`useChildThreadPendingInteractions`).
 - `thread-runtime/` mirrors the web thread-runtime cache owner: send (optimistic
   user row with `OPTIMISTIC_TIMELINE_ROW_ID_PREFIX`, or an optimistic queued
@@ -119,7 +119,7 @@ Conventions:
   `work-status-changed`), `useThreadStorageFilePreview` /
   `useThreadHostFilePreview` / `useProjectFilePreview` (the raw content routes
   through the profile fetch → `buildFilePreview` + `sizeBytes`; 413
-  `file_too_large` surfaces as a `BbHttpError` with that code), all on the
+  `file_too_large` surfaces as a `KaiokenHttpError` with that code), all on the
   heavy-payload gc policy. Pure, tested: `file-content-urls.ts` (absolute
   URLs of the content / raw routes), `file-preview-fetch.ts` (byte
   classification, base64 ↔ `data:` URLs for workspace images, error
@@ -204,7 +204,7 @@ Conventions:
 - `updates/` mirrors the web `useUpdateInventory` without the desktop branch:
   `buildUpdateInventory` (pure, tested) over the version query + every
   connected machine's provider CLI status, `summarizeMachineUpdates`,
-  `bbAppRowState`, `useUpdateInventory`, and `useCheckForUpdates`
+  `kaiokenAppRowState`, `useUpdateInventory`, and `useCheckForUpdates`
   (`GET /system/version?force=true` written into the cache, then the
   per-machine status + CLI skills invalidated).
 - `plugins/` backs plugin management (mirror of the web's
@@ -239,4 +239,4 @@ Conventions:
 - Mutations set `meta.errorMessage` for the profile QueryClient's global error
   toast; ones whose callers render errors inline set `showErrorToast: false`.
 - `scripts/data-smoke.mts` exercises the layer end to end against the mobile
-  e2e backend (`pnpm --filter @bb/integration-tests e2e:mobile-backend`).
+  e2e backend (`pnpm --filter @kaioken/integration-tests e2e:mobile-backend`).

@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { publishedMigrationWhensByTag } from "../src/migration-history.js";
-import { defaultAppSettings } from "@bb/domain";
+import { defaultAppSettings } from "@kaioken/domain";
 import {
   createQueuedThreadMessage,
   createThread,
@@ -1826,7 +1826,7 @@ describe("migrate", () => {
         providerOrder: [],
         defaultProviderId: null,
         streamerMode: false,
-        managedBranchPrefix: "bb/",
+        managedBranchPrefix: "kaioken/",
       });
       expect(
         db.$client
@@ -5159,7 +5159,7 @@ describe("migrate", () => {
           'marketplace',
           'bb-official',
           'custom-entry',
-          'npm:bb-plugin-custom@^1'
+          'npm:kaioken-plugin-custom@^1'
         );
       `);
 
@@ -5601,7 +5601,7 @@ describe("environment providers migration", () => {
         environmentIntent: {
           type: "direct-managed",
           hostId: "host_ep",
-          sourcePath: "/checkouts/bb",
+          sourcePath: "/checkouts/kaioken",
           baseBranch: { kind: "named", name: "release/1.2" },
           workspaceProvisionType: "managed-worktree",
         },

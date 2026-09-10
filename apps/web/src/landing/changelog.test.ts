@@ -7,12 +7,12 @@ const SAMPLE = `# Changelog
 ## 0.0.30
 
 This release introduces multi-machine workflows.
-It also adds more ways to customize bb.
+It also adds more ways to customize kaioken.
 
 ### Work across machines
 
-- Multi-machine support lets you add computers to bb.
-- bb Connect lets you securely access bb from other devices
+- Multi-machine support lets you add computers to kaioken.
+- kaioken Connect lets you securely access kaioken from other devices
   and share previews from any enrolled machine.
 
 ### Fixes and polish
@@ -25,7 +25,7 @@ This release expands agent and model support.
 
 ### Experiments
 
-New experiment to let you connect to bb from other computers.
+New experiment to let you connect to kaioken from other computers.
 `;
 
 describe("parseChangelog", () => {
@@ -40,7 +40,7 @@ describe("parseChangelog", () => {
     expect(latest.lede).toEqual([
       {
         kind: "paragraph",
-        text: "This release introduces multi-machine workflows. It also adds more ways to customize bb.",
+        text: "This release introduces multi-machine workflows. It also adds more ways to customize kaioken.",
       },
     ]);
     expect(latest.sections.map((section) => section.title)).toEqual([
@@ -57,8 +57,8 @@ describe("parseChangelog", () => {
       {
         kind: "list",
         items: [
-          "Multi-machine support lets you add computers to bb.",
-          "bb Connect lets you securely access bb from other devices and share previews from any enrolled machine.",
+          "Multi-machine support lets you add computers to kaioken.",
+          "kaioken Connect lets you securely access kaioken from other devices and share previews from any enrolled machine.",
         ],
       },
     ]);
@@ -69,7 +69,7 @@ describe("parseChangelog", () => {
     expect(prior.sections[0].blocks).toEqual([
       {
         kind: "paragraph",
-        text: "New experiment to let you connect to bb from other computers.",
+        text: "New experiment to let you connect to kaioken from other computers.",
       },
     ]);
   });

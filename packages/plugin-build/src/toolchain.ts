@@ -6,7 +6,7 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
-import { omitNpmScriptPolicyEnv } from "@bb/process-utils";
+import { omitNpmScriptPolicyEnv } from "@kaioken/process-utils";
 
 const run = promisify(execFile);
 
@@ -116,7 +116,7 @@ function resolveLocalToolchain(): PluginBuildToolchain | null {
 
 async function isInstalled(dir: string): Promise<boolean> {
   try {
-    const raw = await readFile(join(dir, ".bb-toolchain.json"), "utf8");
+    const raw = await readFile(join(dir, ".kaioken-toolchain.json"), "utf8");
     const parsed: unknown = JSON.parse(raw);
     if (
       typeof parsed !== "object" ||
@@ -157,7 +157,7 @@ export async function resolvePluginBuildToolchain(
     await mkdir(staging, { recursive: true });
     await writeFile(
       join(staging, "package.json"),
-      `${JSON.stringify({ name: "bb-plugin-toolchain", private: true, version: "0.0.0" }, null, 2)}\n`,
+      `${JSON.stringify({ name: "kaioken-plugin-toolchain", private: true, version: "0.0.0" }, null, 2)}\n`,
     );
     await run(
       "npm",
@@ -185,7 +185,7 @@ export async function resolvePluginBuildToolchain(
       );
     }
     await writeFile(
-      join(staging, ".bb-toolchain.json"),
+      join(staging, ".kaioken-toolchain.json"),
       `${JSON.stringify({ pins: pinKey() }, null, 2)}\n`,
     );
     await mkdir(dirname(dir), { recursive: true });

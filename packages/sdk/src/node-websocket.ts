@@ -1,6 +1,6 @@
 import { WebSocket as NodeWsWebSocket, type RawData } from "ws";
 import { wrapStandardWebsocket } from "./realtime-client.js";
-import type { BbRealtimeSocket, BbRealtimeSocketFactory } from "./transport.js";
+import type { KaiokenRealtimeSocket, KaiokenRealtimeSocketFactory } from "./transport.js";
 
 function decodeWsMessageData(data: RawData): string {
   if (typeof data === "string") {
@@ -15,9 +15,9 @@ function decodeWsMessageData(data: RawData): string {
   return Buffer.from(new Uint8Array(data)).toString("utf8");
 }
 
-export function wrapNodeWsWebsocket(url: string): BbRealtimeSocket {
+export function wrapNodeWsWebsocket(url: string): KaiokenRealtimeSocket {
   const socket = new NodeWsWebSocket(url);
-  const adapter: BbRealtimeSocket = {
+  const adapter: KaiokenRealtimeSocket = {
     close: () => socket.close(),
     onclose: null,
     onerror: null,
@@ -37,7 +37,7 @@ export function wrapNodeWsWebsocket(url: string): BbRealtimeSocket {
   return adapter;
 }
 
-export function createNodeWebsocketFactory(): BbRealtimeSocketFactory {
+export function createNodeWebsocketFactory(): KaiokenRealtimeSocketFactory {
   return (url) => {
     if (typeof WebSocket !== "undefined") {
       return wrapStandardWebsocket(new WebSocket(url));

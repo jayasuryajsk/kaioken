@@ -1,6 +1,6 @@
 import type { DesktopBrowserBroker } from "./desktop-browser-broker.js";
-import type { AgentRuntimeBridgeLaunch } from "@bb/agent-runtime";
-import type { AvailableModel } from "@bb/domain";
+import type { AgentRuntimeBridgeLaunch } from "@kaioken/agent-runtime";
+import type { AvailableModel } from "@kaioken/domain";
 import type { EventSinkInput } from "./event-sink.js";
 import type {
   EnvironmentHookProgressMessage,
@@ -12,13 +12,13 @@ import type {
   HostDaemonOnlineRpcCommand,
   HostDaemonConnectTunnelIdentity,
   WorkspaceContext,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import type {
   ProviderInstallationCommand,
   ProviderInstallationRunResult,
   ProviderInstallationStatus,
-} from "@bb/provider-bridge-protocol";
-import { ensurePluginProcessDataDir } from "@bb/process-utils";
+} from "@kaioken/provider-bridge-protocol";
+import { ensurePluginProcessDataDir } from "@kaioken/process-utils";
 import type { InteractiveResolveCommandInput } from "./interactive-request-registry.js";
 import { RuntimeManager, type RuntimeEntry } from "./runtime-manager.js";
 import type { TerminalManager } from "./terminals/terminal-manager.js";

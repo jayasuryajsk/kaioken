@@ -9,7 +9,7 @@ import { getPushStore } from "@/notifications/push-storage";
 import { getAppProfileClientRegistry } from "./client-registry";
 import { getPreferencesStorage } from "./preferences-storage";
 
-const env: E2eEnv = { EXPO_PUBLIC_BB_E2E: process.env.EXPO_PUBLIC_BB_E2E };
+const env: E2eEnv = { EXPO_PUBLIC_KAIOKEN_E2E: process.env.EXPO_PUBLIC_KAIOKEN_E2E };
 
 export const e2eModeEnabled = isE2eModeEnabled(env, __DEV__);
 

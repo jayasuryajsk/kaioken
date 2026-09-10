@@ -6,12 +6,12 @@ import {
   experimental_recordProviderChildIo,
   sanitizeInheritedChildProcessEnv,
   withoutBridgeRuntimeEnv,
-} from "@get-bb/plugin-sdk/provider-bridge";
+} from "@get-kaioken/plugin-sdk/provider-bridge";
 
-export const PI_BRIDGE_COMMAND_ENV = "BB_PI_BRIDGE_COMMAND";
-export const PI_BRIDGE_ARGS_ENV = "BB_PI_BRIDGE_ARGS";
+export const PI_BRIDGE_COMMAND_ENV = "KAIOKEN_PI_BRIDGE_COMMAND";
+export const PI_BRIDGE_ARGS_ENV = "KAIOKEN_PI_BRIDGE_ARGS";
 
-export const PI_CHANNEL_RECORDING_KEY = "bbChannel";
+export const PI_CHANNEL_RECORDING_KEY = "kaiokenChannel";
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 export const NO_REQUEST_TIMEOUT = 0;
@@ -214,7 +214,7 @@ export class PiRpcChild {
       return Promise.reject(new PiRpcChildExitedError(this.exitInfo));
     }
     this.nextRequestId += 1;
-    const id = `bb-${this.nextRequestId}`;
+    const id = `kaioken-${this.nextRequestId}`;
     return new Promise<PiRpcResponse>((resolve, reject) => {
       const timer =
         timeoutMs === NO_REQUEST_TIMEOUT

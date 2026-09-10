@@ -4,7 +4,7 @@ import {
   buildBridgeInjectionScript,
   parsePageToShellMessage,
   type NativeShellHandshake,
-} from "@bb/mobile-bridge";
+} from "@kaioken/mobile-bridge";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getNativeShell,
@@ -58,7 +58,10 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  Reflect.deleteProperty(window as unknown as Record<string, unknown>, "bb");
+  Reflect.deleteProperty(
+    window as unknown as Record<string, unknown>,
+    "kaioken",
+  );
   Reflect.deleteProperty(
     window as unknown as Record<string, unknown>,
     "ReactNativeWebView",
@@ -88,7 +91,7 @@ describe("getNativeShell", () => {
   });
 
   it("ignores a global that is not a usable bridge", () => {
-    Object.defineProperty(window, "bb", {
+    Object.defineProperty(window, "kaioken", {
       configurable: true,
       value: { native: { post: "not a function" } },
     });
@@ -163,9 +166,9 @@ describe("shellShare", () => {
     expect(message.type).toBe("request");
     const bridge = (
       window as unknown as {
-        bb: { native: { __receive(event: unknown): void } };
+        kaioken: { native: { __receive(event: unknown): void } };
       }
-    ).bb.native;
+    ).kaioken.native;
     bridge.__receive({
       type: "response",
       id: message.id,
@@ -180,9 +183,9 @@ describe("shellShare", () => {
     const message = lastMessage() as { id: string };
     const bridge = (
       window as unknown as {
-        bb: { native: { __receive(event: unknown): void } };
+        kaioken: { native: { __receive(event: unknown): void } };
       }
-    ).bb.native;
+    ).kaioken.native;
     bridge.__receive({
       type: "response",
       id: message.id,

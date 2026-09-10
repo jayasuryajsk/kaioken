@@ -1,5 +1,5 @@
-import type { SkillSummary } from "@bb/server-contract";
-import { RESOURCE_GRID_PAGE_SIZE } from "@bb/shared-ui/resource-pagination";
+import type { SkillSummary } from "@kaioken/server-contract";
+import { RESOURCE_GRID_PAGE_SIZE } from "@kaioken/shared-ui/resource-pagination";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildRegistrySkillReferencePrompt,
@@ -34,9 +34,9 @@ function installedSkill(overrides: Partial<SkillSummary> = {}): SkillSummary {
     name: "useful-skill",
     description: "A useful skill.",
     provider: null,
-    scope: "bb-user",
+    scope: "kaioken-user",
     pluginId: null,
-    filePath: "/home/u/.bb/skills/useful-skill/SKILL.md",
+    filePath: "/home/u/.kaioken/skills/useful-skill/SKILL.md",
     manageable: true,
     registrySkillId: registrySkill.id,
     ...overrides,
@@ -121,7 +121,7 @@ describe("registry skill contracts", () => {
 });
 
 describe("registry skill matching", () => {
-  it("matches only manageable bb-user skills with exact registry provenance", () => {
+  it("matches only manageable kaioken-user skills with exact registry provenance", () => {
     const exactMatch = installedSkill();
     const candidates = [
       installedSkill({
@@ -148,7 +148,7 @@ describe("registry skill formatting", () => {
   it("builds an editable prompt that preserves source identity without copying it", () => {
     expect(buildRegistrySkillReferencePrompt(registrySkill)).toBe(
       [
-        "Create a new, distinct bb skill using the skills.sh entry below as a reference.",
+        "Create a new, distinct kaioken skill using the skills.sh entry below as a reference.",
         "",
         'Reference name: "Useful skill"',
         'Reference skill ID: "owner/repo/useful-skill"',

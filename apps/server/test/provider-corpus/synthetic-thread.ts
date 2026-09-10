@@ -7,15 +7,15 @@ import {
   migrate,
   noopNotifier,
   upsertHost,
-} from "@bb/db";
-import type { DbConnection } from "@bb/db";
+} from "@kaioken/db";
+import type { DbConnection } from "@kaioken/db";
 import {
   encodeClientTurnRequestIdNumber,
   parseStoredThreadEvent,
   threadScope,
   turnScope,
-} from "@bb/domain";
-import type { Thread, ThreadEventScope, ThreadEventType } from "@bb/domain";
+} from "@kaioken/domain";
+import type { Thread, ThreadEventScope, ThreadEventType } from "@kaioken/domain";
 
 type InsertEventInput = Parameters<typeof insertEvents>[2][number];
 

@@ -8,8 +8,8 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { defaultAppSettings } from "@bb/domain";
-import { Popover, PopoverContent, PopoverTrigger } from "@bb/shared-ui/popover";
+import { defaultAppSettings } from "@kaioken/domain";
+import { Popover, PopoverContent, PopoverTrigger } from "@kaioken/shared-ui/popover";
 import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
 import { Link, MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -91,7 +91,7 @@ vi.mock("./AppPageHeader", () => ({
   AppPageHeader: () => <header />,
 }));
 
-vi.mock("@/lib/bb-desktop", () => ({
+vi.mock("@/lib/kaioken-desktop", () => ({
   BROWSER_SIDEBAR_TRIGGER_INSET_CLASS: "",
   CHROME_ROW_CLASS: "",
   DEFAULT_DESKTOP_WINDOW_STATE: { isFullScreen: false },

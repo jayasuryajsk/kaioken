@@ -3,8 +3,8 @@ import {
   threadVisibilitySchema,
   type PromptInput,
   type Thread,
-} from "@bb/domain";
-import type { EnvironmentArgs } from "@bb/server-contract";
+} from "@kaioken/domain";
+import type { EnvironmentArgs } from "@kaioken/server-contract";
 import { action } from "../../action.js";
 import { createCliBbSdk } from "../../client.js";
 import { resolveExplicitIdFlag } from "../../context-env.js";
@@ -111,7 +111,7 @@ export function registerForkCommand(
     )
     .option(
       "--base-branch <branch>",
-      "Exact Git ref; omit for bb's project default (use origin/<branch> for a remote ref)",
+      "Exact Git ref; omit for kaioken's project default (use origin/<branch> for a remote ref)",
     )
     .option("--permission-mode <mode>", PERMISSION_MODE_HELP)
     .option("--visibility <visibility>", "Thread visibility: visible or hidden")

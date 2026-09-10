@@ -4,13 +4,13 @@ import {
   getEnvironment,
   getThread,
   listEvents,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   PERSONAL_PROJECT_ID,
   turnRequestEventDataSchema,
   turnScope,
   type PermissionMode,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { describe, expect, it, vi } from "vitest";
 import { ApiError } from "../../src/errors.js";
 import type { TelemetryService } from "../../src/services/system/telemetry.js";

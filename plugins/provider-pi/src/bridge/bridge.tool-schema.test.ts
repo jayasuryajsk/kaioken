@@ -12,7 +12,7 @@ let dumpPath: string;
 
 beforeEach(async () => {
   harness = await startFakePiBridge({
-    prefix: "bb-pi-tool-schema-",
+    prefix: "kaioken-pi-tool-schema-",
     initialize: true,
   });
   dumpPath = join(harness.workspaceDir, "tools.ndjson");
@@ -32,7 +32,7 @@ it("carries descriptions, unions, constants, integers, and closed objects into t
     dynamicTools: [
       {
         name: "bb_rich",
-        description: "A richly typed bb tool.",
+        description: "A richly typed kaioken tool.",
         inputSchema: {
           type: "object",
           description: "The call.",
@@ -84,7 +84,7 @@ it("carries descriptions, unions, constants, integers, and closed objects into t
     );
   const tool = registered.find((entry) => entry.name === "bb_rich");
   expect(tool).toBeDefined();
-  expect(tool!.description).toBe("A richly typed bb tool.");
+  expect(tool!.description).toBe("A richly typed kaioken tool.");
   const parameters = tool!.parameters as {
     description?: string;
     additionalProperties?: boolean;

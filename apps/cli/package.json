@@ -1,9 +1,9 @@
 {
-  "name": "@bb/cli",
+  "name": "@kaioken/cli",
   "version": "0.0.1",
   "type": "module",
   "bin": {
-    "bb": "./bin/bb",
+    "kaioken": "./bin/kaioken",
     "title": "./bin/title"
   },
   "scripts": {
@@ -14,16 +14,16 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@bb/client-core": "workspace:*",
-    "@bb/config": "workspace:*",
-    "@bb/core-ui": "workspace:*",
-    "@bb/domain": "workspace:*",
-    "@bb/host-daemon-contract": "workspace:*",
-    "@bb/plugin-build": "workspace:*",
-    "@bb/sdk": "workspace:*",
-    "@bb/server-contract": "workspace:*",
-    "@bb/templates": "workspace:*",
-    "@bb/thread-view": "workspace:*",
+    "@kaioken/client-core": "workspace:*",
+    "@kaioken/config": "workspace:*",
+    "@kaioken/core-ui": "workspace:*",
+    "@kaioken/domain": "workspace:*",
+    "@kaioken/host-daemon-contract": "workspace:*",
+    "@kaioken/plugin-build": "workspace:*",
+    "@kaioken/sdk": "workspace:*",
+    "@kaioken/server-contract": "workspace:*",
+    "@kaioken/templates": "workspace:*",
+    "@kaioken/thread-view": "workspace:*",
     "cli-table3": "^0.6.5",
     "commander": "^13.0.0",
     "mime-types": "^3.0.2",
@@ -31,7 +31,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@bb/tsconfig": "workspace:*",
+    "@kaioken/tsconfig": "workspace:*",
     "@tailwindcss/node": "^4.3.0",
     "@tailwindcss/oxide": "^4.3.0",
     "@types/mime-types": "^3.0.1",

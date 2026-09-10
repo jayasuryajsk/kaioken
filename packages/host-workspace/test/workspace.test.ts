@@ -2,8 +2,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import type { WorkspaceChangeStats } from "@bb/domain";
-import { createDeferredPromise } from "@bb/test-helpers";
+import type { WorkspaceChangeStats } from "@kaioken/domain";
+import { createDeferredPromise } from "@kaioken/test-helpers";
 import { Workspace } from "../src/workspace.js";
 import { WorkspaceError } from "../src/git.js";
 import { runGit } from "../src/git.js";
@@ -35,10 +35,10 @@ async function makeTempDir(prefix: string): Promise<string> {
 }
 
 async function initRepo(): Promise<string> {
-  const repoPath = await makeTempDir("bb-workspace-repo-");
+  const repoPath = await makeTempDir("kaioken-workspace-repo-");
   await runGit(["init", "-b", "main"], { cwd: repoPath });
-  await runGit(["config", "user.name", "BB Tests"], { cwd: repoPath });
-  await runGit(["config", "user.email", "bb@example.com"], { cwd: repoPath });
+  await runGit(["config", "user.name", "Kaioken Tests"], { cwd: repoPath });
+  await runGit(["config", "user.email", "kaioken@example.com"], { cwd: repoPath });
   await fs.writeFile(path.join(repoPath, "README.md"), "hello\n", "utf8");
   await runGit(["add", "README.md"], { cwd: repoPath });
   await runGit(["commit", "-m", "Initial commit"], { cwd: repoPath });
@@ -74,7 +74,7 @@ type PrimaryAndFeatureWorktree = {
 async function createPrimaryAndFeatureWorktree(): Promise<PrimaryAndFeatureWorktree> {
   const primaryRepo = await initRepo();
   const worktreeParent = await makeTempDir(
-    "bb-workspace-squash-worktree-parent-",
+    "kaioken-workspace-squash-worktree-parent-",
   );
   const worktreePath = path.join(worktreeParent, "feature");
   await runGit(["worktree", "add", "-b", "feature", worktreePath, "main"], {
@@ -490,7 +490,7 @@ describe("Workspace", () => {
   });
 
   it("reports status for git repositories with no commits yet", async () => {
-    const repoPath = await makeTempDir("bb-workspace-unborn-repo-");
+    const repoPath = await makeTempDir("kaioken-workspace-unborn-repo-");
     await runGit(["init", "-b", "main"], { cwd: repoPath });
     await fs.writeFile(
       path.join(repoPath, "staged.txt"),
@@ -968,7 +968,7 @@ describe("Workspace", () => {
 
   it("does not serialize different linked worktree checkout mutations", async () => {
     const repoPath = await initRepo();
-    const worktreeParent = await makeTempDir("bb-workspace-lock-worktrees-");
+    const worktreeParent = await makeTempDir("kaioken-workspace-lock-worktrees-");
     const worktreePath = path.join(worktreeParent, "feature");
     await runGit(["worktree", "add", "-b", "feature", worktreePath, "main"], {
       cwd: repoPath,
@@ -995,7 +995,7 @@ describe("Workspace", () => {
 
   it("acquires multi-checkout mutation locks in stable order", async () => {
     const repoPath = await initRepo();
-    const worktreeParent = await makeTempDir("bb-workspace-multi-lock-");
+    const worktreeParent = await makeTempDir("kaioken-workspace-multi-lock-");
     const worktreePath = path.join(worktreeParent, "feature");
     await runGit(["worktree", "add", "-b", "feature", worktreePath, "main"], {
       cwd: repoPath,
@@ -1078,7 +1078,7 @@ describe("Workspace", () => {
   });
 
   it("rejects git mutations for non-git directories", async () => {
-    const folder = await makeTempDir("bb-workspace-nongit-");
+    const folder = await makeTempDir("kaioken-workspace-nongit-");
     const workspace = new Workspace(folder);
 
     expect(await workspace.isGitRepo).toBe(false);
@@ -1100,7 +1100,7 @@ describe("Workspace", () => {
   });
 
   it("lists files recursively for non-git directories", async () => {
-    const folder = await makeTempDir("bb-workspace-files-");
+    const folder = await makeTempDir("kaioken-workspace-files-");
     await fs.mkdir(path.join(folder, "nested"), { recursive: true });
     await fs.writeFile(
       path.join(folder, "nested", "notes.txt"),
@@ -1122,7 +1122,7 @@ describe("Workspace", () => {
   });
 
   it("does not overflow the call stack merging a large subdirectory", async () => {
-    const folder = await makeTempDir("bb-workspace-large-files-");
+    const folder = await makeTempDir("kaioken-workspace-large-files-");
     const nested = path.join(folder, "many");
     await fs.mkdir(nested);
     const fileCount = 150_000;
@@ -1142,10 +1142,10 @@ describe("Workspace", () => {
   }, 60_000);
 
   it("returns null when HEAD is unavailable in an empty repository", async () => {
-    const repoPath = await makeTempDir("bb-workspace-empty-repo-");
+    const repoPath = await makeTempDir("kaioken-workspace-empty-repo-");
     await runGit(["init", "-b", "main"], { cwd: repoPath });
-    await runGit(["config", "user.name", "BB Tests"], { cwd: repoPath });
-    await runGit(["config", "user.email", "bb@example.com"], { cwd: repoPath });
+    await runGit(["config", "user.name", "Kaioken Tests"], { cwd: repoPath });
+    await runGit(["config", "user.email", "kaioken@example.com"], { cwd: repoPath });
 
     const workspace = new Workspace(repoPath);
 
@@ -1157,7 +1157,7 @@ describe("getPullRequest", () => {
   it("reports a vanished workspace path as unavailable, not absent", async () => {
     const missingPath = path.join(
       os.tmpdir(),
-      `bb-missing-workspace-${process.pid}-${Date.now()}`,
+      `kaioken-missing-workspace-${process.pid}-${Date.now()}`,
     );
     const workspace = new Workspace(missingPath);
     await expect(workspace.getPullRequest()).resolves.toEqual({

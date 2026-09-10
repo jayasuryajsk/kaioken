@@ -21,14 +21,14 @@ import type {
   PluginThreadListRegistration,
   PluginThreadPanelActionRegistration,
   PluginTimelineRendererRegistration,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import {
   adaptSidebarFooterAction,
   getCollectedSidebarFooterItems,
   type CollectedExperimentalSidebarFooterItem,
   type CollectedManagedSidebarFooterItem,
   type CollectedSidebarFooterItem,
-} from "@get-bb/plugin-sdk/internal/plugin-app-collector";
+} from "@get-kaioken/plugin-sdk/internal/plugin-app-collector";
 
 export interface PluginRegistrationSet {
   homepageSections: readonly PluginHomepageSectionRegistration[];

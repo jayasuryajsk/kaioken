@@ -2,7 +2,7 @@ import type {
   ComposerRichTextSpec,
   ComposerStructuredDraft,
   ComposerView,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 import { Extension, type Editor } from "@tiptap/core";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import {
@@ -12,7 +12,7 @@ import {
   type Transaction,
 } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
-import type { PromptTextMention } from "@bb/domain";
+import type { PromptTextMention } from "@kaioken/domain";
 import {
   promptEditorSerializationFromDoc,
   type PromptEditorOffsetSegment,
@@ -214,7 +214,7 @@ function buildDecorations(
             {
               className: rule.className,
               ...(source.pluginId
-                ? { "data-bb-plugin-decoration": source.pluginId }
+                ? { "data-kaioken-plugin-decoration": source.pluginId }
                 : {}),
               ruleId: rule.id,
               sourceId: source.id,

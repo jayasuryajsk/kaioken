@@ -1,4 +1,4 @@
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import {
   CLAUDE_CODE_ACTIVE_CATALOG_DATA,
   CLAUDE_XHIGH_CAPABLE_REASONING_EFFORT_DATA,
@@ -6,26 +6,26 @@ import {
 } from "./src/model-catalog-data.js";
 import { CLAUDE_NATIVE_ROOTS_DECLARATION } from "./src/native-roots.js";
 
-export default function plugin(bb: BbPluginApi) {
+export default function plugin(bb: KaiokenPluginApi) {
   bb.settings.define({
     memoryEnabled: {
       type: "boolean",
       label: "Claude Code memory",
       description:
-        "Allow Claude Code to read and write its native auto-memory for bb threads.",
+        "Allow Claude Code to read and write its native auto-memory for kaioken threads.",
       default: true,
     },
     subagentsDisabled: {
       type: "boolean",
       label: "Disable provider subagents",
       description:
-        "Hide Claude Code's native Task tool so agents use bb for delegation.",
+        "Hide Claude Code's native Task tool so agents use kaioken for delegation.",
       default: false,
     },
     workflowsDisabled: {
       type: "boolean",
       label: "Disable Workflow tool",
-      description: "Hide Claude Code's native Workflow tool for bb threads.",
+      description: "Hide Claude Code's native Workflow tool for kaioken threads.",
       default: false,
     },
     chromeEnabled: {
@@ -75,7 +75,7 @@ export default function plugin(bb: BbPluginApi) {
       { id: "max", label: "Max" },
     ],
     composerActions: ["plan"],
-    env: { passthrough: ["BB_CLAUDE_CODE_EXECUTABLE"] },
+    env: { passthrough: ["KAIOKEN_CLAUDE_CODE_EXECUTABLE"] },
     models: {
       scope: "host",
       fallback: CLAUDE_CODE_ACTIVE_CATALOG_DATA.map((entry) => ({

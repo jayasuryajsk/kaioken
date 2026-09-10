@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PluginCodeThemeData } from "@get-bb/plugin-sdk/app";
+import type { PluginCodeThemeData } from "@get-kaioken/plugin-sdk/app";
 import {
   applyCodeTheme,
   editorBackground,
@@ -24,7 +24,7 @@ function theme(
 const MONACO_THEME_NAME = /^[a-zA-Z0-9-]+$/;
 
 describe("monacoThemeName", () => {
-  it("maps BB's namespaced, fingerprinted names into what Monaco accepts", () => {
+  it("maps Kaioken's namespaced, fingerprinted names into what Monaco accepts", () => {
     expect(monacoThemeName("bb:nord:light:1f4c9a2b")).toMatch(
       MONACO_THEME_NAME,
     );

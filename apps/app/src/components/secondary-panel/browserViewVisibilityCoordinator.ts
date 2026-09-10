@@ -1,4 +1,4 @@
-import type { BbDesktopBrowserApi } from "@bb/desktop-contract";
+import type { KaiokenDesktopBrowserApi } from "@kaioken/desktop-contract";
 
 export interface BrowserViewVisibilityCoordinator {
   show(
@@ -23,24 +23,24 @@ interface RegisterBrowserViewArgs {
 }
 
 interface DestroyPersistedBrowserViewArgs {
-  desktopBrowser: BbDesktopBrowserApi;
+  desktopBrowser: KaiokenDesktopBrowserApi;
   tabId: string;
 }
 
 interface DestroyPersistedBrowserViewsForThreadArgs {
-  desktopBrowser: BbDesktopBrowserApi | null;
+  desktopBrowser: KaiokenDesktopBrowserApi | null;
   threadId: string;
 }
 
 interface DestroyPersistedBrowserViewsForEnvironmentArgs {
-  desktopBrowser: BbDesktopBrowserApi | null;
+  desktopBrowser: KaiokenDesktopBrowserApi | null;
   environmentId: string;
 }
 
 const browserViewRecords = new Map<string, BrowserViewRecord>();
 
 export function createBrowserViewVisibilityCoordinator(
-  desktopBrowser: BbDesktopBrowserApi,
+  desktopBrowser: KaiokenDesktopBrowserApi,
 ): BrowserViewVisibilityCoordinator {
   let visibleTabId: string | null = null;
   return {

@@ -7,16 +7,16 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import type { AvailableModel, ReasoningLevel } from "@bb/domain";
+import type { AvailableModel, ReasoningLevel } from "@kaioken/domain";
 import type {
   SystemExecutionOptionsModelLoadError,
   SystemExecutionOptionsResponse,
   SystemProvidersQuery,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { systemExecutionOptionsQueryKey } from "@/hooks/queries/query-keys";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
-import { CompactViewportOverrideProvider } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { CompactViewportOverrideProvider } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import {
   PaneContext,
   type PaneContextValue,
@@ -600,7 +600,7 @@ describe("ModelReasoningPicker", () => {
     );
 
     expect(
-      screen.getByRole("dialog").getAttribute("data-bb-portaled-overlay"),
+      screen.getByRole("dialog").getAttribute("data-kaioken-portaled-overlay"),
     ).toBe("");
   });
 

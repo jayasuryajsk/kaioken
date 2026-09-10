@@ -9,7 +9,7 @@ import {
   type AppCommandContextKey,
   type AppCommandId,
   type AppDefaultKeybinding,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   AppCommandProvider,
   useAppCommandContext,
@@ -71,7 +71,7 @@ vi.mock("@/hooks/queries/system-queries", () => ({
   }),
 }));
 
-vi.mock("@/lib/bb-desktop", () => ({
+vi.mock("@/lib/kaioken-desktop", () => ({
   getBbDesktopInfo: () => (testState.isDesktop ? {} : null),
 }));
 

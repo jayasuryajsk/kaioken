@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
-import { experimental_createHostEntryHarness } from "@get-bb/plugin-sdk/testing/host";
+import { experimental_createHostEntryHarness } from "@get-kaioken/plugin-sdk/testing/host";
 import { afterEach, describe, expect, it } from "vitest";
 import { createWorktreeHostEntry } from "./host.js";
 
@@ -25,10 +25,10 @@ async function git(cwd: string, ...args: string[]): Promise<string> {
     cwd,
     env: {
       ...process.env,
-      GIT_AUTHOR_NAME: "bb",
-      GIT_AUTHOR_EMAIL: "bb@example.com",
-      GIT_COMMITTER_NAME: "bb",
-      GIT_COMMITTER_EMAIL: "bb@example.com",
+      GIT_AUTHOR_NAME: "kaioken",
+      GIT_AUTHOR_EMAIL: "kaioken@example.com",
+      GIT_COMMITTER_NAME: "kaioken",
+      GIT_COMMITTER_EMAIL: "kaioken@example.com",
     },
   });
   return result.stdout;
@@ -39,7 +39,7 @@ async function createSourceRepository(): Promise<{
   sourcePath: string;
   dataDir: string;
 }> {
-  const root = await mkdtemp(join(tmpdir(), "bb-worktree-plugin-"));
+  const root = await mkdtemp(join(tmpdir(), "kaioken-worktree-plugin-"));
   temporaryRoots.push(root);
   const sourcePath = join(root, "repo");
   const dataDir = join(root, "plugin-data");
@@ -56,7 +56,7 @@ async function createDetachedSingleBranchRepository(): Promise<{
   sourcePath: string;
   dataDir: string;
 }> {
-  const root = await mkdtemp(join(tmpdir(), "bb-worktree-plugin-detached-"));
+  const root = await mkdtemp(join(tmpdir(), "kaioken-worktree-plugin-detached-"));
   temporaryRoots.push(root);
   const originPath = join(root, "origin");
   const sourcePath = join(root, "repo");
@@ -128,7 +128,7 @@ describe("worktree host entry", () => {
       operationId: "named",
       sourcePath,
       pathKey: "thr_1",
-      branchName: "bb/named-thr_1",
+      branchName: "kaioken/named-thr_1",
       baseBranch: { kind: "named", name: "release" },
       branchMode: "reset",
       timeoutMs: 30_000,
@@ -142,7 +142,7 @@ describe("worktree host entry", () => {
     expect(existsSync(join(result.path, "release.txt"))).toBe(true);
     expect(
       (await git(result.path, "rev-parse", "--abbrev-ref", "HEAD")).trim(),
-    ).toBe("bb/named-thr_1");
+    ).toBe("kaioken/named-thr_1");
     await harness.experimental_dispose();
   });
 
@@ -154,7 +154,7 @@ describe("worktree host entry", () => {
       operationId: "detached",
       sourcePath,
       pathKey: "thr_detached",
-      branchName: "bb/detached-thr",
+      branchName: "kaioken/detached-thr",
       baseBranch: { kind: "named", name: "v1.0" },
       branchMode: "reset",
       timeoutMs: 30_000,
@@ -175,7 +175,7 @@ describe("worktree host entry", () => {
       operationId: "first",
       sourcePath,
       pathKey: "same-path-key",
-      branchName: "bb/restart",
+      branchName: "kaioken/restart",
     });
     const firstHarness = createHarness(dataDir);
     const first = await firstHarness.experimental_call("create", input);
@@ -197,13 +197,13 @@ describe("worktree host entry", () => {
     const { root, sourcePath, dataDir } = await createSourceRepository();
     const setupMarker = join(root, "setup.marker");
     await writeFile(
-      join(sourcePath, ".bb-env-setup.sh"),
+      join(sourcePath, ".kaioken-env-setup.sh"),
       `#!/usr/bin/env bash\necho resumed > ${setupMarker}\n`,
     );
     await git(sourcePath, "add", ".");
     await git(sourcePath, "commit", "-m", "add setup script");
     const pathKey = "interrupted";
-    const branchName = "bb/interrupted";
+    const branchName = "kaioken/interrupted";
     const targetPath = join(dataDir, "worktrees", pathKey, "repo");
     await mkdir(join(dataDir, "worktrees", pathKey), { recursive: true });
     await git(
@@ -229,7 +229,7 @@ describe("worktree host entry", () => {
 
     expect(resumed).toMatchObject({ status: "created", path: targetPath });
     expect(existsSync(setupMarker)).toBe(false);
-    expect(progressText(harness)).not.toContain("Running .bb-env-setup.sh");
+    expect(progressText(harness)).not.toContain("Running .kaioken-env-setup.sh");
     await harness.experimental_dispose();
   });
 
@@ -240,7 +240,7 @@ describe("worktree host entry", () => {
       operationId: "first",
       sourcePath,
       pathKey: "replace",
-      branchName: "bb/expected",
+      branchName: "kaioken/expected",
     });
     const first = await harness.experimental_call("create", input);
     if (first.status !== "created") throw new Error(first.message);
@@ -252,14 +252,14 @@ describe("worktree host entry", () => {
     expect(replaced.status).toBe("created");
     expect(
       (await git(first.path, "rev-parse", "--abbrev-ref", "HEAD")).trim(),
-    ).toBe("bb/expected");
+    ).toBe("kaioken/expected");
     await harness.experimental_dispose();
   });
 
   it("leaves setup execution to core", async () => {
     const { sourcePath, dataDir } = await createSourceRepository();
     await writeFile(
-      join(sourcePath, ".bb-env-setup.sh"),
+      join(sourcePath, ".kaioken-env-setup.sh"),
       "#!/usr/bin/env bash\necho setup-line-one\necho setup-line-two\n",
     );
     await git(sourcePath, "add", ".");
@@ -272,11 +272,11 @@ describe("worktree host entry", () => {
           operationId: "setup",
           sourcePath,
           pathKey: "thr_3",
-          branchName: "bb/setup-thr_3",
+          branchName: "kaioken/setup-thr_3",
         }),
       ),
     ).toMatchObject({ status: "created" });
-    expect(progressText(harness)).not.toContain("Running .bb-env-setup.sh");
+    expect(progressText(harness)).not.toContain("Running .kaioken-env-setup.sh");
     expect(progressText(harness)).not.toContain("setup-line-one");
     expect(progressText(harness)).not.toContain("setup-line-two");
     expect(
@@ -296,7 +296,7 @@ describe("worktree host entry", () => {
         operationId: "first",
         sourcePath,
         pathKey: "thr_7",
-        branchName: "bb/dirty-thr_7",
+        branchName: "kaioken/dirty-thr_7",
       }),
     );
     if (first.status !== "created") throw new Error(first.message);
@@ -307,7 +307,7 @@ describe("worktree host entry", () => {
         operationId: "retry",
         sourcePath,
         pathKey: "thr_7-2",
-        branchName: "bb/dirty-thr_7",
+        branchName: "kaioken/dirty-thr_7",
       }),
     );
     expect(retry).toMatchObject({
@@ -321,7 +321,7 @@ describe("worktree host entry", () => {
   it("leaves teardown to core, kills workspace processes, and prunes the path-key parent", async () => {
     const { root, sourcePath, dataDir } = await createSourceRepository();
     await writeFile(
-      join(sourcePath, ".bb-env-teardown.sh"),
+      join(sourcePath, ".kaioken-env-teardown.sh"),
       `#!/usr/bin/env bash\necho teardown-ran > ${join(root, "teardown.marker")}\necho tearing-down\n`,
     );
     await git(sourcePath, "add", ".");
@@ -333,7 +333,7 @@ describe("worktree host entry", () => {
         operationId: "create",
         sourcePath,
         pathKey: "thr_6",
-        branchName: "bb/teardown-thr_6",
+        branchName: "kaioken/teardown-thr_6",
       }),
     );
     if (created.status !== "created") throw new Error(created.message);

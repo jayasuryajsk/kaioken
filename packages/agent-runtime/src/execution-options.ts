@@ -4,7 +4,7 @@ import type {
   AgentRuntimeSkillRoot,
 } from "./types.js";
 import type { ProviderExecutionContext } from "./provider-adapter.js";
-import type { RuntimePermissionPolicy } from "@bb/domain";
+import type { RuntimePermissionPolicy } from "@kaioken/domain";
 
 interface AssertProviderSupportsExecutionOptionsArgs {
   adapter: BridgeProtocolAdapter;

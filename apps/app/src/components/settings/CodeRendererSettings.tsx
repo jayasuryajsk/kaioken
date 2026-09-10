@@ -1,14 +1,14 @@
 import { useAtom, type PrimitiveAtom } from "jotai";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
-import { COARSE_POINTER_ICON_SIZE_CLASS } from "@bb/shared-ui/coarse-pointer-sizing";
-import { Button } from "@bb/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
+import { COARSE_POINTER_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
+import { Button } from "@kaioken/shared-ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@bb/shared-ui/dropdown-menu";
+} from "@kaioken/shared-ui/dropdown-menu";
 import { SettingsWithControl } from "@/components/ui/settings-section";
 import {
   diffRendererProviderAtom,
@@ -49,7 +49,7 @@ function CodeRendererSetting({
   if (automaticProvider === undefined) return null;
   const builtInOption = {
     key: BUILT_IN_REPLACEMENT_PROVIDER,
-    title: "bb (built-in)",
+    title: "kaioken (built-in)",
     description: builtInDescription,
   };
   const options = [
@@ -120,15 +120,15 @@ export function CodeRendererSettings() {
     <>
       <CodeRendererSetting
         label="Source code"
-        description="Choose automatic activation, BB's viewer, or a specific plugin on this device."
-        builtInDescription="Syntax highlighting and gutters from the bb code theme."
+        description="Choose automatic activation, Kaioken's viewer, or a specific plugin on this device."
+        builtInDescription="Syntax highlighting and gutters from the kaioken code theme."
         preferenceAtom={sourceCodeRendererProviderAtom}
         slots={sourceCodeRenderers}
       />
       <CodeRendererSetting
         label="Diffs"
         description="Applies to file diffs in threads, the diff panel, and plugin views."
-        builtInDescription="Unified and split diffs from the bb code theme."
+        builtInDescription="Unified and split diffs from the kaioken code theme."
         preferenceAtom={diffRendererProviderAtom}
         slots={diffRenderers}
       />

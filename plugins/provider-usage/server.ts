@@ -1,4 +1,4 @@
-import { defineRpcContract, type BbPluginApi } from "@get-bb/plugin-sdk";
+import { defineRpcContract, type KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod/mini";
 import {
   usageSnapshotSchema,
@@ -56,7 +56,7 @@ function normalizedTint(
 
 function normalizedUsage(
   usage: Awaited<
-    ReturnType<BbPluginApi["sdk"]["system"]["usageLimits"]>
+    ReturnType<KaiokenPluginApi["sdk"]["system"]["usageLimits"]>
   >[string],
 ): ProviderUsage | null {
   if (usage === undefined) return null;
@@ -84,14 +84,14 @@ function normalizedUsage(
   }
 }
 
-type Host = Awaited<ReturnType<BbPluginApi["sdk"]["hosts"]["list"]>>[number];
+type Host = Awaited<ReturnType<KaiokenPluginApi["sdk"]["hosts"]["list"]>>[number];
 type Provider = Awaited<
-  ReturnType<BbPluginApi["sdk"]["providers"]["list"]>
+  ReturnType<KaiokenPluginApi["sdk"]["providers"]["list"]>
 >[number];
 
 function normalizedProvider(
   provider: Provider,
-  usage: Awaited<ReturnType<BbPluginApi["sdk"]["system"]["usageLimits"]>>,
+  usage: Awaited<ReturnType<KaiokenPluginApi["sdk"]["system"]["usageLimits"]>>,
 ): UsageProvider {
   return {
     id: provider.id,
@@ -112,7 +112,7 @@ function normalizedProvider(
 }
 
 async function loadMachineUsage(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   host: Host,
 ): Promise<UsageMachine> {
   const providersPromise = bb.sdk.providers.list({
@@ -176,7 +176,7 @@ async function loadMachineUsage(
   };
 }
 
-export default function providerUsagePlugin(bb: BbPluginApi): void {
+export default function providerUsagePlugin(bb: KaiokenPluginApi): void {
   const cache = new Map<string, MachineCacheEntry>();
   const pendingByMachine = new Map<string, PendingMachineUsage>();
   const environmentHosts = new Map<string, string | null>();

@@ -1,8 +1,8 @@
-import type { BbPluginApi, PluginCliResult } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi, PluginCliResult } from "@get-kaioken/plugin-sdk";
 import {
   mobilePairingPayload,
   type MobilePairingPayload,
-} from "@bb/connect-client";
+} from "@kaioken/connect-client";
 import type { ShareHostResolver } from "./hosts.js";
 import { MachineCodeError } from "./machine-code.js";
 import type { MobilePairingGate } from "./rpc.js";
@@ -64,30 +64,30 @@ function validateFlags(
 
 function helpText(): string {
   return [
-    "Remote access via getbb.app — this bb becomes reachable at https://<handle>.getbb.app.",
+    "Remote access via getbb.app — this kaioken becomes reachable at https://<handle>.getbb.app.",
     "Share HTTP ports from any enrolled host (owner session only).",
     "",
     "  1. Sign in at https://getbb.app and claim a handle.",
     "  2. Copy the connect command from the dashboard and run it here:",
-    "       bb connect --code <code> --server https://<handle>.getbb.app",
+    "       kaioken connect --code <code> --server https://<handle>.getbb.app",
     "",
-    "  bb connect status              Show remote-access status",
-    "  bb connect off                 Disconnect and forget the pairing (re-pairing needs a new code)",
-    "  bb connect expose <port> [--host <name-or-id>]    Share a port from the thread's host",
-    "  bb connect unexpose <port> [--host <name-or-id>]  Stop sharing a port on that host",
-    "  bb connect shares [--host <name-or-id>]           List shares for the thread's host",
-    "  bb connect servers             List every bb on this account (from getbb.app)",
-    "  bb connect machine-code        Mint a one-time code that enrolls the bb mobile app (or another",
-    "                                 device) as a connect machine for this bb (needs the",
+    "  kaioken connect status              Show remote-access status",
+    "  kaioken connect off                 Disconnect and forget the pairing (re-pairing needs a new code)",
+    "  kaioken connect expose <port> [--host <name-or-id>]    Share a port from the thread's host",
+    "  kaioken connect unexpose <port> [--host <name-or-id>]  Stop sharing a port on that host",
+    "  kaioken connect shares [--host <name-or-id>]           List shares for the thread's host",
+    "  kaioken connect servers             List every kaioken on this account (from getbb.app)",
+    "  kaioken connect machine-code        Mint a one-time code that enrolls the kaioken mobile app (or another",
+    "                                 device) as a connect machine for this kaioken (needs the",
     '                                 "Mobile app" experiment in Settings → Experiments)',
     "",
-    "The server holds the tunnel; it stays up while bb is running.",
+    "The server holds the tunnel; it stays up while kaioken is running.",
   ].join("\n");
 }
 
 function formatStatus(status: ConnectStatus): string {
   if (!status.paired) {
-    return "Not paired\nPair from the getbb.app dashboard — run `bb connect` for a how-to.";
+    return "Not paired\nPair from the getbb.app dashboard — run `kaioken connect` for a how-to.";
   }
   const lines = [`${status.handle}  ${status.url}  ${status.state}`];
   if (status.lastError !== null && status.state !== "connected") {
@@ -109,7 +109,7 @@ function asJson(value: unknown): string {
 }
 
 function notPairedError(): string {
-  return "this bb is not connected to getbb.app — run `bb connect` for how to pair";
+  return "this kaioken is not connected to getbb.app — run `kaioken connect` for how to pair";
 }
 
 function machineCodeErrorText(
@@ -127,7 +127,7 @@ function machineCodeErrorText(
 }
 
 function mobilePairingDisabledError(): string {
-  return 'mobile pairing is off — turn on the "Mobile app" experiment in Settings → Experiments (or `bb settings experiment mobileApp true`), then run this again';
+  return 'mobile pairing is off — turn on the "Mobile app" experiment in Settings → Experiments (or `kaioken settings experiment mobileApp true`), then run this again';
 }
 
 function formatMachineCode(payload: MobilePairingPayload): string {
@@ -141,7 +141,7 @@ function formatMachineCode(payload: MobilePairingPayload): string {
     `Apex:       ${payload.apex}`,
     `Expires:    ${new Date(payload.expiresAt).toISOString()} (in about ${minutes} min)`,
     "",
-    "Enter the code in the bb mobile app when it asks to pair over bb connect (or",
+    "Enter the code in the kaioken mobile app when it asks to pair over kaioken connect (or",
     "scan the QR code from Settings → Remote access → Add mobile device). The phone",
     "enrolls as a connect machine on this account — it appears in the getbb.app",
     "dashboard's machine list, where you can revoke it. The code works once.",
@@ -149,7 +149,7 @@ function formatMachineCode(payload: MobilePairingPayload): string {
 }
 
 export function registerConnectCli(args: {
-  bb: Pick<BbPluginApi, "cli">;
+  bb: Pick<KaiokenPluginApi, "cli">;
   tunnel: ConnectTunnel;
   hostResolver: ShareHostResolver;
   mobilePairing: MobilePairingGate;
@@ -158,43 +158,43 @@ export function registerConnectCli(args: {
   bb.cli.register({
     name: "connect",
     summary:
-      "Expose this bb at https://<handle>.getbb.app (pair with --code/--server from the dashboard)",
+      "Expose this kaioken at https://<handle>.getbb.app (pair with --code/--server from the dashboard)",
     commands: [
       {
         name: "status",
         summary: "Show remote-access status",
-        usage: "bb connect status [--json]",
+        usage: "kaioken connect status [--json]",
       },
       {
         name: "off",
         summary: "Disconnect and forget the pairing",
-        usage: "bb connect off [--json]",
+        usage: "kaioken connect off [--json]",
       },
       {
         name: "expose",
         summary: "Share an HTTP port from an enrolled host",
-        usage: "bb connect expose <port> [--host <name-or-id>] [--json]",
+        usage: "kaioken connect expose <port> [--host <name-or-id>] [--json]",
       },
       {
         name: "unexpose",
         summary: "Stop sharing an HTTP port from a host",
-        usage: "bb connect unexpose <port> [--host <name-or-id>] [--json]",
+        usage: "kaioken connect unexpose <port> [--host <name-or-id>] [--json]",
       },
       {
         name: "shares",
         summary: "List shared ports and their public URLs",
-        usage: "bb connect shares [--host <name-or-id>] [--json]",
+        usage: "kaioken connect shares [--host <name-or-id>] [--json]",
       },
       {
         name: "servers",
-        summary: "List every bb server on this account",
-        usage: "bb connect servers [--json]",
+        summary: "List every kaioken server on this account",
+        usage: "kaioken connect servers [--json]",
       },
       {
         name: "machine-code",
         summary:
-          'Mint a one-time code that enrolls the bb mobile app as a connect machine (needs the "Mobile app" experiment)',
-        usage: "bb connect machine-code [--json]",
+          'Mint a one-time code that enrolls the kaioken mobile app as a connect machine (needs the "Mobile app" experiment)',
+        usage: "kaioken connect machine-code [--json]",
       },
     ],
     async run(argv, ctx): Promise<PluginCliResult> {
@@ -228,7 +228,7 @@ export function registerConnectCli(args: {
             return {
               exitCode: 1,
               stderr:
-                "Usage: bb connect expose <port> [--host <name-or-id>] [--json]\n",
+                "Usage: kaioken connect expose <port> [--host <name-or-id>] [--json]\n",
             };
           }
           const parsed = parseFlags(argv.slice(2));
@@ -258,7 +258,7 @@ export function registerConnectCli(args: {
             return {
               exitCode: 1,
               stderr:
-                "Usage: bb connect unexpose <port> [--host <name-or-id>] [--json]\n",
+                "Usage: kaioken connect unexpose <port> [--host <name-or-id>] [--json]\n",
             };
           }
           const parsed = parseFlags(argv.slice(2));
@@ -396,7 +396,7 @@ export function registerConnectCli(args: {
           exitCode: 0,
           stdout:
             `Paired as ${status.handle} — reachable at ${status.url}\n` +
-            "The server holds the tunnel; it stays up while bb is running.\n",
+            "The server holds the tunnel; it stays up while kaioken is running.\n",
         };
       } catch (error) {
         return {

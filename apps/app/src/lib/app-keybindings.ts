@@ -1,5 +1,5 @@
-import type { AppCommandContext, AppKeybinding, AppShortcut } from "@bb/domain";
-import { isMacKeyboardPlatform } from "@bb/domain";
+import type { AppCommandContext, AppKeybinding, AppShortcut } from "@kaioken/domain";
+import { isMacKeyboardPlatform } from "@kaioken/domain";
 
 export interface AppShortcutPresentation {
   ariaKeyshortcuts: string;

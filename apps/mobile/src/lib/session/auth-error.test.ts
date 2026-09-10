@@ -1,5 +1,5 @@
-import { ConnectListError } from "@bb/connect-client";
-import { BbHttpError } from "@bb/sdk/browser";
+import { ConnectListError } from "@kaioken/connect-client";
+import { KaiokenHttpError } from "@kaioken/sdk/browser";
 import { describe, expect, it } from "vitest";
 import { mapAuthError } from "./auth-error";
 
@@ -23,7 +23,7 @@ describe("mapAuthError", () => {
     );
     expect(
       mapAuthError(
-        new BbHttpError({
+        new KaiokenHttpError({
           status: 401,
           message: "Unauthorized",
           body: null,
@@ -46,7 +46,7 @@ describe("mapAuthError", () => {
     expect(mapAuthError(response(503, "text/html"))).toBe("http");
     expect(
       mapAuthError(
-        new BbHttpError({
+        new KaiokenHttpError({
           status: 500,
           message: "oops",
           body: null,

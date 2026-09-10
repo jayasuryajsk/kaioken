@@ -9,9 +9,9 @@ import {
   DESKTOP_BROWSER_BROKER_DESCRIPTOR_FILE,
   desktopBrowserRegistrationSchema,
   desktopBrowserChangedSchema,
-} from "@bb/host-daemon-contract";
+} from "@kaioken/host-daemon-contract";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { BbDesktopBrowserViewBounds } from "@bb/desktop-contract";
+import type { KaiokenDesktopBrowserViewBounds } from "@kaioken/desktop-contract";
 import { createDesktopBrowserCdpAdapter } from "../src/desktop-browser-cdp-adapter.js";
 import { createDesktopBrowserBroker } from "../src/desktop-browser-broker.js";
 import { createDesktopBrowserBrokerClient } from "../src/desktop-browser-broker-client.js";
@@ -636,7 +636,7 @@ const electronMock = vi.hoisted(() => {
   let nextWebContentsId = 1;
 
   class FakeWebContentsView {
-    public readonly boundsCalls: BbDesktopBrowserViewBounds[] = [];
+    public readonly boundsCalls: KaiokenDesktopBrowserViewBounds[] = [];
     public readonly webContents: FakeWebContents;
     public visible = false;
 
@@ -647,7 +647,7 @@ const electronMock = vi.hoisted(() => {
       nextWebContentsId += 1;
     }
 
-    setBounds(bounds: BbDesktopBrowserViewBounds): void {
+    setBounds(bounds: KaiokenDesktopBrowserViewBounds): void {
       this.boundsCalls.push(bounds);
     }
 
@@ -1428,7 +1428,7 @@ describe("DesktopBrowserViewManager", () => {
       const address = server.address();
       if (typeof address === "string" || address === null)
         throw new Error("Expected TCP address");
-      const dataDir = await mkdtemp(join(tmpdir(), "bb-native-origin-"));
+      const dataDir = await mkdtemp(join(tmpdir(), "kaioken-native-origin-"));
       const frameSchema = z.union([
         desktopBrowserRegistrationSchema,
         desktopBrowserChangedSchema,
@@ -1465,7 +1465,7 @@ describe("DesktopBrowserViewManager", () => {
         const directory =
           daemon === "local"
             ? dataDir
-            : join(dataDir, ".bb-machines", new URL(serverUrl).host);
+            : join(dataDir, ".kaioken-machines", new URL(serverUrl).host);
         await mkdir(directory, { recursive: true });
         await writeFile(
           join(directory, DESKTOP_BROWSER_BROKER_DESCRIPTOR_FILE),
@@ -2485,7 +2485,7 @@ describe("DesktopBrowserViewManager", () => {
       frame: false,
       height: 4_000,
       show: false,
-      title: "bb sign in",
+      title: "kaioken sign in",
       transparent: true,
       width: 10,
       webContents: childContents,
@@ -2523,14 +2523,14 @@ describe("DesktopBrowserViewManager", () => {
         webSecurity: true,
       },
     });
-    expect(popupWindow.titleCalls).toEqual(["bb browser popup"]);
+    expect(popupWindow.titleCalls).toEqual(["kaioken browser popup"]);
     childContents.emitDidNavigate("https://accounts.google.com/oauth2/auth");
     expect(popupWindow.titleCalls.at(-1)).toBe(
-      "bb browser — https://accounts.google.com",
+      "kaioken browser — https://accounts.google.com",
     );
     expect(childContents.emitPageTitleUpdated("Google Sign In")).toBe(true);
     expect(popupWindow.titleCalls.at(-1)).toBe(
-      "bb browser — https://accounts.google.com",
+      "kaioken browser — https://accounts.google.com",
     );
     expect(popupContents.emitWindowOpen("https://example.com/nested")).toEqual({
       action: "deny",
@@ -2980,17 +2980,17 @@ describe("DesktopBrowserViewManager", () => {
     });
     const view = requireFakeView(0);
     expect(hostWindow.webContents.sentChannels).not.toContain(
-      "bb-desktop:browser:focused",
+      "kaioken-desktop:browser:focused",
     );
 
     manager.focus({ hostWindow, tabId: "browser:a" });
     expect(hostWindow.webContents.sentChannels).not.toContain(
-      "bb-desktop:browser:focused",
+      "kaioken-desktop:browser:focused",
     );
 
     view.webContents.emitFocus();
     expect(hostWindow.webContents.sentChannels).toContain(
-      "bb-desktop:browser:focused",
+      "kaioken-desktop:browser:focused",
     );
     expect(hostWindow.webContents.sentPayloads.at(-1)).toEqual({
       tabId: "browser:a",

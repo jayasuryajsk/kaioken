@@ -9,9 +9,9 @@ import {
   upsertPluginMarketplace,
   upsertInstalledPlugin,
   type DbConnection,
-} from "@bb/db";
-import { ROOT_PLUGIN_SOURCE_SELECTION } from "@bb/server-contract";
-import { PLUGIN_CATALOG_CATEGORIES } from "@bb/domain";
+} from "@kaioken/db";
+import { ROOT_PLUGIN_SOURCE_SELECTION } from "@kaioken/server-contract";
+import { PLUGIN_CATALOG_CATEGORIES } from "@kaioken/domain";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createPluginCatalogService } from "../../../src/services/plugin-catalog/plugin-catalog-service.js";
 import type { MarketplaceFetch } from "../../../src/services/plugin-catalog/marketplace-http.js";
@@ -103,7 +103,7 @@ describe("plugin catalog service", () => {
     migrate(db);
     installedNames = [];
     installedCatalogEntries = [];
-    dataDir = await mkdtemp(join(tmpdir(), "bb-catalog-data-"));
+    dataDir = await mkdtemp(join(tmpdir(), "kaioken-catalog-data-"));
   });
 
   afterEach(async () => {
@@ -209,7 +209,7 @@ describe("plugin catalog service", () => {
       marketplaceDisplayName: "BB Official",
       publisherKey: "bb-official",
       publisherLabel: "BB Official",
-      author: { name: "BB", url: null },
+      author: { name: "Kaioken", url: null },
       installed: false,
       compatible: true,
     });
@@ -286,7 +286,7 @@ describe("plugin catalog service", () => {
   });
 
   it("drops entries whose bundled manifest is unreadable", async () => {
-    const missingRoot = await mkdtemp(join(tmpdir(), "bb-missing-plugin-"));
+    const missingRoot = await mkdtemp(join(tmpdir(), "kaioken-missing-plugin-"));
     await rm(missingRoot, { recursive: true, force: true });
     const warnings: string[] = [];
     const registrations = listBundledPluginRegistrations();
@@ -1119,7 +1119,7 @@ describe("plugin catalog service", () => {
           icon: "Zap",
           source: {
             npm: {
-              package: "bb-plugin-widgets",
+              package: "kaioken-plugin-widgets",
               tag: "beta",
               registry: "https://npm.acme.test",
             },
@@ -1134,7 +1134,7 @@ describe("plugin catalog service", () => {
           marketplace: "bb-community",
           entryId: "widgets",
           pluginId: "widgets",
-          source: "npm:bb-plugin-widgets@beta",
+          source: "npm:kaioken-plugin-widgets@beta",
           selection: ROOT_PLUGIN_SOURCE_SELECTION,
           npmRegistry: "https://npm.acme.test",
         },
@@ -1343,7 +1343,7 @@ describe("plugin catalog service", () => {
                     icon: "ZoomIn",
                     source: {
                       npm: {
-                        package: "bb-plugin-widgets",
+                        package: "kaioken-plugin-widgets",
                         range: "^1.0.0",
                         registry: "https://npm.acme.test",
                       },
@@ -1356,7 +1356,7 @@ describe("plugin catalog service", () => {
 
       await catalog.refresh(1_000);
       expect((await catalog.search("widgets"))[0]?.source).toBe(
-        "npm:bb-plugin-widgets@^1.0.0 (registry https://npm.acme.test)",
+        "npm:kaioken-plugin-widgets@^1.0.0 (registry https://npm.acme.test)",
       );
     });
   });

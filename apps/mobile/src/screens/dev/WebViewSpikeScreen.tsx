@@ -1,7 +1,7 @@
 import {
   fetchDesktopSession,
   redeemMachineCredential,
-} from "@bb/connect-client";
+} from "@kaioken/connect-client";
 import CookieManager from "@react-native-cookies/cookies";
 import { File, Directory, Paths } from "expo-file-system";
 import { useLocalSearchParams } from "expo-router";
@@ -63,7 +63,7 @@ function firstParam(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-const APEX_URL = process.env.EXPO_PUBLIC_BB_CONNECT_APEX ?? "https://getbb.app";
+const APEX_URL = process.env.EXPO_PUBLIC_KAIOKEN_CONNECT_APEX ?? "https://getbb.app";
 
 export function WebViewSpikeScreen() {
   const insets = useSafeAreaInsets();

@@ -1,12 +1,12 @@
 import type {
-  BbPluginApi,
+  KaiokenPluginApi,
   MessageDispatchHookContext,
   PluginAgentConfigurationContext,
   PluginThreadEventPayloads,
-} from "@get-bb/plugin-sdk";
+} from "@get-kaioken/plugin-sdk";
 
 type HostResponse = Awaited<
-  ReturnType<BbPluginApi["sdk"]["hosts"]["list"]>
+  ReturnType<KaiokenPluginApi["sdk"]["hosts"]["list"]>
 >[number];
 type ThreadResponse = PluginThreadEventPayloads["thread.created"]["thread"];
 type QueueEntry = PluginThreadEventPayloads["message.queued"]["entry"];

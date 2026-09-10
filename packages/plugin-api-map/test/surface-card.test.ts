@@ -59,6 +59,6 @@ describe("SurfaceCard annotation navigation", () => {
     );
 
     expect(markup).toContain("Copy for agent");
-    expect(markup).not.toContain("bb-plugin-authoring skill");
+    expect(markup).not.toContain("kaioken-plugin-authoring skill");
   });
 });

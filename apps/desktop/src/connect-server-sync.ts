@@ -3,7 +3,7 @@ import {
   ConnectListError,
   listAccountServers,
   type ConnectCredential,
-} from "@bb/connect-client";
+} from "@kaioken/connect-client";
 
 const connectAccountServerSchema = z
   .object({

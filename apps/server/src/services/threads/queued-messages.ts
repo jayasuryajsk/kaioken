@@ -13,20 +13,20 @@ import {
   type DbQueryConnection,
   type QueuedThreadMessageGroupClaimPolicy,
   type QueuedThreadMessageGroupEligibility,
-} from "@bb/db";
-import { queuedMessageSystemNoticeSchema } from "@bb/domain";
+} from "@kaioken/db";
+import { queuedMessageSystemNoticeSchema } from "@kaioken/domain";
 import type {
   PromptInput,
   QueuedMessageWaitingOn,
   Thread,
   ThreadQueuedMessage,
   ThreadTurnInitiator,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import type {
   CreateQueuedMessageRequest,
   SendMessageRequest,
   SendQueuedMessageMode,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type {
   AppDeps,
   LoggedPendingInteractionWorkSessionDeps,

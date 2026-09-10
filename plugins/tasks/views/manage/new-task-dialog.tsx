@@ -26,15 +26,15 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTitle,
-} from "@bb/shared-ui/dialog";
+} from "@kaioken/shared-ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@bb/shared-ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@bb/shared-ui/popover";
+} from "@kaioken/shared-ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@kaioken/shared-ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -42,10 +42,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@bb/shared-ui/command";
-import { Button } from "@bb/shared-ui/button";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+} from "@kaioken/shared-ui/command";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { CheckboxField, DEFAULT_COLOR } from "./shared.js";
 import { PRIORITY_LABELS, STATUS_LABELS } from "../list/lib.js";
 

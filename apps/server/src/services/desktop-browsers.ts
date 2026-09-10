@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { getStoredThreadTabs, replaceStoredThreadTabs } from "@bb/db";
-import type { DesktopBrowserTab } from "@bb/host-daemon-contract";
+import { getStoredThreadTabs, replaceStoredThreadTabs } from "@kaioken/db";
+import type { DesktopBrowserTab } from "@kaioken/host-daemon-contract";
 import {
   threadTabsSchema,
   type ExperimentalDesktopBrowserScope,
@@ -11,7 +11,7 @@ import {
   type ExperimentalDesktopBrowserLease,
   type ExperimentalDesktopBrowserInstanceRequest,
   type ExperimentalDesktopBrowserImportCookiesRequest,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import type { WorkSessionDeps } from "../types.js";
 import { ApiError } from "../errors.js";
 import {

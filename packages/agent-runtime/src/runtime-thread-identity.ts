@@ -1,4 +1,4 @@
-import type { ThreadEvent } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
 import type { AgentRuntimeProviderSession } from "./types.js";
 
 export interface RuntimeProviderIdentityState {
@@ -100,13 +100,13 @@ export class RuntimeThreadIdentityRegistry {
       return undefined;
     }
 
-    for (const [bbThreadId, mappedProviderThreadId] of this
+    for (const [kaiokenThreadId, mappedProviderThreadId] of this
       .threadToProviderThread) {
       if (
         mappedProviderThreadId === args.providerThreadId &&
-        args.providerState.threadIds.has(bbThreadId)
+        args.providerState.threadIds.has(kaiokenThreadId)
       ) {
-        return bbThreadId;
+        return kaiokenThreadId;
       }
     }
 
@@ -132,13 +132,13 @@ export class RuntimeThreadIdentityRegistry {
 
     const lookupId = args.sourceThreadId || args.eventThreadId;
     if (lookupId) {
-      for (const [bbThreadId, providerThreadId] of this
+      for (const [kaiokenThreadId, providerThreadId] of this
         .threadToProviderThread) {
         if (
           providerThreadId === lookupId &&
-          args.providerState.threadIds.has(bbThreadId)
+          args.providerState.threadIds.has(kaiokenThreadId)
         ) {
-          return bbThreadId;
+          return kaiokenThreadId;
         }
       }
     }

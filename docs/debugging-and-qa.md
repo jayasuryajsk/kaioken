@@ -3,34 +3,34 @@
 - `pnpm dev` prints the active frontend URL, server API URL, host daemon port, data dir, and logs dir. Do not assume fixed dev ports.
 - `pnpm start:worktree` builds production artifacts and serves the optimized app bundle from the checkout-specific dev server URL, while keeping the same dev data directory and deterministic server/host-daemon ports. It has no Vite dev server or hot reload.
 - `pnpm start:worktree-remote` is the trusted-network variant of `pnpm start:worktree`; it binds that server to all IPv4 interfaces.
-- The packaged app defaults to server/frontend `:38886`, host daemon `:38887`, data dir `~/.bb/`, and logs under `~/.bb/logs/`.
-- `bb-app` (including `pnpm start`), `bb-server`, and `bb-host-daemon` capture service stdout and stderr directly in `logs/server-stdio.log` and `logs/host-daemon-stdio.log` under the selected data directory. These append across restarts and are separate from rotating application logs. Use `tail -F` on these files for console output and early startup errors; service output is no longer forwarded to the launcher's terminal.
-- Entity IDs in URLs (`proj_*`, `thr_*`) are primary keys. Query them directly against the active data dir: `sqlite3 <data>/bb.db "SELECT * FROM threads WHERE id = 'thr_xxx';"`.
+- The packaged app defaults to server/frontend `:38886`, host daemon `:38887`, data dir `~/.kaioken/`, and logs under `~/.kaioken/logs/`.
+- `kaioken-app` (including `pnpm start`), `kaioken-server`, and `kaioken-host-daemon` capture service stdout and stderr directly in `logs/server-stdio.log` and `logs/host-daemon-stdio.log` under the selected data directory. These append across restarts and are separate from rotating application logs. Use `tail -F` on these files for console output and early startup errors; service output is no longer forwarded to the launcher's terminal.
+- Entity IDs in URLs (`proj_*`, `thr_*`) are primary keys. Query them directly against the active data dir: `sqlite3 <data>/kaioken.db "SELECT * FROM threads WHERE id = 'thr_xxx';"`.
 - API routes are under `/api/v1/`, for example `GET /api/v1/threads/:id`.
 - Use `curl` against the server API to isolate frontend issues from server behavior.
-- Use the CLI to inspect state: `pnpm bb thread show <id>`, `pnpm bb project list`, `pnpm bb status`. From source, use `pnpm bb:dev`.
+- Use the CLI to inspect state: `pnpm kaioken thread show <id>`, `pnpm kaioken project list`, `pnpm kaioken status`. From source, use `pnpm kaioken:dev`.
 
 ## Local Dev QA Launcher
 
-Use `scripts/bb-dev-app` when validating changes in the desktop dev app or helping QA from this checkout:
+Use `scripts/kaioken-dev-app` when validating changes in the desktop dev app or helping QA from this checkout:
 
-- `pnpm dev:status` runs `scripts/bb-dev-app status` to print the active branch, Node runtime, dev URLs, data dir, and logs.
-- `scripts/bb-dev-app current` restarts the dev server on the current branch.
-- `scripts/bb-dev-app main` fetches `origin/main`, fast-forwards `main`, and launches the dev server from this checkout.
-- `scripts/bb-dev-app branch <branch>` switches to a local branch, or creates it from `origin/<branch>`, then launches the dev server.
-- `pnpm dev:stop` runs `scripts/bb-dev-app stop` to stop the launcher-managed dev server and desktop.
-- `scripts/bb-dev-app logs dev` and `scripts/bb-dev-app logs desktop` follow logs.
+- `pnpm dev:status` runs `scripts/kaioken-dev-app status` to print the active branch, Node runtime, dev URLs, data dir, and logs.
+- `scripts/kaioken-dev-app current` restarts the dev server on the current branch.
+- `scripts/kaioken-dev-app main` fetches `origin/main`, fast-forwards `main`, and launches the dev server from this checkout.
+- `scripts/kaioken-dev-app branch <branch>` switches to a local branch, or creates it from `origin/<branch>`, then launches the dev server.
+- `pnpm dev:stop` runs `scripts/kaioken-dev-app stop` to stop the launcher-managed dev server and desktop.
+- `scripts/kaioken-dev-app logs dev` and `scripts/kaioken-dev-app logs desktop` follow logs.
 
-By default the launcher starts only the dev server (web frontend, server, host daemon) and prints the URL without opening a browser. Pass `--open` to open the browser after startup. Pass `--desktop` (e.g. `scripts/bb-dev-app current --desktop`) to also launch the Electron desktop shell — only do this when the user is testing a desktop-only change.
+By default the launcher starts only the dev server (web frontend, server, host daemon) and prints the URL without opening a browser. Pass `--open` to open the browser after startup. Pass `--desktop` (e.g. `scripts/kaioken-dev-app current --desktop`) to also launch the Electron desktop shell — only do this when the user is testing a desktop-only change.
 
 The launcher uses the Node executable from the caller's `PATH`. It does not select another installed Node version. The `.nvmrc` file pins the primary development runtime to Node 22.19.0. Node 24 and Node 26 remain compatibility targets. Desktop development requires Node 22.19 or newer in the Node 22 release line.
 
-A bb connect shared-port URL is a different browser origin from localhost. If
+A kaioken connect shared-port URL is a different browser origin from localhost. If
 QA through that URL needs the browser-local host daemon, restart the dev app
 with the share origin configured after exposing its app port:
 
 ```bash
-BB_APP_URL=https://<handle>--<app-port>.getbb.app scripts/bb-dev-app current
+KAIOKEN_APP_URL=https://<handle>--<app-port>.getbb.app scripts/kaioken-dev-app current
 ```
 
 The port remains stable for the checkout, so the existing share continues to
@@ -38,15 +38,15 @@ work after the restart. The host daemon intentionally rejects remote origins
 that are not configured; otherwise any webpage could drive its local editor
 API.
 
-Branch switches intentionally keep dirty work in this checkout; git will stop if a local file would be overwritten. Set `BB_DEV_APP_STASH_DIRTY=1` for a one-off launch that stashes first.
+Branch switches intentionally keep dirty work in this checkout; git will stop if a local file would be overwritten. Set `KAIOKEN_DEV_APP_STASH_DIRTY=1` for a one-off launch that stashes first.
 
-For CLI QA against the dev instance, run `eval "$(scripts/bb-dev-app env)"` first. This sets `BB_SERVER_URL`, `BB_HOST_DAEMON_PORT`, and `BB_PROJECT_ID=proj_personal` so `pnpm bb:dev ...` does not accidentally target the packaged app.
+For CLI QA against the dev instance, run `eval "$(scripts/kaioken-dev-app env)"` first. This sets `KAIOKEN_SERVER_URL`, `KAIOKEN_HOST_DAEMON_PORT`, and `KAIOKEN_PROJECT_ID=proj_personal` so `pnpm kaioken:dev ...` does not accidentally target the packaged app.
 
 Test agents with:
 
 ```bash
-eval "$(scripts/bb-dev-app env)"
-pnpm bb:dev thread spawn --project proj_personal --provider codex --permission-mode accept-edits --title "Smoke test" --prompt "Reply only with ok." --json
+eval "$(scripts/kaioken-dev-app env)"
+pnpm kaioken:dev thread spawn --project proj_personal --provider codex --permission-mode accept-edits --title "Smoke test" --prompt "Reply only with ok." --json
 ```
 
 ## Desktop Browser CDP Prototype
@@ -54,7 +54,7 @@ pnpm bb:dev thread spawn --project proj_personal --provider codex --permission-m
 Run the isolated Electron compatibility fixture through Turbo:
 
 ```bash
-pnpm exec turbo run smoke:browser-cdp --filter=@bb/desktop > /tmp/browser-cdp-smoke.log 2>&1
+pnpm exec turbo run smoke:browser-cdp --filter=@kaioken/desktop > /tmp/browser-cdp-smoke.log 2>&1
 ```
 
 The harness currently requires Linux x64, `xvfb-run`, and network access to
@@ -62,12 +62,12 @@ GitHub releases. It downloads checksum-pinned DevBrowser 1.0.0-rc.2 and
 agent-browser 0.36.0 into a fresh temporary directory, bundles the fixture,
 and drives real `WebContentsView` tabs through the production CDP bridge and
 native adapter. It uses a local fixture website and a separate Electron
-profile, without starting a BB core or reading an existing BB store.
+profile, without starting a Kaioken core or reading an existing Kaioken store.
 
 The command prints its artifact directory, including screenshots, protocol
 method traces, and the result summary. Connection credentials are redacted
 from the diagnostic output. Desktop startup now registers the native broker;
-`bb browser` and `bb.sdk.experimental_desktopBrowsers` expose its public API.
+`kaioken browser` and `bb.sdk.experimental_desktopBrowsers` expose its public API.
 This fixture also exercises service-created hidden automation tabs and leases.
 The fixture verifies simultaneous control of a hidden thread and another
 thread, in addition to both clients’ main-page workflows. It verifies trusted
@@ -81,7 +81,7 @@ ref support. Popup control remains untested.
 To validate a modified DevBrowser build, run:
 
 ```bash
-pnpm exec turbo run smoke:browser-cdp --filter=@bb/desktop -- --dev-browser /absolute/path/to/dev-browser > /tmp/browser-cdp-local-smoke.log 2>&1
+pnpm exec turbo run smoke:browser-cdp --filter=@kaioken/desktop -- --dev-browser /absolute/path/to/dev-browser > /tmp/browser-cdp-local-smoke.log 2>&1
 ```
 
 The `--dev-browser` option copies that binary into the artifact directory,
@@ -115,7 +115,7 @@ that flag proves the listed browser checks, not graceful Electron shutdown.
 ## Desktop Browser Broker Integration
 
 ```bash
-pnpm exec turbo run smoke:browser-broker --filter=@bb/desktop -- --dev-browser /absolute/path/to/dev-browser > /tmp/browser-broker-smoke.log 2>&1
+pnpm exec turbo run smoke:browser-broker --filter=@kaioken/desktop -- --dev-browser /absolute/path/to/dev-browser > /tmp/browser-broker-smoke.log 2>&1
 ```
 
 This isolated fixture uses an in-memory migrated test server, the actual SDK
@@ -125,18 +125,18 @@ it does not start a full enrolled daemon or prove remote-machine transport.
 It verifies private connection-file permissions, ownership, browser input,
 capture, revocation, and connection generations. The default downloads the
 checksum-pinned release; the optional binary path records local provenance.
-No existing BB store or browser profile is used.
+No existing Kaioken store or browser profile is used.
 
 ## Record Provider Bridge Traffic
 
-Export `BB_PROVIDER_BRIDGE_RECORD_DIR` before you start the dev app and every
+Export `KAIOKEN_PROVIDER_BRIDGE_RECORD_DIR` before you start the dev app and every
 provider bridge records its runtime and provider wires as NDJSON:
 
 ```bash
-BB_PROVIDER_BRIDGE_RECORD_DIR=$HOME/.bb/provider-recordings/raw scripts/bb-dev-app current
-eval "$(scripts/bb-dev-app env)"
-pnpm bb:dev thread spawn --project proj_personal --provider codex --prompt "Run git status." --json
-ls ~/.bb/provider-recordings/raw/codex/
+KAIOKEN_PROVIDER_BRIDGE_RECORD_DIR=$HOME/.kaioken/provider-recordings/raw scripts/kaioken-dev-app current
+eval "$(scripts/kaioken-dev-app env)"
+pnpm kaioken:dev thread spawn --project proj_personal --provider codex --prompt "Run git status." --json
+ls ~/.kaioken/provider-recordings/raw/codex/
 ```
 
 The layout is `<dir>/<providerId>/<threadId>/<direction>.ndjson`, plus a
@@ -159,10 +159,10 @@ Use `pnpm seed:perf` to fill a dev database with a large, realistic fixture:
 many projects, ~1,200 threads, and ~400k event rows with production-like
 payloads. Use it to reproduce performance problems that only appear at scale.
 
-- Start the dev app once first (`scripts/bb-dev-app current`), then stop it and
+- Start the dev app once first (`scripts/kaioken-dev-app current`), then stop it and
   seed. The fixture then attaches to the real local host, so agents still run.
 - By default the command seeds this checkout's dev data dir. Pass
-  `--data-dir <path>` for another target. The command refuses to touch `~/.bb`.
+  `--data-dir <path>` for another target. The command refuses to touch `~/.kaioken`.
 - Scale flags: `--projects`, `--threads`, `--events`, `--seed`. `--reset`
   deletes the database file first. Without `--reset` the fixture appends.
 - Example: `pnpm seed:perf -- --reset --events 400000`.
@@ -170,19 +170,19 @@ payloads. Use it to reproduce performance problems that only appear at scale.
 ## Provider Corpus
 
 The provider corpus is a private set of real production threads (307 threads,
-330,626 event rows, extracted from a personal `~/.bb/bb.db`). It is the
+330,626 event rows, extracted from a personal `~/.kaioken/kaioken.db`). It is the
 regression oracle for the provider-plugin migration: every layer must project
 the same rows and build timelines at the same speed. The corpus contains real
 prompts, code, and paths, so it is **never committed**; `.gitignore` blocks
 every `provider-corpus/` directory except the in-repo harness and scripts.
 
-- Location: `~/.bb/provider-corpus/` by default. Tests read it through
-  `BB_PROVIDER_CORPUS_DIR` and skip when the variable is unset or the directory
+- Location: `~/.kaioken/provider-corpus/` by default. Tests read it through
+  `KAIOKEN_PROVIDER_CORPUS_DIR` and skip when the variable is unset or the directory
   has no `manifest.json`, so CI and fresh checkouts stay green.
 - Layout: `manifest.json` (thread selection and reasons), `profile.json`,
   `threads/<provider>/<threadId>/{meta.json,events.ndjson}`, and the generated
   `snapshots/` directory described below.
-- Reader: `@bb/test-helpers` exports `corpusAvailable()`,
+- Reader: `@kaioken/test-helpers` exports `corpusAvailable()`,
   `listCorpusThreads({ provider?, reasons? })`, and `loadCorpusThread(id)`.
   Event rows decode through the same `parseStoredThreadEvent` the server uses.
 
@@ -204,8 +204,8 @@ scripts/provider-corpus/snapshot-rows.sh compare   # default mode, fails on diff
 scripts/provider-corpus/snapshot-rows.sh write     # refresh the baseline
 ```
 
-The script wraps `pnpm exec turbo run test:provider-corpus --filter=@bb/server`
-with `BB_PROVIDER_CORPUS_SNAPSHOT=write|compare`. Turbo strips undeclared
+The script wraps `pnpm exec turbo run test:provider-corpus --filter=@kaioken/server`
+with `KAIOKEN_PROVIDER_CORPUS_SNAPSHOT=write|compare`. Turbo strips undeclared
 variables, so use that task (not the package `test` task) when you set the
 corpus variables. Each run writes `snapshots/rows-last-run.json` and
 `snapshots/perf-last-run.md` with totals and the perf table.
@@ -240,8 +240,8 @@ workstream, so never run `write` against it from a feature branch. A PR that
 intentionally changes rows carries its own allowlist in the repository
 (`apps/server/test/provider-corpus/allowlists/<ws>.json`, same schema, merged
 after the shared file) and compares with
-`BB_PROVIDER_CORPUS_ALLOWLIST=<that file>`. A snapshot of the branch's own
-rows goes to a shadow directory: `BB_PROVIDER_CORPUS_SNAPSHOT_DIR=<dir>`
+`KAIOKEN_PROVIDER_CORPUS_ALLOWLIST=<that file>`. A snapshot of the branch's own
+rows goes to a shadow directory: `KAIOKEN_PROVIDER_CORPUS_SNAPSHOT_DIR=<dir>`
 redirects both `write` and `compare`. Re-mint `snapshots/rows` from `main`
 after such a PR merges and delete the allowlist file it carried.
 
@@ -249,7 +249,7 @@ A pointer allowlist cannot describe a change that adds or removes rows: every
 later sibling shifts and the diff reports the whole turn. For such a change,
 carry a row-class file instead
 (`apps/server/test/provider-corpus/allowlists/<ws>-row-classes.json`) and set
-`BB_PROVIDER_CORPUS_ROW_CLASSES=<that file>` on the compare run. The gate then
+`KAIOKEN_PROVIDER_CORPUS_ROW_CLASSES=<that file>` on the compare run. The gate then
 matches rows by identity (`callId`, `itemId`, `interactionId`, turn id, or row
 id), buckets every change into the first class whose matcher fits, and fails
 on a change no class claims or an entry that claims nothing (judged per
@@ -266,7 +266,7 @@ two directories offline:
 
 ```bash
 pnpm exec tsx scripts/provider-corpus/classify-row-diff.ts \
-  ~/.bb/provider-corpus/snapshots/rows ~/.bb/provider-corpus/snapshots/rows.<ws> \
+  ~/.kaioken/provider-corpus/snapshots/rows ~/.kaioken/provider-corpus/snapshots/rows.<ws> \
   --classes apps/server/test/provider-corpus/allowlists/<ws>-row-classes.json --verbose
 ```
 
@@ -295,14 +295,14 @@ pnpm cloud:dev
 
 The command applies migrations and prints the dashboard URL. Create a local
 email/password account, claim a handle, create a pairing code, and run the
-displayed `bb connect` command against a bb started with `pnpm dev`. The same
-worktree-specific local origin serves the dashboard at `bb.localhost` and
-routes `<handle>.bb.localhost` through the Connect worker. Email/password auth
+displayed `kaioken connect` command against a kaioken started with `pnpm dev`. The same
+worktree-specific local origin serves the dashboard at `kaioken.localhost` and
+routes `<handle>.kaioken.localhost` through the Connect worker. Email/password auth
 is enabled only for this loopback workflow; production remains GitHub-only.
-`pnpm dev` automatically sets `BB_DEV_CONNECT_BASE_URL` to that worktree's
-local Cloud origin. While the bb is unpaired, Settings → Installed plugins → Connect
+`pnpm dev` automatically sets `KAIOKEN_DEV_CONNECT_BASE_URL` to that worktree's
+local Cloud origin. While the kaioken is unpaired, Settings → Installed plugins → Connect
 therefore opens the local dashboard and a pasted code redeems locally. An
-explicit `bb connect --server ...` or `--base-url ...` still wins, so the dev bb
+explicit `kaioken connect --server ...` or `--base-url ...` still wins, so the dev kaioken
 can still pair with getbb.app.
 Local machine enrollment follows the same origin: local `http:` server URLs
 produce `ws:` machine tunnels and `http:` share URLs, while non-local machine

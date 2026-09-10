@@ -12,7 +12,7 @@ const EVIL_ORIGIN = "https://evil.example";
 const PLUGIN_ID = "review-fixes";
 
 const FIXTURE_SOURCE = `
-  import { defineRpcContract } from "@get-bb/plugin-sdk";
+  import { defineRpcContract } from "@get-kaioken/plugin-sdk";
   import { z } from "zod";
   const rpcContract = defineRpcContract({
     slowKv: {
@@ -47,15 +47,15 @@ describe("review fixes: idempotent enable, cli auth, dispose drain", () => {
 
   beforeEach(async () => {
     harness = await createTestAppHarness();
-    workDir = await mkdtemp(join(tmpdir(), "bb-plugin-review-fixes-"));
+    workDir = await mkdtemp(join(tmpdir(), "kaioken-plugin-review-fixes-"));
     delete globals.__rfLoads;
     delete globals.__rfDisposals;
-    const rootDir = join(workDir, "bb-plugin-review-fixes");
+    const rootDir = join(workDir, "kaioken-plugin-review-fixes");
     await mkdir(rootDir, { recursive: true });
     await writeFile(
       join(rootDir, "package.json"),
       JSON.stringify({
-        name: "bb-plugin-review-fixes",
+        name: "kaioken-plugin-review-fixes",
         version: "0.1.0",
         bb: {
           name: "Review fixes fixture",

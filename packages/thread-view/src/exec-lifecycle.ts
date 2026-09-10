@@ -5,7 +5,7 @@ import {
   ThreadEventItemApprovalStatus,
   ThreadEventItemPresentation,
   ThreadEventItemStatus,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { getEventParentToolCallId, type EventMeta } from "./event-decode.js";
 import type {
   EventProjectionApprovalLifecycleStatus,

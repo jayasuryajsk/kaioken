@@ -1,27 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  BB_DESKTOP_BROWSER_MAX_URL_LENGTH,
-  type BbDesktopBrowserAttachRequest,
-  type BbDesktopBrowserFindInPageRequest,
-  type BbDesktopBrowserNavigateRequest,
-  type BbDesktopBrowserSetBoundsRequest,
-  type BbDesktopBrowserSetVisibleRequest,
-  type BbDesktopBrowserStopFindInPageRequest,
-} from "@bb/desktop-contract";
+  KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH,
+  type KaiokenDesktopBrowserAttachRequest,
+  type KaiokenDesktopBrowserFindInPageRequest,
+  type KaiokenDesktopBrowserNavigateRequest,
+  type KaiokenDesktopBrowserSetBoundsRequest,
+  type KaiokenDesktopBrowserSetVisibleRequest,
+  type KaiokenDesktopBrowserStopFindInPageRequest,
+} from "@kaioken/desktop-contract";
 import {
-  BB_DESKTOP_BROWSER_ATTACH_CHANNEL,
-  BB_DESKTOP_BROWSER_DETACH_CHANNEL,
-  BB_DESKTOP_BROWSER_FOCUS_CHANNEL,
-  BB_DESKTOP_BROWSER_FIND_IN_PAGE_CHANNEL,
-  BB_DESKTOP_BROWSER_GO_BACK_CHANNEL,
-  BB_DESKTOP_BROWSER_GO_FORWARD_CHANNEL,
-  BB_DESKTOP_BROWSER_NAVIGATE_CHANNEL,
-  BB_DESKTOP_BROWSER_RELOAD_CHANNEL,
-  BB_DESKTOP_BROWSER_SET_BOUNDS_CHANNEL,
-  BB_DESKTOP_BROWSER_SET_VISIBLE_CHANNEL,
-  BB_DESKTOP_BROWSER_SET_VISIBLE_WITHOUT_FOCUS_CHANNEL,
-  BB_DESKTOP_BROWSER_STOP_CHANNEL,
-  BB_DESKTOP_BROWSER_STOP_FIND_IN_PAGE_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_ATTACH_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_DETACH_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_FOCUS_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_FIND_IN_PAGE_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_GO_BACK_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_GO_FORWARD_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_NAVIGATE_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_RELOAD_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_SET_BOUNDS_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_SET_VISIBLE_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_SET_VISIBLE_WITHOUT_FOCUS_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_STOP_CHANNEL,
+  KAIOKEN_DESKTOP_BROWSER_STOP_FIND_IN_PAGE_CHANNEL,
 } from "../src/desktop-browser-ipc.js";
 import { registerDesktopBrowserIpc } from "../src/desktop-browser-main-ipc.js";
 import type { DesktopBrowserViewManager } from "../src/desktop-browser-view.js";
@@ -248,7 +248,7 @@ function sendBrowserIpc(args: SendBrowserIpcArgs): void {
 }
 
 function oversizedBrowserUrl(): string {
-  return `https://example.com/${"a".repeat(BB_DESKTOP_BROWSER_MAX_URL_LENGTH)}`;
+  return `https://example.com/${"a".repeat(KAIOKEN_DESKTOP_BROWSER_MAX_URL_LENGTH)}`;
 }
 
 describe("registerDesktopBrowserIpc", () => {
@@ -257,40 +257,40 @@ describe("registerDesktopBrowserIpc", () => {
     registerDesktopBrowserIpc(manager);
     const renderer = createTrustedRenderer("main-window");
     const untrustedSender = createUntrustedSender();
-    const attachRequest: BbDesktopBrowserAttachRequest = {
+    const attachRequest: KaiokenDesktopBrowserAttachRequest = {
       threadId: "thread-1",
       tabId: "browser:a",
       url: "http://localhost:5173/",
       bounds: { x: 0, y: 0, width: 800, height: 600 },
       visible: true,
     };
-    const navigateRequest: BbDesktopBrowserNavigateRequest = {
+    const navigateRequest: KaiokenDesktopBrowserNavigateRequest = {
       tabId: "browser:a",
       url: "https://example.com/",
     };
 
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_ATTACH_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_ATTACH_CHANNEL,
       payload: attachRequest,
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_ATTACH_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_ATTACH_CHANNEL,
       payload: attachRequest,
       sender: untrustedSender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_NAVIGATE_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_NAVIGATE_CHANNEL,
       payload: navigateRequest,
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_RELOAD_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_RELOAD_CHANNEL,
       payload: { tabId: "browser:a" },
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_FOCUS_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_FOCUS_CHANNEL,
       payload: { tabId: "browser:a" },
       sender: renderer.sender,
     });
@@ -314,13 +314,13 @@ describe("registerDesktopBrowserIpc", () => {
     registerDesktopBrowserIpc(manager);
     const renderer = createTrustedRenderer("main-window");
     const untrustedSender = createUntrustedSender();
-    const findRequest: BbDesktopBrowserFindInPageRequest = {
+    const findRequest: KaiokenDesktopBrowserFindInPageRequest = {
       tabId: "browser:a",
       text: "WebContents",
       forward: true,
       newSession: true,
     };
-    const stopRequest: BbDesktopBrowserStopFindInPageRequest = {
+    const stopRequest: KaiokenDesktopBrowserStopFindInPageRequest = {
       tabId: "browser:a",
       action: "clearSelection",
     };
@@ -333,28 +333,28 @@ describe("registerDesktopBrowserIpc", () => {
       { tabId: "browser:a", text: "x" },
     ]) {
       sendBrowserIpc({
-        channel: BB_DESKTOP_BROWSER_FIND_IN_PAGE_CHANNEL,
+        channel: KAIOKEN_DESKTOP_BROWSER_FIND_IN_PAGE_CHANNEL,
         payload,
         sender: renderer.sender,
       });
     }
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_FIND_IN_PAGE_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_FIND_IN_PAGE_CHANNEL,
       payload: findRequest,
       sender: untrustedSender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_FIND_IN_PAGE_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_FIND_IN_PAGE_CHANNEL,
       payload: findRequest,
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_STOP_FIND_IN_PAGE_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_STOP_FIND_IN_PAGE_CHANNEL,
       payload: { tabId: "browser:a", action: "explode" },
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_STOP_FIND_IN_PAGE_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_STOP_FIND_IN_PAGE_CHANNEL,
       payload: stopRequest,
       sender: renderer.sender,
     });
@@ -371,7 +371,7 @@ describe("registerDesktopBrowserIpc", () => {
     const manager = new RecordingDesktopBrowserViewManager();
     registerDesktopBrowserIpc(manager);
     const renderer = createTrustedRenderer("main-window");
-    const validAttachRequest: BbDesktopBrowserAttachRequest = {
+    const validAttachRequest: KaiokenDesktopBrowserAttachRequest = {
       threadId: "thread-1",
       tabId: "browser:a",
       url: "",
@@ -386,7 +386,7 @@ describe("registerDesktopBrowserIpc", () => {
       { ...validAttachRequest, bounds: { x: 0, y: 0, width: -1, height: 600 } },
     ]) {
       sendBrowserIpc({
-        channel: BB_DESKTOP_BROWSER_ATTACH_CHANNEL,
+        channel: KAIOKEN_DESKTOP_BROWSER_ATTACH_CHANNEL,
         payload,
         sender: renderer.sender,
       });
@@ -398,7 +398,7 @@ describe("registerDesktopBrowserIpc", () => {
       { tabId: "browser:a", url: "https://example.com/", extra: true },
     ]) {
       sendBrowserIpc({
-        channel: BB_DESKTOP_BROWSER_NAVIGATE_CHANNEL,
+        channel: KAIOKEN_DESKTOP_BROWSER_NAVIGATE_CHANNEL,
         payload,
         sender: renderer.sender,
       });
@@ -412,17 +412,17 @@ describe("registerDesktopBrowserIpc", () => {
     const manager = new RecordingDesktopBrowserViewManager();
     registerDesktopBrowserIpc(manager);
     const renderer = createTrustedRenderer("main-window");
-    const boundsRequest: BbDesktopBrowserSetBoundsRequest = {
+    const boundsRequest: KaiokenDesktopBrowserSetBoundsRequest = {
       tabId: "browser:a",
       bounds: { x: 0, y: 0, width: 800, height: 600 },
     };
-    const visibleRequest: BbDesktopBrowserSetVisibleRequest = {
+    const visibleRequest: KaiokenDesktopBrowserSetVisibleRequest = {
       tabId: "browser:a",
       visible: true,
     };
 
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_SET_BOUNDS_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_SET_BOUNDS_CHANNEL,
       payload: {
         ...boundsRequest,
         bounds: { x: 0.5, y: 0, width: 1, height: 1 },
@@ -430,33 +430,33 @@ describe("registerDesktopBrowserIpc", () => {
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_SET_BOUNDS_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_SET_BOUNDS_CHANNEL,
       payload: boundsRequest,
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_SET_VISIBLE_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_SET_VISIBLE_CHANNEL,
       payload: { tabId: "browser:a", visible: "yes" },
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_SET_VISIBLE_WITHOUT_FOCUS_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_SET_VISIBLE_WITHOUT_FOCUS_CHANNEL,
       payload: visibleRequest,
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_SET_VISIBLE_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_SET_VISIBLE_CHANNEL,
       payload: visibleRequest,
       sender: renderer.sender,
     });
 
     for (const channel of [
-      BB_DESKTOP_BROWSER_DETACH_CHANNEL,
-      BB_DESKTOP_BROWSER_FOCUS_CHANNEL,
-      BB_DESKTOP_BROWSER_GO_BACK_CHANNEL,
-      BB_DESKTOP_BROWSER_GO_FORWARD_CHANNEL,
-      BB_DESKTOP_BROWSER_RELOAD_CHANNEL,
-      BB_DESKTOP_BROWSER_STOP_CHANNEL,
+      KAIOKEN_DESKTOP_BROWSER_DETACH_CHANNEL,
+      KAIOKEN_DESKTOP_BROWSER_FOCUS_CHANNEL,
+      KAIOKEN_DESKTOP_BROWSER_GO_BACK_CHANNEL,
+      KAIOKEN_DESKTOP_BROWSER_GO_FORWARD_CHANNEL,
+      KAIOKEN_DESKTOP_BROWSER_RELOAD_CHANNEL,
+      KAIOKEN_DESKTOP_BROWSER_STOP_CHANNEL,
     ]) {
       sendBrowserIpc({
         channel,
@@ -466,22 +466,22 @@ describe("registerDesktopBrowserIpc", () => {
     }
 
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_DETACH_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_DETACH_CHANNEL,
       payload: { tabId: "browser:a" },
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_GO_BACK_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_GO_BACK_CHANNEL,
       payload: { tabId: "browser:a" },
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_GO_FORWARD_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_GO_FORWARD_CHANNEL,
       payload: { tabId: "browser:a" },
       sender: renderer.sender,
     });
     sendBrowserIpc({
-      channel: BB_DESKTOP_BROWSER_STOP_CHANNEL,
+      channel: KAIOKEN_DESKTOP_BROWSER_STOP_CHANNEL,
       payload: { tabId: "browser:a" },
       sender: renderer.sender,
     });

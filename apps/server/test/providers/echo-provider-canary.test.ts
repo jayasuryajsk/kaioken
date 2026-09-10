@@ -9,16 +9,16 @@ import {
   createAgentRuntime,
   type AgentRuntime,
   type AgentRuntimeSkillRoot,
-} from "@bb/agent-runtime";
-import { events } from "@bb/db";
+} from "@kaioken/agent-runtime";
+import { events } from "@kaioken/db";
 import {
   encodeClientTurnRequestIdNumber,
   toolCallResponseSchema,
   type ThreadEvent,
   type ToolCallRequest,
   type ToolCallResponse,
-} from "@bb/domain";
-import { groupHostDaemonEvents } from "@bb/host-daemon-contract";
+} from "@kaioken/domain";
+import { groupHostDaemonEvents } from "@kaioken/host-daemon-contract";
 import { resolveBuiltinPluginRootPath } from "../../src/services/plugins/builtin-registry.js";
 import { buildThreadStartCommand } from "../../src/services/threads/thread-commands.js";
 import { resolveExecutionOptions } from "../../src/services/threads/thread-runtime-config.js";
@@ -44,7 +44,7 @@ const PROVIDER_ID = "echo-agent";
 const RECEIPT_KIND = `${PLUGIN_ID}/receipt`;
 const MOOD_KIND = `${PLUGIN_ID}/mood`;
 const RECEIPT_ICON_GLYPH = `${PLUGIN_ID}/receipt`;
-const GREETING_ENV = "BB_ECHO_PROVIDER_GREETING";
+const GREETING_ENV = "KAIOKEN_ECHO_PROVIDER_GREETING";
 const STAMP_PRESENTATION = {
   label: { pending: "Stamping receipt", completed: "Stamped receipt" },
   icon: { glyph: "Check" },
@@ -157,9 +157,9 @@ describe("echo-provider canary: plugin install → server command → runtime �
 
   beforeEach(async () => {
     harness = await createTestAppHarness();
-    workspaceDir = await mkdtemp(join(tmpdir(), "bb-echo-canary-ws-"));
-    bridgeDataDir = await mkdtemp(join(tmpdir(), "bb-echo-canary-bridge-"));
-    recordDir = await mkdtemp(join(tmpdir(), "bb-echo-canary-record-"));
+    workspaceDir = await mkdtemp(join(tmpdir(), "kaioken-echo-canary-ws-"));
+    bridgeDataDir = await mkdtemp(join(tmpdir(), "kaioken-echo-canary-bridge-"));
+    recordDir = await mkdtemp(join(tmpdir(), "kaioken-echo-canary-record-"));
     savedGreeting = process.env[GREETING_ENV];
     process.env[GREETING_ENV] = "hello from the daemon";
   });
@@ -444,7 +444,7 @@ describe("echo-provider canary: plugin install → server command → runtime �
       presentation: { suppress: true },
     });
     expect(itemOf(rows, "toolCall", "echo_stamp").data.item).toMatchObject({
-      server: "bb",
+      server: "kaioken",
       status: "completed",
       result: "stamped: hello canary",
       presentation: STAMP_PRESENTATION,
@@ -552,9 +552,9 @@ describe("echo-provider canary: plugin install → server command → runtime �
     });
   }, 120_000);
 
-  it("runs a turn with the BB guide skills staged and sends the bridge only the requests it handles", async () => {
-    const guideRoot = resolveBuiltinPluginRootPath("bb-guide");
-    const guide = await harness.pluginService.install("builtin:bb-guide", {
+  it("runs a turn with the Kaioken guide skills staged and sends the bridge only the requests it handles", async () => {
+    const guideRoot = resolveBuiltinPluginRootPath("kaioken-guide");
+    const guide = await harness.pluginService.install("builtin:kaioken-guide", {
       kind: "root",
     });
     expect(guide.status, guide.statusDetail ?? "").toBe("running");
@@ -604,12 +604,12 @@ describe("echo-provider canary: plugin install → server command → runtime �
     expect(
       command.injectedSkillSources.map((source) => source.name).sort(),
     ).toEqual([
-      "bb-cli",
-      "bb-plugin-authoring",
+      "kaioken-cli",
+      "kaioken-plugin-authoring",
       "skill-creator",
       "submit-a-plugin",
     ]);
-    expect(command.instructions).toContain("bb status");
+    expect(command.instructions).toContain("kaioken status");
 
     const skillDirectoryRootPath = join(guideRoot, "skills");
     const skillRoots: AgentRuntimeSkillRoot[] = [
@@ -627,7 +627,7 @@ describe("echo-provider canary: plugin install → server command → runtime �
     const toolCalls: ToolCallRequest[] = [];
     const runtimeInstance = createAgentRuntime({
       workspacePath: workspaceDir,
-      env: { BB_PROVIDER_BRIDGE_RECORD_DIR: recordDir },
+      env: { KAIOKEN_PROVIDER_BRIDGE_RECORD_DIR: recordDir },
       skillRoots,
       onEvent: (event) => {
         runtimeEvents.push(event);
@@ -683,7 +683,7 @@ describe("echo-provider canary: plugin install → server command → runtime �
       () =>
         runtimeEvents.filter((event) => event.type === "turn/completed")
           .length >= 2,
-      "the echo turn with the BB guide skills staged",
+      "the echo turn with the Kaioken guide skills staged",
     );
     expect(toolCalls.map((call) => call.tool)).toEqual(["echo_stamp"]);
 

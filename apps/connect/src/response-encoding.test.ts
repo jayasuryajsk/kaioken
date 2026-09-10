@@ -3,9 +3,9 @@ import { gunzipSync, gzipSync } from "node:zlib";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { decodeFrame, encodeFrame, type Frame } from "@bb/tunnel-contract";
+import { decodeFrame, encodeFrame, type Frame } from "@kaioken/tunnel-contract";
 
-const HTML = `<!doctype html><title>bb</title>${"<p>relayed body</p>".repeat(50)}`;
+const HTML = `<!doctype html><title>kaioken</title>${"<p>relayed body</p>".repeat(50)}`;
 const GZIP = gzipSync(Buffer.from(HTML));
 const IMMUTABLE = "public, max-age=31536000, immutable";
 

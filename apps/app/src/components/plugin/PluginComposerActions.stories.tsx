@@ -6,9 +6,9 @@ import {
   type ComponentType,
 } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { ComposerView } from "@get-bb/plugin-sdk";
-import { Button } from "@bb/shared-ui/button";
-import { Icon, type IconName } from "@bb/shared-ui/icon";
+import type { ComposerView } from "@get-kaioken/plugin-sdk";
+import { Button } from "@kaioken/shared-ui/button";
+import { Icon, type IconName } from "@kaioken/shared-ui/icon";
 import { StoryCard, StoryRow } from "../../../.ladle/story-card";
 import {
   makeAttachmentsConfig,
@@ -29,7 +29,7 @@ import {
   type PluginRegistrationSet,
 } from "@/lib/plugin-slots";
 import { setPluginThreadRowStatus } from "@/lib/plugin-thread-row-status";
-import type { PromptDraftState } from "@bb/client-core";
+import type { PromptDraftState } from "@kaioken/client-core";
 import {
   ThreadRow,
   type ThreadRowOptions,

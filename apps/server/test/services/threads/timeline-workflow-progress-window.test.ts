@@ -4,8 +4,8 @@ import {
   LOCAL_WORKFLOW_TASK_TYPE,
   threadScope,
   turnScope,
-} from "@bb/domain";
-import type { Thread } from "@bb/domain";
+} from "@kaioken/domain";
+import type { Thread } from "@kaioken/domain";
 import {
   createConnection,
   createProject,
@@ -14,12 +14,12 @@ import {
   migrate,
   noopNotifier,
   upsertHost,
-} from "@bb/db";
-import type { DbConnection } from "@bb/db";
+} from "@kaioken/db";
+import type { DbConnection } from "@kaioken/db";
 import type {
   TimelinePaginationCursor,
   TimelineRow,
-} from "@bb/server-contract";
+} from "@kaioken/server-contract";
 import {
   buildThreadConversationOutline,
   buildThreadTimelineWithProfile,

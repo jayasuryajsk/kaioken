@@ -8,10 +8,10 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { turnScope, type ThreadEvent } from "@bb/domain";
-import type { RuntimePermissionPolicy } from "@bb/domain";
-import { experimental_createDeltaAssembler as createDeltaAssembler } from "@get-bb/plugin-sdk/provider-bridge/testing";
-import type { DeltaAssembler } from "@get-bb/plugin-sdk/provider-bridge/testing";
+import { turnScope, type ThreadEvent } from "@kaioken/domain";
+import type { RuntimePermissionPolicy } from "@kaioken/domain";
+import { experimental_createDeltaAssembler as createDeltaAssembler } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
+import type { DeltaAssembler } from "@get-kaioken/plugin-sdk/provider-bridge/testing";
 import type { ServerNotification as CodexServerNotification } from "./generated/codex-app-server/schema/ServerNotification.js";
 import type { Turn } from "./generated/codex-app-server/schema/v2/Turn.js";
 import {
@@ -105,14 +105,14 @@ interface LinkedWorktreeFixture {
 
 function createLinkedWorktreeFixture(): LinkedWorktreeFixture {
   const rootPath = realpathSync.native(
-    mkdtempSync(path.join(tmpdir(), "bb-codex-worktree-")),
+    mkdtempSync(path.join(tmpdir(), "kaioken-codex-worktree-")),
   );
   const workspacePath = path.join(rootPath, "worktree");
   const commonDir = path.join(rootPath, "repo.git");
   const gitDir = path.join(commonDir, "worktrees", "bb1");
-  const headRef = "refs/heads/bb/probe";
-  const headRefParent = path.join(commonDir, "refs", "heads", "bb");
-  const headLogParent = path.join(commonDir, "logs", "refs", "heads", "bb");
+  const headRef = "refs/heads/kaioken/probe";
+  const headRefParent = path.join(commonDir, "refs", "heads", "kaioken");
+  const headLogParent = path.join(commonDir, "logs", "refs", "heads", "kaioken");
 
   mkdirSync(workspacePath, { recursive: true });
   mkdirSync(gitDir, { recursive: true });
@@ -158,7 +158,7 @@ describe("codex workspace-write git-root staging", () => {
     try {
       const prepared = translator.prepareWorkspaceWriteGitRoots({
         command: {
-          threadId: "bb-thread-1",
+          threadId: "kaioken-thread-1",
           cwd: fixture.workspacePath,
           options: WORKSPACE_ASK_OPTIONS,
         },
@@ -167,15 +167,15 @@ describe("codex workspace-write git-root staging", () => {
         "sandbox_workspace_write.writable_roots": fixture.expectedWritableRoots,
       });
 
-      expect(translator.getThreadGitWritableRoots("bb-thread-1")).toEqual([]);
+      expect(translator.getThreadGitWritableRoots("kaioken-thread-1")).toEqual([]);
 
       translator.activateThreadGitWritableRoots({
         providerThreadId: "codex-thread-1",
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
       });
       unlinkWorkspaceGitDir(fixture);
 
-      expect(translator.getThreadGitWritableRoots("bb-thread-1")).toEqual(
+      expect(translator.getThreadGitWritableRoots("kaioken-thread-1")).toEqual(
         fixture.expectedWritableRoots,
       );
     } finally {
@@ -195,7 +195,7 @@ describe("codex workspace-write git-root staging", () => {
     try {
       const prepared = translator.prepareWorkspaceWriteGitRoots({
         command: {
-          threadId: "bb-thread-1",
+          threadId: "kaioken-thread-1",
           cwd: fixture.workspacePath,
           options: WORKSPACE_ASK_OPTIONS,
         },
@@ -209,10 +209,10 @@ describe("codex workspace-write git-root staging", () => {
 
       translator.activateThreadGitWritableRoots({
         providerThreadId: "codex-thread-1",
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
       });
 
-      expect(translator.getThreadGitWritableRoots("bb-thread-1")).toEqual(
+      expect(translator.getThreadGitWritableRoots("kaioken-thread-1")).toEqual(
         fixture.expectedWritableRoots,
       );
     } finally {
@@ -226,8 +226,8 @@ describe("codex workspace-write git-root staging", () => {
     const translator = createTranslator();
     try {
       for (const [threadId, fixture] of [
-        ["bb-thread-1", firstFixture],
-        ["bb-thread-2", secondFixture],
+        ["kaioken-thread-1", firstFixture],
+        ["kaioken-thread-2", secondFixture],
       ] as const) {
         translator.prepareWorkspaceWriteGitRoots({
           command: {
@@ -240,19 +240,19 @@ describe("codex workspace-write git-root staging", () => {
 
       translator.activateThreadGitWritableRoots({
         providerThreadId: "codex-thread-2",
-        threadId: "bb-thread-2",
+        threadId: "kaioken-thread-2",
       });
       translator.activateThreadGitWritableRoots({
         providerThreadId: "codex-thread-1",
-        threadId: "bb-thread-1",
+        threadId: "kaioken-thread-1",
       });
 
       translator.translateEvent(
         codexEvent("thread/closed", { threadId: "codex-thread-1" }),
       );
 
-      expect(translator.getThreadGitWritableRoots("bb-thread-1")).toEqual([]);
-      expect(translator.getThreadGitWritableRoots("bb-thread-2")).toEqual(
+      expect(translator.getThreadGitWritableRoots("kaioken-thread-1")).toEqual([]);
+      expect(translator.getThreadGitWritableRoots("kaioken-thread-2")).toEqual(
         secondFixture.expectedWritableRoots,
       );
     } finally {

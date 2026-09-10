@@ -13,9 +13,9 @@ import { createStore, Provider as JotaiProvider } from "jotai";
 import { useContext, useMemo, useState, type ReactNode } from "react";
 import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { PERSONAL_PROJECT_ID } from "@bb/domain";
-import { TooltipProvider } from "@bb/shared-ui/tooltip";
-import type { BbDesktopInfo } from "@bb/desktop-contract";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
+import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
+import type { KaiokenDesktopInfo } from "@kaioken/desktop-contract";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
 import {
@@ -33,7 +33,7 @@ import {
 } from "@/lib/split-layout";
 import type { PaneContent, SplitLayout } from "@/lib/split-layout";
 import { usePromptDraftStorage } from "@/hooks/usePromptDraftStorage";
-import { createBbDesktopApi } from "@/test/bb-desktop-test-utils";
+import { createBbDesktopApi } from "@/test/kaioken-desktop-test-utils";
 import { resourceRouteLabelAtom } from "@/components/layout/resourceRouteLabelAtom";
 import {
   resetPluginSlotStoreForTest,
@@ -110,7 +110,7 @@ function RootComposeFixture() {
   return <div data-testid="root-compose-view" />;
 }
 
-vi.mock("@bb/shared-ui/hooks/use-compact-viewport", () => ({
+vi.mock("@kaioken/shared-ui/hooks/use-compact-viewport", () => ({
   useIsCompactViewport: () => viewportState.compact,
 }));
 
@@ -653,7 +653,7 @@ afterEach(() => {
   threadStore.clear();
   panelCallbacks.clear();
   resetPluginSlotStoreForTest();
-  delete window.bbDesktop;
+  delete window.kaiokenDesktop;
   window.localStorage.clear();
   window.sessionStorage.clear();
 });
@@ -1837,7 +1837,7 @@ describe("SplitThreadArea", () => {
   });
 
   it("carves a plugin pane drag handle out of the macOS window-drag region", async () => {
-    const desktopInfo: BbDesktopInfo = {
+    const desktopInfo: KaiokenDesktopInfo = {
       lastCheckedAt: null,
       latestVersion: null,
       pendingVersion: null,
@@ -1846,7 +1846,7 @@ describe("SplitThreadArea", () => {
       updateDownloaded: false,
       version: "0.0.0-test",
     };
-    window.bbDesktop = createBbDesktopApi(desktopInfo);
+    window.kaiokenDesktop = createBbDesktopApi(desktopInfo);
     setPluginSlotRegistrations(
       "docs",
       makePluginRegistrationSet({
@@ -1879,7 +1879,7 @@ describe("SplitThreadArea", () => {
   });
 
   it("makes only top-row split headers desktop window-drag regions", async () => {
-    const desktopInfo: BbDesktopInfo = {
+    const desktopInfo: KaiokenDesktopInfo = {
       lastCheckedAt: null,
       latestVersion: null,
       pendingVersion: null,
@@ -1888,7 +1888,7 @@ describe("SplitThreadArea", () => {
       updateDownloaded: false,
       version: "0.0.0-test",
     };
-    window.bbDesktop = createBbDesktopApi(desktopInfo);
+    window.kaiokenDesktop = createBbDesktopApi(desktopInfo);
     setPluginSlotRegistrations(
       "test-plugin",
       makePluginRegistrationSet({
@@ -1927,7 +1927,7 @@ describe("SplitThreadArea", () => {
   });
 
   it("reserves collapsed window-left chrome only for the structural top-left plugin pane", async () => {
-    const desktopInfo: BbDesktopInfo = {
+    const desktopInfo: KaiokenDesktopInfo = {
       lastCheckedAt: null,
       latestVersion: null,
       pendingVersion: null,
@@ -1936,7 +1936,7 @@ describe("SplitThreadArea", () => {
       updateDownloaded: false,
       version: "0.0.0-test",
     };
-    window.bbDesktop = createBbDesktopApi(desktopInfo);
+    window.kaiokenDesktop = createBbDesktopApi(desktopInfo);
     sidebarState.showing = false;
     setPluginSlotRegistrations(
       "test-plugin",

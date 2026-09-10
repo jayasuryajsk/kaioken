@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { usePrefersReducedMotion } from "@bb/shared-ui/hooks/use-media-query";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { usePrefersReducedMotion } from "@kaioken/shared-ui/hooks/use-media-query";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 
 interface WaveformVisualizerProps {
   stream: MediaStream | null;

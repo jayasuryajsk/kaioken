@@ -1,5 +1,5 @@
 import { useCallback, useMemo, type ReactNode } from "react";
-import type { ComposerView } from "@get-bb/plugin-sdk";
+import type { ComposerView } from "@get-kaioken/plugin-sdk";
 import {
   useAppCommandContext,
   useAppCommandHandler,

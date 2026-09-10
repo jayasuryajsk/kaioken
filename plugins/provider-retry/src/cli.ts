@@ -1,4 +1,4 @@
-import type { BbPluginApi, PluginCliContext } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi, PluginCliContext } from "@get-kaioken/plugin-sdk";
 import {
   findQueuedRetry,
   listQueuedRetries,
@@ -31,7 +31,7 @@ function textQueuedRetry(queued: QueuedRetry): string {
  * schedule, and this reads and acts on it. `retry` is a Send-now and `cancel`
  * is a cancel, so both do exactly what the queued card's buttons do.
  */
-export function registerProviderRetryCli(bb: BbPluginApi): void {
+export function registerProviderRetryCli(bb: KaiokenPluginApi): void {
   bb.cli.register({
     name: "provider-retry",
     summary: "Manage pending automatic provider retries",
@@ -39,17 +39,17 @@ export function registerProviderRetryCli(bb: BbPluginApi): void {
       {
         name: "status",
         summary: "Show pending automatic provider retries",
-        usage: "bb provider-retry status [thread-id] [--json]",
+        usage: "kaioken provider-retry status [thread-id] [--json]",
       },
       {
         name: "cancel",
         summary: "Cancel a pending automatic provider retry",
-        usage: "bb provider-retry cancel <thread-id> [--json]",
+        usage: "kaioken provider-retry cancel <thread-id> [--json]",
       },
       {
         name: "retry",
         summary: "Send a pending provider retry now instead of waiting",
-        usage: "bb provider-retry retry <thread-id> [--json]",
+        usage: "kaioken provider-retry retry <thread-id> [--json]",
       },
     ],
     async run(argv, context) {
@@ -58,7 +58,7 @@ export function registerProviderRetryCli(bb: BbPluginApi): void {
         return {
           exitCode: 2,
           stderr:
-            "Usage: bb provider-retry <status|cancel|retry> [thread-id] [--json]\n",
+            "Usage: kaioken provider-retry <status|cancel|retry> [thread-id] [--json]\n",
         };
       }
       const json = args.includes("--json");
@@ -87,7 +87,7 @@ export function registerProviderRetryCli(bb: BbPluginApi): void {
       if (threadId === null) {
         return {
           exitCode: 2,
-          stderr: `A thread id is required: bb provider-retry ${command} <thread-id>\n`,
+          stderr: `A thread id is required: kaioken provider-retry ${command} <thread-id>\n`,
         };
       }
       const queued = await findQueuedRetry(bb, threadId);

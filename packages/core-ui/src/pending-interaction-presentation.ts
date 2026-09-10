@@ -1,11 +1,11 @@
 import type {
   PendingInteraction,
   PendingInteractionUserQuestionQuestion,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import {
   isApprovalPendingInteractionPayload,
   isUserQuestionPendingInteractionPayload,
-} from "@bb/domain";
+} from "@kaioken/domain";
 import { assertNever } from "./assert-never.js";
 import { summarizePendingInteractionRequestedPermissions } from "./pending-interaction-formatting.js";
 import { describePendingInteractionToolUse } from "./pending-interaction-tool-use.js";

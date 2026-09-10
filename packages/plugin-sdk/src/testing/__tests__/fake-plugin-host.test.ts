@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import {
   PLUGIN_CLI_OUTPUT_MAX_BYTES,
-  type BbPluginApi,
+  type KaiokenPluginApi,
   type PluginAgentConfigurationContext,
   type PluginAgentToolPresentation,
 } from "../../backend-contract.js";
@@ -10,7 +10,7 @@ import { defineRpcContract } from "../../rpc-contract.js";
 import {
   parsePluginAgentToolPresentation,
   PLUGIN_AGENT_STATUS_LABEL_MAX_CHARS,
-  RESERVED_BB_CLI_COMMANDS,
+  RESERVED_KAIOKEN_CLI_COMMANDS,
 } from "../../internal/host-policy.js";
 import {
   createFakePluginHost,
@@ -86,12 +86,12 @@ describe("fixtures", () => {
 describe("server", () => {
   it("serves the configured public app URL and defaults to null", () => {
     const configured = createFakePluginHost({
-      appUrl: "https://bb.example.test",
+      appUrl: "https://kaioken.example.test",
     });
     const unset = createFakePluginHost();
 
     expect(configured.bb.server.experimental_appUrl).toBe(
-      "https://bb.example.test",
+      "https://kaioken.example.test",
     );
     expect(unset.bb.server.experimental_appUrl).toBeNull();
   });
@@ -332,7 +332,7 @@ describe("storage", () => {
 });
 
 describe("settings", () => {
-  function defineSettings(bb: BbPluginApi) {
+  function defineSettings(bb: KaiokenPluginApi) {
     return bb.settings.define({
       token: { type: "string", label: "Token", secret: true },
       mode: {
@@ -810,7 +810,7 @@ describe("cli", () => {
     expect(await harness.runCli(["crash"])).toEqual({
       exitCode: 1,
       stdout: "",
-      stderr: "bb docs failed: bad flag",
+      stderr: "kaioken docs failed: bad flag",
     });
   });
 
@@ -843,7 +843,7 @@ describe("cli", () => {
   });
 
   it("uses the production host's reserved CLI names", () => {
-    for (const name of RESERVED_BB_CLI_COMMANDS) {
+    for (const name of RESERVED_KAIOKEN_CLI_COMMANDS) {
       const reservedHost = createFakePluginHost();
       expect(() =>
         reservedHost.bb.cli.register({
@@ -855,7 +855,7 @@ describe("cli", () => {
       expect(reservedHost.harness.logEntries).toEqual([
         {
           level: "warn",
-          message: `CLI command "${name}" collides with core command "bb ${name}"; core keeps the short form. Use "bb plugin run test-plugin" to invoke this plugin.`,
+          message: `CLI command "${name}" collides with core command "kaioken ${name}"; core keeps the short form. Use "kaioken plugin run test-plugin" to invoke this plugin.`,
         },
       ]);
     }
@@ -1468,7 +1468,7 @@ describe("realtime and status", () => {
 describe("providers.register", () => {
   function agentDeclaration(
     overrides: Record<string, unknown> = {},
-  ): Parameters<BbPluginApi["providers"]["register"]>[0] {
+  ): Parameters<KaiokenPluginApi["providers"]["register"]>[0] {
     return {
       id: "my-agent",
       displayName: "My Agent",
@@ -1486,7 +1486,7 @@ describe("providers.register", () => {
       },
       composerActions: ["plan"],
       ...overrides,
-    } as Parameters<BbPluginApi["providers"]["register"]>[0];
+    } as Parameters<KaiokenPluginApi["providers"]["register"]>[0];
   }
 
   it("rejects malformed declarations with the shared host policy", () => {

@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { ThreadEvent } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
 import { createAgentRuntime } from "./runtime.js";
 import type { AgentRuntime } from "./types.js";
 import {
@@ -50,7 +50,7 @@ describe("createAgentRuntime multi-thread routing", () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), "bb-runtime-test-"));
+    tmpDir = mkdtempSync(join(tmpdir(), "kaioken-runtime-test-"));
   });
 
   afterEach(() => {
@@ -226,7 +226,7 @@ describe("createAgentRuntime multi-thread routing", () => {
     await runtime.shutdown();
   });
 
-  it("stamps all events with bb threadId and providerThreadId", async () => {
+  it("stamps all events with kaioken threadId and providerThreadId", async () => {
     const events: ThreadEvent[] = [];
     const runtime = createScriptedEchoRuntime({
       runtime: { workspacePath: tmpDir, onEvent: (e) => events.push(e) },

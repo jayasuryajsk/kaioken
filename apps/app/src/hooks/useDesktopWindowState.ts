@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import type { BbDesktopWindowState } from "@bb/desktop-contract";
+import type { KaiokenDesktopWindowState } from "@kaioken/desktop-contract";
 import {
   DEFAULT_DESKTOP_WINDOW_STATE,
   getBbDesktopInfo,
-} from "@/lib/bb-desktop";
+} from "@/lib/kaioken-desktop";
 
-export function useDesktopWindowState(): BbDesktopWindowState {
-  const [windowState, setWindowState] = useState<BbDesktopWindowState>(
+export function useDesktopWindowState(): KaiokenDesktopWindowState {
+  const [windowState, setWindowState] = useState<KaiokenDesktopWindowState>(
     DEFAULT_DESKTOP_WINDOW_STATE,
   );
 

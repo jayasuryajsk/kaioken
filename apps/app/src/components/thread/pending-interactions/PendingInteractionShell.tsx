@@ -8,8 +8,8 @@ import {
   type ReactNode,
 } from "react";
 import { NavLink } from "react-router-dom";
-import { Icon } from "@bb/shared-ui/icon";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { ExpandableLine } from "@/components/ui/expandable-line.js";
 
 export interface PendingInteractionSourceThread {

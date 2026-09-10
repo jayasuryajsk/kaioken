@@ -2,7 +2,7 @@
 
 /**
  * Scripted `pi --mode rpc` for hermetic pi-bridge tests: the subset of pi's
- * RPC dialect the bridge drives, with the REAL bb extension loaded the way
+ * RPC dialect the bridge drives, with the REAL kaioken extension loaded the way
  * pi loads it. Commands in on stdin, responses and raw AgentSessionEvent
  * lines out on stdout, exactly pi's framing (LF-delimited JSON; U+2028 and
  * U+2029 stay raw inside strings, as pi writes them).

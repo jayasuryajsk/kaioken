@@ -1,5 +1,5 @@
-import type { ThreadEvent } from "@bb/domain";
-import { requireThreadEventScopeTurnId } from "@bb/domain";
+import type { ThreadEvent } from "@kaioken/domain";
+import { requireThreadEventScopeTurnId } from "@kaioken/domain";
 
 interface PendingActiveTurnWaiter {
   resolve: (turnId: string | null) => void;

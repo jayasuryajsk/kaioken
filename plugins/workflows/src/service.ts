@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import Ajv from "ajv";
-import type { BbPluginApi } from "@get-bb/plugin-sdk";
+import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import {
   WORKFLOW_CALL_CACHE_VERSION,
@@ -150,8 +150,8 @@ export function formatWorkflowNotification(
   run: WorkflowRunRow,
   maximumBytes: number,
 ): string {
-  const prefix = `[BB workflow finished · ${run.id}]\n\nRun ${run.id} (${run.name}) ${run.status}.\n`;
-  const suffix = `\nRun \`bb workflows status ${run.id}\` for authoritative details.`;
+  const prefix = `[Kaioken workflow finished · ${run.id}]\n\nRun ${run.id} (${run.name}) ${run.status}.\n`;
+  const suffix = `\nRun \`kaioken workflows status ${run.id}\` for authoritative details.`;
   const detail =
     run.status === "succeeded"
       ? `Result: ${run.resultJson ?? "null"}`
@@ -168,7 +168,7 @@ export function formatWorkflowNotification(
     return `${prefix}${utf8Prefix(detail, available)}${marker}${suffix}`;
   }
   return utf8Prefix(
-    `[BB workflow ${run.id}] ${run.status} — run bb workflows status ${run.id}`,
+    `[Kaioken workflow ${run.id}] ${run.status} — run kaioken workflows status ${run.id}`,
     maximumBytes,
   );
 }
@@ -400,7 +400,7 @@ export interface WorkflowRunInspectionPage {
 }
 
 export function createWorkflowService(
-  bb: BbPluginApi,
+  bb: KaiokenPluginApi,
   db: Db,
   initialSettings: WorkflowSettings = DEFAULT_WORKFLOW_SETTINGS,
 ): WorkflowService {
@@ -672,7 +672,7 @@ export function createWorkflowService(
     prompt: string,
     options: WorkflowAgentOptions,
   ) {
-    const header = `[BB workflow ${run.name} · run ${run.id}]`;
+    const header = `[Kaioken workflow ${run.name} · run ${run.id}]`;
     if (options.outputSchema === null) {
       return `${header}\n\n${prompt}\n\nYour final text IS the return value (not a human-facing message), so return raw data.`;
     }
@@ -1133,7 +1133,7 @@ export function createWorkflowService(
           ? "This workflow worker is already terminal. Do not perform more work."
           : options.outputSchema === null
             ? null
-            : `You are a BB workflow worker. Submit your final value with bb_workflow_result. Required schema: ${JSON.stringify(options.outputSchema)}`,
+            : `You are a Kaioken workflow worker. Submit your final value with bb_workflow_result. Required schema: ${JSON.stringify(options.outputSchema)}`,
     };
   }
 

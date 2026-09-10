@@ -3,13 +3,13 @@
   "name": "pagination",
   "type": "registry:ui",
   "title": "pagination",
-  "description": "BB ui \"pagination\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"pagination\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "lucide-react"
   ],
   "registryDependencies": [
-    "@bb/button",
-    "@bb/utils"
+    "@kaioken/button",
+    "@kaioken/utils"
   ],
   "files": [
     {

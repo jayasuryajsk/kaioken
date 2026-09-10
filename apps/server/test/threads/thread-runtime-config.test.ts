@@ -6,15 +6,15 @@ import {
   markThreadDeleted,
   setExperiments,
   setThreadExecutionOverride,
-} from "@bb/db";
+} from "@kaioken/db";
 import {
   defaultExperiments,
   encodeClientTurnRequestIdNumber,
-} from "@bb/domain";
-import { validatePluginProviderDeclaration } from "@get-bb/plugin-sdk/internal/host-policy";
-import type { PluginAgentConfigurationContext } from "@get-bb/plugin-sdk";
+} from "@kaioken/domain";
+import { validatePluginProviderDeclaration } from "@get-kaioken/plugin-sdk/internal/host-policy";
+import type { PluginAgentConfigurationContext } from "@get-kaioken/plugin-sdk";
 import { buildPluginProviderRegistration } from "../../src/services/providers/plugin-provider-registration.js";
-import type { DiscoveredSkill } from "@bb/host-daemon-contract";
+import type { DiscoveredSkill } from "@kaioken/host-daemon-contract";
 import { setPluginAgentContributions } from "../../src/services/plugins/plugin-agent-contributions.js";
 import { readSkillTreeManifest } from "../../src/services/skills/injected-skills.js";
 import type { PluginAgentToolContribution } from "../../src/services/plugins/plugin-service.js";
@@ -90,9 +90,9 @@ async function writeDataDirAgentInstructions(
 async function writeWorkspaceAgentInstructions(
   args: WriteWorkspaceAgentInstructionsArgs,
 ): Promise<void> {
-  const bbDir = path.join(args.workspacePath, ".bb");
-  await mkdir(bbDir, { recursive: true });
-  await writeFile(path.join(bbDir, "AGENTS.md"), args.content, "utf8");
+  const kaiokenDir = path.join(args.workspacePath, ".kaioken");
+  await mkdir(kaiokenDir, { recursive: true });
+  await writeFile(path.join(kaiokenDir, "AGENTS.md"), args.content, "utf8");
 }
 
 function registerRemoteRuntimeFileResponder(
@@ -754,7 +754,7 @@ describe("thread runtime config", () => {
         rootPath: path.join(harness.config.dataDir, "skills"),
       });
       await writeRuntimeSkill({
-        name: "bb-cli",
+        name: "kaioken-cli",
         rootPath: harness.config.builtinSkillsRootPath,
       });
       const workspacePath = path.join(
@@ -763,7 +763,7 @@ describe("thread runtime config", () => {
       );
       const projectSourceRootPath = await writeRuntimeSkill({
         name: "project-helper",
-        rootPath: path.join(workspacePath, ".bb", "skills"),
+        rootPath: path.join(workspacePath, ".kaioken", "skills"),
       });
       const { host } = seedHostSession(harness.deps, {
         id: "host-runtime-injected-skills",
@@ -1178,7 +1178,7 @@ describe("thread runtime config", () => {
 
       expect(runtimeConfig.workspacePath).toBe("/tmp/runtime-project-root");
       expect(runtimeConfig.threadStoragePath).toBe(
-        `/tmp/bb-host-data/${hostId}/thread-storage/${thread.id}`,
+        `/tmp/kaioken-host-data/${hostId}/thread-storage/${thread.id}`,
       );
       expect(runtimeConfig.dynamicTools).toEqual([
         expect.objectContaining({
@@ -1189,10 +1189,10 @@ describe("thread runtime config", () => {
         }),
       ]);
       expect(runtimeConfig.instructions).not.toContain(
-        "You are working inside bb, an agentic IDE",
+        "You are working inside kaioken, an agentic IDE",
       );
-      expect(runtimeConfig.instructions).not.toContain("bb status");
-      expect(runtimeConfig.instructions).not.toContain("bb guide");
+      expect(runtimeConfig.instructions).not.toContain("kaioken status");
+      expect(runtimeConfig.instructions).not.toContain("kaioken guide");
       expect(runtimeConfig.instructions).not.toContain("Markdown links");
       expect(runtimeConfig.instructions).toContain(
         "update_environment_directory",
@@ -1203,7 +1203,7 @@ describe("thread runtime config", () => {
     });
   });
 
-  it("keeps local-host workspace .bb/AGENTS.md instructions unchanged", async () => {
+  it("keeps local-host workspace .kaioken/AGENTS.md instructions unchanged", async () => {
     await withTestHarness(async (harness) => {
       const hostId = "host-runtime-agents-md";
       seedHostSession(harness.deps, { id: hostId });
@@ -1248,10 +1248,10 @@ describe("thread runtime config", () => {
 
       expect(runtimeConfig.instructionMode).toBe("append");
       expect(runtimeConfig.instructions).not.toContain(
-        "You are working inside bb, an agentic IDE",
+        "You are working inside kaioken, an agentic IDE",
       );
       expect(runtimeConfig.instructions).toContain(
-        "The following workspace instructions come from .bb/AGENTS.md:",
+        "The following workspace instructions come from .kaioken/AGENTS.md:",
       );
       expect(runtimeConfig.instructions).toContain(
         "Always run the smoke test before pushing.",
@@ -1259,7 +1259,7 @@ describe("thread runtime config", () => {
     });
   });
 
-  it("reads workspace .bb/AGENTS.md from a non-primary host", async () => {
+  it("reads workspace .kaioken/AGENTS.md from a non-primary host", async () => {
     await withTestHarness(async (harness) => {
       const { host: primary } = seedHostSession(harness.deps, {
         id: "host-runtime-agents-primary",
@@ -1274,7 +1274,7 @@ describe("thread runtime config", () => {
       const workspacePath = "/remote/runtime-agents-workspace";
       const agentInstructionsPath = path.join(
         workspacePath,
-        ".bb",
+        ".kaioken",
         "AGENTS.md",
       );
       const responder = registerRemoteRuntimeFileResponder(harness, {
@@ -1327,7 +1327,7 @@ describe("thread runtime config", () => {
     });
   });
 
-  it("treats a missing remote workspace .bb/AGENTS.md as null", async () => {
+  it("treats a missing remote workspace .kaioken/AGENTS.md as null", async () => {
     await withTestHarness(async (harness) => {
       const { host: primary } = seedHostSession(harness.deps, {
         id: "host-runtime-missing-agents-primary",
@@ -1365,7 +1365,7 @@ describe("thread runtime config", () => {
       );
 
       expect(runtimeConfig.instructions).not.toContain(
-        "The following workspace instructions come from .bb/AGENTS.md:",
+        "The following workspace instructions come from .kaioken/AGENTS.md:",
       );
     });
   });
@@ -1385,7 +1385,7 @@ describe("thread runtime config", () => {
       const workspacePath = "/remote/runtime-skills-workspace";
       const skillRootPath = path.join(
         workspacePath,
-        ".bb",
+        ".kaioken",
         "skills",
         "remote-review",
       );
@@ -1439,7 +1439,7 @@ describe("thread runtime config", () => {
           expect.objectContaining({
             command: expect.objectContaining({
               type: "host.list_files",
-              path: path.join(workspacePath, ".bb", "skills"),
+              path: path.join(workspacePath, ".kaioken", "skills"),
             }),
           }),
           expect.objectContaining({
@@ -1570,7 +1570,7 @@ describe("thread runtime config", () => {
       const userSource =
         "The following user instructions come from <dataDir>/AGENTS.md:";
       const workspaceSource =
-        "The following workspace instructions come from .bb/AGENTS.md:";
+        "The following workspace instructions come from .kaioken/AGENTS.md:";
       expect(runtimeConfig.instructions).toContain(userSource);
       expect(runtimeConfig.instructions).toContain(
         "Prefer concise progress updates.",
@@ -1679,9 +1679,9 @@ describe("thread runtime config", () => {
         );
 
         const toolHeader =
-          'The following instructions come from the BB plugin "tooldemo" for its tool "demo_lookup":';
+          'The following instructions come from the Kaioken plugin "tooldemo" for its tool "demo_lookup":';
         const pluginHeader =
-          'The following instructions come from the BB plugin "connect":';
+          'The following instructions come from the Kaioken plugin "connect":';
         const dataDirHeader =
           "The following user instructions come from <dataDir>/AGENTS.md:";
         const instructions = runtimeConfig.instructions;
@@ -1763,19 +1763,19 @@ describe("thread runtime config", () => {
 
         const instructions = runtimeConfig.instructions;
         expect(instructions).not.toContain(
-          'The following instructions come from the BB plugin "nuller":',
+          'The following instructions come from the Kaioken plugin "nuller":',
         );
         expect(instructions).not.toContain(
-          'The following instructions come from the BB plugin "blank":',
+          'The following instructions come from the Kaioken plugin "blank":',
         );
         expect(instructions).not.toContain(
-          'The following instructions come from the BB plugin "boom":',
+          'The following instructions come from the Kaioken plugin "boom":',
         );
         expect(instructions).toContain(
-          'The following instructions come from the BB plugin "verbose":',
+          'The following instructions come from the Kaioken plugin "verbose":',
         );
         expect(instructions).toContain(
-          'The following instructions come from the BB plugin "ok":',
+          'The following instructions come from the Kaioken plugin "ok":',
         );
         expect(instructions).toContain("still contributes");
         expect(instructions).not.toContain(longBody);

@@ -7,7 +7,7 @@ import {
 } from "./agents.js";
 import { acpProviderDeclaration } from "./declaration.js";
 import { KNOWN_ACP_AGENTS, RESERVED_ACP_PROVIDER_IDS } from "./known-agents.js";
-import { experimental_acpLaunchSpecSchema } from "@get-bb/plugin-sdk/provider-bridge/acp";
+import { experimental_acpLaunchSpecSchema } from "@get-kaioken/plugin-sdk/provider-bridge/acp";
 
 const reserved = RESERVED_ACP_PROVIDER_IDS;
 
@@ -111,7 +111,7 @@ describe("parseCustomAcpAgents", () => {
   it.each([
     ["an absolute skill root", { nativeSkillRoots: { user: ["/etc/skills"] } }],
     [
-      "a level outside bb's ladder",
+      "a level outside kaioken's ladder",
       { reasoningCli: { flag: "-e", supportedLevels: ["turbo"] } },
     ],
     [

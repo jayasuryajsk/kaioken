@@ -1,4 +1,4 @@
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
+import type { SystemEnvironmentProvider } from "@kaioken/server-contract";
 
 export function providerInputsControlRequired(
   provider: SystemEnvironmentProvider,

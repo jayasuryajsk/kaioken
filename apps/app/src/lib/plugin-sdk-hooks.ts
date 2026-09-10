@@ -8,10 +8,10 @@ import {
 } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
-import type { PromptTextMention } from "@bb/domain";
+import type { PromptTextMention } from "@kaioken/domain";
 import type {
-  BbContext,
-  BbNavigate,
+  KaiokenContext,
+  KaiokenNavigate,
   ComposerView,
   PluginComposerApi,
   PluginComposerMention,
@@ -25,8 +25,8 @@ import type {
   ExperimentalFixedTabTargetState,
   ExperimentalPluginFixedTabReference,
   JsonValue,
-} from "@get-bb/plugin-sdk";
-import { jsonValueSchema } from "@bb/domain";
+} from "@get-kaioken/plugin-sdk";
+import { jsonValueSchema } from "@kaioken/domain";
 import {
   PluginSlotOwnershipContext,
   usePluginId,
@@ -48,7 +48,7 @@ import {
 import {
   appendQuoteAndAttachmentsToDraft,
   isPromptDraftEmpty,
-} from "@bb/client-core";
+} from "@kaioken/client-core";
 import {
   AUTOMATIONS_PLUGIN_ID,
   getPluginPanelRoutePath,
@@ -273,7 +273,7 @@ export function useProviders(): PluginProvidersState {
   );
 }
 
-export function useBbContext(): BbContext {
+export function useBbContext(): KaiokenContext {
   const { projectId, threadId } = useRouteState();
   return useMemo(
     () => ({ projectId: projectId ?? null, threadId: threadId ?? null }),
@@ -281,11 +281,11 @@ export function useBbContext(): BbContext {
   );
 }
 
-interface BbNavigateWithDeprecatedAliases extends BbNavigate {
-  experimental_openUrl: BbNavigate["openUrl"];
+interface KaiokenNavigateWithDeprecatedAliases extends KaiokenNavigate {
+  experimental_openUrl: KaiokenNavigate["openUrl"];
 }
 
-export function useBbNavigate(): BbNavigate {
+export function useBbNavigate(): KaiokenNavigate {
   const pluginId = usePluginId();
   const location = useLocation();
   const openThreadPanelHandler = usePluginThreadPanelOpenHandler();
@@ -339,16 +339,16 @@ export function useBbNavigate(): BbNavigate {
     },
     [location.pathname, navigate, pluginId],
   );
-  const openThreadPanel = useCallback<BbNavigate["openThreadPanel"]>(
+  const openThreadPanel = useCallback<KaiokenNavigate["openThreadPanel"]>(
     (options) => openThreadPanelHandler?.({ ...options, pluginId }) ?? false,
     [openThreadPanelHandler, pluginId],
   );
-  const openUrl = useCallback<BbNavigate["openUrl"]>(
+  const openUrl = useCallback<KaiokenNavigate["openUrl"]>(
     (url) => appNavigation.openUrl({ url }),
     [appNavigation],
   );
   const experimental_openFilePreview = useCallback<
-    BbNavigate["experimental_openFilePreview"]
+    KaiokenNavigate["experimental_openFilePreview"]
   >(
     (options) => {
       const normalized = normalizeExperimentalFileOpenOptions(options);
@@ -357,7 +357,7 @@ export function useBbNavigate(): BbNavigate {
     [appNavigation],
   );
   const experimental_openFileExternally = useCallback<
-    BbNavigate["experimental_openFileExternally"]
+    KaiokenNavigate["experimental_openFileExternally"]
   >(
     (options) => {
       const normalized = normalizeExperimentalFileOpenOptions(options);
@@ -367,7 +367,7 @@ export function useBbNavigate(): BbNavigate {
     },
     [appNavigation],
   );
-  return useMemo<BbNavigateWithDeprecatedAliases>(
+  return useMemo<KaiokenNavigateWithDeprecatedAliases>(
     () => ({
       toThread,
       toProject,

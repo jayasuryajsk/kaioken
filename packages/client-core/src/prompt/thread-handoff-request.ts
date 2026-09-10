@@ -1,4 +1,4 @@
-import type { PromptTextMention } from "@bb/domain";
+import type { PromptTextMention } from "@kaioken/domain";
 import type { PromptDraftState } from "./prompt-draft.js";
 
 export const THREAD_HANDOFF_CREATE_SEED_LOCATION_STATE_KEY =

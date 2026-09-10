@@ -10,7 +10,7 @@ import {
 } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, extname, isAbsolute, join, resolve } from "node:path";
-import { derivePluginId } from "@bb/domain";
+import { derivePluginId } from "@kaioken/domain";
 import type { Metafile, Plugin } from "esbuild";
 import {
   PLUGIN_THEME_CSS,
@@ -55,7 +55,7 @@ let freshFacadeImportSequence = 0;
 async function freshModuleExports(moduleUrl: string): Promise<string[]> {
   const freshUrl = new URL(moduleUrl);
   freshUrl.searchParams.set(
-    "bb-plugin-build",
+    "kaioken-plugin-build",
     String(++freshFacadeImportSequence),
   );
   const moduleNamespace = await import(freshUrl.href);
@@ -103,7 +103,7 @@ async function shimModuleSource(
     `const runtime = globalThis.__bbPluginRuntime;`,
     `if (runtime == null || runtime.${slot} == null) {`,
     `  throw new Error(${JSON.stringify(
-      `Cannot load "${specifier}": this bundle must be loaded by the BB app, which provides the shared plugin runtime (globalThis.__bbPluginRuntime).`,
+      `Cannot load "${specifier}": this bundle must be loaded by the Kaioken app, which provides the shared plugin runtime (globalThis.__bbPluginRuntime).`,
     )});`,
     `}`,
     `const mod = runtime.${slot};`,
@@ -115,7 +115,7 @@ async function shimModuleSource(
   ].join("\n");
 }
 
-const SHIM_NAMESPACE = "bb-plugin-runtime-shim";
+const SHIM_NAMESPACE = "kaioken-plugin-runtime-shim";
 const SHIM_FILTER = new RegExp(
   `^(${Object.keys(RUNTIME_SLOT_BY_SPECIFIER)
     .map((specifier) => specifier.replace(/[/@.-]/g, "\\$&"))
@@ -124,7 +124,7 @@ const SHIM_FILTER = new RegExp(
 
 export function runtimeShimPlugin(pluginSdkAppModuleUrl?: string): Plugin {
   return {
-    name: "bb-plugin-runtime-shims",
+    name: "kaioken-plugin-runtime-shims",
     setup(build) {
       build.onResolve({ filter: SHIM_FILTER }, (args) => ({
         path: args.path,
@@ -401,7 +401,7 @@ interface PluginAppBuildOptions {
 
 export async function buildPluginApp(
   rootDir: string,
-  bbVersion: string,
+  kaiokenVersion: string,
   toolchain: PluginBuildToolchain,
   options: PluginAppBuildOptions = { minify: true },
 ): Promise<PluginAppBuildResult> {
@@ -439,7 +439,7 @@ export async function buildPluginApp(
       jsxDev: false,
       define: {
         "process.env.NODE_ENV": '"production"',
-        __BB_PLUGIN_ID__: JSON.stringify(pluginId),
+        __KAIOKEN_PLUGIN_ID__: JSON.stringify(pluginId),
       },
       logLevel: "error",
       plugins: [runtimeShimPlugin()],
@@ -479,7 +479,7 @@ export async function buildPluginApp(
     await writeFile(
       stagedMetaPath,
       JSON.stringify(
-        createPluginArtifactMeta({ packageName, pluginVersion, bbVersion }),
+        createPluginArtifactMeta({ packageName, pluginVersion, kaiokenVersion }),
         null,
         2,
       ) + "\n",

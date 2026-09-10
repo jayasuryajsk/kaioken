@@ -3,12 +3,12 @@
   "name": "hover-card",
   "type": "registry:ui",
   "title": "hover-card",
-  "description": "BB ui \"hover-card\" — vendored from the BB app's own source (version-matched to this BB release).",
+  "description": "Kaioken ui \"hover-card\" — vendored from the Kaioken app's own source (version-matched to this Kaioken release).",
   "dependencies": [
     "@radix-ui/react-hover-card"
   ],
   "registryDependencies": [
-    "@bb/utils"
+    "@kaioken/utils"
   ],
   "files": [
     {

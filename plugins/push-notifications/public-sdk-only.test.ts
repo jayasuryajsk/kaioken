@@ -1,6 +1,6 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { experimental_scanPublicSdkOnly as scanPublicSdkOnly } from "@get-bb/plugin-sdk/testing";
+import { experimental_scanPublicSdkOnly as scanPublicSdkOnly } from "@get-kaioken/plugin-sdk/testing";
 import { describe, expect, it } from "vitest";
 
 const scan = scanPublicSdkOnly(dirname(fileURLToPath(import.meta.url)), {
