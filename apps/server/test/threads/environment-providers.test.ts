@@ -9,6 +9,7 @@ import {
 } from "../helpers/provider-decisions.js";
 import {
   createEnvironment,
+  createProjectSource,
   ensurePersonalProject,
   getEnvironmentLaunch,
   getEnvironment,
@@ -2179,6 +2180,23 @@ describe("a provider-produced environment over its life", () => {
         projectId: project.id,
         inputs: { image: "img" },
       });
+      const queued = await waitForQueuedCommand(
+        harness,
+        (candidate) =>
+          candidate.command.type === "environment.attach" &&
+          candidate.command.initiator?.threadId === created.id,
+      );
+      if (queued.command.type !== "environment.attach") {
+        throw new Error("Expected environment.attach command");
+      }
+      await reportQueuedCommandSuccess(harness, queued, {
+        path: queued.command.path,
+        isGitRepo: true,
+        isWorktree: true,
+        branchName: "feature",
+        defaultBranch: "main",
+        transcript: [],
+      });
       await vi.waitFor(() => {
         expect(getThread(harness.db, created.id)?.environmentId).not.toBeNull();
       });
@@ -2269,6 +2287,23 @@ describe("a provider-produced environment over its life", () => {
       const created = await createTargetThread(harness, {
         projectId: project.id,
         inputs: { image: "img" },
+      });
+      const queued = await waitForQueuedCommand(
+        harness,
+        (candidate) =>
+          candidate.command.type === "environment.attach" &&
+          candidate.command.path === "/tmp/environment-providers-merge-base",
+      );
+      if (queued.command.type !== "environment.attach") {
+        throw new Error("Expected environment.attach command");
+      }
+      await reportQueuedCommandSuccess(harness, queued, {
+        path: queued.command.path,
+        isGitRepo: true,
+        isWorktree: true,
+        branchName: "feature",
+        defaultBranch: "main",
+        transcript: [],
       });
       await vi.waitFor(() => {
         const environmentId = getThread(harness.db, created.id)?.environmentId;

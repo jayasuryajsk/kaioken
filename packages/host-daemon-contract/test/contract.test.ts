@@ -463,13 +463,6 @@ const ONLINE_RPC_RESPONSE_RESULT_FIXTURES: OnlineRpcResponseResultFixtures = {
       },
     ],
   },
-  "workspace.readiness.inspect": {
-    commit: "abc",
-    dirty: [],
-    files: [],
-    abi: "linux/x64/node-127",
-  },
-  "host.readiness.probe": { reachable: true, status: 200 },
   "workspace.status": WORKSPACE_UNAVAILABLE_RESULT,
   "workspace.diff": WORKSPACE_UNAVAILABLE_RESULT,
   "workspace.diffFiles": WORKSPACE_UNAVAILABLE_RESULT,
@@ -711,8 +704,6 @@ const INTENTIONAL_OPTIONAL_HOST_DAEMON_FIELDS: Record<string, string> = {
     "a tool_use approval's presentation carries a tint only when the bridge wants an accent colour; absence means the neutral row tint, which is not a colour value.",
   "hostDaemonInteractiveRequestSchema.interaction.payload.subject.presentation.title":
     "a tool_use approval's presentation has a title only when the call has a headline (a path, a query); absence means the label stands alone.",
-  "hostDaemonOnlineRpcCommandSchema.contributedEnv":
-    "Provider health may use an isolated effective turn environment; absence retains shared maintenance behavior.",
   "hostDaemonOnlineRpcCommandSchema.cwd":
     "provider.list_models may omit cwd when only user-level provider configuration applies.",
   "hostDaemonOnlineRpcCommandSchema.query":
@@ -1003,7 +994,6 @@ const CONTRIBUTED_ENV = [
     value: { serverPath: "/plugins/auth-proxy/api" },
     source: { plugin: "auth-proxy" },
     reason: "Route provider traffic through the plugin",
-    secret: true,
   },
 ] as const;
 

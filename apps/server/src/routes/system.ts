@@ -30,6 +30,7 @@ import {
   publicApiRoutes,
   typedRoutes,
   type PublicApiSchema,
+  type SystemEnvironmentProvider,
 } from "@bb/server-contract";
 import type { Hono } from "hono";
 import { pluginImageResponse } from "./plugin-image-response.js";
@@ -393,7 +394,7 @@ export function registerSystemRoutes(
                 ) || left.provider.id.localeCompare(right.provider.id)
               );
             })
-            .map(async (record) => {
+            .map(async (record): Promise<SystemEnvironmentProvider | null> => {
               if (
                 query.projectId !== undefined &&
                 !environmentProviderMatchesContext(deps, record, {
