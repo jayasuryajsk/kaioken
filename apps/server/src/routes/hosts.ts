@@ -1,4 +1,3 @@
-import { machineLifecycleStatus } from "../services/machines/lifecycle.js";
 import { serverAccess } from "../services/machines/server-access.js";
 import { getNonDestroyedHost, updateHost } from "@bb/db";
 import {
@@ -348,12 +347,6 @@ export function registerHostRoutes(
       },
     });
     return context.json(result);
-  });
-
-  post(routes.experimental_lifecycle, async (context) => {
-    const hostId = context.req.param("id");
-    assertUsableHostId(deps, { hostId });
-    return context.json(machineLifecycleStatus(deps, hostId));
   });
 
   get(routes.providerCliStatus, async (context) => {

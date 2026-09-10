@@ -264,22 +264,6 @@ export function registerMachineCommands(
     );
 
   machine
-    .command("lifecycle <machine>")
-    .description("Show machine maintenance state")
-    .option("--json", "Print machine-readable JSON output")
-    .action(
-      action(async (target: string, opts: MachineListCommandOptions) => {
-        const sdk = createCliBbSdk(getUrl());
-        const hostId = resolveMachineId(await sdk.hosts.list(), target);
-        const result = await sdk.hosts.experimental_lifecycle({ hostId });
-        if (!outputJson(opts, result))
-          console.log(
-            `${result.phase}: ${result.recoveryState}${result.message === null ? "" : ` — ${result.message}`}`,
-          );
-      }),
-    );
-
-  machine
     .command("providers")
     .description("List installed machine providers")
     .option("--json", "Print machine-readable JSON output")

@@ -816,7 +816,6 @@ function rewindEnvironmentProvidersMigration(db: DbConnection): void {
   }
   db.$client.exec("DROP TABLE IF EXISTS machine_workspace_setups");
   db.$client.exec("DROP TABLE IF EXISTS environment_setup_outcomes");
-  db.$client.exec("DROP TABLE IF EXISTS machine_lifecycles");
   db.$client.exec("DROP TABLE IF EXISTS environment_launches");
   db.$client.exec("DROP TABLE IF EXISTS machine_launches");
   db.$client.exec("DROP TABLE IF EXISTS machine_enrollments");
@@ -843,6 +842,8 @@ function rewindEnvironmentProvidersMigration(db: DbConnection): void {
     "machine_provider_selection",
     "phase",
     "suspended_at",
+    "suspend_message",
+    "suspend_retry_at",
     "idle_since",
     "removal_started_at",
     "remove_retry_at",

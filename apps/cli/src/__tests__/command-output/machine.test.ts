@@ -339,32 +339,6 @@ describe("bb machine command output", () => {
     },
   );
 
-  it("bb machine lifecycle only reads machine maintenance state", async () => {
-    const lifecycle = vi.fn(async () => ({
-      phase: "suspending",
-      recoveryState: "saving",
-      message: "Saving the machine filesystem",
-      retryAt: null,
-    }));
-    const remove = vi.fn(async () => ({ ok: true as const }));
-    stubServerApi({
-      "v1.hosts.$get": vi.fn(async () => hosts),
-      "v1.hosts.:id.lifecycle.$post": lifecycle,
-      "v1.hosts.:id.$delete": remove,
-    });
-
-    await runCommand(["machine", "lifecycle", "laptop"], register);
-
-    expect(lifecycle).toHaveBeenCalledWith({
-      param: { id: "host-remote" },
-      json: {},
-    });
-    expect(remove).not.toHaveBeenCalled();
-    expect(collectLogPayloads(vi.mocked(console.log))).toEqual([
-      "suspending: saving — Saving the machine filesystem",
-    ]);
-  });
-
   it("bb machine providers lists providers without project scope", async () => {
     const listProviders = vi.fn(async () => ({
       providers: [

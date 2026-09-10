@@ -122,7 +122,7 @@ export function Header() {
             }),
           })}
           lifecycleNotice={{
-            recoveryState: "draining",
+            phase: "suspending",
             message:
               "Preserving this machine. Active turns will be interrupted and open terminals closed before the filesystem is saved.",
           }}
@@ -174,7 +174,7 @@ export function Header() {
             }),
           })}
           lifecycleNotice={{
-            recoveryState: "recoverable",
+            phase: "removing",
             message: "Machine removal failed: Modal returned HTTP 500.",
           }}
         />

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "59f94074-8612-4cdc-ac4d-d26fd525af62",
+  "id": "522d3823-86bc-4815-9ede-ef5a49944b28",
   "prevId": "29773b03-78e7-4083-a89c-e38d38412675",
   "tables": {
     "app_settings": {
@@ -1453,6 +1453,20 @@
           "notNull": false,
           "autoincrement": false
         },
+        "suspend_message": {
+          "name": "suspend_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "suspend_retry_at": {
+          "name": "suspend_retry_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "removal_started_at": {
           "name": "removal_started_at",
           "type": "integer",
@@ -2057,72 +2071,6 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "machine_lifecycles": {
-      "name": "machine_lifecycles",
-      "columns": {
-        "host_id": {
-          "name": "host_id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "recovery_state": {
-          "name": "recovery_state",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "message": {
-          "name": "message",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "lease_id": {
-          "name": "lease_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "lease_until": {
-          "name": "lease_until",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "retry_at": {
-          "name": "retry_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "machine_lifecycles_host_id_hosts_id_fk": {
-          "name": "machine_lifecycles_host_id_hosts_id_fk",
-          "tableFrom": "machine_lifecycles",
-          "tableTo": "hosts",
-          "columnsFrom": [
-            "host_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

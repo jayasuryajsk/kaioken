@@ -97,7 +97,7 @@ Failed saves retain compute while it still exists.
 compute never silently becomes an empty checkout or an older snapshot. A checkpoint
 from an interrupted planned suspension remains recoverable.
 
-Use `bb machine lifecycle MACHINE --json` for core state and `bb modal machine inspect HOST_ID --json` for Modal diagnostics. The plugin RPC `machine.inspect` returns the same result. Remove explicitly with `bb machine remove MACHINE --yes`.
+Use `bb machine list --json` for core state and `bb modal machine inspect HOST_ID --json` for Modal diagnostics. The plugin RPC `machine.inspect` returns the same result. Remove explicitly with `bb machine remove MACHINE --yes`.
 Account identity remains pinned; restore the original account before lifecycle
 operations. Removal deletes private snapshots and compute, retaining the shared
 standard image. Removing lost compute can remain blocked on core checkout cleanup.

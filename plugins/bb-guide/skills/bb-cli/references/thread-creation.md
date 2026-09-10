@@ -206,7 +206,7 @@ hooks. A fresh core clone on a new machine is owned and runs the hooks. Provider
 core hooks themselves.
 Thread startup does not validate agent credentials, fingerprint the checkout, or install agent CLIs.
 
-`bb machine lifecycle MACHINE --json` shows core maintenance state and any suspension or resume error.
+`bb machine list --json` includes lifecycle phase, progress, and any suspension or resume error.
 Maintenance interrupts active turns and closes terminals before saving. Submit a
 new continuation turn after restore; interrupted turns are never reported successful.
 

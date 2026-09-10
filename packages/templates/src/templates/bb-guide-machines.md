@@ -261,7 +261,7 @@ every row to retain, using value: null for an unchanged saved secret.
 
 Thread startup does not install or update agent CLIs, probe authentication, or validate workspace fingerprints. Core runs repository setup when creating an owned environment and teardown before removing it. Resume does not rerun setup.
 
-`bb machine lifecycle MACHINE --json` shows core maintenance state and any suspension or resume error.
+`bb machine list --json` includes lifecycle phase, progress, and any suspension or resume error.
 Maintenance interrupts active turns and closes terminals before saving. Submit a
 new continuation turn after restore; interrupted turns are never reported successful.
 

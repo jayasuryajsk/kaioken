@@ -9,12 +9,7 @@ import {
   getThread,
 } from "@bb/db";
 import { seedTurnStarted } from "../../helpers/seed.js";
-import { machineLifecycles } from "@bb/db";
-import {
-  assertMachineLifecycleAdmission,
-  getMachineLifecycle,
-  machineLifecycleStatus,
-} from "../../../src/services/machines/lifecycle.js";
+import { assertMachineLifecycleAdmission } from "../../../src/services/machines/lifecycle.js";
 import { archiveThreadAndHiddenSourceForks } from "../../../src/services/threads/thread-archive.js";
 import { cancelAbandonedProviderLaunches } from "../../../src/services/threads/thread-environment-providers.js";
 import { serverAccess } from "../../../src/services/machines/server-access.js";
@@ -956,8 +951,12 @@ describe("core machine provider orchestration", () => {
         requestMachineSuspension(harness.deps, host.id),
       ).rejects.toThrow("server crashed after checkpoint");
       expect(getHost(harness.db, host.id)).toMatchObject({
-        phase: "suspending",
+        phase: "suspended",
         resource: { snapshot: "snap-recoverable" },
+        suspendMessage: expect.stringContaining(
+          "server crashed after checkpoint",
+        ),
+        suspendRetryAt: expect.any(Number),
       });
       harness.db
         .update(threads)
@@ -1303,10 +1302,6 @@ describe("core machine provider orchestration", () => {
         }),
       );
       adoptMachine(harness, host.id, { snapshot: "snap-1" });
-      harness.db
-        .insert(machineLifecycles)
-        .values({ hostId: host.id, recoveryState: "saved" })
-        .run();
       updateHost(harness.db, harness.hub, host.id, {
         phase: "suspended",
         suspendedAt: Date.now(),
@@ -2470,12 +2465,14 @@ describe("coordinated machine suspension", () => {
       await sweep;
       expect(terminated).toBe(true);
       expect(getHost(h.db, host.id)?.phase).toBe("suspended");
-      expect(machineLifecycleStatus(h.deps, host.id)).toMatchObject({
-        recoveryState: "saved",
+      expect(getHost(h.db, host.id)).toMatchObject({
+        phase: "suspended",
+        suspendMessage: null,
+        suspendRetryAt: null,
       });
     }));
 
-  it("retains compute after failed save and retries after a durable lease expires", async () =>
+  it("retains compute after failed save and retries after retryAt", async () =>
     withTestHarness(async (h) => {
       vi.useFakeTimers({ toFake: ["Date"] });
       vi.setSystemTime(10_000);
@@ -2497,25 +2494,16 @@ describe("coordinated machine suspension", () => {
       await expect(requestMachineSuspension(h.deps, host.id)).rejects.toThrow(
         "snapshot unavailable",
       );
-      expect(getHost(h.db, host.id)?.phase).toBe("suspending");
-      expect(getMachineLifecycle(h.deps, host.id)).toMatchObject({
-        recoveryState: "recoverable",
-
-        leaseId: null,
+      expect(getHost(h.db, host.id)).toMatchObject({
+        phase: "active",
+        suspendMessage: expect.stringContaining("snapshot unavailable"),
+        suspendRetryAt: 20_000,
       });
       await expect(requestMachineSuspension(h.deps, host.id)).rejects.toThrow(
         "Machine already has a lifecycle operation",
       );
       expect(saves).toBe(1);
-      h.db
-        .update(machineLifecycles)
-        .set({
-          leaseId: "previous-server",
-          leaseUntil: 40_000,
-          recoveryState: "saving",
-        })
-        .where(eq(machineLifecycles.hostId, host.id))
-        .run();
+      updateHost(h.db, h.hub, host.id, { suspendRetryAt: 40_000 });
       vi.setSystemTime(30_000);
       await expect(requestMachineSuspension(h.deps, host.id)).rejects.toThrow(
         "Machine already has a lifecycle operation",
@@ -2526,7 +2514,11 @@ describe("coordinated machine suspension", () => {
       await sweepProviderMachine(h.deps, host.id);
       await requestMachineSuspension(h.deps, host.id);
       expect(saves).toBe(2);
-      expect(getMachineLifecycle(h.deps, host.id)?.recoveryState).toBe("saved");
+      expect(getHost(h.db, host.id)).toMatchObject({
+        phase: "suspended",
+        suspendMessage: null,
+        suspendRetryAt: null,
+      });
     }));
 
   it("propagates a provider refusal to restore unsafe state", async () =>
@@ -2568,7 +2560,11 @@ describe("coordinated machine suspension", () => {
       await expect(requestMachineSuspension(h.deps, host.id)).rejects.toThrow(
         "Restore the pinned account",
       );
-      expect(getHost(h.db, host.id)?.phase).toBe("suspending");
+      expect(getHost(h.db, host.id)).toMatchObject({
+        phase: "active",
+        suspendMessage: expect.stringContaining("Restore the pinned account"),
+        suspendRetryAt: expect.any(Number),
+      });
     }));
 });
 
@@ -2719,8 +2715,9 @@ it("concurrent dispatch shares one restore and records an expired image failure"
     proceed.resolve();
     await Promise.all([first, second]);
     expect(resumes).toBe(1);
-    expect(getMachineLifecycle(h.deps, host.id)).toMatchObject({
-      recoveryState: "healthy",
+    expect(getHost(h.db, host.id)).toMatchObject({
+      suspendMessage: null,
+      suspendRetryAt: null,
     });
     expired = true;
     updateHost(h.db, h.hub, host.id, {
@@ -2730,9 +2727,11 @@ it("concurrent dispatch shares one restore and records an expired image failure"
     await expect(
       ensureHostSessionReadyForWork(h.deps, { hostId: host.id }),
     ).rejects.toThrow("Snapshot image no longer exists");
-    expect(machineLifecycleStatus(h.deps, host.id)).toMatchObject({
-      recoveryState: "recoverable",
-      message: expect.stringContaining("Snapshot image no longer exists"),
+    expect(getHost(h.db, host.id)).toMatchObject({
+      suspendMessage: expect.stringContaining(
+        "Snapshot image no longer exists",
+      ),
+      suspendRetryAt: expect.any(Number),
     });
     expect(getHost(h.db, host.id)?.phase).toBe("suspended");
   }));
@@ -2801,15 +2800,17 @@ it("wakes persisted offline queue intent after a suspended machine is reconciled
     expect(getHost(h.db, host.id)?.phase).toBe("active");
   }));
 
-it("settles an abandoned maintenance lease after persisted suspension and admits the saved machine", async () =>
+it("recovers a host left suspending after restart", async () =>
   withTestHarness(async (h) => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(100_000);
     const { host } = seedHostSession(h.deps, { id: "abandoned-maintenance" });
     adoptMachine(h, host.id, { snapshot: "durable" });
     updateHost(h.db, h.hub, host.id, {
-      phase: "suspended",
+      phase: "suspending",
       suspendedAt: 40_000,
+      machineOperationId: "previous-process",
+      suspendMessage: "Saving the filesystem before terminating compute.",
     });
     installMachineProvider(
       machineDeclaration(host.id, {
@@ -2817,25 +2818,14 @@ it("settles an abandoned maintenance lease after persisted suspension and admits
         resume: async ({ resource }) => ({ resource }),
       }),
     );
-    h.db
-      .insert(machineLifecycles)
-      .values({
-        hostId: host.id,
-
-        recoveryState: "saving",
-
-        leaseId: "previous-process",
-        leaseUntil: 70_000,
-      })
-      .run();
     expect(() => assertMachineLifecycleAdmission(h.deps, host.id)).toThrow(
-      "preserving",
+      "Saving the filesystem",
     );
     await sweepProviderMachine(h.deps, host.id);
-    expect(getMachineLifecycle(h.deps, host.id)).toMatchObject({
-      leaseId: null,
-      leaseUntil: null,
-      recoveryState: "saved",
+    expect(getHost(h.db, host.id)).toMatchObject({
+      phase: "active",
+      suspendMessage: null,
+      suspendRetryAt: null,
     });
     expect(getHost(h.db, host.id)?.resource).toEqual({ snapshot: "durable" });
     expect(() =>

@@ -17,6 +17,10 @@ SDK, and app launches; see [worktrees.md](worktrees.md).
 
 The Machines settings creation drawer prepares an existing-machine command when access is ready, otherwise shows setup guidance. After access is ready, Choose a machine provider reviews provider inputs and launches through `hosts.experimental_submit`/`bb machine create`. A machine belongs to no project; projects reach it later through project sources.
 
+Machine maintenance state is part of `bb machine list --json`; there is no
+separate machine lifecycle command. Keep the machine guide and bb-cli command
+index aligned with this surface.
+
 Local installed-daemon start, stop, and uninstall operations are flags on
 `install-machine.sh`, not `bb machine` subcommands.
 

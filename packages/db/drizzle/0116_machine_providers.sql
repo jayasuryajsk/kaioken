@@ -44,16 +44,6 @@ CREATE TABLE `machine_launches` (
 --> statement-breakpoint
 CREATE INDEX `machine_launches_phase_idx` ON `machine_launches` (`phase`);--> statement-breakpoint
 CREATE INDEX `machine_launches_host_id_idx` ON `machine_launches` (`host_id`);--> statement-breakpoint
-CREATE TABLE `machine_lifecycles` (
-	`host_id` text PRIMARY KEY NOT NULL,
-	`recovery_state` text NOT NULL,
-	`message` text,
-	`lease_id` text,
-	`lease_until` integer,
-	`retry_at` integer,
-	FOREIGN KEY (`host_id`) REFERENCES `hosts`(`id`) ON UPDATE no action ON DELETE cascade
-);
---> statement-breakpoint
 ALTER TABLE `hosts` ADD `machine_provider_id` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `machine_operation_id` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `server_access_provider_id` text;--> statement-breakpoint
@@ -63,6 +53,8 @@ ALTER TABLE `hosts` ADD `resource` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `machine_provider_selection` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `phase` text DEFAULT 'active' NOT NULL;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `suspended_at` integer;--> statement-breakpoint
+ALTER TABLE `hosts` ADD `suspend_message` text;--> statement-breakpoint
+ALTER TABLE `hosts` ADD `suspend_retry_at` integer;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `removal_started_at` integer;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `remove_retry_at` integer;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `teardown_attempt` integer DEFAULT 0 NOT NULL;--> statement-breakpoint

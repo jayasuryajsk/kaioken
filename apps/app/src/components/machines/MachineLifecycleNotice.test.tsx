@@ -1,68 +1,46 @@
 // @vitest-environment jsdom
 import { cleanup, render } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { afterEach, expect, it, vi } from "vitest";
-import { MachineLifecycleNotice } from "./MachineLifecycleNotice";
-import { sdk } from "@/lib/sdk";
+import { afterEach, expect, it } from "vitest";
+import { MachineLifecycleNoticeContent } from "./MachineLifecycleNotice";
 
-vi.mock("@/lib/sdk", () => ({
-  sdk: { hosts: { experimental_lifecycle: vi.fn() } },
-}));
-afterEach(() => {
-  cleanup();
-  vi.restoreAllMocks();
-});
+afterEach(cleanup);
 
-function renderNotice() {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
+it("reports a failed operation as destructive", () => {
   const view = render(
-    <QueryClientProvider client={client}>
-      <MachineLifecycleNotice hostId="machine" />
-    </QueryClientProvider>,
+    <MachineLifecycleNoticeContent
+      notice={{
+        phase: "active",
+        message: "Machine suspension failed: Modal returned HTTP 500.",
+      }}
+    />,
   );
-  return { view, client };
-}
-
-it("reports a recoverable failure as destructive", async () => {
-  vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
-    phase: "removing",
-    recoveryState: "recoverable",
-    message: "Machine removal failed: Modal returned HTTP 500.",
-  });
-  const { view, client } = renderNotice();
-  const notice = await view.findByRole("status");
+  const notice = view.getByRole("status");
   expect(notice.textContent).toBe(
-    "Machine removal failed: Modal returned HTTP 500.",
+    "Machine suspension failed: Modal returned HTTP 500.",
   );
   expect(notice.className).toContain("text-destructive-text");
-  client.clear();
 });
 
-it("reports maintenance in progress without destructive styling", async () => {
-  vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
-    phase: "suspending",
-    recoveryState: "draining",
-    message:
-      "Preserving this machine. Active turns will be interrupted and open terminals closed before the filesystem is saved.",
-  });
-  const { view, client } = renderNotice();
-  const notice = await view.findByRole("status");
-  expect(notice.className).not.toContain("text-destructive-text");
-  client.clear();
+it("reports maintenance in progress without destructive styling", () => {
+  const view = render(
+    <MachineLifecycleNoticeContent
+      notice={{
+        phase: "suspending",
+        message:
+          "Preserving this machine. Active turns will be interrupted and open terminals closed before the filesystem is saved.",
+      }}
+    />,
+  );
+  expect(view.getByRole("status").className).not.toContain(
+    "text-destructive-text",
+  );
 });
 
-it("renders nothing when core reports no maintenance", async () => {
-  vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
-    phase: "active",
-    recoveryState: "healthy",
-    message: null,
-  });
-  const { view, client } = renderNotice();
-  await vi.waitFor(() => {
-    expect(vi.mocked(sdk.hosts.experimental_lifecycle)).toHaveBeenCalled();
-  });
+it("renders nothing when the host has no maintenance message", () => {
+  const view = render(
+    <MachineLifecycleNoticeContent
+      notice={{ phase: "active", message: null }}
+    />,
+  );
   expect(view.queryByRole("status")).toBeNull();
-  client.clear();
 });

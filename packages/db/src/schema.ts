@@ -108,6 +108,8 @@ export const hosts = sqliteTable(
       .notNull()
       .default("active"),
     suspendedAt: integer("suspended_at"),
+    suspendMessage: text("suspend_message"),
+    suspendRetryAt: integer("suspend_retry_at"),
     removalStartedAt: integer("removal_started_at"),
     removeRetryAt: integer("remove_retry_at"),
     teardownAttempt: integer("teardown_attempt").notNull().default(0),
@@ -1204,16 +1206,3 @@ export const environmentHookOperations = sqliteTable(
     error: text("error"),
   },
 );
-
-export const machineLifecycles = sqliteTable("machine_lifecycles", {
-  hostId: text("host_id")
-    .primaryKey()
-    .references(() => hosts.id, { onDelete: "cascade" }),
-  recoveryState: text("recovery_state", {
-    enum: ["healthy", "draining", "saving", "saved", "recoverable"],
-  }).notNull(),
-  message: text("message"),
-  leaseId: text("lease_id"),
-  leaseUntil: integer("lease_until"),
-  retryAt: integer("retry_at"),
-});

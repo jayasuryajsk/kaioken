@@ -1,7 +1,4 @@
-import {
-  MachineLifecycleNoticeContent,
-  useMachineLifecycleNotice,
-} from "@/components/machines/MachineLifecycleNotice";
+import { MachineLifecycleNoticeContent } from "@/components/machines/MachineLifecycleNotice";
 import { useMemo, useState, type ComponentProps, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { Host, PermissionMode } from "@bb/domain";
@@ -282,10 +279,12 @@ export function MachineSettingsView() {
 
   const hosts = hostsQuery.data;
   const host = hosts?.find((candidate) => candidate.id === hostId) ?? null;
-  const lifecycleNotice = useMachineLifecycleNotice({
-    hostId: hostId ?? "",
-    enabled: host !== null && host.machineProviderId !== null,
-  });
+  const lifecycleMessage =
+    host?.lifecycle.progress ?? host?.lifecycle.teardown?.message ?? null;
+  const lifecycleNotice =
+    host === null
+      ? null
+      : { phase: host.lifecycle.phase, message: lifecycleMessage };
   const primaryHostId = systemConfig.data?.primaryHostId ?? null;
   const isPrimary = host !== null && host.id === primaryHostId;
   const showMachineIdentityBadges = (hosts?.length ?? 0) > 1;

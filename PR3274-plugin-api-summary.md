@@ -546,9 +546,6 @@ interface HostsArea {
   experimental_suspend(args: { hostId: string }): Promise<{ ok: true }>;
   experimental_resume(args: { hostId: string }): Promise<{ ok: true }>;
   experimental_retryCleanup(args: { hostId: string }): Promise<{ ok: true }>;
-  experimental_lifecycle(args: {
-    hostId: string;
-  }): Promise<experimental_HostLifecycleResponse>;
 }
 
 interface MachineCreateArgs {
@@ -568,12 +565,6 @@ interface MachineLaunchStatus {
   cancelPending: boolean;
   terminal: boolean;
 }
-
-type experimental_HostLifecycleResponse = {
-  phase: string;
-  recoveryState: "healthy" | "draining" | "saving" | "saved" | "recoverable";
-  message: string | null;
-};
 
 type SystemMachineProvider = {
   id: string;

@@ -2759,9 +2759,8 @@ Providers must reserve the full drain bound plus snapshot time and scheduling ji
 a server outage or late wake cannot guarantee preservation. Unsafe recovery must fail
 inside the provider; a dispatch hook is not an integrity boundary.
 
-`hosts.experimental_lifecycle({hostId})` and `bb machine lifecycle MACHINE --json`
-return phase, recoveryState and message. Explicit machine removal remains available.
-The request/response schemas and types share this behavior and stabilization criteria.
+The host DTO's lifecycle phase and progress expose maintenance state and suspension
+or resume failures. Explicit machine removal remains available.
 Stabilization requires interruption, checkpoint/restart, removal serialization,
 failed drain, bounded drain and same-identity restore tests.
 
@@ -2830,7 +2829,7 @@ default. Explicit branch inputs still pass to the concrete provider.
 New host methods are experimental_create, experimental_submit,
 experimental_launch, experimental_follow, experimental_cancel,
 experimental_listProviders, experimental_suspend, experimental_resume and
-experimental_retryCleanup, alongside experimental_lifecycle. There are no
+experimental_retryCleanup. There are no
 unprefixed aliases. Setup-slot clients expose experimental_submit,
 experimental_follow and experimental_cancel. CLI command names do not change.
 

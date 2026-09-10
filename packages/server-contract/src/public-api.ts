@@ -4,11 +4,6 @@ import {
   type MachineEnvironmentReplace,
 } from "./api/system.js";
 import {
-  experimental_hostLifecycleRequestSchema,
-  type experimental_HostLifecycleRequest,
-  type experimental_HostLifecycleResponse,
-} from "./api/hosts.js";
-import {
   desktopBrowserHostRequestSchema,
   desktopBrowserScopeSchema,
   desktopBrowserCreateRequestSchema,
@@ -870,14 +865,6 @@ export const publicApiRoutes = {
         hostPickFolderRequestSchema,
       ),
       response: jsonResponse<HostPickFolderResponse>(),
-    }),
-    experimental_lifecycle: defineRoute({
-      path: "/hosts/:id/lifecycle",
-      method: "post",
-      request: jsonRequest<PathId, experimental_HostLifecycleRequest>(
-        experimental_hostLifecycleRequestSchema,
-      ),
-      response: jsonResponse<experimental_HostLifecycleResponse>(),
     }),
     providerCliStatus: defineRoute({
       path: "/hosts/:id/provider-clis/status",

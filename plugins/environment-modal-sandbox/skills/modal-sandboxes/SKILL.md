@@ -45,7 +45,7 @@ both hooks. Configure runtime secrets through core Machine environment settings;
 never bake them into the image. There are no user recipes, context uploads, smoke
 verification records or promotion commands.
 
-Use `bb machine lifecycle MACHINE --json` for core suspension state and
+Use `bb machine list --json` for core suspension state and
 `bb modal machine inspect HOST_ID --json` for Modal expiry and saved-image
 status. Idle pause defaults to 15 minutes; compute lifetime is fixed at Modal's
 24-hour maximum. There is no retention/keep policy; remove machines explicitly.

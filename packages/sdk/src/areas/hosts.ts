@@ -1,4 +1,3 @@
-import type { experimental_HostLifecycleResponse } from "@bb/server-contract";
 import { hostProviderCliInstallEventSchema } from "@bb/server-contract";
 import type { Host } from "@bb/domain";
 import type {
@@ -96,9 +95,6 @@ export type HostUpdateResult = Host;
 export type MachineProviderListResult = SystemMachineProvider[];
 
 export interface HostsArea {
-  experimental_lifecycle(args: {
-    hostId: string;
-  }): Promise<experimental_HostLifecycleResponse>;
   experimental_create(args: MachineCreateArgs): Promise<Host>;
   experimental_submit(args: MachineCreateArgs): Promise<MachineLaunchStatus>;
   experimental_launch(args: {
@@ -139,14 +135,6 @@ export interface HostsArea {
 export function createHostsArea(args: CreateSdkAreaArgs): HostsArea {
   const { transport } = args;
   return {
-    async experimental_lifecycle(input) {
-      return transport.readJson(
-        transport.api.v1.hosts[":id"].lifecycle.$post({
-          param: { id: input.hostId },
-          json: {},
-        }),
-      );
-    },
     async experimental_create(input) {
       const launch = await this.experimental_submit(input);
       return this.experimental_follow({ id: launch.id, signal: input.signal });

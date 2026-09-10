@@ -1,39 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
-import type { experimental_HostLifecycleResponse } from "@bb/server-contract";
+import type { MachineLifecycle } from "@bb/domain";
 import { cn } from "@bb/shared-ui/lib/utils";
-import { machineLifecycleQueryKey } from "@/hooks/queries/query-keys";
-import { sdk } from "@/lib/sdk";
 
-type MachineLifecycleNoticeState = Pick<
-  experimental_HostLifecycleResponse,
-  "message" | "recoveryState"
-> | null;
-
-export function useMachineLifecycleNotice({
-  hostId,
-  enabled = true,
-}: {
-  hostId: string;
-  enabled?: boolean;
-}): MachineLifecycleNoticeState {
-  const query = useQuery({
-    queryKey: machineLifecycleQueryKey(hostId),
-    queryFn: () => sdk.hosts.experimental_lifecycle({ hostId }),
-    refetchInterval: 10_000,
-    enabled,
-  });
-  return query.data ?? null;
-}
-
-export function MachineLifecycleNotice({ hostId }: { hostId: string }) {
-  const notice = useMachineLifecycleNotice({ hostId });
-  return <MachineLifecycleNoticeContent notice={notice} />;
-}
+export type MachineLifecycleNoticeState = Pick<MachineLifecycle, "phase"> & {
+  message: string | null;
+};
 
 export function MachineLifecycleNoticeContent({
   notice,
 }: {
-  notice: MachineLifecycleNoticeState;
+  notice: MachineLifecycleNoticeState | null;
 }) {
   if (notice === null || notice.message === null) return null;
   return (
@@ -42,9 +17,9 @@ export function MachineLifecycleNoticeContent({
       aria-label="Machine maintenance"
       className={cn(
         "min-w-0 text-xs",
-        notice.recoveryState === "recoverable"
-          ? "text-destructive-text"
-          : "text-subtle-foreground",
+        notice.phase === "suspending"
+          ? "text-subtle-foreground"
+          : "text-destructive-text",
       )}
     >
       {notice.message}

@@ -1,9 +1,6 @@
 import { ensureHostSessionReadyForWork } from "../hosts/host-lifecycle.js";
-import {
-  getMachineLifecycle,
-  waitForMachineMaintenance,
-  isMachineWaitingForExecution,
-} from "../machines/lifecycle.js";
+import { isMachineWaitingForExecution } from "../machines/lifecycle.js";
+import { waitForMachineMaintenance } from "../machines/provider-orchestration.js";
 import {
   getQueuedThreadMessage,
   getThread,
@@ -178,9 +175,6 @@ export function requestQueuedMachineReadiness(
   pending.add(hostId);
   void waitForMachineMaintenance(deps, hostId)
     .then(() => {
-      const state = getMachineLifecycle(deps, hostId);
-      if (state?.recoveryState === "recoverable")
-        throw new Error(state.message ?? "Machine pause failed");
       return ensureHostSessionReadyForWork(deps, { hostId });
     })
     .then(() => {

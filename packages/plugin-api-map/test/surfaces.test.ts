@@ -216,6 +216,9 @@ describe("surface card copy", () => {
     expect(machineProviders?.bullets.join(" ")).toContain(
       "Await suspend.checkpoint(resource) before destructive cleanup",
     );
+    expect(machineProviders?.bullets.join(" ")).toContain(
+      "host's lifecycle phase and progress",
+    );
   });
 
   it("maps enrollment helpers and checkpointed allocation to the machine surface", () => {

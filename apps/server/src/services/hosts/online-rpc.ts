@@ -1,7 +1,4 @@
-import {
-  getMachineLifecycle,
-  assertMachineLifecycleAdmission,
-} from "../machines/lifecycle.js";
+import { assertMachineLifecycleAdmission } from "../machines/lifecycle.js";
 import { getHost, getThread } from "@bb/db";
 import { randomUUID } from "node:crypto";
 import {
@@ -135,7 +132,7 @@ async function callHostOnlineRpcWithRetry(
     if (
       (args.command.type === "thread.start" ||
         args.command.type === "turn.submit") &&
-      getMachineLifecycle(deps, args.hostId) !== undefined &&
+      getHost(deps.db, args.hostId)?.machineOperationId !== null &&
       !["active", "starting"].includes(
         getThread(deps.db, args.command.threadId)?.status ?? "",
       )

@@ -57,7 +57,6 @@ const THREAD_TIMELINE_TURN_SUMMARY_DETAILS_QUERY_KEY =
   "threadTimelineTurnSummaryDetails";
 const SYSTEM_PROVIDERS_QUERY_KEY = "systemProviders";
 const SYSTEM_MACHINE_PROVIDERS_QUERY_KEY = "systemMachineProviders";
-const MACHINE_LIFECYCLE_QUERY_KEY = "machine-lifecycle";
 const MACHINE_ENVIRONMENT_QUERY_KEY = "machine-environment";
 const SYSTEM_CONFIG_QUERY_KEY = "systemConfig";
 const UI_PREFERENCES_QUERY_KEY = "uiPreferences";
@@ -454,10 +453,6 @@ type SystemMachineProvidersQueryKey = readonly [
 ];
 type AllSystemMachineProvidersQueryKeyPrefix = readonly [
   typeof SYSTEM_MACHINE_PROVIDERS_QUERY_KEY,
-];
-type MachineLifecycleQueryKey = readonly [
-  typeof MACHINE_LIFECYCLE_QUERY_KEY,
-  string,
 ];
 type MachineEnvironmentQueryKey = readonly [
   typeof MACHINE_ENVIRONMENT_QUERY_KEY,
@@ -1097,12 +1092,6 @@ export function systemMachineProvidersQueryKey(): SystemMachineProvidersQueryKey
 
 export function allSystemMachineProvidersQueryKeyPrefix(): AllSystemMachineProvidersQueryKeyPrefix {
   return [SYSTEM_MACHINE_PROVIDERS_QUERY_KEY];
-}
-
-export function machineLifecycleQueryKey(
-  hostId: string,
-): MachineLifecycleQueryKey {
-  return [MACHINE_LIFECYCLE_QUERY_KEY, hostId];
 }
 
 export function machineEnvironmentQueryKey(): MachineEnvironmentQueryKey {

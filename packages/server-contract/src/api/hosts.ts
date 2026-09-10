@@ -132,24 +132,3 @@ export const machineLaunchQuerySchema = z.object({
   scope: z.enum(["launch", "thread"]).default("launch"),
 });
 export type MachineLaunchQuery = z.input<typeof machineLaunchQuerySchema>;
-
-export const experimental_hostLifecycleRequestSchema = z.object({}).strict();
-export type experimental_HostLifecycleRequest = z.infer<
-  typeof experimental_hostLifecycleRequestSchema
->;
-export const experimental_hostLifecycleResponseSchema = z
-  .object({
-    phase: z.string(),
-    recoveryState: z.enum([
-      "healthy",
-      "draining",
-      "saving",
-      "saved",
-      "recoverable",
-    ]),
-    message: z.string().nullable(),
-  })
-  .strict();
-export type experimental_HostLifecycleResponse = z.infer<
-  typeof experimental_hostLifecycleResponseSchema
->;

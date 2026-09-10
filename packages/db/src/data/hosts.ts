@@ -40,6 +40,8 @@ export interface UpdateHostInput {
   resource?: JsonValue | null;
   removalStartedAt?: number | null;
   removeRetryAt?: number | null;
+  suspendMessage?: string | null;
+  suspendRetryAt?: number | null;
   suspendedAt?: number | null;
   teardownAttempt?: number;
   teardownMessage?: string | null;
@@ -120,6 +122,8 @@ export function upsertHost(
         machineProviderSelection: null,
         phase: "active",
         suspendedAt: null,
+        suspendMessage: null,
+        suspendRetryAt: null,
         removeRetryAt: null,
         teardownAttempt: 0,
         teardownStatus: null,
@@ -290,6 +294,12 @@ export function updateHost(
         : {}),
       ...(input.suspendedAt !== undefined
         ? { suspendedAt: input.suspendedAt }
+        : {}),
+      ...(input.suspendMessage !== undefined
+        ? { suspendMessage: input.suspendMessage }
+        : {}),
+      ...(input.suspendRetryAt !== undefined
+        ? { suspendRetryAt: input.suspendRetryAt }
         : {}),
       ...(input.teardownAttempt !== undefined
         ? { teardownAttempt: input.teardownAttempt }

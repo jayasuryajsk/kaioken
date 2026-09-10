@@ -814,6 +814,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Own idle timing in the plugin using thread-sequence and terminal-input events plus background schedules",
 
           "Request suspend/resume through the host SDK; core coordinates drain while plugins own idle policy",
+          "Read maintenance state and suspension failures from each host's lifecycle phase and progress",
           "Await suspend.checkpoint(resource) to persist opaque resource state before termination; schedule vendor maintenance in the plugin using bb.background.schedule and bb.sdk.hosts.experimental_suspend",
           "Optionally declare suspend and resume together; plugins own idle timing and core coordinates transitions",
           "Return an opaque JSON resource that core persists and passes back to lifecycle operations; never include credentials",
@@ -953,7 +954,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Calls bb's own API from the plugin's server code. With this, a plugin can:",
         bullets: [
           "Create threads, send messages to them, and manage projects",
-          "List machines and control provider-managed machine lifecycles",
+          "List machines and suspend, resume, or remove provider-managed machines",
           "Reach the same operations the [bb CLI](cli) and the bb UI use",
           "Have the threads it creates attributed back to the plugin",
           "Read the server's loopback URL, public app URL, and data directory when it needs server facts",

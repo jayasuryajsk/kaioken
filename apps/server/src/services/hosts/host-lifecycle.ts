@@ -1,12 +1,12 @@
-import {
-  assertMachineLifecycleAdmission,
-  waitForMachineMaintenance,
-} from "../machines/lifecycle.js";
+import { assertMachineLifecycleAdmission } from "../machines/lifecycle.js";
 import { getHost } from "@bb/db";
 import type { WorkSessionDeps } from "../../types.js";
 import { ApiError } from "../../errors.js";
 import { requireConnectedHostSession } from "../lib/entity-lookup.js";
-import { resumeMachine } from "../machines/provider-orchestration.js";
+import {
+  resumeMachine,
+  waitForMachineMaintenance,
+} from "../machines/provider-orchestration.js";
 
 export async function ensureHostSessionReadyForWork(
   deps: WorkSessionDeps,

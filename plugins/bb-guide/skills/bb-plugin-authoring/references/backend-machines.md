@@ -178,5 +178,5 @@ Refuse unsafe recovery or preservation after a missed deadline. A dispatch hook 
 help communicate status but is bypassable and does not protect terminal/file RPCs.
 Expose vendor-specific snapshots and loss information through the plugin’s own RPC and CLI.
 
-`bb.sdk.hosts.experimental_lifecycle({hostId})` and `bb machine lifecycle MACHINE --json`
-show generic maintenance state. Core does not provide retention or keep controls.
+The host DTO returned by `bb.sdk.hosts.get({hostId})` shows generic maintenance
+state through lifecycle phase and progress. Core does not provide retention or keep controls.
