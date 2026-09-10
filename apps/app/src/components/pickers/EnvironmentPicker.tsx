@@ -41,6 +41,10 @@ import {
 } from "./environment-picker-value";
 import { selectHosts } from "@/hooks/queries/host-queries";
 import { providerInputsControlRequired } from "./environment-provider-inputs";
+import {
+  MachineProviderKind,
+  type MachineProviderPresentation,
+} from "@/components/plugin/MachineProviderIcon";
 
 interface SelectedEnvironment {
   modeLabel: string;
@@ -97,12 +101,6 @@ function providerDisabledReason(
   provider: SystemEnvironmentProvider,
   inputsControlProviderIds: ReadonlySet<string>,
 ): string | null {
-  if (
-    provider.machineProviderId !== null &&
-    provider.availability?.status === "unavailable"
-  ) {
-    return provider.availability.message;
-  }
   if (
     !inputsControlProviderIds.has(provider.id) &&
     providerInputsControlRequired(provider)
@@ -344,6 +342,7 @@ export function EnvironmentPickerUI({
             value={value}
             onRequestMachineSetup={onRequestMachineSetup}
             environmentProviders={environmentProviders}
+            machineKindProviders={providers}
             providersByHostId={providersByHostId}
             selectedProviderHostId={selectedProviderHostId}
             inputsControlProviderIds={inputsControlProviderIds}
@@ -504,6 +503,7 @@ interface MachineGroupedEnvironmentOptionsProps {
   value: string;
   onRequestMachineSetup: ((host: Host) => void) | undefined;
   environmentProviders: readonly SystemEnvironmentProvider[];
+  machineKindProviders: readonly SystemEnvironmentProvider[];
   providersByHostId: EnvironmentPickerUIProps["providersByHostId"];
   selectedProviderHostId: string | null;
   inputsControlProviderIds: ReadonlySet<string>;
@@ -518,6 +518,7 @@ function MachineGroupedEnvironmentOptions({
   value,
   onRequestMachineSetup,
   environmentProviders,
+  machineKindProviders,
   providersByHostId,
   selectedProviderHostId,
   inputsControlProviderIds,
@@ -547,6 +548,25 @@ function MachineGroupedEnvironmentOptions({
             providersByHostId,
             machineHost.id,
           )}
+          machineProvider={
+            machineHost.machineProviderId === null
+              ? null
+              : (() => {
+                  const provider = machineKindProviders.find(
+                    (candidate) =>
+                      candidate.machineProviderId ===
+                      machineHost.machineProviderId,
+                  );
+                  return provider === undefined
+                    ? null
+                    : {
+                        id: machineHost.machineProviderId,
+                        displayName: provider.displayName,
+                        icon: provider.icon ?? "Server",
+                        logoUrl: provider.logoUrl,
+                      };
+                })()
+          }
           selectedProviderHostId={selectedProviderHostId}
           inputsControlProviderIds={inputsControlProviderIds}
           onSelectProvider={onSelectProvider}
@@ -564,6 +584,7 @@ interface MachineSectionProps {
   value: string;
   onRequestMachineSetup: ((host: Host) => void) | undefined;
   environmentProviders: readonly SystemEnvironmentProvider[];
+  machineProvider: MachineProviderPresentation | null;
   selectedProviderHostId: string | null;
   inputsControlProviderIds: ReadonlySet<string>;
   onSelectProvider:
@@ -579,6 +600,7 @@ function MachineSection({
   value,
   onRequestMachineSetup,
   environmentProviders,
+  machineProvider,
   selectedProviderHostId,
   inputsControlProviderIds,
   onSelectProvider,
@@ -594,6 +616,12 @@ function MachineSection({
         <span className="flex items-center gap-1.5">
           <MachineStatusDot connected={connected} />
           <span className="min-w-0 truncate">{host.name}</span>
+          {machineProvider === null ? null : (
+            <MachineProviderKind
+              provider={machineProvider}
+              className="inline-flex min-w-0 items-center gap-1 text-2xs text-subtle-foreground"
+            />
+          )}
           {host.machineProviderId ? (
             <span className={MACHINE_BADGE_CLASS_NAME}>
               {host.lifecycle.phase === "suspended"

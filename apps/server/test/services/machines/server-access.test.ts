@@ -48,26 +48,17 @@ function provider(): ServerAccessProviderDeclaration {
 }
 
 describe("machine server access", () => {
-  it.each([
-    ["https://test.getbb.app", true],
-    ["javascript:alert(1)", false],
-    ["https://user:private@test.getbb.app", false],
-  ])("validates the display URL %s", async (serverUrl, valid) => {
+  it("lists providers without invoking availability", async () => {
     await withTestHarness(async ({ deps }) => {
+      const availability = vi.fn(() => ({ status: "available" as const }));
       installProvider({
         ...provider(),
-        availability: () => ({ status: "available", serverUrl }),
+        availability,
       });
       const status = await serverAccessStatus(deps);
       const access = status.providers.find((entry) => entry.id === "relay");
-      expect(access?.availability).toEqual(
-        valid
-          ? { status: "available", serverUrl }
-          : {
-              status: "unavailable",
-              message: "Server access provider is unavailable",
-            },
-      );
+      expect(access).toMatchObject({ id: "relay", pluginId: "access-plugin" });
+      expect(availability).not.toHaveBeenCalled();
     });
   });
   it("prefers the first registered provider and respects an explicit direct default", async () => {
@@ -93,25 +84,28 @@ describe("machine server access", () => {
       const host = upsertHost(deps.db, deps.hub, { name: "test" })!;
       await expect(
         serverAccess.resolve(deps, { key: "k", hostId: host.id, signal }),
-      ).rejects.toThrow("Configure");
+      ).rejects.toThrow("unavailable");
     });
   });
 
   it("requires provider setup instead of silently falling back to a configured URL", async () => {
     await withTestHarness(async ({ deps }) => {
       vi.stubEnv("BB_EXTERNAL_URL", "https://direct.example.com");
+      const availability = vi.fn(() => ({
+        status: "setup-required" as const,
+        message: "Set up the relay",
+      }));
       installProvider({
         ...provider(),
-        availability: () => ({
-          status: "setup-required",
-          message: "Set up the relay",
-        }),
+        availability,
       });
       expect((await serverAccessStatus(deps)).defaultProviderId).toBe("relay");
+      expect(availability).not.toHaveBeenCalled();
       const host = upsertHost(deps.db, deps.hub, { name: "test" })!;
       await expect(
         serverAccess.resolve(deps, { key: "k", hostId: host.id, signal }),
       ).rejects.toThrow("Set up the relay");
+      expect(availability).toHaveBeenCalledOnce();
       setAppSettings(deps.db, {
         ...defaultAppSettings,
         defaultMachineAccess: "direct",

@@ -1,5 +1,4 @@
 import { jsonValueSchema } from "@bb/domain";
-import type { SystemMachineProvider } from "@bb/server-contract";
 import { z } from "zod";
 import { decideWithinBox } from "../threads/dispatch-hooks.js";
 import {
@@ -7,8 +6,6 @@ import {
   machineProviderDecisionTimeoutMs,
   type PluginMachineProviderRecord,
 } from "../plugins/plugin-machine-provider-registry.js";
-
-type Availability = SystemMachineProvider["availability"];
 
 const availabilitySchema = z.discriminatedUnion("status", [
   z.object({ status: z.literal("available") }).strict(),
@@ -55,17 +52,11 @@ async function resolveEmptyInputs(
   return jsonValueSchema.safeParse(invocation.value.value).success;
 }
 
-export async function resolveMachineProviderAvailability(
+export async function machineProviderUnavailableReason(
   record: PluginMachineProviderRecord,
-): Promise<Availability> {
-  return invokeAvailability(record);
-}
-
-async function invokeAvailability(
-  record: PluginMachineProviderRecord,
-): Promise<Availability> {
+): Promise<string | null> {
   const availability = record.provider.availability;
-  if (availability === null) return { status: "available" };
+  if (availability === null) return null;
   const invocation = await invokeMachineProvider(
     record,
     `"${record.provider.id}" machine provider availability`,
@@ -81,23 +72,14 @@ async function invokeAvailability(
       ? null
       : invocation.value.error;
   if (failure !== null) {
-    return {
-      status: "unavailable",
-      message: `Plugin "${record.pluginId}" could not determine availability: ${failure}`,
-    };
+    return `Plugin "${record.pluginId}" could not determine availability: ${failure}`;
   }
   if (!invocation.ok || !invocation.value.ok) {
-    return {
-      status: "unavailable",
-      message: `Plugin "${record.pluginId}" could not determine availability.`,
-    };
+    return `Plugin "${record.pluginId}" could not determine availability.`;
   }
   const parsed = availabilitySchema.safeParse(invocation.value.value);
   if (!parsed.success) {
-    return {
-      status: "unavailable",
-      message: `Plugin "${record.pluginId}" returned an invalid availability result.`,
-    };
+    return `Plugin "${record.pluginId}" returned an invalid availability result.`;
   }
-  return parsed.data;
+  return parsed.data.status === "available" ? null : parsed.data.message;
 }

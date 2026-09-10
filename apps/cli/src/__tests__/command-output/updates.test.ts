@@ -14,6 +14,7 @@ const hosts: Host[] = [
   {
     id: "host-primary",
     name: "workstation",
+    type: "persistent",
     status: "connected",
     machineProviderId: null,
     machineProviderSelection: null,
@@ -33,6 +34,7 @@ const hosts: Host[] = [
   {
     id: "host-remote",
     name: "laptop",
+    type: "persistent",
     status: "disconnected",
     machineProviderId: null,
     machineProviderSelection: null,

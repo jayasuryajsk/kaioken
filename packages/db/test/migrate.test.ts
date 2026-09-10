@@ -3708,6 +3708,7 @@ describe("migrate", () => {
         INSERT INTO hosts (
           id,
           name,
+          type,
           command_cursor,
           created_at,
           updated_at
@@ -3715,6 +3716,7 @@ describe("migrate", () => {
         VALUES (
           'host_deferred_cleanup',
           'Deferred cleanup host',
+          'persistent',
           0,
           1000,
           1000
@@ -6021,12 +6023,12 @@ describe("machine providers migration", () => {
         db.$client
           .prepare<
             [],
-            { id: string; providerId: string | null }
-          >("SELECT id, server_access_provider_id AS providerId FROM hosts ORDER BY id")
+            { id: string; providerId: string | null; type: string }
+          >("SELECT id, server_access_provider_id AS providerId, type FROM hosts ORDER BY id")
           .all(),
       ).toEqual([
-        { id: "direct", providerId: null },
-        { id: "legacy", providerId: "connect" },
+        { id: "direct", providerId: null, type: "persistent" },
+        { id: "legacy", providerId: "connect", type: "persistent" },
       ]);
     } finally {
       closeConnection(db);

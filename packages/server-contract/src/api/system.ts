@@ -158,14 +158,6 @@ export const serverAccessStatusSchema = z.object({
       displayName: z.string(),
       description: z.string(),
       pluginId: z.string().min(1).nullable(),
-      availability: z.discriminatedUnion("status", [
-        z.object({
-          status: z.literal("available"),
-          serverUrl: z.string().url().optional(),
-        }),
-        z.object({ status: z.literal("setup-required"), message: z.string() }),
-        z.object({ status: z.literal("unavailable"), message: z.string() }),
-      ]),
     }),
   ),
   defaultProviderId: z.string(),
@@ -364,25 +356,11 @@ export const systemMachineProviderSchema = z.object({
   displayName: z.string().min(1),
   description: z.string().min(1),
   icon: z.string().min(1),
-  machineTag: z.string().min(1).nullable(),
   logoUrl: z.string().min(1).nullable(),
   pluginId: z.string().min(1),
   inputs: jsonValueSchema.nullable(),
   acceptsEmptyInputs: z.boolean(),
   supportsSuspend: z.boolean(),
-  availability: z
-    .discriminatedUnion("status", [
-      z.object({ status: z.literal("available") }),
-      z.object({
-        status: z.literal("setup-required"),
-        message: z.string().min(1),
-      }),
-      z.object({
-        status: z.literal("unavailable"),
-        message: z.string().min(1),
-      }),
-    ])
-    .nullable(),
 });
 export type SystemMachineProvider = z.infer<typeof systemMachineProviderSchema>;
 

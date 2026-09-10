@@ -60,7 +60,6 @@ ALTER TABLE `hosts` ADD `remove_retry_at` integer;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `teardown_attempt` integer DEFAULT 0 NOT NULL;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `teardown_status` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `teardown_message` text;--> statement-breakpoint
-ALTER TABLE `hosts` DROP COLUMN `type`;--> statement-breakpoint
 ALTER TABLE `project_sources` ADD `owns_path` integer DEFAULT false NOT NULL;--> statement-breakpoint
 ALTER TABLE `host_daemon_sessions` DROP COLUMN `host_type`;
 --> statement-breakpoint

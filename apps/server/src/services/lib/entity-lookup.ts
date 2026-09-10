@@ -78,6 +78,7 @@ function toHostRecord(row: HostRow, status: Host["status"]): Host {
   return {
     id: row.id,
     name: row.name,
+    type: row.type,
     status,
     machineProviderId: row.machineProviderId,
     machineProviderSelection: row.machineProviderSelection,

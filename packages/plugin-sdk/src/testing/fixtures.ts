@@ -65,6 +65,7 @@ export function makeHostResponse(
   return {
     id: "host-1",
     name: "Test host",
+    type: "persistent",
     status: "connected",
     machineProviderId: null,
     machineProviderSelection: null,
@@ -247,6 +248,7 @@ export function makeMessageDispatchHookContext(
   const hostDefaults: NonNullable<MessageDispatchHookContext["host"]> = {
     id: "host-1",
     name: "Test host",
+    type: "persistent",
     status: "connected",
     machineProviderId: null,
     machineProviderSelection: null,

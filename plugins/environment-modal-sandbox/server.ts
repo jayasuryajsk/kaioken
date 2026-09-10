@@ -325,6 +325,7 @@ export function createModalSandboxPlugin(
         await bumpIdle(enrollment.hostId);
         return {
           status: "created",
+          name: `Modal sandbox ${enrollment.hostId.replace(/[^a-z0-9]/giu, "").slice(-6)}`,
           resource: allocation,
         };
       } catch (error) {
@@ -393,7 +394,6 @@ export function createModalSandboxPlugin(
       displayName: "Modal Sandbox",
       description: "Create a sandbox in your Modal account.",
       icon: "./modal-logo.svg",
-      machineTag: "modal",
       ephemeral: true,
       inputs: modalMachineInputsSchema,
       async validate({ inputs }) {

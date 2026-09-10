@@ -34,6 +34,7 @@ function host(status: Host["status"]): Host {
   return {
     id: HOST_ID,
     name: "Modal sandbox odal",
+    type: "persistent",
     status,
     machineProviderId: null,
     machineProviderSelection: null,
@@ -271,7 +272,10 @@ describe("Modal machine provider", () => {
     const harness = await setup();
     const first = await harness.provider.create(createContext());
     const second = await harness.provider.create(createContext());
-    expect(first).toMatchObject({ status: "created" });
+    expect(first).toMatchObject({
+      status: "created",
+      name: "Modal sandbox tmodal",
+    });
     expect(second).toEqual(first);
     expect(harness.backend.creates).toHaveLength(1);
     expect(harness.bootstrap).toHaveBeenCalledTimes(2);

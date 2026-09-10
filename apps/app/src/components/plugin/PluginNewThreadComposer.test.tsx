@@ -58,6 +58,7 @@ const mocks = vi.hoisted(() => ({
   extraProjects: [] as Array<Record<string, unknown>>,
   promptHistoryQueryOptions: [] as Array<{ enabled?: boolean } | undefined>,
   environmentProviders: [] as unknown[],
+  plugins: [] as unknown[],
   serverAccessReady: true,
 }));
 
@@ -81,6 +82,10 @@ vi.mock("@/hooks/queries/environment-provider-queries", () => ({
 
 vi.mock("@/hooks/queries/machine-provider-queries", () => ({
   useSystemMachineProviders: () => ({ providers: [] }),
+}));
+
+vi.mock("@/hooks/queries/plugin-settings-queries", () => ({
+  usePluginList: () => ({ data: { plugins: mocks.plugins } }),
 }));
 
 vi.mock("@/lib/sdk", () => ({
@@ -578,6 +583,7 @@ describe("PluginNewThreadComposer seeding", () => {
     mocks.sidebarNavigationSettled = true;
     mocks.sidebarNavigationReplayed = false;
     mocks.extraProjects = [];
+    mocks.plugins = [];
     mocks.serverAccessReady = true;
     mocks.environmentProviders = [
       CHECKOUT_PROVIDER,
@@ -1450,6 +1456,7 @@ describe("NewThreadComposer environment providers", () => {
     mocks.sidebarNavigationSettled = true;
     mocks.sidebarNavigationReplayed = false;
     mocks.extraProjects = [];
+    mocks.plugins = [];
     mocks.serverAccessReady = true;
     mocks.environmentProviders = [CHECKOUT_PROVIDER];
     resetPluginSlotStoreForTest();

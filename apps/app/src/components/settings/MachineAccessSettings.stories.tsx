@@ -12,12 +12,9 @@ const direct = {
   displayName: "Manual",
   description: "Use your own domain or network address.",
   pluginId: null,
-  availability: { status: "available" as const },
 };
 
-function access(
-  availability: ServerAccessStatus["providers"][number]["availability"],
-): ServerAccessStatus {
+function access(): ServerAccessStatus {
   return {
     providers: [
       {
@@ -25,7 +22,6 @@ function access(
         displayName: "Managed relay",
         description: "Use a managed relay address.",
         pluginId: "relay-plugin",
-        availability,
       },
       direct,
     ],
@@ -45,6 +41,7 @@ function machineAccessState(
     disabled: false,
     draft: null,
     error: null,
+    configurationMessage: null,
     effective: serverAccess.providers.find(
       (provider) => provider.id === selected,
     ),
@@ -61,19 +58,10 @@ function machineAccessState(
   };
 }
 
-const PROVIDER_SETUP_REQUIRED = access({
-  status: "setup-required",
-  message: "Set up the relay",
-});
-const PROVIDER_READY = access({
-  status: "available",
-  serverUrl: "https://relay.example.com",
-});
-const PROVIDER_READY_WITHOUT_URL = access({ status: "available" });
-const PROVIDER_UNAVAILABLE = access({
-  status: "unavailable",
-  message: "The relay rejected this server's credential",
-});
+const PROVIDER_SETUP_REQUIRED = access();
+const PROVIDER_READY = access();
+const PROVIDER_READY_WITHOUT_URL = access();
+const PROVIDER_UNAVAILABLE = access();
 const DIRECT_WITH_URL = {
   ...PROVIDER_SETUP_REQUIRED,
   defaultProviderId: "direct",
@@ -98,7 +86,9 @@ export function Section() {
         hint="setup-required — no status verdict, just the explanation and a primary action"
       >
         <MachineAccessSettingsContent
-          machineAccess={machineAccessState(PROVIDER_SETUP_REQUIRED)}
+          machineAccess={machineAccessState(PROVIDER_SETUP_REQUIRED, {
+            configurationMessage: "Set up the relay",
+          })}
         />
       </StoryRow>
       <StoryRow
@@ -122,7 +112,9 @@ export function Section() {
         hint="paired once and now refused — the provider's message replaces the explanation"
       >
         <MachineAccessSettingsContent
-          machineAccess={machineAccessState(PROVIDER_UNAVAILABLE)}
+          machineAccess={machineAccessState(PROVIDER_UNAVAILABLE, {
+            configurationMessage: "The relay rejected this server's credential",
+          })}
         />
       </StoryRow>
       <StoryRow

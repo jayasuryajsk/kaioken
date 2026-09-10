@@ -55,7 +55,6 @@ interface MachineProvider {
   displayName: string;
   description: string;
   icon: string;
-  machineTag?: string;
   inputs?: InputSchema;
 
   availability?(): Availability | Promise<Availability>;
@@ -571,7 +570,6 @@ type SystemMachineProvider = {
   displayName: string;
   description: string;
   icon: string;
-  machineTag: string | null;
   logoUrl: string | null;
   pluginId: string;
   inputs: JsonValue | null;

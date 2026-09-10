@@ -10,7 +10,7 @@ export function machineServerAccessReady(
   const provider = access.providers.find(
     (candidate) => candidate.id === access.defaultProviderId,
   );
-  if (provider?.availability.status !== "available") return false;
+  if (provider === undefined) return false;
   if (access.defaultProviderId !== "direct") return true;
   return access.effectiveUrl !== null && !isLocalOnlyUrl(access.effectiveUrl);
 }

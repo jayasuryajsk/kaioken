@@ -74,10 +74,7 @@ import {
   environmentProviderMatchesContext,
   environmentProviderAcceptsEmptyInputs,
 } from "../services/environments/provider-availability.js";
-import {
-  machineProviderAcceptsEmptyInputs,
-  resolveMachineProviderAvailability,
-} from "../services/machines/provider-availability.js";
+import { machineProviderAcceptsEmptyInputs } from "../services/machines/provider-availability.js";
 import { requirePublicProject } from "../services/lib/entity-lookup.js";
 
 const LEADING_ENVIRONMENT_PROVIDER_IDS: readonly string[] = [
@@ -473,8 +470,7 @@ export function registerSystemRoutes(
                         machineAcceptsEmptyInputs:
                           await machineProviderAcceptsEmptyInputs(machine),
                         machineProviderPluginId: machine.pluginId,
-                        availability:
-                          await resolveMachineProviderAvailability(machine),
+                        availability: null,
                       };
                     },
                   ),
@@ -492,7 +488,6 @@ export function registerSystemRoutes(
           displayName: record.provider.displayName,
           description: record.provider.description,
           icon: record.provider.icon,
-          machineTag: record.provider.machineTag,
           logoUrl:
             record.icon === undefined
               ? null
@@ -501,7 +496,6 @@ export function registerSystemRoutes(
           inputs: record.provider.inputsJsonSchema,
           acceptsEmptyInputs: await machineProviderAcceptsEmptyInputs(record),
           supportsSuspend: record.provider.suspend !== null,
-          availability: await resolveMachineProviderAvailability(record),
         })),
       ),
     });

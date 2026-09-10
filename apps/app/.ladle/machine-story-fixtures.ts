@@ -15,17 +15,12 @@ export const CONNECT_UNPAIRED: ServerAccessStatus = {
       displayName: "bb connect",
       description: "Use a private getbb.app address.",
       pluginId: "connect",
-      availability: {
-        status: "setup-required",
-        message: "Pair this bb instance with bb connect",
-      },
     },
     {
       id: "direct",
       displayName: "Manual",
       description: "Use your own domain or network address.",
       pluginId: null,
-      availability: { status: "available" },
     },
   ],
   defaultProviderId: "connect",
@@ -33,29 +28,11 @@ export const CONNECT_UNPAIRED: ServerAccessStatus = {
   urlSource: null,
 };
 
-function withConnect(
-  availability: ServerAccessStatus["providers"][number]["availability"],
-): ServerAccessStatus {
-  return {
-    ...CONNECT_UNPAIRED,
-    providers: [
-      { ...CONNECT_UNPAIRED.providers[0]!, availability },
-      CONNECT_UNPAIRED.providers[1]!,
-    ],
-  };
-}
+export const CONNECT_PAIRED = CONNECT_UNPAIRED;
 
-export const CONNECT_PAIRED = withConnect({
-  status: "available",
-  serverUrl: "https://sawyer.getbb.app",
-});
+export const CONNECT_PAIRED_WITHOUT_URL = CONNECT_UNPAIRED;
 
-export const CONNECT_PAIRED_WITHOUT_URL = withConnect({ status: "available" });
-
-export const CONNECT_UNAVAILABLE = withConnect({
-  status: "unavailable",
-  message: "The gate rejected this bb's credential (HTTP 401)",
-});
+export const CONNECT_UNAVAILABLE = CONNECT_UNPAIRED;
 
 export const MANUAL_WITHOUT_URL: ServerAccessStatus = {
   ...CONNECT_UNPAIRED,
@@ -86,6 +63,7 @@ export function machineAccessState(
     draft: null,
     error: null,
     effective: access.providers.find((provider) => provider.id === selected),
+    configurationMessage: null,
     saving: false,
     selected,
     value: access.urlSource === "setting" ? (access.effectiveUrl ?? "") : "",
@@ -103,13 +81,11 @@ export function machineProvider(
   return {
     description: "Run a machine for development.",
     icon: "Terminal",
-    machineTag: null,
     logoUrl: null,
     pluginId: `plugin-${overrides.id}`,
     inputs: null,
     acceptsEmptyInputs: true,
     supportsSuspend: false,
-    availability: { status: "available" },
     ...overrides,
   };
 }
@@ -120,7 +96,6 @@ export const MODAL_MACHINE_PROVIDER = machineProvider({
   description: "Create a sandbox in your Modal account.",
   pluginId: "environment-modal-sandbox",
   icon: "./modal-logo.svg",
-  machineTag: "modal",
   logoUrl: modalLogoUrl,
   supportsSuspend: true,
 });
@@ -136,10 +111,6 @@ export const MANUAL_MACHINE_PROVIDER = machineProvider({
 
 export const MODAL_NEEDS_TOKEN_PROVIDER = machineProvider({
   ...MODAL_MACHINE_PROVIDER,
-  availability: {
-    status: "setup-required",
-    message: "Set tokenId and tokenSecret in the plugin's settings.",
-  },
 });
 
 export const MODAL_UNRENDERABLE_INPUTS_PROVIDER = machineProvider({
@@ -157,8 +128,4 @@ export const UNAVAILABLE_MACHINE_PROVIDER = machineProvider({
   displayName: "Fleet",
   description: "Rent a machine from a managed fleet.",
   icon: "Server",
-  availability: {
-    status: "unavailable",
-    message: "The region this provider was configured for is offline.",
-  },
 });

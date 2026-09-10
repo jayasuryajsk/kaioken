@@ -164,6 +164,7 @@ export function hosts(now: number): Host[] {
     {
       id: DEMO_HOST_ID,
       name: "demo",
+      type: "persistent",
       status: "connected",
       machineProviderId: null,
       machineProviderSelection: null,

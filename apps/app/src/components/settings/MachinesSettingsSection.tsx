@@ -33,7 +33,7 @@ import {
   machineStatusTone,
 } from "@/components/machines/machine-status";
 import { MachineRenameDialog } from "@/components/settings/MachineRenameDialog";
-import { MachineProviderIcon } from "@/components/plugin/MachineProviderIcon";
+import { MachineProviderKind } from "@/components/plugin/MachineProviderIcon";
 import {
   SettingsBadge,
   SettingsRow,
@@ -172,16 +172,11 @@ export function MachineRowContent({
                 {showPrimaryBadge ? (
                   <SettingsBadge>primary</SettingsBadge>
                 ) : null}
-                {machineProvider?.machineTag == null ? null : (
-                  <SettingsBadge>
-                    <span className="inline-flex items-center gap-1">
-                      <MachineProviderIcon
-                        provider={machineProvider}
-                        className="size-2.5"
-                      />
-                      {machineProvider.machineTag}
-                    </span>
-                  </SettingsBadge>
+                {machineProvider === null ? null : (
+                  <MachineProviderKind
+                    provider={machineProvider}
+                    className="inline-flex min-w-0 items-center gap-1 text-xs font-normal text-subtle-foreground"
+                  />
                 )}
               </div>
               <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-subtle-foreground/75">
@@ -413,10 +408,7 @@ export function MachinesSettingsSection() {
         )}
       </SettingsSection>
 
-      <AddMachineDialog
-        open={addDialogOpen}
-        onOpenChange={setAddDialogOpen}
-      />
+      <AddMachineDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
 
       <MachineRenameDialog
         target={renameTarget}

@@ -29,6 +29,7 @@ export interface UpsertHostInput {
 }
 
 export interface UpdateHostInput {
+  type?: "persistent" | "ephemeral";
   machineOperationId?: string | null;
   destroyedAt?: number | null;
   lastRejectedProtocolVersion?: number | null;
@@ -116,6 +117,7 @@ export function upsertHost(
       .values({
         id,
         name: input.name,
+        type: "persistent",
         connectMachineId: input.connectMachineId ?? null,
         machineProviderId: null,
         resource: null,
@@ -265,6 +267,7 @@ export function updateHost(
   if (input.destroyedAt != null) settleMachineEnrollments(db, hostId);
   db.update(hosts)
     .set({
+      ...(input.type !== undefined ? { type: input.type } : {}),
       ...(input.destroyedAt !== undefined
         ? { destroyedAt: input.destroyedAt }
         : {}),

@@ -94,6 +94,9 @@ export const hosts = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
+    type: text("type")
+      .$type<"persistent" | "ephemeral">()
+      .notNull(),
     connectMachineId: text("connect_machine_id"),
     machineProviderId: text("machine_provider_id"),
     machineOperationId: text("machine_operation_id"),

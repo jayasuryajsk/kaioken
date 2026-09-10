@@ -158,6 +158,8 @@ it("creates, cancels, and removes manual machines through the production lifecyc
             expect(getMachineLaunch(h.db, key)?.phase).toBe("ready"),
           );
           expect(getHost(h.db, enrollment.hostId)).toMatchObject({
+            name: expect.stringMatching(/^Manual machine [a-z0-9]{6}$/u),
+            type: "persistent",
             machineProviderId: "manual",
             resource: { hostId: enrollment.hostId },
             removeRetryAt: null,
@@ -243,6 +245,7 @@ it("releases legacy Connect access when removing a backfilled manual host", asyn
       .values({
         id: "legacy-manual",
         name: "Legacy",
+        type: "persistent",
         connectMachineId: "legacy-cloud-machine",
         machineProviderId: "manual",
         serverAccessProviderId: "connect",

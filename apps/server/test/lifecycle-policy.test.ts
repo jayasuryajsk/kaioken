@@ -27,6 +27,7 @@ function installMachineProvider(harness: TestAppHarness, hostId: string) {
       reconcileCleanup: async () => ({ status: "removed" }),
       create: async () => ({
         status: "created",
+        name: "Test machine",
         hostId,
         resource: { id: "owned" },
       }),

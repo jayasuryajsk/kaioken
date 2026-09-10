@@ -2437,14 +2437,12 @@ const environmentProviderPolicySchema = z
   .strict();
 
 export const MACHINE_PROVIDER_DESCRIPTION_MAX_CHARS = 200;
-export const MACHINE_PROVIDER_TAG_MAX_CHARS = 24;
 
 export interface NormalizedPluginMachineProvider {
   id: string;
   displayName: string;
   description: string;
   icon: string;
-  machineTag: string | null;
   ephemeral: boolean;
   inputs: StandardSchemaV1 | null;
   inputsJsonSchema: JsonValue | null;
@@ -2497,15 +2495,6 @@ export function validatePluginMachineProviderDeclaration(
       `machine provider "${id}" icon must be a glyph, declared icon, or plugin-relative path`,
     );
   }
-  const machineTag =
-    declaration.machineTag === undefined
-      ? null
-      : z
-          .string()
-          .trim()
-          .min(1)
-          .max(MACHINE_PROVIDER_TAG_MAX_CHARS)
-          .parse(declaration.machineTag);
   const ephemeral = z.boolean().default(false).parse(declaration.ephemeral);
   const inputs = normalizeMachineProviderInputs(id, declaration);
   if (
@@ -2546,7 +2535,6 @@ export function validatePluginMachineProviderDeclaration(
     displayName,
     description,
     icon,
-    machineTag,
     ephemeral,
     inputs: inputs === null ? null : inputs.schema,
     inputsJsonSchema: inputs === null ? null : inputs.jsonSchema,

@@ -289,6 +289,7 @@ export function createMachineEnrollmentService(
             .values({
               id: row.hostId,
               name: row.hostId,
+              type: "persistent",
               createdAt: now,
               updatedAt: now,
             })

@@ -64,6 +64,7 @@ export function makeHost(overrides: Partial<Host> = {}): Host {
   return {
     id: "host_test",
     name: "Test host",
+    type: "persistent",
     status: "connected",
     machineProviderId: null,
     machineProviderSelection: null,

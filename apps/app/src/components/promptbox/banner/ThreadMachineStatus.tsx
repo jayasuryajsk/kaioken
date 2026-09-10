@@ -67,7 +67,9 @@ export function ThreadMachineStatusBanner({
   error: string | null;
   onResume: () => void;
 }) {
-  const status = `${hostName} is ${
+  const machineName =
+    provider === undefined ? hostName : `${hostName} · ${provider.displayName}`;
+  const status = `${machineName} is ${
     resuming ? "resuming…" : phase === "suspending" ? "pausing…" : "paused"
   }`;
   const detail = error && !resuming ? error : null;

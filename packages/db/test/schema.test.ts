@@ -158,6 +158,7 @@ describe("db rebuild schema", () => {
       .values({
         id: hostId,
         name: "Local host",
+        type: "persistent",
         lastSeenAt: now,
         createdAt: now,
         updatedAt: now,
@@ -310,6 +311,7 @@ describe("db rebuild schema", () => {
       .values({
         id: hostId,
         name: "Local host",
+        type: "persistent",
         lastSeenAt: now,
         createdAt: now,
         updatedAt: now,
@@ -356,6 +358,7 @@ describe("db rebuild schema", () => {
       .values({
         id: hostId,
         name: "Local host",
+        type: "persistent",
         lastSeenAt: now,
         createdAt: now,
         updatedAt: now,
@@ -415,6 +418,7 @@ describe("db rebuild schema", () => {
       .values({
         id: hostId,
         name: "Local host",
+        type: "persistent",
         lastSeenAt: now,
         createdAt: now,
         updatedAt: now,
@@ -474,6 +478,7 @@ describe("db rebuild schema", () => {
       .values({
         id: hostId,
         name: "Local host",
+        type: "persistent",
         lastSeenAt: now,
         createdAt: now,
         updatedAt: now,
@@ -538,6 +543,7 @@ describe("db rebuild schema", () => {
       .values({
         id: hostId,
         name: "Local host",
+        type: "persistent",
         lastSeenAt: now,
         createdAt: now,
         updatedAt: now,
@@ -748,6 +754,7 @@ describe("db rebuild schema", () => {
       .values({
         id: hostId,
         name: "host",
+        type: "persistent",
         lastSeenAt: now,
         createdAt: now,
         updatedAt: now,

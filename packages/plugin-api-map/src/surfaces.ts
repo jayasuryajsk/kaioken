@@ -793,8 +793,8 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Adds plugin-provisioned machines that compose with environment providers. With this, a plugin can:",
         bullets: [
           "Register bb.experimental_machines with a display name, one-line description, and required glyph, plugin-relative SVG, declared icon, or React icon",
-          "Tag every machine the provider made with machineTag, shown beside its icon in Machines; omit it to leave those machines untagged",
-          "Declare Standard Schema inputs, availability and validation; core parses and persists inputs before create",
+          "Show the provider display name and icon as the kind next to every machine it creates; manually enrolled machines have no kind",
+          "Declare ephemeral machines, Standard Schema inputs, availability and validation; core parses and persists inputs and checks availability before create",
           "Keep secrets in plugin settings because persisted machine inputs are readable by every plugin; pass only non-secret configuration or references",
           "Register an environment composition with machineProviderId and environmentProviderId to create a machine and then use a concrete environment provider; machine registration alone adds no picker option; CLI selects the composition with --environment-provider",
           "Create machines that belong to no project; projects reach a machine later through project sources",
@@ -819,6 +819,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Await suspend.checkpoint(resource) to persist opaque resource state before termination; schedule vendor maintenance in the plugin using bb.background.schedule and bb.sdk.hosts.experimental_suspend",
           "Optionally declare suspend and resume together; plugins own idle timing and core coordinates transitions",
           "Return an opaque JSON resource that core persists and passes back to lifecycle operations; never include credentials",
+          "Return a readable machine name from create; core supplies a provider-name fallback for older plugins",
           "Treat a failed create as terminal and retry vendor API hiccups inside the create call",
         ],
         apiSymbols: [

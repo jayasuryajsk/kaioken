@@ -15,13 +15,11 @@ const modalProvider: SystemMachineProvider = {
   displayName: "Modal Sandbox",
   description: "Run a machine for development.",
   icon: "./modal-logo.svg",
-  machineTag: null,
   logoUrl: modalLogoUrl,
   pluginId: "environment-modal-sandbox",
   inputs: null,
   acceptsEmptyInputs: true,
   supportsSuspend: true,
-  availability: { status: "available" },
 };
 
 function ResponsiveStage({ children }: { children: ReactNode }) {

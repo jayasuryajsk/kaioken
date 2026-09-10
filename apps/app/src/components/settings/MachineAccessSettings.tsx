@@ -15,6 +15,7 @@ import {
   SettingsSection,
   SettingsWithControl,
 } from "@/components/ui/settings-section";
+import { usePluginList } from "@/hooks/queries/plugin-settings-queries";
 
 function parseUrl(value: string): URL | null {
   try {
@@ -30,6 +31,7 @@ export interface MachineAccessState {
   draft: string | null;
   error: string | null;
   effective: ServerAccessStatus["providers"][number] | undefined;
+  configurationMessage: string | null;
   saving: boolean;
   selected: string;
   value: string;
@@ -41,6 +43,7 @@ export interface MachineAccessState {
 function useMachineAccess(): MachineAccessState {
   const config = useSystemConfig();
   const update = useUpdateGeneralSettings();
+  const pluginList = usePluginList({ enabled: true });
   const settings = config.data?.generalSettings;
   const access = config.data?.serverAccess;
   const value = settings?.machineServerUrl ?? "";
@@ -55,12 +58,22 @@ function useMachineAccess(): MachineAccessState {
     if (selectedProviderId === savedProviderId) setSelectedProviderId(null);
   }, [savedProviderId, selectedProviderId]);
   const selected = selectedProviderId ?? savedProviderId;
+  const effective = access?.providers.find(
+    (provider) => provider.id === selected,
+  );
+  const effectivePlugin = pluginList.data?.plugins.find(
+    (plugin) => plugin.id === effective?.pluginId,
+  );
   return {
     access,
     disabled,
     draft,
     error,
-    effective: access?.providers.find((provider) => provider.id === selected),
+    effective,
+    configurationMessage:
+      effectivePlugin?.status === "needs-configuration"
+        ? (effectivePlugin.statusDetail ?? "This provider needs configuration.")
+        : null,
     saving: update.isPending,
     selected,
     value,
@@ -207,51 +220,40 @@ function MachineAccessDetails({
   machineAccess: MachineAccessState;
   onNavigate?: () => void;
 }) {
-  const { access, disabled, draft, effective, error, saving, selected, value } =
-    machineAccess;
-  const connected = effective?.availability.status === "available";
+  const {
+    access,
+    configurationMessage,
+    disabled,
+    draft,
+    effective,
+    error,
+    saving,
+    selected,
+    value,
+  } = machineAccess;
+  const ready = configurationMessage === null;
   return (
     <>
       {selected !== "direct" && effective !== undefined && (
         <div className="@container">
           <div className="flex flex-col gap-4 @lg:flex-row @lg:items-center @lg:justify-between @lg:gap-3">
             <div className="min-w-0 space-y-1 @lg:flex-1">
-              {(connected ||
-                effective?.availability.status === "unavailable") && (
-                <p className="flex items-center gap-2 text-xs font-medium">
-                  {connected && (
-                    <span
-                      className="size-2 shrink-0 rounded-full bg-success"
-                      aria-hidden="true"
-                    />
-                  )}
-                  {connected ? "Connected" : "Unavailable"}
-                </p>
-              )}
+              <p className="flex items-center gap-2 text-xs font-medium">
+                {ready ? (
+                  <span
+                    className="size-2 shrink-0 rounded-full bg-success"
+                    aria-hidden="true"
+                  />
+                ) : null}
+                {ready ? "Ready" : "Needs configuration"}
+              </p>
               <p className="text-xs text-subtle-foreground">
-                {effective?.availability.status === "available" ? (
-                  effective.availability.serverUrl ? (
-                    <a
-                      href={effective.availability.serverUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="break-all underline decoration-border underline-offset-4 hover:text-foreground"
-                    >
-                      {effective.availability.serverUrl}
-                    </a>
-                  ) : (
-                    "Ready to add machines."
-                  )
-                ) : effective?.availability.status === "unavailable" ? (
-                  effective.availability.message
-                ) : (
-                  effective.availability.message
-                )}
+                {configurationMessage ?? "Ready to add machines."}
               </p>
             </div>
             {effective.pluginId !== null && (
               <Button
-                variant={connected ? "outline" : "default"}
+                variant={ready ? "outline" : "default"}
                 size="sm"
                 className="w-full @lg:w-auto"
                 asChild
@@ -262,7 +264,7 @@ function MachineAccessDetails({
                     pluginId: effective.pluginId,
                   })}
                 >
-                  {connected ? "Manage" : `Set up ${effective.displayName}`}
+                  {ready ? "Manage" : `Set up ${effective.displayName}`}
                   <Icon name="ArrowRight" />
                 </Link>
               </Button>

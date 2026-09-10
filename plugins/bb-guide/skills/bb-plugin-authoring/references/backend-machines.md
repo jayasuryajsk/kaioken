@@ -17,11 +17,8 @@ a standalone machine without project context. Project source setup happens later
 
 `description` and `icon` are required. The icon supplies the normal provider glyph or plugin-relative SVG; a React icon slot can customize its presentation.
 
-`machineTag` is also optional: it is the short tag, up to 24
-characters, shown beside that logo on every machine the provider made. Declare
-it when machines from this provider read better with their own name, as a Modal
-sandbox does with `modal`. Omit it when the provider's display name only
-describes how a machine was added, and those machines stay untagged.
+The provider display name and icon are the machine kind shown next to the name
+of every machine that provider creates. Manually enrolled machines have no kind.
 
 Set `ephemeral: true` only when the provider creates disposable
 compute. Core then automatically requests machine removal after every environment
@@ -50,7 +47,11 @@ bb.experimental_machines.register({
       report,
       signal,
     });
-    return { status: "created", resource };
+    return {
+      status: "created",
+      name: `Custom machine ${enrollment.hostId.slice(-6)}`,
+      resource,
+    };
   },
   async remove({ resource }) {
     const owned = z
@@ -76,8 +77,10 @@ call reuses the already-enrolled host instead of creating another resource.
 Prepare enrollment before calling `await checkpoint(resource)` after durable
 allocation and before bootstrap. Create's checkpoint is asynchronous and makes
 partial allocation recoverable even if enrollment never succeeds. Never put the
-bootstrap bundle in resource JSON. Return a private JSON resource for later
-lifecycle operations; core uses the host identity reserved on the launch.
+bootstrap bundle in resource JSON. Return a readable name and private JSON
+resource for later lifecycle operations; core uses the host identity reserved
+on the launch. Core falls back to the provider display name plus a short
+identity suffix for older providers that omit the name.
 `allocateTarget` and `disconnectTarget` above
 stand for provider-owned allocation, transport, and idempotent cleanup; removal
 must handle a checkpointed target whose daemon was never installed or enrolled.

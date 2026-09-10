@@ -83,6 +83,7 @@ describe("production machine enrollment wiring", () => {
         .values({
           id: hostId,
           name: "Existing machine",
+          type: "persistent",
           machineProviderId: "another-plugin-machine",
           resource: { sandboxId: "sandbox-existing" },
           createdAt: 1,
@@ -209,7 +210,11 @@ describe("production machine enrollment wiring", () => {
       const other = await installPlugin(h, "enrollment-other");
       const release = vi.fn(async () => {});
       const acquire = vi.fn(
-        async ({ hostId }: { hostId: string }): Promise<
+        async ({
+          hostId,
+        }: {
+          hostId: string;
+        }): Promise<
           ServerAccessGrant | { status: "failed"; message: string }
         > => ({
           id: "runtime-grant",

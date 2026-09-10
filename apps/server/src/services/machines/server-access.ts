@@ -69,48 +69,17 @@ export async function serverAccessStatus(deps: Dependencies) {
     displayName: string;
     description: string;
     pluginId: string | null;
-    availability: z.infer<typeof availabilitySchema>;
-  }> = await Promise.all(
-    records.map(async (record) => {
-      try {
-        const availability = availabilitySchema.parse(
-          await invokeServerAccessProvider(record, async () =>
-            record.provider.availability(),
-          ),
-        );
-        return {
-          id: record.provider.id,
-          displayName: record.provider.displayName,
-          description: record.provider.description,
-          pluginId: record.pluginId,
-          availability,
-        };
-      } catch {
-        return {
-          id: record.provider.id,
-          displayName: record.provider.displayName,
-          description: record.provider.description,
-          pluginId: record.pluginId,
-          availability: {
-            status: "unavailable" as const,
-            message: "Server access provider is unavailable",
-          },
-        };
-      }
-    }),
-  );
+  }> = records.map((record) => ({
+    id: record.provider.id,
+    displayName: record.provider.displayName,
+    description: record.provider.description,
+    pluginId: record.pluginId,
+  }));
   providers.push({
     id: "direct",
     displayName: "Manual",
     description: "Use your own domain or network address.",
     pluginId: null,
-    availability:
-      direct.url === null
-        ? {
-            status: "setup-required",
-            message: "Set a server URL reachable by machines",
-          }
-        : { status: "available" },
   });
   const configured = getAppSettings(deps.db).defaultMachineAccess;
   const defaultProviderId = configured ?? records[0]?.provider.id ?? "direct";
@@ -147,14 +116,6 @@ async function resolve(
   ) {
     throw new Error("Machine already has a different server access provider");
   }
-  const available = status.providers.find((entry) => entry.id === providerId);
-  if (!available || available.availability.status !== "available") {
-    throw new Error(
-      (available?.availability.status !== "available" &&
-        available?.availability.message) ||
-        "Configure default machine access in Machines settings",
-    );
-  }
   let grant: ServerAccessGrant;
   if (providerId === "direct") {
     const serverUrl = status.effectiveUrl;
@@ -166,6 +127,19 @@ async function resolve(
       (entry) => entry.provider.id === providerId,
     );
     if (!record) throw new Error("Server access provider is unavailable");
+    let availability: z.infer<typeof availabilitySchema>;
+    try {
+      availability = availabilitySchema.parse(
+        await invokeServerAccessProvider(record, async () =>
+          record.provider.availability(),
+        ),
+      );
+    } catch {
+      throw new Error("Server access provider is unavailable");
+    }
+    if (availability.status !== "available") {
+      throw new Error(availability.message);
+    }
     deps.db
       .update(hosts)
       .set({ serverAccessProviderId: providerId })

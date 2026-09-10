@@ -16,7 +16,7 @@ import {
   machineStatusLabel,
   machineStatusTone,
 } from "@/components/machines/machine-status";
-import { MachineProviderIcon } from "@/components/plugin/MachineProviderIcon";
+import { MachineProviderKind } from "@/components/plugin/MachineProviderIcon";
 import { PageShell } from "@/components/ui/page-shell.js";
 import {
   SettingsBadge,
@@ -219,16 +219,11 @@ export function MachineSettingsHeader({
             </h1>
             {isThisMachine ? <SettingsBadge>This machine</SettingsBadge> : null}
             {showPrimaryBadge ? <SettingsBadge>Primary</SettingsBadge> : null}
-            {machineProvider?.machineTag == null ? null : (
-              <SettingsBadge>
-                <span className="inline-flex items-center gap-1">
-                  <MachineProviderIcon
-                    provider={machineProvider}
-                    className="size-2.5"
-                  />
-                  {machineProvider.machineTag}
-                </span>
-              </SettingsBadge>
+            {machineProvider === null ? null : (
+              <MachineProviderKind
+                provider={machineProvider}
+                className="inline-flex min-w-0 items-center gap-1 text-xs font-normal text-subtle-foreground"
+              />
             )}
           </div>
           <div className="flex min-w-0 items-center gap-2">

@@ -31,6 +31,9 @@ import {
   getEnvironmentWorkspaceInfoDisplay,
 } from "@/lib/environment-workspace-display";
 import { useSystemEnvironmentProviders } from "@/hooks/queries/environment-provider-queries";
+import { useSystemMachineProviders } from "@/hooks/queries/machine-provider-queries";
+import { useHosts } from "@/hooks/queries/host-queries";
+import { MachineProviderKind } from "@/components/plugin/MachineProviderIcon";
 import { formatWorkspaceCheckoutDisplay } from "@/lib/workspace-checkout-display";
 import { Button } from "@bb/shared-ui/button";
 import {
@@ -242,7 +245,15 @@ export function EnvironmentRow({
     environmentId: environment?.id ?? "",
   });
   const { providers } = useSystemEnvironmentProviders();
+  const { providers: machineProviders } = useSystemMachineProviders();
+  const hosts = useHosts();
   if (!environment) return null;
+  const machineProviderId = hosts.data?.find(
+    (host) => host.id === environment.hostId,
+  )?.machineProviderId;
+  const machineProvider = machineProviders?.find(
+    (provider) => provider.id === machineProviderId,
+  );
   const providerLookup = findEnvironmentDisplayProvider(
     providers,
     environment.environmentProviderId,
@@ -296,6 +307,12 @@ export function EnvironmentRow({
             {environmentDisplayHost.identity.connected ? "" : " (offline)"}
           </span>
         ) : null}
+        {machineProvider === undefined ? null : (
+          <MachineProviderKind
+            provider={machineProvider}
+            className="inline-flex min-w-0 shrink-0 items-center gap-1 text-muted-foreground"
+          />
+        )}
         {showCreateThreadButton ? (
           <Tooltip>
             <TooltipTrigger asChild>

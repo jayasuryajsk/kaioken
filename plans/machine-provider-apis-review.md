@@ -313,3 +313,35 @@ Not read for quality in this review. Two files dominate: `provider-orchestration
 ### Stories (+1.3k)
 
 Deliberate, per the commit history. Not counted against the budget.
+
+---
+
+## Post-implementation review (2026-09-10, my read of the committed worker output)
+
+### R1. Core's "stop the daemon before suspend" does not stop the daemon (high)
+`apps/server/src/services/machines/provider-orchestration.ts:972-978`; `apps/host-daemon/src/server-connection.ts` (no handling of the close reason); `packages/host-daemon-contract/src/session.ts:318`
+
+`suspendMachine` closes the daemon's WebSocket session with reason `machine-suspend`, checks `hasDaemonForHost` synchronously (true a millisecond after a close), then calls `provider.suspend`. The daemon has no handling for that reason: it is a reconnecting socket and comes back within a second. So Modal snapshots the filesystem with the daemon process alive and possibly mid-write, and nothing rejects the daemon's session open while the host is `suspending` or `suspended`. The previous `bb machine stop` shell snippet was ugly but correct about this. Fix: a `machine.shutdown` command over the session that the daemon acknowledges and then exits on; the server waits for the session close with a timeout before invoking `suspend`; `internal/session.ts` refuses a session open for a host in `suspending` or `suspended` so a stray daemon cannot reattach mid-operation.
+
+### R2. Removal never completes when the access provider is unavailable (medium)
+`apps/server/src/services/machines/server-access.ts` (`release`), dev log: "Machine creation cleanup failed: Server access provider is unavailable for cleanup"
+
+`release` throws when the provider is not registered or not paired, so the removal sweep retries every 60 s forever and the host stays in `removing`. Distinguish: provider not registered at all (plugin uninstalled) should skip release and log; provider registered but unpaired should fail with a message the machines page shows, which it does, but with a bounded retry or a "remove anyway" action.
+
+### R3. Modal bakes Modal's defaults into the resource (low)
+`plugins/environment-modal-sandbox/server.ts` (`cpu: … ?? 0.125, memoryMiB: … ?? 128`)
+
+When no preset is chosen the resource records today's Modal defaults, and resume passes them explicitly. Keep null in the resource and pass null on resume so Modal's defaults apply.
+
+### R4. Small ones
+- Modal `launch` calls `enrollments.prepare` only to learn the host id for the machine name, then `bootstrap()` prepares again. Harmless; `bootstrap` could return the name-relevant host id, or the name could be assigned by core from the reserved id.
+- The manual provider's uninstall hint goes into `teardownMessage` right before the host is destroyed, so nobody sees it. Put it in the remove dialog copy for manual hosts only, or drop it.
+- `assertHostActiveForRead` in `online-rpc.ts` carries a command-type allowlist (stop, cancel, dispose). Same transport-knows-commands smell as 5.4; acceptable for now.
+- `resolve` stores an access-acquisition failure in `teardownMessage` on a host that is being created. Works, reads wrong; `suspendMessage` has the same problem in reverse. One `statusMessage` column would serve all three.
+
+### Reviewed and fine
+- Admission flip: reads never call `ensureHostSessionReadyForWork`; work wrappers do; storage location from the persisted `data_dir`; six DB-backed tests.
+- Retirement: predicate covers environments, live threads, and live launches; triggers on environment teardown and the periodic sweep; only `ephemeral` providers.
+- Composition placement: refuses a machine selection for a different provider, defaults inputs to null, validates through the machine path.
+- Manual provider in core: `withManualMachineProvider` wraps the bridge cleanly; prepare always reissues.
+- Modal inputs: control reports ready on mount before options load; `{}` is a valid value so send is never gated on the RPC; drawer picker only with more than one choice.

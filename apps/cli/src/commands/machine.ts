@@ -227,7 +227,7 @@ export function registerMachineCommands(
             },
           });
           if (!outputJson(opts, host))
-            console.log(`Machine ${host.id} created`);
+            console.log(`Machine ${host.name} created`);
         } catch (error) {
           if (controller.signal.aborted) {
             throw new CliExitError(
@@ -287,10 +287,7 @@ export function registerMachineCommands(
         }
         console.log(
           providers
-            .map(
-              (provider) =>
-                `${provider.id}  ${provider.displayName}  ${provider.availability?.status ?? "available"}`,
-            )
+            .map((provider) => `${provider.id}  ${provider.displayName}`)
             .join("\n"),
         );
       }),

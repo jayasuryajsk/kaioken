@@ -584,8 +584,8 @@ that provider changes and crashed controls cannot retain stale launch inputs.
 ## `bb.experimental_machines` (`register`)
 
 Registers project-independent machine providers with required id, displayName,
-description and icon; optional machineTag, Standard Schema inputs, availability
-and validate; required create, reconcileCleanup and remove; and optional paired
+description and icon; optional ephemeral policy, Standard Schema inputs,
+availability and validate; required create, reconcileCleanup and remove; and optional paired
 suspend/resume callbacks. Core validates descriptions/icons and parses inputs
 at registration/creation boundaries. Inputs and resource JSON must not contain
 credentials. Resource records are bounded to 16 KiB.
@@ -594,7 +594,8 @@ Core owns enrollment, durable launches, cleanup retries and coordinated lifecycl
 transitions. Plugins own allocation, filesystem preservation and idle policy.
 Each `enrollments.prepare` call revokes any pending credential and issues a fresh
 one for the same durable host identity.
-Create failures are terminal; providers retry vendor API hiccups inside create.
+Create returns a readable machine name and private resource. Create failures are
+terminal; providers retry vendor API hiccups inside create.
 Create prepares enrollment and awaits checkpoint before bootstrap. Suspend and
 resume also await checkpoint before destructive cleanup/bootstrap. All three
 checkpoint signatures return Promise<void>; a rejected checkpoint stops the

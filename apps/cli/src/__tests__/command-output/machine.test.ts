@@ -29,6 +29,7 @@ const hosts: Host[] = [
   {
     id: "host-primary",
     name: "workstation",
+    type: "persistent",
     status: "connected",
     machineProviderId: null,
     machineProviderSelection: null,
@@ -48,6 +49,7 @@ const hosts: Host[] = [
   {
     id: "host-remote",
     name: "laptop",
+    type: "persistent",
     status: "disconnected",
     machineProviderId: null,
     machineProviderSelection: null,
@@ -91,7 +93,7 @@ describe("bb machine command output", () => {
     await runCommand(["machine", "create", "--provider", "ssh"], register);
     expect(poll).toHaveBeenCalledTimes(2);
     expect(collectLogPayloads(vi.mocked(console.log))).toEqual([
-      "Machine host-remote created",
+      "Machine laptop created",
     ]);
   });
 

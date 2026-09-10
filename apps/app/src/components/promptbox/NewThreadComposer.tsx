@@ -57,6 +57,7 @@ import { usePluginSlots } from "@/lib/plugin-slots";
 import { useUploadPromptAttachment } from "@/hooks/mutations/project-mutations";
 import { useSystemEnvironmentProviders } from "@/hooks/queries/environment-provider-queries";
 import { useSystemMachineProviders } from "@/hooks/queries/machine-provider-queries";
+import { usePluginList } from "@/hooks/queries/plugin-settings-queries";
 import {
   selectHosts,
   selectPrimaryHost,
@@ -524,6 +525,7 @@ export function NewThreadComposer({
     [availableHosts, environmentProviders, projectGitRemoteUrl, projectSources],
   );
   const { providers: machineProviders } = useSystemMachineProviders();
+  const pluginList = usePluginList({ enabled: true });
 
   const seedSignature = JSON.stringify([
     resetKey ?? null,
@@ -832,23 +834,45 @@ export function NewThreadComposer({
           (provider) => provider.id === providerMachine.machineProviderId,
         )
       : undefined;
+  const configurationMachineProvider =
+    selectedMachineProvider ??
+    (selectedEnvironmentProvider?.machineProviderId === null ||
+    selectedEnvironmentProvider?.machineProviderId === undefined
+      ? undefined
+      : machineProviders?.find(
+          (provider) =>
+            provider.id === selectedEnvironmentProvider.machineProviderId,
+        ));
+  const configurationPlugin =
+    configurationMachineProvider === undefined
+      ? undefined
+      : pluginList.data?.plugins.find(
+          (plugin) => plugin.id === configurationMachineProvider.pluginId,
+        );
   const setupRequiredProvider =
-    selectedMachineProvider?.availability?.status === "setup-required"
-      ? selectedMachineProvider
-      : selectedEnvironmentProvider?.machineProviderId !== null &&
-          selectedEnvironmentProvider?.availability?.status === "setup-required"
-        ? selectedEnvironmentProvider
+    configurationPlugin?.status === "needs-configuration" &&
+    configurationMachineProvider !== undefined
+      ? configurationMachineProvider
       : null;
   const environmentSetupRequiredReason =
     setupRequiredProvider === null
       ? null
-      : ((setupRequiredProvider.availability?.status === "setup-required"
-          ? setupRequiredProvider.availability.message
-          : null) ?? `${setupRequiredProvider.displayName} needs setting up.`);
+      : (configurationPlugin?.statusDetail ??
+        `${setupRequiredProvider.displayName} needs setting up.`);
+  const serverAccess = systemConfigQuery.data?.serverAccess;
+  const selectedServerAccessProvider = serverAccess?.providers.find(
+    (provider) => provider.id === serverAccess.defaultProviderId,
+  );
+  const serverAccessPlugin = pluginList.data?.plugins.find(
+    (plugin) => plugin.id === selectedServerAccessProvider?.pluginId,
+  );
   const machineServerAccessReason =
     selectedEnvironmentProvider?.machineProviderId == null
       ? null
-      : machineServerAccessBlockedReason(systemConfigQuery.data?.serverAccess);
+      : serverAccessPlugin?.status === "needs-configuration"
+        ? (serverAccessPlugin.statusDetail ??
+          "Configure the selected machine access provider.")
+        : machineServerAccessBlockedReason(serverAccess);
   const [environmentProviderInputsOverride, setProviderInputsOverride] =
     useState<{ scopeKey: string; value: JsonValue | null } | null>(null);
   const [environmentProviderInputsBlocked, setProviderInputsBlocked] =
@@ -1584,12 +1608,7 @@ export function NewThreadComposer({
               ) : setupRequiredProvider === null ? null : (
                 <ProviderRequirementBanner
                   title={`${setupRequiredProvider.displayName} needs configuration`}
-                  description={
-                    setupRequiredProvider.availability?.status ===
-                    "setup-required"
-                      ? setupRequiredProvider.availability.message
-                      : `Configure ${setupRequiredProvider.displayName} to start a thread on it.`
-                  }
+                  description={environmentSetupRequiredReason}
                   action={
                     <Button
                       type="button"
@@ -1715,6 +1734,7 @@ export function NewThreadComposer({
       submitDisabledReason,
       machineServerAccessReason,
       setupRequiredProvider,
+      environmentSetupRequiredReason,
       navigate,
       environmentProviderInputsSlot,
       machineProviderInputs.control,

@@ -37,7 +37,11 @@ export function createManualMachineProviderRecord(
           signal: context.signal,
         });
         context.report.step("Machine connected");
-        return { status: "created", resource };
+        return {
+          status: "created",
+          name: `Manual machine ${enrollment.hostId.replace(/[^a-z0-9]/giu, "").slice(-6)}`,
+          resource,
+        };
       },
       async reconcileCleanup() {
         return { status: "removed" };

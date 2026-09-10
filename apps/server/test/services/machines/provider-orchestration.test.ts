@@ -31,7 +31,7 @@ import {
   upsertMachineLaunch,
   updateMachineLaunchAttempt,
 } from "@bb/db";
-import { hostSchema, type JsonValue } from "@bb/domain";
+import { hostSchema, type Host, type JsonValue } from "@bb/domain";
 import { createDeferredPromise } from "@bb/test-helpers";
 import type { PluginMachineProviderDeclaration } from "@get-bb/plugin-sdk";
 import {
@@ -109,6 +109,7 @@ function machineDeclaration(
     reconcileCleanup: async () => ({ status: "removed" }),
     create: async ({ key }) => ({
       status: "created",
+      name: "Test machine",
       resource: { key },
     }),
     remove: async () => ({ status: "removed" }),
@@ -120,8 +121,10 @@ function adoptMachine(
   harness: TestAppHarness,
   hostId: string,
   resource: JsonValue = { machine: "resource" },
+  type: Host["type"] = "persistent",
 ): void {
   updateHost(harness.db, harness.hub, hostId, {
+    type,
     machineProviderId: "test-machine",
     machineProviderSelection: { inputs: null },
     phase: "active",
@@ -201,6 +204,7 @@ describe("core machine provider orchestration", () => {
             reserveLaunchHost(harness, key, host.id);
             return {
               status: "created",
+              name: "Test machine",
               resource: { key },
             };
           },
@@ -235,9 +239,32 @@ describe("core machine provider orchestration", () => {
         .toBe("ready");
       expect(calls).toEqual([{ attempt: 4, key: "durable-machine-key" }]);
       expect(getHost(harness.db, host.id)).toMatchObject({
+        name: "Test machine",
         machineProviderId: "test-machine",
         resource: { key: "durable-machine-key" },
       });
+    }));
+
+  it("falls back to a readable provider name for legacy create results", async () =>
+    withTestHarness(async (harness) => {
+      const { host } = seedHostSession(harness.deps, { id: "host_legacy" });
+      const create = async ({ key }: { key: string }) => {
+        reserveLaunchHost(harness, key, host.id);
+        return { status: "created" as const, resource: { key } };
+      };
+      installMachineProvider(
+        machineDeclaration(host.id, {
+          create: create as unknown as PluginMachineProviderDeclaration["create"],
+        }),
+      );
+
+      await createMachine(harness.deps, {
+        key: "legacy-machine-key",
+        machineProviderId: "test-machine",
+        inputs: null,
+      });
+
+      expect(getHost(harness.db, host.id)?.name).toBe("Test machine legacy");
     }));
 
   it("parses inputs once and persists the parsed value on the launch and machine", async () =>
@@ -252,6 +279,7 @@ describe("core machine provider orchestration", () => {
             reserveLaunchHost(harness, key, host.id);
             return {
               status: "created",
+              name: "Test machine",
               resource: { key },
             };
           },
@@ -280,6 +308,25 @@ describe("core machine provider orchestration", () => {
           inputs: null,
         }),
       ).rejects.toThrow('Unknown machine provider "missing-machine"');
+    }));
+
+  it("checks only the selected machine provider's availability at creation", async () =>
+    withTestHarness(async (harness) => {
+      const availability = vi.fn(() => ({
+        status: "setup-required" as const,
+        message: "Configure the machine provider",
+      }));
+      installMachineProvider(
+        machineDeclaration("host_unavailable", { availability }),
+      );
+
+      await expect(
+        prepareMachineProviderSelection(harness.deps, {
+          machineProviderId: "test-machine",
+          inputs: null,
+        }),
+      ).rejects.toThrow("Configure the machine provider");
+      expect(availability).toHaveBeenCalledOnce();
     }));
 
   it("recovers and removes a machine when creation is cancelled", async () =>
@@ -414,6 +461,7 @@ describe("core machine provider orchestration", () => {
                 () =>
                   resolve({
                     status: "created",
+                    name: "Test machine",
                     resource: { allocation: "late" },
                   }),
                 { once: true },
@@ -561,6 +609,7 @@ describe("core machine provider orchestration", () => {
             calls.push(attempt);
             return {
               status: "created",
+              name: "Test machine",
               resource: { key },
             };
           },
@@ -621,6 +670,7 @@ describe("core machine provider orchestration", () => {
       }).host;
       const oldResult = createDeferredPromise<{
         status: "created";
+        name: string;
         resource: { key: string };
       }>();
       const remove = vi.fn(async () => ({ status: "removed" as const }));
@@ -632,6 +682,7 @@ describe("core machine provider orchestration", () => {
             reserveLaunchHost(harness, key, newHost.id);
             return Promise.resolve({
               status: "created",
+              name: "Test machine",
               resource: { key },
             });
           },
@@ -659,6 +710,7 @@ describe("core machine provider orchestration", () => {
       );
       oldResult.resolve({
         status: "created",
+        name: "Test machine",
         resource: { key: base },
       });
       await vi.waitFor(() => expect(remove).toHaveBeenCalledOnce());
@@ -710,6 +762,7 @@ describe("core machine provider orchestration", () => {
           ({ signal, key }: { signal: AbortSignal; key: string }) =>
             new Promise<{
               status: "created";
+              name: string;
               resource: { key: string };
             }>((resolve) => {
               reserveLaunchHost(harness, key, newHost.id);
@@ -718,6 +771,7 @@ describe("core machine provider orchestration", () => {
                 () =>
                   resolve({
                     status: "created",
+                    name: "Test machine",
                     resource: { key },
                   }),
                 { once: true },
@@ -1800,7 +1854,7 @@ describe("core machine provider orchestration", () => {
           remove: machineRemove,
         }),
       );
-      adoptMachine(harness, host.id);
+      adoptMachine(harness, host.id, undefined, "ephemeral");
 
       await sweepProviderEnvironment(harness.deps, environment.id);
 
@@ -1852,7 +1906,7 @@ describe("core machine provider orchestration", () => {
             remove,
           }),
         );
-        adoptMachine(harness, host.id);
+        adoptMachine(harness, host.id, undefined, "ephemeral");
 
         await sweepMachineLifecycles(harness.deps);
 
@@ -1882,7 +1936,7 @@ describe("core machine provider orchestration", () => {
           remove,
         }),
       );
-      adoptMachine(harness, host.id);
+      adoptMachine(harness, host.id, undefined, "ephemeral");
 
       await sweepMachineLifecycles(harness.deps);
 
@@ -1932,7 +1986,7 @@ describe("core machine provider orchestration", () => {
           remove,
         }),
       );
-      adoptMachine(harness, host.id);
+      adoptMachine(harness, host.id, undefined, "ephemeral");
 
       await sweepMachineLifecycles(harness.deps);
       expect(remove).toHaveBeenCalledOnce();
@@ -2217,6 +2271,7 @@ it("cancel before allocation reconciles without starting a fresh allocation", as
           allocations++;
           return {
             status: "created",
+            name: "Test machine",
             resource: { allocated: true },
           };
         },
@@ -2298,6 +2353,7 @@ it("returns a durable launch before allocation and client disconnect does not ca
           await release.promise;
           return {
             status: "created",
+            name: "Test machine",
             resource: { allocated: true },
           };
         },

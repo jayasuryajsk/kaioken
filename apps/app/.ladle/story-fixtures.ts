@@ -382,14 +382,11 @@ export const STORY_MACHINE_PROVIDERS: readonly SystemMachineProvider[] = [
     displayName: "Modal Sandbox",
     description: "Run a machine for development.",
     icon: "Box",
-    machineTag: null,
     logoUrl: null,
     pluginId: "environment-modal-sandbox",
     inputs: null,
     acceptsEmptyInputs: true,
     supportsSuspend: true,
-
-    availability: null,
   },
 ];
 

@@ -26,6 +26,7 @@ describe("fixtures", () => {
     expect(makeHostResponse({ id: "host-target", name: "Target" })).toEqual({
       id: "host-target",
       name: "Target",
+      type: "persistent",
       status: "connected",
       machineProviderId: null,
       machineProviderSelection: null,
@@ -2113,6 +2114,7 @@ describe("environment targets", () => {
       reconcileCleanup: async () => ({ status: "removed" }),
       create: async () => ({
         status: "created",
+        name: "Test machine",
         resource: { target: "staging" },
       }),
       remove: async () => ({ status: "removed" }),
@@ -2136,7 +2138,11 @@ describe("environment targets", () => {
       displayName: "Temporary machine",
       ephemeral: true,
       reconcileCleanup: async () => ({ status: "removed" }),
-      create: async () => ({ status: "created", resource: null }),
+      create: async () => ({
+        status: "created",
+        name: "Temporary machine",
+        resource: null,
+      }),
       remove: async () => ({ status: "removed" }),
     });
     expect(
@@ -2156,6 +2162,7 @@ describe("environment targets", () => {
         ...metadata,
         create: async () => ({
           status: "created",
+          name: "Test machine",
           resource: null,
         }),
         reconcileCleanup: async () => ({ status: "removed" }),
@@ -2167,6 +2174,7 @@ describe("environment targets", () => {
   it("requires machine suspend and resume as a pair", () => {
     const create = async () => ({
       status: "created" as const,
+      name: "Test machine",
       resource: null,
     });
     const remove = async () => ({ status: "removed" as const });

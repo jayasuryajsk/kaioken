@@ -45,6 +45,7 @@ import {
   requestEnvironmentRemoval,
   sweepProviderEnvironment,
 } from "../environments/provider-orchestration.js";
+import { machineProviderUnavailableReason } from "./provider-availability.js";
 
 type Deps = ThreadProvisioningDeps;
 type MachineLifecycleDeps = Pick<Deps, "db" | "hub" | "logger">;
@@ -77,6 +78,7 @@ const createResultSchema = z.discriminatedUnion("status", [
   z
     .object({
       status: z.literal("created"),
+      name: z.string().trim().min(1).max(200).optional(),
       resource: resourceSchema,
     })
     .strict(),
@@ -227,7 +229,10 @@ async function invokeCreate(
   launch: MachineLaunchRow,
   deps: Deps,
   signal: AbortSignal,
-): Promise<PluginMachineProviderCreateResult> {
+): Promise<
+  | { status: "created"; name?: string; resource: JsonValue }
+  | Extract<PluginMachineProviderCreateResult, { status: "failed" }>
+> {
   const invocation = await invokeMachineProvider(record, "machine create", () =>
     record.provider.create({
       inputs: launch.inputs,
@@ -352,6 +357,10 @@ async function runCreate(
       );
     }
     updateHost(deps.db, deps.hub, reservedHostId, {
+      type: record.provider.ephemeral ? "ephemeral" : "persistent",
+      name:
+        result.name ??
+        `${record.provider.displayName} ${reservedHostId.replace(/[^a-z0-9]/giu, "").slice(-6)}`,
       machineProviderId: record.provider.id,
       machineProviderSelection: { inputs: launch.inputs },
       phase: "active",
@@ -475,6 +484,10 @@ export async function prepareMachineProviderSelection(
       "invalid_request",
       `Unknown machine provider "${args.machineProviderId}"`,
     );
+  }
+  const unavailableReason = await machineProviderUnavailableReason(record);
+  if (unavailableReason !== null) {
+    throw new ApiError(409, "machine_provider_rejected", unavailableReason);
   }
   const inputs = await parseMachineProviderInputs(record, args.inputs);
   if (record.provider.validate !== null) {
@@ -642,6 +655,7 @@ function machineHostResponse(
   return {
     id: row.id,
     name: row.name,
+    type: row.type,
     status: deps.hub.hasDaemonForHost(row.id) ? "connected" : "disconnected",
     machineProviderId: row.machineProviderId,
     machineProviderSelection: row.machineProviderSelection,
@@ -1273,8 +1287,7 @@ export function requestAutomaticMachineRemoval(
   ) {
     return false;
   }
-  const record = getMachineProvider(row.machineProviderId);
-  if (record?.provider.ephemeral !== true) return false;
+  if (row.type !== "ephemeral") return false;
   if (
     listEnvironments(deps.db, {
       hostId,

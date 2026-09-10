@@ -1790,6 +1790,7 @@ describe("machine and environment provider composition", () => {
         const create = vi.fn(
           async (_context: PluginMachineProviderCreateContext) => ({
             status: "created" as const,
+            name: "Test machine",
             resource: {},
           }),
         );
@@ -2029,6 +2030,7 @@ describe("machine and environment provider composition", () => {
       );
       const create = vi.fn(async () => ({
         status: "created" as const,
+        name: "Test machine",
         resource: {},
       }));
       const machine = {
@@ -2396,6 +2398,7 @@ describe("a provider-produced environment over its life", () => {
                 });
                 return {
                   status: "created",
+                  name: "Replacement machine",
                   resource: { key },
                 };
               },

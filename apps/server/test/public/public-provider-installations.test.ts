@@ -292,6 +292,7 @@ describe("public provider installation routes", () => {
             reconcileCleanup: async () => ({ status: "removed" }),
             create: async () => ({
               status: "created",
+              name: "Test machine",
               hostId: host.id,
               resource: { id: "owned" },
             }),
