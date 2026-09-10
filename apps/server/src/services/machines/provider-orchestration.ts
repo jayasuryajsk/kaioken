@@ -185,7 +185,9 @@ function createReporter(
       const current = getHost(deps.db, owner.id);
       if (!createOwns(current, owner) || current.phase !== "creating") return;
       updateHost(deps.db, deps.hub, owner.id, {
-        pendingLog: (current.pendingLog + text).slice(-16_384),
+        pendingLog: (
+          current.pendingLog + (text.endsWith("\n") ? text : `${text}\n`)
+        ).slice(-16_384),
       });
       deps.hub.notifyHost(owner.id, ["host-connected"]);
     },
