@@ -233,6 +233,7 @@ export {
   findForeignManagedEnvironmentAtHostPath,
   findProviderEnvironmentContainingPath,
   listRetiredLoadedEnvironmentIdsOnHost,
+  markHostEnvironmentsDestroyed,
   recordEnvironmentCurrentBranch,
   recordEnvironmentProviderProvenance,
   updateEnvironmentMetadata,

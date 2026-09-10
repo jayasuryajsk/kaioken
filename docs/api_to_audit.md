@@ -2706,10 +2706,12 @@ each shipped provider.
 
 Optional boolean on `PluginMachineProviderDefinition`, defaulting to false.
 Providers set it only when they create disposable compute. After the last
-non-destroyed environment is gone, core automatically requests removal unless a
-live thread or its creating/ready machine launch still needs the machine. The
-request uses the ordinary durable removal lifecycle, including environment
-cascade and `removeRetryAt` retries. Manually enrolled machines and providers
+live thread and its creating/ready machine launch are gone, core automatically
+requests removal regardless of environment retirement policy. Ephemeral removal
+does not invoke environment providers or resume suspended compute; after compute
+removal succeeds, core marks every attached environment destroyed with teardown
+removed as read-only history. The request uses the ordinary durable machine
+removal lifecycle, including `removeRetryAt` retries. Manually enrolled machines and providers
 that omit the field are never automatically removed. Stabilization requires
 another compute provider and recovery coverage across environment retirement,
 live-work races, provider unavailability, and repeated removal failures.

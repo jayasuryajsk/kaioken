@@ -21,9 +21,9 @@ The provider display name and icon are the machine kind shown next to the name
 of every machine that provider creates. Manually enrolled machines have no kind.
 
 Set `ephemeral: true` only when the provider creates disposable
-compute. Core then automatically requests machine removal after every environment
-on it is destroyed, provided no live thread or live thread's creating/ready
-machine launch still needs it. The default is false, so manually enrolled machines
+compute. Core then automatically requests machine removal when no live thread or
+live thread's creating/ready machine launch still needs it, regardless of any
+attached environment's retirement policy. The default is false, so manually enrolled machines
 and provider-managed machines intended to persist are never removed automatically.
 
 ```ts
@@ -110,11 +110,11 @@ and follow its progress. `create --no-wait` / `hosts.experimental_submit` return
 `machine status` / `hosts.experimental_launch` poll it. Only `machine cancel` / `hosts.experimental_cancel`
 explicitly cancel; closing a client or aborting its signal stops following.
 
-Removal always cascades through the machine's environment providers before
-machine remove; failures persist and retry after the core one-minute retry
-interval. Ephemeral machines enter this same removal path automatically after
-their last environment is destroyed and no live thread or pending live-thread
-launch needs the machine.
+Persistent-machine removal cascades through the machine's environment providers
+before machine remove; failures persist and retry after the core one-minute retry
+interval. Ephemeral-machine removal skips environment-provider teardown and never
+resumes suspended compute for it. Once compute removal succeeds, core marks every
+attached environment destroyed with teardown removed as read-only history.
 
 ## Server access
 

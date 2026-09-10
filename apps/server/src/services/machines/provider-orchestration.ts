@@ -18,6 +18,7 @@ import {
   listProjectSourcesByHost,
   listProviderMachines,
   listThreadIdsWithHostOfflineQueueWaits,
+  markHostEnvironmentsDestroyed,
   machineHasLiveThreadLaunch,
   machineHasLiveThreads,
   updateHost,
@@ -1286,11 +1287,6 @@ export function requestAutomaticMachineRemoval(
   }
   if (row.type !== "ephemeral") return false;
   if (
-    listEnvironments(deps.db, {
-      hostId,
-      limit: 1,
-      statuses: ["provisioning", "ready", "error"],
-    }).length > 0 ||
     machineHasLiveThreadLaunch(deps.db, hostId) ||
     machineHasLiveThreads(deps.db, hostId)
   ) {
@@ -1382,6 +1378,9 @@ async function removeMachine(deps: Deps, hostId: string): Promise<void> {
           !lifecycleOwns(current, record.provider.id, operationId, "removing")
         )
           return;
+        if (current.type === "ephemeral") {
+          markHostEnvironmentsDestroyed(deps.db, deps.hub, hostId);
+        }
         settleMachineEnrollments(deps.db, hostId);
         await deps.machineAuth.revokeHostEnrollKeys({ hostId });
         await serverAccess.release(deps, { key: hostId, hostId });
@@ -1422,6 +1421,7 @@ export async function sweepProviderMachine(
   deps: Deps,
   hostId: string,
 ): Promise<void> {
+  requestAutomaticMachineRemoval(deps, hostId);
   let row = getHost(deps.db, hostId);
   if (
     row === null ||
@@ -1486,26 +1486,28 @@ export async function sweepProviderMachine(
       environment.status !== "destroyed" ||
       environment.teardownStatus !== "removed",
   );
-  if (
-    environments.some((environment) => environment.providerOwnsPath) &&
-    row.suspendedAt !== null
-  ) {
-    await resumeRemovingMachine(deps, hostId);
-    row = getHost(deps.db, hostId);
-    if (row === null || row.phase !== "removing") return;
+  if (row.type === "persistent") {
+    if (
+      environments.some((environment) => environment.providerOwnsPath) &&
+      row.suspendedAt !== null
+    ) {
+      await resumeRemovingMachine(deps, hostId);
+      row = getHost(deps.db, hostId);
+      if (row === null || row.phase !== "removing") return;
+    }
+    let pendingEnvironment = false;
+    for (const environment of environments) {
+      requestEnvironmentRemoval(deps, environment.id);
+      await sweepProviderEnvironment(deps, environment.id);
+      const current = listEnvironments(deps.db, {
+        hostId,
+        limit: 1,
+        statuses: ["provisioning", "ready", "error"],
+      });
+      if (current.length > 0) pendingEnvironment = true;
+    }
+    if (pendingEnvironment) return;
   }
-  let pendingEnvironment = false;
-  for (const environment of environments) {
-    requestEnvironmentRemoval(deps, environment.id);
-    await sweepProviderEnvironment(deps, environment.id);
-    const current = listEnvironments(deps.db, {
-      hostId,
-      limit: 1,
-      statuses: ["provisioning", "ready", "error"],
-    });
-    if (current.length > 0) pendingEnvironment = true;
-  }
-  if (pendingEnvironment) return;
   if (
     row.teardownStatus === "failed" &&
     row.removeRetryAt !== null &&

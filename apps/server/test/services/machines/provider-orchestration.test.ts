@@ -1800,7 +1800,7 @@ describe("core machine provider orchestration", () => {
       expect(getHost(harness.db, host.id)?.phase).toBe("destroyed");
     }));
 
-  it("automatically removes an ephemeral machine when its last environment retires", async () =>
+  it("automatically removes an ephemeral machine after its last thread is archived even when its environment never retires", async () =>
     withTestHarness(async (harness) => {
       const { host } = seedHostSession(harness.deps, {
         id: "host_ephemeral_retired",
@@ -1825,13 +1825,18 @@ describe("core machine provider orchestration", () => {
           },
         },
       });
+      const thread = seedThread(harness.deps, {
+        projectId: project.id,
+        environmentId: environment.id,
+        status: "idle",
+      });
       const environmentRemove = vi.fn(async () => ({
         status: "removed" as const,
       }));
       const environmentProvider = validatePluginEnvironmentProviderDeclaration({
         id: "test-environment",
         displayName: "Test environment",
-        policy: { retireGraceMs: 0 },
+        policy: { retireGraceMs: null },
         create: async () => ({
           status: "created",
           path: "/tmp/ephemeral-retired",
@@ -1870,9 +1875,13 @@ describe("core machine provider orchestration", () => {
       );
       adoptMachine(harness, host.id, undefined, "ephemeral");
 
-      await sweepProviderEnvironment(harness.deps, environment.id);
+      archiveThreadAndHiddenSourceForks(harness.deps, {
+        thread,
+        environment,
+      });
+      await vi.waitFor(() => expect(machineRemove).toHaveBeenCalledOnce());
 
-      expect(environmentRemove).toHaveBeenCalledOnce();
+      expect(environmentRemove).not.toHaveBeenCalled();
       expect(getEnvironment(harness.db, environment.id)).toMatchObject({
         status: "destroyed",
         teardownStatus: "removed",
@@ -1886,7 +1895,6 @@ describe("core machine provider orchestration", () => {
 
   it.each([
     { blocker: "a live thread", environmentStatus: "destroyed" as const },
-    { blocker: "a ready environment", environmentStatus: "ready" as const },
   ])(
     "does not automatically remove an ephemeral machine with $blocker",
     async ({ environmentStatus }) =>
@@ -1928,6 +1936,157 @@ describe("core machine provider orchestration", () => {
         expect(getHost(harness.db, host.id)?.phase).toBe("active");
       }),
   );
+
+  it("does not automatically remove a persistent machine with a never-retiring environment", async () =>
+    withTestHarness(async (harness) => {
+      const { host } = seedHostSession(harness.deps, {
+        id: "host_persistent_environment",
+      });
+      const { project } = seedProjectWithSource(harness.deps, {
+        hostId: host.id,
+        path: "/tmp/persistent-environment",
+      });
+      const environment = createEnvironment(harness.db, harness.hub, {
+        projectId: project.id,
+        hostId: host.id,
+        path: "/tmp/persistent-environment",
+        providerOwnsPath: true,
+        status: "ready",
+        environmentProvider: {
+          pluginId: "test-environment-plugin",
+          environmentProviderId: "test-environment",
+          instanceKey: "persistent-environment",
+          selection: {
+            machine: { type: "existing", hostId: host.id },
+            inputs: null,
+          },
+        },
+      });
+      const environmentProvider = validatePluginEnvironmentProviderDeclaration({
+        id: "test-environment",
+        displayName: "Test environment",
+        policy: { retireGraceMs: null },
+        create: async () => ({
+          status: "created",
+          path: "/tmp/persistent-environment",
+          ownsPath: true,
+        }),
+        remove: async () => ({ status: "removed" }),
+      });
+      setPluginEnvironmentProviderBridge({
+        listEnvironmentProviders: () => [
+          {
+            pluginId: "test-environment-plugin",
+            provider: environmentProvider,
+          },
+        ],
+        getEnvironmentProvider: () => ({
+          pluginId: "test-environment-plugin",
+          provider: environmentProvider,
+        }),
+        invokeProvider: async (_pluginId, _label, run) => ({
+          ok: true,
+          value: await run(),
+        }),
+        decisionTimeoutMs: 10_000,
+      });
+      const remove = vi.fn(async () => ({ status: "removed" as const }));
+      installMachineProvider(machineDeclaration(host.id, { remove }));
+      adoptMachine(harness, host.id);
+
+      await sweepProviderEnvironment(harness.deps, environment.id);
+      await sweepMachineLifecycles(harness.deps);
+
+      expect(remove).not.toHaveBeenCalled();
+      expect(getEnvironment(harness.db, environment.id)?.status).toBe("ready");
+      expect(getHost(harness.db, host.id)?.phase).toBe("active");
+    }));
+
+  it("removes a suspended ephemeral machine without resuming it or invoking its environment provider", async () =>
+    withTestHarness(async (harness) => {
+      const { host } = seedHostSession(harness.deps, {
+        id: "host_suspended_ephemeral_remove",
+      });
+      const { project } = seedProjectWithSource(harness.deps, {
+        hostId: host.id,
+        path: "/tmp/suspended-ephemeral-remove",
+      });
+      const environment = createEnvironment(harness.db, harness.hub, {
+        projectId: project.id,
+        hostId: host.id,
+        path: "/tmp/suspended-ephemeral-remove",
+        providerOwnsPath: true,
+        status: "ready",
+        environmentProvider: {
+          pluginId: "test-environment-plugin",
+          environmentProviderId: "test-environment",
+          instanceKey: "suspended-ephemeral-remove",
+          selection: {
+            machine: { type: "existing", hostId: host.id },
+            inputs: null,
+          },
+        },
+      });
+      const environmentRemove = vi.fn(async () => ({
+        status: "removed" as const,
+      }));
+      const environmentProvider = validatePluginEnvironmentProviderDeclaration({
+        id: "test-environment",
+        displayName: "Test environment",
+        policy: { retireGraceMs: null },
+        create: async () => ({
+          status: "created",
+          path: "/tmp/suspended-ephemeral-remove",
+          ownsPath: true,
+        }),
+        remove: environmentRemove,
+      });
+      setPluginEnvironmentProviderBridge({
+        listEnvironmentProviders: () => [
+          {
+            pluginId: "test-environment-plugin",
+            provider: environmentProvider,
+          },
+        ],
+        getEnvironmentProvider: () => ({
+          pluginId: "test-environment-plugin",
+          provider: environmentProvider,
+        }),
+        invokeProvider: async (_pluginId, _label, run) => ({
+          ok: true,
+          value: await run(),
+        }),
+        decisionTimeoutMs: 10_000,
+      });
+      const resume = vi.fn(async ({ resource }: { resource: JsonValue }) => ({
+        resource,
+      }));
+      const remove = vi.fn(async () => ({ status: "removed" as const }));
+      installMachineProvider(
+        machineDeclaration(host.id, {
+          ephemeral: true,
+          remove,
+          resume,
+          suspend: async ({ resource }) => ({ resource }),
+        }),
+      );
+      adoptMachine(harness, host.id, undefined, "ephemeral");
+      updateHost(harness.db, harness.hub, host.id, {
+        phase: "suspended",
+        suspendedAt: Date.now(),
+      });
+
+      expect(requestMachineRemoval(harness.deps, host.id)).toBe(true);
+      await sweepProviderMachine(harness.deps, host.id);
+
+      expect(resume).not.toHaveBeenCalled();
+      expect(environmentRemove).not.toHaveBeenCalled();
+      expect(remove).toHaveBeenCalledOnce();
+      expect(getEnvironment(harness.db, environment.id)).toMatchObject({
+        status: "destroyed",
+        teardownStatus: "removed",
+      });
+    }));
 
   it("keeps an ephemeral machine while a live thread needs its ready launch", async () =>
     withTestHarness(async (harness) => {
