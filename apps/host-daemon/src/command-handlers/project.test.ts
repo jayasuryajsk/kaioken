@@ -49,10 +49,12 @@ describe("project.clone", () => {
   it("clones a real repository and reports the resolved path and origin", async () => {
     const root = await tempDir();
     const remoteUrl = await createRemoteRepo(root);
+    const progress: string[] = [];
     const result = await cloneProject({
       dataDir: path.join(root, "data"),
       projectSlug: "My Project",
       remoteUrl,
+      onProgress: (line) => progress.push(line),
     });
 
     expect(result).toEqual({
@@ -62,6 +64,7 @@ describe("project.clone", () => {
     await expect(
       fs.readFile(path.join(result.path, "README.md"), "utf8"),
     ).resolves.toBe("hello\n");
+    expect(progress.join("\n")).toContain("Cloning into");
   });
 
   it("refuses a non-empty target with a structured error", async () => {

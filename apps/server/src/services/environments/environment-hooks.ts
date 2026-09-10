@@ -22,6 +22,29 @@ const reports = new WeakMap<
   >
 >();
 
+export function registerEnvironmentProgressReport(
+  deps: Pick<WorkSessionDeps, "db">,
+  args: {
+    hostId: string;
+    operationId: string;
+    report: PluginEnvironmentProviderProgress;
+  },
+): () => void {
+  let active = reports.get(deps.db);
+  if (active === undefined) {
+    active = new Map();
+    reports.set(deps.db, active);
+  }
+  active.set(args.operationId, {
+    hostId: args.hostId,
+    report: args.report,
+  });
+  return () => {
+    if (active.get(args.operationId)?.report === args.report)
+      active.delete(args.operationId);
+  };
+}
+
 export function reportEnvironmentHookProgress(
   deps: Pick<WorkSessionDeps, "db">,
   hostId: string,
@@ -48,11 +71,6 @@ export async function runEnvironmentHook(
   },
 ): Promise<void> {
   args.signal.throwIfAborted();
-  let active = reports.get(deps.db);
-  if (active === undefined) {
-    active = new Map();
-    reports.set(deps.db, active);
-  }
   const existing = deps.db
     .select()
     .from(environmentHookOperations)
@@ -76,7 +94,11 @@ export async function runEnvironmentHook(
         startedAt: Date.now(),
       })
       .run();
-  active.set(operationId, { hostId: args.hostId, report: args.report });
+  const unregister = registerEnvironmentProgressReport(deps, {
+    operationId,
+    hostId: args.hostId,
+    report: args.report,
+  });
   const abort = (): void => {
     void callHostOnlineRpc(deps, {
       hostId: args.hostId,
@@ -128,7 +150,7 @@ export async function runEnvironmentHook(
     );
   } finally {
     args.signal.removeEventListener("abort", abort);
-    active.delete(operationId);
+    unregister();
   }
 }
 

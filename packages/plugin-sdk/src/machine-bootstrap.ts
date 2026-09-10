@@ -6,6 +6,7 @@ export interface MachineExecutorRequest {
   timeoutMs: number;
   signal: AbortSignal;
   stdin?: string;
+  onOutput?: (chunk: string) => void;
 }
 
 export interface MachineExecutor {

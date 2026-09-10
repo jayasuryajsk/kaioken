@@ -21,6 +21,7 @@ export interface SandboxHandle {
       signal: AbortSignal;
       stdin?: string;
       maxOutputBytes?: number;
+      onOutput?: (chunk: string) => void;
     },
   ): Promise<SandboxExecResult>;
   terminate(): Promise<void>;
@@ -79,13 +80,18 @@ export type SandboxBackendFactory = (
   credentials: ModalCredentials,
 ) => SandboxBackend;
 
-async function boundedOutput(stream: AsyncIterable<string>, maxBytes: number) {
+async function collectOutput(
+  stream: AsyncIterable<string>,
+  maxBytes: number | undefined,
+  onOutput: ((chunk: string) => void) | undefined,
+) {
   const chunks: Buffer[] = [];
   let size = 0;
   let truncated = false;
   for await (const chunk of stream) {
+    onOutput?.(chunk);
     const data = Buffer.from(chunk);
-    const remaining = maxBytes - size;
+    const remaining = (maxBytes ?? Number.POSITIVE_INFINITY) - size;
     if (data.length > remaining) truncated = true;
     if (remaining > 0) {
       const kept = data.subarray(0, remaining);
@@ -133,12 +139,16 @@ function wrapSandbox(sandbox: Sandbox): SandboxHandle {
               }
             };
             const [stdout, stderr, exitCode] = await Promise.all([
-              options.maxOutputBytes === undefined
-                ? process.stdout.readText()
-                : boundedOutput(process.stdout, options.maxOutputBytes),
-              options.maxOutputBytes === undefined
-                ? process.stderr.readText()
-                : boundedOutput(process.stderr, options.maxOutputBytes),
+              collectOutput(
+                process.stdout,
+                options.maxOutputBytes,
+                options.onOutput,
+              ),
+              collectOutput(
+                process.stderr,
+                options.maxOutputBytes,
+                options.onOutput,
+              ),
               process.wait(),
               input(),
             ]);

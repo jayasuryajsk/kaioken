@@ -37,13 +37,22 @@ async function executor() {
 }
 
 function processResult() {
+  const output = (value: string) => {
+    const readText = vi.fn(async () => value);
+    return {
+      readText,
+      async *[Symbol.asyncIterator]() {
+        yield await readText();
+      },
+    };
+  };
   return {
     stdin: {
       writeText: vi.fn(async (_value: string) => {}),
       close: vi.fn(async () => {}),
     },
-    stdout: { readText: vi.fn(async () => "output") },
-    stderr: { readText: vi.fn(async () => "error") },
+    stdout: output("output"),
+    stderr: output("error"),
     wait: vi.fn(async () => 7),
   };
 }
@@ -83,6 +92,23 @@ describe("Modal bootstrap executor", () => {
     });
     expect(process.stdin.writeText).toHaveBeenCalledWith("credential-secret");
     expect(process.stdin.close).toHaveBeenCalledOnce();
+  });
+
+  it("streams stdout and stderr while retaining the collected result", async () => {
+    const process = processResult();
+    vendor.exec.mockResolvedValue(process);
+    const transport = await executor();
+    const onOutput = vi.fn();
+    await expect(
+      transport.exec({
+        command: ["installer"],
+        timeoutMs: 1000,
+        signal: new AbortController().signal,
+        onOutput,
+      }),
+    ).resolves.toEqual({ exitCode: 7, stdout: "output", stderr: "error" });
+    expect(onOutput).toHaveBeenCalledWith("output");
+    expect(onOutput).toHaveBeenCalledWith("error");
   });
 
   it("closes stdin when no input is supplied or input delivery fails", async () => {

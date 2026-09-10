@@ -172,6 +172,7 @@ describe("project clone sources", () => {
       );
       expect(firstCommand.command).toEqual({
         type: "project.clone",
+        operationId: expect.any(String),
         contributedEnv: [],
         projectSlug: "Clone Me",
         remoteUrl: "ssh://git.example.test/team/repo.git",

@@ -452,6 +452,25 @@ export async function resolveEnvironmentProvider(
       projectName: project.name,
       hostId: host.id,
       remoteUrl: project.gitRemoteUrl,
+      report: {
+        step: () => undefined,
+        log: (log) => {
+          const entries = launchEntries({
+            ask,
+            log,
+            now: Date.now(),
+            step: null,
+          });
+          if (entries.length === 0) return;
+          appendThreadProvisioningEvent(deps, {
+            threadId: thread.id,
+            environmentId: null,
+            provisioningId: context.state.provisioningId,
+            status: "active",
+            entries,
+          });
+        },
+      },
     });
     if (getThread(deps.db, thread.id)?.status !== "starting") {
       throw new Error("Thread provisioning context is no longer active");

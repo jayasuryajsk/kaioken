@@ -39,6 +39,7 @@ it("strips daemon-private inherited variables and returns clone failures as-is",
     await dispatchCommand(
       {
         type: "project.clone",
+        operationId: "private-clone",
         projectSlug: "test",
         remoteUrl: "ssh://git@invalid.example/repo",
         targetPath: join(dir, "clone"),

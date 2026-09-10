@@ -32,12 +32,16 @@ function harness() {
 }
 
 describe("machine bootstrap", () => {
-  it("delivers credentials only through stdin and never reports executor output", async () => {
+  it("delivers credentials through stdin and forwards streamed executor output", async () => {
     const h = harness();
-    h.exec.mockResolvedValue({
-      exitCode: 0,
-      stdout: bootstrap.credential,
-      stderr: bootstrap.credential,
+    h.exec.mockImplementation(async (request) => {
+      request.onOutput?.("installing\nstart");
+      request.onOutput?.("ed\n");
+      return {
+        exitCode: 0,
+        stdout: "installing\nstarted\n",
+        stderr: "",
+      };
     });
     const result = await h.api.bootstrap({
       key: "key",
@@ -50,10 +54,34 @@ describe("machine bootstrap", () => {
     expect(JSON.stringify(h.report.step.mock.calls)).not.toContain(
       bootstrap.credential,
     );
-    expect(h.report.log).not.toHaveBeenCalled();
+    expect(h.report.log.mock.calls).toEqual([["installing\n"], ["started\n"]]);
     expect(h.enrollments.waitForConnection).toHaveBeenCalledOnce();
     expect(result).toEqual({ hostId: "host_1" });
     expect(request[0].command.join(" ")).not.toContain(bootstrap.credential);
+  });
+
+  it("includes the last 20 streamed lines when the command exits non-zero", async () => {
+    const h = harness();
+    h.exec.mockImplementation(async (request) => {
+      request.onOutput?.(
+        Array.from({ length: 25 }, (_, index) => `line ${index + 1}`).join(
+          "\n",
+        ) + "\n",
+      );
+      return { exitCode: 9, stdout: "", stderr: "" };
+    });
+    const error = await h.api
+      .bootstrap({
+        key: "key",
+        executor: { exec: h.exec },
+        report: h.report,
+        signal: new AbortController().signal,
+      })
+      .catch((caught) => caught);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toContain("line 6\nline 7");
+    expect(error.message).toContain("line 25");
+    expect(error.message).not.toContain("line 5\n");
   });
 
   it("redacts transport failures and retains enrollment for retry", async () => {

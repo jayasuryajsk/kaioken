@@ -578,6 +578,7 @@ const projectCloneDefaultPathCommandSchema = z
 const projectCloneCommandSchema = z
   .object({
     type: z.literal("project.clone"),
+    operationId: z.string().min(1),
     contributedEnv: z.array(hostDaemonContributedEnvEntrySchema).default([]),
     remoteUrl: z.string().min(1),
     projectSlug: z.string().min(1),

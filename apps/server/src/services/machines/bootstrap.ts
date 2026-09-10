@@ -1,4 +1,5 @@
 import type { MachineBootstrapApi } from "@get-bb/plugin-sdk";
+import type { PluginMachineProviderProgress } from "@get-bb/plugin-sdk/machine-provider";
 import type { EnrollmentBootstrap, MachineEnrollments } from "./enrollments.js";
 import { readFile } from "node:fs/promises";
 import { INSTALL_MACHINE_SCRIPT_PATH } from "../../install-machine-asset.js";
@@ -29,6 +30,37 @@ function installerCommand(bootstrap: EnrollmentBootstrap) {
 }
 
 const installerSource = readFile(INSTALL_MACHINE_SCRIPT_PATH, "utf8");
+
+function createOutputReporter(report: PluginMachineProviderProgress) {
+  let pending = "";
+  const tail: string[] = [];
+  const emit = (line: string, terminated: boolean): void => {
+    report.log(line + (terminated ? "\n" : ""));
+    tail.push(line);
+    if (tail.length > 20) tail.shift();
+  };
+  return {
+    onOutput(chunk: string): void {
+      pending += chunk;
+      for (;;) {
+        const match = /\r\n|\r|\n/u.exec(pending);
+        if (match === null) return;
+        emit(pending.slice(0, match.index), true);
+        pending = pending.slice(match.index + match[0].length);
+      }
+    },
+    finish(): void {
+      if (pending.length === 0) return;
+      emit(pending, false);
+      pending = "";
+    },
+    failureMessage(): string {
+      return tail.length === 0
+        ? "Machine bootstrap command failed"
+        : `Machine bootstrap command failed:\n${tail.join("\n")}`;
+    },
+  };
+}
 
 async function installerStartCommand(hostId: string) {
   return {
@@ -61,18 +93,21 @@ export function createMachineBootstrapApi(
           const execution = await (enrollment.state === "enrolled"
             ? installerStartCommand(enrollment.hostId)
             : installerCommand(enrollment.bootstrap));
+          const output = createOutputReporter(request.report);
+          let result;
           try {
-            const result = await request.executor.exec({
+            result = await request.executor.exec({
               ...execution,
               timeoutMs: 600_000,
               signal: request.signal,
+              onOutput: output.onOutput,
             });
-            if (result.exitCode !== 0)
-              throw new Error("Machine bootstrap command failed");
           } catch {
             request.signal.throwIfAborted();
             throw new Error("Machine bootstrap command failed");
           }
+          output.finish();
+          if (result.exitCode !== 0) throw new Error(output.failureMessage());
         }
         request.signal.throwIfAborted();
         if (request.executor !== undefined)
