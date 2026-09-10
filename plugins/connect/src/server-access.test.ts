@@ -4,15 +4,6 @@ import {
   type FakePluginHost,
 } from "@get-bb/plugin-sdk/testing";
 import {
-  createConnection,
-  migrate,
-  getPluginKvValue,
-  setPluginKvValue,
-  deletePluginKvValue,
-  pluginKv,
-  listPluginKvKeys,
-} from "@bb/db";
-import {
   createServerAccessRecheck,
   registerServerAccess,
 } from "./server-access.js";
@@ -33,27 +24,10 @@ const request = {
 };
 const key = "server-access-grant:host-pending";
 const hosts: FakePluginHost[] = [];
-const databases: ReturnType<typeof createConnection>[] = [];
 async function setup(beforeInit?: (host: FakePluginHost) => Promise<void>) {
   const host = createFakePluginHost({
     pluginId: "connect",
     sdk: { hosts: { get: async () => ({ connectMachineId: null }) } },
-  });
-  const db = createConnection(":memory:");
-  migrate(db);
-  databases.push(db);
-  Object.assign(host.bb.storage.kv, {
-    list: async (prefix?: string) => listPluginKvKeys(db, "connect", prefix),
-    get: async (key: string) => {
-      const value = getPluginKvValue(db, "connect", key);
-      return value === undefined ? undefined : JSON.parse(value);
-    },
-    set: async (key: string, value: unknown) => {
-      setPluginKvValue(db, "connect", key, JSON.stringify(value));
-    },
-    delete: async (key: string) => {
-      deletePluginKvValue(db, "connect", key);
-    },
   });
   hosts.push(host);
   await beforeInit?.(host);
@@ -106,7 +80,6 @@ function cloud() {
 }
 afterEach(async () => {
   for (const host of hosts.splice(0)) await host.harness.lifecycle.dispose();
-  for (const db of databases.splice(0)) db.$client.close();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -132,7 +105,6 @@ describe("Connect server-owned machine access", () => {
     const restarted = await original.harness.lifecycle.reload((bb) =>
       registerServerAccess(bb, tunnel),
     );
-    Object.assign(restarted.bb.storage.kv, original.bb.storage.kv);
     hosts.push(restarted);
     expect(await provider(restarted).acquire(request)).toEqual(grant);
     expect(api.fetchMock).toHaveBeenCalledTimes(2);
@@ -159,7 +131,6 @@ describe("Connect server-owned machine access", () => {
     const restarted = await original.harness.lifecycle.reload((bb) =>
       registerServerAccess(bb, tunnel),
     );
-    Object.assign(restarted.bb.storage.kv, original.bb.storage.kv);
     hosts.push(restarted);
     api.failRevoke(false);
     await provider(restarted).release({
@@ -177,7 +148,6 @@ describe("Connect server-owned machine access", () => {
     const restarted = await host.harness.lifecycle.reload((bb) =>
       registerServerAccess(bb, { ...tunnel, getCredential: () => null }),
     );
-    Object.assign(restarted.bb.storage.kv, host.bb.storage.kv);
     hosts.push(restarted);
     await expect(
       provider(restarted).release({
@@ -186,7 +156,7 @@ describe("Connect server-owned machine access", () => {
         grantId: request.hostId,
       }),
     ).rejects.toThrow("Pair this bb instance");
-    expect(await host.bb.storage.kv.get(key)).toMatchObject({
+    expect(await restarted.bb.storage.kv.get(key)).toMatchObject({
       result: { connectMachineId: "cloud-id" },
     });
   });
@@ -278,9 +248,12 @@ it.each([true, false])(
         intent: { code: "CODE-1" },
       });
     }
-    expect(
-      JSON.stringify(databases.at(-1)!.select().from(pluginKv).all()),
-    ).not.toContain("private-bearer");
+    const storedValues = await Promise.all(
+      (await host.bb.storage.kv.list()).map((key) =>
+        host.bb.storage.kv.get(key),
+      ),
+    );
+    expect(JSON.stringify(storedValues)).not.toContain("private-bearer");
   },
 );
 
