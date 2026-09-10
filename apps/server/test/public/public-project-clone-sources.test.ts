@@ -1,6 +1,6 @@
 import { updateMachineEnvironment } from "../../src/services/machines/environment-settings.js";
 import * as gitCredentials from "../../src/services/machines/git-credentials.js";
-import { machineEnrollments, updateHost } from "@bb/db";
+import { updateHost } from "@bb/db";
 import { countProjectSources, getProject, setExperiments } from "@bb/db";
 import { defaultExperiments } from "@bb/domain";
 import { describe, expect, it, vi } from "vitest";
@@ -61,18 +61,6 @@ describe("project clone sources", () => {
         updateHost(harness.db, harness.hub, machine.host.id, {
           machineProviderId: "manual",
         });
-        harness.db
-          .insert(machineEnrollments)
-          .values({
-            id: "machine",
-            owner: "do",
-            key: "machine",
-            hostId: machine.host.id,
-            state: "enrolled",
-            createdAt: 1,
-            updatedAt: 1,
-          })
-          .run();
         const { project } = seedProjectWithSource(harness.deps, {
           hostId: first.host.id,
         });

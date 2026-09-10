@@ -4,7 +4,6 @@ import { machineServerAccessReady } from "@/components/machines/machine-server-a
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation } from "@tanstack/react-query";
 import type { Host } from "@bb/domain";
-import type { MachineLaunchStatus } from "@bb/server-contract";
 import { Button } from "@bb/shared-ui/button";
 import {
   Dialog,
@@ -128,13 +127,6 @@ export interface EnrollmentCommand {
   expiresAt: number;
 }
 
-function enrollmentCommand(
-  status: MachineLaunchStatus,
-): EnrollmentCommand | null {
-  if (status.command === null || status.commandExpiresAt === null) return null;
-  return { value: status.command, expiresAt: status.commandExpiresAt };
-}
-
 export function ManualMachineSetup({
   onOpenChange,
 }: {
@@ -142,7 +134,7 @@ export function ManualMachineSetup({
 }) {
   const createController = useRef<AbortController | null>(null);
   const createKey = useRef<string | null>(null);
-  const pendingLaunchIds = useRef(new Set<string>());
+  const pendingHostIds = useRef(new Set<string>());
   const lifecycleGeneration = useRef(0);
   const [command, setCommand] = useState<EnrollmentCommand | null>(null);
   const [connectedHost, setConnectedHost] = useState<Host | null>(null);
@@ -151,10 +143,10 @@ export function ManualMachineSetup({
       lifecycleGeneration.current += 1;
       createController.current?.abort();
       createKey.current = null;
-      for (const id of pendingLaunchIds.current) {
-        void sdk.hosts.experimental_cancel({ id }).catch(() => undefined);
+      for (const hostId of pendingHostIds.current) {
+        void sdk.hosts.delete({ hostId }).catch(() => undefined);
       }
-      pendingLaunchIds.current.clear();
+      pendingHostIds.current.clear();
     },
     [],
   );
@@ -165,11 +157,9 @@ export function ManualMachineSetup({
       if (options.replaceLaunch) {
         createController.current?.abort();
         createController.current = null;
-        const ids = [...pendingLaunchIds.current];
-        pendingLaunchIds.current.clear();
-        await Promise.all(
-          ids.map((id) => sdk.hosts.experimental_cancel({ id })),
-        );
+        const ids = [...pendingHostIds.current];
+        pendingHostIds.current.clear();
+        await Promise.all(ids.map((hostId) => sdk.hosts.delete({ hostId })));
         createKey.current = null;
       }
       setCommand(null);
@@ -177,30 +167,41 @@ export function ManualMachineSetup({
       createController.current = controller;
       createKey.current ??= crypto.randomUUID();
       try {
-        const launch = await sdk.hosts.experimental_submit({
+        let host = await sdk.hosts.experimental_create({
           key: createKey.current,
           machineProviderId: MANUAL_MACHINE_PROVIDER_ID,
           inputs: null,
+          wait: false,
+          signal: controller.signal,
         });
-        pendingLaunchIds.current.add(launch.id);
+        pendingHostIds.current.add(host.id);
         if (generation !== lifecycleGeneration.current) {
-          pendingLaunchIds.current.delete(launch.id);
-          await sdk.hosts.experimental_cancel({ id: launch.id });
+          pendingHostIds.current.delete(host.id);
+          await sdk.hosts.delete({ hostId: host.id });
           throw new Error("Machine setup closed");
         }
-        setCommand(enrollmentCommand(launch));
-        const host = await sdk.hosts.experimental_follow({
-          id: launch.id,
+        const enrollment = await sdk.hosts.experimental_getEnrollmentCommand({
+          hostId: host.id,
           signal: controller.signal,
-          onProgress: (status) => {
-            setCommand(enrollmentCommand(status));
-            if (status.terminal) {
-              createKey.current = null;
-              pendingLaunchIds.current.delete(launch.id);
-            }
-          },
         });
-        pendingLaunchIds.current.delete(launch.id);
+        setCommand(
+          enrollment === null
+            ? null
+            : { value: enrollment.command, expiresAt: enrollment.expiresAt },
+        );
+        while (host.lifecycle.phase === "creating") {
+          await new Promise<void>((resolve) => setTimeout(resolve, 1_000));
+          controller.signal.throwIfAborted();
+          host = await sdk.hosts.get({
+            hostId: host.id,
+            signal: controller.signal,
+          });
+        }
+        createKey.current = null;
+        pendingHostIds.current.delete(host.id);
+        if (host.lifecycle.phase !== "active") {
+          throw new Error(host.lifecycle.message ?? "Machine setup cancelled");
+        }
         return host;
       } finally {
         if (createController.current === controller)

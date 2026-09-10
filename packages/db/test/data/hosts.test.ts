@@ -153,12 +153,15 @@ describe("hosts", () => {
       id: "host-destroyed",
       name: "Destroyed Host",
     });
+    updateHost(db, noopNotifier, ephemeralHost.id, { phase: "creating" });
     updateHost(db, noopNotifier, destroyedHost.id, { destroyedAt: 123 });
 
     expect(listPublicHosts(db).map((host) => host.id)).toEqual([
       visibleHost.id,
-      ephemeralHost.id,
     ]);
+    expect(
+      listPublicHosts(db, { includeCreating: true }).map((host) => host.id),
+    ).toEqual([visibleHost.id, ephemeralHost.id]);
   });
 
   it("filters destroyed hosts from non-destroyed lookups", () => {

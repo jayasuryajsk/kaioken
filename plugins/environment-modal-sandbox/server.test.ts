@@ -40,8 +40,8 @@ function host(status: Host["status"]): Host {
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-
       message: null,
+      pendingLog: "",
       teardown: null,
     },
     maxPermissionMode: "full",

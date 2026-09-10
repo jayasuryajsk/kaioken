@@ -1,14 +1,11 @@
 import { defaultKeyHasher } from "@better-auth/api-key";
 import { getMachineProvider } from "../plugins/plugin-machine-provider-registry.js";
-import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import { and, eq, gt, sql } from "drizzle-orm";
 import {
   authApiKeys,
-  createHostId,
-  hosts,
-  machineEnrollments,
-  machineLaunches,
+  getHost,
+  getNonDestroyedHostByLaunchKey,
   type DbConnection,
 } from "@bb/db";
 import type {
@@ -71,7 +68,7 @@ export function createMachineEnrollmentService(
 ) {
   const pending = new Map<
     string,
-    { owner: string; bootstrap: EnrollmentBootstrap }
+    { owner: string; launchKey: string; bootstrap: EnrollmentBootstrap }
   >();
   const locks = new Map<string, Promise<unknown>>();
 
@@ -132,156 +129,66 @@ export function createMachineEnrollmentService(
   }
 
   function scoped(owner: string): MachineEnrollments {
-    function rowForId(id: string) {
-      const row = deps.db
-        .select()
-        .from(machineEnrollments)
-        .where(
-          and(
-            eq(machineEnrollments.id, id),
-            eq(machineEnrollments.owner, owner),
-          ),
-        )
-        .get();
-      if (!row) throw new Error("Machine enrollment was not found");
-      return row;
+    function hostForId(id: string) {
+      const host = getHost(deps.db, id);
+      const provider =
+        host?.machineProviderId === null
+          ? undefined
+          : getMachineProvider(host?.machineProviderId ?? "");
+      if (!host || provider?.pluginId !== owner)
+        throw new Error("Machine enrollment was not found");
+      return host;
     }
     return {
       clearPending(key) {
-        const entry = pending.get(key);
-        if (entry?.owner === owner) pending.delete(key);
+        for (const [hostId, entry] of pending) {
+          if (entry.owner === owner && entry.launchKey === key)
+            pending.delete(hostId);
+        }
       },
       async prepare(request) {
         if (!request.key.trim())
           throw new Error("Machine enrollment key must not be empty");
         const lockKey = JSON.stringify([owner, request.key]);
         return serialized(lockKey, async () => {
-          const now = Date.now();
-          const row = deps.db.transaction((tx) => {
-            const launch = tx
-              .select({
-                providerId: machineLaunches.providerId,
-                hostId: machineLaunches.hostId,
-                attempt: machineLaunches.attempt,
-              })
-              .from(machineLaunches)
-              .where(eq(machineLaunches.key, request.key))
-              .get();
-            if (
-              launch &&
-              getMachineProvider(launch.providerId)?.pluginId !== owner
-            )
-              throw new Error("Machine launch belongs to a different plugin");
-            tx.insert(machineEnrollments)
-              .values({
-                id: randomUUID(),
-                owner,
-                key: request.key,
-                hostId: launch?.hostId ?? createHostId(),
-                state: "pending",
-                createdAt: now,
-                updatedAt: now,
-              })
-              .onConflictDoNothing()
-              .run();
-            const enrollment = tx
-              .select()
-              .from(machineEnrollments)
-              .where(
-                and(
-                  eq(machineEnrollments.owner, owner),
-                  eq(machineEnrollments.key, request.key),
-                ),
-              )
-              .get();
-            if (!enrollment)
-              throw new Error("Machine enrollment could not be prepared");
-            if (launch) {
-              if (launch.hostId !== null && launch.hostId !== enrollment.hostId)
-                throw new Error(
-                  "Machine launch already has a different host identity",
-                );
-              tx.update(machineLaunches)
-                .set({ hostId: enrollment.hostId })
-                .where(
-                  and(
-                    eq(machineLaunches.key, request.key),
-                    eq(machineLaunches.providerId, launch.providerId),
-                    eq(machineLaunches.attempt, launch.attempt),
-                  ),
-                )
-                .run();
-            }
-            return enrollment;
-          });
-          const host = deps.db
-            .select({
-              phase: hosts.phase,
-              lastSeenAt: hosts.lastSeenAt,
-              accessProviderId: hosts.serverAccessProviderId,
-            })
-            .from(hosts)
-            .where(eq(hosts.id, row.hostId))
-            .get();
+          const host = getNonDestroyedHostByLaunchKey(deps.db, request.key);
+          if (!host) throw new Error("Machine creation host was not found");
+          if (host.phase === "destroyed" || host.phase === "removing")
+            throw new Error("Machine enrollment was cancelled");
+          if (
+            getMachineProvider(host.machineProviderId ?? "")?.pluginId !== owner
+          )
+            throw new Error("Machine creation belongs to a different plugin");
           if (
             request.access &&
-            host?.accessProviderId &&
-            request.access.providerId !== host.accessProviderId
+            host.serverAccessProviderId &&
+            request.access.providerId !== host.serverAccessProviderId
           )
             throw new Error(
               "Machine enrollment already uses a different server access provider",
             );
-          if (
-            host?.phase === "destroyed" ||
-            (row.state === "enrolled" && !host)
-          )
-            throw new Error(
-              "Machine enrollment identity has been removed; use a new creation key",
-            );
-          if (
-            (host && host.lastSeenAt !== null) ||
-            deps.isConnected(row.hostId)
-          ) {
-            pending.delete(request.key);
-            deps.db
-              .update(machineEnrollments)
-              .set({
-                state: "enrolled",
-                updatedAt: now,
-              })
-              .where(eq(machineEnrollments.id, row.id))
-              .run();
-            return { id: row.id, hostId: row.hostId, state: "enrolled" };
+          if (host.lastSeenAt !== null || deps.isConnected(host.id)) {
+            pending.delete(host.id);
+            return { id: host.id, hostId: host.id, state: "enrolled" };
           }
-          deps.db
-            .insert(hosts)
-            .values({
-              id: row.hostId,
-              name: row.hostId,
-              type: "persistent",
-              createdAt: now,
-              updatedAt: now,
-            })
-            .onConflictDoNothing()
-            .run();
           const grant = await deps.serverAccess.resolve({
             key: lockKey,
-            hostId: row.hostId,
+            hostId: host.id,
             access: request.access,
             signal: AbortSignal.timeout(60_000),
           });
-          await deps.machineAuth.revokeHostEnrollKeys({ hostId: row.hostId });
+          await deps.machineAuth.revokeHostEnrollKeys({ hostId: host.id });
           const credential = await deps.machineAuth.issueHostEnrollKey({
-            hostId: row.hostId,
+            hostId: host.id,
             enrollSource: "public-multi-machine",
           });
           const expiresAt = credential.expiresAt;
           const result: Extract<MachineEnrollment, { state: "pending" }> = {
-            id: row.id,
-            hostId: row.hostId,
+            id: host.id,
+            hostId: host.id,
             state: "pending",
             bootstrap: {
-              hostId: row.hostId,
+              hostId: host.id,
               serverUrl: grant.serverUrl,
               ...(grant.headers === undefined
                 ? {}
@@ -290,15 +197,11 @@ export function createMachineEnrollmentService(
               expiresAt,
             },
           };
-          pending.set(request.key, { owner, bootstrap: result.bootstrap });
-          deps.db
-            .update(machineEnrollments)
-            .set({
-              state: "pending",
-              updatedAt: Date.now(),
-            })
-            .where(eq(machineEnrollments.id, row.id))
-            .run();
+          pending.set(host.id, {
+            owner,
+            launchKey: request.key,
+            bootstrap: result.bootstrap,
+          });
           return result;
         });
       },
@@ -308,20 +211,12 @@ export function createMachineEnrollmentService(
         const deadline = Date.now() + timeoutMs;
         while (true) {
           signal.throwIfAborted();
-          const row = rowForId(enrollmentId);
-          if (row.state === "cancelled")
+          const host = hostForId(enrollmentId);
+          if (host.destroyedAt !== null || host.phase === "removing")
             throw new Error("Machine enrollment was cancelled");
-          if (deps.isConnected(row.hostId)) {
-            deps.db
-              .update(machineEnrollments)
-              .set({
-                state: "enrolled",
-                updatedAt: Date.now(),
-              })
-              .where(eq(machineEnrollments.id, row.id))
-              .run();
-            pending.delete(row.key);
-            return { hostId: row.hostId };
+          if (deps.isConnected(host.id)) {
+            pending.delete(host.id);
+            return { hostId: host.id };
           }
           const remaining = deadline - Date.now();
           if (remaining <= 0)
@@ -331,60 +226,38 @@ export function createMachineEnrollmentService(
       },
     };
   }
-  function readPendingEnrollment(launchId: string, owner: string) {
-    return deps.db
-      .select({ enrollment: machineEnrollments, launch: machineLaunches })
-      .from(machineEnrollments)
-      .innerJoin(
-        machineLaunches,
-        and(
-          eq(machineEnrollments.key, machineLaunches.key),
-          eq(machineEnrollments.hostId, machineLaunches.hostId),
-        ),
-      )
-      .where(
-        and(
-          eq(machineLaunches.key, launchId),
-          eq(machineLaunches.phase, "creating"),
-          eq(machineLaunches.cancelPending, false),
-          eq(machineEnrollments.state, "pending"),
-          eq(machineEnrollments.owner, owner),
-        ),
-      )
-      .get();
-  }
-  async function pendingBootstrapForLaunch(request: {
-    launchId: string;
+  async function pendingBootstrapForHost(request: {
+    hostId: string;
     owner: string;
   }): Promise<EnrollmentBootstrap | null> {
-    const read = () => readPendingEnrollment(request.launchId, request.owner);
-    const row = read();
-    const entry = pending.get(request.launchId);
+    const host = getHost(deps.db, request.hostId);
+    const entry = pending.get(request.hostId);
     if (
-      !row ||
+      !host ||
+      host.phase !== "creating" ||
+      host.destroyedAt !== null ||
       !entry ||
       entry.owner !== request.owner ||
       entry.bootstrap.expiresAt <= Date.now() ||
-      deps.isConnected(row.enrollment.hostId) ||
-      hasIssuedDaemonCredential(row.enrollment.hostId)
+      deps.isConnected(host.id) ||
+      hasIssuedDaemonCredential(host.id)
     )
       return null;
     const bootstrap = entry.bootstrap;
     if (
       !(await hasUnusedEnrollmentCredential(
-        row.enrollment.hostId,
+        host.id,
         bootstrap.credential,
         Date.now(),
       ))
     )
       return null;
-    if (read() === undefined || pending.get(request.launchId) !== entry)
-      return null;
+    if (pending.get(request.hostId) !== entry) return null;
     return bootstrap;
   }
   return {
     forOwner: scoped,
-    pendingBootstrapForLaunch,
+    pendingBootstrapForHost,
     async pendingBootstrapForCredential(
       credential: string,
     ): Promise<EnrollmentBootstrap | null> {
@@ -393,9 +266,9 @@ export function createMachineEnrollmentService(
         ([, entry]) => entry.bootstrap.credential === credential,
       );
       if (!row) return null;
-      const [launchId, entry] = row;
-      const bootstrap = await pendingBootstrapForLaunch({
-        launchId,
+      const [hostId, entry] = row;
+      const bootstrap = await pendingBootstrapForHost({
+        hostId,
         owner: entry.owner,
       });
       return bootstrap?.credential === credential ? bootstrap : null;

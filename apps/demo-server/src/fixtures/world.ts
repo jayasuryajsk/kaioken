@@ -170,8 +170,8 @@ export function hosts(now: number): Host[] {
       lifecycle: {
         phase: "active",
         suspendedAt: null,
-
         message: null,
+        pendingLog: "",
         teardown: null,
       },
       maxPermissionMode: "full",

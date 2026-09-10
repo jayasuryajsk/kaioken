@@ -85,6 +85,7 @@ function toHostRecord(row: HostRow, status: Host["status"]): Host {
       phase: row.phase,
       suspendedAt: row.suspendedAt,
       message: row.statusMessage,
+      pendingLog: row.pendingLog,
       teardown:
         row.teardownStatus === null
           ? null
@@ -109,8 +110,11 @@ function isStandardProject(project: ProjectRow): project is StandardProject {
   return project.kind === "standard";
 }
 
-export function listPublicHostsWithStatus(deps: HostLookupDeps): Host[] {
-  const rows = listPublicHosts(deps.db);
+export function listPublicHostsWithStatus(
+  deps: HostLookupDeps,
+  options?: { includeCreating?: boolean },
+): Host[] {
+  const rows = listPublicHosts(deps.db, options);
 
   return rows.map((row) =>
     toHostRecord(

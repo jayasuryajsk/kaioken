@@ -71,8 +71,8 @@ export function makeHostResponse(
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-
       message: null,
+      pendingLog: "",
       teardown: null,
     },
     maxPermissionMode: "full",
@@ -253,8 +253,8 @@ export function makeMessageDispatchHookContext(
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-
       message: null,
+      pendingLog: "",
       teardown: null,
     },
     maxPermissionMode: "full",

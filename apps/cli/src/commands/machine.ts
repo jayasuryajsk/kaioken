@@ -57,7 +57,10 @@ async function waitForMachineLifecycle(args: {
       host.lifecycle.phase === "removing" ||
       host.lifecycle.phase === "destroyed"
     ) {
-      throw new Error(`Machine entered the ${host.lifecycle.phase} phase`);
+      throw new Error(
+        host.lifecycle.message ??
+          `Machine entered the ${host.lifecycle.phase} phase`,
+      );
     }
     if (Date.now() >= deadline) {
       throw new Error(
@@ -201,7 +204,7 @@ export function registerMachineCommands(
   machine
     .command("create")
     .description("Create a machine using an installed provider")
-    .option("--no-wait", "Return the durable launch ID immediately")
+    .option("--no-wait", "Return the creating host ID immediately")
     .requiredOption("--provider <id>", "Machine provider ID")
     .option(
       "--key <idempotency-key>",
@@ -228,47 +231,39 @@ export function registerMachineCommands(
         try {
           const sdk = createCliBbSdk(getUrl());
           controller.signal.throwIfAborted();
-          const launch = await sdk.hosts.experimental_submit({
+          let host = await sdk.hosts.experimental_create({
             machineProviderId,
             inputs,
             ...(key === undefined ? {} : { key }),
+            wait: false,
             signal: controller.signal,
           });
           if (!opts.wait) {
-            if (!outputJson(opts, launch))
-              console.log(
-                [launch.id, launch.command ?? launch.step].join("\n"),
-              );
+            if (!outputJson(opts, host)) console.log(host.id);
             return;
           }
-          if (launch.command !== null) {
-            console.error(launch.command);
-            console.error(enrollmentExpiryNotice(launch.commandExpiresAt));
+          const enrollmentCommand =
+            await sdk.hosts.experimental_getEnrollmentCommand({
+              hostId: host.id,
+              signal: controller.signal,
+            });
+          if (enrollmentCommand !== null) {
+            console.error(enrollmentCommand.command);
+            console.error(enrollmentExpiryNotice(enrollmentCommand.expiresAt));
           }
-          console.error(`Following machine launch ${launch.id}`);
-          let step = "";
-          let command = launch.command;
-          const host = await sdk.hosts.experimental_follow({
-            id: launch.id,
-            signal: controller.signal,
-            onProgress: (status) => {
-              if (status.command !== null && status.command !== command) {
-                command = status.command;
-                console.error(status.command);
-                console.error(enrollmentExpiryNotice(status.commandExpiresAt));
-              }
-              if (status.step !== step) {
-                step = status.step;
-                console.error(step);
-              }
-            },
+          console.error(`Following machine ${host.id}`);
+          host = await waitForMachineLifecycle({
+            host,
+            targetPhase: "active",
+            getHost: () =>
+              sdk.hosts.get({ hostId: host.id, signal: controller.signal }),
           });
           if (!outputJson(opts, host))
             console.log(`Machine ${host.name} created`);
         } catch (error) {
           if (controller.signal.aborted) {
             throw new CliExitError(
-              "Stopped following; creation continues. Use bb machine cancel <launch-id> to cancel.",
+              "Stopped following; creation continues. Use bb machine remove <host-id> to cancel.",
               130,
             );
           }
@@ -276,36 +271,6 @@ export function registerMachineCommands(
         } finally {
           process.off("SIGINT", cancel);
         }
-      }),
-    );
-
-  machine
-    .command("cancel <launch-id>")
-    .description("Explicitly cancel a durable machine launch")
-    .option("--json", "Print machine-readable JSON output")
-    .action(
-      action(async (id: string, opts: MachineListCommandOptions) => {
-        const result = await createCliBbSdk(getUrl()).hosts.experimental_cancel(
-          { id },
-        );
-        if (!outputJson(opts, result))
-          console.log(`${result.id}: ${result.phase}`);
-      }),
-    );
-
-  machine
-    .command("status <launch-id>")
-    .description("Show durable machine launch progress")
-    .option("--json", "Print machine-readable JSON output")
-    .action(
-      action(async (id: string, opts: MachineListCommandOptions) => {
-        const result = await createCliBbSdk(getUrl()).hosts.experimental_launch(
-          { id },
-        );
-        if (!outputJson(opts, result))
-          console.log(
-            `${result.id}: ${result.phase} — ${result.message ?? result.step}`,
-          );
       }),
     );
 

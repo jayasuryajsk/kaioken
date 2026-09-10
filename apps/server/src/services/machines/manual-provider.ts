@@ -83,12 +83,12 @@ export function withManualMachineProvider(
   };
 }
 
-export async function manualLaunchCommand(
+export async function manualHostCommand(
   enrollments: MachineEnrollmentService,
-  launchId: string,
+  hostId: string,
 ): Promise<{ command: string; expiresAt: number } | null> {
-  const bootstrap = await enrollments.pendingBootstrapForLaunch({
-    launchId,
+  const bootstrap = await enrollments.pendingBootstrapForHost({
+    hostId,
     owner: MANUAL_PROVIDER_OWNER,
   });
   return bootstrap === null

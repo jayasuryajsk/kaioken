@@ -273,12 +273,9 @@ type ExpectedFilesKey =
 type ExpectedGuideKey = "render";
 
 type ExpectedHostsKey =
-  | "experimental_submit"
-  | "experimental_launch"
-  | "experimental_follow"
-  | "experimental_cancel"
   | "cloneDefaultPath"
   | "experimental_create"
+  | "experimental_getEnrollmentCommand"
   | "createJoinCode"
   | "delete"
   | "directory"

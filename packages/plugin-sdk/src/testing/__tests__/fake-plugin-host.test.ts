@@ -32,8 +32,8 @@ describe("fixtures", () => {
       lifecycle: {
         phase: "active",
         suspendedAt: null,
-
         message: null,
+        pendingLog: "",
         teardown: null,
       },
       maxPermissionMode: "full",

@@ -283,6 +283,7 @@ function createSettingsStoryQueryClient() {
     },
   });
   queryClient.setQueryData(hostsQueryKey(), SETTINGS_STORY_HOSTS);
+  queryClient.setQueryData(hostsQueryKey(true), SETTINGS_STORY_HOSTS);
   queryClient.setQueryData(systemConfigQueryKey(), systemConfig);
   queryClient.setQueryData(systemProvidersQueryKey(), systemProviders);
   queryClient.setQueryData(systemVersionQueryKey(), systemVersion);

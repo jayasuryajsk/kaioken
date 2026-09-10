@@ -110,6 +110,7 @@ describe("@bb/sdk", () => {
     const host = {
       id: "host_do",
       name: "Dev box",
+      type: "ephemeral",
       status: "connected",
       machineProviderId: "digitalocean",
       lifecycle: {
@@ -125,22 +126,16 @@ describe("@bb/sdk", () => {
       createdAt: 1,
       updatedAt: 1,
     };
-    const launch = {
-      id: "launch_do",
-      command: null,
-      phase: "ready",
-      hostId: host.id,
-      step: "Ready",
-      log: "",
-      message: null,
-      cancelPending: false,
-      terminal: true,
+    const creating = {
+      ...host,
+      status: "disconnected",
+      lifecycle: {
+        ...host.lifecycle,
+        phase: "creating",
+        message: "Creating DigitalOcean machine…",
+      },
     };
-    const queue = createFetchQueue([
-      { body: { ...launch, phase: "creating", hostId: null, terminal: false } },
-      { body: launch },
-      { body: host },
-    ]);
+    const queue = createFetchQueue([{ body: creating }, { body: host }]);
     const sdk = createBbSdk({
       transport: createHttpTransport({
         baseUrl: "http://bb.test",
@@ -162,11 +157,6 @@ describe("@bb/sdk", () => {
         }),
         method: "POST",
         url: "http://bb.test/api/v1/hosts",
-      },
-      {
-        bodyText: undefined,
-        method: "GET",
-        url: "http://bb.test/api/v1/hosts/launches/launch_do?",
       },
       {
         bodyText: undefined,

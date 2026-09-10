@@ -58,18 +58,15 @@ export const createMachineRequestSchema = z
   .strict();
 export type CreateMachineRequest = z.infer<typeof createMachineRequestSchema>;
 
-export interface MachineLaunchStatus {
-  id: string;
-  command: string | null;
-  commandExpiresAt: number | null;
-  phase: "creating" | "ready" | "failed" | "cancelled";
-  hostId: string | null;
-  step: string;
-  log: string;
-  message: string | null;
-  cancelPending: boolean;
-  terminal: boolean;
-}
+export const hostEnrollmentCommandResponseSchema = z
+  .object({
+    command: z.string().min(1),
+    expiresAt: z.number().int().positive(),
+  })
+  .nullable();
+export type HostEnrollmentCommandResponse = z.infer<
+  typeof hostEnrollmentCommandResponseSchema
+>;
 
 export const createHostJoinCodeResponseSchema = z.object({
   joinCode: z.string().min(1),
@@ -129,7 +126,7 @@ export type HostProviderCliInstallRequest = ProviderCliInstallRequest;
 export const hostProviderCliInstallEventSchema = providerCliInstallEventSchema;
 export type HostProviderCliInstallEvent = ProviderCliInstallEvent;
 
-export const machineLaunchQuerySchema = z.object({
-  scope: z.enum(["launch", "thread"]).default("launch"),
+export const hostListQuerySchema = z.object({
+  includeCreating: z.enum(["true", "false"]).optional(),
 });
-export type MachineLaunchQuery = z.input<typeof machineLaunchQuerySchema>;
+export type HostListQuery = z.input<typeof hostListQuerySchema>;

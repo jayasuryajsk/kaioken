@@ -10,9 +10,10 @@ import { ManualMachineSetup } from "./AddMachineDialog";
 vi.mock("@/lib/sdk", () => ({
   sdk: {
     hosts: {
-      experimental_cancel: vi.fn(),
-      experimental_follow: vi.fn(),
-      experimental_submit: vi.fn(),
+      delete: vi.fn(),
+      experimental_create: vi.fn(),
+      experimental_getEnrollmentCommand: vi.fn(),
+      get: vi.fn(),
     },
   },
 }));
@@ -23,33 +24,31 @@ afterEach(() => {
 });
 
 it("cancels a creating manual launch when the dialog content closes", async () => {
-  vi.mocked(sdk.hosts.experimental_submit).mockResolvedValue({
-    id: "manual-launch",
+  vi.mocked(sdk.hosts.experimental_create).mockResolvedValue({
+    id: "host-reserved",
+    name: "Manual machine",
+    type: "persistent",
+    status: "disconnected",
+    machineProviderId: "manual",
+    lifecycle: {
+      phase: "creating",
+      suspendedAt: null,
+      message: "Waiting for the machine",
+      pendingLog: "",
+      teardown: null,
+    },
+    maxPermissionMode: "full",
+    lastSeenAt: null,
+    lastRejectedProtocolVersion: null,
+    createdAt: 1,
+    updatedAt: 1,
+  });
+  vi.mocked(sdk.hosts.experimental_getEnrollmentCommand).mockResolvedValue({
     command: "bb machine enroll test",
-    commandExpiresAt: Date.now() + 60_000,
-    phase: "creating",
-    hostId: "host-reserved",
-    step: "Waiting for the machine",
-    log: "",
-    message: null,
-    cancelPending: false,
-    terminal: false,
+    expiresAt: Date.now() + 60_000,
   });
-  vi.mocked(sdk.hosts.experimental_follow).mockImplementation(
-    () => new Promise(() => {}),
-  );
-  vi.mocked(sdk.hosts.experimental_cancel).mockResolvedValue({
-    id: "manual-launch",
-    command: null,
-    commandExpiresAt: null,
-    phase: "cancelled",
-    hostId: "host-reserved",
-    step: "Cancelled",
-    log: "",
-    message: null,
-    cancelPending: false,
-    terminal: true,
-  });
+  vi.mocked(sdk.hosts.get).mockImplementation(() => new Promise(() => {}));
+  vi.mocked(sdk.hosts.delete).mockResolvedValue({ ok: true });
   const { wrapper } = createQueryClientTestHarness();
   const rendered = render(
     <Dialog open modal={false}>
@@ -64,8 +63,8 @@ it("cancels a creating manual launch when the dialog content closes", async () =
   rendered.unmount();
 
   await waitFor(() => {
-    expect(sdk.hosts.experimental_cancel).toHaveBeenCalledWith({
-      id: "manual-launch",
+    expect(sdk.hosts.delete).toHaveBeenCalledWith({
+      hostId: "host-reserved",
     });
   });
 });

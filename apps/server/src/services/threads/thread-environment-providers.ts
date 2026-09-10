@@ -4,10 +4,7 @@ import {
   cancelProviderLaunch,
   persistPendingProviderRequest,
 } from "../environments/provider-orchestration.js";
-import {
-  cancelMachineLaunch,
-  resolveThreadMachineLaunchKey,
-} from "../machines/provider-orchestration.js";
+import { removeCreatingMachine } from "../machines/provider-orchestration.js";
 import {
   getAppSettings,
   getEnvironment,
@@ -197,10 +194,7 @@ export function cancelAbandonedProviderLaunches(
   void cancelProviderLaunch(deps, threadId).catch((error) =>
     deps.logger.warn({ threadId, error }, "Environment cancellation failed"),
   );
-  void cancelMachineLaunch(
-    deps,
-    resolveThreadMachineLaunchKey(deps, threadId),
-  ).catch((error) =>
+  void removeCreatingMachine(deps, threadId).catch((error) =>
     deps.logger.warn({ threadId, error }, "Machine cancellation failed"),
   );
 }
@@ -392,7 +386,7 @@ export async function resolveEnvironmentProvider(
             );
           }
           const machineDecision = askMachineLaunch(deps, {
-            key: resolveThreadMachineLaunchKey(deps, thread.id),
+            key: thread.id,
             record: machineRecord,
             inputs: machine.inputs,
           });

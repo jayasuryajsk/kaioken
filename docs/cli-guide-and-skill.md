@@ -15,7 +15,7 @@ and completion persist across server restarts. Attached checkout and
 personal-workspace paths skip both hooks. These semantics apply equally to CLI,
 SDK, and app launches; see [worktrees.md](worktrees.md).
 
-The Machines settings creation drawer prepares an existing-machine command when access is ready, otherwise shows setup guidance. After access is ready, Choose a machine provider reviews provider inputs and launches through `hosts.experimental_submit`/`bb machine create`. A machine belongs to no project; projects reach it later through project sources.
+The Machines settings creation drawer prepares an existing-machine command when access is ready, otherwise shows setup guidance. After access is ready, Choose a machine provider reviews provider inputs and launches through `hosts.experimental_create`/`bb machine create`. A machine belongs to no project; projects reach it later through project sources.
 
 Machine maintenance state is part of `bb machine list --json`; there is no
 separate machine lifecycle command. Keep the machine guide and bb-cli command

@@ -74,7 +74,7 @@ environment settings.
 Use `bb modal account inspect --json` to validate credentials
 without allocating resources. Create with
 `bb machine create --provider modal-sandbox --json`, or SDK
-`hosts.experimental_submit({machineProviderId:"modal-sandbox",key})`. Machine creation
+`hosts.experimental_create({machineProviderId:"modal-sandbox",key})`. Machine creation
 accepts optional configured names in `{"preset":"Large","image":"Node 22"}`.
 With one or zero choices, the default applies and the composer shows no extra
 chip. Account inspection is also available through the

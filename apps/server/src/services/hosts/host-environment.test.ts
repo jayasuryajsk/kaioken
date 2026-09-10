@@ -95,9 +95,6 @@ if [ "$1" = auth ]; then printf 'test-gh-secret\\n'; else printf '{"login":"octo
     expect(overridden.find((row) => row.name === "GH_TOKEN")?.value).toBe(
       "custom-token",
     );
-    expect(
-      db.$client.prepare("SELECT COUNT(*) AS n FROM machine_enrollments").get(),
-    ).toEqual({ n: 0 });
   } finally {
     vi.unstubAllEnvs();
     db.$client.close();

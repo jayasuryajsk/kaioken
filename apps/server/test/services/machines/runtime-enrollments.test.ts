@@ -2,11 +2,9 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import {
-  getMachineLaunch,
+  getNonDestroyedHostByLaunchKey,
   listPublicHosts,
   hosts,
-  machineEnrollments,
-  machineLaunches,
   setAppSettings,
 } from "@bb/db";
 import { defaultAppSettings } from "@bb/domain";
@@ -58,17 +56,21 @@ async function installPlugin(harness: TestAppHarness, id: string) {
 
 function launch(harness: TestAppHarness, key: string, providerId: string) {
   harness.db
-    .insert(machineLaunches)
+    .insert(hosts)
     .values({
-      key,
-      providerId,
+      id: `host_${key}`,
+      name: "Runtime machine",
+      type: "persistent",
+      machineProviderId: providerId,
+      machineOperationId: "enrollment-runtime:operation",
+      launchKey: key,
       attempt: 1,
       phase: "creating",
-      startedAt: Date.now(),
-      stepText: "checkpoint step",
+      statusMessage: "checkpoint step",
       pendingLog: "checkpoint log",
-      cancelPending: false,
       resource: { checkpoint: "preserve" },
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     })
     .run();
 }
@@ -129,10 +131,11 @@ describe("production machine enrollment wiring", () => {
       const enrollment = await enrollments.prepare({
         key: "runtime-launch",
       });
-      expect(getMachineLaunch(h.db, "runtime-launch")).toMatchObject({
-        hostId: enrollment.hostId,
+      expect(
+        getNonDestroyedHostByLaunchKey(h.db, "runtime-launch"),
+      ).toMatchObject({
+        id: enrollment.hostId,
         resource: { checkpoint: "preserve" },
-        stepText: "checkpoint step",
         pendingLog: "checkpoint log",
       });
       expect(getMachineEnrollmentService(h.deps)).toBe(
@@ -249,7 +252,6 @@ describe("production machine enrollment wiring", () => {
           access: { providerId: "runtime-access" },
         }),
       ).rejects.toThrow("different plugin");
-      expect(h.db.select().from(machineEnrollments).all()).toEqual([]);
       acquire.mockResolvedValueOnce({
         status: "failed",
         message: "Cloud device may need dashboard revocation",
@@ -260,20 +262,21 @@ describe("production machine enrollment wiring", () => {
           access: { providerId: "runtime-access" },
         }),
       ).rejects.toThrow();
-      const reserved = getMachineLaunch(h.db, "failure-launch");
-      expect(reserved?.hostId).toBeTruthy();
+      const reserved = getNonDestroyedHostByLaunchKey(h.db, "failure-launch");
+      expect(reserved?.id).toBeTruthy();
       expect(reserved?.resource).toEqual({ checkpoint: "preserve" });
       expect(
-        listPublicHosts(h.db).find((host) => host.id === reserved?.hostId)
-          ?.statusMessage,
+        listPublicHosts(h.db, { includeCreating: true }).find(
+          (host) => host.id === reserved?.id,
+        )?.statusMessage,
       ).toBe("Cloud device may need dashboard revocation");
       const enrollment = await enrollments.prepare({
         key: "failure-launch",
         access: { providerId: "runtime-access" },
       });
-      expect(enrollment.hostId).toBe(reserved?.hostId);
+      expect(enrollment.hostId).toBe(reserved?.id);
       expect(
-        listPublicHosts(h.db).some((host) => host.id === reserved?.hostId),
+        listPublicHosts(h.db).some((host) => host.id === reserved?.id),
       ).toBe(false);
       await serverAccess.release(h.deps, {
         hostId: enrollment.hostId,
@@ -291,12 +294,12 @@ describe("production machine enrollment wiring", () => {
           .where(eq(hosts.id, enrollment.hostId))
           .get()?.providerId,
       ).toBeNull();
-      const standalone = await enrollments.prepare({
-        key: "standalone",
-        access: { providerId: "runtime-access" },
-      });
-      expect(standalone.hostId).not.toBe(enrollment.hostId);
-      expect(getMachineLaunch(h.db, "standalone")).toBeNull();
+      await expect(
+        enrollments.prepare({
+          key: "standalone",
+          access: { providerId: "runtime-access" },
+        }),
+      ).rejects.toThrow("host was not found");
     });
   });
 });

@@ -17,7 +17,7 @@ description: Connect Modal and create reusable cloud machines with the bundled s
    credentials to clone it, and machine server access reachable from Modal.
 4. Select the project and create a machine in the UI, or run
    `bb machine create --provider modal-sandbox --json`.
-   SDK: `hosts.experimental_submit({machineProviderId:"modal-sandbox",key})`.
+   SDK: `hosts.experimental_create({machineProviderId:"modal-sandbox",key})`.
    Use a stable creation key for retries. Composed thread creation accepts
    optional configured names as `{"preset":"Large","image":"Node 22"}`.
 

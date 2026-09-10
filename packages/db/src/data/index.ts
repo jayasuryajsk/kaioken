@@ -244,10 +244,10 @@ export {
   upsertHost,
   getHost,
   getNonDestroyedHost,
+  getNonDestroyedHostByLaunchKey,
   listHosts,
   listNonDestroyedHostsByIds,
   listPublicHosts,
-  settleMachineEnrollments,
   updateHost,
   deleteHost,
 } from "./hosts.js";
@@ -473,5 +473,4 @@ export {
   shouldRunIncrementalVacuum,
 } from "./maintenance.js";
 export * from "./environment-launches.js";
-export * from "./machine-launches.js";
 export * from "./machines.js";

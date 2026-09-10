@@ -5,9 +5,17 @@ const hostStatusValues = ["connected", "disconnected"] as const;
 export const hostStatusSchema = z.enum(hostStatusValues);
 
 export const machineLifecycleSchema = z.object({
-  phase: z.enum(["active", "suspending", "suspended", "removing", "destroyed"]),
+  phase: z.enum([
+    "creating",
+    "active",
+    "suspending",
+    "suspended",
+    "removing",
+    "destroyed",
+  ]),
   suspendedAt: z.number().nullable(),
   message: z.string().nullable(),
+  pendingLog: z.string(),
   teardown: z
     .object({
       status: z.enum(["running", "failed", "removed"]),

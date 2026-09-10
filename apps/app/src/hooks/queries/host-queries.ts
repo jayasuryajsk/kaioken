@@ -12,13 +12,16 @@ import {
 } from "./query-keys";
 import type { QueryOptions } from "./query-helpers";
 
-export function useHosts(options?: QueryOptions) {
+export function useHosts(
+  options?: QueryOptions & { includeCreating?: boolean },
+) {
   const enabled = options?.enabled ?? true;
+  const includeCreating = options?.includeCreating ?? false;
   useHostListRealtimeSubscription({ enabled });
 
   return useQuery<Host[]>({
-    queryKey: hostsQueryKey(),
-    queryFn: ({ signal }) => sdk.hosts.list({ signal }),
+    queryKey: hostsQueryKey(includeCreating),
+    queryFn: ({ signal }) => sdk.hosts.list({ signal, includeCreating }),
     enabled,
     staleTime: 60_000,
   });

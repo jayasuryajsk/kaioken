@@ -96,12 +96,23 @@ export const hosts = sqliteTable(
     type: text("type").$type<"persistent" | "ephemeral">().notNull(),
     connectMachineId: text("connect_machine_id"),
     machineProviderId: text("machine_provider_id"),
+    launchKey: text("launch_key"),
+    inputs: text("machine_inputs", { mode: "json" }).$type<JsonValue>(),
+    attempt: integer("machine_attempt").notNull().default(0),
+    pendingLog: text("pending_log").notNull().default(""),
     machineOperationId: text("machine_operation_id"),
     serverAccessProviderId: text("server_access_provider_id"),
     serverAccessGrantId: text("server_access_grant_id"),
     resource: text("resource", { mode: "json" }).$type<JsonValue>(),
     phase: text("phase")
-      .$type<"active" | "suspending" | "suspended" | "removing" | "destroyed">()
+      .$type<
+        | "creating"
+        | "active"
+        | "suspending"
+        | "suspended"
+        | "removing"
+        | "destroyed"
+      >()
       .notNull()
       .default("active"),
     suspendedAt: integer("suspended_at"),
@@ -122,25 +133,11 @@ export const hosts = sqliteTable(
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },
-  (table) => [index("hosts_last_seen_idx").on(table.lastSeenAt)],
-);
-
-export const machineEnrollments = sqliteTable(
-  "machine_enrollments",
-  {
-    id: text("id").primaryKey(),
-    owner: text("owner").notNull(),
-    key: text("key").notNull(),
-    hostId: text("host_id").notNull(),
-    state: text("state")
-      .$type<"pending" | "enrolled" | "cancelled">()
-      .notNull(),
-    createdAt: integer("created_at").notNull(),
-    updatedAt: integer("updated_at").notNull(),
-  },
   (table) => [
-    uniqueIndex("machine_enrollments_owner_key_idx").on(table.owner, table.key),
-    uniqueIndex("machine_enrollments_host_id_idx").on(table.hostId),
+    index("hosts_last_seen_idx").on(table.lastSeenAt),
+    uniqueIndex("hosts_live_launch_key_idx")
+      .on(table.launchKey)
+      .where(sql`${table.destroyedAt} is null`),
   ],
 );
 
@@ -1151,38 +1148,6 @@ export const environmentLaunches = sqliteTable(
       .where(
         sql`${table.environmentId} is null and ${table.claimPath} is not null`,
       ),
-  ],
-);
-
-export const machineLaunches = sqliteTable(
-  "machine_launches",
-  {
-    key: text("key").primaryKey(),
-    providerId: text("provider_id").notNull(),
-    inputs: text("inputs", { mode: "json" }).$type<JsonValue>(),
-    attempt: integer("attempt").notNull(),
-    phase: text("phase")
-      .$type<"creating" | "ready" | "failed" | "cancelled">()
-      .notNull(),
-    startedAt: integer("started_at").notNull(),
-    failedAt: integer("failed_at"),
-    failure: text("failure").$type<"terminal" | "transient">(),
-    message: text("message"),
-    hostId: text("host_id"),
-    resource: text("resource", { mode: "json" }).$type<JsonValue>(),
-    stepText: text("step_text").notNull(),
-    pendingLog: text("pending_log").notNull(),
-    cleanupRetryAt: integer("cleanup_retry_at"),
-    cleanupResourceRemoved: integer("cleanup_resource_removed", {
-      mode: "boolean",
-    })
-      .notNull()
-      .default(false),
-    cancelPending: integer("cancel_pending", { mode: "boolean" }).notNull(),
-  },
-  (table) => [
-    index("machine_launches_phase_idx").on(table.phase),
-    index("machine_launches_host_id_idx").on(table.hostId),
   ],
 );
 

@@ -112,7 +112,8 @@ import type {
   EnvironmentStatusResponse,
   HostDirectoryListing,
   HostDirectoryQuery,
-  MachineLaunchQuery,
+  HostEnrollmentCommandResponse,
+  HostListQuery,
   HostActionResponse,
   HostCloneDefaultPathQuery,
   HostCloneDefaultPathResponse,
@@ -278,7 +279,6 @@ import {
   createProjectRequestSchema,
   createHostJoinCodeRequestSchema,
   createMachineRequestSchema,
-  type MachineLaunchStatus,
   createProjectSourceRequestSchema,
   createQueuedMessageRequestSchema,
   queuedMessageListQuerySchema,
@@ -294,7 +294,7 @@ import {
   environmentPathsQuerySchema,
   environmentStatusQuerySchema,
   hostDirectoryQuerySchema,
-  machineLaunchQuerySchema,
+  hostListQuerySchema,
   hostCloneDefaultPathQuerySchema,
   hostFileListRequestSchema,
   hostFileReadRequestSchema,
@@ -754,21 +754,7 @@ export const publicApiRoutes = {
       request: jsonRequest<EmptyInput, CreateMachineRequest>(
         createMachineRequestSchema,
       ),
-      response: jsonResponse<MachineLaunchStatus>({ status: 201 }),
-    }),
-    launch: defineRoute({
-      path: "/hosts/launches/:id",
-      method: "get",
-      request: optionalQueryRequest<PathId, MachineLaunchQuery>(
-        machineLaunchQuerySchema,
-      ),
-      response: jsonResponse<MachineLaunchStatus>(),
-    }),
-    cancelLaunch: defineRoute({
-      path: "/hosts/launches/:id/cancel",
-      method: "post",
-      request: noRequest<PathId>(),
-      response: jsonResponse<MachineLaunchStatus>(),
+      response: jsonResponse<Host>({ status: 201 }),
     }),
     createJoinCode: defineRoute({
       path: "/hosts/join-codes",
@@ -781,7 +767,9 @@ export const publicApiRoutes = {
     list: defineRoute({
       path: "/hosts",
       method: "get",
-      request: noRequest(),
+      request: optionalQueryRequest<EmptyInput, HostListQuery>(
+        hostListQuerySchema,
+      ),
       response: jsonResponse<Host[]>(),
     }),
     get: defineRoute({
@@ -789,6 +777,12 @@ export const publicApiRoutes = {
       method: "get",
       request: noRequest<PathId>(),
       response: jsonResponse<Host & { connectMachineId: string | null }>(),
+    }),
+    enrollmentCommand: defineRoute({
+      path: "/hosts/:id/enrollment-command",
+      method: "get",
+      request: noRequest<PathId>(),
+      response: jsonResponse<HostEnrollmentCommandResponse>(),
     }),
     update: defineRoute({
       path: "/hosts/:id",

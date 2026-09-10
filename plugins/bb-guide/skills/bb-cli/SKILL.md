@@ -58,8 +58,8 @@ BB_HOST_DAEMON_PORT only for an intentional non-default target.
   (`bb environment providers --json` prints both facts). `--base-branch`
   belongs to `--new-environment worktree` only.
 - Enroll an existing machine with `bb machine create --provider manual`; run
-  the printed command on the target. `--no-wait` returns its launch ID and command.
-  Cancel with `bb machine cancel <launch-id>`. Removal revokes access; use the
+  the printed command on the target. `--no-wait` returns its host ID.
+  Cancel with `bb machine remove <host-id>`. Removal revokes access; use the
   original `install-machine.sh --uninstall --host-id <host-id>` on that box.
 - Create a standalone machine with `bb machine create --provider <id>`; use
   `--inputs <JSON>` for non-secret provider inputs and `--key` for retry identity.
@@ -83,7 +83,7 @@ BB_HOST_DAEMON_PORT only for an intentional non-default target.
   through `bb settings show` and `bb settings general <key> <value>`.
 - The server keeps a registry of sidebar layout preferences (organization
   mode, section order, collapsed rows, navigation entries): `bb settings ui
-  list`, `get`, `set`, and `reset`.
+list`, `get`, `set`, and `reset`.
 - Query provider models on the machine that will run the thread.
 - Prefer non-interactive commands and machine-readable output for automation.
 - Pass `--yes` for a confirmed destructive command in a non-interactive shell.

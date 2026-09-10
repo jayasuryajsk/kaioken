@@ -267,7 +267,7 @@ export function MachineRowContent({
 
 export function MachinesSettingsSection() {
   const systemConfig = useSystemConfig();
-  const hostsQuery = useHosts();
+  const hostsQuery = useHosts({ includeCreating: true });
   const { providers: machineProviders } = useSystemMachineProviders();
   const { localDaemonHostId, platform: localDaemonPlatform } = useHostDaemon();
   const sidebarNavigationQuery = useSidebarNavigation();

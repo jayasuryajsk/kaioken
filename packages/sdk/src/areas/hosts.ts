@@ -3,7 +3,7 @@ import type { Host } from "@bb/domain";
 import type {
   CreateHostJoinCodeResponse,
   CreateMachineRequest,
-  MachineLaunchStatus,
+  HostEnrollmentCommandResponse,
   HostCloneDefaultPathQuery,
   HostCloneDefaultPathResponse,
   HostDirectoryListing,
@@ -68,10 +68,12 @@ export interface HostProviderCliInstallArgs extends HostProviderCliInstallReques
 }
 
 export interface HostListArgs {
+  includeCreating?: boolean;
   signal?: AbortSignal;
 }
 
 export interface MachineCreateArgs extends CreateMachineRequest {
+  wait?: boolean;
   signal?: AbortSignal;
 }
 
@@ -83,6 +85,7 @@ export type HostCreateJoinCodeResult = CreateHostJoinCodeResponse;
 export type HostDeleteResult = { ok: true };
 export type HostDirectoryResult = HostDirectoryListing;
 export type HostGetResult = Host & { connectMachineId: string | null };
+export type HostEnrollmentCommandResult = HostEnrollmentCommandResponse;
 export type HostCloneDefaultPathResult = HostCloneDefaultPathResponse;
 export type HostProviderCliInstallResult = HostProviderCliInstallEvent[];
 export type HostListResult = Host[];
@@ -96,18 +99,9 @@ export type MachineProviderListResult = SystemMachineProvider[];
 
 export interface HostsArea {
   experimental_create(args: MachineCreateArgs): Promise<Host>;
-  experimental_submit(args: MachineCreateArgs): Promise<MachineLaunchStatus>;
-  experimental_launch(args: {
-    id: string;
-    scope?: "launch" | "thread";
-    signal?: AbortSignal;
-  }): Promise<MachineLaunchStatus>;
-  experimental_cancel(args: { id: string }): Promise<MachineLaunchStatus>;
-  experimental_follow(args: {
-    id: string;
-    signal?: AbortSignal;
-    onProgress?: (status: MachineLaunchStatus) => void;
-  }): Promise<Host>;
+  experimental_getEnrollmentCommand(
+    args: HostGetArgs,
+  ): Promise<HostEnrollmentCommandResult>;
   createJoinCode(): Promise<HostCreateJoinCodeResult>;
   delete(args: HostDeleteArgs): Promise<HostDeleteResult>;
   directory(args: HostDirectoryArgs): Promise<HostDirectoryResult>;
@@ -136,38 +130,7 @@ export function createHostsArea(args: CreateSdkAreaArgs): HostsArea {
   const { transport } = args;
   return {
     async experimental_create(input) {
-      const launch = await this.experimental_submit(input);
-      return this.experimental_follow({ id: launch.id, signal: input.signal });
-    },
-    async experimental_launch(input) {
-      return transport.readJson(
-        transport.api.v1.hosts.launches[":id"].$get(
-          { param: { id: input.id }, query: { scope: input.scope } },
-          ...signalRequestArgs(input.signal),
-        ),
-      );
-    },
-    async experimental_cancel(input) {
-      return transport.readJson(
-        transport.api.v1.hosts.launches[":id"].cancel.$post({
-          param: { id: input.id },
-        }),
-      );
-    },
-    async experimental_follow(input) {
-      for (;;) {
-        input.signal?.throwIfAborted();
-        const status = await this.experimental_launch(input);
-        input.onProgress?.(status);
-        if (status.phase === "ready" && status.hostId !== null)
-          return this.get({ hostId: status.hostId, signal: input.signal });
-        if (status.terminal)
-          throw new Error(status.message ?? "Machine creation cancelled");
-        await new Promise<void>((resolve) => setTimeout(resolve, 1000));
-      }
-    },
-    async experimental_submit(input) {
-      return transport.readJson(
+      let host = await transport.readJson(
         transport.api.v1.hosts.$post(
           {
             json: {
@@ -175,6 +138,30 @@ export function createHostsArea(args: CreateSdkAreaArgs): HostsArea {
               inputs: input.inputs,
               ...(input.key === undefined ? {} : { key: input.key }),
             },
+          },
+          ...signalRequestArgs(input.signal),
+        ),
+      );
+      if (input.wait === false) return host;
+      for (;;) {
+        input.signal?.throwIfAborted();
+        if (host.lifecycle.phase === "active") return host;
+        if (
+          host.lifecycle.phase === "removing" ||
+          host.lifecycle.phase === "destroyed"
+        )
+          throw new Error(
+            host.lifecycle.message ?? "Machine creation cancelled",
+          );
+        await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+        host = await this.get({ hostId: host.id, signal: input.signal });
+      }
+    },
+    async experimental_getEnrollmentCommand(input) {
+      return transport.readJson(
+        transport.api.v1.hosts[":id"]["enrollment-command"].$get(
+          {
+            param: { id: input.hostId },
           },
           ...signalRequestArgs(input.signal),
         ),
@@ -247,7 +234,18 @@ export function createHostsArea(args: CreateSdkAreaArgs): HostsArea {
     },
     async list(input) {
       return transport.readJson(
-        transport.api.v1.hosts.$get({}, ...signalRequestArgs(input?.signal)),
+        transport.api.v1.hosts.$get(
+          {
+            query: {
+              ...(input?.includeCreating === undefined
+                ? {}
+                : {
+                    includeCreating: input.includeCreating ? "true" : "false",
+                  }),
+            },
+          },
+          ...signalRequestArgs(input?.signal),
+        ),
       );
     },
     async experimental_listProviders(input) {

@@ -37,9 +37,6 @@ import {
 import { handleHostRemoved } from "../internal/session-owner-side-effects.js";
 import {
   submitMachine,
-  resolveThreadMachineLaunchKey,
-  machineLaunchStatus,
-  cancelMachineLaunch,
   requestMachineRemoval,
   startMachineResume,
   startMachineSuspension,
@@ -47,26 +44,13 @@ import {
   sweepProviderMachine,
 } from "../services/machines/provider-orchestration.js";
 import { getMachineEnrollmentService } from "../services/machines/machine-services.js";
-import { manualLaunchCommand } from "../services/machines/manual-provider.js";
+import { manualHostCommand } from "../services/machines/manual-provider.js";
 
 const PROVIDER_CLI_INSTALL_TIMEOUT_MS = 15 * 60 * 1000;
 const FOLDER_PICKER_TIMEOUT_MS = 10 * 60 * 1000;
 
 function providerCliInstallEventsToNdjson(events: readonly unknown[]): string {
   return events.map((event) => `${JSON.stringify(event)}\n`).join("");
-}
-
-async function launchStatus(deps: AppDeps, key: string) {
-  const status = machineLaunchStatus(deps, key);
-  const pending =
-    status.phase === "creating"
-      ? await manualLaunchCommand(getMachineEnrollmentService(deps), key)
-      : null;
-  return {
-    ...status,
-    command: pending === null ? null : pending.command,
-    commandExpiresAt: pending === null ? null : pending.expiresAt,
-  };
 }
 
 function requireMutableHost(deps: AppDeps, hostId: string) {
@@ -129,27 +113,7 @@ export function registerHostRoutes(
 
   post(routes.create, async (context, payload) => {
     assertHostManagementAllowed(context);
-    const launch = await submitMachine(deps, payload);
-    return context.json(await launchStatus(deps, launch.id), 201);
-  });
-
-  get(routes.launch, async (context, query) => {
-    assertHostManagementAllowed(context);
-    const id = context.req.param("id");
-    return context.json(
-      await launchStatus(
-        deps,
-        query.scope === "thread" ? resolveThreadMachineLaunchKey(deps, id) : id,
-      ),
-    );
-  });
-
-  post(routes.cancelLaunch, async (context) => {
-    assertHostManagementAllowed(context);
-    const key = context.req.param("id");
-    machineLaunchStatus(deps, key);
-    await cancelMachineLaunch(deps, key, false, true);
-    return context.json(await launchStatus(deps, key));
+    return context.json(await submitMachine(deps, payload), 201);
   });
 
   post(routes.createJoinCode, async (context, payload) => {
@@ -167,7 +131,13 @@ export function registerHostRoutes(
     );
   });
 
-  get(routes.list, (context) => context.json(listPublicHostsWithStatus(deps)));
+  get(routes.list, (context, query) =>
+    context.json(
+      listPublicHostsWithStatus(deps, {
+        includeCreating: query.includeCreating === "true",
+      }),
+    ),
+  );
 
   get(routes.get, (context) =>
     context.json({
@@ -176,6 +146,17 @@ export function registerHostRoutes(
         .connectMachineId,
     }),
   );
+
+  get(routes.enrollmentCommand, async (context) => {
+    assertHostManagementAllowed(context);
+    requireMutableHost(deps, context.req.param("id"));
+    return context.json(
+      await manualHostCommand(
+        getMachineEnrollmentService(deps),
+        context.req.param("id"),
+      ),
+    );
+  });
 
   patch(routes.update, (context, payload) => {
     assertHostManagementAllowed(context);

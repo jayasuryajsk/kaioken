@@ -1,21 +1,8 @@
-import {
-  and,
-  eq,
-  inArray,
-  isNull,
-  isNotNull,
-  notExists,
-  ne,
-  or,
-} from "drizzle-orm";
-import type {
-  HostChangeKind,
-  JsonValue,
-  PermissionMode,
-} from "@bb/domain";
+import { and, eq, inArray, isNull, ne } from "drizzle-orm";
+import type { HostChangeKind, JsonValue, PermissionMode } from "@bb/domain";
 import type { DbConnection, DbTransaction } from "../connection.js";
 import type { DbNotifier } from "../notifier.js";
-import { hosts, machineEnrollments, machineLaunches } from "../schema.js";
+import { hosts } from "../schema.js";
 import { createHostId } from "../ids.js";
 
 type HostWriteConnection = DbConnection | DbTransaction;
@@ -30,12 +17,22 @@ export interface UpsertHostInput {
 export interface UpdateHostInput {
   type?: "persistent" | "ephemeral";
   machineOperationId?: string | null;
+  launchKey?: string | null;
+  inputs?: JsonValue | null;
+  attempt?: number;
+  pendingLog?: string;
   destroyedAt?: number | null;
   lastRejectedProtocolVersion?: number | null;
   maxPermissionMode?: PermissionMode;
   name?: string;
   machineProviderId?: string | null;
-  phase?: "active" | "suspending" | "suspended" | "removing" | "destroyed";
+  phase?:
+    | "creating"
+    | "active"
+    | "suspending"
+    | "suspended"
+    | "removing"
+    | "destroyed";
   resource?: JsonValue | null;
   removeRetryAt?: number | null;
   statusMessage?: string | null;
@@ -162,46 +159,34 @@ export function getNonDestroyedHost(db: DbConnection, id: string) {
   );
 }
 
+export function getNonDestroyedHostByLaunchKey(
+  db: HostWriteConnection,
+  launchKey: string,
+) {
+  return (
+    db
+      .select()
+      .from(hosts)
+      .where(and(eq(hosts.launchKey, launchKey), isNull(hosts.destroyedAt)))
+      .get() ?? null
+  );
+}
+
 export function listHosts(db: DbConnection) {
   return db.select().from(hosts).all();
 }
 
-export function listPublicHosts(db: DbConnection) {
+export function listPublicHosts(
+  db: DbConnection,
+  options?: { includeCreating?: boolean },
+) {
   return db
     .select()
     .from(hosts)
     .where(
       and(
         isNull(hosts.destroyedAt),
-        or(
-          and(
-            isNotNull(hosts.serverAccessProviderId),
-            isNull(hosts.serverAccessGrantId),
-            isNotNull(hosts.statusMessage),
-          ),
-          and(
-            or(
-              isNotNull(hosts.lastSeenAt),
-              notExists(
-                db
-                  .select({ id: machineEnrollments.id })
-                  .from(machineEnrollments)
-                  .where(eq(machineEnrollments.hostId, hosts.id)),
-              ),
-            ),
-            notExists(
-              db
-                .select({ key: machineLaunches.key })
-                .from(machineLaunches)
-                .where(
-                  and(
-                    eq(machineLaunches.hostId, hosts.id),
-                    ne(machineLaunches.phase, "ready"),
-                  ),
-                ),
-            ),
-          ),
-        ),
+        ...(options?.includeCreating ? [] : [ne(hosts.phase, "creating")]),
       ),
     )
     .all();
@@ -222,24 +207,6 @@ export function listNonDestroyedHostsByIds(
     .all();
 }
 
-export function settleMachineEnrollments(
-  db: DbConnection,
-  hostId: string,
-): void {
-  db.update(machineEnrollments)
-    .set({
-      state: "cancelled",
-      updatedAt: Date.now(),
-    })
-    .where(
-      and(
-        eq(machineEnrollments.hostId, hostId),
-        ne(machineEnrollments.state, "cancelled"),
-      ),
-    )
-    .run();
-}
-
 export function updateHost(
   db: DbConnection,
   notifier: DbNotifier,
@@ -252,7 +219,6 @@ export function updateHost(
   }
 
   const now = Date.now();
-  if (input.destroyedAt != null) settleMachineEnrollments(db, hostId);
   db.update(hosts)
     .set({
       ...(input.type !== undefined ? { type: input.type } : {}),
@@ -271,6 +237,12 @@ export function updateHost(
         : {}),
       ...(input.machineOperationId !== undefined
         ? { machineOperationId: input.machineOperationId }
+        : {}),
+      ...(input.launchKey !== undefined ? { launchKey: input.launchKey } : {}),
+      ...(input.inputs !== undefined ? { inputs: input.inputs } : {}),
+      ...(input.attempt !== undefined ? { attempt: input.attempt } : {}),
+      ...(input.pendingLog !== undefined
+        ? { pendingLog: input.pendingLog }
         : {}),
       ...(input.phase !== undefined ? { phase: input.phase } : {}),
       ...(input.resource !== undefined ? { resource: input.resource } : {}),
@@ -312,7 +284,6 @@ export function deleteHost(
     return false;
   }
 
-  settleMachineEnrollments(db, hostId);
   db.delete(hosts).where(eq(hosts.id, hostId)).run();
   notifier.notifyHost(existing.id, ["host-disconnected"]);
   return true;

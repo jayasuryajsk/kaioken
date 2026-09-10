@@ -21,8 +21,8 @@ function lifecycle(
   return {
     phase: "active",
     suspendedAt: null,
-
     message: null,
+    pendingLog: "",
     teardown: null,
     ...overrides,
   };

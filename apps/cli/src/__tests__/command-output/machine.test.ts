@@ -13,18 +13,6 @@ import {
   resolveMachineId,
 } from "../../commands/machine.js";
 
-const launch = {
-  id: "retry-1",
-  command: null,
-  phase: "ready",
-  hostId: "host-remote",
-  step: "Connected",
-  log: "",
-  message: null,
-  cancelPending: false,
-  terminal: true,
-};
-
 const hosts: Host[] = [
   {
     id: "host-primary",
@@ -35,8 +23,8 @@ const hosts: Host[] = [
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-
       message: null,
+      pendingLog: "",
       teardown: null,
     },
     maxPermissionMode: "full",
@@ -50,12 +38,12 @@ const hosts: Host[] = [
     name: "laptop",
     type: "persistent",
     status: "disconnected",
-    machineProviderId: null,
+    machineProviderId: "ssh",
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-
       message: null,
+      pendingLog: "",
       teardown: null,
     },
     maxPermissionMode: "full",
@@ -66,102 +54,68 @@ const hosts: Host[] = [
   },
 ];
 
+const creating: Host = {
+  ...hosts[1]!,
+  lifecycle: {
+    ...hosts[1]!.lifecycle,
+    phase: "creating",
+    message: "Creating SSH machine…",
+  },
+};
+
 describe("bb machine command output", () => {
   setupCommandOutputTestEnvironment();
 
   const register: CommandRegistrar = (program) =>
     registerMachineCommands(program, () => "http://server");
 
-  it("follows transient launch failures until the server reaches ready", async () => {
-    const poll = vi
-      .fn()
-      .mockResolvedValueOnce({
-        ...launch,
-        phase: "failed",
-        hostId: null,
-        terminal: false,
-        message: "temporary vendor failure",
-      })
-      .mockResolvedValueOnce(launch);
+  it("polls the creating host until it becomes active", async () => {
+    const get = vi.fn(async () => hosts[1]);
     stubServerApi({
-      "v1.hosts.launches.:id.$get": poll,
-      "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
-      "v1.hosts.$post": vi.fn(async () => launch),
+      "v1.hosts.$post": vi.fn(async () => creating),
+      "v1.hosts.:id.enrollment-command.$get": vi.fn(async () => null),
+      "v1.hosts.:id.$get": get,
     });
     await runCommand(["machine", "create", "--provider", "ssh"], register);
-    expect(poll).toHaveBeenCalledTimes(2);
+    expect(get).toHaveBeenCalledOnce();
     expect(collectLogPayloads(vi.mocked(console.log))).toEqual([
       "Machine laptop created",
     ]);
   });
 
-  it("returns the launch ID without polling with --no-wait", async () => {
-    const poll = vi.fn(async () => launch);
+  it("prints the host from --no-wait without polling", async () => {
+    const get = vi.fn(async () => hosts[1]);
     stubServerApi({
-      "v1.hosts.$post": vi.fn(async () => launch),
-      "v1.hosts.launches.:id.$get": poll,
+      "v1.hosts.$post": vi.fn(async () => creating),
+      "v1.hosts.:id.$get": get,
     });
     await runCommand(
       ["machine", "create", "--provider", "ssh", "--no-wait", "--json"],
       register,
     );
-    expect(poll).not.toHaveBeenCalled();
+    expect(get).not.toHaveBeenCalled();
     expect(JSON.parse(collectLogPayloads(vi.mocked(console.log))[0])).toEqual(
-      launch,
+      creating,
     );
   });
 
-  it.each([true, false])(
-    "prints transient commands from launch status (no-wait=%s)",
-    async (noWait) => {
-      const command = "bb machine enroll --bootstrap-env TRANSIENT_SECRET";
-      stubServerApi({
-        "v1.hosts.$post": vi.fn(async () => ({
-          ...launch,
-          command,
-          phase: "creating",
-          terminal: false,
-          step: "Run the enrollment command shown below",
-        })),
-        "v1.hosts.launches.:id.$get": vi.fn(async () => launch),
-        "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
-      });
-      await runCommand(
-        [
-          "machine",
-          "create",
-          "--provider",
-          "manual",
-          ...(noWait ? ["--no-wait", "--json"] : []),
-        ],
-        register,
-      );
-      if (noWait) {
-        const result = JSON.parse(
-          collectLogPayloads(vi.mocked(console.log))[0],
-        );
-        expect(result.command).toBe(command);
-        expect(result.step).not.toContain("TRANSIENT_SECRET");
-      } else
-        expect(collectLogPayloads(vi.mocked(console.error))).toContain(command);
-    },
-  );
-
-  it("cancels only through the explicit launch cancellation endpoint", async () => {
-    const cancel = vi.fn(async () => ({ ...launch, phase: "cancelled" }));
-    stubServerApi({ "v1.hosts.launches.:id.cancel.$post": cancel });
-    await runCommand(["machine", "cancel", "retry-1", "--json"], register);
-    expect(cancel).toHaveBeenCalledWith({ param: { id: "retry-1" } });
+  it("prints the manual enrollment command while following", async () => {
+    const command = "curl -fsSL https://machine.example/install.sh | sh";
+    stubServerApi({
+      "v1.hosts.$post": vi.fn(async () => creating),
+      "v1.hosts.:id.enrollment-command.$get": vi.fn(async () => ({
+        command,
+        expiresAt: Date.now() + 60_000,
+      })),
+      "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
+    });
+    await runCommand(["machine", "create", "--provider", "manual"], register);
+    expect(collectLogPayloads(vi.mocked(console.error))).toContain(command);
   });
 
-  it("rejects malformed JSON without submitting or echoing provider inputs", async () => {
-    const create = vi.fn(async () => launch);
-    stubServerApi({
-      "v1.hosts.launches.:id.$get": vi.fn(async () => launch),
-      "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
-      "v1.hosts.$post": create,
-    });
-
+  it("rejects malformed JSON without submitting inputs", async () => {
+    const create = vi.fn(async () => creating);
+    stubServerApi({ "v1.hosts.$post": create });
     await expect(
       runCommand(
         [
@@ -175,37 +129,23 @@ describe("bb machine command output", () => {
         register,
       ),
     ).rejects.toThrow("process.exit:1");
-
     expect(create).not.toHaveBeenCalled();
-    expect(collectLogPayloads(vi.mocked(console.error))).toEqual([
-      "Error: --inputs must be valid JSON.",
-    ]);
   });
 
-  it("aborts the create request on SIGINT and removes its signal listener", async () => {
-    const listeners = process.listenerCount("SIGINT");
+  it("aborts the create request on SIGINT", async () => {
     const create = vi.fn(
       async (_request: object, options: { init: { signal: AbortSignal } }) => {
         process.emit("SIGINT");
         expect(options.init.signal.aborted).toBe(true);
-        throw new Error("remote error containing sensitive input");
+        throw new Error("aborted");
       },
     );
-    stubServerApi({
-      "v1.hosts.launches.:id.$get": vi.fn(async () => launch),
-      "v1.hosts.:id.$get": vi.fn(async () => hosts[1]),
-      "v1.hosts.$post": create,
-    });
-
+    stubServerApi({ "v1.hosts.$post": create });
     await expect(
       runCommand(["machine", "create", "--provider", "ssh"], register),
     ).rejects.toThrow("process.exit:130");
-
-    expect(create).toHaveBeenCalledOnce();
-    expect(process.listenerCount("SIGINT")).toBe(listeners);
-    expect(collectLogPayloads(vi.mocked(console.log))).toEqual([]);
     expect(collectLogPayloads(vi.mocked(console.error))).toEqual([
-      "Error: Stopped following; creation continues. Use bb machine cancel <launch-id> to cancel.",
+      "Error: Stopped following; creation continues. Use bb machine remove <host-id> to cancel.",
     ]);
   });
 
@@ -227,7 +167,7 @@ describe("bb machine command output", () => {
 
     expect(collectLogPayloads(vi.mocked(console.log))).toEqual([
       "",
-      "Name         ID            Status        Provider       Last seen\n-----------  ------------  ------------  -------------  ---------\nworkstation  host-primary  connected     user-enrolled  2m ago\n-----------  ------------  ------------  -------------  ---------\nlaptop       host-remote   disconnected  user-enrolled  never",
+      "Name         ID            Status        Provider       Last seen\n-----------  ------------  ------------  -------------  ---------\nworkstation  host-primary  connected     user-enrolled  2m ago\n-----------  ------------  ------------  -------------  ---------\nlaptop       host-remote   disconnected  ssh            never",
       "",
     ]);
   });

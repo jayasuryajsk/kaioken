@@ -69,17 +69,15 @@ machine cannot set it for any machine, so a sandbox machine can stay at Full
 Access while your laptop stays lower. `bb machine list --json` and `bb machine
 show` report the current limit.
 
-Standalone create does not create a thread or workspace. Without `--project`,
-creation is global; project selectors accept an exact name or ID. Omitted inputs
-are null; supply JSON when the provider schema requires it. Omit `--key` to let
-the server generate one, or supply a stable key for retries. Creation is durable:
-`--no-wait` returns the launch ID immediately; otherwise the CLI follows progress through server retries until ready or a terminal failure. Launch status includes `terminal` to distinguish retryable failures.
-SIGINT stops following and exits 130 while creation continues. Use
-`bb machine status <launch-id>` to poll and `bb machine cancel <launch-id>`
-to explicitly cancel and clean up, including retrying cleanup after automatic
-reconciliation has stopped. The SDK provides `hosts.experimental_submit`, `hosts.experimental_launch`,
-`hosts.experimental_follow`, and `hosts.experimental_cancel`; `hosts.experimental_create` submits and follows. Aborting
-a caller signal never cancels the server operation. A connected daemon does not
+Standalone create does not create a thread or workspace. Omitted inputs are
+null; supply JSON when the provider schema requires it. Omit `--key` to let the
+server generate one, or supply a stable key for retries. Creation is durable:
+`--no-wait` returns the creating host ID immediately; otherwise the CLI polls
+that host until active. SIGINT stops following and exits 130 while creation
+continues. Use `bb machine show <host-id>` to inspect progress and `bb machine
+remove <host-id>` to cancel and clean up. The SDK provides
+`hosts.experimental_create`; pass `wait: false` to receive the creating host and
+poll it with `hosts.get`. Aborting a caller signal never cancels the server operation. A connected daemon does not
 yet imply an agent-ready checkout and authenticated provider.
 
 Suspend and resume are available only when the machine provider implements
@@ -221,18 +219,16 @@ DigitalOcean contributes no new-machine/project-checkout shortcut row.
 Existing machines
 
 `bb machine create --provider manual` prints a private enrollment command and
-follows the launch until the daemon connects. Run that command on the target
+follows the host until the daemon connects. Run that command on the target
 machine; it installs bb if needed. Server access is resolved through the selected
 default access provider, just like SSH or cloud machines. `--no-wait` returns the
-launch ID and command once enrollment is prepared; `--json` includes the command
-in `command` and its expiry in `commandExpiresAt`, a millisecond timestamp that
-is null whenever no command is outstanding. The CLI prints that expiry beside
-the command it echoes. This command is built transiently from the encrypted pending
-bundle; durable progress contains no credential. After enrollment or cancellation,
-launch status returns no command. Treat this short-lived command as a credential.
+creating host ID. The CLI prints the enrollment command and its expiry while it
+follows. This command is built transiently from the in-memory pending bundle;
+durable host progress contains no credential. After enrollment or removal, the
+host-keyed command endpoint returns no command. Treat it as a credential.
 
-Use `bb machine status <launch-id>` to recover progress and
-`bb machine cancel <launch-id>` to cancel and revoke enrollment/access. Stopping
+Use `bb machine show <host-id>` to recover progress and
+`bb machine remove <host-id>` to cancel and revoke enrollment/access. Stopping
 the CLI or closing the dialog only stops following; creation continues.
 Manual machines never idle-suspend or automatically retire and do not expose
 suspend/resume. Removing one revokes its server access without executing on the

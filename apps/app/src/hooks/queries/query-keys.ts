@@ -103,7 +103,9 @@ export interface ArchivedThreadsListFilters {
 
 export const ARCHIVED_THREADS_LIST_KIND = "archivedList";
 
-type HostsQueryKey = readonly [typeof HOSTS_QUERY_KEY];
+type HostsQueryKey =
+  | readonly [typeof HOSTS_QUERY_KEY]
+  | readonly [typeof HOSTS_QUERY_KEY, true];
 type HostQueryId = string | null | undefined;
 type HostQueryKey = readonly [typeof HOST_QUERY_KEY, HostQueryId];
 type AllHostQueryKeyPrefix = readonly [typeof HOST_QUERY_KEY];
@@ -502,8 +504,8 @@ interface ProjectDefaultExecutionOptionsQueryKeyArgs {
   projectId: string;
 }
 
-export function hostsQueryKey(): HostsQueryKey {
-  return [HOSTS_QUERY_KEY];
+export function hostsQueryKey(includeCreating = false): HostsQueryKey {
+  return includeCreating ? [HOSTS_QUERY_KEY, true] : [HOSTS_QUERY_KEY];
 }
 
 export function hostQueryKey(hostId: HostQueryId): HostQueryKey {

@@ -2737,18 +2737,14 @@ after automatic retries are exhausted.
 
 ## Transient provider setup data
 
-Machine setup slots receive launch identity and launch controls, not enrollment
-command retrieval. Core keeps the manual bootstrap bundle in memory and serves
-the command and expiry through launch status. Reading does not renew the
-enrollment. Completion, cancellation, expiry, and server restart remove the
-cached command. Commands stay out of
+Machine setup slots receive host identity and removal controls. Core keeps the
+manual bootstrap bundle in memory and serves the command and expiry through the
+host-keyed enrollment-command endpoint. Reading does not renew the enrollment.
+Completion, removal, expiry, and server restart remove the cached command. Commands stay out of
 persisted progress and transcripts. Machine credentials cannot retrieve commands.
 
-The existing SDK `hosts.experimental_launch({ id, scope? })` defaults to exact launch lookup.
-With `scope: "thread"`, core resolves the thread's current launch, including
-replacement launches, before passing its ID to the plugin's progress component.
-Stabilization requires replacement-launch resolution, expiry/cancellation,
-credential authorization and transcript-redaction coverage.
+Stabilization requires expiry/removal, credential authorization and
+transcript-redaction coverage.
 
 ## Project checkout ownership
 
@@ -2840,12 +2836,12 @@ default. Explicit branch inputs still pass to the concrete provider.
 
 ## Experimental host SDK machine operations
 
-New host methods are experimental_create, experimental_submit,
-experimental_launch, experimental_follow, experimental_cancel,
+New host methods are experimental_create, experimental_getEnrollmentCommand,
 experimental_listProviders, experimental_suspend, experimental_resume and
-experimental_retryCleanup. There are no
-unprefixed aliases. Setup-slot clients expose experimental_submit,
-experimental_follow and experimental_cancel. CLI command names do not change.
+experimental_retryCleanup. There are no unprefixed aliases. Creation returns a
+reserved host immediately when `wait: false`; otherwise it polls that host until
+active. The enrollment-command method exists for the manual setup UI and CLI and
+returns a credential only while that host is creating.
 
-Before stabilizing, verify launch cancellation versus stopping a local follow,
+Before stabilizing, verify creation cancellation through host removal,
 same-host restoration, serialized removal, plugin callers and UI/CLI parity.

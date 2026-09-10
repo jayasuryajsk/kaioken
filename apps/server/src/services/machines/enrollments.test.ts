@@ -2,14 +2,17 @@ import { eq } from "drizzle-orm";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createConnection, migrate, hosts, machineEnrollments } from "@bb/db";
+import { createConnection, migrate, hosts } from "@bb/db";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createMachineAuthService } from "../machine-auth.js";
 import { createMachineEnrollmentService } from "./enrollments.js";
+import { setPluginMachineProviderBridge } from "../plugins/plugin-machine-provider-registry.js";
+import { validatePluginMachineProviderDeclaration } from "@get-bb/plugin-sdk/internal/host-policy";
 
 const cleanup: Array<() => Promise<void>> = [];
 afterEach(async () => {
   for (const dispose of cleanup.splice(0)) await dispose();
+  setPluginMachineProviderBridge(undefined);
 });
 
 async function harness() {
@@ -42,18 +45,56 @@ async function harness() {
   };
   const create = () => createMachineEnrollmentService(deps);
   const service = create();
+  const provider = validatePluginMachineProviderDeclaration({
+    id: "test-machine",
+    displayName: "Test machine",
+    description: "Test machine",
+    icon: "Terminal",
+    create: async () => ({ status: "failed", message: "unused" }),
+    reconcileCleanup: async () => ({ status: "removed" }),
+    remove: async () => ({ status: "removed" }),
+  });
+  setPluginMachineProviderBridge({
+    listMachineProviders: () => [{ pluginId: "plugin-a", provider }],
+    getMachineProvider: (id) =>
+      id === provider.id ? { pluginId: "plugin-a", provider } : undefined,
+    invokeProvider: async (_pluginId, _label, run) => ({
+      ok: true,
+      value: await run(),
+    }),
+    decisionTimeoutMs: 1_000,
+  });
+  const seed = (key: string) => {
+    const now = Date.now();
+    db.insert(hosts)
+      .values({
+        id: `host_${key}`,
+        name: "Test machine",
+        type: "persistent",
+        machineProviderId: provider.id,
+        launchKey: key,
+        attempt: 1,
+        phase: "creating",
+        createdAt: now,
+        updatedAt: now,
+      })
+      .onConflictDoNothing()
+      .run();
+  };
   return {
     ...deps,
     connected,
     create,
     api: service.forOwner("plugin-a"),
     other: service.forOwner("plugin-b"),
+    seed,
   };
 }
 
 describe("machine enrollments", () => {
   it("serializes same-key prepares and reissues credentials for the same durable identity", async () => {
     const h = await harness();
+    h.seed("create");
     const [first, parallel] = await Promise.all([
       h.api.prepare({ key: "create" }),
       h.api.prepare({ key: "create" }),
@@ -74,13 +115,14 @@ describe("machine enrollments", () => {
     if (parallel.state !== "pending")
       throw new Error("Expected pending enrollment");
     expect(parallel.bootstrap.credential).not.toBe(first.bootstrap.credential);
-    expect(
-      JSON.stringify(h.db.select().from(machineEnrollments).all()),
-    ).not.toContain(first.bootstrap.credential);
+    expect(JSON.stringify(h.db.select().from(hosts).all())).not.toContain(
+      first.bootstrap.credential,
+    );
   });
 
   it("rejects conflicting access selection even when a bundle is cached", async () => {
     const h = await harness();
+    h.seed("access");
     const prepared = await h.api.prepare({ key: "access" });
     h.db.$client
       .prepare("UPDATE hosts SET server_access_provider_id = ? WHERE id = ?")
@@ -92,6 +134,7 @@ describe("machine enrollments", () => {
 
   it("rejects removed identities", async () => {
     const h = await harness();
+    h.seed("removed");
     const prepared = await h.api.prepare({ key: "removed" });
     if (prepared.state !== "pending") throw new Error("Expected enrollment");
     h.db
@@ -99,11 +142,14 @@ describe("machine enrollments", () => {
       .set({ phase: "destroyed" })
       .where(eq(hosts.id, prepared.hostId))
       .run();
-    await expect(h.api.prepare({ key: "removed" })).rejects.toThrow("removed");
+    await expect(h.api.prepare({ key: "removed" })).rejects.toThrow(
+      "cancelled",
+    );
   });
 
   it("recovers a lost exchange response with a fresh credential for the same identity", async () => {
     const h = await harness();
+    h.seed("lost-response");
     const first = await h.api.prepare({ key: "lost-response" });
     if (first.state !== "pending")
       throw new Error("Expected pending enrollment");
@@ -161,14 +207,14 @@ describe("machine enrollments", () => {
 
   it("recovers access failures with the same durable host identity", async () => {
     const h = await harness();
+    h.seed("create");
     h.serverAccess.resolve.mockRejectedValueOnce(
       new Error("temporarily unavailable"),
     );
     await expect(h.api.prepare({ key: "create" })).rejects.toThrow(
       "temporarily unavailable",
     );
-    const row = h.db.select().from(machineEnrollments).get();
     const retry = await h.api.prepare({ key: "create" });
-    expect(retry.hostId).toBe(row?.hostId);
+    expect(retry.hostId).toBe("host_create");
   });
 });

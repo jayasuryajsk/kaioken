@@ -105,10 +105,10 @@ Allocation checkpoints are recovery records, not filesystem saves: providers
 must create any filesystem snapshot themselves. Daemon-connected is not
 agent-ready; checkout setup and provider authentication still need to complete.
 
-Standalone `bb machine create` and `bb.sdk.hosts.experimental_create` submit a durable launch
-and follow its progress. `create --no-wait` / `hosts.experimental_submit` return the launch ID;
-`machine status` / `hosts.experimental_launch` poll it. Only `machine cancel` / `hosts.experimental_cancel`
-explicitly cancel; closing a client or aborting its signal stops following.
+Standalone `bb machine create` and `bb.sdk.hosts.experimental_create` create a
+durable host and follow its progress. `create --no-wait` returns the creating
+host ID; `machine show` / `hosts.get` poll it. `machine remove` / `hosts.delete`
+cancel creation; closing a client or aborting its signal only stops following.
 
 Persistent-machine removal cascades through the machine's environment providers
 before machine remove; failures persist and retry after the core one-minute retry

@@ -1,4 +1,4 @@
-import { getAppSettings, getHost, hosts, machineEnrollments } from "@bb/db";
+import { getAppSettings, getHost, hosts } from "@bb/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import type {
@@ -10,6 +10,7 @@ import {
   invokeServerAccessProvider,
   listServerAccessProviders,
 } from "../plugins/plugin-server-access-registry.js";
+import { getMachineProvider } from "../plugins/plugin-machine-provider-registry.js";
 
 type Dependencies = Pick<WorkSessionDeps, "db" | "hub" | "logger">;
 
@@ -190,16 +191,16 @@ async function release(
   deps: Dependencies,
   args: { key: string; hostId: string },
 ) {
-  const enrollment = deps.db
-    .select({ owner: machineEnrollments.owner, key: machineEnrollments.key })
-    .from(machineEnrollments)
-    .where(eq(machineEnrollments.hostId, args.hostId))
-    .get();
-  const acquisitionKey = enrollment
-    ? JSON.stringify([enrollment.owner, enrollment.key])
-    : args.key;
   const host = getHost(deps.db, args.hostId);
   if (!host) return;
+  const owner =
+    host.machineProviderId === null
+      ? null
+      : (getMachineProvider(host.machineProviderId)?.pluginId ?? null);
+  const acquisitionKey =
+    owner !== null && host.launchKey !== null
+      ? JSON.stringify([owner, host.launchKey])
+      : args.key;
   const providerId = host.serverAccessProviderId;
   const grantId = host.serverAccessGrantId;
   if (providerId === null) return;

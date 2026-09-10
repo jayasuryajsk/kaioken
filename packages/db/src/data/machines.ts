@@ -1,6 +1,6 @@
-import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, eq, isNull, or } from "drizzle-orm";
 import type { DbConnection, DbTransaction } from "../connection.js";
-import { environments, hosts, machineLaunches, threads } from "../schema.js";
+import { environments, hosts, threads } from "../schema.js";
 
 type Connection = DbConnection | DbTransaction;
 
@@ -37,18 +37,12 @@ export function machineHasLiveThreadLaunch(
   return (
     db
       .select({ id: threads.id })
-      .from(machineLaunches)
-      .innerJoin(
-        threads,
-        or(
-          eq(machineLaunches.key, threads.id),
-          sql`substr(${machineLaunches.key}, 1, length(${threads.id}) + 13) = ${threads.id} || ':replacement:'`,
-        ),
-      )
+      .from(hosts)
+      .innerJoin(threads, eq(hosts.launchKey, threads.id))
       .where(
         and(
-          eq(machineLaunches.hostId, hostId),
-          inArray(machineLaunches.phase, ["creating", "ready"]),
+          eq(hosts.id, hostId),
+          isNull(hosts.destroyedAt),
           liveThreadCondition,
         ),
       )

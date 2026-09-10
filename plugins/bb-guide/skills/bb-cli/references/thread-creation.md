@@ -170,14 +170,12 @@ or artifacts, validation performed, and blockers.
 ### Standalone machine creation
 
 `bb machine create --provider <id> [--key <idempotency-key>] [--inputs <JSON>]
-[--project <id-or-name>] [--no-wait] [--json]` creates a machine without a thread. Omit project
-for global creation; an explicit project accepts its exact name or ID. Omitted
+[--no-wait] [--json]` creates a machine without a thread. Omitted
 inputs are null and must satisfy the provider schema; omitted key is generated
 by the server. Supply a stable key to recover the same creation across retries.
-Creation is durable. `--no-wait` returns the launch ID; `bb machine status
-<launch-id>` inspects it and `bb machine cancel <launch-id>` explicitly cancels
-it. SIGINT stops following and exits with status 130 while creation continues.
-Following tolerates retryable failures until ready or terminal failure.
+Creation is durable. `--no-wait` returns the host ID; `bb machine show
+<host-id>` inspects it and `bb machine remove <host-id>` cancels it. SIGINT
+stops following and exits with status 130 while creation continues.
 
 `bb machine show <id-or-name> --json` includes `providerDetails` inventory and
 estimates when available. Suspend requires idle threads and no open terminals;
@@ -198,7 +196,7 @@ Use `bb machine enroll --bootstrap-file <path>` or `--bootstrap-env <NAME>` on a
 
 Delivered enrollment bundles from v1 remain valid until their expiry. The CLI accepts both file and environment forms, upgrades the bundle to v2 headers locally, and persists legacy Connect redemption before enrollment so a retry reuses it. The installer upgrades v1 environment bundles before authenticated artifact downloads.
 
-The core `manual` provider appears as Manual machine setup. `bb machine create --provider manual` prints the enrollment command and follows; `--no-wait` returns the launch ID and a transient `command` field, separate from credential-free durable progress. Commands are no longer available after enrollment or cancellation. Manual machines never suspend or retire automatically. Removal revokes access; run the original installer with `--uninstall --host-id <id>` on the target using its original data directory.
+The core `manual` provider appears as Manual machine setup. `bb machine create --provider manual` prints the enrollment command and follows; `--no-wait` returns the creating host ID. Commands are no longer available after enrollment or removal. Manual machines never suspend or retire automatically. Removal revokes access; run the original installer with `--uninstall --host-id <id>` on the target using its original data directory.
 
 For paths a provider owns, bb runs `.bb-env-setup.sh` after create and
 `.bb-env-teardown.sh` before remove on that machine, with separate 15-minute

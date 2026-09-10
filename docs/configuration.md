@@ -562,8 +562,8 @@ a private enrollment command and waits for the daemon. The one-line command
 downloads `/install.sh` with a short-lived enrollment header. The server embeds
 the pending bootstrap in its uncached response; cancelled, expired, or consumed
 enrollments are rejected. `bb machine create
---provider manual` follows the same lifecycle; `--no-wait` returns the launch ID
-and command. Manual machines never suspend or retire automatically. Removal
+--provider manual` follows the same lifecycle; `--no-wait` returns the creating
+host ID. Manual machines never suspend or retire automatically. Removal
 revokes access; run the original installer with `--uninstall --host-id <id>` on
 that machine to uninstall its daemon. The local host remains provider-less.
 
@@ -620,23 +620,23 @@ schema, a default, and a revision that increments on every write. Writes name
 the revision they expect and receive `409 ui_preference_conflict` when another
 client wrote first, so a stale window cannot silently clobber a newer value.
 
-| Key                               | Value                                                        |
-| --------------------------------- | ------------------------------------------------------------ |
-| `sidebar.organizationMode`        | `project`, `chronological`, or `machine`                     |
-| `sidebar.chronologicalSort`       | `updated`, `created`, `alpha`, or `none`                     |
-| `sidebar.sectionOrder`            | Section id list for **By project**                           |
-| `sidebar.manualSectionOrder`      | Section id list for **Manually**                             |
-| `sidebar.machineSectionOrder`     | Section id list for **By machine**                           |
-| `sidebar.collapsedSections`       | Collapsed built-in sections (`pinned`, `threads`)            |
-| `sidebar.collapsedProjects`       | Collapsed project ids                                        |
-| `sidebar.collapsedThreads`        | Thread ids whose children are collapsed                      |
-| `sidebar.collapsedEnvironments`   | Collapsed environment ids                                    |
-| `sidebar.collapsedThreadSections` | Collapsed thread section ids                                 |
-| `sidebar.collapsedMachines`       | Collapsed machine ids                                        |
-| `sidebar.pluginPanelOrder`        | Navigation entry order                                       |
-| `sidebar.visiblePluginPanels`     | Navigation entries shown, or `null` for every entry          |
-| `sidebar.navigationProvider`      | Plugin key, `__automatic__`, or `__builtin__`                |
-| `sidebar.threadListProvider`      | Plugin key, `__automatic__`, or `__builtin__`                |
+| Key                               | Value                                               |
+| --------------------------------- | --------------------------------------------------- |
+| `sidebar.organizationMode`        | `project`, `chronological`, or `machine`            |
+| `sidebar.chronologicalSort`       | `updated`, `created`, `alpha`, or `none`            |
+| `sidebar.sectionOrder`            | Section id list for **By project**                  |
+| `sidebar.manualSectionOrder`      | Section id list for **Manually**                    |
+| `sidebar.machineSectionOrder`     | Section id list for **By machine**                  |
+| `sidebar.collapsedSections`       | Collapsed built-in sections (`pinned`, `threads`)   |
+| `sidebar.collapsedProjects`       | Collapsed project ids                               |
+| `sidebar.collapsedThreads`        | Thread ids whose children are collapsed             |
+| `sidebar.collapsedEnvironments`   | Collapsed environment ids                           |
+| `sidebar.collapsedThreadSections` | Collapsed thread section ids                        |
+| `sidebar.collapsedMachines`       | Collapsed machine ids                               |
+| `sidebar.pluginPanelOrder`        | Navigation entry order                              |
+| `sidebar.visiblePluginPanels`     | Navigation entries shown, or `null` for every entry |
+| `sidebar.navigationProvider`      | Plugin key, `__automatic__`, or `__builtin__`       |
+| `sidebar.threadListProvider`      | Plugin key, `__automatic__`, or `__builtin__`       |
 
 Read and write them with:
 

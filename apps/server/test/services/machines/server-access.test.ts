@@ -1,10 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  machineEnrollments,
-  getHost,
-  setAppSettings,
-  upsertHost,
-} from "@bb/db";
+import { getHost, setAppSettings, updateHost, upsertHost } from "@bb/db";
 import { defaultAppSettings } from "@bb/domain";
 import type { ServerAccessProviderDeclaration } from "@get-bb/plugin-sdk";
 import {
@@ -222,18 +217,11 @@ it("keeps interrupted access visible and releases the acquisition without a retu
       release,
     });
     const host = upsertHost(deps.db, deps.hub, { name: "interrupted" })!;
-    deps.db
-      .insert(machineEnrollments)
-      .values({
-        id: "interrupted-enrollment",
-        owner: "test",
-        key: "k",
-        hostId: host.id,
-        state: "pending",
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      })
-      .run();
+    updateHost(deps.db, deps.hub, host.id, {
+      machineProviderId: "test-machine",
+      launchKey: "k",
+      phase: "creating",
+    });
     expect(
       listPublicHostsWithStatus(deps).some((entry) => entry.id === host.id),
     ).toBe(false);
@@ -246,8 +234,9 @@ it("keeps interrupted access visible and releases the acquisition without a retu
       statusMessage: message,
     });
     expect(
-      listPublicHostsWithStatus(deps).find((entry) => entry.id === host.id)
-        ?.lifecycle.message,
+      listPublicHostsWithStatus(deps, { includeCreating: true }).find(
+        (entry) => entry.id === host.id,
+      )?.lifecycle.message,
     ).toBe(message);
     await expect(
       serverAccess.release(deps, { key: "k", hostId: host.id }),
@@ -255,7 +244,7 @@ it("keeps interrupted access visible and releases the acquisition without a retu
     expect(getHost(deps.db, host.id)?.serverAccessProviderId).toBe("relay");
     await serverAccess.release(deps, { key: "k", hostId: host.id });
     expect(release).toHaveBeenLastCalledWith({
-      key: JSON.stringify(["test", "k"]),
+      key: "k",
       hostId: host.id,
       grantId: null,
     });

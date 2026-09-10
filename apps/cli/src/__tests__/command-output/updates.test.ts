@@ -20,8 +20,8 @@ const hosts: Host[] = [
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-
       message: null,
+      pendingLog: "",
       teardown: null,
     },
     maxPermissionMode: "full",
@@ -39,8 +39,8 @@ const hosts: Host[] = [
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-
       message: null,
+      pendingLog: "",
       teardown: null,
     },
     maxPermissionMode: "full",

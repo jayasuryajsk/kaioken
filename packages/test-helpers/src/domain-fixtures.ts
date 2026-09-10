@@ -70,8 +70,8 @@ export function makeHost(overrides: Partial<Host> = {}): Host {
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-
       message: null,
+      pendingLog: "",
       teardown: null,
     },
     lastSeenAt: null,
