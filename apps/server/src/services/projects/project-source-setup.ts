@@ -8,7 +8,7 @@ import {
 import type { CommandResultSideEffectsDeps } from "../../internal/command-result-side-effects.js";
 import { ApiError } from "../../errors.js";
 import { COMMAND_TIMEOUT_MS } from "../../constants.js";
-import { callHostRetryableOnlineRpc } from "../hosts/online-rpc.js";
+import { callHostRetryableOnlineRpcForWork } from "../hosts/online-rpc.js";
 import { runLiveHostCommand } from "../hosts/live-command.js";
 
 export function projectSourceHostConflict(): ApiError {
@@ -147,7 +147,7 @@ async function recoverOrCloneProjectSource(
       "This project needs a Git remote to set up its checkout on a new machine",
     );
   }
-  const { path } = await callHostRetryableOnlineRpc(deps, {
+  const { path } = await callHostRetryableOnlineRpcForWork(deps, {
     hostId: args.hostId,
     timeoutMs: COMMAND_TIMEOUT_MS,
     command: {
@@ -155,13 +155,13 @@ async function recoverOrCloneProjectSource(
       projectSlug: `project-${args.projectId}`,
     },
   });
-  const { existence } = await callHostRetryableOnlineRpc(deps, {
+  const { existence } = await callHostRetryableOnlineRpcForWork(deps, {
     hostId: args.hostId,
     timeoutMs: COMMAND_TIMEOUT_MS,
     command: { type: "host.paths_exist", paths: [path] },
   });
   if (existence[path] === true) {
-    const inspected = await callHostRetryableOnlineRpc(deps, {
+    const inspected = await callHostRetryableOnlineRpcForWork(deps, {
       hostId: args.hostId,
       timeoutMs: COMMAND_TIMEOUT_MS,
       command: { type: "project.inspect", path },

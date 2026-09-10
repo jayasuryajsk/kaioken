@@ -1,4 +1,3 @@
-import { getHost } from "@bb/db";
 import { parseOptionalInteger } from "../services/lib/validation.js";
 import path from "node:path";
 import {
@@ -36,7 +35,10 @@ import {
   requireReadyEnvironment,
 } from "../services/lib/entity-lookup.js";
 import { runLiveCommandAndWait } from "../services/hosts/live-command-wait.js";
-import { callHostRetryableOnlineRpcWithoutAdmission } from "../services/hosts/online-rpc.js";
+import {
+  callHostRetryableOnlineRpc,
+  callHostRetryableOnlineRpcForWork,
+} from "../services/hosts/online-rpc.js";
 import { requireDaemonFileContentResult } from "../services/hosts/daemon-file-response.js";
 import { generateCommitMessage } from "../services/ai/commit-message.js";
 import { archiveEnvironmentThreads } from "../services/threads/thread-archive.js";
@@ -54,7 +56,10 @@ import {
   requireWorkspaceCommandTarget,
   type WorkspaceCommandTarget,
 } from "../services/environments/workspace-command-target.js";
-import { callEnvironmentWorkspaceStatus } from "../services/environments/workspace-status.js";
+import {
+  callEnvironmentWorkspaceStatus,
+  callEnvironmentWorkspaceStatusForWork,
+} from "../services/environments/workspace-status.js";
 import { assembleThreadPullRequest } from "../services/environments/pull-request.js";
 import {
   requireAvailableWorkspaceDiff,
@@ -146,9 +151,7 @@ async function getPullRequestForWorkspaceTarget(
   deps: AppDeps,
   target: ReturnType<typeof requireWorkspaceCommandTarget>,
 ): Promise<ThreadPullRequest | null> {
-  const host = getHost(deps.db, target.hostId);
-  if (host?.suspendedAt !== null || host?.phase === "suspending") return null;
-  const result = await callHostRetryableOnlineRpcWithoutAdmission(deps, {
+  const result = await callHostRetryableOnlineRpcForWork(deps, {
     hostId: target.hostId,
     timeoutMs: COMMAND_TIMEOUT_MS,
     command: {
@@ -389,7 +392,7 @@ export function registerEnvironmentRoutes(app: Hono, deps: AppDeps): void {
       hostId: target.hostId,
       key: workspaceReadCacheKey(target),
       load: () =>
-        callHostRetryableOnlineRpcWithoutAdmission(deps, {
+        callHostRetryableOnlineRpc(deps, {
           hostId: target.hostId,
           timeoutMs: COMMAND_TIMEOUT_MS,
           command: {
@@ -424,7 +427,7 @@ export function registerEnvironmentRoutes(app: Hono, deps: AppDeps): void {
       });
     }
     const target = requireWorkspaceCommandTarget(environment);
-    const result = await callHostRetryableOnlineRpcWithoutAdmission(deps, {
+    const result = await callHostRetryableOnlineRpc(deps, {
       hostId: target.hostId,
       timeoutMs: COMMAND_TIMEOUT_MS,
       command: {
@@ -454,7 +457,7 @@ export function registerEnvironmentRoutes(app: Hono, deps: AppDeps): void {
     if (target === null) {
       return context.json(NON_GIT_DIFF_NOT_APPLICABLE);
     }
-    const result = await callHostRetryableOnlineRpcWithoutAdmission(deps, {
+    const result = await callHostRetryableOnlineRpc(deps, {
       hostId: target.hostId,
       timeoutMs: COMMAND_TIMEOUT_MS,
       command: {
@@ -475,21 +478,18 @@ export function registerEnvironmentRoutes(app: Hono, deps: AppDeps): void {
     const initialPatchPaths = selectInitialPatchPaths(files);
     let initialPatches: DiffPatchEntry[] = [];
     if (initialPatchPaths.length > 0) {
-      const patchResult = await callHostRetryableOnlineRpcWithoutAdmission(
-        deps,
-        {
-          hostId: target.hostId,
-          timeoutMs: COMMAND_TIMEOUT_MS,
-          command: {
-            type: "workspace.diffPatch",
-            environmentId: target.environmentId,
-            workspaceContext: target.workspaceContext,
-            target: toWorkspaceDiffTarget(query),
-            paths: initialPatchPaths,
-            maxBytesPerFile: DIFF_FILE_PATCH_MAX_BYTES,
-          },
+      const patchResult = await callHostRetryableOnlineRpc(deps, {
+        hostId: target.hostId,
+        timeoutMs: COMMAND_TIMEOUT_MS,
+        command: {
+          type: "workspace.diffPatch",
+          environmentId: target.environmentId,
+          workspaceContext: target.workspaceContext,
+          target: toWorkspaceDiffTarget(query),
+          paths: initialPatchPaths,
+          maxBytesPerFile: DIFF_FILE_PATCH_MAX_BYTES,
         },
-      );
+      });
       if (patchResult.outcome === "available") {
         initialPatches = patchResult.patches;
       }
@@ -509,7 +509,7 @@ export function registerEnvironmentRoutes(app: Hono, deps: AppDeps): void {
     if (target === null) {
       return context.json(NON_GIT_DIFF_NOT_APPLICABLE);
     }
-    const result = await callHostRetryableOnlineRpcWithoutAdmission(deps, {
+    const result = await callHostRetryableOnlineRpc(deps, {
       hostId: target.hostId,
       timeoutMs: COMMAND_TIMEOUT_MS,
       command: {
@@ -547,7 +547,7 @@ export function registerEnvironmentRoutes(app: Hono, deps: AppDeps): void {
     }
     const absolutePath = path.join(environment.path, repoRelativePath);
     const ref = resolveDiffFileRef(query);
-    const result = await callHostRetryableOnlineRpcWithoutAdmission(deps, {
+    const result = await callHostRetryableOnlineRpc(deps, {
       hostId: environment.hostId,
       timeoutMs: COMMAND_TIMEOUT_MS,
       command: {
@@ -574,7 +574,7 @@ export function registerEnvironmentRoutes(app: Hono, deps: AppDeps): void {
     );
     const branchQuery = normalizeBranchQuery(query.query);
     const selectedBranch = normalizeBranchQuery(query.selectedBranch);
-    const result = await callHostRetryableOnlineRpcWithoutAdmission(deps, {
+    const result = await callHostRetryableOnlineRpc(deps, {
       hostId: environment.hostId,
       timeoutMs: COMMAND_TIMEOUT_MS,
       command: {
@@ -607,7 +607,7 @@ export function registerEnvironmentRoutes(app: Hono, deps: AppDeps): void {
     });
 
     try {
-      const result = await callHostRetryableOnlineRpcWithoutAdmission(deps, {
+      const result = await callHostRetryableOnlineRpc(deps, {
         hostId: environment.hostId,
         timeoutMs: COMMAND_TIMEOUT_MS,
         command: {
@@ -646,11 +646,11 @@ export function registerEnvironmentRoutes(app: Hono, deps: AppDeps): void {
           const { workspaceContext } = target;
 
           const [statusResult, diffResult] = await Promise.all([
-            callEnvironmentWorkspaceStatus(deps, {
+            callEnvironmentWorkspaceStatusForWork(deps, {
               environment,
               target,
             }),
-            callHostRetryableOnlineRpcWithoutAdmission(deps, {
+            callHostRetryableOnlineRpcForWork(deps, {
               hostId: target.hostId,
               timeoutMs: COMMAND_TIMEOUT_MS,
               command: {

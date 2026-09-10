@@ -90,7 +90,7 @@ import {
   createPluginCatalogService,
   type PluginCatalogService,
 } from "./services/plugin-catalog/plugin-catalog-service.js";
-import { callHostRetryableOnlineRpc } from "./services/hosts/online-rpc.js";
+import { callHostRetryableOnlineRpcForWork } from "./services/hosts/online-rpc.js";
 import {
   allowedAppOrigins,
   browserRequestProblem,
@@ -599,7 +599,7 @@ export function createApp(
     aiServices: deps.aiServices,
     ensureSharedPortTunnel: (hostId) =>
       deps.sharedPorts.ensureTunnelIdentity(hostId, () =>
-        callHostRetryableOnlineRpc(deps, {
+        callHostRetryableOnlineRpcForWork(deps, {
           command: { type: "connect-tunnel.ensure-identity" },
           hostId,
           timeoutMs: 30_000,

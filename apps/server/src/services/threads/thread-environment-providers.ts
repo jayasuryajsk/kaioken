@@ -35,7 +35,7 @@ import {
 import { buildSuggestedBranchName } from "./thread-create-helpers.js";
 import { appendThreadProvisioningEvent } from "./thread-events.js";
 import { COMMAND_TIMEOUT_MS } from "../../constants.js";
-import { callHostRetryableOnlineRpc } from "../hosts/online-rpc.js";
+import { callHostRetryableOnlineRpcForWork } from "../hosts/online-rpc.js";
 import {
   completeProviderSelection,
   resolveProducedEnvironmentPlacement,
@@ -160,7 +160,7 @@ async function refreshAttachedEnvironmentBranch(
   args: { environmentId: string; hostId: string; path: string },
 ): Promise<void> {
   try {
-    const inspection = await callHostRetryableOnlineRpc(deps, {
+    const inspection = await callHostRetryableOnlineRpcForWork(deps, {
       hostId: args.hostId,
       timeoutMs: COMMAND_TIMEOUT_MS,
       command: {

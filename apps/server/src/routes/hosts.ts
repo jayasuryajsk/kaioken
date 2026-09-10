@@ -31,7 +31,7 @@ import {
 } from "../services/hosts/primary-host.js";
 import { issueHostEnrollKey } from "../services/hosts/host-enrollment.js";
 import {
-  callHostOnlineRpc,
+  callHostOnlineRpcForWork,
   callHostRetryableOnlineRpc,
 } from "../services/hosts/online-rpc.js";
 import { handleHostRemoved } from "../internal/session-owner-side-effects.js";
@@ -341,7 +341,7 @@ export function registerHostRoutes(
         "Native folder picker is only available when the browser helper and work host are on the same machine",
       );
     }
-    const result = await callHostOnlineRpc(deps, {
+    const result = await callHostOnlineRpcForWork(deps, {
       hostId,
       timeoutMs: FOLDER_PICKER_TIMEOUT_MS,
       command: {
@@ -382,7 +382,7 @@ export function registerHostRoutes(
       );
     }
     const result = await serializeProviderInstallation(deps, hostId, () =>
-      callHostOnlineRpc(deps, {
+      callHostOnlineRpcForWork(deps, {
         hostId,
         timeoutMs: PROVIDER_CLI_INSTALL_TIMEOUT_MS,
         command: {

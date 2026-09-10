@@ -22,7 +22,7 @@ import type {
 import { ApiError } from "../../errors.js";
 import type { AppDeps, LoggedWorkSessionDeps } from "../../types.js";
 import { throwEnvironmentNotReady } from "../lib/lifecycle-api-errors.js";
-import { requireThreadStoragePath } from "./thread-storage.js";
+import { requireLiveThreadStoragePath } from "./thread-storage.js";
 import {
   buildExistingThreadExecutionInput,
   resolveExistingThreadExecutionPlan,
@@ -314,7 +314,7 @@ export async function resolveThreadRuntimeCommandConfig(
     );
   }
   const instructions = instructionSections.join("\n\n");
-  const threadStoragePath = await requireThreadStoragePath(deps, {
+  const threadStoragePath = await requireLiveThreadStoragePath(deps, {
     hostId: args.environment.hostId,
     threadId: args.thread.id,
   });

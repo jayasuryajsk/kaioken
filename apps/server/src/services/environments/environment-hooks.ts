@@ -6,7 +6,7 @@ import type { PluginEnvironmentProviderProgress } from "@get-bb/plugin-sdk/envir
 import type { WorkSessionDeps } from "../../types.js";
 import {
   callHostOnlineRpc,
-  callHostOnlineRpcWithoutAdmission,
+  callHostOnlineRpcForWork,
 } from "../hosts/online-rpc.js";
 
 export const ENVIRONMENT_HOOK_TIMEOUT_MS = 15 * 60 * 1000;
@@ -78,7 +78,7 @@ export async function runEnvironmentHook(
       .run();
   active.set(operationId, { hostId: args.hostId, report: args.report });
   const abort = (): void => {
-    void callHostOnlineRpcWithoutAdmission(deps, {
+    void callHostOnlineRpc(deps, {
       hostId: args.hostId,
       timeoutMs: TRANSPORT_GRACE_MS,
       command: { type: "environment.hook.cancel", operationId },
@@ -92,7 +92,7 @@ export async function runEnvironmentHook(
   args.signal.addEventListener("abort", abort, { once: true });
   try {
     args.signal.throwIfAborted();
-    await callHostOnlineRpc(deps, {
+    await callHostOnlineRpcForWork(deps, {
       hostId: args.hostId,
       timeoutMs: ENVIRONMENT_HOOK_TIMEOUT_MS + TRANSPORT_GRACE_MS,
       command: {
@@ -143,7 +143,7 @@ export async function cancelPendingEnvironmentHook(
     .where(eq(environmentHookOperations.id, id))
     .get();
   if (operation?.finishedAt != null) return;
-  const result = await callHostOnlineRpcWithoutAdmission(deps, {
+  const result = await callHostOnlineRpc(deps, {
     hostId: args.hostId,
     timeoutMs: TRANSPORT_GRACE_MS,
     command: {

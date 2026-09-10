@@ -8,7 +8,7 @@ import type { WorkSessionDeps } from "../../types.js";
 import { COMMAND_TIMEOUT_MS } from "../../constants.js";
 import { ApiError } from "../../errors.js";
 import {
-  callHostRetryableOnlineRpcWithoutAdmission,
+  callHostRetryableOnlineRpc,
   isHostUnavailableApiError,
 } from "../hosts/online-rpc.js";
 import { listSystemProviderInfos } from "./execution-options.js";
@@ -105,7 +105,7 @@ export async function getProviderInstallations(
       }
       return async (timeoutMs) => {
         try {
-          return await callHostRetryableOnlineRpcWithoutAdmission(deps, {
+          return await callHostRetryableOnlineRpc(deps, {
             hostId: args.hostId,
             timeoutMs,
             command: {
