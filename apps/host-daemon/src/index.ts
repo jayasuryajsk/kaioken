@@ -7,6 +7,7 @@ import {
   installSafeProcessDiagnostics,
   writeSafeProcessDiagnosticReport,
 } from "@bb/process-utils";
+import { hasMachineSuspensionMarker } from "./suspension-marker.js";
 
 interface ReportStartupFailureArgs {
   diagnosticsLogsDir: string;
@@ -49,6 +50,10 @@ function reportStartupFailure(args: ReportStartupFailureArgs): void {
 
 async function runHostDaemonEntrypoint(): Promise<void> {
   const hostDaemonEntrypointConfig = loadHostDaemonEntrypointConfig();
+  const hostDaemonStartConfig = loadHostDaemonStartConfig({});
+  if (await hasMachineSuspensionMarker(hostDaemonStartConfig.dataDir)) {
+    return;
+  }
   const hostDaemonModule = await import("./start-host-daemon.js");
   const daemon = await hostDaemonModule.startHostDaemon({
     bbExecutableDirectory: hostDaemonEntrypointConfig.BB_CLI_DIR,

@@ -584,6 +584,18 @@ export class ServerConnection {
       return;
     }
 
+    if (message.data.type === "machine.shutdown") {
+      void Promise.resolve(this.options.onMachineShutdown?.()).catch(
+        (error) => {
+          this.options.logger.error(
+            { ...runtimeErrorLogFields(error) },
+            "Machine shutdown failed",
+          );
+        },
+      );
+      return;
+    }
+
     if (message.data.type === "heartbeat-ack") {
       if (this.session !== null) {
         this.lastHeartbeatAcknowledgedAt = Date.now();

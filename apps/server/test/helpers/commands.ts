@@ -351,6 +351,10 @@ export function registerTestHostRpcCapture(
     close() {},
     send(data) {
       const message = hostDaemonServerWsMessageSchema.parse(JSON.parse(data));
+      if (message.type === "machine.shutdown") {
+        deps.hub.unregisterDaemon(args.sessionId);
+        return;
+      }
       if (message.type !== "host-rpc.request") {
         return;
       }

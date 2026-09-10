@@ -53,6 +53,7 @@ import {
   type HostWatcher,
 } from "@bb/host-watcher";
 import { PluginHostManager } from "./plugin-host-manager.js";
+import { writeMachineSuspensionMarker } from "./suspension-marker.js";
 
 interface SessionState {
   value: string | null;
@@ -803,6 +804,7 @@ export async function createHostDaemonApp(
   });
 
   let requestDaemonRestart = (): void => undefined;
+  let requestMachineShutdown = async (): Promise<void> => undefined;
   const connection = new ServerConnection({
     serverUrl: options.serverUrl,
     hostKey: options.hostKey,
@@ -822,6 +824,7 @@ export async function createHostDaemonApp(
       serverUrl: options.serverUrl,
     }),
     onSelfUpdateInstalled: () => requestDaemonRestart(),
+    onMachineShutdown: () => requestMachineShutdown(),
     createWebSocket: options.createWebSocket,
     getActiveThreads: () => runtimeManager.listActiveThreads(),
     getLoadedEnvironments: () => runtimeManager.listLoadedEnvironments(),
@@ -952,6 +955,11 @@ export async function createHostDaemonApp(
     void daemon.shutdown("self-update", 0).catch((error) => {
       options.logger.error({ err: error }, "Self-update shutdown failed");
     });
+  };
+  requestMachineShutdown = async () => {
+    await writeMachineSuspensionMarker(options.dataDir);
+    sendServerMessage({ type: "machine.shutdown-ack" });
+    await daemon.shutdown("machine-shutdown", 0);
   };
   connection.setSessionCloseHandler((reason) =>
     daemon.shutdown(`session-close:${reason}`, 0),

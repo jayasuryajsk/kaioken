@@ -211,6 +211,7 @@ run_lifecycle() {
     exit 1
   }
   if [ "$lifecycle_action" = start ]; then
+    rm -f "$data_dir/machine-suspended"
     if daemon_matches; then return 0; fi
     if [ -f "$service_file" ]; then
       if [ "$platform" = darwin ]; then
@@ -412,6 +413,7 @@ fi
 
 mkdir -p "$data_dir"
 mkdir -p "$data_dir/logs"
+rm -f "$data_dir/machine-suspended"
 canonical_data_dir=$(node -e '
   const fs = require("node:fs");
   process.stdout.write(fs.realpathSync(process.argv[1]));

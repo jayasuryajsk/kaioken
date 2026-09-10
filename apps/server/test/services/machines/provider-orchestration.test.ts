@@ -254,7 +254,8 @@ describe("core machine provider orchestration", () => {
       };
       installMachineProvider(
         machineDeclaration(host.id, {
-          create: create as unknown as PluginMachineProviderDeclaration["create"],
+          create:
+            create as unknown as PluginMachineProviderDeclaration["create"],
         }),
       );
 
@@ -918,12 +919,20 @@ describe("core machine provider orchestration", () => {
       });
     }));
 
-  it("disconnects the daemon before invoking suspend", async () =>
+  it("waits for the daemon session to close before invoking suspend", async () =>
     withTestHarness(async (harness) => {
       vi.useFakeTimers({ toFake: ["Date"] });
       vi.setSystemTime(10_000);
-      const { host } = seedHostSession(harness.deps, {
+      const { host, session } = seedHostSession(harness.deps, {
         id: "host_suspend_rpc",
+      });
+      harness.hub.unregisterDaemon(session.id);
+      const sent: string[] = [];
+      harness.hub.registerDaemon(session.id, host.id, {
+        close() {},
+        send(data) {
+          sent.push(data);
+        },
       });
       const { project, environment } = seedMachineWorkspace(
         harness,
@@ -940,9 +949,11 @@ describe("core machine provider orchestration", () => {
         .set({ updatedAt: 1_000 })
         .where(eq(threads.id, thread.id))
         .run();
+      let providerCalled = false;
       installMachineProvider(
         machineDeclaration(host.id, {
           suspend: async ({ resource }) => {
+            providerCalled = true;
             expect(harness.hub.hasDaemonForHost(host.id)).toBe(false);
             return { resource };
           },
@@ -951,7 +962,14 @@ describe("core machine provider orchestration", () => {
       );
       adoptMachine(harness, host.id);
 
-      await requestMachineSuspension(harness.deps, host.id);
+      const suspension = requestMachineSuspension(harness.deps, host.id);
+      await vi.waitFor(() => {
+        expect(sent).toContain(JSON.stringify({ type: "machine.shutdown" }));
+      });
+      expect(providerCalled).toBe(false);
+      harness.hub.unregisterDaemon(session.id);
+      await suspension;
+      expect(providerCalled).toBe(true);
       expect(harness.hub.hasDaemonForHost(host.id)).toBe(false);
     }));
 
@@ -2551,7 +2569,9 @@ it.each(["owner", "operation", "removal", "phase"])(
                 machineOperationId: "new-operation",
               });
             if (change === "phase")
-              updateHost(harness.db, harness.hub, host.id, { phase: "active" });
+              updateHost(harness.db, harness.hub, host.id, {
+                phase: "suspended",
+              });
             if (change === "removal")
               requestMachineRemoval(harness.deps, host.id);
             updateHost(harness.db, harness.hub, host.id, {

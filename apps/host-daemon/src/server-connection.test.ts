@@ -26,6 +26,7 @@ interface ConnectionFixtureArgs extends CreateServerClientFixtureArgs {
   serverHeaders?: Record<string, string>;
   protocolSelfUpdater?: ProtocolSelfUpdater;
   onSelfUpdateInstalled?: () => void | Promise<void>;
+  onMachineShutdown?: () => void | Promise<void>;
   startupTimeoutMs?: number;
 }
 
@@ -179,6 +180,7 @@ function createConnectionFixture(args: ConnectionFixtureArgs = {}) {
     serverUrl: "http://127.0.0.1:3334",
     protocolSelfUpdater: args.protocolSelfUpdater,
     onSelfUpdateInstalled: args.onSelfUpdateInstalled,
+    onMachineShutdown: args.onMachineShutdown,
     startupTimeoutMs: args.startupTimeoutMs,
     setSession,
     createWebSocket: webSocket.createWebSocket,
@@ -199,24 +201,23 @@ afterEach(() => {
 });
 
 describe("ServerConnection", () => {
-  it("shuts down cleanly when core suspends the machine", async () => {
-    const { connection, webSocket } = createConnectionFixture();
-    const closeHandler = vi.fn(async () => {});
-    connection.setSessionCloseHandler(closeHandler);
+  it("dispatches the machine shutdown command", async () => {
+    const onMachineShutdown = vi.fn(async () => undefined);
+    const { connection, webSocket } = createConnectionFixture({
+      onMachineShutdown,
+    });
     await connection.start();
     const socket = webSocket.sockets[0];
     if (!socket) throw new Error("Expected test socket");
 
     socket.onmessage?.({
       data: JSON.stringify({
-        type: "session-close",
-        reason: "machine-suspend",
+        type: "machine.shutdown",
       }),
     });
 
     await vi.waitFor(() => {
-      expect(closeHandler).toHaveBeenCalledWith("machine-suspend");
-      expect(socket.close).toHaveBeenCalled();
+      expect(onMachineShutdown).toHaveBeenCalledOnce();
     });
     await connection.shutdown();
   });

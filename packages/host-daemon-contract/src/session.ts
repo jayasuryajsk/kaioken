@@ -315,7 +315,6 @@ const hostDaemonSessionCloseReasonSchema = z.enum([
   "replaced",
   "expired",
   "daemon-disconnect",
-  "machine-suspend",
 ]);
 export type HostDaemonSessionCloseReason = z.infer<
   typeof hostDaemonSessionCloseReasonSchema
@@ -577,6 +576,11 @@ const hostDaemonTerminalCloseMessageSchema = z
 export const hostDaemonServerWsMessageSchema = z.discriminatedUnion("type", [
   z
     .object({
+      type: z.literal("machine.shutdown"),
+    })
+    .strict(),
+  z
+    .object({
       type: z.literal("session-close"),
       reason: hostDaemonSessionCloseReasonSchema,
     })
@@ -602,6 +606,12 @@ export type HostDaemonServerWsMessage = z.infer<
 const hostDaemonHeartbeatMessageSchema = z
   .object({
     type: z.literal("heartbeat"),
+  })
+  .strict();
+
+const hostDaemonMachineShutdownAckMessageSchema = z
+  .object({
+    type: z.literal("machine.shutdown-ack"),
   })
   .strict();
 
@@ -715,6 +725,7 @@ const hostDaemonTerminalErrorMessageSchema = z
 
 export const hostDaemonDaemonWsMessageSchema = z.union([
   desktopBrowserChangedSchema,
+  hostDaemonMachineShutdownAckMessageSchema,
   hostDaemonHeartbeatMessageSchema,
   hostDaemonEnvironmentChangeMessageSchema,
   hostDaemonEnvironmentMetadataChangeMessageSchema,

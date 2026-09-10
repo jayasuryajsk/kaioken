@@ -3,13 +3,58 @@ import {
   createHostDaemonClient,
 } from "@bb/host-daemon-contract";
 import { describe, expect, it } from "vitest";
-import { getHost, upsertHost } from "@bb/db";
+import { getHost, updateHost, upsertHost } from "@bb/db";
 import {
   createTestDaemonHostKey,
   startTestServer,
 } from "../helpers/test-app.js";
 
 describe("internal session protocol version", () => {
+  it.each(["suspending", "suspended"] as const)(
+    "rejects a session open while the machine is %s",
+    async (phase) => {
+      const server = await startTestServer();
+      try {
+        const hostId = `host-${phase}`;
+        const hostKey = createTestDaemonHostKey({ hostId });
+        upsertHost(server.db, server.hub, { id: hostId, name: "Paused Host" });
+        updateHost(server.db, server.hub, hostId, { phase });
+
+        const response = await fetch(
+          `${server.baseUrl}/internal/session/open`,
+          {
+            method: "POST",
+            headers: {
+              authorization: `Bearer ${hostKey}`,
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({
+              hostId,
+              instanceId: `instance-${phase}`,
+              hostName: "Paused Host",
+              hasMachineCredential: true,
+              platform: "linux",
+              dataDir: `/tmp/${hostId}`,
+              localApiPort: 38_888,
+              protocolVersion: HOST_DAEMON_PROTOCOL_VERSION,
+              activeThreads: [],
+              loadedEnvironments: [],
+            }),
+          },
+        );
+
+        expect(response.status).toBe(409);
+        expect(await response.json()).toMatchObject({
+          code: "machine_suspended",
+          message:
+            "Machine daemon sessions are disabled while the machine is suspending or suspended",
+        });
+      } finally {
+        await server.close();
+      }
+    },
+  );
+
   it("requires a PR-1 version 191 daemon to upgrade before accepting its session", async () => {
     const server = await startTestServer();
     try {

@@ -42,6 +42,7 @@ export type CreateReconnectingWebSocket = (
 
 export type HostDaemonServerTerminalMessage = Exclude<
   HostDaemonServerWsMessage,
+  | { type: "machine.shutdown" }
   | { type: "session-close" }
   | { type: "heartbeat-ack" }
   | HostDaemonOnlineRpcRequestMessage
@@ -84,6 +85,7 @@ export interface ServerConnectionOptions {
   onSessionOpened?: (
     session: HostDaemonSessionOpenResponse,
   ) => void | Promise<void>;
+  onMachineShutdown?: () => void | Promise<void>;
   createWebSocket?: CreateReconnectingWebSocket;
   startupTimeoutMs?: number;
 }

@@ -919,6 +919,7 @@ async function suspendMachine(
   hostId: string,
   coordinateMaintenance = false,
 ): Promise<void> {
+  const daemonShutdownTimeoutMs = 30_000;
   const removing = operations(removeOperations, deps.db).get(hostId);
   if (removing !== undefined) {
     await removing.done.catch(() => {});
@@ -973,10 +974,22 @@ async function suspendMachine(
         });
         const daemonSessionId = deps.hub.getDaemonSessionIdForHost(hostId);
         if (daemonSessionId !== null) {
-          deps.hub.closeDaemonSession(daemonSessionId, "machine-suspend");
-        }
-        if (deps.hub.hasDaemonForHost(hostId)) {
-          throw new Error(`Machine "${hostId}" daemon did not disconnect`);
+          deps.hub.requestDaemonShutdown(daemonSessionId);
+          const closed = await deps.hub.waitForDaemonSessionClose(
+            daemonSessionId,
+            daemonShutdownTimeoutMs,
+          );
+          if (!closed || deps.hub.hasDaemonForHost(hostId)) {
+            if (!coordinateMaintenance) {
+              updateHost(deps.db, deps.hub, hostId, {
+                phase: "active",
+                machineOperationId: null,
+              });
+            }
+            throw new Error(
+              `Machine "${hostId}" daemon did not shut down cleanly within ${daemonShutdownTimeoutMs}ms; suspend was cancelled`,
+            );
+          }
         }
         const invocation = await invokeMachineProvider(
           record,
@@ -1184,6 +1197,8 @@ async function resumeMachineWithIntent(
   }
   const operationId = `${record.pluginId}:${randomUUID()}`;
   const phase = row.phase;
+  const resumePhase =
+    phase === "suspended" || phase === "suspending" ? "active" : phase;
   const resume = record.provider.resume;
   const resource = row.resource;
   const operation = runTrackedOperation({
@@ -1192,6 +1207,7 @@ async function resumeMachineWithIntent(
     run: async (signal) => {
       updateHost(deps.db, deps.hub, hostId, {
         machineOperationId: operationId,
+        phase: resumePhase,
       });
       const invocation = await invokeMachineProvider(
         record,
@@ -1204,7 +1220,12 @@ async function resumeMachineWithIntent(
               const parsed = resourceSchema.parse(checkpoint);
               const current = getHost(deps.db, hostId);
               if (
-                !lifecycleOwns(current, record.provider.id, operationId, phase)
+                !lifecycleOwns(
+                  current,
+                  record.provider.id,
+                  operationId,
+                  resumePhase,
+                )
               ) {
                 throw new Error(
                   `Machine "${hostId}" resume no longer owns this resource`,
@@ -1219,7 +1240,9 @@ async function resumeMachineWithIntent(
       if (!invocation.ok) throw new Error(invocation.error);
       const result = resourceResultSchema.parse(invocation.value);
       const current = getHost(deps.db, hostId);
-      if (!lifecycleOwns(current, record.provider.id, operationId, phase)) {
+      if (
+        !lifecycleOwns(current, record.provider.id, operationId, resumePhase)
+      ) {
         return;
       }
       const keepRemoving =
@@ -1242,6 +1265,13 @@ async function resumeMachineWithIntent(
       suspendRetryAt: null,
     });
   } catch (error) {
+    const current = getHost(deps.db, hostId);
+    if (
+      resumePhase !== phase &&
+      lifecycleOwns(current, record.provider.id, operationId, resumePhase)
+    ) {
+      updateHost(deps.db, deps.hub, hostId, { phase });
+    }
     updateHost(deps.db, deps.hub, hostId, {
       suspendMessage: `Machine resume failed: ${errorMessage(error)}`,
       suspendRetryAt: Date.now() + 10_000,

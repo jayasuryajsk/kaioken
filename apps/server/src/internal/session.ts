@@ -1,5 +1,6 @@
 import {
   getLatestSessionForHost,
+  getHost,
   listRetiredLoadedEnvironmentIdsOnHost,
   openSession,
   upsertHost,
@@ -105,6 +106,15 @@ export function registerInternalSessionRoutes(
       );
     }
     const payload = parsed.data;
+
+    const host = getHost(deps.db, daemon.hostId);
+    if (host?.phase === "suspending" || host?.phase === "suspended") {
+      throw new ApiError(
+        409,
+        "machine_suspended",
+        "Machine daemon sessions are disabled while the machine is suspending or suspended",
+      );
+    }
 
     const previousSession = getLatestSessionForHost(deps.db, {
       hostId: daemon.hostId,
