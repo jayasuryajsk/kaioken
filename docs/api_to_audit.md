@@ -606,24 +606,6 @@ context and must be registered together. Description and icon are required.
 Supporting declarations belong to the experimental machine namespace.
 Stabilization follows the registration audit above.
 
-## `app.slots.experimental_machineProviderInputs` (`@get-bb/plugin-sdk/app`)
-
-Supporting app exports are `PluginMachineProviderInputsRegistration`,
-`PluginMachineProviderInputsProps`, and `PluginMachineProviderInputsChange`.
-
-**What it does.** Registers the app control for one machine provider's inputs
-with `{ machineProviderId, component }`. The component receives
-`{ value, onChange }` and reports ready JSON or a blocked reason. Machine inputs and provider listing are project-independent. Stabilization requires coverage of provider changes without stale launch inputs.
-It is used by the Add machine flow. The resulting value is
-persisted and readable by every plugin, so it must contain no secrets;
-credentials belong in plugin settings and the value should carry only
-non-secret configuration or credential references.
-
-**Audit before stabilizing.** Confirm the shared control suits both composer
-and standalone machine creation, ready/blocked is sufficient, schema validation
-belongs only at the server boundary, and missing-control behavior matches
-environment provider inputs.
-
 ## `bb.branding.experimental_icons` (manifest) and namespaced presentation glyphs
 
 **What it does.** A plugin ships SVG files and declares a name → file map in

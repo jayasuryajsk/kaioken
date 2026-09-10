@@ -819,7 +819,6 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Optionally declare suspend and resume together; plugins own idle timing and core coordinates transitions",
           "Return an opaque JSON resource that core persists and passes back to lifecycle operations; never include credentials",
           "Treat a failed create as terminal and retry vendor API hiccups inside the create call",
-          "Render Add machine inputs with app.slots.experimental_machineProviderInputs",
         ],
         apiSymbols: [
           "PluginMachines",
@@ -844,9 +843,6 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "MachineBootstrapApi",
           "PluginMachineProviderDeclaration",
           "PluginMachineValidateDecision",
-          "PluginMachineProviderInputsRegistration",
-          "PluginMachineProviderInputsProps",
-          "PluginMachineProviderInputsChange",
           "PluginMachineProviderDefinition",
           "PluginMachineProviderInputsSchema",
           "PluginMachineProviderAvailability",

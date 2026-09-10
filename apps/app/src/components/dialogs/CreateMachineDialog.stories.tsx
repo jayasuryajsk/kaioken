@@ -1,14 +1,13 @@
-import { MachineAccessGate, ProviderMachineSetup } from "./CreateMachineDialog";
+import { useState } from "react";
+import {
+  MachineAccessGate,
+  ManualMachineSetupView,
+} from "./CreateMachineDialog";
 import { MachineAccessControlsContent } from "@/components/settings/MachineAccessSettings";
 import {
   CONNECT_UNAVAILABLE,
   CONNECT_UNPAIRED,
   MANUAL_WITHOUT_URL,
-  MANUAL_MACHINE_PROVIDER,
-  MODAL_MACHINE_PROVIDER,
-  MODAL_NEEDS_TOKEN_PROVIDER,
-  MODAL_UNRENDERABLE_INPUTS_PROVIDER,
-  UNAVAILABLE_MACHINE_PROVIDER,
   machineAccessState,
 } from "../../../.ladle/machine-story-fixtures";
 import { StoryCard, StoryRow } from "../../../.ladle/story-card";
@@ -19,7 +18,8 @@ export default {
 };
 
 const noop = () => {};
-const noProviders: never[] = [];
+const ENROLLMENT_COMMAND =
+  "curl -fsSL -H 'X-BB-Enrollment: bbde_TZpKWsJpWiPulVIRKNENmEVtvNwnEwDobjPFlnlsyCUUzorssgdxmgxUblRIWAUA' 'https://bb.example.com/install.sh' | sh";
 
 export function AccessGate() {
   return (
@@ -100,70 +100,92 @@ export function AccessGate() {
   );
 }
 
-export function ProviderChoice() {
+export function EnrollmentCommandState() {
+  const [issuedAt] = useState(() => Date.now());
   return (
     <StoryCard labelWidth="200px">
       <StoryRow
-        label="one provider"
-        hint="a lone provider that owns no setup view is chosen for you, so only its action is left"
+        label="preparing"
+        hint="the launch is submitted the moment the dialog opens, so the first frame reports progress rather than an empty body"
       >
         <DialogStage>
-          <ProviderMachineSetup
-            onOpenChange={noop}
-            providers={[MODAL_MACHINE_PROVIDER]}
+          <ManualMachineSetupView
+            command={null}
+            progress=""
+            errorMessage={null}
+            onRetry={noop}
+            onRegenerate={noop}
+            onCancelSetup={null}
           />
         </DialogStage>
       </StoryRow>
       <StoryRow
-        label="several providers"
-        hint="both shipped providers use the same core-owned launch flow"
+        label="command issued"
+        hint="the only path this dialog offers — the countdown is the server's own expiry, not a guessed interval"
       >
         <DialogStage>
-          <ProviderMachineSetup
-            onOpenChange={noop}
-            providers={[MANUAL_MACHINE_PROVIDER, MODAL_MACHINE_PROVIDER]}
+          <ManualMachineSetupView
+            command={{
+              value: ENROLLMENT_COMMAND,
+              expiresAt: issuedAt + 15 * 60_000,
+            }}
+            progress="Run the enrollment command shown below"
+            errorMessage={null}
+            onRetry={noop}
+            onRegenerate={noop}
+            onCancelSetup={noop}
           />
         </DialogStage>
       </StoryRow>
       <StoryRow
-        label="cloud provider needs a token"
-        hint="the only state Modal reports besides available; its own copy, and Configure instead of Add"
+        label="about to lapse"
+        hint="under a minute drops the minutes segment so the number left is the one that matters"
       >
         <DialogStage>
-          <ProviderMachineSetup
-            onOpenChange={noop}
-            providers={[MODAL_NEEDS_TOKEN_PROVIDER]}
+          <ManualMachineSetupView
+            command={{
+              value: ENROLLMENT_COMMAND,
+              expiresAt: issuedAt + 40_000,
+            }}
+            progress="Run the enrollment command shown below"
+            errorMessage={null}
+            onRetry={noop}
+            onRegenerate={noop}
+            onCancelSetup={noop}
           />
         </DialogStage>
       </StoryRow>
       <StoryRow
-        label="inputs the app cannot render"
-        hint="the provider requires inputs but registers no control, so Add stays disabled with nothing to explain it"
+        label="expired"
+        hint="the dead credential is withdrawn rather than left copyable, and the only action left mints a new one"
       >
         <DialogStage>
-          <ProviderMachineSetup
-            onOpenChange={noop}
-            providers={[MODAL_UNRENDERABLE_INPUTS_PROVIDER]}
+          <ManualMachineSetupView
+            command={{
+              value: ENROLLMENT_COMMAND,
+              expiresAt: issuedAt - 1_000,
+            }}
+            progress="Run the enrollment command shown below"
+            errorMessage={null}
+            onRetry={noop}
+            onRegenerate={noop}
+            onCancelSetup={noop}
           />
         </DialogStage>
       </StoryRow>
       <StoryRow
-        label="unavailable"
-        hint="a contract state no shipped provider returns today — its message replaces the action"
+        label="could not prepare one"
+        hint="no command to show, so the retry stands alone instead of below a dead panel"
       >
         <DialogStage>
-          <ProviderMachineSetup
-            onOpenChange={noop}
-            providers={[UNAVAILABLE_MACHINE_PROVIDER]}
+          <ManualMachineSetupView
+            command={null}
+            progress=""
+            errorMessage="The gate rejected this bb's credential (HTTP 401)"
+            onRetry={noop}
+            onRegenerate={noop}
+            onCancelSetup={null}
           />
-        </DialogStage>
-      </StoryRow>
-      <StoryRow
-        label="no providers installed"
-        hint="nothing can add a machine, so the dialog says so and points at the plugins instead of offering an empty picker"
-      >
-        <DialogStage>
-          <ProviderMachineSetup onOpenChange={noop} providers={noProviders} />
         </DialogStage>
       </StoryRow>
     </StoryCard>

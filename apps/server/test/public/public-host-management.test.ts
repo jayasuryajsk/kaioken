@@ -15,8 +15,6 @@ import {
 } from "@bb/host-daemon-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import type { PluginMachineProviderDeclaration } from "@get-bb/plugin-sdk";
-import { validatePluginMachineProviderDeclaration } from "@get-bb/plugin-sdk/internal/host-policy";
 import { setPluginMachineProviderBridge } from "../../src/services/plugins/plugin-machine-provider-registry.js";
 import { readJson } from "../helpers/json.js";
 import {
@@ -27,41 +25,9 @@ import {
   seedSession,
   seedThread,
 } from "../helpers/seed.js";
-import { withTestHarness, type TestAppHarness } from "../helpers/test-app.js";
+import { withTestHarness } from "../helpers/test-app.js";
 
 const API = "/api/v1";
-
-function installMachineProvider(declaration: PluginMachineProviderDeclaration) {
-  const record = {
-    pluginId: "public-host-management-test",
-    provider: validatePluginMachineProviderDeclaration(declaration),
-  };
-  setPluginMachineProviderBridge({
-    listMachineProviders: () => [record],
-    getMachineProvider: (id) =>
-      id === record.provider.id ? record : undefined,
-    invokeProvider: async (_pluginId, _label, run) => {
-      try {
-        return { ok: true as const, value: await run() };
-      } catch (error) {
-        return {
-          ok: false as const,
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
-    },
-    decisionTimeoutMs: 10_000,
-  });
-}
-
-function adoptMachine(harness: TestAppHarness, hostId: string): void {
-  updateHost(harness.db, harness.hub, hostId, {
-    machineProviderId: "test-machine",
-    machineProviderSelection: { inputs: null },
-    phase: "active",
-    resource: { machine: "test" },
-  });
-}
 
 afterEach(() => {
   setPluginMachineProviderBridge(undefined);

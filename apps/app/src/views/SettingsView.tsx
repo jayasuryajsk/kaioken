@@ -74,7 +74,6 @@ import {
   useUpdateAppearance,
   useUpdateExperiments,
 } from "@/hooks/mutations/settings-mutations";
-import { useHosts } from "@/hooks/queries/host-queries";
 import { useSystemConfig } from "@/hooks/queries/system-queries";
 import { useWorkspaceOpenTargets } from "@/hooks/useWorkspaceOpenTargets";
 import { isDesktopBrowserAvailable } from "@/lib/bb-desktop";
@@ -1120,7 +1119,6 @@ export function SettingsView() {
   const updateAppearanceMutation = useUpdateAppearance();
   const appThemePreview = useAppThemePreview();
   const location = useLocation();
-  const machineHosts = useHosts().data ?? [];
   const { activePluginId, activeSection, hasUnknownSection } =
     useSettingsNavState();
   if (hasUnknownSection) {
@@ -1228,22 +1226,20 @@ export function SettingsView() {
       <>
         <MachinesSettingsSection />
         <MachineAccessSettings />
-        {machineHosts.some((host) => host.machineProviderId !== null) ? (
-          <details
-            id="advanced-machine-settings"
-            open={location.hash === "#advanced-machine-settings" || undefined}
-            className="group space-y-6"
-          >
-            <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 text-sm font-medium text-subtle-foreground [&::-webkit-details-marker]:hidden">
-              Advanced settings
-              <Icon
-                name="ChevronRight"
-                className="size-3.5 transition-transform group-open:rotate-90"
-              />
-            </summary>
-            <MachineEnvironmentSettings />
-          </details>
-        ) : null}
+        <details
+          id="advanced-machine-settings"
+          open={location.hash === "#advanced-machine-settings" || undefined}
+          className="group space-y-6"
+        >
+          <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 text-sm font-medium text-subtle-foreground [&::-webkit-details-marker]:hidden">
+            Advanced settings
+            <Icon
+              name="ChevronRight"
+              className="size-3.5 transition-transform group-open:rotate-90"
+            />
+          </summary>
+          <MachineEnvironmentSettings />
+        </details>
       </>
     );
   } else if (activeSection === "updates") {

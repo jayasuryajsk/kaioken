@@ -1501,7 +1501,6 @@ export function NewThreadComposer({
               selectedProviderHostId: providerHostId,
               inputsControlProviderIds,
               onSelectProvider: handleSelectProvider,
-              selectedMachineProviderId: selectedMachineProvider?.id ?? null,
               ...(!isProjectless && options.onRequestMachineSetup
                 ? { onRequestMachineSetup: options.onRequestMachineSetup }
                 : {}),
@@ -1674,7 +1673,6 @@ export function NewThreadComposer({
       environmentProviderInputsSlot,
       environmentProvidersByHostId,
       inputsControlProviderIds,
-      selectedMachineProvider,
       providerHostId,
       textEffects,
       serviceTierFastLabel,

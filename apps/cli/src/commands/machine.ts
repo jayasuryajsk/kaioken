@@ -11,6 +11,11 @@ import { renderBorderlessTable } from "../table.js";
 import { outputJson } from "./helpers.js";
 import { confirmDestructiveAction } from "./helpers.js";
 
+function enrollmentExpiryNotice(expiresAt: number | null): string {
+  if (expiresAt === null) return "This command expires once it is used.";
+  return `This command expires at ${new Date(expiresAt).toLocaleTimeString()}.`;
+}
+
 interface MachineListCommandOptions {
   json?: boolean;
 }
@@ -199,7 +204,10 @@ export function registerMachineCommands(
               );
             return;
           }
-          if (launch.command !== null) console.error(launch.command);
+          if (launch.command !== null) {
+            console.error(launch.command);
+            console.error(enrollmentExpiryNotice(launch.commandExpiresAt));
+          }
           console.error(`Following machine launch ${launch.id}`);
           let step = "";
           let command = launch.command;
@@ -210,6 +218,7 @@ export function registerMachineCommands(
               if (status.command !== null && status.command !== command) {
                 command = status.command;
                 console.error(status.command);
+                console.error(enrollmentExpiryNotice(status.commandExpiresAt));
               }
               if (status.step !== step) {
                 step = status.step;

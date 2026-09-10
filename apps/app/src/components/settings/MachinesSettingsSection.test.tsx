@@ -11,10 +11,7 @@ import type { Host } from "@bb/domain";
 import { makeHost } from "@bb/test-helpers/domain-fixtures";
 import { RETRY_ACTION_ICON } from "@bb/domain/update-state";
 import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
-import type {
-  SystemConfigResponse,
-  SystemMachineProvider,
-} from "@bb/server-contract";
+import type { SystemConfigResponse } from "@bb/server-contract";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sdk } from "@/lib/sdk";
@@ -70,20 +67,6 @@ const offlineHost = host({
   status: "disconnected",
   lastSeenAt: NOW - 2 * 60 * 60 * 1000,
 });
-const modalProvider: SystemMachineProvider = {
-  id: "modal-sandbox",
-  displayName: "Modal sandbox",
-  description: "Run a machine for development.",
-  icon: "./modal-logo.svg",
-  machineTag: "modal",
-  logoUrl: "/api/v1/system/providers/machine%3Amodal-sandbox/logo?h=hash",
-  pluginId: "environment-modal-sandbox",
-  inputs: null,
-  acceptsEmptyInputs: true,
-  supportsSuspend: true,
-
-  availability: null,
-};
 
 function systemConfig(): SystemConfigResponse {
   return makeSystemConfig({

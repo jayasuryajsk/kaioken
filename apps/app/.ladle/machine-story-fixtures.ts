@@ -117,8 +117,7 @@ export function machineProvider(
 export const MODAL_MACHINE_PROVIDER = machineProvider({
   id: "modal-sandbox",
   displayName: "Modal Sandbox",
-  description:
-    "Create a sandbox in your Modal account, billed by Modal while it runs and suspended when idle.",
+  description: "Create a sandbox in your Modal account.",
   pluginId: "environment-modal-sandbox",
   icon: "./modal-logo.svg",
   machineTag: "modal",

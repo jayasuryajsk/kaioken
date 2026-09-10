@@ -84,10 +84,15 @@ export function withManualMachineProvider(
 export async function manualLaunchCommand(
   enrollments: MachineEnrollmentService,
   launchId: string,
-): Promise<string | null> {
+): Promise<{ command: string; expiresAt: number } | null> {
   const bootstrap = await enrollments.pendingBootstrapForLaunch({
     launchId,
     owner: MANUAL_PROVIDER_OWNER,
   });
-  return bootstrap === null ? null : manualEnrollmentCommand(bootstrap);
+  return bootstrap === null
+    ? null
+    : {
+        command: manualEnrollmentCommand(bootstrap),
+        expiresAt: bootstrap.expiresAt,
+      };
 }

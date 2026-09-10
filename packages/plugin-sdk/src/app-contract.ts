@@ -1445,33 +1445,6 @@ export interface PluginEnvironmentProviderInputsRegistration {
   component: ComponentType<PluginEnvironmentProviderInputsProps>;
 }
 
-/**
- * Props passed to an `experimental_machineProviderInputs` component. Machine
- * inputs are persisted and readable by every plugin, so they must contain only
- * non-secret configuration and references to credentials held in plugin
- * settings.
- */
-export interface PluginMachineProviderInputsProps {
-  /** The value persisted with the machine selection. */
-  value: JsonValue | null;
-  /** Replace the submitted value or block submission with a visible reason. */
-  onChange(next: PluginMachineProviderInputsChange): void;
-}
-
-export type PluginMachineProviderInputsChange =
-  | { status: "ready"; value: JsonValue }
-  | { status: "blocked"; reason: string };
-
-/**
- * Supply the inputs control for one machine provider registered server-side
- * through `bb.experimental_machines.register`.
- */
-export interface PluginMachineProviderInputsRegistration {
-  /** The machine provider id this control supplies inputs for. */
-  machineProviderId: string;
-  component: ComponentType<PluginMachineProviderInputsProps>;
-}
-
 // ---------------------------------------------------------------------------
 // definePluginApp
 // ---------------------------------------------------------------------------
@@ -1571,14 +1544,6 @@ export interface PluginAppSlots {
    */
   experimental_environmentProviderInputs(
     registration: PluginEnvironmentProviderInputsRegistration,
-  ): void;
-  /**
-   * Supply the non-secret machine inputs control rendered by machine creation
-   * surfaces (see {@link PluginMachineProviderInputsRegistration}).
-   * Experimental: see docs/api_to_audit.md.
-   */
-  experimental_machineProviderInputs(
-    registration: PluginMachineProviderInputsRegistration,
   ): void;
 }
 

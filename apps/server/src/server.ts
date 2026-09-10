@@ -3,12 +3,12 @@ import { recheckEnvironmentLaunch } from "./services/threads/thread-environment-
 import { getMachineEnrollmentService } from "./services/machines/machine-services.js";
 import { withManualMachineProvider } from "./services/machines/manual-provider.js";
 import { registerDesktopBrowserRoutes } from "./routes/desktop-browsers.js";
+import { INSTALL_MACHINE_SCRIPT_PATH } from "./install-machine-asset.js";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { performance } from "node:perf_hooks";
 import { extname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { Hono } from "hono";
 import { terminalWebSocketQuerySchema } from "@bb/server-contract";
 import { compress } from "hono/compress";
@@ -160,9 +160,6 @@ const WEB_SOCKET_SHUTDOWN_CODE = 1001;
 const WEB_SOCKET_SHUTDOWN_FORCE_CLOSE_MS = 1_000;
 const WEB_SOCKET_SHUTDOWN_REASON = "server-shutdown";
 const SLOW_API_REQUEST_LOG_THRESHOLD_MS = 1_000;
-const INSTALL_MACHINE_SCRIPT_PATH = fileURLToPath(
-  new URL("./assets/install-machine.sh", import.meta.url),
-);
 const THREAD_EVENT_WAIT_PATH_PATTERN =
   /^\/api\/v1\/threads\/[^/]+\/events\/wait$/u;
 const PLUGIN_APP_ASSET_PATH_PATTERN =

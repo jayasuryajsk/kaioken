@@ -4,6 +4,7 @@ import type {
   MachineEnrollments,
 } from "@get-bb/plugin-sdk";
 import { readFile } from "node:fs/promises";
+import { INSTALL_MACHINE_SCRIPT_PATH } from "../../install-machine-asset.js";
 
 const installerScript = `
 set -eu
@@ -30,10 +31,7 @@ function installerCommand(bootstrap: EnrollmentBootstrap) {
   };
 }
 
-const installerSource = readFile(
-  new URL("../../assets/install-machine.sh", import.meta.url),
-  "utf8",
-);
+const installerSource = readFile(INSTALL_MACHINE_SCRIPT_PATH, "utf8");
 
 async function installerStartCommand(hostId: string) {
   return {

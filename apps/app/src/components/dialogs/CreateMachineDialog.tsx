@@ -1,18 +1,9 @@
 import { MachineAccessControls } from "@/components/settings/MachineAccessSettings";
 import { useSystemConfig } from "@/hooks/queries/system-queries";
 import { machineServerAccessReady } from "@/components/machines/machine-server-access";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ComponentType,
-  type ReactNode,
-} from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { JsonValue } from "@bb/domain";
-import type { PluginMachineProviderInputsChange } from "@get-bb/plugin-sdk";
-import type { SystemMachineProvider } from "@bb/server-contract";
+import type { MachineLaunchStatus } from "@bb/server-contract";
 import { Button } from "@bb/shared-ui/button";
 import {
   Dialog,
@@ -22,20 +13,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@bb/shared-ui/dialog";
-import { Icon } from "@bb/shared-ui/icon";
-import { MachineProviderIcon } from "@/components/plugin/MachineProviderIcon";
-import { PluginSlotMount } from "@/components/plugin/PluginSlotMount";
-import { machineProviderInputsControlRequired } from "@/components/pickers/machine-provider-inputs";
-import { OptionPicker } from "@/components/pickers/OptionPicker";
 import { useHosts } from "@/hooks/queries/host-queries";
-import { useSystemMachineProviders } from "@/hooks/queries/machine-provider-queries";
-import {
-  getPluginConfigurationRoutePath,
-  TOOLS_PLUGIN_BROWSE_ROUTE_PATH,
-} from "@/lib/route-paths";
 import { sdk } from "@/lib/sdk";
 import { getMutationErrorMessage } from "@/lib/mutation-errors";
-import { usePluginSlots } from "@/lib/plugin-slots";
+
+const MANUAL_MACHINE_PROVIDER_ID = "manual";
 
 export function CreateMachineDialog({
   open,
@@ -63,18 +45,13 @@ export function CreateMachineContent({
 }: {
   onOpenChange: (open: boolean) => void;
 }) {
-  const { providers: loadedProviders } = useSystemMachineProviders();
-  const providers = loadedProviders ?? [];
   const config = useSystemConfig();
-  const access = config.data?.serverAccess;
-  const accessReady = machineServerAccessReady(access);
-  if (!accessReady || loadedProviders === undefined) {
-    const loading =
-      config.isPending || (accessReady && loadedProviders === undefined);
+  const accessReady = machineServerAccessReady(config.data?.serverAccess);
+  if (!accessReady) {
     return (
       <MachineAccessGate
         state={
-          loading
+          config.isPending
             ? { status: "checking" }
             : config.isError
               ? { status: "failed", onRetry: () => void config.refetch() }
@@ -85,26 +62,7 @@ export function CreateMachineContent({
       </MachineAccessGate>
     );
   }
-  return (
-    <ProviderMachineSetup onOpenChange={onOpenChange} providers={providers} />
-  );
-}
-
-const machineProviderIcons = new WeakMap<
-  SystemMachineProvider,
-  ComponentType<{ className?: string }>
->();
-
-function machineProviderIconComponent(
-  provider: SystemMachineProvider,
-): ComponentType<{ className?: string }> {
-  const cached = machineProviderIcons.get(provider);
-  if (cached !== undefined) return cached;
-  function ProviderOptionIcon({ className }: { className?: string }) {
-    return <MachineProviderIcon provider={provider} className={className} />;
-  }
-  machineProviderIcons.set(provider, ProviderOptionIcon);
-  return ProviderOptionIcon;
+  return <ManualMachineSetup onOpenChange={onOpenChange} />;
 }
 
 export type MachineAccessGateState =
@@ -160,67 +118,38 @@ export function MachineAccessGate({
   );
 }
 
-export function ProviderMachineSetup({
+export interface EnrollmentCommand {
+  value: string;
+  expiresAt: number;
+}
+
+function enrollmentCommand(
+  status: MachineLaunchStatus,
+): EnrollmentCommand | null {
+  if (status.command === null || status.commandExpiresAt === null) return null;
+  return { value: status.command, expiresAt: status.commandExpiresAt };
+}
+
+export function ManualMachineSetup({
   onOpenChange,
-  providers,
 }: {
   onOpenChange: (open: boolean) => void;
-  providers: readonly SystemMachineProvider[];
 }) {
   const createController = useRef<AbortController | null>(null);
   const createKey = useRef<string | null>(null);
   const [progress, setProgress] = useState("");
   const [launchId, setLaunchId] = useState<string | null>(null);
-  const [command, setCommand] = useState<string | null>(null);
+  const [command, setCommand] = useState<EnrollmentCommand | null>(null);
   useEffect(() => () => createController.current?.abort(), []);
-  const machineProviderInputsSlots = usePluginSlots().machineProviderInputs;
-  const [selectedMachineProvider, setSelectedMachineProvider] =
-    useState<SystemMachineProvider | null>(() =>
-      providers.length === 1 ? providers[0]! : null,
-    );
-  const [machineInputs, setMachineInputs] = useState<JsonValue | null>(() =>
-    providers.length === 1 &&
-    providers[0]?.inputs !== null &&
-    providers[0]?.acceptsEmptyInputs
-      ? {}
-      : null,
-  );
-  const [machineInputsBlocked, setMachineInputsBlocked] = useState<
-    string | null
-  >(null);
-  const machineInputsRegistration =
-    selectedMachineProvider === null
-      ? undefined
-      : machineProviderInputsSlots.find(
-          (slot) =>
-            slot.machineProviderId === selectedMachineProvider.id &&
-            slot.pluginId === selectedMachineProvider.pluginId,
-        );
-  const MachineInputsComponent = machineInputsRegistration?.component;
-  const selectMachineProvider = (provider: SystemMachineProvider): void => {
-    createKey.current = null;
-    setSelectedMachineProvider(provider);
-    setMachineInputs(
-      provider.inputs === null ? null : provider.acceptsEmptyInputs ? {} : null,
-    );
-    setMachineInputsBlocked(null);
-  };
-  const handleMachineInputsChange = (
-    next: PluginMachineProviderInputsChange,
-  ): void => {
-    createKey.current = null;
-    if (next.status === "blocked") {
-      setMachineInputsBlocked(next.reason);
-      return;
-    }
-    setMachineInputsBlocked(null);
-    setMachineInputs(next.value);
-  };
   const createMachine = useMutation({
     meta: { showErrorToast: false },
-    mutationFn: async () => {
-      if (selectedMachineProvider === null) {
-        throw new Error("Select a machine provider.");
+    mutationFn: async (options: { replaceLaunch: boolean }) => {
+      if (options.replaceLaunch) {
+        createController.current?.abort();
+        createController.current = null;
+        if (launchId !== null)
+          await sdk.hosts.experimental_cancel({ id: launchId });
+        createKey.current = null;
       }
       setProgress("");
       setLaunchId(null);
@@ -231,18 +160,18 @@ export function ProviderMachineSetup({
       try {
         const launch = await sdk.hosts.experimental_submit({
           key: createKey.current,
-          machineProviderId: selectedMachineProvider.id,
-          inputs: machineInputs,
+          machineProviderId: MANUAL_MACHINE_PROVIDER_ID,
+          inputs: null,
           signal: controller.signal,
         });
         setLaunchId(launch.id);
-        setCommand(launch.command);
+        setCommand(enrollmentCommand(launch));
         return await sdk.hosts.experimental_follow({
           id: launch.id,
           signal: controller.signal,
           onProgress: (status) => {
             setProgress(status.step);
-            setCommand(status.command);
+            setCommand(enrollmentCommand(status));
             if (status.terminal) createKey.current = null;
           },
         });
@@ -253,212 +182,125 @@ export function ProviderMachineSetup({
     },
     onSuccess: () => onOpenChange(false),
   });
+  const start = createMachine.mutate;
+  useEffect(() => {
+    start({ replaceLaunch: false });
+  }, [start]);
 
-  if (providers.length === 0) {
-    return (
-      <>
-        <DialogHeader>
-          <DialogTitle>Add a machine</DialogTitle>
-          <DialogDescription>
-            No machine provider is installed, so there is nothing to add a
-            machine with.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex justify-end">
-          <Button asChild size="sm" variant="outline">
-            <Link
-              to={TOOLS_PLUGIN_BROWSE_ROUTE_PATH}
-              onClick={() => onOpenChange(false)}
-            >
-              Browse plugins
-              <Icon name="ArrowRight" />
-            </Link>
-          </Button>
-        </div>
-      </>
-    );
-  }
   return (
-    <>
-      <DialogHeader>
-        <DialogTitle>Add a machine</DialogTitle>
-        {providers.length > 1 ? (
-          <DialogDescription>Choose how to add your machine.</DialogDescription>
-        ) : null}
-      </DialogHeader>
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-normal text-foreground">
-            Machine provider
-          </span>
-          {providers.length === 1 && selectedMachineProvider !== null ? (
-            <span className="flex items-center gap-2 text-sm text-foreground">
-              <MachineProviderIcon
-                provider={selectedMachineProvider}
-                className="size-4 shrink-0"
-              />
-              {selectedMachineProvider.displayName}
-            </span>
-          ) : (
-            <OptionPicker
-              modal={false}
-              align="end"
-              label="Machine provider"
-              value={selectedMachineProvider?.id ?? ""}
-              disabled={providers.length === 0 || createMachine.isPending}
-              showChevronWhenDisabled
-              displayOverride={
-                selectedMachineProvider === null
-                  ? {
-                      label:
-                        providers.length === 0
-                          ? "None installed"
-                          : "Choose a provider",
-                    }
-                  : undefined
-              }
-              options={providers.map((provider) => ({
-                value: provider.id,
-                label: provider.displayName,
-                icon: machineProviderIconComponent(provider),
-                ...(provider.availability !== null &&
-                provider.availability.status !== "available"
-                  ? { description: provider.availability.message }
-                  : { description: provider.description }),
-              }))}
-              onChange={(providerId) => {
-                const provider = providers.find(
-                  (candidate) => candidate.id === providerId,
-                );
-                if (provider) selectMachineProvider(provider);
-              }}
-            />
-          )}
-        </div>
-        {selectedMachineProvider === null ? null : (
-          <div className="space-y-3">
-            <p className="text-xs text-subtle-foreground">
-              {selectedMachineProvider.description}
-            </p>
-            {machineInputsRegistration === undefined ||
-            MachineInputsComponent === undefined ? null : (
-              <PluginSlotMount
-                pluginId={machineInputsRegistration.pluginId}
-                slotKind="machineProviderInputs"
-                slotId={machineInputsRegistration.machineProviderId}
-              >
-                <MachineInputsComponent
-                  key={selectedMachineProvider.id}
-                  value={machineInputs}
-                  onChange={handleMachineInputsChange}
-                />
-              </PluginSlotMount>
-            )}
-            {machineInputsBlocked === null ? null : (
-              <p className="text-xs text-destructive-text">
-                {machineInputsBlocked}
-              </p>
-            )}
-            {createMachine.isError ? (
-              <p role="alert" className="text-xs text-destructive-text">
-                {getMutationErrorMessage({
-                  error: createMachine.error,
-                  fallbackMessage: "Couldn't create the machine.",
-                })}
-              </p>
-            ) : null}
-            {selectedMachineProvider.availability === null ||
-            selectedMachineProvider.availability.status ===
-              "available" ? null : (
-              <p
-                role={
-                  selectedMachineProvider.availability.status === "unavailable"
-                    ? "alert"
-                    : "status"
-                }
-                className={
-                  selectedMachineProvider.availability.status === "unavailable"
-                    ? "text-xs text-destructive-text"
-                    : "text-xs text-subtle-foreground"
-                }
-              >
-                {selectedMachineProvider.availability.message}
-              </p>
-            )}
-            {selectedMachineProvider.availability?.status ===
-            "unavailable" ? null : selectedMachineProvider.availability
-                ?.status === "setup-required" ? (
-              <Button
-                asChild
-                size="sm"
-                variant="outline"
-                className="w-full sm:w-auto sm:self-end"
-              >
-                <Link
-                  to={getPluginConfigurationRoutePath({
-                    pluginId: selectedMachineProvider.pluginId,
-                  })}
-                >
-                  Configure {selectedMachineProvider.displayName}
-                  <Icon name="ArrowRight" />
-                </Link>
-              </Button>
-            ) : (
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  size="sm"
-                  className="w-full sm:w-auto"
-                  disabled={
-                    createMachine.isPending ||
-                    machineInputsBlocked !== null ||
-                    (machineProviderInputsControlRequired(
-                      selectedMachineProvider,
-                    ) &&
-                      machineInputsRegistration === undefined) ||
-                    (selectedMachineProvider.inputs !== null &&
-                      machineInputs === null)
-                  }
-                  onClick={() => createMachine.mutate()}
-                >
-                  {createMachine.isPending ? "Adding machine…" : "Add machine"}
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-      {createMachine.isPending && progress && (
-        <p role="status" className="text-sm text-subtle-foreground">
-          {progress}
-        </p>
-      )}
-      {command === null ? null : (
-        <MachineLaunchCommand key={command} command={command} />
-      )}
-      {createMachine.isPending && launchId ? (
-        <DialogFooter>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
+    <ManualMachineSetupView
+      command={command}
+      progress={progress}
+      errorMessage={
+        createMachine.isError
+          ? getMutationErrorMessage({
+              error: createMachine.error,
+              fallbackMessage: "Couldn't prepare an enrollment command.",
+            })
+          : null
+      }
+      onRetry={() => createMachine.mutate({ replaceLaunch: false })}
+      onRegenerate={() => createMachine.mutate({ replaceLaunch: true })}
+      onCancelSetup={
+        createMachine.isPending && launchId !== null
+          ? () =>
               void sdk.hosts.experimental_cancel({ id: launchId }).then(() => {
                 createController.current?.abort();
                 onOpenChange(false);
               })
-            }
-          >
+          : null
+      }
+    />
+  );
+}
+
+export function ManualMachineSetupView({
+  command,
+  progress,
+  errorMessage,
+  onRetry,
+  onRegenerate,
+  onCancelSetup,
+}: {
+  command: EnrollmentCommand | null;
+  progress: string;
+  errorMessage: string | null;
+  onRetry: () => void;
+  onRegenerate: () => void;
+  onCancelSetup: (() => void) | null;
+}) {
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Add a machine</DialogTitle>
+        <DialogDescription>
+          Run this command on the machine you want to add. It installs bb and
+          keeps the machine connected to this server.
+        </DialogDescription>
+      </DialogHeader>
+      {errorMessage === null ? null : (
+        <div className="space-y-2">
+          <p role="alert" className="text-sm text-destructive-text">
+            {errorMessage}
+          </p>
+          <Button type="button" size="sm" variant="outline" onClick={onRetry}>
+            Try again
+          </Button>
+        </div>
+      )}
+      {command === null ? (
+        errorMessage === null ? (
+          <p role="status" className="text-sm text-subtle-foreground">
+            {progress === "" ? "Preparing an enrollment command…" : progress}
+          </p>
+        ) : null
+      ) : (
+        <MachineLaunchCommand
+          key={command.value}
+          command={command.value}
+          expiresAt={command.expiresAt}
+          onRegenerate={onRegenerate}
+        />
+      )}
+      {onCancelSetup === null ? null : (
+        <DialogFooter>
+          <Button variant="outline" size="sm" onClick={onCancelSetup}>
             Cancel setup
           </Button>
         </DialogFooter>
-      ) : null}
+      )}
     </>
   );
 }
 
-function MachineLaunchCommand({ command }: { command: string }) {
+function formatRemaining(ms: number): string {
+  const totalSeconds = Math.ceil(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes === 0) return `${seconds}s`;
+  return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+}
+
+export function MachineLaunchCommand({
+  command,
+  expiresAt,
+  onRegenerate,
+}: {
+  command: string;
+  expiresAt: number;
+  onRegenerate: () => void;
+}) {
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
+  const [remaining, setRemaining] = useState(() => expiresAt - Date.now());
+  useEffect(() => {
+    const timer = setInterval(
+      () => setRemaining(expiresAt - Date.now()),
+      1_000,
+    );
+    return () => clearInterval(timer);
+  }, [expiresAt]);
+  const expired = remaining <= 0;
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(command);
@@ -472,17 +314,34 @@ function MachineLaunchCommand({ command }: { command: string }) {
     <div className="overflow-hidden rounded-md border border-border bg-muted/30">
       <div className="space-y-1 border-b border-border px-3 py-2">
         <p className="text-sm font-medium">Run this command</p>
-        <p className="text-xs text-subtle-foreground">
-          It expires 15 minutes after it was issued.
+        <p
+          role="status"
+          className={
+            expired
+              ? "text-xs text-destructive-text"
+              : "text-xs text-subtle-foreground"
+          }
+        >
+          {expired
+            ? "This command has expired."
+            : `Expires in ${formatRemaining(remaining)}.`}
         </p>
       </div>
-      <pre className="whitespace-pre-wrap break-all p-3 font-mono text-xs">
-        {command}
-      </pre>
-      <div className="flex justify-end border-t border-border px-3 py-2">
-        <Button variant="outline" size="sm" onClick={() => void copy()}>
-          {copied ? "Copied" : "Copy command"}
-        </Button>
+      {expired ? null : (
+        <pre className="whitespace-pre-wrap break-all p-3 font-mono text-xs">
+          {command}
+        </pre>
+      )}
+      <div className="flex justify-end gap-2 border-t border-border px-3 py-2">
+        {expired ? (
+          <Button variant="outline" size="sm" onClick={onRegenerate}>
+            Generate new command
+          </Button>
+        ) : (
+          <Button variant="outline" size="sm" onClick={() => void copy()}>
+            {copied ? "Copied" : "Copy command"}
+          </Button>
+        )}
       </div>
       {copyFailed ? (
         <p role="alert" className="px-3 pb-3 text-xs text-destructive-text">

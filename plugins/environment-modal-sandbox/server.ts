@@ -339,8 +339,7 @@ export function createModalSandboxPlugin(
     bb.experimental_machines.register({
       id: PROVIDER_ID,
       displayName: "Modal Sandbox",
-      description:
-        "Create a sandbox in your Modal account, billed by Modal while it runs and suspended when idle.",
+      description: "Create a sandbox in your Modal account.",
       icon: "./modal-logo.svg",
       machineTag: "modal",
       async availability() {

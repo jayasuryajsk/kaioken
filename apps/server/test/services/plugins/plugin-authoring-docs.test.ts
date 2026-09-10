@@ -19,7 +19,6 @@ import {
   type PluginMessageActionContext,
   type PluginMessageActionRegistration,
   type PluginMessageDirectiveProps,
-  type PluginMachineProviderInputsProps,
   type PluginNavPanelProps,
   type PluginNavPanelRegistration,
   type PluginNewThreadPanelProps,
@@ -270,7 +269,6 @@ type SlotPropsByName = {
   experimental_providerIcon: PluginProviderIconRegistration;
   experimental_timelineRenderer: PluginTimelineRendererProps;
   experimental_environmentProviderInputs: PluginEnvironmentProviderInputsProps;
-  experimental_machineProviderInputs: PluginMachineProviderInputsProps;
 };
 
 type MissingSlot = Exclude<keyof PluginAppSlots, keyof SlotPropsByName>;
@@ -389,7 +387,6 @@ const FRONTEND_SLOT_PROP_FIELDS = {
     "value",
     "onChange",
   ],
-  experimental_machineProviderInputs: ["value", "onChange"],
 } as const satisfies {
   [S in keyof SlotPropsByName]: readonly (keyof SlotPropsByName[S])[];
 };
@@ -529,9 +526,6 @@ describe("bb-plugin-authoring skill", () => {
     );
     expect(backend.indexOf("await checkpoint(resource)")).toBeLessThan(
       backend.indexOf("bb.experimental_machines.bootstrap({"),
-    );
-    expect(readReference("frontend-renderer-slots.md")).toContain(
-      "app.slots.experimental_machineProviderInputs",
     );
   });
 

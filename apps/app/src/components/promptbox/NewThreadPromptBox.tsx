@@ -89,7 +89,6 @@ export interface NewThreadEnvironmentConfig {
   selectedProviderHostId?: string | null;
   inputsControlProviderIds?: ReadonlySet<string>;
   onSelectProvider?: EnvironmentPickerUIProps["onSelectProvider"];
-  selectedMachineProviderId?: string | null;
 }
 
 export interface NewThreadWorktreeConfig {
@@ -115,7 +114,6 @@ export interface NewThreadModeConfig {
   worktree: NewThreadWorktreeConfig;
   permission: ExecutionPermissionConfig;
   environmentProviderInputsSlot?: ReactNode;
-  machineProviderInputsSlot?: ReactNode;
   banner?: ReactNode;
   header?: ReactNode;
 }
@@ -385,7 +383,6 @@ const DefaultNewThreadComposer = memo(function DefaultNewThreadComposer({
               environmentProviderInputsSlot={
                 modeConfig.environmentProviderInputsSlot
               }
-              machineProviderInputsSlot={modeConfig.machineProviderInputsSlot}
             />
           ) : (
             <ProjectlessEnvSlot
@@ -394,7 +391,6 @@ const DefaultNewThreadComposer = memo(function DefaultNewThreadComposer({
               environmentProviderInputsSlot={
                 modeConfig.environmentProviderInputsSlot
               }
-              machineProviderInputsSlot={modeConfig.machineProviderInputsSlot}
             />
           )}
         </div>
@@ -418,14 +414,12 @@ interface ThreadEnvSlotProps {
   environment: NewThreadEnvironmentConfig;
   worktree: NewThreadWorktreeConfig;
   environmentProviderInputsSlot?: ReactNode;
-  machineProviderInputsSlot?: ReactNode;
 }
 
 export function ThreadEnvSlot({
   environment,
   worktree,
   environmentProviderInputsSlot,
-  machineProviderInputsSlot,
 }: ThreadEnvSlotProps) {
   const parsedEnvironment = useMemo(
     () => parseEnvironmentValue(environment.value),
@@ -473,10 +467,6 @@ export function ThreadEnvSlot({
       {selectedProvider !== undefined && selectedProvider.inputs !== null
         ? environmentProviderInputsSlot
         : null}
-      {environment.selectedMachineProviderId === undefined ||
-      environment.selectedMachineProviderId === null
-        ? null
-        : machineProviderInputsSlot}
     </>
   );
 }
@@ -485,14 +475,12 @@ interface ProjectlessEnvSlotProps {
   environment: NewThreadEnvironmentConfig;
   worktree: NewThreadWorktreeConfig;
   environmentProviderInputsSlot?: ReactNode;
-  machineProviderInputsSlot?: ReactNode;
 }
 
 export function ProjectlessEnvSlot({
   environment,
   worktree,
   environmentProviderInputsSlot,
-  machineProviderInputsSlot,
 }: ProjectlessEnvSlotProps) {
   const providers = (environment.providers ?? []).filter(
     (provider) => provider.requires.projectless,
@@ -547,10 +535,6 @@ export function ProjectlessEnvSlot({
       {selectedProvider !== undefined && selectedProvider.inputs !== null
         ? environmentProviderInputsSlot
         : null}
-      {environment.selectedMachineProviderId === undefined ||
-      environment.selectedMachineProviderId === null
-        ? null
-        : machineProviderInputsSlot}
     </>
   );
 }
@@ -624,7 +608,6 @@ interface NewThreadConnectedModeConfig {
   worktree: NewThreadWorktreeConfig;
   permission: ExecutionPermissionConfig;
   environmentProviderInputsSlot?: ReactNode;
-  machineProviderInputsSlot?: ReactNode;
   banner?: ReactNode;
   header?: ReactNode;
 }
@@ -689,7 +672,6 @@ export function NewThreadPromptBox({
         permission: threadConfig.permission,
         environmentProviderInputsSlot:
           threadConfig.environmentProviderInputsSlot,
-        machineProviderInputsSlot: threadConfig.machineProviderInputsSlot,
         banner: threadConfig.banner,
         header: threadConfig.header,
       }}

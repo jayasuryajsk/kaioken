@@ -236,14 +236,6 @@ className?, draftKey? }` — the `default*` props are SEEDS, not controlled
   render no provider logo, matching a manually enrolled machine. The Machines
   page badges a machine only when its provider declares
   `machineTag`.
-  Machine-provider inputs use
-  `app.slots.experimental_machineProviderInputs({ machineProviderId,
-component })`. The component receives `{ value, onChange }` and
-  reports ready JSON or a blocked reason. The control appears in
-  Settings → Machines → Add machine. Inputs are persisted
-  and readable by every plugin, so never put secrets in them; store credentials
-  in plugin settings and emit only non-secret configuration or references.
-
   Store-then-restore: the request's selection fields map to the `default*`
   seed props. The host composer creates `input` and `executionInputSources`
   from its draft and selection provenance. A plugin can re-open a saved

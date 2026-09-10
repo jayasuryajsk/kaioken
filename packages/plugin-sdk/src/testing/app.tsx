@@ -73,7 +73,6 @@ import {
   type ExperimentalPermissionModePickerProps,
   type ExperimentalProviderModelPickerProps,
   type PluginEnvironmentProviderInputsRegistration,
-  type PluginMachineProviderInputsRegistration,
   type ThreadChatProps,
   type DiffProps,
   type SourceCodeProps,
@@ -967,7 +966,6 @@ export interface CapturedPluginApp {
   providerIcons: PluginProviderIconRegistration[];
   timelineRenderers: PluginTimelineRendererRegistration[];
   environmentProviderInputs: PluginEnvironmentProviderInputsRegistration[];
-  machineProviderInputs: PluginMachineProviderInputsRegistration[];
   contentScripts: PluginContentScriptRegistration[];
 }
 

@@ -9,17 +9,14 @@ import {
 } from "../helpers/provider-decisions.js";
 import {
   createEnvironment,
-  createProjectSource,
   ensurePersonalProject,
   getEnvironmentLaunch,
   getEnvironment,
-  getHost,
   getMachineLaunch,
   upsertMachineLaunch,
   updateMachineLaunchAttempt,
   updateHost,
   getDefaultProjectSource,
-  getProjectSourceByHost,
   setProjectGitRemoteUrlIfMissing,
   getThread,
   listEnvironments,
@@ -33,7 +30,6 @@ import {
 import type {
   PluginDispatchEnvironmentIntent,
   PluginEnvironmentProviderDeclaration,
-  PluginMachineProviderDeclaration,
   PluginEnvironmentValidateDecision,
   PluginHookName,
 } from "@get-bb/plugin-sdk";
@@ -69,7 +65,6 @@ import {
 } from "../../src/services/threads/thread-provisioning-active-context.js";
 import { createMetadataPendingContext } from "../../src/services/threads/thread-provisioning-context.js";
 import {
-  listQueuedCommands,
   listQueuedThreadCommands,
   registerTestHostRpcCapture,
   reportQueuedCommandError,

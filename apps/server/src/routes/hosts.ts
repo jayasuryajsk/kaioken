@@ -58,12 +58,14 @@ function providerCliInstallEventsToNdjson(events: readonly unknown[]): string {
 
 async function launchStatus(deps: AppDeps, key: string) {
   const status = machineLaunchStatus(deps, key);
+  const pending =
+    status.phase === "creating"
+      ? await manualLaunchCommand(getMachineEnrollmentService(deps), key)
+      : null;
   return {
     ...status,
-    command:
-      status.phase === "creating"
-        ? await manualLaunchCommand(getMachineEnrollmentService(deps), key)
-        : null,
+    command: pending === null ? null : pending.command,
+    commandExpiresAt: pending === null ? null : pending.expiresAt,
   };
 }
 

@@ -30,7 +30,6 @@ import type {
 import type { SystemEnvironmentProvider } from "@bb/server-contract";
 import {
   NewThreadComposer,
-  resolveSubmittedExecutionSources,
   type NewThreadComposerState,
 } from "@/components/promptbox/NewThreadComposer";
 import {

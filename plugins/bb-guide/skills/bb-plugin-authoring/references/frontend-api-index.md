@@ -41,12 +41,6 @@ Read the installed SDK declarations for the exact current signatures.
 
 ## Type exports
 
-- `PluginMachineProviderInputsRegistration` — registers one provider's app
-  inputs control with `app.slots.experimental_machineProviderInputs`
-- `PluginMachineProviderInputsProps` — project, persisted non-secret value,
-  and ready/blocked change callback
-- `PluginMachineProviderInputsChange`
-
 - `PluginHomepageSectionProps`
 - `PluginSettingsSectionProps`
 - `ExperimentalAppOverlayProps`

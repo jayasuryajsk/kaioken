@@ -235,9 +235,6 @@ describe("surface card copy", () => {
         "MachineBootstrapRequest",
         "MachineBootstrapApi",
         "PluginMachineProviderCreateContext",
-        "PluginMachineProviderInputsProps",
-        "PluginMachineProviderInputsChange",
-        "PluginMachineProviderInputsRegistration",
       ]),
     );
     expect(machines?.bullets.join(" ")).toContain(
