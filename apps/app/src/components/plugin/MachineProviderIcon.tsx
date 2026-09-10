@@ -28,18 +28,3 @@ export function MachineProviderIcon({
     <ProviderIcon className={className} />
   );
 }
-
-export function MachineProviderKind({
-  provider,
-  className,
-}: {
-  provider: MachineProviderPresentation;
-  className?: string;
-}) {
-  return (
-    <span className={className}>
-      <MachineProviderIcon provider={provider} className="size-3 shrink-0" />
-      <span className="min-w-0 truncate">{provider.displayName}</span>
-    </span>
-  );
-}

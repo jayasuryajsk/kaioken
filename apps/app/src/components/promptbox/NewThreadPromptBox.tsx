@@ -11,7 +11,10 @@ import {
   type RefObject,
 } from "react";
 import type { Host, ProjectSource, PromptTextMention } from "@bb/domain";
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
+import type {
+  SystemEnvironmentProvider,
+  SystemMachineProvider,
+} from "@bb/server-contract";
 import type { ComposerView } from "@get-bb/plugin-sdk";
 import type { ComposerTextEffectSource } from "@/lib/composer-text-effects";
 import { ComposerBannersSlot } from "@/components/plugin/PluginComposerBanners";
@@ -62,6 +65,7 @@ import {
   useHosts,
 } from "@/hooks/queries/host-queries";
 import { useSystemConfig } from "@/hooks/queries/system-queries";
+import { useSystemMachineProviders } from "@/hooks/queries/machine-provider-queries";
 import { useHostDaemon } from "@/hooks/useHostDaemon";
 import {
   isPlanModePrompt,
@@ -85,6 +89,7 @@ export interface NewThreadEnvironmentConfig {
   disabled?: boolean;
   isLoading?: boolean;
   providers?: readonly SystemEnvironmentProvider[];
+  machineProviders?: readonly SystemMachineProvider[];
   selectedProviderHostId?: string | null;
   inputsControlProviderIds?: ReadonlySet<string>;
   onSelectProvider?: EnvironmentPickerUIProps["onSelectProvider"];
@@ -607,6 +612,7 @@ export function ProjectlessMachineSlot({
       disabled={environment.disabled}
       className="shrink-0"
       muted
+      machineProviders={environment.machineProviders}
     />
   );
 }
@@ -639,6 +645,7 @@ export function NewThreadPromptBox({
 }: NewThreadPromptBoxProps) {
   const { data: hosts } = useHosts();
   const systemConfigQuery = useSystemConfig();
+  const { providers: machineProviders } = useSystemMachineProviders();
   const primaryHostId = systemConfigQuery.data?.primaryHostId ?? null;
   const availableHosts = useMemo(() => selectHosts(hosts), [hosts]);
   const primaryHost = useMemo(
@@ -671,11 +678,19 @@ export function NewThreadPromptBox({
   const uiEnvironment = useMemo(
     () => ({
       ...threadConfig.environment,
+      machineProviders:
+        threadConfig.environment.machineProviders ?? machineProviders,
       host: selectedHost,
       isLocal: isLocalHost,
       machines,
     }),
-    [threadConfig.environment, selectedHost, isLocalHost, machines],
+    [
+      threadConfig.environment,
+      machineProviders,
+      selectedHost,
+      isLocalHost,
+      machines,
+    ],
   );
   return (
     <NewThreadPromptBoxUI

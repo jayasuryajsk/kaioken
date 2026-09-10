@@ -40,7 +40,11 @@ function PausedMachine({ hostName }: { hostName: string }) {
   return (
     <ThreadMachineStatusBanner
       provider={modalProvider}
-      hostName={hostName}
+      host={{
+        name: hostName,
+        type: "ephemeral",
+        machineProviderId: modalProvider.id,
+      }}
       phase="suspended"
       resuming={resuming}
       error={null}
@@ -61,7 +65,11 @@ export function States() {
         <ResponsiveStage>
           <ThreadMachineStatusBanner
             provider={modalProvider}
-            hostName="Modal Sandbox"
+            host={{
+              name: "Modal Sandbox",
+              type: "ephemeral",
+              machineProviderId: modalProvider.id,
+            }}
             phase="suspending"
             resuming={false}
             error={null}
@@ -73,7 +81,11 @@ export function States() {
         <ResponsiveStage>
           <ThreadMachineStatusBanner
             provider={modalProvider}
-            hostName="Modal Sandbox"
+            host={{
+              name: "Modal Sandbox",
+              type: "ephemeral",
+              machineProviderId: modalProvider.id,
+            }}
             phase="suspended"
             resuming
             error={null}
@@ -88,7 +100,11 @@ export function States() {
         <ResponsiveStage>
           <ThreadMachineStatusBanner
             provider={modalProvider}
-            hostName="Modal Sandbox"
+            host={{
+              name: "Modal Sandbox",
+              type: "ephemeral",
+              machineProviderId: modalProvider.id,
+            }}
             phase="suspended"
             resuming={false}
             error="Modal is temporarily unavailable. Your machine is still paused."

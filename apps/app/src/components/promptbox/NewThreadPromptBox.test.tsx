@@ -60,6 +60,7 @@ describe("ProjectlessMachineSlot", () => {
       localDaemonHostId: string | null;
       primaryHostId: string | null;
     } | null;
+    machineProviders?: readonly SystemMachineProvider[];
   }) {
     return {
       value: "provider:personal-workspace",
@@ -76,6 +77,7 @@ describe("ProjectlessMachineSlot", () => {
               primaryHostId: host.id,
             },
       providers: [personalWorkspaceProvider],
+      machineProviders: overrides?.machineProviders,
       selectedProviderHostId: overrides?.selectedProviderHostId ?? host.id,
       onSelectProvider: overrides?.onSelectProvider ?? vi.fn(),
     };
@@ -108,25 +110,43 @@ describe("ProjectlessMachineSlot", () => {
   });
 
   it("counts provider-made machines in the projectless machine chip", () => {
+    const modalHost = makeHost({
+      id: "host_modal",
+      name: "Modal sandbox 3f9a",
+      type: "ephemeral",
+      machineProviderId: "modal-sandbox",
+    });
     render(
       <ProjectlessMachineSlot
         environment={makeEnvironment({
+          selectedProviderHostId: modalHost.id,
           machines: {
-            hosts: [
-              host,
-              makeHost({
-                id: "host_modal",
-                name: "Modal sandbox 3f9a",
-              }),
-            ],
+            hosts: [host, modalHost],
             localDaemonHostId: host.id,
             primaryHostId: host.id,
           },
+          machineProviders: [
+            {
+              id: "modal-sandbox",
+              displayName: "Modal Sandbox",
+              description: "Run a machine for development.",
+              icon: "Cloud",
+              logoUrl: null,
+              pluginId: "environment-modal-sandbox",
+              inputs: null,
+              acceptsEmptyInputs: true,
+              supportsSuspend: true,
+            },
+          ],
         })}
       />,
     );
 
-    expect(screen.getByRole("button", { name: "Machine" })).toBeTruthy();
+    const chip = screen.getByRole("button", { name: "Machine" });
+    expect(chip.querySelector('[data-icon="Cloud"]')).not.toBeNull();
+    expect(chip.querySelector('[data-icon="Laptop"]')).toBeNull();
+    expect(chip.textContent).toContain(modalHost.name);
+    expect(chip.textContent).not.toContain("Modal Sandbox");
   });
 
   it("names the selected machine in the chip", () => {

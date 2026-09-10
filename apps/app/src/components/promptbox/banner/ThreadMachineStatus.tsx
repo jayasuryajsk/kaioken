@@ -4,7 +4,10 @@ import { AnimatedBody } from "./AnimatedBody";
 import { useHosts } from "@/hooks/queries/host-queries";
 import { useResumeHost } from "@/hooks/mutations/host-mutations";
 import type { SystemMachineProvider } from "@bb/server-contract";
-import { MachineProviderIcon } from "@/components/plugin/MachineProviderIcon";
+import {
+  MachineLabel,
+  type MachineLabelHost,
+} from "@/components/machines/MachineLabel";
 import { useSystemMachineProviders } from "@/hooks/queries/machine-provider-queries";
 import { cn } from "@bb/shared-ui/lib/utils";
 import {
@@ -33,7 +36,7 @@ export function ThreadMachineStatus({ hostId }: { hostId: string }) {
   if (!pausing && !paused) return null;
   return (
     <ThreadMachineStatusBanner
-      hostName={host.name}
+      host={host}
       provider={providers?.find(
         (provider) => provider.id === host.machineProviderId,
       )}
@@ -53,31 +56,32 @@ export function ThreadMachineStatus({ hostId }: { hostId: string }) {
 }
 
 export function ThreadMachineStatusBanner({
-  hostName,
+  host,
   provider,
   phase,
   resuming,
   error,
   onResume,
 }: {
-  hostName: string;
+  host: MachineLabelHost;
   provider: SystemMachineProvider | undefined;
   phase: "suspending" | "suspended";
   resuming: boolean;
   error: string | null;
   onResume: () => void;
 }) {
-  const machineName =
-    provider === undefined ? hostName : `${hostName} · ${provider.displayName}`;
-  const status = `${machineName} is ${
+  const status = `${host.name} is ${
     resuming ? "resuming…" : phase === "suspending" ? "pausing…" : "paused"
   }`;
   const detail = error && !resuming ? error : null;
   const [isExpanded, setIsExpanded] = useState(false);
   const expandable = detail !== null;
-  const icon = provider ? (
-    <MachineProviderIcon provider={provider} className="size-3.5 shrink-0" />
-  ) : null;
+  const statusLabel = (
+    <>
+      <MachineLabel host={host} machineProvider={provider} /> is{" "}
+      {resuming ? "resuming…" : phase === "suspending" ? "pausing…" : "paused"}
+    </>
+  );
   return (
     <PromptStackCard
       ariaLabel="Machine status"
@@ -105,8 +109,9 @@ export function ThreadMachineStatusBanner({
               isExpanded ? "text-foreground" : "text-muted-foreground",
             )}
           >
-            {icon}
-            <span className="min-w-0 truncate">{status}</span>
+            <span className="flex min-w-0 items-center gap-1.5">
+              {statusLabel}
+            </span>
             <Icon
               name="ChevronDown"
               className={cn(
@@ -125,9 +130,8 @@ export function ThreadMachineStatusBanner({
             role="status"
             aria-label={status}
           >
-            {icon}
             <span className="min-w-0 truncate" aria-hidden="true">
-              {status}
+              {statusLabel}
             </span>
           </div>
         )}

@@ -33,7 +33,7 @@ import {
   machineStatusTone,
 } from "@/components/machines/machine-status";
 import { MachineRenameDialog } from "@/components/settings/MachineRenameDialog";
-import { MachineProviderIcon } from "@/components/plugin/MachineProviderIcon";
+import { MachineLabel } from "@/components/machines/MachineLabel";
 import {
   SettingsBadge,
   SettingsRow,
@@ -163,25 +163,11 @@ export function MachineRowContent({
           >
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex min-w-0 items-center gap-1.5">
-                {host.type === "ephemeral" &&
-                host.machineProviderId !== null ? (
-                  <MachineProviderIcon
-                    provider={
-                      machineProvider ?? {
-                        id: host.machineProviderId,
-                        displayName: host.machineProviderId,
-                        icon: "Server",
-                        logoUrl: null,
-                      }
-                    }
-                    className="size-3.5 shrink-0"
-                  />
-                ) : (
-                  <Icon name="Laptop" className="size-3.5 shrink-0" />
-                )}
-                <span className="min-w-0 truncate text-sm font-medium text-foreground">
-                  {host.name}
-                </span>
+                <MachineLabel
+                  host={host}
+                  machineProvider={machineProvider}
+                  nameClassName="text-sm font-medium text-foreground"
+                />
                 {isThisMachine ? (
                   <SettingsBadge>this machine</SettingsBadge>
                 ) : null}

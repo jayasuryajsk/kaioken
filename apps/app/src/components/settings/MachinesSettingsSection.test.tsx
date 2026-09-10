@@ -245,12 +245,18 @@ describe("MachinesSettingsSection", () => {
 
     const primaryName = await screen.findByText("MacBook Pro");
     const localName = screen.getByText("dev-vm");
-    expect(primaryName.parentElement?.textContent).toContain("primary");
-    expect(primaryName.parentElement?.textContent).not.toContain(
+    expect(primaryName.parentElement?.parentElement?.textContent).toContain(
+      "primary",
+    );
+    expect(primaryName.parentElement?.parentElement?.textContent).not.toContain(
       "this machine",
     );
-    expect(localName.parentElement?.textContent).toContain("this machine");
-    expect(localName.parentElement?.textContent).not.toContain("primary");
+    expect(localName.parentElement?.parentElement?.textContent).toContain(
+      "this machine",
+    );
+    expect(localName.parentElement?.parentElement?.textContent).not.toContain(
+      "primary",
+    );
     expect(screen.getByText("Linux")).toBeDefined();
   });
 

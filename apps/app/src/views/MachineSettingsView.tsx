@@ -19,7 +19,7 @@ import {
   machineStatusLabel,
   machineStatusTone,
 } from "@/components/machines/machine-status";
-import { MachineProviderKind } from "@/components/plugin/MachineProviderIcon";
+import { MachineLabel } from "@/components/machines/MachineLabel";
 import { PageShell } from "@/components/ui/page-shell.js";
 import {
   SettingsBadge,
@@ -217,17 +217,11 @@ export function MachineSettingsHeader({
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
           <div className="flex min-w-0 items-center gap-2">
-            <h1 className="min-w-0 truncate text-sm font-semibold text-foreground">
-              {host.name}
+            <h1 className="min-w-0 text-sm font-semibold text-foreground">
+              <MachineLabel host={host} machineProvider={machineProvider} />
             </h1>
             {isThisMachine ? <SettingsBadge>This machine</SettingsBadge> : null}
             {showPrimaryBadge ? <SettingsBadge>Primary</SettingsBadge> : null}
-            {machineProvider === null ? null : (
-              <MachineProviderKind
-                provider={machineProvider}
-                className="inline-flex min-w-0 items-center gap-1 text-xs font-normal text-subtle-foreground"
-              />
-            )}
           </div>
           <div className="flex min-w-0 items-center gap-2">
             <MachineStatusDot tone={machineStatusTone(host)} />

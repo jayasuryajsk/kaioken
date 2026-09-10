@@ -33,7 +33,7 @@ import {
 import { useSystemEnvironmentProviders } from "@/hooks/queries/environment-provider-queries";
 import { useSystemMachineProviders } from "@/hooks/queries/machine-provider-queries";
 import { useHosts } from "@/hooks/queries/host-queries";
-import { MachineProviderKind } from "@/components/plugin/MachineProviderIcon";
+import { MachineLabel } from "@/components/machines/MachineLabel";
 import { formatWorkspaceCheckoutDisplay } from "@/lib/workspace-checkout-display";
 import { Button } from "@bb/shared-ui/button";
 import {
@@ -248,11 +248,11 @@ export function EnvironmentRow({
   const { providers: machineProviders } = useSystemMachineProviders();
   const hosts = useHosts();
   if (!environment) return null;
-  const machineProviderId = hosts.data?.find(
+  const environmentHost = hosts.data?.find(
     (host) => host.id === environment.hostId,
-  )?.machineProviderId;
+  );
   const machineProvider = machineProviders?.find(
-    (provider) => provider.id === machineProviderId,
+    (provider) => provider.id === environmentHost?.machineProviderId,
   );
   const providerLookup = findEnvironmentDisplayProvider(
     providers,
@@ -269,6 +269,12 @@ export function EnvironmentRow({
     environmentName: environment.name,
     hostName: environmentDisplayHost.identity?.name ?? null,
   });
+  const displayHost = environmentHost ?? {
+    name:
+      environmentDisplayHost.identity?.name ?? infoDisplay.machineName ?? "",
+    type: "persistent" as const,
+    machineProviderId: null,
+  };
   const showCreateThreadButton = isReusableEnvironment(environment);
   return (
     <DetailRow
@@ -296,23 +302,23 @@ export function EnvironmentRow({
         </span>
         {infoDisplay.machineName !== null && environmentDisplayHost.identity ? (
           <span
-            className="min-w-0 shrink-0 truncate text-muted-foreground"
+            className="inline-flex min-w-0 shrink-0 items-center gap-1.5 text-muted-foreground"
             title={`On ${environmentDisplayHost.identity.name} (${
               environmentDisplayHost.identity.connected
                 ? "connected"
                 : "offline"
             })`}
           >
-            · {infoDisplay.machineName}
-            {environmentDisplayHost.identity.connected ? "" : " (offline)"}
+            <span>·</span>
+            <MachineLabel
+              host={displayHost}
+              machineProvider={machineProvider}
+            />
+            {environmentDisplayHost.identity.connected ? null : (
+              <span>(offline)</span>
+            )}
           </span>
         ) : null}
-        {machineProvider === undefined ? null : (
-          <MachineProviderKind
-            provider={machineProvider}
-            className="inline-flex min-w-0 shrink-0 items-center gap-1 text-muted-foreground"
-          />
-        )}
         {showCreateThreadButton ? (
           <Tooltip>
             <TooltipTrigger asChild>

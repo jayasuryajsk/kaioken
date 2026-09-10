@@ -200,7 +200,7 @@ describe("MachineSettingsView", () => {
       screen
         .getByRole("heading", { name: /dev-vm/u })
         .querySelector("[data-icon]"),
-    ).toBeNull();
+    ).not.toBeNull();
     expect(
       screen
         .getByRole("heading", { name: "Machine information" })
@@ -370,7 +370,19 @@ describe("MachineSettingsView", () => {
       host({ type: "ephemeral", machineProviderId: "modal-sandbox" }),
     ]);
     stubSupportingFetches();
-
+    vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue([
+      {
+        id: "modal-sandbox",
+        displayName: "Modal Sandbox",
+        description: "Run a machine for development.",
+        icon: "Cloud",
+        logoUrl: null,
+        pluginId: "environment-modal-sandbox",
+        inputs: null,
+        acceptsEmptyInputs: true,
+        supportsSuspend: true,
+      },
+    ]);
     renderView();
 
     expect(
@@ -378,6 +390,10 @@ describe("MachineSettingsView", () => {
         "Revokes dev-vm's access to this server. The compute and its saved snapshots are deleted. Its environments remain as read-only history.",
       ),
     ).toBeDefined();
+    const heading = await screen.findByRole("heading", { name: "dev-vm" });
+    expect(heading.querySelector('[data-icon="Cloud"]')).not.toBeNull();
+    expect(heading.querySelector('[data-icon="Laptop"]')).toBeNull();
+    expect(screen.queryByText("Modal Sandbox")).toBeNull();
   });
 
   it("shows client-local identity only when several machines need disambiguation", async () => {

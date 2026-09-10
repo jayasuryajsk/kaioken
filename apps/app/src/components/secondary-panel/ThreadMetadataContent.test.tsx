@@ -201,7 +201,7 @@ describe("EnvironmentRow", () => {
     expect(markup).toContain("retired-cloud (not installed)");
   });
 
-  it("shows the machine provider kind beside the host name", () => {
+  it("shows the provider icon and host name without provider kind text", () => {
     const environment = makeEnvironment({ hostId: "host_modal" });
     const markup = renderEnvironmentRow(
       environment,
@@ -215,6 +215,7 @@ describe("EnvironmentRow", () => {
           makeHost({
             id: "host_modal",
             name: "Modal sandbox abc123",
+            type: "ephemeral",
             machineProviderId: "modal-sandbox",
           }),
         ],
@@ -235,7 +236,8 @@ describe("EnvironmentRow", () => {
     );
 
     expect(markup).toContain("Modal sandbox abc123");
-    expect(markup).toContain("Modal machine");
+    expect(markup).toContain('data-icon="Cloud"');
+    expect(markup).not.toContain("Modal machine");
   });
 
   it("shows the create-thread action for a ready environment", () => {
@@ -320,7 +322,7 @@ describe("EnvironmentRow", () => {
     );
 
     expect(markup).toContain(">Personal workspace<");
-    expect(markup).toContain("· Michael-M4");
+    expect(markup).toContain("Michael-M4");
     expect(markup).toContain('data-icon="Folder"');
   });
 
@@ -332,7 +334,7 @@ describe("EnvironmentRow", () => {
     );
 
     expect(markup).toContain("Design system polish");
-    expect(markup).toContain("· Michael-M4");
+    expect(markup).toContain("Michael-M4");
     expect(markup).not.toContain("· Worktree");
   });
 
