@@ -23,7 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@bb/shared-ui/tooltip";
-import { CreateMachineDialog } from "@/components/dialogs/CreateMachineDialog";
+import { AddMachineDialog } from "@/components/dialogs/AddMachineDialog";
 import { appToast } from "@/components/ui/app-toast";
 import { MachineLifecycleActions } from "@/components/machines/MachineLifecycleActions";
 import { MachineRemoveDialog } from "@/components/machines/MachineRemoveDialog";
@@ -413,7 +413,7 @@ export function MachinesSettingsSection() {
         )}
       </SettingsSection>
 
-      <CreateMachineDialog
+      <AddMachineDialog
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
       />

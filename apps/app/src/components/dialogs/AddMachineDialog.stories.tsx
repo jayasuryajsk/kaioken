@@ -1,8 +1,5 @@
 import { useState } from "react";
-import {
-  MachineAccessGate,
-  ManualMachineSetupView,
-} from "./CreateMachineDialog";
+import { MachineAccessGate, ManualMachineSetupView } from "./AddMachineDialog";
 import { MachineAccessControlsContent } from "@/components/settings/MachineAccessSettings";
 import {
   CONNECT_UNAVAILABLE,
@@ -10,6 +7,7 @@ import {
   MANUAL_WITHOUT_URL,
   machineAccessState,
 } from "../../../.ladle/machine-story-fixtures";
+import { makeHost } from "../../../.ladle/story-fixtures";
 import { StoryCard, StoryRow } from "../../../.ladle/story-card";
 import { DialogStage } from "../../../.ladle/story-dialog-stage";
 
@@ -18,6 +16,11 @@ export default {
 };
 
 const noop = () => {};
+const CONNECTED_HOST = makeHost({
+  id: "host_new",
+  name: "build-box",
+  status: "connected",
+});
 const ENROLLMENT_COMMAND =
   "curl -fsSL -H 'X-BB-Enrollment: bbde_TZpKWsJpWiPulVIRKNENmEVtvNwnEwDobjPFlnlsyCUUzorssgdxmgxUblRIWAUA' 'https://bb.example.com/install.sh' | sh";
 
@@ -106,16 +109,16 @@ export function EnrollmentCommandState() {
     <StoryCard labelWidth="200px">
       <StoryRow
         label="preparing"
-        hint="the launch is submitted the moment the dialog opens, so the first frame reports progress rather than an empty body"
+        hint="one status row carries every phase, so waiting never shows two spinners racing each other"
       >
         <DialogStage>
           <ManualMachineSetupView
             command={null}
-            progress=""
             errorMessage={null}
             onRetry={noop}
             onRegenerate={noop}
-            onCancelSetup={null}
+            connectedHost={null}
+            onOpenMachine={noop}
           />
         </DialogStage>
       </StoryRow>
@@ -129,11 +132,11 @@ export function EnrollmentCommandState() {
               value: ENROLLMENT_COMMAND,
               expiresAt: issuedAt + 15 * 60_000,
             }}
-            progress="Run the enrollment command shown below"
             errorMessage={null}
             onRetry={noop}
             onRegenerate={noop}
-            onCancelSetup={noop}
+            connectedHost={null}
+            onOpenMachine={noop}
           />
         </DialogStage>
       </StoryRow>
@@ -147,11 +150,11 @@ export function EnrollmentCommandState() {
               value: ENROLLMENT_COMMAND,
               expiresAt: issuedAt + 40_000,
             }}
-            progress="Run the enrollment command shown below"
             errorMessage={null}
             onRetry={noop}
             onRegenerate={noop}
-            onCancelSetup={noop}
+            connectedHost={null}
+            onOpenMachine={noop}
           />
         </DialogStage>
       </StoryRow>
@@ -165,26 +168,44 @@ export function EnrollmentCommandState() {
               value: ENROLLMENT_COMMAND,
               expiresAt: issuedAt - 1_000,
             }}
-            progress="Run the enrollment command shown below"
             errorMessage={null}
             onRetry={noop}
             onRegenerate={noop}
-            onCancelSetup={noop}
+            connectedHost={null}
+            onOpenMachine={noop}
+          />
+        </DialogStage>
+      </StoryRow>
+      <StoryRow
+        label="machine connected"
+        hint="the same row resolves to the machine and offers the only next step worth taking"
+      >
+        <DialogStage>
+          <ManualMachineSetupView
+            command={{
+              value: ENROLLMENT_COMMAND,
+              expiresAt: issuedAt + 15 * 60_000,
+            }}
+            connectedHost={CONNECTED_HOST}
+            errorMessage={null}
+            onRetry={noop}
+            onRegenerate={noop}
+            onOpenMachine={noop}
           />
         </DialogStage>
       </StoryRow>
       <StoryRow
         label="could not prepare one"
-        hint="no command to show, so the retry stands alone instead of below a dead panel"
+        hint="the description carries the failure, so the header never promises a command that does not exist"
       >
         <DialogStage>
           <ManualMachineSetupView
             command={null}
-            progress=""
             errorMessage="The gate rejected this bb's credential (HTTP 401)"
             onRetry={noop}
             onRegenerate={noop}
-            onCancelSetup={null}
+            connectedHost={null}
+            onOpenMachine={noop}
           />
         </DialogStage>
       </StoryRow>

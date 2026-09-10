@@ -3,23 +3,28 @@ import { useSystemConfig } from "@/hooks/queries/system-queries";
 import { machineServerAccessReady } from "@/components/machines/machine-server-access";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation } from "@tanstack/react-query";
+import type { Host } from "@bb/domain";
 import type { MachineLaunchStatus } from "@bb/server-contract";
 import { Button } from "@bb/shared-ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@bb/shared-ui/dialog";
+import { Icon } from "@bb/shared-ui/icon";
+import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
 import { useHosts } from "@/hooks/queries/host-queries";
 import { sdk } from "@/lib/sdk";
+import { useClipboardCopy } from "@/lib/clipboard";
+import { Link } from "react-router-dom";
+import { getSettingsMachineRoutePath } from "@/lib/route-paths";
 import { getMutationErrorMessage } from "@/lib/mutation-errors";
 
 const MANUAL_MACHINE_PROVIDER_ID = "manual";
 
-export function CreateMachineDialog({
+export function AddMachineDialog({
   open,
   onOpenChange,
 }: {
@@ -34,13 +39,13 @@ export function CreateMachineDialog({
   return (
     <Dialog open={open} onOpenChange={close} modal={false}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
-        {open && <CreateMachineContent onOpenChange={close} />}
+        {open && <AddMachineContent onOpenChange={close} />}
       </DialogContent>
     </Dialog>
   );
 }
 
-export function CreateMachineContent({
+export function AddMachineContent({
   onOpenChange,
 }: {
   onOpenChange: (open: boolean) => void;
@@ -92,7 +97,7 @@ export function MachineAccessGate({
       <>
         <DialogHeader>
           <DialogTitle>Add a machine</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-destructive-text">
             Couldn’t check whether machines can reach this server.
           </DialogDescription>
         </DialogHeader>
@@ -137,9 +142,9 @@ export function ManualMachineSetup({
 }) {
   const createController = useRef<AbortController | null>(null);
   const createKey = useRef<string | null>(null);
-  const [progress, setProgress] = useState("");
   const [launchId, setLaunchId] = useState<string | null>(null);
   const [command, setCommand] = useState<EnrollmentCommand | null>(null);
+  const [connectedHost, setConnectedHost] = useState<Host | null>(null);
   useEffect(() => () => createController.current?.abort(), []);
   const createMachine = useMutation({
     meta: { showErrorToast: false },
@@ -151,7 +156,6 @@ export function ManualMachineSetup({
           await sdk.hosts.experimental_cancel({ id: launchId });
         createKey.current = null;
       }
-      setProgress("");
       setLaunchId(null);
       setCommand(null);
       const controller = new AbortController();
@@ -170,7 +174,6 @@ export function ManualMachineSetup({
           id: launch.id,
           signal: controller.signal,
           onProgress: (status) => {
-            setProgress(status.step);
             setCommand(enrollmentCommand(status));
             if (status.terminal) createKey.current = null;
           },
@@ -180,7 +183,7 @@ export function ManualMachineSetup({
           createController.current = null;
       }
     },
-    onSuccess: () => onOpenChange(false),
+    onSuccess: (host: Host) => setConnectedHost(host),
   });
   const start = createMachine.mutate;
   useEffect(() => {
@@ -190,7 +193,7 @@ export function ManualMachineSetup({
   return (
     <ManualMachineSetupView
       command={command}
-      progress={progress}
+      connectedHost={connectedHost}
       errorMessage={
         createMachine.isError
           ? getMutationErrorMessage({
@@ -201,60 +204,47 @@ export function ManualMachineSetup({
       }
       onRetry={() => createMachine.mutate({ replaceLaunch: false })}
       onRegenerate={() => createMachine.mutate({ replaceLaunch: true })}
-      onCancelSetup={
-        createMachine.isPending && launchId !== null
-          ? () =>
-              void sdk.hosts.experimental_cancel({ id: launchId }).then(() => {
-                createController.current?.abort();
-                onOpenChange(false);
-              })
-          : null
-      }
+      onOpenMachine={() => onOpenChange(false)}
     />
   );
 }
 
 export function ManualMachineSetupView({
   command,
-  progress,
+  connectedHost,
   errorMessage,
   onRetry,
   onRegenerate,
-  onCancelSetup,
+  onOpenMachine,
 }: {
   command: EnrollmentCommand | null;
-  progress: string;
+  connectedHost: Host | null;
   errorMessage: string | null;
   onRetry: () => void;
   onRegenerate: () => void;
-  onCancelSetup: (() => void) | null;
+  onOpenMachine: () => void;
 }) {
   return (
     <>
       <DialogHeader>
         <DialogTitle>Add a machine</DialogTitle>
-        <DialogDescription>
-          Run this command on the machine you want to add. It installs bb and
-          keeps the machine connected to this server.
+        <DialogDescription
+          className={
+            errorMessage === null ? undefined : "text-destructive-text"
+          }
+        >
+          {errorMessage ??
+            "Run this command on the machine you want to add. It installs bb and keeps the machine connected to this server."}
         </DialogDescription>
       </DialogHeader>
       {errorMessage === null ? null : (
-        <div className="space-y-2">
-          <p role="alert" className="text-sm text-destructive-text">
-            {errorMessage}
-          </p>
-          <Button type="button" size="sm" variant="outline" onClick={onRetry}>
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" onClick={onRetry}>
             Try again
           </Button>
         </div>
       )}
-      {command === null ? (
-        errorMessage === null ? (
-          <p role="status" className="text-sm text-subtle-foreground">
-            {progress === "" ? "Preparing an enrollment command…" : progress}
-          </p>
-        ) : null
-      ) : (
+      {command === null ? null : (
         <MachineLaunchCommand
           key={command.value}
           command={command.value}
@@ -262,23 +252,56 @@ export function ManualMachineSetupView({
           onRegenerate={onRegenerate}
         />
       )}
-      {onCancelSetup === null ? null : (
-        <DialogFooter>
-          <Button variant="outline" size="sm" onClick={onCancelSetup}>
-            Cancel setup
-          </Button>
-        </DialogFooter>
-      )}
+      {errorMessage === null ? (
+        <div className="flex items-center gap-2.5 rounded-md bg-muted/40 px-3 py-2.5">
+          {connectedHost === null ? (
+            <>
+              <Icon
+                name="Spinner"
+                className="size-4 shrink-0 animate-spin text-muted-foreground"
+              />
+              <span role="status" className="text-sm text-muted-foreground">
+                {command === null
+                  ? "Preparing an enrollment command…"
+                  : "Waiting for the machine to connect…"}
+              </span>
+            </>
+          ) : (
+            <>
+              <MachineStatusDot connected />
+              <span
+                role="status"
+                className="min-w-0 flex-1 truncate text-sm text-foreground"
+              >
+                {connectedHost.name} connected
+              </span>
+              <Button
+                asChild
+                size="sm"
+                variant="ghost"
+                className="h-7 shrink-0 px-2 text-xs"
+              >
+                <Link
+                  to={getSettingsMachineRoutePath(connectedHost.id)}
+                  onClick={onOpenMachine}
+                >
+                  Open machine
+                  <Icon name="ArrowRight" />
+                </Link>
+              </Button>
+            </>
+          )}
+        </div>
+      ) : null}
     </>
   );
 }
 
-function formatRemaining(ms: number): string {
-  const totalSeconds = Math.ceil(ms / 1000);
+function formatCountdown(remainingMs: number): string {
+  const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  if (minutes === 0) return `${seconds}s`;
-  return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
 export function MachineLaunchCommand({
@@ -290,8 +313,7 @@ export function MachineLaunchCommand({
   expiresAt: number;
   onRegenerate: () => void;
 }) {
-  const [copied, setCopied] = useState(false);
-  const [copyFailed, setCopyFailed] = useState(false);
+  const { copied, copy } = useClipboardCopy({ text: command });
   const [remaining, setRemaining] = useState(() => expiresAt - Date.now());
   useEffect(() => {
     const timer = setInterval(
@@ -301,53 +323,46 @@ export function MachineLaunchCommand({
     return () => clearInterval(timer);
   }, [expiresAt]);
   const expired = remaining <= 0;
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(command);
-      setCopied(true);
-      setCopyFailed(false);
-    } catch {
-      setCopyFailed(true);
-    }
-  };
   return (
     <div className="overflow-hidden rounded-md border border-border bg-muted/30">
-      <div className="space-y-1 border-b border-border px-3 py-2">
-        <p className="text-sm font-medium">Run this command</p>
-        <p
-          role="status"
-          className={
-            expired
-              ? "text-xs text-destructive-text"
-              : "text-xs text-subtle-foreground"
-          }
-        >
-          {expired
-            ? "This command has expired."
-            : `Expires in ${formatRemaining(remaining)}.`}
-        </p>
-      </div>
-      {expired ? null : (
-        <pre className="whitespace-pre-wrap break-all p-3 font-mono text-xs">
-          {command}
-        </pre>
-      )}
-      <div className="flex justify-end gap-2 border-t border-border px-3 py-2">
+      <pre className="overflow-x-auto whitespace-pre-wrap break-all p-3 font-mono text-xs text-foreground">
+        {command}
+      </pre>
+      <div className="flex flex-wrap items-center gap-2 border-t border-border px-3 py-2">
         {expired ? (
-          <Button variant="outline" size="sm" onClick={onRegenerate}>
-            Generate new command
-          </Button>
+          <>
+            <span role="status" className="text-xs text-subtle-foreground">
+              Command expired
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-xs"
+              onClick={onRegenerate}
+            >
+              Generate a new command
+            </Button>
+          </>
         ) : (
-          <Button variant="outline" size="sm" onClick={() => void copy()}>
-            {copied ? "Copied" : "Copy command"}
-          </Button>
+          <span
+            role="status"
+            className="text-xs tabular-nums text-subtle-foreground"
+          >
+            Command expires in {formatCountdown(remaining)}
+          </span>
         )}
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="ml-auto h-7 px-2.5 text-xs"
+          disabled={expired}
+          onClick={() => void copy()}
+        >
+          {copied ? "Copied" : "Copy"}
+        </Button>
       </div>
-      {copyFailed ? (
-        <p role="alert" className="px-3 pb-3 text-xs text-destructive-text">
-          Could not copy the command. Try again.
-        </p>
-      ) : null}
     </div>
   );
 }

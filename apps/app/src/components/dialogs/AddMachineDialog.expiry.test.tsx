@@ -2,9 +2,10 @@
 
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { MachineLaunchCommand } from "./CreateMachineDialog";
+import { MachineLaunchCommand } from "./AddMachineDialog";
 
-const COMMAND = "curl -fsSL -H 'X-BB-Enrollment: secret' https://bb/install.sh | sh";
+const COMMAND =
+  "curl -fsSL -H 'X-BB-Enrollment: secret' https://bb/install.sh | sh";
 
 describe("MachineLaunchCommand", () => {
   beforeEach(() => {
@@ -24,13 +25,17 @@ describe("MachineLaunchCommand", () => {
         onRegenerate={() => {}}
       />,
     );
-    expect(screen.getByRole("status").textContent).toBe("Expires in 15m 00s.");
+    expect(screen.getByRole("status").textContent).toBe(
+      "Command expires in 15:00",
+    );
     act(() => void vi.advanceTimersByTime(61_000));
-    expect(screen.getByRole("status").textContent).toBe("Expires in 13m 59s.");
+    expect(screen.getByRole("status").textContent).toBe(
+      "Command expires in 13:59",
+    );
     expect(screen.getByText(COMMAND)).toBeTruthy();
   });
 
-  it("withdraws the stale command and offers a replacement once it expires", () => {
+  it("stops offering a copy and offers a replacement once it expires", () => {
     const onRegenerate = vi.fn();
     render(
       <MachineLaunchCommand
@@ -39,14 +44,15 @@ describe("MachineLaunchCommand", () => {
         onRegenerate={onRegenerate}
       />,
     );
-    expect(screen.queryByText(COMMAND)).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Copy" }).hasAttribute("disabled"),
+    ).toBe(false);
     act(() => void vi.advanceTimersByTime(6_000));
-    expect(screen.getByRole("status").textContent).toBe(
-      "This command has expired.",
-    );
-    expect(screen.queryByText(COMMAND)).toBeNull();
-    expect(screen.queryByRole("button", { name: "Copy command" })).toBeNull();
-    screen.getByRole("button", { name: "Generate new command" }).click();
+    expect(screen.getByRole("status").textContent).toBe("Command expired");
+    expect(
+      screen.getByRole("button", { name: "Copy" }).hasAttribute("disabled"),
+    ).toBe(true);
+    screen.getByRole("button", { name: "Generate a new command" }).click();
     expect(onRegenerate).toHaveBeenCalledTimes(1);
   });
 });
