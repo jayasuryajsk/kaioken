@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://getbb.app/schemas/plugins.schema.json",
-  "title": "BB plugin collection manifest",
+  "title": "Kaioken plugin collection manifest",
   "description": "An index of plugin directories in one repository.",
   "type": "object",
   "additionalProperties": false,

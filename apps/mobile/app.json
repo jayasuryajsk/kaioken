@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "bb",
-    "slug": "bb-app",
-    "owner": "bb-team",
+    "name": "Kaioken",
+    "slug": "kaioken-app",
+    "owner": "kaioken-team",
     "version": "0.39.0",
-    "scheme": "bb",
+    "scheme": "kaioken",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -17,10 +17,10 @@
       "bundleIdentifier": "app.getbb.mobile",
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocalNetworkUsageDescription": "bb connects to a bb server on your local network or tailnet.",
-        "NSCameraUsageDescription": "bb attaches photos you take to your prompts.",
-        "NSMicrophoneUsageDescription": "bb records voice input and transcribes it into your prompt.",
-        "NSPhotoLibraryUsageDescription": "bb attaches photos you pick to your prompts.",
+        "NSLocalNetworkUsageDescription": "kaioken connects to a kaioken server on your local network or tailnet.",
+        "NSCameraUsageDescription": "kaioken attaches photos you take to your prompts.",
+        "NSMicrophoneUsageDescription": "kaioken records voice input and transcribes it into your prompt.",
+        "NSPhotoLibraryUsageDescription": "kaioken attaches photos you pick to your prompts.",
         "ITSAppUsesNonExemptEncryption": false,
         "NSAppTransportSecurity": {
           "NSAllowsLocalNetworking": true

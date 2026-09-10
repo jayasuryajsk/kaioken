@@ -1,12 +1,12 @@
 import {
   createBbDesktopVersionFeedFileName,
-  type BbDesktopVersionFeedPlatform,
-} from "@bb/desktop-contract";
+  type KaiokenDesktopVersionFeedPlatform,
+} from "@kaioken/desktop-contract";
 
 type DesktopReleaseChannel = "latest" | "nightly";
 
 interface DesktopReleaseInfo {
-  applicationName: "bb" | "bb Nightly";
+  applicationName: "Kaioken" | "Kaioken Nightly";
   channel: DesktopReleaseChannel;
   iconFileName: "icon.png" | "icon-nightly.png";
   releaseTag: "desktop-latest" | "desktop-nightly";
@@ -20,11 +20,11 @@ export function createDesktopReleaseInfo(
   const releaseTag = nightly ? "desktop-nightly" : "desktop-latest";
 
   return {
-    applicationName: nightly ? "bb Nightly" : "bb",
+    applicationName: nightly ? "Kaioken Nightly" : "Kaioken",
     channel,
     iconFileName: nightly ? "icon-nightly.png" : "icon.png",
     releaseTag,
-    updateReleaseBaseUrl: `https://github.com/get-bb/bb/releases/download/${releaseTag}/`,
+    updateReleaseBaseUrl: `https://github.com/jayasuryajsk/kaioken/releases/download/${releaseTag}/`,
   };
 }
 
@@ -44,7 +44,7 @@ function resolveBuiltDesktopReleaseChannel(
 }
 
 export const DESKTOP_RELEASE_CHANNEL = resolveBuiltDesktopReleaseChannel(
-  process.env.BB_DESKTOP_RELEASE_CHANNEL,
+  process.env.KAIOKEN_DESKTOP_RELEASE_CHANNEL,
 );
 export const DESKTOP_RELEASE_INFO = createDesktopReleaseInfo(
   DESKTOP_RELEASE_CHANNEL,
@@ -53,7 +53,7 @@ const DESKTOP_UPDATE_RELEASE_BASE_URL =
   DESKTOP_RELEASE_INFO.updateReleaseBaseUrl;
 
 export function createDesktopUpdateFeedUrl(
-  platform: BbDesktopVersionFeedPlatform,
+  platform: KaiokenDesktopVersionFeedPlatform,
 ): string {
   return `${DESKTOP_UPDATE_RELEASE_BASE_URL}${createBbDesktopVersionFeedFileName(platform)}`;
 }
@@ -78,7 +78,7 @@ interface DesktopUpdateSupport {
 interface ResolveDesktopUpdateSupportArgs {
   canReplaceAppImage: (appImagePath: string) => boolean;
   env: NodeJS.ProcessEnv;
-  platform: BbDesktopVersionFeedPlatform;
+  platform: KaiokenDesktopVersionFeedPlatform;
 }
 
 export function resolveDesktopUpdateSupport(

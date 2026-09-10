@@ -66,7 +66,7 @@ const macConfigSchema = z
 const linuxConfigSchema = z
   .object({
     category: z.literal("Development"),
-    executableName: z.enum(["bb", "bb-nightly"]),
+    executableName: z.enum(["kaioken", "kaioken-nightly"]),
     icon: z.string().min(1),
     target: z.tuple([
       z
@@ -289,15 +289,15 @@ describe("electron-builder signing config", () => {
     );
   });
 
-  it("unpacks the ESM bb-app bridge with an explicit module extension", async () => {
+  it("unpacks the ESM kaioken-app bridge with an explicit module extension", async () => {
     const configText = await readFile(
       resolve(desktopPackageRoot, "electron-builder.config.json"),
       "utf8",
     );
     const config = electronBuilderConfigSchema.parse(JSON.parse(configText));
 
-    expect(config.asarUnpack).toContain("dist/bb-app-bridge.mjs");
-    expect(config.asarUnpack).not.toContain("dist/bb-app-bridge.js");
+    expect(config.asarUnpack).toContain("dist/kaioken-app-bridge.mjs");
+    expect(config.asarUnpack).not.toContain("dist/kaioken-app-bridge.js");
   });
 
   it("runs a native module preparation hook after packaging", async () => {
@@ -399,14 +399,14 @@ describe("electron-builder signing config", () => {
 
     expect(config.files).toContainEqual({
       filter: ["**/*"],
-      from: "node_modules/bb-app/server/dist/app-scaffold-template",
-      to: "node_modules/bb-app/server/dist/app-scaffold-template",
+      from: "node_modules/kaioken-app/server/dist/app-scaffold-template",
+      to: "node_modules/kaioken-app/server/dist/app-scaffold-template",
     });
   });
 
   it("patches packaged node-pty helper path handling", async () => {
     const appOutDir = await mkdtemp(
-      resolve(tmpdir(), "bb-desktop-native-modules-"),
+      resolve(tmpdir(), "kaioken-desktop-native-modules-"),
     );
     const nodePtyPackageDir = resolve(
       appOutDir,
@@ -502,7 +502,7 @@ describe("electron-builder signing config", () => {
 
     expect(config.linux).toMatchObject({
       category: "Development",
-      executableName: "bb",
+      executableName: "kaioken",
       target: [{ arch: ["x64"], target: "AppImage" }],
     });
     expect(config.toolsets.appimage).toBe("1.0.3");
@@ -541,21 +541,21 @@ describe("electron-builder signing config", () => {
 
     expect(config.publish[0]).toMatchObject(DESKTOP_AUTO_UPDATE_FEED_CONFIG);
     expect(DESKTOP_AUTO_UPDATE_FEED_CONFIG.url).toBe(
-      "https://github.com/get-bb/bb/releases/download/desktop-latest/",
+      "https://github.com/jayasuryajsk/kaioken/releases/download/desktop-latest/",
     );
   });
 
   it("creates a separate nightly app identity and update feed", async () => {
     const { config } = await readResolvedConfig({
-      BB_DESKTOP_RELEASE_CHANNEL: "nightly",
+      KAIOKEN_DESKTOP_RELEASE_CHANNEL: "nightly",
     });
     const nightlyRelease = createDesktopReleaseInfo("nightly");
 
-    expect(config.appId).toBe("dev.bb.desktop.nightly");
-    expect(config.productName).toBe("bb Nightly");
-    expect(config.artifactName).toBe("bb-nightly-${version}-${arch}.${ext}");
+    expect(config.appId).toBe("dev.kaioken.desktop.nightly");
+    expect(config.productName).toBe("Kaioken Nightly");
+    expect(config.artifactName).toBe("kaioken-nightly-${version}-${arch}.${ext}");
     expect(config.linux.icon).toBe("assets/icon-nightly.png");
-    expect(config.linux.executableName).toBe("bb-nightly");
+    expect(config.linux.executableName).toBe("kaioken-nightly");
     expect(config.mac.icon).toBe("assets/icon-nightly.icns");
     await expect(
       access(resolve(desktopPackageRoot, config.mac.icon)),
@@ -572,12 +572,12 @@ describe("electron-builder signing config", () => {
 
   it("rejects unknown desktop release channels", async () => {
     const result = await runConfigScript({
-      BB_DESKTOP_RELEASE_CHANNEL: "canary",
+      KAIOKEN_DESKTOP_RELEASE_CHANNEL: "canary",
     });
 
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain(
-      "BB_DESKTOP_RELEASE_CHANNEL must be latest or nightly",
+      "KAIOKEN_DESKTOP_RELEASE_CHANNEL must be latest or nightly",
     );
   });
 

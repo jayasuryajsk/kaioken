@@ -8,7 +8,7 @@ import { execFileSync } from "node:child_process";
  * `engines.bbPluginSdk` at to say "I need a host new enough to have this" —
  * `isPluginSdkRangeSatisfied` reads that range as a floor within the major.
  * Ship a new export without a bump and a plugin using it has no version to
- * require, so installing it on an older bb fails at runtime instead of
+ * require, so installing it on an older kaioken fails at runtime instead of
  * legibly at load.
  *
  * Nothing else catches this: `version.test.ts` only checks that package.json

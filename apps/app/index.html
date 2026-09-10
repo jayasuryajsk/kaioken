@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="bb-app-shell-root">
+<html lang="en" class="kaioken-app-shell-root">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -17,8 +17,8 @@
       name="apple-mobile-web-app-status-bar-style"
       content="black-translucent"
     />
-    <meta name="apple-mobile-web-app-title" content="bb" />
-    <title>bb</title>
+    <meta name="apple-mobile-web-app-title" content="Kaioken" />
+    <title>Kaioken</title>
     <link
       rel="icon"
       type="image/png"
@@ -99,7 +99,7 @@
       })();
     </script>
   </head>
-  <body class="bb-app-shell">
+  <body class="kaioken-app-shell">
     <div id="root"></div>
     <script>
       // Pre-paint the palette (Nord, Dracula, a custom theme, ...) cached by
@@ -116,7 +116,7 @@
         } catch {}
         if (!css) return;
         var style = document.createElement("style");
-        style.id = "bb-app-theme";
+        style.id = "kaioken-app-theme";
         style.textContent = css;
         document.head.appendChild(style);
       })();

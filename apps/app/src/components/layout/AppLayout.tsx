@@ -11,9 +11,9 @@ import { flushSync } from "react-dom";
 import { atom, useAtom, useAtomValue, useStore } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { Link, matchPath, useLocation, useNavigate } from "react-router-dom";
-import type { ProjectResponse } from "@bb/server-contract";
-import { Icon } from "@bb/shared-ui/icon";
-import { RESOURCE_ROUTE_LABEL_EVENT } from "@bb/shared-ui/resource-list";
+import type { ProjectResponse } from "@kaioken/server-contract";
+import { Icon } from "@kaioken/shared-ui/icon";
+import { RESOURCE_ROUTE_LABEL_EVENT } from "@kaioken/shared-ui/resource-list";
 import {
   SidebarInset,
   SidebarProvider,
@@ -46,7 +46,7 @@ import {
 } from "@/hooks/queries/thread-queries";
 import { useRouteState } from "@/hooks/useRouteState";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
-import { cn } from "@bb/shared-ui/lib/utils";
+import { cn } from "@kaioken/shared-ui/lib/utils";
 import { APP_OVERLAY_LAYER } from "@/components/ui/app-overlay-layers";
 import {
   getCompactSecondaryPanelPresentation,
@@ -77,7 +77,7 @@ import {
   MACOS_WINDOW_DRAG_CLASS,
   shouldReserveMacosTrafficLights,
   shouldUseMacosDesktopChrome,
-} from "@/lib/bb-desktop";
+} from "@/lib/kaioken-desktop";
 import { useDesktopWindowState } from "@/hooks/useDesktopWindowState";
 import { useServerDaemonLogsCommand } from "@/hooks/useServerDaemonLogsCommand";
 import {
@@ -101,7 +101,7 @@ import {
   useAppCommandHandler,
   useAppCommandShortcut,
 } from "@/components/commands/AppCommandProvider";
-import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import {
   shouldRestoreIOSViewportOnKeyboardDismissal,
   useMobileVisualViewportHeight,
@@ -273,7 +273,7 @@ function SidebarTriggerOverlay({
 }
 
 const routeTitles: Record<string, { title: string }> = {
-  "/": { title: "bb" },
+  "/": { title: "Kaioken" },
   "/settings": { title: "Settings" },
   "/automations": { title: "Automations" },
   "/skills": { title: "Skills" },
@@ -612,7 +612,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       return pluginPanel.title;
     }
     if (documentTitleBreadcrumbs) {
-      const sectionLabel = documentTitleBreadcrumbs[0]?.label ?? "BB";
+      const sectionLabel = documentTitleBreadcrumbs[0]?.label ?? "Kaioken";
       const pageLabel = documentTitleBreadcrumbs.at(-1)?.label ?? sectionLabel;
       return pageLabel === sectionLabel
         ? sectionLabel
@@ -630,7 +630,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       return projectLabel ?? projectId;
     }
     const routeTitle = resolveRouteTitle(location.pathname)?.title;
-    return routeTitle && routeTitle.length > 0 ? routeTitle : "BB";
+    return routeTitle && routeTitle.length > 0 ? routeTitle : "Kaioken";
   })();
   const currentThreadPendingInteractionsQuery = useThreadPendingInteractions(
     threadId ?? "",
@@ -754,7 +754,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               <div
                 ref={contentShellRef}
                 data-testid="app-layout-content-shell"
-                className="relative flex h-full min-h-0 min-w-0 w-full flex-col pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[var(--bb-safe-area-bottom,env(safe-area-inset-bottom))] pl-[env(safe-area-inset-left)]"
+                className="relative flex h-full min-h-0 min-w-0 w-full flex-col pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[var(--kaioken-safe-area-bottom,env(safe-area-inset-bottom))] pl-[env(safe-area-inset-left)]"
               >
                 {showHeader ? (
                   <AppHeader
