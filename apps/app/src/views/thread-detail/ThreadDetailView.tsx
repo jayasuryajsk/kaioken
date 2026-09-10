@@ -114,6 +114,7 @@ import {
   shouldShowEnvironmentHostIdentity,
 } from "@/lib/environment-workspace-display";
 import { useSystemEnvironmentProviders } from "@/hooks/queries/environment-provider-queries";
+import { useSystemMachineProviders } from "@/hooks/queries/machine-provider-queries";
 import { formatWorkspaceCheckoutDisplay } from "@/lib/workspace-checkout-display";
 import {
   getAbsoluteDirname,
@@ -1223,6 +1224,7 @@ function ThreadDetailViewInternal(props: ThreadRoutePathArgs) {
   });
   const { providers: registeredEnvironmentProviders } =
     useSystemEnvironmentProviders();
+  const { providers: registeredMachineProviders } = useSystemMachineProviders();
   const environmentMergeBaseBranch =
     resolveEnvironmentMergeBaseBranch(environment);
   const {
@@ -2387,6 +2389,15 @@ function ThreadDetailViewInternal(props: ThreadRoutePathArgs) {
         isProjectless: thread.projectId === PERSONAL_PROJECT_ID,
       })
     : undefined;
+  const composerEnvironmentHost =
+    resolvedThreadEnvironmentHost !== null &&
+    environment?.name === null &&
+    composerEnvironmentSummary?.label === resolvedThreadEnvironmentHost?.name
+      ? resolvedThreadEnvironmentHost
+      : undefined;
+  const composerEnvironmentMachineProvider = registeredMachineProviders?.find(
+    (provider) => provider.id === composerEnvironmentHost?.machineProviderId,
+  );
   const isThreadOnReusableEnvironment =
     environment !== undefined &&
     environment.status === "ready" &&
@@ -2508,8 +2519,10 @@ function ThreadDetailViewInternal(props: ThreadRoutePathArgs) {
       contextWindowUsage={contextWindowUsage}
       environmentCheckout={threadCheckoutDisplay}
       environmentCompactLabel={composerEnvironmentSummary?.compactLabel}
+      environmentHost={composerEnvironmentHost}
       environmentIcon={composerEnvironmentSummary?.icon}
       environmentLabel={composerEnvironmentSummary?.label}
+      environmentMachineProvider={composerEnvironmentMachineProvider}
       environmentTypeLabel={composerEnvironmentSummary?.typeLabel}
       environmentGoneStatus={threadEnvironmentGoneStatus}
       environmentHostId={environment?.hostId}

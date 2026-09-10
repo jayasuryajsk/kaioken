@@ -65,6 +65,8 @@ import {
   type QueuedMessageInlineEditor,
 } from "@/components/promptbox/banner/QueuedMessagesList";
 import { ThreadEnvironmentSummary } from "@/components/promptbox/ThreadEnvironmentSummary";
+import type { MachineLabelHost } from "@/components/machines/MachineLabel";
+import type { MachineProviderPresentation } from "@/components/plugin/MachineProviderIcon";
 import type { WorkspaceCheckoutDisplay } from "@/lib/workspace-checkout-display";
 import { useComposerTextEffects } from "@/lib/composer-text-effects";
 import { useLatestRef } from "@/hooks/useLatestRef";
@@ -153,6 +155,8 @@ interface ThreadDetailPromptAreaProps {
   environmentCompactLabel?: string;
   environmentGoneStatus: "destroyed" | null;
   environmentHostId?: string;
+  environmentHost?: MachineLabelHost;
+  environmentMachineProvider?: MachineProviderPresentation | null;
   environmentIcon?: IconName;
   environmentLabel?: string;
   environmentTypeLabel?: string;
@@ -346,6 +350,8 @@ export function ThreadDetailPromptArea({
   environmentCompactLabel,
   environmentGoneStatus,
   environmentHostId,
+  environmentHost,
+  environmentMachineProvider,
   environmentIcon,
   environmentLabel,
   environmentTypeLabel,
@@ -1236,8 +1242,10 @@ export function ThreadDetailPromptArea({
           projectName={projectName}
           environmentLabel={environmentLabel}
           environmentCompactLabel={environmentCompactLabel}
+          environmentHost={environmentHost}
           environmentIcon={environmentIcon}
           environmentTypeLabel={environmentTypeLabel}
+          environmentMachineProvider={environmentMachineProvider}
           environmentCheckout={environmentCheckout}
           onCreateNewThreadInEnvironment={onCreateNewThreadInEnvironment}
         />
@@ -1245,8 +1253,10 @@ export function ThreadDetailPromptArea({
     [
       environmentCheckout,
       environmentCompactLabel,
+      environmentHost,
       environmentIcon,
       environmentLabel,
+      environmentMachineProvider,
       environmentTypeLabel,
       onCreateNewThreadInEnvironment,
       projectName,
