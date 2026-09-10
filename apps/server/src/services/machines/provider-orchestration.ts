@@ -40,6 +40,7 @@ import {
   requestEnvironmentRemoval,
   sweepProviderEnvironment,
 } from "../environments/provider-orchestration.js";
+import { hasPendingProjectSourceSetupOnHost } from "../projects/project-source-setup.js";
 import { machineProviderUnavailableReason } from "./provider-availability.js";
 
 type Deps = ThreadProvisioningDeps;
@@ -851,6 +852,15 @@ function requireSuspendableMachine(deps: Deps, hostId: string) {
   return row;
 }
 
+function assertProjectSourceSetupComplete(deps: Deps, hostId: string): void {
+  if (!hasPendingProjectSourceSetupOnHost(deps.db, hostId)) return;
+  throw new ApiError(
+    409,
+    "machine_busy",
+    "Wait for project setup to finish before suspending this machine.",
+  );
+}
+
 export async function requestMachineSuspension(
   deps: Deps,
   hostId: string,
@@ -863,6 +873,7 @@ export async function requestMachineSuspension(
       "Only an active machine can be suspended",
     );
   }
+  assertProjectSourceSetupComplete(deps, hostId);
   await suspendMachine(deps, hostId, true);
   if (listThreadIdsWithHostOfflineQueueWaits(deps.db, hostId).length > 0) {
     requestQueuedMachineReadiness(deps, hostId);
@@ -878,6 +889,7 @@ export function startMachineSuspension(deps: Deps, hostId: string): void {
       "Only an active machine can be suspended",
     );
   }
+  assertProjectSourceSetupComplete(deps, hostId);
   void requestMachineSuspension(deps, hostId).catch((error: unknown) => {
     deps.logger.warn(
       { hostId, error: errorMessage(error) },

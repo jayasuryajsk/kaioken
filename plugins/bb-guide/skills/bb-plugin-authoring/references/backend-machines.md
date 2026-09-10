@@ -170,7 +170,9 @@ Modal v1 checks only `thread.status === "active"` in its thread-event callback.
 
 Call `bb.sdk.hosts.experimental_suspend({hostId})` for coordinated suspension. Core accepts follow-ups into the host-wait queue
 and drains active turns, setup hooks and terminals with a five-minute bound before
-calling your suspend callback. Persist opaque state with `checkpoint(resource)` before
+calling your suspend callback. A project checkout being prepared on the host rejects
+the request with `machine_busy`; an idle scheduler should retry on its next sweep.
+Persist opaque state with `checkpoint(resource)` before
 terminating compute. The SDK request returns after suspension starts; observe the
 host lifecycle when completion matters. Core serializes resource transitions and restores the same host
 identity without rerunning checkout setup.

@@ -71,6 +71,15 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function hasErrorCode(error: unknown, code: string): boolean {
+  return (
+    error instanceof Error &&
+    "code" in error &&
+    typeof error.code === "string" &&
+    error.code === code
+  );
+}
+
 export interface ModalSandboxDeps {
   backendFactory: SandboxBackendFactory;
   now: () => number;
@@ -216,6 +225,7 @@ export function createModalSandboxPlugin(
         try {
           await bb.sdk.hosts.experimental_suspend({ hostId: host.id });
         } catch (error) {
+          if (hasErrorCode(error, "machine_busy")) continue;
           const current = await bb.sdk.hosts
             .get({ hostId: host.id })
             .catch(() => null);

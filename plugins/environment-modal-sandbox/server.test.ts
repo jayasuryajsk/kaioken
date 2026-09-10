@@ -1100,6 +1100,20 @@ describe("plugin-owned idle timing", () => {
       expect(
         test.harness.logEntries.filter((entry) => entry.level === "warn"),
       ).toEqual([]);
+      suspend.mockRejectedValueOnce(
+        Object.assign(new Error("Project setup is still running"), {
+          code: "machine_busy",
+        }),
+      );
+      vi.setSystemTime(27 * 60_000);
+      await test.harness.runSchedule("pause-idle-machines");
+      expect(
+        test.harness.logEntries.filter((entry) => entry.level === "warn"),
+      ).toEqual([]);
+      expect(getHost).toHaveBeenCalledTimes(3);
+      vi.setSystemTime(28 * 60_000);
+      await test.harness.runSchedule("pause-idle-machines");
+      expect(suspend).toHaveBeenCalledTimes(4);
       suspend.mockClear();
       await test.harness.setSettings({ idleMinutes: 0 });
       vi.setSystemTime(60 * 60_000);

@@ -90,7 +90,8 @@ terminals prevent idle pause. There is no automatic retention removal.
 Manual and idle pauses snapshot the filesystem before terminating compute. Core
 blocks new work, interrupts turns and closes terminals; the plugin stops the
 daemon, saves the filesystem and durably records the snapshot before termination.
-Resume preserves host identity without rerunning setup. Interrupted turns are not replayed.
+Core defers pause while it prepares a project checkout on the machine. Resume
+preserves host identity without rerunning setup. Interrupted turns are not replayed.
 
 There is no pre-expiry scheduler. A sandbox that stays active for its full
 24-hour lifetime stops without a guaranteed final snapshot. Changes

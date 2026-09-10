@@ -2762,6 +2762,8 @@ Core does not impose a second idle timeout or veto pause merely because work is 
 
 `bb.sdk.hosts.experimental_suspend({hostId})` accepts follow-ups into the existing host-wait queue, drains active turns, setup hooks
 and terminals with a five-minute bound, then invokes the provider's suspend callback.
+It rejects with `machine_busy` while core is preparing a project checkout on the host;
+automatic idle schedulers retry after that bounded live operation settles.
 `await suspend.checkpoint(resource)` durably persists opaque provider state before destructive
 cleanup. Core fences operations and resumes the same host identity without rerunning checkout setup. Providers own vendor observations, snapshots, loss reporting,
 and expiry scheduling using `bb.background.schedule` and startup reconciliation.

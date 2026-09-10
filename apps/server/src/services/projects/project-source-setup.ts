@@ -132,8 +132,25 @@ interface EnsureProjectSourceArgs {
 
 const pendingSetups = new WeakMap<
   CommandResultSideEffectsDeps["db"],
-  Map<string, Promise<ReturnType<typeof registerProjectSourceOnHost>>>
+  Map<
+    string,
+    {
+      hostId: string;
+      promise: Promise<ReturnType<typeof registerProjectSourceOnHost>>;
+    }
+  >
 >();
+
+export function hasPendingProjectSourceSetupOnHost(
+  db: CommandResultSideEffectsDeps["db"],
+  hostId: string,
+): boolean {
+  const pending = pendingSetups.get(db);
+  return (
+    pending !== undefined &&
+    [...pending.values()].some((setup) => setup.hostId === hostId)
+  );
+}
 
 export async function ensureProjectSourceOnHost(
   deps: CommandResultSideEffectsDeps,
@@ -146,13 +163,13 @@ export async function ensureProjectSourceOnHost(
   }
   const key = JSON.stringify([args.projectId, args.hostId]);
   const active = pending.get(key);
-  if (active !== undefined) return active;
+  if (active !== undefined) return active.promise;
   const setup = recoverOrCloneProjectSource(deps, args);
-  pending.set(key, setup);
+  pending.set(key, { hostId: args.hostId, promise: setup });
   try {
     return await setup;
   } finally {
-    pending.delete(key);
+    if (pending.get(key)?.promise === setup) pending.delete(key);
   }
 }
 

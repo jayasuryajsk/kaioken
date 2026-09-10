@@ -18,8 +18,21 @@ import {
   sweepMachineLifecycles,
   sweepProviderMachine,
 } from "../../../src/services/machines/provider-orchestration.js";
+import {
+  ensureProjectSourceOnHost,
+  hasPendingProjectSourceSetupOnHost,
+} from "../../../src/services/projects/project-source-setup.js";
 import { setPluginMachineProviderBridge } from "../../../src/services/plugins/plugin-machine-provider-registry.js";
-import { seedProjectWithSource, seedThread } from "../../helpers/seed.js";
+import {
+  reportQueuedCommandError,
+  waitForQueuedCommand,
+} from "../../helpers/commands.js";
+import { readJson } from "../../helpers/json.js";
+import {
+  seedHostSession,
+  seedProjectWithSource,
+  seedThread,
+} from "../../helpers/seed.js";
 import { withTestHarness } from "../../helpers/test-app.js";
 
 function installMachineProvider(
@@ -356,5 +369,63 @@ describe("machine retirement", () => {
       await sweepMachineLifecycles(harness.deps);
       expect(remove).toHaveBeenCalledTimes(2);
       expect(getHost(harness.db, id)?.phase).toBe("destroyed");
+    }));
+});
+
+describe("machine suspension", () => {
+  it("rejects suspension while project source setup is active", async () =>
+    withTestHarness(async (harness) => {
+      const source = seedHostSession(harness.deps, { id: "setup-source" });
+      const target = seedHostSession(harness.deps, { id: "setup-target" });
+      const { project } = seedProjectWithSource(harness.deps, {
+        hostId: source.host.id,
+      });
+      const suspend = vi.fn(async () => ({ resource: { id: "owned" } }));
+      installMachineProvider({
+        suspend,
+        resume: async () => ({ resource: { id: "owned" } }),
+      });
+      updateHost(harness.db, harness.hub, target.host.id, {
+        machineProviderId: "test-machine",
+        resource: { id: "owned" },
+      });
+
+      const setup = ensureProjectSourceOnHost(harness.deps, {
+        projectId: project.id,
+        projectName: project.name,
+        hostId: target.host.id,
+        remoteUrl: "https://example.test/team/project.git",
+      }).then(
+        () => null,
+        (error: unknown) => error,
+      );
+      const path = await waitForQueuedCommand(
+        harness,
+        ({ command }) => command.type === "project.clone_default_path",
+      );
+
+      expect(
+        hasPendingProjectSourceSetupOnHost(harness.db, target.host.id),
+      ).toBe(true);
+      const response = await harness.app.request(
+        `/api/v1/hosts/${target.host.id}/suspend`,
+        { method: "POST" },
+      );
+      expect(response.status).toBe(409);
+      expect(await readJson(response)).toMatchObject({
+        code: "machine_busy",
+        message: "Wait for project setup to finish before suspending this machine.",
+      });
+      expect(getHost(harness.db, target.host.id)?.phase).toBe("active");
+      expect(suspend).not.toHaveBeenCalled();
+
+      await reportQueuedCommandError(harness, path, {
+        errorCode: "git_auth_failed",
+        errorMessage: "Stop project setup",
+      });
+      expect(await setup).toBeInstanceOf(Error);
+      expect(
+        hasPendingProjectSourceSetupOnHost(harness.db, target.host.id),
+      ).toBe(false);
     }));
 });

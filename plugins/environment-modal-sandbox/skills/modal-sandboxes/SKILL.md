@@ -57,7 +57,9 @@ status. Idle pause defaults to 15 minutes; compute lifetime is fixed at Modal's
 
 Manual and idle pauses drain BB work, stop the daemon, snapshot the filesystem,
 and durably record the snapshot before terminating compute. Resume restores the
-saved filesystem without rerunning setup. Continue interrupted turns explicitly.
+saved filesystem without rerunning setup. Core defers idle pause while it prepares
+the project's checkout, and the next scheduled sweep retries. Continue interrupted
+turns explicitly.
 
 There is no pre-expiry scheduler. If a sandbox runs for its full 24-hour
 lifetime, changes since the last successful pause may be lost.

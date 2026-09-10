@@ -100,7 +100,7 @@ export async function cloneProject(args: {
           }
         };
   try {
-    await runGit(["clone", args.remoteUrl, targetPath], {
+    await runGit(["clone", "--progress", args.remoteUrl, targetPath], {
       cwd: path.dirname(targetPath),
       env: args.env,
       ...(args.shellPath !== undefined ? { shellPath: args.shellPath } : {}),
