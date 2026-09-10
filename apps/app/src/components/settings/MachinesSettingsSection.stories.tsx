@@ -32,6 +32,7 @@ function sandbox(overrides: Partial<Host> = {}): Host {
   return makeHost({
     id: "host_sandbox",
     name: "Modal sandbox 3f9a",
+    type: "ephemeral",
     machineProviderId: MODAL_MACHINE_PROVIDER.id,
     ...overrides,
   });
@@ -77,7 +78,7 @@ export function Rows() {
     <StoryCard labelWidth="220px" className="max-w-4xl">
       <StoryRow
         label="this machine"
-        hint="the machine bb itself runs on: no provider, so no provider chip"
+        hint="the machine bb itself runs on, labeled by a laptop icon and its name"
       >
         <Row
           host={makeHost({
@@ -95,7 +96,7 @@ export function Rows() {
       </StoryRow>
       <StoryRow
         label="manually paired"
-        hint="enrolled by running a command; the plugin owns nothing at runtime, so there is no suspend action"
+        hint="labeled by a laptop icon and its name; the plugin owns nothing at runtime, so there is no suspend action"
       >
         <Row
           host={makeHost({
@@ -110,7 +111,7 @@ export function Rows() {
       </StoryRow>
       <StoryRow
         label="provider-made, running"
-        hint="a live sandbox — the provider tags its machines, so the chip reads modal rather than the provider name"
+        hint="a live sandbox labeled by its provider icon and host name, without a separate kind chip"
       >
         <Row host={sandbox({ name: "Modal sandbox 0af2" })} projectCount={1} />
       </StoryRow>

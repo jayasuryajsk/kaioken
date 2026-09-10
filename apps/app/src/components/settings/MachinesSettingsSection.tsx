@@ -33,7 +33,7 @@ import {
   machineStatusTone,
 } from "@/components/machines/machine-status";
 import { MachineRenameDialog } from "@/components/settings/MachineRenameDialog";
-import { MachineProviderKind } from "@/components/plugin/MachineProviderIcon";
+import { MachineProviderIcon } from "@/components/plugin/MachineProviderIcon";
 import {
   SettingsBadge,
   SettingsRow,
@@ -163,6 +163,22 @@ export function MachineRowContent({
           >
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex min-w-0 items-center gap-1.5">
+                {host.type === "ephemeral" &&
+                host.machineProviderId !== null ? (
+                  <MachineProviderIcon
+                    provider={
+                      machineProvider ?? {
+                        id: host.machineProviderId,
+                        displayName: host.machineProviderId,
+                        icon: "Server",
+                        logoUrl: null,
+                      }
+                    }
+                    className="size-3.5 shrink-0"
+                  />
+                ) : (
+                  <Icon name="Laptop" className="size-3.5 shrink-0" />
+                )}
                 <span className="min-w-0 truncate text-sm font-medium text-foreground">
                   {host.name}
                 </span>
@@ -172,12 +188,6 @@ export function MachineRowContent({
                 {showPrimaryBadge ? (
                   <SettingsBadge>primary</SettingsBadge>
                 ) : null}
-                {machineProvider === null ? null : (
-                  <MachineProviderKind
-                    provider={machineProvider}
-                    className="inline-flex min-w-0 items-center gap-1 text-xs font-normal text-subtle-foreground"
-                  />
-                )}
               </div>
               <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-subtle-foreground/75">
                 <span className="inline-flex shrink-0 items-center gap-1.5">
@@ -300,14 +310,87 @@ export function MachinesSettingsSection() {
 
   const now = Date.now();
   const primaryHostPlatform = systemConfig.data?.primaryHostPlatform ?? null;
-  const showMachineIdentityBadges = (hosts?.length ?? 0) > 1;
-  const hasMachineRows = hosts !== undefined && hosts.length > 0;
+  const persistentHosts = hosts?.filter((host) => host.type === "persistent");
+  const sandboxHosts = hosts?.filter((host) => host.type === "ephemeral");
+  const showMachineIdentityBadges = (persistentHosts?.length ?? 0) > 1;
+  const hasMachineRows =
+    persistentHosts !== undefined && persistentHosts.length > 0;
   const machineProviderById = useMemo(
     () =>
       new Map(
         (machineProviders ?? []).map((provider) => [provider.id, provider]),
       ),
     [machineProviders],
+  );
+  const renderMachineRows = (rows: readonly Host[]) => (
+    <SettingsRowList>
+      {rows.map((host) => (
+        <MachineRowContent
+          key={host.id}
+          host={host}
+          isPrimary={host.id === serverPrimaryHostId}
+          isThisMachine={
+            showMachineIdentityBadges && host.id === localDaemonHostId
+          }
+          showPrimaryBadge={
+            showMachineIdentityBadges && host.id === serverPrimaryHostId
+          }
+          platformLabel={
+            host.id === localDaemonHostId && localDaemonPlatform !== null
+              ? PLATFORM_LABELS[localDaemonPlatform]
+              : host.id === serverPrimaryHostId && primaryHostPlatform !== null
+                ? PLATFORM_LABELS[primaryHostPlatform]
+                : null
+          }
+          projectCount={projectCountByHostId.get(host.id) ?? 0}
+          now={now}
+          onRename={() => {
+            renameHost.reset();
+            setRenameTarget(host);
+          }}
+          onRemove={() => {
+            setRemoveTarget(host);
+          }}
+          onRetryUpdate={() =>
+            retryHostUpdate.mutate(host.id, {
+              onSuccess: () => {
+                appToast.success(`Update retry requested for ${host.name}`);
+              },
+            })
+          }
+          retryUpdatePending={
+            retryHostUpdate.isPending && retryHostUpdate.variables === host.id
+          }
+          onSuspend={() =>
+            suspendHost.mutate(host.id, {
+              onSuccess: () => appToast.success(`${host.name} suspended`),
+            })
+          }
+          onResume={() =>
+            resumeHost.mutate(host.id, {
+              onSuccess: () => appToast.success(`${host.name} resumed`),
+            })
+          }
+          onRetryCleanup={() =>
+            retryHostCleanup.mutate(host.id, {
+              onSuccess: () =>
+                appToast.success(`Cleanup retried for ${host.name}`),
+            })
+          }
+          lifecycleActionPending={
+            (suspendHost.isPending && suspendHost.variables === host.id) ||
+            (resumeHost.isPending && resumeHost.variables === host.id) ||
+            (retryHostCleanup.isPending &&
+              retryHostCleanup.variables === host.id)
+          }
+          machineProvider={
+            host.machineProviderId === null
+              ? null
+              : (machineProviderById.get(host.machineProviderId) ?? null)
+          }
+        />
+      ))}
+    </SettingsRowList>
   );
 
   return (
@@ -329,84 +412,36 @@ export function MachinesSettingsSection() {
       >
         {hosts === undefined ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
-        ) : hosts.length === 0 ? (
+        ) : persistentHosts?.length === 0 ? (
           <p className="text-sm text-subtle-foreground">No machines yet.</p>
         ) : (
-          <SettingsRowList>
-            {hosts.map((host) => (
-              <MachineRowContent
-                key={host.id}
-                host={host}
-                isPrimary={host.id === serverPrimaryHostId}
-                isThisMachine={
-                  showMachineIdentityBadges && host.id === localDaemonHostId
-                }
-                showPrimaryBadge={
-                  showMachineIdentityBadges && host.id === serverPrimaryHostId
-                }
-                platformLabel={
-                  host.id === localDaemonHostId && localDaemonPlatform !== null
-                    ? PLATFORM_LABELS[localDaemonPlatform]
-                    : host.id === serverPrimaryHostId &&
-                        primaryHostPlatform !== null
-                      ? PLATFORM_LABELS[primaryHostPlatform]
-                      : null
-                }
-                projectCount={projectCountByHostId.get(host.id) ?? 0}
-                now={now}
-                onRename={() => {
-                  renameHost.reset();
-                  setRenameTarget(host);
-                }}
-                onRemove={() => {
-                  setRemoveTarget(host);
-                }}
-                onRetryUpdate={() =>
-                  retryHostUpdate.mutate(host.id, {
-                    onSuccess: () => {
-                      appToast.success(
-                        `Update retry requested for ${host.name}`,
-                      );
-                    },
-                  })
-                }
-                retryUpdatePending={
-                  retryHostUpdate.isPending &&
-                  retryHostUpdate.variables === host.id
-                }
-                onSuspend={() =>
-                  suspendHost.mutate(host.id, {
-                    onSuccess: () => appToast.success(`${host.name} suspended`),
-                  })
-                }
-                onResume={() =>
-                  resumeHost.mutate(host.id, {
-                    onSuccess: () => appToast.success(`${host.name} resumed`),
-                  })
-                }
-                onRetryCleanup={() =>
-                  retryHostCleanup.mutate(host.id, {
-                    onSuccess: () =>
-                      appToast.success(`Cleanup retried for ${host.name}`),
-                  })
-                }
-                lifecycleActionPending={
-                  (suspendHost.isPending &&
-                    suspendHost.variables === host.id) ||
-                  (resumeHost.isPending && resumeHost.variables === host.id) ||
-                  (retryHostCleanup.isPending &&
-                    retryHostCleanup.variables === host.id)
-                }
-                machineProvider={
-                  host.machineProviderId === null
-                    ? null
-                    : (machineProviderById.get(host.machineProviderId) ?? null)
-                }
-              />
-            ))}
-          </SettingsRowList>
+          renderMachineRows(persistentHosts ?? [])
         )}
       </SettingsSection>
+
+      <details className="group space-y-3">
+        <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
+          Sandboxes
+          <Icon
+            name="ChevronRight"
+            className="size-3.5 transition-transform group-open:rotate-90"
+          />
+        </summary>
+        <div
+          className={cn(
+            "rounded-lg border border-border bg-card px-4 py-3.5",
+            sandboxHosts !== undefined && sandboxHosts.length > 0 && "py-2",
+          )}
+        >
+          {sandboxHosts === undefined ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : sandboxHosts.length === 0 ? (
+            <p className="text-sm text-subtle-foreground">No sandboxes yet.</p>
+          ) : (
+            renderMachineRows(sandboxHosts)
+          )}
+        </div>
+      </details>
 
       <AddMachineDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
 

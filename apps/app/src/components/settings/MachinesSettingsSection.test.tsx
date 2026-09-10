@@ -11,7 +11,10 @@ import type { Host } from "@bb/domain";
 import { makeHost } from "@bb/test-helpers/domain-fixtures";
 import { RETRY_ACTION_ICON } from "@bb/domain/update-state";
 import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
-import type { SystemConfigResponse } from "@bb/server-contract";
+import type {
+  SystemConfigResponse,
+  SystemMachineProvider,
+} from "@bb/server-contract";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { sdk } from "@/lib/sdk";
@@ -67,6 +70,23 @@ const offlineHost = host({
   status: "disconnected",
   lastSeenAt: NOW - 2 * 60 * 60 * 1000,
 });
+const sandboxHost = host({
+  id: "host_sandbox",
+  name: "Modal sandbox 3f9a",
+  type: "ephemeral",
+  machineProviderId: "modal-sandbox",
+});
+const modalMachineProvider: SystemMachineProvider = {
+  id: "modal-sandbox",
+  displayName: "Modal Sandbox",
+  description: "Create a sandbox in your Modal account.",
+  icon: "Box",
+  logoUrl: null,
+  pluginId: "environment-modal-sandbox",
+  inputs: null,
+  acceptsEmptyInputs: true,
+  supportsSuspend: true,
+};
 
 function systemConfig(): SystemConfigResponse {
   return makeSystemConfig({
@@ -139,6 +159,57 @@ afterEach(() => {
 });
 
 describe("MachinesSettingsSection", () => {
+  it("keeps sandboxes in a separate collapsed section with provider icons", async () => {
+    vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
+    vi.mocked(sdk.hosts.list).mockResolvedValue([primaryHost, sandboxHost]);
+    vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue([
+      modalMachineProvider,
+    ]);
+    stubSidebarBootstrapFetch();
+
+    renderSection();
+
+    const persistentName = await screen.findByText(primaryHost.name);
+    expect(
+      persistentName.parentElement?.querySelector('[data-icon="Laptop"]'),
+    ).not.toBeNull();
+    const summary = screen.getByText("Sandboxes").closest("summary");
+    const details = summary?.closest("details");
+    expect(details?.hasAttribute("open")).toBe(false);
+
+    if (summary === null || summary === undefined) return;
+    fireEvent.click(summary);
+    expect(details?.hasAttribute("open")).toBe(true);
+
+    const sandboxName = screen.getByText(sandboxHost.name);
+    expect(sandboxName.parentElement?.querySelector("svg")).not.toBeNull();
+    expect(
+      sandboxName.parentElement?.querySelector('[data-icon="Laptop"]'),
+    ).toBeNull();
+    expect(screen.queryByText(modalMachineProvider.displayName)).toBeNull();
+    await openHostMenu(sandboxHost.name);
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Suspend" }));
+    await waitFor(() => {
+      expect(vi.mocked(sdk.hosts.experimental_suspend)).toHaveBeenCalledWith({
+        hostId: sandboxHost.id,
+      });
+    });
+  });
+
+  it("shows the sandbox empty state inside the collapsed section", async () => {
+    vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
+    vi.mocked(sdk.hosts.list).mockResolvedValue([primaryHost]);
+    stubSidebarBootstrapFetch();
+
+    renderSection();
+
+    await screen.findByText(primaryHost.name);
+    const summary = screen.getByText("Sandboxes").closest("summary");
+    if (summary === null || summary === undefined) return;
+    fireEvent.click(summary);
+    expect(screen.getByText("No sandboxes yet.")).toBeDefined();
+  });
+
   it("renders machine status, project, and permission metadata as visible text", async () => {
     vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
     vi.mocked(sdk.hosts.list).mockResolvedValue([primaryHost, offlineHost]);
@@ -159,8 +230,8 @@ describe("MachinesSettingsSection", () => {
     expect(
       screen
         .getByRole("link", { name: "Open MacBook Pro" })
-        .querySelector("[data-icon]"),
-    ).toBeNull();
+        .querySelector('[data-icon="Laptop"]'),
+    ).not.toBeNull();
   });
 
   it("distinguishes the client-local daemon from the primary machine", async () => {

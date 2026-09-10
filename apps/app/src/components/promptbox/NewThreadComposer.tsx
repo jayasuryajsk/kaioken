@@ -443,7 +443,8 @@ export function NewThreadComposer({
 
   const hostsQuery = useHosts();
   const availableHosts = useMemo(
-    () => selectHosts(hostsQuery.data),
+    () =>
+      selectHosts(hostsQuery.data).filter((host) => host.type !== "ephemeral"),
     [hostsQuery.data],
   );
   const systemConfigQuery = useSystemConfig();
@@ -495,34 +496,6 @@ export function NewThreadComposer({
           : !provider.requires.projectless,
       ),
     [isProjectless, registeredEnvironmentProviders],
-  );
-  const projectGitRemoteUrl = currentProject?.gitRemoteUrl;
-  const environmentProvidersByHostId = useMemo(
-    () =>
-      new Map(
-        availableHosts.map((host) => [
-          host.id,
-          environmentProviders?.filter((provider) => {
-            if (
-              (provider.requires.projectCheckout ||
-                provider.requires.gitCheckout) &&
-              findLocalPathProjectSourceForHost(projectSources, host.id) ===
-                undefined
-            ) {
-              return false;
-            }
-            if (
-              provider.requires.gitRemote &&
-              (projectGitRemoteUrl === undefined ||
-                projectGitRemoteUrl === null)
-            ) {
-              return false;
-            }
-            return true;
-          }),
-        ]),
-      ),
-    [availableHosts, environmentProviders, projectGitRemoteUrl, projectSources],
   );
   const { providers: machineProviders } = useSystemMachineProviders();
   const pluginList = usePluginList({ enabled: true });
@@ -1566,7 +1539,6 @@ export function NewThreadComposer({
               disabled: locks.environment,
               isLoading: environmentProviders === undefined,
               providers: environmentProviders ?? [],
-              providersByHostId: environmentProvidersByHostId,
               selectedProviderHostId: providerHostId,
               inputsControlProviderIds,
               onSelectProvider: handleSelectProvider,
@@ -1738,7 +1710,6 @@ export function NewThreadComposer({
       navigate,
       environmentProviderInputsSlot,
       machineProviderInputs.control,
-      environmentProvidersByHostId,
       inputsControlProviderIds,
       providerHostId,
       textEffects,

@@ -41,10 +41,6 @@ import {
 } from "./environment-picker-value";
 import { selectHosts } from "@/hooks/queries/host-queries";
 import { providerInputsControlRequired } from "./environment-provider-inputs";
-import {
-  MachineProviderKind,
-  type MachineProviderPresentation,
-} from "@/components/plugin/MachineProviderIcon";
 
 interface SelectedEnvironment {
   modeLabel: string;
@@ -73,10 +69,6 @@ export interface EnvironmentPickerUIProps {
   onRequestMachineSetup?: (host: Host) => void;
   providers?: readonly SystemEnvironmentProvider[];
   projectless?: boolean;
-  providersByHostId?: ReadonlyMap<
-    string,
-    readonly SystemEnvironmentProvider[] | undefined
-  >;
   selectedProviderHostId?: string | null;
   inputsControlProviderIds?: ReadonlySet<string>;
   onSelectProvider?: (
@@ -119,24 +111,6 @@ function providerDescription(
   );
 }
 
-function scopedProviders(
-  providers: readonly SystemEnvironmentProvider[],
-  providersByHostId: EnvironmentPickerUIProps["providersByHostId"],
-  hostId: string | null,
-): readonly SystemEnvironmentProvider[] {
-  if (hostId === null || providersByHostId === undefined) return providers;
-  const hostProviders = new Map(
-    (providersByHostId.get(hostId) ?? []).map((provider) => [
-      provider.id,
-      provider,
-    ]),
-  );
-  return providers.flatMap((provider) => {
-    const hostProvider = hostProviders.get(provider.id);
-    return hostProvider === undefined ? [] : [hostProvider];
-  });
-}
-
 export function EnvironmentPickerUI({
   value,
   sources,
@@ -152,7 +126,6 @@ export function EnvironmentPickerUI({
   onRequestMachineSetup,
   providers = [],
   projectless = false,
-  providersByHostId,
   selectedProviderHostId = null,
   inputsControlProviderIds = NO_INPUTS_CONTROL_PROVIDER_IDS,
   onSelectProvider,
@@ -161,10 +134,16 @@ export function EnvironmentPickerUI({
     () =>
       machines === null || machines === undefined
         ? null
-        : { ...machines, hosts: selectHosts(machines.hosts) },
+        : {
+            ...machines,
+            hosts: selectHosts(machines.hosts).filter(
+              (machineHost) => machineHost.type === "persistent",
+            ),
+          },
     [machines],
   );
-  const hostId = host?.id ?? null;
+  const availableHost = host?.type === "ephemeral" ? null : host;
+  const hostId = availableHost?.id ?? null;
   const hasMultipleMachines = (availableMachines?.hosts.length ?? 0) > 1;
   const environmentProviders = useMemo(
     () =>
@@ -176,8 +155,8 @@ export function EnvironmentPickerUI({
     [projectless, providers],
   );
   const isMachineMenu = hasMultipleMachines;
-  const hostConnected = host?.status === "connected";
-  const hostUnavailableReason = !host
+  const hostConnected = availableHost?.status === "connected";
+  const hostUnavailableReason = !availableHost
     ? "No host connected"
     : !hostConnected
       ? "Host is offline"
@@ -230,7 +209,7 @@ export function EnvironmentPickerUI({
         modeLabel: selectedMachineName
           ? `${selectedMachineName} · ${hostUnavailableReason}`
           : hostUnavailableReason,
-        compactModeLabel: host ? "Offline" : "No host",
+        compactModeLabel: availableHost ? "Offline" : "No host",
         icon: "AlertTriangle" as const,
       };
     }
@@ -249,7 +228,7 @@ export function EnvironmentPickerUI({
   }, [
     parsed,
     hostUnavailableReason,
-    host,
+    availableHost,
     selectedMachineName,
     selectedProvider,
   ]);
@@ -342,8 +321,6 @@ export function EnvironmentPickerUI({
             value={value}
             onRequestMachineSetup={onRequestMachineSetup}
             environmentProviders={environmentProviders}
-            machineKindProviders={providers}
-            providersByHostId={providersByHostId}
             selectedProviderHostId={selectedProviderHostId}
             inputsControlProviderIds={inputsControlProviderIds}
             onSelectProvider={onSelectProvider}
@@ -351,14 +328,10 @@ export function EnvironmentPickerUI({
         ) : (
           <EnvironmentOptionsSection
             hostId={hostId}
-            hostName={isLocal ? null : (host?.name ?? null)}
+            hostName={isLocal ? null : (availableHost?.name ?? null)}
             hostUnavailableReason={hostUnavailableReason}
             value={value}
-            environmentProviders={scopedProviders(
-              environmentProviders,
-              providersByHostId,
-              hostId,
-            )}
+            environmentProviders={environmentProviders}
             selectedProviderHostId={selectedProviderHostId}
             inputsControlProviderIds={inputsControlProviderIds}
             onSelectProvider={onSelectProvider}
@@ -503,8 +476,6 @@ interface MachineGroupedEnvironmentOptionsProps {
   value: string;
   onRequestMachineSetup: ((host: Host) => void) | undefined;
   environmentProviders: readonly SystemEnvironmentProvider[];
-  machineKindProviders: readonly SystemEnvironmentProvider[];
-  providersByHostId: EnvironmentPickerUIProps["providersByHostId"];
   selectedProviderHostId: string | null;
   inputsControlProviderIds: ReadonlySet<string>;
   onSelectProvider:
@@ -518,8 +489,6 @@ function MachineGroupedEnvironmentOptions({
   value,
   onRequestMachineSetup,
   environmentProviders,
-  machineKindProviders,
-  providersByHostId,
   selectedProviderHostId,
   inputsControlProviderIds,
   onSelectProvider,
@@ -543,30 +512,7 @@ function MachineGroupedEnvironmentOptions({
           now={now}
           value={value}
           onRequestMachineSetup={onRequestMachineSetup}
-          environmentProviders={scopedProviders(
-            environmentProviders,
-            providersByHostId,
-            machineHost.id,
-          )}
-          machineProvider={
-            machineHost.machineProviderId === null
-              ? null
-              : (() => {
-                  const provider = machineKindProviders.find(
-                    (candidate) =>
-                      candidate.machineProviderId ===
-                      machineHost.machineProviderId,
-                  );
-                  return provider === undefined
-                    ? null
-                    : {
-                        id: machineHost.machineProviderId,
-                        displayName: provider.displayName,
-                        icon: provider.icon ?? "Server",
-                        logoUrl: provider.logoUrl,
-                      };
-                })()
-          }
+          environmentProviders={environmentProviders}
           selectedProviderHostId={selectedProviderHostId}
           inputsControlProviderIds={inputsControlProviderIds}
           onSelectProvider={onSelectProvider}
@@ -584,7 +530,6 @@ interface MachineSectionProps {
   value: string;
   onRequestMachineSetup: ((host: Host) => void) | undefined;
   environmentProviders: readonly SystemEnvironmentProvider[];
-  machineProvider: MachineProviderPresentation | null;
   selectedProviderHostId: string | null;
   inputsControlProviderIds: ReadonlySet<string>;
   onSelectProvider:
@@ -600,37 +545,20 @@ function MachineSection({
   value,
   onRequestMachineSetup,
   environmentProviders,
-  machineProvider,
   selectedProviderHostId,
   inputsControlProviderIds,
   onSelectProvider,
 }: MachineSectionProps) {
   const connected = host.status === "connected";
   const hostProviders = environmentProviders;
-  const selectable =
-    (connected && host.lifecycle.phase !== "removing") ||
-    (host.machineProviderId !== null && host.lifecycle.phase === "suspended");
+  const selectable = connected && host.lifecycle.phase !== "removing";
   return (
     <DropdownMenuGroup>
       <DropdownMenuLabel className="min-w-0 text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <MachineStatusDot connected={connected} />
+          <Icon name="Laptop" className="size-3 shrink-0" />
           <span className="min-w-0 truncate">{host.name}</span>
-          {machineProvider === null ? null : (
-            <MachineProviderKind
-              provider={machineProvider}
-              className="inline-flex min-w-0 items-center gap-1 text-2xs text-subtle-foreground"
-            />
-          )}
-          {host.machineProviderId ? (
-            <span className={MACHINE_BADGE_CLASS_NAME}>
-              {host.lifecycle.phase === "suspended"
-                ? "paused"
-                : host.lifecycle.phase === "active" && connected
-                  ? "running"
-                  : host.lifecycle.phase}
-            </span>
-          ) : null}
           {isThisMachine ? (
             <span className={MACHINE_BADGE_CLASS_NAME}>this machine</span>
           ) : null}

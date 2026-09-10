@@ -85,7 +85,6 @@ export interface NewThreadEnvironmentConfig {
   disabled?: boolean;
   isLoading?: boolean;
   providers?: readonly SystemEnvironmentProvider[];
-  providersByHostId?: EnvironmentPickerUIProps["providersByHostId"];
   selectedProviderHostId?: string | null;
   inputsControlProviderIds?: ReadonlySet<string>;
   onSelectProvider?: EnvironmentPickerUIProps["onSelectProvider"];
@@ -453,7 +452,6 @@ export function ThreadEnvSlot({
         disabled={environment.disabled}
         isLoading={environment.isLoading}
         providers={environment.providers}
-        providersByHostId={environment.providersByHostId}
         selectedProviderHostId={environment.selectedProviderHostId}
         inputsControlProviderIds={environment.inputsControlProviderIds}
         onSelectProvider={environment.onSelectProvider}
@@ -528,7 +526,6 @@ export function ProjectlessEnvSlot({
         disabled={environment.disabled}
         isLoading={environment.isLoading}
         providers={providers}
-        providersByHostId={environment.providersByHostId}
         selectedProviderHostId={environment.selectedProviderHostId}
         inputsControlProviderIds={environment.inputsControlProviderIds}
         onSelectProvider={environment.onSelectProvider}
