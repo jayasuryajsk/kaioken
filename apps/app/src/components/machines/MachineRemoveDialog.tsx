@@ -10,6 +10,16 @@ import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
 import { useRemoveHost } from "@/hooks/mutations/host-mutations";
 import { getMutationErrorMessage } from "@/lib/mutation-errors";
 
+export function machineRemovalConsequences(host: Host): string {
+  if (host.type === "ephemeral") {
+    return "The compute and its saved snapshots are deleted. Its environments remain as read-only history.";
+  }
+  if (host.machineProviderId !== null) {
+    return "The provider cleans up resources it owns. Its environments remain as read-only history.";
+  }
+  return "Project checkouts stay on its disk, but its environments become read-only history and it cannot run new work until paired again.";
+}
+
 export function MachineRemoveDialog({
   target,
   onOpenChange,
@@ -37,10 +47,8 @@ export function MachineRemoveDialog({
           <DialogHeader>
             <DialogTitle>Remove {target.name}?</DialogTitle>
             <DialogDescription>
-              This revokes {target.name}'s access to this server.
-              {target.machineProviderId !== null
-                ? "The provider cleans up resources it owns. Its environments remain as read-only history."
-                : "Project checkouts stay on its disk, but its environments become read-only history and it cannot run new work until paired again."}
+              This revokes {target.name}'s access to this server.{" "}
+              {machineRemovalConsequences(target)}
             </DialogDescription>
           </DialogHeader>
           {removeHost.isError ? (

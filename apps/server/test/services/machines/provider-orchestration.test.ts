@@ -25,6 +25,7 @@ import {
   getEnvironment,
   getHost,
   getMachineLaunch,
+  hosts,
   listProjectSourcesByProjectIds,
   threads,
   updateHost,
@@ -32,8 +33,12 @@ import {
   updateMachineLaunchAttempt,
 } from "@bb/db";
 import { hostSchema, type Host, type JsonValue } from "@bb/domain";
+import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
 import { createDeferredPromise } from "@bb/test-helpers";
-import type { PluginMachineProviderDeclaration } from "@get-bb/plugin-sdk";
+import type {
+  PluginMachineProviderDeclaration,
+  ServerAccessProviderDeclaration,
+} from "@get-bb/plugin-sdk";
 import {
   validatePluginEnvironmentProviderDeclaration,
   validatePluginMachineProviderDeclaration,
@@ -52,9 +57,11 @@ import {
   resolveThreadMachineLaunchKey,
   sweepMachineLifecycles,
   sweepProviderMachine,
+  waitForMachineMaintenance,
 } from "../../../src/services/machines/provider-orchestration.js";
 import { setPluginMachineProviderBridge } from "../../../src/services/plugins/plugin-machine-provider-registry.js";
 import { setPluginEnvironmentProviderBridge } from "../../../src/services/plugins/plugin-environment-provider-registry.js";
+import { setServerAccessBridge } from "../../../src/services/plugins/plugin-server-access-registry.js";
 import { sweepProviderEnvironment } from "../../../src/services/environments/provider-orchestration.js";
 import {
   seedHostSession,
@@ -65,6 +72,7 @@ import {
 import { registerTestHostRpcCapture } from "../../helpers/commands.js";
 import { textInput } from "../../helpers/prompt-input.js";
 import {
+  createTestDaemonHostKey,
   withTestHarness,
   type TestAppHarness,
 } from "../../helpers/test-app.js";
@@ -94,6 +102,15 @@ function installMachineProvider(declaration: PluginMachineProviderDeclaration) {
     decisionTimeoutMs: 10_000,
   });
   return record;
+}
+
+function installServerAccessProvider(
+  provider: ServerAccessProviderDeclaration,
+): void {
+  setServerAccessBridge({
+    list: () => [{ pluginId: "test-access-plugin", provider }],
+    invoke: async (_pluginId, run) => run(),
+  });
 }
 
 function machineDeclaration(
@@ -140,6 +157,7 @@ afterEach(() => {
   vi.useRealTimers();
   setPluginMachineProviderBridge(undefined);
   setPluginEnvironmentProviderBridge(undefined);
+  setServerAccessBridge(undefined);
 });
 
 function seedMachineWorkspace(
@@ -1365,6 +1383,10 @@ describe("core machine provider orchestration", () => {
             observedProgress =
               hosts.find((candidate) => candidate.id === host.id)?.lifecycle
                 .message ?? null;
+            expect(
+              hosts.find((candidate) => candidate.id === host.id)?.lifecycle
+                .phase,
+            ).toBe("suspended");
             harness.hub.registerDaemon(session.id, host.id, socket);
             return { resource: { sandbox: "resumed" } };
           },
@@ -1401,6 +1423,55 @@ describe("core machine provider orchestration", () => {
         phase: "active",
         suspendedAt: null,
         resource: { sandbox: "resumed" },
+      });
+    }));
+
+  it("accepts the resumed daemon session only while resume owns the suspended host", async () =>
+    withTestHarness(async (h) => {
+      const { host } = seedHostSession(h.deps, {
+        id: "host-resume-session",
+      });
+      adoptMachine(h, host.id, { snapshot: "saved" });
+      updateHost(h.db, h.hub, host.id, {
+        phase: "suspended",
+        suspendedAt: Date.now(),
+      });
+      let sessionStatus: number | null = null;
+      installMachineProvider(
+        machineDeclaration(host.id, {
+          suspend: async ({ resource }) => ({ resource }),
+          resume: async ({ resource }) => {
+            const response = await h.app.request("/internal/session/open", {
+              method: "POST",
+              headers: {
+                authorization: `Bearer ${createTestDaemonHostKey({ hostId: host.id })}`,
+                "content-type": "application/json",
+              },
+              body: JSON.stringify({
+                hostId: host.id,
+                instanceId: "resumed-instance",
+                hostName: host.name,
+                hasMachineCredential: true,
+                platform: "linux",
+                dataDir: "/tmp/resumed-host",
+                localApiPort: 38_888,
+                protocolVersion: HOST_DAEMON_PROTOCOL_VERSION,
+                activeThreads: [],
+                loadedEnvironments: [],
+              }),
+            });
+            sessionStatus = response.status;
+            return { resource };
+          },
+        }),
+      );
+
+      await requestMachineResume(h.deps, host.id);
+
+      expect(sessionStatus).toBe(201);
+      expect(getHost(h.db, host.id)).toMatchObject({
+        phase: "active",
+        suspendedAt: null,
       });
     }));
 
@@ -2664,6 +2735,81 @@ it("removal settles enrollment and repeating settlement is idempotent", async ()
     expect(harness.db.select().from(machineEnrollments).all()).toEqual(settled);
   }));
 
+it("completes removal when the recorded access provider is not registered", async () =>
+  withTestHarness(async (h) => {
+    const warn = vi.fn();
+    const deps = { ...h.deps, logger: { ...h.deps.logger, warn } };
+    const { host } = seedHostSession(deps, { id: "missing-access-provider" });
+    adoptMachine(h, host.id);
+    h.db
+      .update(hosts)
+      .set({
+        serverAccessProviderId: "uninstalled-relay",
+        serverAccessGrantId: "grant-1",
+      })
+      .where(eq(hosts.id, host.id))
+      .run();
+    installMachineProvider(machineDeclaration(host.id));
+
+    expect(requestMachineRemoval(deps, host.id)).toBe(true);
+    await sweepProviderMachine(deps, host.id);
+    await sweepProviderMachine(deps, host.id);
+
+    expect(getHost(h.db, host.id)).toMatchObject({
+      phase: "destroyed",
+      serverAccessProviderId: null,
+      serverAccessGrantId: null,
+      teardownStatus: "removed",
+    });
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn).toHaveBeenCalledWith(
+      { hostId: host.id, providerId: "uninstalled-relay" },
+      "Server access provider is not installed; skipping release during machine removal",
+    );
+  }));
+
+it("keeps removal retryable when a registered access provider cannot release", async () =>
+  withTestHarness(async (h) => {
+    const { host } = seedHostSession(h.deps, {
+      id: "failing-access-release",
+    });
+    adoptMachine(h, host.id);
+    h.db
+      .update(hosts)
+      .set({
+        serverAccessProviderId: "relay",
+        serverAccessGrantId: "grant-1",
+      })
+      .where(eq(hosts.id, host.id))
+      .run();
+    installMachineProvider(machineDeclaration(host.id));
+    const release = vi.fn().mockRejectedValue(new Error("relay unavailable"));
+    installServerAccessProvider({
+      id: "relay",
+      displayName: "Relay",
+      description: "Managed relay",
+      availability: () => ({ status: "available" }),
+      acquire: async () => ({
+        id: "grant-1",
+        serverUrl: "https://relay.example.com",
+      }),
+      release,
+    });
+
+    expect(requestMachineRemoval(h.deps, host.id)).toBe(true);
+    await sweepProviderMachine(h.deps, host.id);
+
+    expect(release).toHaveBeenCalledOnce();
+    expect(getHost(h.db, host.id)).toMatchObject({
+      phase: "removing",
+      serverAccessProviderId: "relay",
+      serverAccessGrantId: "grant-1",
+      teardownStatus: "failed",
+      statusMessage: "relay unavailable",
+      removeRetryAt: expect.any(Number),
+    });
+  }));
+
 it("resume crash after checkpoint recovers the allocation and preserves one enrollment", async () =>
   withTestHarness(async (harness) => {
     const { host } = seedHostSession(harness.deps, { id: "resume-checkpoint" });
@@ -2728,7 +2874,7 @@ it.each(["owner", "operation", "removal", "phase"])(
               });
             if (change === "phase")
               updateHost(harness.db, harness.hub, host.id, {
-                phase: "suspended",
+                phase: "active",
               });
             if (change === "removal")
               requestMachineRemoval(harness.deps, host.id);
@@ -2889,6 +3035,58 @@ it("periodic maintenance does not invalidate an in-flight resume allocation", as
   }));
 
 describe("coordinated machine suspension", () => {
+  it("returns accepted host DTOs while suspend and resume continue", async () =>
+    withTestHarness(async (h) => {
+      const { host } = seedHostSession(h.deps, { id: "host-accepted" });
+      adoptMachine(h, host.id);
+      const suspendStarted = createDeferredPromise<void>();
+      const finishSuspend = createDeferredPromise<void>();
+      const resumeStarted = createDeferredPromise<void>();
+      const finishResume = createDeferredPromise<void>();
+      installMachineProvider(
+        machineDeclaration(host.id, {
+          suspend: async ({ resource }) => {
+            suspendStarted.resolve();
+            await finishSuspend.promise;
+            return { resource };
+          },
+          resume: async ({ resource }) => {
+            resumeStarted.resolve();
+            await finishResume.promise;
+            return { resource };
+          },
+        }),
+      );
+
+      const suspendResponse = await h.app.request(
+        `/api/v1/hosts/${host.id}/suspend`,
+        { method: "POST" },
+      );
+      expect(suspendResponse.status).toBe(202);
+      expect(await suspendResponse.json()).toMatchObject({
+        id: host.id,
+        lifecycle: { phase: "suspending" },
+      });
+      await suspendStarted.promise;
+      finishSuspend.resolve();
+      await waitForMachineMaintenance(h.deps, host.id);
+      expect(getHost(h.db, host.id)?.phase).toBe("suspended");
+
+      const resumeResponse = await h.app.request(
+        `/api/v1/hosts/${host.id}/resume`,
+        { method: "POST" },
+      );
+      expect(resumeResponse.status).toBe(202);
+      expect(await resumeResponse.json()).toMatchObject({
+        id: host.id,
+        lifecycle: { phase: "suspended", message: "Resuming…" },
+      });
+      await resumeStarted.promise;
+      finishResume.resolve();
+      await requestMachineResume(h.deps, host.id);
+      expect(getHost(h.db, host.id)?.phase).toBe("active");
+    }));
+
   it("excludes dispatch and durably saves before terminating a machine with no live threads", async () =>
     withTestHarness(async (h) => {
       vi.useFakeTimers({ toFake: ["Date"] });

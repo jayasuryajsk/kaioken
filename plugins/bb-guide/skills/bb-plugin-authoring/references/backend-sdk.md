@@ -186,7 +186,9 @@ returns a public Host; a machine belongs to no project, and `inputs: null` is
 for a provider that accepts no inputs. Supply a stable key for
 idempotent retries. Creation does not create an environment or a thread.
 `bb.sdk.hosts.experimental_suspend({ hostId })` and `resume({ hostId })` require the provider's
-paired suspend/resume operations. `retryCleanup({ hostId })` retries failed
+paired suspend/resume operations. They return the updated public Host with HTTP
+202 once the tracked operation starts; read its lifecycle state for completion.
+`retryCleanup({ hostId })` retries failed
 provider teardown. `get({ hostId })` additionally returns nullable
 `connectMachineId` from trusted gate metadata for legacy access revocation;
 Connect now persists its revocation identity during acquire, before enrollment.

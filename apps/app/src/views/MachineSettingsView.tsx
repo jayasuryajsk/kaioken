@@ -10,7 +10,10 @@ import { cn } from "@bb/shared-ui/lib/utils";
 import { Pill } from "@bb/shared-ui/pill";
 import { ResourceOverflowMenu } from "@bb/shared-ui/resource-list";
 import { MachineLifecycleActions } from "@/components/machines/MachineLifecycleActions";
-import { MachineRemoveDialog } from "@/components/machines/MachineRemoveDialog";
+import {
+  MachineRemoveDialog,
+  machineRemovalConsequences,
+} from "@/components/machines/MachineRemoveDialog";
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
 import {
   machineStatusLabel,
@@ -533,7 +536,7 @@ export function MachineSettingsView() {
           description={
             isPrimary
               ? PRIMARY_REMOVE_DISABLED_REASON
-              : `Revokes ${host.name}'s access to this server. Project checkouts stay on its disk.`
+              : `Revokes ${host.name}'s access to this server. ${machineRemovalConsequences(host)}`
           }
         >
           <SettingsRowList>

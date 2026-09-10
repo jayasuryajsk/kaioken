@@ -28,6 +28,7 @@ import { readAttachment } from "../services/projects/attachments.js";
 import { handleHostSessionOpened } from "./session-owner-side-effects.js";
 import { resolveReportedConnectMachineId } from "./hosts.js";
 import type { PluginService } from "../services/plugins/plugin-service.js";
+import { isMachineResumeInFlight } from "../services/machines/provider-orchestration.js";
 
 const sessionOpenCompatibilitySchema = z
   .object({
@@ -108,7 +109,11 @@ export function registerInternalSessionRoutes(
     const payload = parsed.data;
 
     const host = getHost(deps.db, daemon.hostId);
-    if (host?.phase === "suspending" || host?.phase === "suspended") {
+    if (
+      host?.phase === "suspending" ||
+      (host?.phase === "suspended" &&
+        !isMachineResumeInFlight(deps, daemon.hostId))
+    ) {
       throw new ApiError(
         409,
         "machine_suspended",

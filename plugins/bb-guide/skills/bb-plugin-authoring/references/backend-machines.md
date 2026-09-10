@@ -171,7 +171,8 @@ Modal v1 checks only `thread.status === "active"` in its thread-event callback.
 Call `bb.sdk.hosts.experimental_suspend({hostId})` for coordinated suspension. Core accepts follow-ups into the host-wait queue
 and drains active turns, setup hooks and terminals with a five-minute bound before
 calling your suspend callback. Persist opaque state with `checkpoint(resource)` before
-terminating compute. Core serializes resource transitions and restores the same host
+terminating compute. The SDK request returns after suspension starts; observe the
+host lifecycle when completion matters. Core serializes resource transitions and restores the same host
 identity without rerunning checkout setup.
 
 Your plugin owns vendor observations, expiry scheduling, snapshot identifiers,

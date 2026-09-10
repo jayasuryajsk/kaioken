@@ -35,6 +35,43 @@ interface MachineProviderInstallOptions extends MachineListCommandOptions {
   action?: "install" | "update";
 }
 
+const MACHINE_LIFECYCLE_TIMEOUT_MS = 15 * 60_000;
+const MACHINE_LIFECYCLE_POLL_MS = 500;
+
+async function waitForMachineLifecycle(args: {
+  host: Host;
+  targetPhase: "active" | "suspended";
+  getHost: () => Promise<Host>;
+}): Promise<Host> {
+  let host = args.host;
+  const deadline = Date.now() + MACHINE_LIFECYCLE_TIMEOUT_MS;
+  while (host.lifecycle.phase !== args.targetPhase) {
+    const message = host.lifecycle.message;
+    if (
+      message?.startsWith("Machine suspension failed:") ||
+      message?.startsWith("Machine resume failed:")
+    ) {
+      throw new Error(message);
+    }
+    if (
+      host.lifecycle.phase === "removing" ||
+      host.lifecycle.phase === "destroyed"
+    ) {
+      throw new Error(`Machine entered the ${host.lifecycle.phase} phase`);
+    }
+    if (Date.now() >= deadline) {
+      throw new Error(
+        `Timed out after ${MACHINE_LIFECYCLE_TIMEOUT_MS / 1000} seconds waiting for machine ${host.id} to become ${args.targetPhase}`,
+      );
+    }
+    await new Promise<void>((resolve) =>
+      setTimeout(resolve, MACHINE_LIFECYCLE_POLL_MS),
+    );
+    host = await args.getHost();
+  }
+  return host;
+}
+
 function parseProviderCliKey(value: string): string {
   const providerId = value.trim();
   if (providerId.length === 0)
@@ -398,7 +435,12 @@ export function registerMachineCommands(
       action(async (target: string, opts: MachineListCommandOptions) => {
         const sdk = createCliBbSdk(getUrl());
         const hostId = resolveMachineId(await sdk.hosts.list(), target);
-        const result = await sdk.hosts.experimental_suspend({ hostId });
+        const requested = await sdk.hosts.experimental_suspend({ hostId });
+        const result = await waitForMachineLifecycle({
+          host: requested,
+          targetPhase: "suspended",
+          getHost: () => sdk.hosts.get({ hostId }),
+        });
         if (outputJson(opts, result)) return;
         console.log(`Machine ${hostId} suspended`);
       }),
@@ -412,7 +454,12 @@ export function registerMachineCommands(
       action(async (target: string, opts: MachineListCommandOptions) => {
         const sdk = createCliBbSdk(getUrl());
         const hostId = resolveMachineId(await sdk.hosts.list(), target);
-        const result = await sdk.hosts.experimental_resume({ hostId });
+        const requested = await sdk.hosts.experimental_resume({ hostId });
+        const result = await waitForMachineLifecycle({
+          host: requested,
+          targetPhase: "active",
+          getHost: () => sdk.hosts.get({ hostId }),
+        });
         if (outputJson(opts, result)) return;
         console.log(`Machine ${hostId} resumed`);
       }),

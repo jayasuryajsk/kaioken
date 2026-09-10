@@ -812,7 +812,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "Own idle timing in the plugin using thread-sequence and terminal-input events plus background schedules",
           "Render one compact machine-inputs control in composed thread creation with app.slots.experimental_machineProviderInputs, reporting a ready non-secret JSON value on mount or a one-sentence blocked reason",
 
-          "Request suspend/resume through the host SDK; core coordinates drain while plugins own idle policy",
+          "Request suspend/resume through the host SDK; calls return the updated host when the tracked operation starts, core coordinates drain, and plugins own idle policy",
           "Read maintenance state and lifecycle failures from each host's lifecycle phase and message",
           "Await suspend.checkpoint(resource) to persist opaque resource state before termination; schedule vendor maintenance in the plugin using bb.background.schedule and bb.sdk.hosts.experimental_suspend",
           "Optionally declare suspend and resume together; plugins own idle timing and core coordinates transitions",

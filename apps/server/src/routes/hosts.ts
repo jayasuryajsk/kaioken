@@ -40,9 +40,9 @@ import {
   resolveThreadMachineLaunchKey,
   machineLaunchStatus,
   cancelMachineLaunch,
-  requestMachineResume,
   requestMachineRemoval,
-  requestMachineSuspension,
+  startMachineResume,
+  startMachineSuspension,
   retryMachineCleanup,
   sweepProviderMachine,
 } from "../services/machines/provider-orchestration.js";
@@ -227,16 +227,18 @@ export function registerHostRoutes(
     return context.json({ ok: true as const });
   });
 
-  post(routes.suspend, async (context) => {
+  post(routes.suspend, (context) => {
     assertHostManagementAllowed(context);
-    await requestMachineSuspension(deps, context.req.param("id"));
-    return context.json({ ok: true as const });
+    const hostId = context.req.param("id");
+    startMachineSuspension(deps, hostId);
+    return context.json(requireNonDestroyedHostWithStatus(deps, hostId), 202);
   });
 
-  post(routes.resume, async (context) => {
+  post(routes.resume, (context) => {
     assertHostManagementAllowed(context);
-    await requestMachineResume(deps, context.req.param("id"));
-    return context.json({ ok: true as const });
+    const hostId = context.req.param("id");
+    startMachineResume(deps, hostId);
+    return context.json(requireNonDestroyedHostWithStatus(deps, hostId), 202);
   });
 
   post(routes.retryCleanup, async (context) => {

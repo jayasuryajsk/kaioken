@@ -75,8 +75,8 @@ export function useRetryHostUpdate() {
   });
 }
 
-function useHostLifecycleMutation(
-  mutationFn: (hostId: string) => Promise<{ ok: true }>,
+function useHostLifecycleMutation<Result>(
+  mutationFn: (hostId: string) => Promise<Result>,
 ) {
   const queryClient = useQueryClient();
   return useMutation({

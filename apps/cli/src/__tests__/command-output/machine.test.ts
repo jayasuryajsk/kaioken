@@ -254,7 +254,20 @@ describe("bb machine command output", () => {
   ] as const)(
     "bb machine %s resolves the machine and invokes the lifecycle action",
     async (command, route, message) => {
-      const lifecycleAction = vi.fn(async () => ({ ok: true as const }));
+      const lifecycleAction = vi.fn(async () =>
+        command === "retry-cleanup"
+          ? { ok: true as const }
+          : {
+              ...hosts[1]!,
+              lifecycle: {
+                ...hosts[1]!.lifecycle,
+                phase:
+                  command === "suspend"
+                    ? ("suspended" as const)
+                    : ("active" as const),
+              },
+            },
+      );
       stubServerApi({
         "v1.hosts.$get": vi.fn(async () => hosts),
         [route]: lifecycleAction,
@@ -270,6 +283,34 @@ describe("bb machine command output", () => {
       ]);
     },
   );
+
+  it("polls the host phase before reporting lifecycle completion", async () => {
+    vi.useFakeTimers();
+    const suspend = vi.fn(async () => ({
+      ...hosts[1]!,
+      lifecycle: { ...hosts[1]!.lifecycle, phase: "suspending" as const },
+    }));
+    const get = vi.fn(async () => ({
+      ...hosts[1]!,
+      lifecycle: { ...hosts[1]!.lifecycle, phase: "suspended" as const },
+    }));
+    stubServerApi({
+      "v1.hosts.$get": vi.fn(async () => hosts),
+      "v1.hosts.:id.$get": get,
+      "v1.hosts.:id.suspend.$post": suspend,
+    });
+
+    const command = runCommand(["machine", "suspend", "laptop"], register);
+    await vi.waitFor(() => expect(suspend).toHaveBeenCalledOnce());
+    expect(collectLogPayloads(vi.mocked(console.log))).toEqual([]);
+    await vi.advanceTimersByTimeAsync(500);
+    await command;
+
+    expect(get).toHaveBeenCalledWith({ param: { id: "host-remote" } });
+    expect(collectLogPayloads(vi.mocked(console.log))).toEqual([
+      "Machine host-remote suspended",
+    ]);
+  });
 
   it("bb machine remove resolves and removes a provider machine", async () => {
     const remove = vi.fn(async () => undefined);

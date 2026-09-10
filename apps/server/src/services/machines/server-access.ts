@@ -11,7 +11,7 @@ import {
   listServerAccessProviders,
 } from "../plugins/plugin-server-access-registry.js";
 
-type Dependencies = Pick<WorkSessionDeps, "db" | "hub">;
+type Dependencies = Pick<WorkSessionDeps, "db" | "hub" | "logger">;
 
 const reachableUrlSchema = z
   .string()
@@ -207,15 +207,20 @@ async function release(
     const record = listServerAccessProviders().find(
       (entry) => entry.provider.id === providerId,
     );
-    if (!record)
-      throw new Error("Server access provider is unavailable for cleanup");
-    await invokeServerAccessProvider(record, () =>
-      record.provider.release({
-        key: acquisitionKey,
-        grantId,
-        hostId: args.hostId,
-      }),
-    );
+    if (!record) {
+      deps.logger.warn(
+        { hostId: args.hostId, providerId },
+        "Server access provider is not installed; skipping release during machine removal",
+      );
+    } else {
+      await invokeServerAccessProvider(record, () =>
+        record.provider.release({
+          key: acquisitionKey,
+          grantId,
+          hostId: args.hostId,
+        }),
+      );
+    }
   }
   deps.db
     .update(hosts)

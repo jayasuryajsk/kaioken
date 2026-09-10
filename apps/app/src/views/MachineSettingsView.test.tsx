@@ -364,6 +364,22 @@ describe("MachineSettingsView", () => {
     ).toBeDefined();
   });
 
+  it("describes ephemeral compute and snapshot deletion in the danger zone", async () => {
+    vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
+    vi.mocked(sdk.hosts.list).mockResolvedValue([
+      host({ type: "ephemeral", machineProviderId: "modal-sandbox" }),
+    ]);
+    stubSupportingFetches();
+
+    renderView();
+
+    expect(
+      await screen.findByText(
+        "Revokes dev-vm's access to this server. The compute and its saved snapshots are deleted. Its environments remain as read-only history.",
+      ),
+    ).toBeDefined();
+  });
+
   it("shows client-local identity only when several machines need disambiguation", async () => {
     hostDaemon.localDaemonHostId = HOST_ID;
     hostDaemon.platform = "linux";

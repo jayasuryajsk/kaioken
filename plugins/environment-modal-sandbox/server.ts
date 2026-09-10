@@ -216,6 +216,15 @@ export function createModalSandboxPlugin(
         try {
           await bb.sdk.hosts.experimental_suspend({ hostId: host.id });
         } catch (error) {
+          const current = await bb.sdk.hosts
+            .get({ hostId: host.id })
+            .catch(() => null);
+          if (
+            current?.lifecycle.phase === "suspending" ||
+            current?.lifecycle.phase === "suspended"
+          ) {
+            continue;
+          }
           bb.log.warn(
             `Idle pause failed for ${host.id}: ${errorMessage(error)}`,
           );
@@ -298,6 +307,9 @@ export function createModalSandboxPlugin(
             })
           );
         }, context.signal);
+        context.report.log(
+          `Modal sandbox ${sandbox.sandboxId} uses image ${imageId}\n`,
+        );
         const allocation: ModalMachineResource = {
           imageId,
           accountIdentity,
@@ -312,12 +324,16 @@ export function createModalSandboxPlugin(
         };
         await context.checkpoint(allocation);
         context.signal.throwIfAborted();
+        const connectStartedAt = deps.now();
         const { hostId } = await bb.experimental_machines.bootstrap({
           key: context.key,
           executor: createSandboxExecutor(sandbox),
           report: context.report,
           signal: context.signal,
         });
+        context.report.log(
+          `Modal daemon connected in ${deps.now() - connectStartedAt} ms\n`,
+        );
         context.signal.throwIfAborted();
         await bumpIdle(hostId);
         return {
@@ -520,15 +536,22 @@ export function createModalSandboxPlugin(
             memoryMiB: resource.memoryMiB,
             tags: { bbMachineKey: resource.key },
           });
+          context.report.log(
+            `Restored Modal sandbox ${sandbox.sandboxId} from image ${resource.snapshotImageId}\n`,
+          );
         }
         resource = { ...resource, sandboxId: sandbox.sandboxId };
         await context.checkpoint(resource);
+        const connectStartedAt = deps.now();
         await bb.experimental_machines.bootstrap({
           key: resource.key,
           executor: createSandboxExecutor(sandbox),
           report: context.report,
           signal: context.signal,
         });
+        context.report.log(
+          `Modal daemon connected in ${deps.now() - connectStartedAt} ms\n`,
+        );
         await bumpIdle(context.hostId);
         return {
           resource: {

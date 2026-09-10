@@ -166,7 +166,8 @@ They verify the canonical installer-owned directory, enrolled identity, and
 service or process ownership before acting. Stop and uninstall safely succeed
 when no matching installation exists; start requires an installation. They
 refuse the default BB data directory. Stopping a daemon is distinct from
-`bb machine suspend`, which invokes provider suspension and updates server state.
+`bb machine suspend`, which invokes provider suspension and polls until the machine
+is paused. `bb machine resume` likewise waits for provider restore and bootstrap.
 
 ## Enroll a preinstalled machine
 

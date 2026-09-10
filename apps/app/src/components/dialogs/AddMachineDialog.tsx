@@ -142,21 +142,36 @@ export function ManualMachineSetup({
 }) {
   const createController = useRef<AbortController | null>(null);
   const createKey = useRef<string | null>(null);
-  const [launchId, setLaunchId] = useState<string | null>(null);
+  const pendingLaunchIds = useRef(new Set<string>());
+  const lifecycleGeneration = useRef(0);
   const [command, setCommand] = useState<EnrollmentCommand | null>(null);
   const [connectedHost, setConnectedHost] = useState<Host | null>(null);
-  useEffect(() => () => createController.current?.abort(), []);
+  useEffect(
+    () => () => {
+      lifecycleGeneration.current += 1;
+      createController.current?.abort();
+      createKey.current = null;
+      for (const id of pendingLaunchIds.current) {
+        void sdk.hosts.experimental_cancel({ id }).catch(() => undefined);
+      }
+      pendingLaunchIds.current.clear();
+    },
+    [],
+  );
   const createMachine = useMutation({
     meta: { showErrorToast: false },
     mutationFn: async (options: { replaceLaunch: boolean }) => {
+      const generation = lifecycleGeneration.current;
       if (options.replaceLaunch) {
         createController.current?.abort();
         createController.current = null;
-        if (launchId !== null)
-          await sdk.hosts.experimental_cancel({ id: launchId });
+        const ids = [...pendingLaunchIds.current];
+        pendingLaunchIds.current.clear();
+        await Promise.all(
+          ids.map((id) => sdk.hosts.experimental_cancel({ id })),
+        );
         createKey.current = null;
       }
-      setLaunchId(null);
       setCommand(null);
       const controller = new AbortController();
       createController.current = controller;
@@ -166,24 +181,36 @@ export function ManualMachineSetup({
           key: createKey.current,
           machineProviderId: MANUAL_MACHINE_PROVIDER_ID,
           inputs: null,
-          signal: controller.signal,
         });
-        setLaunchId(launch.id);
+        pendingLaunchIds.current.add(launch.id);
+        if (generation !== lifecycleGeneration.current) {
+          pendingLaunchIds.current.delete(launch.id);
+          await sdk.hosts.experimental_cancel({ id: launch.id });
+          throw new Error("Machine setup closed");
+        }
         setCommand(enrollmentCommand(launch));
-        return await sdk.hosts.experimental_follow({
+        const host = await sdk.hosts.experimental_follow({
           id: launch.id,
           signal: controller.signal,
           onProgress: (status) => {
             setCommand(enrollmentCommand(status));
-            if (status.terminal) createKey.current = null;
+            if (status.terminal) {
+              createKey.current = null;
+              pendingLaunchIds.current.delete(launch.id);
+            }
           },
         });
+        pendingLaunchIds.current.delete(launch.id);
+        return host;
       } finally {
         if (createController.current === controller)
           createController.current = null;
       }
     },
-    onSuccess: (host: Host) => setConnectedHost(host),
+    onSuccess: (host: Host) => {
+      createKey.current = null;
+      setConnectedHost(host);
+    },
   });
   const start = createMachine.mutate;
   useEffect(() => {

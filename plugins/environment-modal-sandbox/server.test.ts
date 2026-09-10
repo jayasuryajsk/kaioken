@@ -255,7 +255,12 @@ describe("Modal machine provider", () => {
 
   it("creates once by key and recovers the same host", async () => {
     const harness = await setup();
-    const first = await harness.provider.create(createContext());
+    const log = vi.fn();
+    const progress = { step: vi.fn(), log };
+    const first = await harness.provider.create({
+      ...createContext(),
+      report: progress,
+    });
     const second = await harness.provider.create(createContext());
     expect(first).toMatchObject({
       status: "created",
@@ -270,6 +275,12 @@ describe("Modal machine provider", () => {
       report,
       signal: expect.any(AbortSignal),
     });
+    expect(log.mock.calls.flat().join("")).toContain(
+      "Modal sandbox sandbox-1 uses image im-standard",
+    );
+    expect(log.mock.calls.flat().join("")).toMatch(
+      /Modal daemon connected in \d+ ms/u,
+    );
   });
 
   it("resolves configured preset and image names for validation and creation", async () => {
@@ -333,10 +344,11 @@ describe("Modal machine provider", () => {
     const harness = await setup();
     const created = await harness.provider.create(createContext());
     if (created.status !== "created") throw new Error(created.message);
+    const log = vi.fn();
     const context = {
       hostId: HOST_ID,
       resource: created.resource,
-      report,
+      report: { step: vi.fn(), log },
       signal: new AbortController().signal,
       async checkpoint() {},
     };
@@ -348,6 +360,12 @@ describe("Modal machine provider", () => {
       resource: { sandboxId: "sandbox-2", snapshotImageId: "image-1" },
     });
     expect(harness.backend.creates).toHaveLength(2);
+    expect(log.mock.calls.flat().join("")).toContain(
+      "Restored Modal sandbox sandbox-2 from image image-1",
+    );
+    expect(log.mock.calls.flat().join("")).toMatch(
+      /Modal daemon connected in \d+ ms/u,
+    );
   });
 
   it.each(["create", "lookup"])(
@@ -999,7 +1017,13 @@ describe("plugin-owned idle timing", () => {
     try {
       vi.setSystemTime(0);
       await test.provider.create(createContext());
-      const suspend = vi.fn(async () => ({ ok: true }));
+      const suspend = vi.fn(async () => ({
+        ...host("disconnected"),
+        lifecycle: {
+          ...host("disconnected").lifecycle,
+          phase: "suspended" as const,
+        },
+      }));
       test.harness.sdk.stub("hosts.experimental_suspend", suspend);
       test.harness.sdk.stub("hosts.list", () => [
         { ...host("connected"), machineProviderId: PROVIDER_ID },
@@ -1059,6 +1083,23 @@ describe("plugin-owned idle timing", () => {
       await test.harness.setSettings({ idleMinutes: 2 });
       await test.harness.runSchedule("pause-idle-machines");
       expect(suspend).toHaveBeenCalledWith({ hostId: HOST_ID });
+      suspend.mockRejectedValueOnce(
+        new Error("BB request timed out after 75 seconds"),
+      );
+      getHost.mockResolvedValueOnce({
+        ...host("disconnected"),
+        machineProviderId: PROVIDER_ID,
+        connectMachineId: null,
+        lifecycle: {
+          ...host("disconnected").lifecycle,
+          phase: "suspending",
+        },
+      });
+      vi.setSystemTime(26 * 60_000);
+      await test.harness.runSchedule("pause-idle-machines");
+      expect(
+        test.harness.logEntries.filter((entry) => entry.level === "warn"),
+      ).toEqual([]);
       suspend.mockClear();
       await test.harness.setSettings({ idleMinutes: 0 });
       vi.setSystemTime(60 * 60_000);

@@ -1086,6 +1086,23 @@ export async function requestMachineSuspension(
   }
 }
 
+export function startMachineSuspension(deps: Deps, hostId: string): void {
+  const row = requireSuspendableMachine(deps, hostId);
+  if (row.phase !== "active" && row.phase !== "suspending") {
+    throw new ApiError(
+      409,
+      "machine_not_active",
+      "Only an active machine can be suspended",
+    );
+  }
+  void requestMachineSuspension(deps, hostId).catch((error: unknown) => {
+    deps.logger.warn(
+      { hostId, error: errorMessage(error) },
+      "Requested machine suspension will retry in the lifecycle sweep",
+    );
+  });
+}
+
 export async function waitForMachineMaintenance(
   deps: MachineLifecycleDeps,
   hostId: string,
@@ -1115,6 +1132,39 @@ export async function requestMachineResume(
   }
   await waitForMachineMaintenance(deps, hostId);
   await resumeMachine(deps, hostId);
+}
+
+export function startMachineResume(deps: Deps, hostId: string): void {
+  const row = requireSuspendableMachine(deps, hostId);
+  if (
+    row.phase !== "active" &&
+    row.phase !== "suspended" &&
+    row.phase !== "suspending"
+  ) {
+    throw new ApiError(
+      409,
+      "machine_not_suspended",
+      "Only an active or suspended machine can be resumed",
+    );
+  }
+  void resumeMachine(deps, hostId).catch((error: unknown) => {
+    deps.logger.warn(
+      { hostId, error: errorMessage(error) },
+      "Requested machine resume will retry in the lifecycle sweep",
+    );
+  });
+}
+
+export function isMachineResumeInFlight(
+  deps: Pick<Deps, "db">,
+  hostId: string,
+): boolean {
+  const row = getHost(deps.db, hostId);
+  return (
+    row?.phase === "suspended" &&
+    row.machineOperationId !== null &&
+    operations(resumeOperations, deps.db).has(hostId)
+  );
 }
 
 export async function resumeMachine(
@@ -1166,8 +1216,7 @@ async function resumeMachineWithIntent(
   }
   const operationId = `${record.pluginId}:${randomUUID()}`;
   const phase = row.phase;
-  const resumePhase =
-    phase === "suspended" || phase === "suspending" ? "active" : phase;
+  const resumePhase = phase === "suspending" ? "suspended" : phase;
   const resume = record.provider.resume;
   const resource = row.resource;
   const operation = runTrackedOperation({
@@ -1177,6 +1226,7 @@ async function resumeMachineWithIntent(
       updateHost(deps.db, deps.hub, hostId, {
         machineOperationId: operationId,
         phase: resumePhase,
+        statusMessage: "Resuming…",
       });
       const invocation = await invokeMachineProvider(
         record,

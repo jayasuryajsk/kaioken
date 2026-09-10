@@ -814,13 +814,13 @@ export const publicApiRoutes = {
       path: "/hosts/:id/suspend",
       method: "post",
       request: noRequest<PathId>(),
-      response: jsonResponse<HostActionResponse>(),
+      response: jsonResponse<Host, 202>({ status: 202 }),
     }),
     resume: defineRoute({
       path: "/hosts/:id/resume",
       method: "post",
       request: noRequest<PathId>(),
-      response: jsonResponse<HostActionResponse>(),
+      response: jsonResponse<Host, 202>({ status: 202 }),
     }),
     retryCleanup: defineRoute({
       path: "/hosts/:id/retry-cleanup",
