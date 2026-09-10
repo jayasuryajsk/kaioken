@@ -2121,9 +2121,27 @@ describe("environment targets", () => {
       harness.registrations.machineProviders.get("test-machine"),
     ).toMatchObject({
       icon: "Terminal",
+      ephemeral: false,
       suspend: null,
       resume: null,
     });
+  });
+
+  it("normalizes ephemeral machine lifecycle policy", () => {
+    const { bb, harness } = createFakePluginHost();
+    bb.experimental_machines.register({
+      description: "Provision temporary compute.",
+      icon: "Terminal",
+      id: "temporary-machine",
+      displayName: "Temporary machine",
+      ephemeral: true,
+      reconcileCleanup: async () => ({ status: "removed" }),
+      create: async () => ({ status: "created", resource: null }),
+      remove: async () => ({ status: "removed" }),
+    });
+    expect(
+      harness.registrations.machineProviders.get("temporary-machine"),
+    ).toMatchObject({ ephemeral: true });
   });
 
   it.each([

@@ -298,8 +298,8 @@ Read the installed declarations for exact current signatures.
 ## `@get-bb/plugin-sdk/machine-provider`
 
 - `PluginMachineProviderDefinition` — id, display, description, icon, inputs,
-  availability, validation, create, optional paired
-  suspend/resume, and remove
+  availability, validation, create, optional paired suspend/resume,
+  `ephemeral` automatic retirement policy, and remove
 - `PluginMachineProviderInputsSchema`
 - `PluginMachineProviderAvailability`
 - `PluginMachineProviderValidateContext`

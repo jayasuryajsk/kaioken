@@ -18,6 +18,7 @@ import {
   listProjectSourcesByHost,
   listProviderMachines,
   listThreadIdsWithHostOfflineQueueWaits,
+  machineHasLiveThreadLaunch,
   machineHasLiveThreads,
   updateHost,
   updateMachineLaunchAttempt,
@@ -1259,6 +1260,35 @@ export function requestMachineRemoval(deps: Deps, hostId: string): boolean {
   return true;
 }
 
+export function requestAutomaticMachineRemoval(
+  deps: Deps,
+  hostId: string,
+): boolean {
+  const row = getHost(deps.db, hostId);
+  if (
+    row === null ||
+    row.machineProviderId === null ||
+    row.destroyedAt !== null ||
+    row.phase === "removing"
+  ) {
+    return false;
+  }
+  const record = getMachineProvider(row.machineProviderId);
+  if (record?.provider.ephemeral !== true) return false;
+  if (
+    listEnvironments(deps.db, {
+      hostId,
+      limit: 1,
+      statuses: ["provisioning", "ready", "error"],
+    }).length > 0 ||
+    machineHasLiveThreadLaunch(deps.db, hostId) ||
+    machineHasLiveThreads(deps.db, hostId)
+  ) {
+    return false;
+  }
+  return requestMachineRemoval(deps, hostId);
+}
+
 export async function retryMachineCleanup(
   deps: Deps,
   hostId: string,
@@ -1553,6 +1583,7 @@ export async function sweepMachineLifecycles(
   }
   for (const record of listMachineProviders()) {
     for (const machine of listProviderMachines(deps.db, record.provider.id)) {
+      requestAutomaticMachineRemoval(deps, machine.id);
       const sweeping = runTrackedOperation({
         map: operations(machineSweepOperations, deps.db),
         key: machine.id,

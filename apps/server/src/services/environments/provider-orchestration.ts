@@ -52,6 +52,10 @@ import {
   type PluginEnvironmentProviderRecord,
 } from "../plugins/plugin-environment-provider-registry.js";
 import { applyLoggedEnvironmentLifecycleEvent } from "./lifecycle-outcome.js";
+import {
+  requestAutomaticMachineRemoval,
+  sweepProviderMachine,
+} from "../machines/provider-orchestration.js";
 
 type Deps = ThreadProvisioningDeps;
 
@@ -829,6 +833,19 @@ async function runRemove(
       teardownStatus: "failed",
       teardownMessage: message(error),
       retireAt: Date.now() + REMOVE_RETRY_MS,
+    });
+  }
+  const removed = getEnvironment(deps.db, environmentId);
+  if (
+    removed?.status === "destroyed" &&
+    removed.teardownStatus === "removed" &&
+    requestAutomaticMachineRemoval(deps, removed.hostId)
+  ) {
+    await sweepProviderMachine(deps, removed.hostId).catch((error) => {
+      deps.logger.warn(
+        { hostId: removed.hostId, error: message(error) },
+        "Automatic machine removal will retry",
+      );
     });
   }
 }

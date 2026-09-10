@@ -2445,6 +2445,7 @@ export interface NormalizedPluginMachineProvider {
   description: string;
   icon: string;
   machineTag: string | null;
+  ephemeral: boolean;
   inputs: StandardSchemaV1 | null;
   inputsJsonSchema: JsonValue | null;
   availability: NonNullable<
@@ -2505,6 +2506,7 @@ export function validatePluginMachineProviderDeclaration(
           .min(1)
           .max(MACHINE_PROVIDER_TAG_MAX_CHARS)
           .parse(declaration.machineTag);
+  const ephemeral = z.boolean().default(false).parse(declaration.ephemeral);
   const inputs = normalizeMachineProviderInputs(id, declaration);
   if (
     typeof declaration.create !== "function" ||
@@ -2545,6 +2547,7 @@ export function validatePluginMachineProviderDeclaration(
     description,
     icon,
     machineTag,
+    ephemeral,
     inputs: inputs === null ? null : inputs.schema,
     inputsJsonSchema: inputs === null ? null : inputs.jsonSchema,
     availability: declaration.availability ?? null,

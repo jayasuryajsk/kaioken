@@ -76,6 +76,7 @@ export interface PluginMachineProviderDefinition<
   icon: string;
   /** Short tag shown on every machine this provider made, beside its icon. Omit to leave those machines untagged. */
   machineTag?: string;
+  ephemeral?: boolean;
   /** Persisted and readable by every plugin. Store secret references, never secrets. */
   inputs?: S;
   availability?():
