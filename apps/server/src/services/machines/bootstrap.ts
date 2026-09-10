@@ -2,7 +2,6 @@ import type {
   EnrollmentBootstrap,
   MachineBootstrapApi,
   MachineEnrollments,
-  MachineInstallerCommand,
 } from "@get-bb/plugin-sdk";
 
 const installerScript = `
@@ -17,20 +16,7 @@ node -e 'for (const [name,value] of Object.entries(JSON.parse(process.env.BB_ENR
 sh "$installer_file" --bootstrap-env BB_ENROLLMENT
 `;
 
-const preinstalledScript = `
-set -eu
-BB_ENROLLMENT=$(cat)
-export BB_ENROLLMENT
-bb_bin="$HOME/.local/bin/bb"
-if [ ! -x "$bb_bin" ]; then bb_bin=$(command -v bb); fi
-"$bb_bin" machine enroll --bootstrap-env BB_ENROLLMENT
-unset BB_ENROLLMENT
-"$bb_bin" machine start --host-id "$1"
-`;
-
-export function installerCommand(
-  bootstrap: EnrollmentBootstrap,
-): MachineInstallerCommand {
+function installerCommand(bootstrap: EnrollmentBootstrap) {
   return {
     command: [
       "sh",
@@ -48,7 +34,6 @@ export function createMachineBootstrapApi(
 ): MachineBootstrapApi {
   return {
     enrollments,
-    installerCommand,
     async bootstrap(request) {
       request.signal.throwIfAborted();
       request.report.step("Preparing machine enrollment");
@@ -73,18 +58,7 @@ export function createMachineBootstrapApi(
                 enrollment.hostId,
               ],
             }
-          : request.daemon.kind === "install"
-            ? installerCommand(enrollment.bootstrap)
-            : {
-                command: [
-                  "sh",
-                  "-c",
-                  preinstalledScript,
-                  "bb-machine-bootstrap",
-                  enrollment.hostId,
-                ],
-                stdin: JSON.stringify(enrollment.bootstrap),
-              };
+          : installerCommand(enrollment.bootstrap);
       try {
         const result = await request.executor.exec({
           ...execution,

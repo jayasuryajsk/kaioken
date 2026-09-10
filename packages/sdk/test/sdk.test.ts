@@ -116,7 +116,7 @@ describe("@bb/sdk", () => {
       lifecycle: {
         phase: "active",
         suspendedAt: null,
-        retireAt: null,
+
         progress: null,
         teardown: null,
       },
@@ -149,7 +149,7 @@ describe("@bb/sdk", () => {
       }),
     });
     expect(
-      await sdk.hosts.create({
+      await sdk.hosts.experimental_create({
         machineProviderId: "digitalocean",
         inputs: {},
       }),

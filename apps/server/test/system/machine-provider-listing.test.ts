@@ -67,6 +67,8 @@ describe("machine provider listing", () => {
         const machineRecord = {
           pluginId: "test-machine",
           provider: validatePluginMachineProviderDeclaration({
+            description: "Provision a test machine.",
+            icon: "Terminal",
             reconcileCleanup: async () => ({ status: "removed" }),
             id: "test-machine",
             displayName: "Test machine",
@@ -161,6 +163,8 @@ it("rechecks availability after provider setup changes without restarting the pl
     const record = {
       pluginId: "test-machine",
       provider: validatePluginMachineProviderDeclaration({
+        description: "Provision a test machine.",
+        icon: "Terminal",
         id: "test-machine",
         displayName: "Test machine",
         availability: () =>
@@ -217,6 +221,8 @@ it("lists compositions once outside host groups and preserves machine setup avai
     const machine = {
       pluginId: "cloud",
       provider: validatePluginMachineProviderDeclaration({
+        description: "Provision a test machine.",
+        icon: "Terminal",
         id: "cloud-machine",
         displayName: "Cloud machine",
         availability: () => ({
@@ -282,6 +288,7 @@ it("lists compositions once outside host groups and preserves machine setup avai
       expect.arrayContaining([
         expect.objectContaining({
           id: "cloud-sandbox",
+          environmentProviderId: "project-checkout",
           machineProviderId: "cloud-machine",
           availability: {
             status: "setup-required",

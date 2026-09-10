@@ -59,6 +59,7 @@ const mocks = vi.hoisted(() => ({
   extraProjects: [] as Array<Record<string, unknown>>,
   promptHistoryQueryOptions: [] as Array<{ enabled?: boolean } | undefined>,
   environmentProviders: [] as unknown[],
+  serverAccessReady: true,
 }));
 
 vi.mock("@/components/promptbox/NewThreadPromptBox", () => ({
@@ -66,6 +67,7 @@ vi.mock("@/components/promptbox/NewThreadPromptBox", () => ({
     mocks.promptBoxProps.push(props);
     return (
       <div data-testid="new-thread-prompt-box">
+        {props.modeConfig?.banner ?? null}
         {props.modeConfig?.environmentProviderInputsSlot ?? null}
       </div>
     );
@@ -166,7 +168,24 @@ vi.mock("@/hooks/queries/system-queries", () => ({
   useKnownProviderModelCatalogScope: () => undefined,
   useHostProviderCliStatus: () => ({ data: undefined }),
   useSystemConfig: () => ({
-    data: { primaryHostId: "host_1", generalSettings: defaultAppSettings },
+    data: {
+      primaryHostId: "host_1",
+      generalSettings: defaultAppSettings,
+      serverAccess: {
+        providers: [
+          {
+            id: "connect",
+            displayName: "bb connect",
+            availability: mocks.serverAccessReady
+              ? { status: "available", serverUrl: "https://sawyer.getbb.app" }
+              : { status: "setup-required", message: "Pair with bb connect" },
+          },
+        ],
+        defaultProviderId: "connect",
+        effectiveUrl: "https://sawyer.getbb.app",
+        urlSource: "connect",
+      },
+    },
   }),
   useSystemExecutionOptions: () => ({
     data: {
@@ -558,6 +577,7 @@ describe("PluginNewThreadComposer seeding", () => {
     mocks.sidebarNavigationSettled = true;
     mocks.sidebarNavigationReplayed = false;
     mocks.extraProjects = [];
+    mocks.serverAccessReady = true;
     mocks.environmentProviders = [
       CHECKOUT_PROVIDER,
       MANAGED_WORKTREE_SUGAR_PROVIDER,
@@ -1429,6 +1449,7 @@ describe("NewThreadComposer environment providers", () => {
     mocks.sidebarNavigationSettled = true;
     mocks.sidebarNavigationReplayed = false;
     mocks.extraProjects = [];
+    mocks.serverAccessReady = true;
     mocks.environmentProviders = [CHECKOUT_PROVIDER];
     resetPluginSlotStoreForTest();
     registerCheckoutInputsControl();
@@ -1469,10 +1490,11 @@ describe("NewThreadComposer environment providers", () => {
       environmentProviderInputs: [
         {
           environmentProviderId: "container",
-          component: ({ onChange }) => (
+          component: ({ target, onChange }) => (
             <button
               type="button"
               data-testid="set-provider-config"
+              data-target={JSON.stringify(target)}
               onClick={() =>
                 onChange({ status: "ready", value: { image: "img-chosen" } })
               }
@@ -1504,6 +1526,11 @@ describe("NewThreadComposer environment providers", () => {
       expect(screen.getByTestId("set-provider-config")).toBeTruthy();
     });
     expect(latestPromptBoxProps().disabled).toBe(true);
+    expect(
+      JSON.parse(
+        screen.getByTestId("set-provider-config").getAttribute("data-target")!,
+      ),
+    ).toEqual({ kind: "existing-host", hostId: "host_1" });
     fireEvent.click(screen.getByTestId("set-provider-config"));
     await waitFor(() => {
       expect(latestPromptBoxProps().disabled).toBe(false);
@@ -1515,6 +1542,77 @@ describe("NewThreadComposer environment providers", () => {
       type: "provider",
       environmentProviderId: "container",
       machine: { type: "existing", hostId: "host_1" },
+      inputs: { image: "img-chosen" },
+    });
+  });
+
+  it("uses the underlying provider control while submitting the composition", async () => {
+    const composition = {
+      ...SANDBOX_PROVIDER,
+      id: "new-sandbox",
+      pluginId: "machine-plugin",
+      machineProviderId: "machine",
+      environmentProviderId: "container",
+    };
+    mocks.environmentProviders = [
+      CHECKOUT_PROVIDER,
+      SANDBOX_PROVIDER,
+      composition,
+    ];
+    setPluginSlotRegistrations("docker-sandbox", {
+      ...EMPTY_SLOT_REGISTRATIONS,
+      environmentProviderInputs: [
+        {
+          environmentProviderId: "container",
+          component: ({ target, onChange }) => (
+            <button
+              type="button"
+              data-testid="set-provider-config"
+              data-target={target.kind}
+              onClick={() =>
+                onChange({ status: "ready", value: { image: "img-chosen" } })
+              }
+            >
+              choose
+            </button>
+          ),
+        },
+      ],
+    });
+    const submitted: NewThreadRequest[] = [];
+    renderUnseeded((request) => {
+      submitted.push(request);
+    }, "provider-inputs");
+
+    await waitFor(() => {
+      expect(latestPromptBoxProps().disabled).toBe(false);
+    });
+    await act(async () => {
+      latestPromptBoxProps().modeConfig.environment.onSelectProvider(
+        composition,
+        null,
+      );
+    });
+    await waitFor(() => {
+      expect(latestPromptBoxProps().modeConfig.environment.value).toBe(
+        "provider:new-sandbox",
+      );
+      expect(screen.getByTestId("set-provider-config")).toBeTruthy();
+    });
+    expect(latestPromptBoxProps().disabled).toBe(true);
+    expect(
+      screen.getByTestId("set-provider-config").getAttribute("data-target"),
+    ).toBe("new-host");
+    fireEvent.click(screen.getByTestId("set-provider-config"));
+    await waitFor(() => {
+      expect(latestPromptBoxProps().disabled).toBe(false);
+    });
+    await submit();
+
+    expect(submitted).toHaveLength(1);
+    expect(submitted[0].environment).toEqual({
+      type: "provider",
+      environmentProviderId: "new-sandbox",
       inputs: { image: "img-chosen" },
     });
   });
@@ -1632,11 +1730,91 @@ describe("NewThreadComposer environment providers", () => {
     });
   });
 
-  it("submits a provider without interpreting deferred availability", async () => {
+  it("submits the visible model explicitly for a Modal environment composition", async () => {
+    const modalProvider: SystemEnvironmentProvider = {
+      ...OPTIONAL_INPUTS_PROVIDER,
+      id: "modal-sandbox",
+      displayName: "Modal Sandbox",
+      machineProviderId: "modal-sandbox",
+      environmentProviderId: "project-checkout",
+      pluginId: "environment-modal-sandbox",
+      inputs: null,
+      availability: null,
+    };
+    mocks.environmentProviders = [CHECKOUT_PROVIDER, modalProvider];
+    const submitted: NewThreadRequest[] = [];
+    renderUnseeded((request) => {
+      submitted.push(request);
+    }, "modal-model-default");
+
+    await waitFor(() => {
+      expect(latestPromptBoxProps().disabled).toBe(false);
+    });
+    await act(async () => {
+      latestPromptBoxProps().modeConfig.environment.onSelectProvider(
+        modalProvider,
+        null,
+      );
+    });
+    await waitFor(() => {
+      expect(latestPromptBoxProps().modeConfig.environment.value).toBe(
+        "provider:modal-sandbox",
+      );
+      expect(latestPromptBoxProps().disabled).toBe(false);
+    });
+    await submit();
+
+    expect(submitted).toHaveLength(1);
+    expect(submitted[0].environment).toEqual({
+      type: "provider",
+      environmentProviderId: "modal-sandbox",
+      inputs: null,
+    });
+    expect(submitted[0].model).toBeTruthy();
+    expect(submitted[0].executionInputSources.model).toBe("explicit");
+  });
+
+  it("blocks the send when machines have no way to reach this bb", async () => {
+    const modalProvider: SystemEnvironmentProvider = {
+      ...OPTIONAL_INPUTS_PROVIDER,
+      id: "modal-sandbox",
+      displayName: "Modal Sandbox",
+      machineProviderId: "modal-sandbox",
+      pluginId: "environment-modal-sandbox",
+      inputs: null,
+      availability: null,
+    };
+    mocks.environmentProviders = [CHECKOUT_PROVIDER, modalProvider];
+    mocks.serverAccessReady = false;
+    const submitted: NewThreadRequest[] = [];
+    renderUnseeded((request) => {
+      submitted.push(request);
+    }, "machine-access-missing");
+
+    await act(async () => {
+      latestPromptBoxProps().modeConfig.environment.onSelectProvider(
+        modalProvider,
+        null,
+      );
+    });
+    await waitFor(() => {
+      expect(latestPromptBoxProps().modeConfig.environment.value).toBe(
+        "provider:modal-sandbox",
+      );
+    });
+    await submit();
+
+    expect(submitted).toHaveLength(0);
+    expect(latestPromptBoxProps().disabled).toBe(true);
+  });
+
+  it("blocks the send while the selected provider needs setting up", async () => {
     const setupRequiredProvider: SystemEnvironmentProvider = {
       ...OPTIONAL_INPUTS_PROVIDER,
       id: "modal-sandbox",
       displayName: "Modal Sandbox",
+      machineProviderId: "modal-sandbox",
+      environmentProviderId: "project-checkout",
       pluginId: "environment-modal-sandbox",
       inputs: null,
       availability: {
@@ -1663,13 +1841,17 @@ describe("NewThreadComposer environment providers", () => {
     });
     await submit();
 
-    expect(submitted).toHaveLength(1);
-    expect(submitted[0]?.environment).toEqual({
-      type: "provider",
-      environmentProviderId: "modal-sandbox",
-      machine: { type: "existing", hostId: "host_1" },
-      inputs: null,
-    });
+    expect(submitted).toHaveLength(0);
+    expect(latestPromptBoxProps().disabled).toBe(true);
+    expect(screen.getByRole("alert").textContent).toContain(
+      "Modal Sandbox needs configuration",
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Configure Modal Sandbox" }),
+    );
+    expect(screen.getByTestId("location-path").textContent).toBe(
+      "/settings/plugins/environment-modal-sandbox",
+    );
   });
 
   it("shows the plugin's blocked reason and prevents submit", async () => {

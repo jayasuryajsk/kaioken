@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { ExperimentalBranchPickerProps } from "@get-bb/plugin-sdk";
+import type { BranchPickerProps } from "@get-bb/plugin-sdk";
 import { BranchPicker } from "@/components/pickers/BranchPicker";
 import {
   usePluginBranches,
@@ -14,7 +14,7 @@ export function PluginBranchPicker({
   label,
   placeholder,
   disabled,
-}: ExperimentalBranchPickerProps) {
+}: BranchPickerProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { branches, remoteBranches, isLoading, refresh } = usePluginBranches({
     hostId,

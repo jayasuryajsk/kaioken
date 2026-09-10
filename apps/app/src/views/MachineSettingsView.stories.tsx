@@ -21,7 +21,7 @@ function lifecycle(
   return {
     phase: "active",
     suspendedAt: null,
-    retireAt: null,
+
     progress: null,
     teardown: null,
     ...overrides,
@@ -144,15 +144,15 @@ export function Header() {
         />
       </StoryRow>
       <StoryRow
-        label="retiring"
+        label="removing"
         hint="removal is under way and still going, so there is nothing to retry yet"
       >
         <Row
           host={sandbox({
             name: "Modal sandbox 7c11",
             lifecycle: lifecycle({
-              phase: "retiring",
-              retireAt: now,
+              phase: "removing",
+
               teardown: { status: "running", attempt: 1 },
             }),
           })}
@@ -168,8 +168,8 @@ export function Header() {
             status: "disconnected",
             lastSeenAt: WEEKS_AGO,
             lifecycle: lifecycle({
-              phase: "retiring",
-              retireAt: now,
+              phase: "removing",
+
               teardown: { status: "failed", attempt: 3 },
             }),
           })}

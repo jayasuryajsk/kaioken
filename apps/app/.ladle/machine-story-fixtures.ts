@@ -13,7 +13,6 @@ export const CONNECT_UNPAIRED: ServerAccessStatus = {
     {
       id: "connect",
       displayName: "bb connect",
-      attention: null,
       availability: {
         status: "setup-required",
         message: "Pair this bb instance with bb connect",
@@ -22,7 +21,6 @@ export const CONNECT_UNPAIRED: ServerAccessStatus = {
     {
       id: "direct",
       displayName: "Manual",
-      attention: null,
       availability: { status: "available" },
     },
   ],
@@ -33,12 +31,11 @@ export const CONNECT_UNPAIRED: ServerAccessStatus = {
 
 function withConnect(
   availability: ServerAccessStatus["providers"][number]["availability"],
-  attention: string | null = null,
 ): ServerAccessStatus {
   return {
     ...CONNECT_UNPAIRED,
     providers: [
-      { id: "connect", displayName: "bb connect", attention, availability },
+      { id: "connect", displayName: "bb connect", availability },
       CONNECT_UNPAIRED.providers[1]!,
     ],
   };
@@ -55,11 +52,6 @@ export const CONNECT_UNAVAILABLE = withConnect({
   status: "unavailable",
   message: "The gate rejected this bb's credential (HTTP 401)",
 });
-
-export const CONNECT_NEEDS_ATTENTION = withConnect(
-  { status: "available", serverUrl: "https://sawyer.getbb.app" },
-  "2 legacy access records need attention",
-);
 
 export const MANUAL_WITHOUT_URL: ServerAccessStatus = {
   ...CONNECT_UNPAIRED,
@@ -105,8 +97,8 @@ export function machineProvider(
     Pick<SystemMachineProvider, "id" | "displayName">,
 ): SystemMachineProvider {
   return {
-    description: null,
-    icon: null,
+    description: "Run a machine for development.",
+    icon: "Terminal",
     machineTag: null,
     logoUrl: null,
     pluginId: `plugin-${overrides.id}`,
@@ -143,8 +135,7 @@ export const MODAL_NEEDS_TOKEN_PROVIDER = machineProvider({
   ...MODAL_MACHINE_PROVIDER,
   availability: {
     status: "setup-required",
-    message:
-      "Set tokenId and tokenSecret in the plugin's settings.",
+    message: "Set tokenId and tokenSecret in the plugin's settings.",
   },
 });
 

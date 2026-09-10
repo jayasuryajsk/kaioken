@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { experimental_HostLifecycleResponse } from "@bb/server-contract";
 import { cn } from "@bb/shared-ui/lib/utils";
+import { machineLifecycleQueryKey } from "@/hooks/queries/query-keys";
 import { sdk } from "@/lib/sdk";
 
 type MachineLifecycleNoticeState = Pick<
@@ -16,7 +17,7 @@ export function useMachineLifecycleNotice({
   enabled?: boolean;
 }): MachineLifecycleNoticeState {
   const query = useQuery({
-    queryKey: ["machine-lifecycle", hostId],
+    queryKey: machineLifecycleQueryKey(hostId),
     queryFn: () => sdk.hosts.experimental_lifecycle({ hostId }),
     refetchInterval: 10_000,
     enabled,

@@ -44,7 +44,7 @@ export function ManualMachineSetupView({
     setExpired(false);
     setLaunchId(null);
     try {
-      const launch = await client.hosts.submit({
+      const launch = await client.hosts.experimental_submit({
         key: key.current,
         machineProviderId: "manual",
         inputs: null,
@@ -52,7 +52,10 @@ export function ManualMachineSetupView({
       });
       if (abort.signal.aborted) return;
       setLaunchId(launch.id);
-      await client.hosts.follow({ id: launch.id, signal: abort.signal });
+      await client.hosts.experimental_follow({
+        id: launch.id,
+        signal: abort.signal,
+      });
       if (!abort.signal.aborted) close.current();
     } catch (failure) {
       if (!abort.signal.aborted)
@@ -95,7 +98,7 @@ export function ManualMachineSetupView({
           onReadyChange={setReady}
           onExpired={() => setExpired(true)}
           onRegenerate={async () => {
-            await client.hosts.cancel({ id: launchId });
+            await client.hosts.experimental_cancel({ id: launchId });
             key.current = null;
             await start();
           }}

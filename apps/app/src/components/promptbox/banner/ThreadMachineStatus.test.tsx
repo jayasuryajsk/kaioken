@@ -9,6 +9,9 @@ const state = vi.hoisted(() => ({
   provider: "modal-sandbox" as string | null,
   mutate: vi.fn(),
 }));
+vi.mock("@/hooks/queries/machine-provider-queries", () => ({
+  useSystemMachineProviders: () => ({ providers: [] }),
+}));
 vi.mock("@/hooks/queries/host-queries", () => ({
   useHosts: () => ({
     data: [
@@ -45,7 +48,7 @@ it("offers explicit resume for a paused provider machine", () => {
 it("shows pause progress without offering a conflicting action", () => {
   state.phase = "suspending";
   render(<ThreadMachineStatus hostId="host-test" />);
-  expect(screen.getByText("Pausing Sandbox…")).toBeTruthy();
+  expect(screen.getByText("Sandbox is pausing…")).toBeTruthy();
   expect(screen.queryByRole("button", { name: "Resume" })).toBeNull();
 });
 

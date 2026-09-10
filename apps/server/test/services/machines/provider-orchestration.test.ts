@@ -119,6 +119,8 @@ function machineDeclaration(
   overrides: Partial<PluginMachineProviderDeclaration> = {},
 ): PluginMachineProviderDeclaration {
   return {
+    description: "Provision a test machine.",
+    icon: "Terminal",
     id: "test-machine",
     displayName: "Test machine",
 
@@ -1193,7 +1195,7 @@ describe("core machine provider orchestration", () => {
       installMachineProvider(
         machineDeclaration(host.id, {
           suspend: async (context) => {
-            context.checkpoint({ snapshot: "snap-recoverable" });
+            await context.checkpoint({ snapshot: "snap-recoverable" });
             harness.hub.unregisterDaemon(session.id);
             throw new Error("server crashed after checkpoint");
           },
@@ -1585,9 +1587,9 @@ describe("core machine provider orchestration", () => {
           trigger: "user",
         }),
       ).resolves.toBeUndefined();
-      expect(
-        harness.db.select().from(environmentHookOperations).all(),
-      ).toEqual([]);
+      expect(harness.db.select().from(environmentHookOperations).all()).toEqual(
+        [],
+      );
       expect(resumes).toBe(1);
       expect(observedProgress).toBe("Restoring the test machine…");
       expect(getHost(harness.db, host.id)).toMatchObject({
@@ -1689,7 +1691,7 @@ describe("core machine provider orchestration", () => {
       });
     }));
 
-  it("resumes a suspended retiring machine for its environment cascade without clearing retirement", async () =>
+  it("resumes a suspended removing machine for its environment cascade without clearing removal", async () =>
     withTestHarness(async (harness) => {
       vi.useFakeTimers({ toFake: ["Date"] });
       vi.setSystemTime(20_000);
@@ -1791,7 +1793,7 @@ describe("core machine provider orchestration", () => {
 
       requestMachineRemoval(harness.deps, host.id);
       await sweepProviderMachine(harness.deps, host.id);
-      expect(environmentRemovalPhase).toBe("retiring");
+      expect(environmentRemovalPhase).toBe("removing");
       expect(getEnvironment(harness.db, environment.id)).toMatchObject({
         status: "destroyed",
         teardownStatus: "removed",
@@ -1803,7 +1805,7 @@ describe("core machine provider orchestration", () => {
       });
     }));
 
-  it("removes a suspended retiring machine directly when no environment needs cleanup", async () =>
+  it("removes a suspended removing machine directly when no environment needs cleanup", async () =>
     withTestHarness(async (harness) => {
       vi.useFakeTimers({ toFake: ["Date"] });
       vi.setSystemTime(20_000);
@@ -2179,7 +2181,7 @@ describe("machine lifecycle safety regressions", () => {
       expect(response.status).toBe(200);
       await sweepProviderMachine(harness.deps, host.id);
       expect(getHost(harness.db, host.id)).toMatchObject({
-        phase: "retiring",
+        phase: "removing",
         teardownStatus: "running",
         removalStartedAt: 25_001,
       });
@@ -2303,9 +2305,9 @@ it("retains a persisted removal claim after restart even when live work is resto
     installMachineProvider(machineDeclaration(host.id, { remove }));
     adoptMachine(harness, host.id);
     updateHost(harness.db, harness.hub, host.id, {
-      phase: "retiring",
+      phase: "removing",
       removalStartedAt: 10_000,
-      retireAt: 20_001,
+      removeRetryAt: 20_001,
       teardownStatus: "failed",
     });
     await sweepProviderMachine(harness.deps, host.id);
@@ -2456,55 +2458,6 @@ function expectSettledEnrollment(
     encryptedBootstrap: null,
   });
 }
-
-it("definitive pre-allocation rejection fails immediately without reconciliation or a ghost host", async () =>
-  withTestHarness(async (harness) => {
-    const { host } = seedHostSession(harness.deps, { id: "rejected-create" });
-    seedPendingEnrollment(harness, host.id, "rejected-create");
-    const reconcile = vi.fn(async () => ({ status: "removed" as const }));
-    const create = vi.fn(async ({ key }: { key: string }) => {
-      updateMachineLaunchAttempt(harness.db, {
-        key,
-        attempt: 1,
-        hostId: host.id,
-      });
-      return {
-        status: "failed" as const,
-        failure: "terminal" as const,
-        allocation: "none" as const,
-        message: "Vendor rejected allocation",
-      };
-    });
-    installMachineProvider(
-      machineDeclaration(host.id, {
-        create,
-        reconcileCleanup: reconcile,
-      }),
-    );
-    await submitMachine(harness.deps, {
-      key: "rejected-create",
-      machineProviderId: "test-machine",
-      inputs: null,
-    });
-    await expect
-      .poll(
-        () =>
-          getMachineLaunch(harness.db, "rejected-create")
-            ?.cleanupResourceRemoved,
-      )
-      .toBe(true);
-    await sweepMachineLifecycles(harness.deps);
-    expect(create).toHaveBeenCalledOnce();
-    expect(reconcile).not.toHaveBeenCalled();
-    expect(getMachineLaunch(harness.db, "rejected-create")).toMatchObject({
-      phase: "failed",
-      cancelPending: false,
-    });
-    expectSettledEnrollment(harness, host.id);
-    expect((await harness.app.request(`/api/v1/hosts/${host.id}`)).status).toBe(
-      404,
-    );
-  }));
 
 it("removal settles enrollment and repeating settlement is idempotent", async () =>
   withTestHarness(async (harness) => {
@@ -2700,7 +2653,7 @@ it.each(["SDK follow", "server create"])(
           fetch: async (input, init) => h.app.request(input, init),
         }),
       });
-      const launch = await sdk.hosts.submit({
+      const launch = await sdk.hosts.experimental_submit({
         key: "review-follow",
         machineProviderId: "test-machine",
         inputs: null,
@@ -2708,13 +2661,15 @@ it.each(["SDK follow", "server create"])(
       await expect
         .poll(() => getMachineLaunch(h.db, launch.id)?.phase)
         .toBe("failed");
-      expect(await sdk.hosts.launch({ id: launch.id })).toMatchObject({
+      expect(
+        await sdk.hosts.experimental_launch({ id: launch.id }),
+      ).toMatchObject({
         phase: "failed",
         terminal: false,
       });
       const following = (
         client === "SDK follow"
-          ? sdk.hosts.follow({ id: launch.id })
+          ? sdk.hosts.experimental_follow({ id: launch.id })
           : createMachine(h.deps, {
               key: launch.id,
               machineProviderId: "test-machine",
@@ -2826,7 +2781,7 @@ describe("coordinated machine suspension", () => {
           suspend: async ({ checkpoint }) => {
             saving.resolve();
             await proceed.promise;
-            checkpoint({ snapshot: "durable" });
+            await checkpoint({ snapshot: "durable" });
             expect(getHost(h.db, host.id)?.resource).toEqual({
               snapshot: "durable",
             });
@@ -2864,7 +2819,7 @@ describe("coordinated machine suspension", () => {
           suspend: async ({ checkpoint }) => {
             saves += 1;
             if (fails) throw new Error("snapshot unavailable");
-            checkpoint({ snapshot: "saved" });
+            await checkpoint({ snapshot: "saved" });
             return { resource: { snapshot: "saved" } };
           },
           resume: async ({ resource }) => ({ resource }),
@@ -3015,7 +2970,7 @@ it.each([false, true])(
         machineDeclaration(host.id, {
           suspend: async ({ resource, checkpoint }) => {
             saves += 1;
-            checkpoint(resource);
+            await checkpoint(resource);
             return { resource };
           },
           resume: async ({ resource }) => ({ resource }),

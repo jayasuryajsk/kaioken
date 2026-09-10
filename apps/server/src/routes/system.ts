@@ -485,6 +485,8 @@ export function registerSystemRoutes(
                             : `/api/v1/system/providers/${encodeURIComponent("machine:" + machine.provider.id)}/logo?h=${machine.icon.hash}`,
                         pluginId,
                         machineProviderId: composition.machineProviderId,
+                        environmentProviderId:
+                          composition.environmentProviderId,
                         requires: record.provider.requires,
                         inputs: record.provider.inputsJsonSchema,
                         acceptsEmptyInputs:
@@ -500,7 +502,7 @@ export function registerSystemRoutes(
     });
   });
 
-  get(routes.machineProviders, async (context, query) => {
+  get(routes.machineProviders, async (context) => {
     return context.json({
       providers: await Promise.all(
         listMachineProviders().map(async (record) => ({

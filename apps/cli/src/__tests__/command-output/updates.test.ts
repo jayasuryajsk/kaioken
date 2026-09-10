@@ -20,7 +20,7 @@ const hosts: Host[] = [
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-      retireAt: null,
+
       progress: null,
       teardown: null,
     },
@@ -39,7 +39,7 @@ const hosts: Host[] = [
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-      retireAt: null,
+
       progress: null,
       teardown: null,
     },

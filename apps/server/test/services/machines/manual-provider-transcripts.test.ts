@@ -214,7 +214,7 @@ it("resolves replacement launch identity while Manual owns command retrieval", a
         expect((await install()).status).toBe(403);
         h.db
           .update(machineEnrollments)
-          .set({ expiresAt: enrollment.expiresAt })
+          .set({ expiresAt: enrollment.bootstrap.expiresAt })
           .where(eq(machineEnrollments.id, enrollment.id))
           .run();
         await cancelMachineLaunch(h.deps, key);

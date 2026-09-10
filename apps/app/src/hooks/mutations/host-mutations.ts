@@ -88,15 +88,19 @@ function useHostLifecycleMutation(
 }
 
 export function useSuspendHost() {
-  return useHostLifecycleMutation((hostId) => sdk.hosts.suspend({ hostId }));
+  return useHostLifecycleMutation((hostId) =>
+    sdk.hosts.experimental_suspend({ hostId }),
+  );
 }
 
 export function useResumeHost() {
-  return useHostLifecycleMutation((hostId) => sdk.hosts.resume({ hostId }));
+  return useHostLifecycleMutation((hostId) =>
+    sdk.hosts.experimental_resume({ hostId }),
+  );
 }
 
 export function useRetryHostCleanup() {
   return useHostLifecycleMutation((hostId) =>
-    sdk.hosts.retryCleanup({ hostId }),
+    sdk.hosts.experimental_retryCleanup({ hostId }),
   );
 }

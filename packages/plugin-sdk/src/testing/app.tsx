@@ -68,7 +68,7 @@ import {
   type ExperimentalOpenFixedTabOptions,
   type ExperimentalPluginFixedTabReference,
   type NewThreadComposerProps,
-  type ExperimentalBranchPickerProps,
+  type BranchPickerProps,
   type CheckoutState,
   type ExperimentalPermissionModePickerProps,
   type ExperimentalProviderModelPickerProps,
@@ -623,7 +623,7 @@ function TestBranchPicker({
   label,
   placeholder,
   disabled,
-}: ExperimentalBranchPickerProps) {
+}: BranchPickerProps) {
   const inert = hostId === null || projectId === null || disabled === true;
   return (
     <div

@@ -15,7 +15,7 @@ and completion persist across server restarts. Attached checkout and
 personal-workspace paths skip both hooks. These semantics apply equally to CLI,
 SDK, and app launches; see [worktrees.md](worktrees.md).
 
-The Machines settings creation drawer prepares an existing-machine command when access is ready, otherwise shows setup guidance. After access is ready, Choose a machine provider reviews provider inputs and launches through `hosts.submit`/`bb machine create`. A machine belongs to no project; projects reach it later through project sources.
+The Machines settings creation drawer prepares an existing-machine command when access is ready, otherwise shows setup guidance. After access is ready, Choose a machine provider reviews provider inputs and launches through `hosts.experimental_submit`/`bb machine create`. A machine belongs to no project; projects reach it later through project sources.
 
 Modal connection and machine commands are documented in [modal-sandboxes](../plugins/environment-modal-sandbox/skills/modal-sandboxes/SKILL.md). `bb modal image show [--json]` reads the Dockerfile shown in settings; `bb modal image set --file PATH [--json]` saves a validated plugin-wide override and `bb modal image reset [--json]` restores the bundled default for future machines; `bb modal account inspect --json` checks credentials; `bb machine create --provider modal-sandbox --json` automatically prepares the bundled image and installs the daemon. `bb machine remove MACHINE --yes` explicitly removes compute and private snapshots.
 

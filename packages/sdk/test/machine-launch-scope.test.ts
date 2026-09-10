@@ -20,9 +20,11 @@ it("distinguishes thread launch resolution from an exact consumed launch", async
       },
     }),
   });
-  expect(await sdk.hosts.launch({ id: "thread" })).toEqual({ id: null });
+  expect(await sdk.hosts.experimental_launch({ id: "thread" })).toEqual({
+    id: null,
+  });
   expect(
-    await sdk.hosts.launch({
+    await sdk.hosts.experimental_launch({
       id: "thread",
       scope: "thread",
     }),

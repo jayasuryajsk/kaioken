@@ -94,32 +94,14 @@ export function createMachineEnrollmentService(
         decipher.update(bytes.subarray(28)),
         decipher.final(),
       ]).toString("utf8");
-      const fields = {
-        hostId: z.string().min(1),
-        serverUrl: z.string().url(),
-        credential: z.string().min(1),
-        expiresAt: z.number().positive(),
-      };
       return z
-        .discriminatedUnion("version", [
-          z.strictObject({
-            ...fields,
-            version: z.literal(1),
-            client: z.discriminatedUnion("kind", [
-              z.strictObject({ kind: z.literal("direct") }),
-              z.strictObject({
-                kind: z.literal("connect"),
-                machineCode: z.string().min(1),
-                expiresAt: z.number().positive(),
-              }),
-            ]),
-          }),
-          z.strictObject({
-            ...fields,
-            version: z.literal(2),
-            headers: z.record(z.string(), z.string()).optional(),
-          }),
-        ])
+        .strictObject({
+          hostId: z.string().min(1),
+          serverUrl: z.string().url(),
+          headers: z.record(z.string(), z.string()).optional(),
+          credential: z.string().min(1),
+          expiresAt: z.number().positive(),
+        })
         .parse(JSON.parse(plain));
     } catch {
       throw new Error("Could not recover pending machine enrollment");
@@ -321,44 +303,11 @@ export function createMachineEnrollmentService(
                 now,
               )
             ) {
-              const grant =
-                bootstrap.version === 1
-                  ? await deps.serverAccess.resolve({
-                      key: lockKey,
-                      hostId: row.hostId,
-                      access: request.access,
-                      signal: AbortSignal.timeout(60_000),
-                    })
-                  : {
-                      serverUrl: bootstrap.serverUrl,
-                      headers: bootstrap.headers,
-                    };
-              const upgraded: EnrollmentBootstrap = {
-                version: 2,
-                hostId: bootstrap.hostId,
-                serverUrl: grant.serverUrl,
-                ...(grant.headers === undefined
-                  ? {}
-                  : { headers: grant.headers }),
-                credential: bootstrap.credential,
-                expiresAt: bootstrap.expiresAt,
-              };
-              if (bootstrap.version === 1) {
-                deps.db
-                  .update(machineEnrollments)
-                  .set({
-                    encryptedBootstrap: await seal(row.id, upgraded),
-                    updatedAt: now,
-                  })
-                  .where(eq(machineEnrollments.id, row.id))
-                  .run();
-              }
               return {
                 id: row.id,
                 hostId: row.hostId,
                 state: "pending",
-                bootstrap: upgraded,
-                expiresAt: row.expiresAt,
+                bootstrap,
               };
             }
           }
@@ -387,9 +336,7 @@ export function createMachineEnrollmentService(
             id: row.id,
             hostId: row.hostId,
             state: "pending",
-            expiresAt,
             bootstrap: {
-              version: 2,
               hostId: row.hostId,
               serverUrl: grant.serverUrl,
               ...(grant.headers === undefined
@@ -439,54 +386,6 @@ export function createMachineEnrollmentService(
             throw new Error("Timed out waiting for machine connection");
           await delay(Math.min(250, remaining), undefined, { signal });
         }
-      },
-      async cancel({ enrollmentId }) {
-        const initial = rowForId(enrollmentId);
-        const key = JSON.stringify([owner, initial.key]);
-        await serialized(key, async () => {
-          const row = rowForId(enrollmentId);
-          if (row.state === "cancelled") {
-            await deps.serverAccess.release({
-              key,
-              hostId: row.hostId,
-              signal: AbortSignal.timeout(60_000),
-            });
-            return;
-          }
-          if (
-            row.state === "enrolled" ||
-            hasIssuedDaemonCredential(row.hostId)
-          ) {
-            deps.db
-              .update(machineEnrollments)
-              .set({
-                state: "enrolled",
-                encryptedBootstrap: null,
-                expiresAt: null,
-                updatedAt: Date.now(),
-              })
-              .where(eq(machineEnrollments.id, row.id))
-              .run();
-            return;
-          }
-          await deps.machineAuth.revokeHostEnrollKeys({ hostId: row.hostId });
-          if (hasIssuedDaemonCredential(row.hostId)) return;
-          deps.db
-            .update(machineEnrollments)
-            .set({
-              state: "cancelled",
-              encryptedBootstrap: null,
-              expiresAt: null,
-              updatedAt: Date.now(),
-            })
-            .where(eq(machineEnrollments.id, row.id))
-            .run();
-          await deps.serverAccess.release({
-            key,
-            hostId: row.hostId,
-            signal: AbortSignal.timeout(60_000),
-          });
-        });
       },
     };
   }
@@ -546,7 +445,7 @@ export function createMachineEnrollmentService(
       hasIssuedDaemonCredential(row.enrollment.hostId)
     )
       return null;
-    return bootstrap.version === 2 ? bootstrap : null;
+    return bootstrap;
   }
   return {
     forOwner: scoped,
@@ -585,27 +484,6 @@ export function createMachineEnrollmentService(
         (await defaultKeyHasher(bootstrap.credential)) === hashedCredential
         ? bootstrap
         : null;
-    },
-    async cancelByKey(
-      owner: string,
-      key: string,
-    ): Promise<{ hostId: string } | null> {
-      const row = deps.db
-        .select({
-          id: machineEnrollments.id,
-          hostId: machineEnrollments.hostId,
-        })
-        .from(machineEnrollments)
-        .where(
-          and(
-            eq(machineEnrollments.owner, owner),
-            eq(machineEnrollments.key, key),
-          ),
-        )
-        .get();
-      if (!row) return null;
-      await scoped(owner).cancel({ enrollmentId: row.id });
-      return { hostId: row.hostId };
     },
   };
 }

@@ -13,7 +13,10 @@ import {
 } from "@get-bb/plugin-sdk";
 import path from "node:path";
 import { z } from "zod";
-import { dockerfileSchema, imageDefinition } from "./image-definition.js";
+import {
+  dockerfileSchema,
+  type ImageDefinition,
+} from "./image-definition.js";
 
 const machineInput = z.object({ hostId: z.string().min(1) }).strict();
 const machineOutput = z.object({
@@ -50,15 +53,15 @@ export const modalRpcContract = defineRpcContract({
   },
 });
 
-export function registerAccount(
+export function registerRpcAndCli(
   bb: BbPluginApi,
+  image: ImageDefinition,
   inspect: () => Promise<{ available: boolean; message: string }>,
   debug: DebugSandbox,
   inspectMachine: (
     input: z.infer<typeof machineInput>,
   ) => Promise<z.infer<typeof machineOutput>>,
 ) {
-  const image = imageDefinition(bb);
   bb.rpc.register(modalRpcContract, {
     "machine.inspect": inspectMachine,
     "image.build": () => debug.build(),
@@ -96,6 +99,141 @@ export function registerAccount(
   }
   const usage =
     "Usage: bb modal machine inspect HOST_ID [--json] | bb modal account inspect [--json] | bb modal image show [--json] | bb modal image set --file PATH [--json] | bb modal image reset [--json] | bb modal image build [--json] | bb modal sandbox run [--json] | bb modal sandbox exec ID [--json] -- COMMAND... | bb modal sandbox stop ID [--json]";
+  type CliResult = {
+    exitCode: number;
+    stdout?: string;
+    stderr?: string;
+  };
+  type CliRoute = {
+    path: readonly string[];
+    arity: number;
+    separator?: boolean;
+    run: (
+      args: string[],
+      command: string[],
+      context: PluginCliContext,
+      json: boolean,
+    ) => Promise<CliResult>;
+  };
+  const routes = [
+    {
+      path: ["machine", "inspect"],
+      arity: 1,
+      async run(args, _command, _context, json) {
+        const result = await inspectMachine(
+          machineInput.parse({ hostId: args[0] }),
+        );
+        return {
+          exitCode: 0,
+          stdout: json ? JSON.stringify(result) : result.summary,
+        };
+      },
+    },
+    {
+      path: ["account", "inspect"],
+      arity: 0,
+      async run(_args, _command, _context, json) {
+        const result = await inspect();
+        return {
+          exitCode: result.available ? 0 : 1,
+          stdout: json ? JSON.stringify(result) : result.message,
+        };
+      },
+    },
+    {
+      path: ["image", "show"],
+      arity: 0,
+      async run(_args, _command, _context, json) {
+        const result = await image.get();
+        return {
+          exitCode: 0,
+          stdout: json ? JSON.stringify(result) : result.dockerfile,
+        };
+      },
+    },
+    {
+      path: ["image", "set", "--file"],
+      arity: 1,
+      async run(args, _command, context, json) {
+        const result = await image.set(await readDockerfile(args[0]!, context));
+        return {
+          exitCode: 0,
+          stdout: json
+            ? JSON.stringify(result)
+            : "Saved the Dockerfile for future machines.",
+        };
+      },
+    },
+    {
+      path: ["image", "reset"],
+      arity: 0,
+      async run(_args, _command, _context, json) {
+        const result = await image.reset();
+        return {
+          exitCode: 0,
+          stdout: json
+            ? JSON.stringify(result)
+            : "Restored the bundled Dockerfile for future machines.",
+        };
+      },
+    },
+    {
+      path: ["image", "build"],
+      arity: 0,
+      async run(_args, _command, context, json) {
+        const result = await debug.build(context.signal);
+        return {
+          exitCode: 0,
+          stdout: json
+            ? JSON.stringify(result)
+            : `${result.logs}${result.imageId}`,
+        };
+      },
+    },
+    {
+      path: ["sandbox", "run"],
+      arity: 0,
+      async run(_args, _command, context, json) {
+        const result = await debug.run(context.signal);
+        return {
+          exitCode: 0,
+          stdout: json ? JSON.stringify(result) : result.sandboxId,
+          stderr: json ? "" : result.logs,
+        };
+      },
+    },
+    {
+      path: ["sandbox", "exec"],
+      arity: 1,
+      separator: true,
+      async run(args, command, context, json) {
+        const result = await debug.exec(
+          execInput.parse({ sandboxId: args[0], command }),
+          context.signal,
+        );
+        return {
+          exitCode: result.exitCode,
+          stdout: json ? JSON.stringify(result) : result.stdout,
+          stderr: json ? "" : result.stderr,
+        };
+      },
+    },
+    {
+      path: ["sandbox", "stop"],
+      arity: 1,
+      async run(args, _command, _context, json) {
+        const result = await debug.stop(
+          sandboxInput.parse({ sandboxId: args[0] }),
+        );
+        return {
+          exitCode: 0,
+          stdout: json
+            ? JSON.stringify(result)
+            : `Stopped ${result.sandboxId}`,
+        };
+      },
+    },
+  ] satisfies readonly CliRoute[];
   bb.cli.register({
     name: "modal",
     summary: "Configure, build and debug Modal images",
@@ -152,97 +290,19 @@ export function registerAccount(
         const flags = separator < 0 ? argv : argv.slice(0, separator);
         const json = flags.at(-1) === "--json";
         const args = json ? flags.slice(0, -1) : flags;
-        if (args[0] === "sandbox" && args[1] === "exec") {
-          if (args.length !== 3 || separator < 0) throw new Error(usage);
-          const result = await debug.exec(
-            execInput.parse({
-              sandboxId: args[2],
-              command: argv.slice(separator + 1),
-            }),
-            context.signal,
-          );
-          return {
-            exitCode: result.exitCode,
-            stdout: json ? JSON.stringify(result) : result.stdout,
-            stderr: json ? "" : result.stderr,
-          };
-        }
-        if (separator >= 0) throw new Error(usage);
-        if (args.length === 2 && args[0] === "image" && args[1] === "build") {
-          const result = await debug.build(context.signal);
-          return {
-            exitCode: 0,
-            stdout: json
-              ? JSON.stringify(result)
-              : `${result.logs}${result.imageId}`,
-          };
-        }
-        if (args.length === 2 && args[0] === "sandbox" && args[1] === "run") {
-          const result = await debug.run(context.signal);
-          return {
-            exitCode: 0,
-            stdout: json ? JSON.stringify(result) : result.sandboxId,
-            stderr: json ? "" : result.logs,
-          };
-        }
-        if (args.length === 3 && args[0] === "sandbox" && args[1] === "stop") {
-          const result = await debug.stop(
-            sandboxInput.parse({ sandboxId: args[2] }),
-          );
-          return {
-            exitCode: 0,
-            stdout: json
-              ? JSON.stringify(result)
-              : `Stopped ${result.sandboxId}`,
-          };
-        }
-        if (
-          args.length === 2 &&
-          args[0] === "account" &&
-          args[1] === "inspect"
-        ) {
-          const result = await inspect();
-          return {
-            exitCode: result.available ? 0 : 1,
-            stdout: json ? JSON.stringify(result) : result.message,
-          };
-        }
-        if (
-          args.length === 3 &&
-          args[0] === "machine" &&
-          args[1] === "inspect"
-        ) {
-          const result = await inspectMachine(
-            machineInput.parse({ hostId: args[2] }),
-          );
-          return {
-            exitCode: 0,
-            stdout: json ? JSON.stringify(result) : result.summary,
-          };
-        }
-        if (args[0] !== "image") throw new Error(usage);
-        let result;
-        if (args.length === 2 && args[1] === "show") result = await image.get();
-        else if (args.length === 2 && args[1] === "reset")
-          result = await image.reset();
-        else if (
-          args.length === 4 &&
-          args[1] === "set" &&
-          args[2] === "--file" &&
-          args[3]
-        )
-          result = await image.set(await readDockerfile(args[3], context));
-        else throw new Error(usage);
-        return {
-          exitCode: 0,
-          stdout: json
-            ? JSON.stringify(result)
-            : args[1] === "show"
-              ? result.dockerfile
-              : args[1] === "reset"
-                ? "Restored the bundled Dockerfile for future machines."
-                : "Saved the Dockerfile for future machines.",
-        };
+        const route = routes.find(
+          (candidate) =>
+            candidate.path.every((part, index) => args[index] === part) &&
+            args.length === candidate.path.length + candidate.arity &&
+            (candidate.separator === true) === (separator >= 0),
+        );
+        if (route === undefined) throw new Error(usage);
+        return route.run(
+          args.slice(route.path.length),
+          separator < 0 ? [] : argv.slice(separator + 1),
+          context,
+          json,
+        );
       } catch (error) {
         return {
           exitCode: 1,

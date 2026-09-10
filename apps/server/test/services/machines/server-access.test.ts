@@ -69,25 +69,6 @@ describe("machine server access", () => {
       );
     });
   });
-  it("surfaces access attention in Machines settings without changing availability", async () => {
-    await withTestHarness(async ({ deps }) => {
-      installProvider({
-        ...provider(),
-        experimental_attention: () => "2 legacy access records need attention",
-      });
-      const status = await serverAccessStatus(deps);
-      expect(status.defaultProviderId).toBe("connect");
-      expect(
-        status.providers.find((entry) => entry.id === "connect"),
-      ).toMatchObject({
-        attention: "2 legacy access records need attention",
-        availability: { status: "available" },
-      });
-      expect(
-        status.providers.find((entry) => entry.id === "direct")?.attention,
-      ).toBeNull();
-    });
-  });
   it("prefers paired Connect and respects an explicit direct default", async () => {
     await withTestHarness(async ({ deps }) => {
       vi.stubEnv("BB_EXTERNAL_URL", "https://direct.example.com");
@@ -141,26 +122,6 @@ describe("machine server access", () => {
           })
         ).serverUrl,
       ).toBe("https://direct.example.com");
-    });
-  });
-
-  it("keeps access available if its attention hook fails", async () => {
-    await withTestHarness(async ({ deps }) => {
-      installProvider({
-        ...provider(),
-        experimental_attention: () => {
-          throw new Error("private-provider-error");
-        },
-      });
-      const status = await serverAccessStatus(deps);
-      expect(status.defaultProviderId).toBe("connect");
-      expect(
-        status.providers.find((entry) => entry.id === "connect"),
-      ).toMatchObject({
-        attention: "Access diagnostics are unavailable",
-        availability: { status: "available" },
-      });
-      expect(JSON.stringify(status)).not.toContain("private-provider-error");
     });
   });
 

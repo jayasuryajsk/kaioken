@@ -34,7 +34,7 @@ const hosts: Host[] = [
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-      retireAt: null,
+
       progress: null,
       teardown: null,
     },
@@ -53,7 +53,7 @@ const hosts: Host[] = [
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-      retireAt: null,
+
       progress: null,
       teardown: null,
     },
@@ -182,14 +182,12 @@ describe("bb machine command output", () => {
     "prints manual credentials only from the plugin RPC (no-wait=%s)",
     async (noWait) => {
       const command = "bb machine enroll --bootstrap-env TRANSIENT_SECRET";
-      const readCommand = vi
-        .mocked(globalThis.fetch)
-        .mockResolvedValue(
-          Response.json({
-            ok: true,
-            result: { command, expiresAt: Date.now() + 60000 },
-          }),
-        );
+      const readCommand = vi.mocked(globalThis.fetch).mockResolvedValue(
+        Response.json({
+          ok: true,
+          result: { command, expiresAt: Date.now() + 60000 },
+        }),
+      );
       stubServerApi({
         "v1.hosts.$post": vi.fn(async () => ({
           ...launch,
@@ -352,7 +350,33 @@ describe("bb machine command output", () => {
     },
   );
 
-  it("bb machine providers evaluates providers for the requested project", async () => {
+  it("bb machine lifecycle only reads machine maintenance state", async () => {
+    const lifecycle = vi.fn(async () => ({
+      phase: "suspending",
+      recoveryState: "saving",
+      message: "Saving the machine filesystem",
+      retryAt: null,
+    }));
+    const remove = vi.fn(async () => ({ ok: true as const }));
+    stubServerApi({
+      "v1.hosts.$get": vi.fn(async () => hosts),
+      "v1.hosts.:id.lifecycle.$post": lifecycle,
+      "v1.hosts.:id.$delete": remove,
+    });
+
+    await runCommand(["machine", "lifecycle", "laptop"], register);
+
+    expect(lifecycle).toHaveBeenCalledWith({
+      param: { id: "host-remote" },
+      json: {},
+    });
+    expect(remove).not.toHaveBeenCalled();
+    expect(collectLogPayloads(vi.mocked(console.log))).toEqual([
+      "suspending: saving — Saving the machine filesystem",
+    ]);
+  });
+
+  it("bb machine providers lists providers without project scope", async () => {
     const listProviders = vi.fn(async () => ({
       providers: [
         {
@@ -364,11 +388,9 @@ describe("bb machine command output", () => {
     }));
     stubServerApi({ "v1.system.machine-providers.$get": listProviders });
 
-    await runCommand(["machine", "providers", "--project", "proj-1"], register);
+    await runCommand(["machine", "providers"], register);
 
-    expect(listProviders).toHaveBeenCalledWith({
-      query: { projectId: "proj-1" },
-    });
+    expect(listProviders).toHaveBeenCalledWith({});
     expect(collectLogPayloads(vi.mocked(console.log))).toEqual([
       "modal-sandbox  Modal sandbox  available",
     ]);

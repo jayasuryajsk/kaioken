@@ -65,22 +65,13 @@ export async function serverAccessStatus(deps: Dependencies) {
             record.provider.availability(),
           ),
         );
-        const attention = record.provider.experimental_attention
-          ? await invokeServerAccessProvider(record, async () =>
-              record.provider.experimental_attention!(),
-            )
-              .then((value) => z.string().nullable().parse(value))
-              .catch(() => "Access diagnostics are unavailable")
-          : null;
         return {
-          attention,
           id: record.provider.id,
           displayName: record.provider.displayName,
           availability,
         };
       } catch {
         return {
-          attention: null,
           id: record.provider.id,
           displayName: record.provider.displayName,
           availability: {
@@ -92,7 +83,6 @@ export async function serverAccessStatus(deps: Dependencies) {
     }),
   );
   providers.push({
-    attention: null,
     id: "direct",
     displayName: "Manual",
     availability:

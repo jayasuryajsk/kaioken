@@ -27,11 +27,11 @@ vi.mock("@/lib/sdk", () => ({
     hosts: {
       delete: vi.fn(),
       list: vi.fn(),
-      listProviders: vi.fn(),
-      resume: vi.fn(),
-      retryCleanup: vi.fn(),
+      experimental_listProviders: vi.fn(),
+      experimental_resume: vi.fn(),
+      experimental_retryCleanup: vi.fn(),
       retryUpdate: vi.fn(),
-      suspend: vi.fn(),
+      experimental_suspend: vi.fn(),
       update: vi.fn(),
     },
     system: { config: vi.fn() },
@@ -73,7 +73,7 @@ const offlineHost = host({
 const modalProvider: SystemMachineProvider = {
   id: "modal-sandbox",
   displayName: "Modal sandbox",
-  description: null,
+  description: "Run a machine for development.",
   icon: "./modal-logo.svg",
   machineTag: "modal",
   logoUrl: "/api/v1/system/providers/machine%3Amodal-sandbox/logo?h=hash",
@@ -146,7 +146,7 @@ async function openHostMenu(hostName: string): Promise<void> {
 beforeEach(() => {
   hostDaemon.localDaemonHostId = "host_primary";
   hostDaemon.platform = "darwin";
-  vi.mocked(sdk.hosts.listProviders).mockResolvedValue([]);
+  vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -158,7 +158,9 @@ afterEach(() => {
 describe("MachinesSettingsSection", () => {
   it("keeps provider-made hosts visible and marks them with the provider", async () => {
     vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
-    vi.mocked(sdk.hosts.listProviders).mockResolvedValue([modalProvider]);
+    vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue([
+      modalProvider,
+    ]);
     vi.mocked(sdk.hosts.list).mockResolvedValue([
       primaryHost,
       host({
@@ -183,13 +185,13 @@ describe("MachinesSettingsSection", () => {
 
   it("renders a provider-made machine without branding when its provider omits an icon", async () => {
     vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
-    vi.mocked(sdk.hosts.listProviders).mockResolvedValue([
+    vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue([
       {
         ...modalProvider,
         id: "test-machine",
         displayName: "Test machine",
-        description: null,
-        icon: null,
+        description: "Run a machine for development.",
+        icon: "Terminal",
         logoUrl: null,
         pluginId: "test-machine-provider",
         supportsSuspend: false,
@@ -217,7 +219,9 @@ describe("MachinesSettingsSection", () => {
 
   it("shows suspend for a capable provider", async () => {
     vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
-    vi.mocked(sdk.hosts.listProviders).mockResolvedValue([modalProvider]);
+    vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue([
+      modalProvider,
+    ]);
     vi.mocked(sdk.hosts.list).mockResolvedValue([
       host({
         id: "host_modal",
@@ -242,9 +246,9 @@ describe("MachinesSettingsSection", () => {
         name: "Cleanup target",
         machineProviderId: modalProvider.id,
         lifecycle: {
-          phase: "retiring",
+          phase: "removing",
           suspendedAt: null,
-          retireAt: NOW,
+
           progress: null,
           teardown: { status: "failed", attempt: 1, message: "failed" },
         },

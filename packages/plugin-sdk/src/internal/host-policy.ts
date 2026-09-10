@@ -2443,8 +2443,8 @@ export const MACHINE_PROVIDER_TAG_MAX_CHARS = 24;
 export interface NormalizedPluginMachineProvider {
   id: string;
   displayName: string;
-  description: string | null;
-  icon: string | null;
+  description: string;
+  icon: string;
   machineTag: string | null;
   inputs: StandardSchemaV1 | null;
   inputsJsonSchema: JsonValue | null;
@@ -2483,30 +2483,19 @@ export function validatePluginMachineProviderDeclaration(
       `machine provider "${id}" needs a displayName of 1-${ENVIRONMENT_PROVIDER_DISPLAY_NAME_MAX_CHARS} characters`,
     );
   }
-  const description =
-    declaration.description === undefined
-      ? null
-      : z
-          .string()
-          .trim()
-          .min(1)
-          .max(MACHINE_PROVIDER_DESCRIPTION_MAX_CHARS)
-          .parse(declaration.description);
-  const icon =
-    declaration.icon === undefined
-      ? null
-      : z.string().min(1).parse(declaration.icon).trim();
-  if (icon !== null) {
-    if (isPluginOwnedIconPath(icon)) {
-      validateProviderRelativePath(icon, `"${id}" icon`);
-    } else if (!isNamespacedGlyph(icon) && /[/\\]/u.test(icon)) {
-      throw new Error(
-        `machine provider "${id}" icon must be a glyph, declared icon, or plugin-relative path`,
-      );
-    }
-    if (icon.length === 0) {
-      throw new Error(`machine provider "${id}" declares an empty icon`);
-    }
+  const description = z
+    .string()
+    .trim()
+    .min(1)
+    .max(MACHINE_PROVIDER_DESCRIPTION_MAX_CHARS)
+    .parse(declaration.description);
+  const icon = z.string().trim().min(1).parse(declaration.icon);
+  if (isPluginOwnedIconPath(icon)) {
+    validateProviderRelativePath(icon, `"${id}" icon`);
+  } else if (!isNamespacedGlyph(icon) && /[/\\]/u.test(icon)) {
+    throw new Error(
+      `machine provider "${id}" icon must be a glyph, declared icon, or plugin-relative path`,
+    );
   }
   const machineTag =
     declaration.machineTag === undefined

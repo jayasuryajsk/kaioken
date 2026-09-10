@@ -39,7 +39,7 @@ function host(status: Host["status"]): Host {
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-      retireAt: null,
+
       progress: null,
       teardown: null,
     },
@@ -193,7 +193,6 @@ async function setup(
           stdin?: string;
         }): Promise<{ exitCode: number; stdout: string; stderr: string }>;
       };
-      daemon: { kind: "install" | "preinstalled" };
       report: PluginMachineProviderProgress;
       signal: AbortSignal;
     }) => {
@@ -211,9 +210,7 @@ async function setup(
       id: "enrollment-1",
       hostId: HOST_ID,
       state: "pending",
-      expiresAt: 60000,
       bootstrap: {
-        version: 2,
         hostId: HOST_ID,
         serverUrl: "https://bb.example.com",
         credential: "bootstrap-secret",
@@ -312,7 +309,6 @@ describe("Modal machine provider", () => {
     expect(harness.bootstrap).toHaveBeenLastCalledWith({
       key: "modal-machine-key",
       executor: { exec: expect.any(Function) },
-      daemon: { kind: "install" },
       report,
       signal: expect.any(AbortSignal),
     });
@@ -405,7 +401,6 @@ describe("Modal machine provider", () => {
       ).rejects.toThrow("cancelled");
       const resource = checkpoint.mock.calls[0]?.[0];
       expect(resource).toMatchObject({
-        version: 5,
         key: "modal-machine-key",
         sandboxId: "sandbox-1",
         snapshotImageId: null,
@@ -477,7 +472,6 @@ describe("Modal machine provider", () => {
     expect(harness.bootstrap).toHaveBeenLastCalledWith({
       key: "modal-machine-key",
       executor: { exec: expect.any(Function) },
-      daemon: { kind: "install" },
       report,
       signal: lifecycleContext.signal,
     });
@@ -548,7 +542,7 @@ describe("Modal machine provider", () => {
         resource: created.resource,
         report,
         signal: new AbortController().signal,
-        checkpoint(resource) {
+        async checkpoint(resource) {
           checkpoint = resource;
         },
       }),
@@ -628,7 +622,7 @@ describe("Modal machine provider", () => {
       harness.provider.suspend?.({
         ...lifecycleContext,
         resource: firstResume.resource,
-        checkpoint(resource) {
+        async checkpoint(resource) {
           checkpoint = resource;
         },
       }),
@@ -669,6 +663,34 @@ describe("Modal machine provider", () => {
         "image-pending-b",
       ]),
     );
+  });
+
+  it("stops snapshot cleanup when persisting a deletion checkpoint fails", async () => {
+    const harness = await setup();
+    const created = await harness.provider.create(createContext());
+    if (created.status !== "created") throw new Error(created.message);
+    harness.backend.states[0]!.terminated = true;
+    const resource = {
+      ...readModalMachineResource(created.resource),
+      snapshotImageId: "image-current",
+      snapshotSandboxId: "sandbox-1",
+      pendingSnapshotImageIds: ["image-old-1", "image-old-2"],
+    };
+    const checkpoint = vi.fn(async () => {
+      throw new Error("checkpoint refused");
+    });
+
+    await expect(
+      harness.provider.suspend?.({
+        hostId: HOST_ID,
+        resource,
+        report,
+        signal: new AbortController().signal,
+        checkpoint,
+      }),
+    ).rejects.toThrow("checkpoint refused");
+    expect(harness.backend.deletedSnapshots).toEqual(["image-old-1"]);
+    expect(checkpoint).toHaveBeenCalledOnce();
   });
 });
 
@@ -783,17 +805,6 @@ it("does not allocate a sandbox when cancelled during standard image preparation
   ).rejects.toThrow("cancelled");
   expect(test.backend.creates).toHaveLength(0);
   expect(test.bootstrap).not.toHaveBeenCalled();
-});
-
-it("rejects removed image-selection inputs", async () => {
-  const test = await setup();
-  expect(
-    await test.provider.create({
-      ...createContext(),
-      inputs: { buildId: "old-build" },
-    }),
-  ).toMatchObject({ status: "failed" });
-  expect(test.backend.creates).toHaveLength(0);
 });
 
 it("exposes account connection checks through RPC and CLI without allocation", async () => {
@@ -1044,7 +1055,7 @@ it("does not allocate debug compute when the image fails to build", async () => 
   test.backend.image.mockRejectedValueOnce(new Error("RUN command failed"));
   expect(await test.harness.behavior.runCli(["sandbox", "run"])).toMatchObject({
     exitCode: 1,
-    stderr: "RUN command failed",
+    stderr: "bb modal failed: RUN command failed",
   });
   expect(test.backend.creates).toHaveLength(0);
 });
@@ -1057,7 +1068,7 @@ describe("plugin-owned idle timing", () => {
       vi.setSystemTime(0);
       await test.provider.create(createContext());
       const suspend = vi.fn(async () => ({ ok: true }));
-      test.harness.sdk.stub("hosts.suspend", suspend);
+      test.harness.sdk.stub("hosts.experimental_suspend", suspend);
       test.harness.sdk.stub("hosts.list", () => [
         { ...host("connected"), machineProviderId: PROVIDER_ID },
       ]);

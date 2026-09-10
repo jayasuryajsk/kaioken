@@ -2,8 +2,6 @@ import {
   environmentCompositionSchema,
   type NormalizedPluginEnvironmentComposition,
 } from "@get-bb/plugin-sdk/internal/host-policy";
-import { writeSecretFile, deleteSecretFile } from "@bb/secret-storage";
-import { readSecret, pluginSecretsDir } from "./plugin-settings.js";
 import { createMachineBootstrapApi } from "../machines/bootstrap.js";
 import type { MachineEnrollments } from "@get-bb/plugin-sdk";
 import { listServerAccessProviders } from "./plugin-server-access-registry.js";
@@ -705,29 +703,7 @@ export function createPluginApi(options: {
   };
 
   let databaseHandle: Database.Database | undefined;
-  const secretKey = (key: string) => {
-    assertLive();
-    if (!/^[A-Za-z0-9_-]{1,128}$/u.test(key))
-      throw new Error("Invalid plugin secret key");
-    return key;
-  };
   const storage: PluginStorage = {
-    experimental_secrets: {
-      async get(key) {
-        return readSecret(dataDir, pluginId, secretKey(key));
-      },
-      async set(key, value) {
-        await writeSecretFile(
-          join(pluginSecretsDir(dataDir, pluginId), secretKey(key)),
-          value,
-        );
-      },
-      async delete(key) {
-        await deleteSecretFile(
-          join(pluginSecretsDir(dataDir, pluginId), secretKey(key)),
-        );
-      },
-    },
     kv,
     database() {
       assertLive();
@@ -761,9 +737,10 @@ export function createPluginApi(options: {
         );
       }
       const rows = database
-        .prepare<[], { id: number; statement_hash: string | null }>(
-          "SELECT id, statement_hash FROM _bb_migrations ORDER BY id",
-        )
+        .prepare<
+          [],
+          { id: number; statement_hash: string | null }
+        >("SELECT id, statement_hash FROM _bb_migrations ORDER BY id")
         .all();
       const applied = new Map<number, string | null>();
       for (const row of rows) applied.set(row.id, row.statement_hash);
@@ -1663,24 +1640,21 @@ export function createPluginApi(options: {
       assertLive();
       return options.getMachineEnrollments().waitForConnection(request);
     },
-    cancel(request) {
-      assertLive();
-      return options.getMachineEnrollments().cancel(request);
-    },
   };
   const experimental_machines: PluginMachines = {
     ...createMachineBootstrapApi(enrollmentApi),
-    async experimental_getResource(hostId) {
+    async getResource(hostId) {
       assertLive();
       return getHost(db, hostId)?.resource ?? null;
     },
     register(declaration) {
       assertLive();
       const provider = validatePluginMachineProviderDeclaration(declaration);
-      const problem =
-        provider.icon === null
-          ? null
-          : undeclaredIconProblem(pluginId, declaredIconNames, provider.icon);
+      const problem = undeclaredIconProblem(
+        pluginId,
+        declaredIconNames,
+        provider.icon,
+      );
       if (problem !== null) {
         throw new Error(providerIconRefusalMessage(provider.id, problem));
       }

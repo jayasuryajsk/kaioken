@@ -1,5 +1,3 @@
-import { createCipheriv, randomBytes } from "node:crypto";
-import { readFile } from "node:fs/promises";
 import { eq } from "drizzle-orm";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -133,59 +131,11 @@ describe("machine enrollments", () => {
     await expect(h.api.prepare({ key: "corrupt" })).rejects.toThrow("removed");
   });
 
-  it("preserves runtime access when exchange wins a cancellation race", async () => {
-    const h = await harness();
-    const prepared = await h.api.prepare({ key: "race" });
-    if (prepared.state !== "pending")
-      throw new Error("Expected pending enrollment");
-    const [result] = await Promise.all([
-      h.machineAuth.enrollHost({
-        hostId: prepared.hostId,
-        token: prepared.bootstrap.credential,
-        allowPublicEnrollment: true,
-      }),
-      h.api.cancel({ enrollmentId: prepared.id }),
-    ]);
-    expect(result).not.toBeNull();
-    expect(h.serverAccess.release).not.toHaveBeenCalled();
-    expect(await h.api.prepare({ key: "race" })).toMatchObject({
-      id: prepared.id,
-      hostId: prepared.hostId,
-      state: "pending",
-    });
-  });
-
-  it("recovers enrolled state after an authenticated connection and rejects credential replay", async () => {
-    const h = await harness();
-    const prepared = await h.api.prepare({ key: "create" });
-    if (prepared.state !== "pending")
-      throw new Error("Expected pending enrollment");
-    const request = {
-      hostId: prepared.hostId,
-      token: prepared.bootstrap.credential,
-      allowPublicEnrollment: true,
-    };
-    const result = await h.machineAuth.enrollHost(request);
-    expect(result).not.toBeNull();
-    expect(await h.machineAuth.enrollHost(request)).toBeNull();
-    h.db.update(hosts).set({ lastSeenAt: Date.now() })
-      .where(eq(hosts.id, prepared.hostId)).run();
-    const restarted = h.create().forOwner("plugin-a");
-    expect(await restarted.prepare({ key: "create" })).toEqual({
-      id: prepared.id,
-      hostId: prepared.hostId,
-      state: "enrolled",
-    });
-    await restarted.cancel({ enrollmentId: prepared.id });
-    expect(
-      await h.machineAuth.verifyDaemonHostKey(result!.hostKey),
-    ).not.toBeNull();
-  });
-
   it("recovers a lost exchange response with a fresh credential for the same identity", async () => {
     const h = await harness();
     const first = await h.api.prepare({ key: "lost-response" });
-    if (first.state !== "pending") throw new Error("Expected pending enrollment");
+    if (first.state !== "pending")
+      throw new Error("Expected pending enrollment");
     const lostResponse = await h.machineAuth.enrollHost({
       token: first.bootstrap.credential,
       hostId: first.hostId,
@@ -196,49 +146,46 @@ describe("machine enrollments", () => {
       hostId: first.hostId,
       enrollSource: "public-multi-machine",
     });
-    const retry = await h.create().forOwner("plugin-a").prepare({ key: "lost-response" });
-    if (retry.state !== "pending") throw new Error("Expected recoverable pending enrollment");
+    const retry = await h
+      .create()
+      .forOwner("plugin-a")
+      .prepare({ key: "lost-response" });
+    if (retry.state !== "pending")
+      throw new Error("Expected recoverable pending enrollment");
     expect(retry.hostId).toBe(first.hostId);
-    expect(retry.bootstrap.credential === first.bootstrap.credential).toBe(false);
+    expect(retry.bootstrap.credential === first.bootstrap.credential).toBe(
+      false,
+    );
     const recovered = await h.machineAuth.enrollHost({
       token: retry.bootstrap.credential,
       hostId: retry.hostId,
       allowPublicEnrollment: true,
     });
-    if (!recovered || !lostResponse) throw new Error("Expected successful exchanges");
-    expect(await h.machineAuth.verifyDaemonHostKey(recovered.hostKey)).not.toBeNull();
-    expect(await h.machineAuth.verifyDaemonHostKey(lostResponse.hostKey)).toBeNull();
+    if (!recovered || !lostResponse)
+      throw new Error("Expected successful exchanges");
+    expect(
+      await h.machineAuth.verifyDaemonHostKey(recovered.hostKey),
+    ).not.toBeNull();
+    expect(
+      await h.machineAuth.verifyDaemonHostKey(lostResponse.hostKey),
+    ).toBeNull();
     const beforeStart = await h.api.prepare({ key: "lost-response" });
     expect(beforeStart.state).toBe("pending");
-    expect(await h.machineAuth.verifyDaemonHostKey(recovered.hostKey)).not.toBeNull();
-    h.db.update(hosts).set({ lastSeenAt: Date.now() })
-      .where(eq(hosts.id, first.hostId)).run();
-    expect(await h.create().forOwner("plugin-a").prepare({ key: "lost-response" })).toEqual({
-      id: first.id, hostId: first.hostId, state: "enrolled",
-    });
-  });
-
-  it("isolates owners and cancellation revokes only the pending credential", async () => {
-    const h = await harness();
-    const prepared = await h.api.prepare({ key: "create" });
-    const other = await h.other.prepare({ key: "create" });
-    expect(other.hostId).not.toBe(prepared.hostId);
-    await expect(h.other.cancel({ enrollmentId: prepared.id })).rejects.toThrow(
-      "not found",
-    );
-    await h.api.cancel({ enrollmentId: prepared.id });
-    if (prepared.state !== "pending")
-      throw new Error("Expected pending enrollment");
     expect(
-      await h.machineAuth.enrollHost({
-        hostId: prepared.hostId,
-        token: prepared.bootstrap.credential,
-        allowPublicEnrollment: true,
-      }),
-    ).toBeNull();
-    expect(h.serverAccess.release).toHaveBeenCalledOnce();
-    const retry = await h.api.prepare({ key: "create" });
-    expect(retry.hostId).toBe(prepared.hostId);
+      await h.machineAuth.verifyDaemonHostKey(recovered.hostKey),
+    ).not.toBeNull();
+    h.db
+      .update(hosts)
+      .set({ lastSeenAt: Date.now() })
+      .where(eq(hosts.id, first.hostId))
+      .run();
+    expect(
+      await h.create().forOwner("plugin-a").prepare({ key: "lost-response" }),
+    ).toEqual({
+      id: first.id,
+      hostId: first.hostId,
+      state: "enrolled",
+    });
   });
 
   it("recovers access failures with the same durable host identity", async () => {
@@ -254,104 +201,4 @@ describe("machine enrollments", () => {
     expect(retry.hostId).toBe(row?.hostId);
   });
 
-  it("bounds connection waits and rejects cancellation and abort", async () => {
-    const h = await harness();
-    const prepared = await h.api.prepare({ key: "create" });
-    const request = {
-      enrollmentId: prepared.id,
-      timeoutMs: 5,
-      signal: new AbortController().signal,
-    };
-    await expect(h.api.waitForConnection(request)).rejects.toThrow("Timed out");
-    await expect(
-      h.api.waitForConnection({ ...request, signal: AbortSignal.abort() }),
-    ).rejects.toThrow();
-    h.connected.add(prepared.hostId);
-    expect(await h.api.waitForConnection(request)).toEqual({
-      hostId: prepared.hostId,
-    });
-    expect(
-      h.db
-        .select()
-        .from(machineEnrollments)
-        .where(eq(machineEnrollments.id, prepared.id))
-        .get(),
-    ).toMatchObject({
-      state: "enrolled",
-      encryptedBootstrap: null,
-      expiresAt: null,
-    });
-    const cancelled = await h.api.prepare({ key: "cancelled" });
-    await h.api.cancel({ enrollmentId: cancelled.id });
-    await expect(
-      h.api.waitForConnection({ ...request, enrollmentId: cancelled.id }),
-    ).rejects.toThrow("cancelled");
-  });
 });
-
-it("enrollment cancellation retries a failed access release", async () => {
-  const h = await harness();
-  const e = await h.api.prepare({ key: "release-retry" });
-  h.serverAccess.release.mockRejectedValueOnce(
-    new Error("temporary access outage"),
-  );
-  await expect(h.api.cancel({ enrollmentId: e.id })).rejects.toThrow(
-    "temporary access outage",
-  );
-  await h.create().forOwner("plugin-a").cancel({ enrollmentId: e.id });
-  expect(h.serverAccess.release).toHaveBeenCalledTimes(2);
-});
-
-it.each(["direct", "connect"])(
-  "upgrades an encrypted pending v1 %s bundle on restart",
-  async (kind) => {
-    const h = await harness();
-    const first = await h.api.prepare({ key: "legacy" });
-    if (first.state !== "pending") throw new Error("Expected pending");
-    const legacy = {
-      ...first.bootstrap,
-      version: 1,
-      client:
-        kind === "direct"
-          ? { kind }
-          : { kind, machineCode: "legacy-code", expiresAt: first.expiresAt },
-    };
-    const key = Buffer.from(
-      (
-        await readFile(join(h.dataDir, "machine-enrollment-secret"), "utf8")
-      ).trim(),
-      "hex",
-    );
-    const iv = randomBytes(12);
-    const cipher = createCipheriv("aes-256-gcm", key, iv);
-    cipher.setAAD(Buffer.from(first.id));
-    const encrypted = Buffer.concat([
-      cipher.update(JSON.stringify(legacy)),
-      cipher.final(),
-    ]);
-    h.db
-      .update(machineEnrollments)
-      .set({
-        encryptedBootstrap: Buffer.concat([
-          iv,
-          cipher.getAuthTag(),
-          encrypted,
-        ]).toString("base64"),
-      })
-      .where(eq(machineEnrollments.id, first.id))
-      .run();
-    const second = await h
-      .create()
-      .forOwner("plugin-a")
-      .prepare({ key: "legacy" });
-    expect(second).toMatchObject({
-      id: first.id,
-      hostId: first.hostId,
-      bootstrap: { version: 2, credential: first.bootstrap.credential },
-    });
-    expect(JSON.stringify(second)).not.toContain("client");
-    expect(h.serverAccess.resolve).toHaveBeenCalledTimes(2);
-    await h.create().forOwner("plugin-a").prepare({ key: "legacy" });
-    expect(h.serverAccess.resolve).toHaveBeenCalledTimes(2);
-  },
-);

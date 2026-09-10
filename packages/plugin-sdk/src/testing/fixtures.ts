@@ -71,7 +71,7 @@ export function makeHostResponse(
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-      retireAt: null,
+
       progress: null,
       teardown: null,
     },
@@ -253,7 +253,7 @@ export function makeMessageDispatchHookContext(
     lifecycle: {
       phase: "active",
       suspendedAt: null,
-      retireAt: null,
+
       progress: null,
       teardown: null,
     },

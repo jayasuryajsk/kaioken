@@ -16,7 +16,7 @@ description: Connect Modal and create reusable cloud machines with the bundled s
    credentials to clone it, and machine server access reachable from Modal.
 4. Select the project and create a machine in the UI, or run
    `bb machine create --provider modal-sandbox --json`.
-   SDK: `hosts.submit({machineProviderId:"modal-sandbox",key})`.
+   SDK: `hosts.experimental_submit({machineProviderId:"modal-sandbox",key})`.
    No image or build inputs are accepted. Use a stable creation key for retries.
 
 Settings edits the shared Dockerfile used for future machines. Agents can run
@@ -104,7 +104,6 @@ SDK clients use `sdk.plugins.callRpc` with `modalRpcContract`: `image.build({})`
 `sandbox.stop({sandboxId})`. Build/run incur Modal usage.
 
 `bb modal machine inspect HOST_ID [--json]` and the plugin RPC `machine.inspect({ hostId })` read vendor state without waking compute. Sandbox and snapshot identifiers come directly from core’s current persisted machine resource, including lifecycle checkpoints. Existing machines need no diagnostic initialization.
-
 
 ### New thread with a new sandbox
 

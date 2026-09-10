@@ -13,9 +13,8 @@ export type MachineProviderSelection = z.infer<
 >;
 
 export const machineLifecycleSchema = z.object({
-  phase: z.enum(["active", "suspending", "suspended", "retiring", "destroyed"]),
+  phase: z.enum(["active", "suspending", "suspended", "removing", "destroyed"]),
   suspendedAt: z.number().nullable(),
-  retireAt: z.number().nullable(),
   progress: z.string().nullable(),
   teardown: z
     .object({

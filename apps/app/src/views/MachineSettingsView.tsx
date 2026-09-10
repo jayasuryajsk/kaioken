@@ -8,13 +8,12 @@ import type { Host, PermissionMode } from "@bb/domain";
 import type { SystemMachineProvider } from "@bb/server-contract";
 import type { HostPlatform } from "@bb/host-daemon-contract";
 import { Button } from "@bb/shared-ui/button";
-import { DialogFooter, DialogHeader, DialogTitle } from "@bb/shared-ui/dialog";
-import { DialogDescription } from "@bb/shared-ui/dialog";
 import { Icon } from "@bb/shared-ui/icon";
 import { cn } from "@bb/shared-ui/lib/utils";
 import { Pill } from "@bb/shared-ui/pill";
 import { ResourceOverflowMenu } from "@bb/shared-ui/resource-list";
-import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
+import { MachineLifecycleActions } from "@/components/machines/MachineLifecycleActions";
+import { MachineRemoveDialog } from "@/components/machines/MachineRemoveDialog";
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
 import {
   machineStatusLabel,
@@ -31,7 +30,6 @@ import {
 import { appToast } from "@/components/ui/app-toast";
 import { MachineRenameDialog } from "@/components/settings/MachineRenameDialog";
 import {
-  useRemoveHost,
   useRenameHost,
   useResumeHost,
   useRetryHostCleanup,
@@ -245,45 +243,15 @@ export function MachineSettingsHeader({
           <MachineLifecycleNoticeContent notice={lifecycleNotice} />
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {machineProvider?.supportsSuspend &&
-          host.lifecycle.phase === "active" ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={lifecycleActionPending}
-              onClick={onSuspend}
-            >
-              <Icon name="Pause" className="size-3.5" aria-hidden />
-              Suspend
-            </Button>
-          ) : null}
-          {machineProvider?.supportsSuspend &&
-          host.lifecycle.phase === "suspended" ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={lifecycleActionPending}
-              onClick={onResume}
-            >
-              <Icon name="Play" className="size-3.5" aria-hidden />
-              Resume
-            </Button>
-          ) : null}
-          {host.lifecycle.phase === "retiring" &&
-          host.lifecycle.teardown?.status === "failed" ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={lifecycleActionPending}
-              onClick={onRetryCleanup}
-            >
-              <Icon name="RotateCcw" className="size-3.5" aria-hidden />
-              Retry cleanup
-            </Button>
-          ) : null}
+          <MachineLifecycleActions
+            host={host}
+            machineProvider={machineProvider}
+            pending={lifecycleActionPending}
+            presentation="buttons"
+            onSuspend={onSuspend}
+            onResume={onResume}
+            onRetryCleanup={onRetryCleanup}
+          />
           <ResourceOverflowMenu
             label={`${host.name} actions`}
             items={[{ label: "Rename", icon: "Edit", onSelect: onRename }]}
@@ -304,7 +272,6 @@ export function MachineSettingsView() {
   const sidebarNavigationQuery = useSidebarNavigation();
   const updateInventory = useUpdateInventory();
   const renameHost = useRenameHost();
-  const removeHost = useRemoveHost();
   const retryHostUpdate = useRetryHostUpdate();
   const suspendHost = useSuspendHost();
   const resumeHost = useResumeHost();
@@ -583,10 +550,7 @@ export function MachineSettingsView() {
                 variant="destructive"
                 size="sm"
                 disabled={isPrimary}
-                onClick={() => {
-                  removeHost.reset();
-                  setRemoveOpen(true);
-                }}
+                onClick={() => setRemoveOpen(true)}
               >
                 Remove machine
               </Button>
@@ -617,49 +581,11 @@ export function MachineSettingsView() {
         }
       />
 
-      <ConfirmDeleteDialog
-        modal={false}
-        open={removeOpen}
-        onOpenChange={(open) => {
-          if (!open && !removeHost.isPending) setRemoveOpen(false);
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle>Remove {host.name}?</DialogTitle>
-          <DialogDescription>
-            This revokes {host.name}'s access to this server.
-            {host.machineProviderId !== null &&
-            host.machineProviderId !== "manual"
-              ? "This deletes the managed compute and saved snapshots. Its environments remain as read-only history."
-              : "Project checkouts stay on its disk, but its environments become read-only history and it cannot run new work until paired again."}
-          </DialogDescription>
-        </DialogHeader>
-        {removeHost.isError ? (
-          <p className="text-sm text-destructive" role="alert">
-            {getMutationErrorMessage({
-              error: removeHost.error,
-              fallbackMessage: `Couldn't remove ${host.name}.`,
-            })}
-          </p>
-        ) : null}
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={removeHost.isPending}
-            onClick={() =>
-              removeHost.mutate(host.id, {
-                onSuccess: () => {
-                  setRemoveOpen(false);
-                  navigate(getSettingsRoutePath("machines"));
-                },
-              })
-            }
-          >
-            Remove machine
-          </Button>
-        </DialogFooter>
-      </ConfirmDeleteDialog>
+      <MachineRemoveDialog
+        target={removeOpen ? host : null}
+        onOpenChange={setRemoveOpen}
+        onRemoved={() => navigate(getSettingsRoutePath("machines"))}
+      />
     </PageShell>
   );
 }

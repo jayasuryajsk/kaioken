@@ -230,17 +230,6 @@ function MachineAccessDetails({
   const connected = effective?.availability.status === "available";
   return (
     <>
-      {access?.providers.map((provider) =>
-        provider.attention ? (
-          <p
-            key={provider.id}
-            role="status"
-            className="rounded-md bg-muted/40 px-3 py-2 text-xs text-destructive-text"
-          >
-            {provider.displayName}: {provider.attention}
-          </p>
-        ) : null,
-      )}
       {selected === "connect" && (
         <div className="@container">
           <div className="flex flex-col gap-4 @lg:flex-row @lg:items-center @lg:justify-between @lg:gap-3">

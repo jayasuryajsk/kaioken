@@ -88,9 +88,11 @@ function requestJoinCode(app: {
 }
 
 describe("public host management", () => {
-  it("publishes a machine provider without an icon as unbranded", async () => {
+  it("publishes the required machine provider icon", async () => {
     await withTestHarness(async (harness) => {
       installMachineProvider({
+        description: "Provision a test machine.",
+        icon: "Terminal",
         id: "plain-machine",
         displayName: "Plain machine",
 
@@ -111,7 +113,7 @@ describe("public host management", () => {
         providers: [
           {
             id: "plain-machine",
-            icon: null,
+            icon: "Terminal",
             logoUrl: null,
           },
         ],
@@ -456,6 +458,8 @@ describe("public host management", () => {
       const host = seedHost(harness.deps, { id: "host_lifecycle_routes" });
       const operations: string[] = [];
       installMachineProvider({
+        description: "Provision a test machine.",
+        icon: "Terminal",
         id: "test-machine",
         displayName: "Test machine",
 
@@ -503,6 +507,8 @@ describe("public host management", () => {
       const host = seedHost(harness.deps, { id: "host_retry_cleanup" });
       let removes = 0;
       installMachineProvider({
+        description: "Provision a test machine.",
+        icon: "Terminal",
         id: "test-machine",
         displayName: "Test machine",
 
@@ -535,7 +541,7 @@ describe("public host management", () => {
       });
       expect(remove.status).toBe(200);
       expect(getHost(harness.db, host.id)).toMatchObject({
-        phase: "retiring",
+        phase: "removing",
         teardownStatus: "failed",
       });
 

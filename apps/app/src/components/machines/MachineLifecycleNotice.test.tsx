@@ -27,7 +27,7 @@ function renderNotice() {
 
 it("reports a recoverable failure as destructive", async () => {
   vi.mocked(sdk.hosts.experimental_lifecycle).mockResolvedValue({
-    phase: "retiring",
+    phase: "removing",
     recoveryState: "recoverable",
     message: "Machine removal failed: Modal returned HTTP 500.",
   });

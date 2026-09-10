@@ -84,7 +84,6 @@ function toHostRecord(row: HostRow, status: Host["status"]): Host {
     lifecycle: {
       phase: row.phase,
       suspendedAt: row.suspendedAt,
-      retireAt: row.retireAt,
       progress: row.teardownStatus === null ? row.teardownMessage : null,
       teardown:
         row.teardownStatus === null

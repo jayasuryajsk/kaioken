@@ -172,12 +172,6 @@ export interface PluginKvStorage {
 }
 
 export interface PluginStorage {
-  /** Private per-plugin strings in 0600 files, absent from configuration UI and database. Keys use letters, digits, underscores or hyphens. Existing secret-setting keys retain their files. */
-  experimental_secrets: {
-    get(key: string): Promise<string | undefined>;
-    set(key: string, value: string): Promise<void>;
-    delete(key: string): Promise<void>;
-  };
   /** Namespaced JSON key-value rows in bb.db; values ≤256KB each. */
   kv: PluginKvStorage;
   /**
@@ -451,8 +445,6 @@ export interface ServerAccessSelection {
 }
 
 export interface ServerAccessProviderDeclaration {
-  /** A deliberate user-safe diagnostic shown in Machines settings without changing availability. Return null when no attention is needed. */
-  experimental_attention?(): string | null | Promise<string | null>;
   id: string;
   displayName: string;
   availability():
@@ -492,7 +484,7 @@ export interface PluginServerAccess {
 
 export interface PluginMachines extends MachineBootstrapApi {
   /** Read core’s current persisted provider resource, or null when the host or resource is absent. Available across plugins; resources must not contain credentials. */
-  experimental_getResource(hostId: string): Promise<JsonValue | null>;
+  getResource(hostId: string): Promise<JsonValue | null>;
   register<
     const Inputs extends
       import("./machine-provider.js").PluginMachineProviderInputsSchema =

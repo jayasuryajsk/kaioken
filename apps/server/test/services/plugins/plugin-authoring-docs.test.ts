@@ -236,9 +236,7 @@ const THREAD_EVENT_PAYLOAD_FIELDS = {
     "attemptNumber",
   ],
 } as const satisfies {
-  [
-    E in keyof PluginThreadEventPayloads
-  ]: readonly (keyof PluginThreadEventPayloads[E])[];
+  [E in keyof PluginThreadEventPayloads]: readonly (keyof PluginThreadEventPayloads[E])[];
 };
 
 type MissingThreadEventField = {
@@ -389,16 +387,12 @@ const FRONTEND_SLOT_PROP_FIELDS = {
   ],
   experimental_environmentProviderInputs: [
     "projectId",
-    "hostId",
+    "target",
     "value",
     "onChange",
   ],
   experimental_machineSetup: ["client", "onClose"],
-  experimental_machineProviderInputs: [
-    "projectId",
-    "value",
-    "onChange",
-  ],
+  experimental_machineProviderInputs: ["value", "onChange"],
 } as const satisfies {
   [S in keyof SlotPropsByName]: readonly (keyof SlotPropsByName[S])[];
 };
@@ -667,7 +661,7 @@ describe("bb-plugin-authoring skill", () => {
     const backendIndex = readReference("backend-api-index.md");
     const appSymbols = [
       "experimental_BranchPicker",
-      "ExperimentalBranchPickerProps",
+      "BranchPickerProps",
       "experimental_useBranches",
       "UseBranchesArgs",
       "BranchesState",

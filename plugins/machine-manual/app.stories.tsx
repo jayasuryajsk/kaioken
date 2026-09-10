@@ -26,9 +26,10 @@ function client(
   return {
     readCommand: enrollmentCommand,
     hosts: {
-      submit: async () => ({ id: "launch_story", phase: "creating" }) as never,
-      follow: never,
-      cancel: async () => ({}) as never,
+      experimental_submit: async () =>
+        ({ id: "launch_story", phase: "creating" }) as never,
+      experimental_follow: never,
+      experimental_cancel: async () => ({}) as never,
     },
   };
 }
@@ -48,7 +49,7 @@ const expired = client(async () => ({
 const unavailable: ExperimentalMachineSetupProps["client"] = {
   hosts: {
     ...ready.hosts,
-    submit: async () => {
+    experimental_submit: async () => {
       throw new Error("The server is not reachable.");
     },
   },

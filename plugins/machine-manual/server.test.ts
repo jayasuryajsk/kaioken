@@ -6,7 +6,6 @@ import plugin from "./server.js";
 it("serves the prepared command from memory, expires without renewing, and clears on completion", async () => {
   const { bb, harness } = createFakePluginHost();
   const bootstrap: EnrollmentBootstrap = {
-    version: 2,
     hostId: "host",
     serverUrl: "https://bb.example.com",
     credential: "test-code",
@@ -67,7 +66,6 @@ it("serves the prepared command from memory, expires without renewing, and clear
 it("forgets the command when creation is cancelled", async () => {
   const { bb, harness } = createFakePluginHost();
   const bootstrap: EnrollmentBootstrap = {
-    version: 2,
     hostId: "host",
     serverUrl: "https://bb.example.com",
     credential: "test-code",

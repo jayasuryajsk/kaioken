@@ -2,7 +2,7 @@ import type { BbPluginApi } from "@get-bb/plugin-sdk";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { ResolvedSettings } from "./configuration.js";
-import { imageDefinition } from "./image-definition.js";
+import type { ImageDefinition } from "./image-definition.js";
 import type { SandboxBackend } from "./sandbox-backend.js";
 
 const recordSchema = z.object({
@@ -27,12 +27,12 @@ export const execOutput = z.object({
 
 export function debugSandbox(
   bb: BbPluginApi,
+  image: ImageDefinition,
   resolve: () => Promise<{
     backend: SandboxBackend;
     settings: ResolvedSettings;
   }>,
 ) {
-  const image = imageDefinition(bb);
   async function buildWith(
     { backend, settings }: Awaited<ReturnType<typeof resolve>>,
     signal: AbortSignal,

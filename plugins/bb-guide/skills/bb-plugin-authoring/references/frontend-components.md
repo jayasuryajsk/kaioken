@@ -238,7 +238,7 @@ className?, draftKey? }` — the `default*` props are SEEDS, not controlled
   `machineTag`.
   Machine-provider inputs use
   `app.slots.experimental_machineProviderInputs({ machineProviderId,
-component })`. The component receives `{ projectId, value, onChange }` and
+component })`. The component receives `{ value, onChange }` and
   reports ready JSON or a blocked reason. The control appears in
   Settings → Machines → Add machine. Inputs are persisted
   and readable by every plugin, so never put secrets in them; store credentials

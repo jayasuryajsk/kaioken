@@ -3,7 +3,6 @@ import { readModalMachineResource } from "./lifecycle.js";
 
 it("drops obsolete expiration metadata while retaining current snapshot recovery state", () => {
   const resource = {
-    version: 5,
     key: "existing",
     sandboxId: null,
     snapshotImageId: "saved",
@@ -19,9 +18,21 @@ it("drops obsolete expiration metadata while retaining current snapshot recovery
     resource,
   );
   expect(readModalMachineResource(resource)).toEqual(resource);
-  for (const version of [3, 4]) {
-    expect(() => readModalMachineResource({ ...resource, version })).toThrow();
+  for (const field of [
+    "imageId",
+    "accountIdentity",
+    "appName",
+    "cpu",
+    "memoryMiB",
+    "snapshotSandboxId",
+  ]) {
+    const incomplete = { ...resource };
+    delete incomplete[field as keyof typeof incomplete];
+    expect(() => readModalMachineResource(incomplete)).toThrow();
   }
+  expect(readModalMachineResource({ ...resource, version: 5 })).toEqual(
+    resource,
+  );
   expect(() =>
     readModalMachineResource({ ...resource, accountIdentity: "" }),
   ).toThrow();

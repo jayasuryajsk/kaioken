@@ -15,11 +15,13 @@ export default {
 const noop = () => {};
 const now = Date.parse("2026-09-09T12:00:00Z");
 
-function lifecycle(overrides: Partial<MachineLifecycle> = {}): MachineLifecycle {
+function lifecycle(
+  overrides: Partial<MachineLifecycle> = {},
+): MachineLifecycle {
   return {
     phase: "active",
     suspendedAt: null,
-    retireAt: null,
+
     progress: null,
     teardown: null,
     ...overrides,
@@ -142,13 +144,13 @@ export function Rows() {
         />
       </StoryRow>
       <StoryRow
-        label="retiring"
+        label="removing"
         hint="removal is under way and the machine is still reachable"
       >
         <Row
           host={sandbox({
             name: "Modal sandbox 7c11",
-            lifecycle: lifecycle({ phase: "retiring", retireAt: now }),
+            lifecycle: lifecycle({ phase: "removing" }),
           })}
         />
       </StoryRow>
@@ -162,8 +164,8 @@ export function Rows() {
             status: "disconnected",
             lastSeenAt: now - 3 * 7 * 24 * 60 * 60_000,
             lifecycle: lifecycle({
-              phase: "retiring",
-              retireAt: now,
+              phase: "removing",
+
               teardown: { status: "failed", attempt: 3 },
             }),
           })}

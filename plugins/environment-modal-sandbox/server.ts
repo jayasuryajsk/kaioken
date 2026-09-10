@@ -1,6 +1,6 @@
 import { debugSandbox } from "./debug-sandbox.js";
 import { imageDefinition } from "./image-definition.js";
-import { registerAccount } from "./account.js";
+import { registerRpcAndCli } from "./account.js";
 import { z } from "zod";
 import type { BbPluginApi } from "@get-bb/plugin-sdk";
 import type {
@@ -79,7 +79,7 @@ export function createModalSandboxPlugin(
       return backend;
     }
 
-    const debug = debugSandbox(bb, async () => {
+    const debug = debugSandbox(bb, image, async () => {
       const resolved = await currentSettings();
       if (!resolved.ok) throw new Error(resolved.message);
       return {
@@ -89,8 +89,7 @@ export function createModalSandboxPlugin(
     });
 
     async function inspectMachine({ hostId }: { hostId: string }) {
-      const stored =
-        await bb.experimental_machines.experimental_getResource(hostId);
+      const stored = await bb.experimental_machines.getResource(hostId);
       if (stored === null)
         throw new Error("No provider resource for this machine.");
       const resource = readModalMachineResource(stored);
@@ -102,7 +101,7 @@ export function createModalSandboxPlugin(
           ? null
           : await backendFor(resolved.settings).observe({
               sandboxId: sandbox.sandboxId,
-              appName: resource.appName ?? resolved.settings.appName,
+              appName: resource.appName,
               key: resource.key,
             });
       const state: "running" | "suspended" | "missing" = observation?.running
@@ -124,8 +123,9 @@ export function createModalSandboxPlugin(
       };
     }
 
-    registerAccount(
+    registerRpcAndCli(
       bb,
+      image,
       async () => {
         const resolved = await currentSettings();
         if (!resolved.ok)
@@ -186,7 +186,7 @@ export function createModalSandboxPlugin(
         }
         if (deps.now() < lastActivity + resolved.settings.idleMs) continue;
         try {
-          await bb.sdk.hosts.suspend({ hostId: host.id });
+          await bb.sdk.hosts.experimental_suspend({ hostId: host.id });
         } catch (error) {
           bb.log.warn(
             `Idle pause failed for ${host.id}: ${errorMessage(error)}`,
@@ -226,7 +226,6 @@ export function createModalSandboxPlugin(
       }
       const backend = backendFor(resolved.settings);
       try {
-        machineInputsSchema.parse(context.inputs ?? {});
         context.signal.throwIfAborted();
         await bb.experimental_machines.enrollments.prepare({
           key: context.key,
@@ -254,8 +253,8 @@ export function createModalSandboxPlugin(
               "Modal allocation intent is unresolved; reconcile its name before retrying.",
           };
         }
-        let imageId = intent?.resource?.imageId ?? null;
-        if (sandbox === null) {
+        let imageId = intent?.resource?.imageId;
+        if (imageId === undefined) {
           context.report.step("Preparing the standard Modal image…");
           imageId = await backend.ensureStandardImage({
             appName,
@@ -264,6 +263,8 @@ export function createModalSandboxPlugin(
             report: context.report,
           });
           context.signal.throwIfAborted();
+        }
+        if (sandbox === null) {
           await bb.storage.kv.set(intentKey, {
             appName,
             sandboxId: null,
@@ -282,12 +283,11 @@ export function createModalSandboxPlugin(
           });
         }
         const allocation: ModalMachineResource = intent?.resource ?? {
-          version: 5,
           imageId,
           accountIdentity,
           appName,
-          cpu: resolved.settings.cpu,
-          memoryMiB: resolved.settings.memoryMiB,
+          cpu: resolved.settings.cpu ?? 0.125,
+          memoryMiB: resolved.settings.memoryMiB ?? 128,
           key: context.key,
           sandboxId: sandbox.sandboxId,
           snapshotImageId: null,
@@ -305,7 +305,6 @@ export function createModalSandboxPlugin(
         const { hostId } = await bb.experimental_machines.bootstrap({
           key: context.key,
           executor: createSandboxExecutor(sandbox),
-          daemon: { kind: "install" },
           report: context.report,
           signal: context.signal,
         });
@@ -331,9 +330,8 @@ export function createModalSandboxPlugin(
       resolved: ResolvedSettings,
     ): Promise<SandboxHandle | null> {
       if (
-        resource.accountIdentity !== null &&
         resource.accountIdentity !==
-          (await backendFor(resolved).accountIdentity())
+        (await backendFor(resolved).accountIdentity())
       )
         throw new Error(
           "Restore the machine’s pinned Modal account before lifecycle operations",
@@ -342,21 +340,17 @@ export function createModalSandboxPlugin(
         const byId = await backendFor(resolved).fromId(resource.sandboxId);
         if (byId !== null) return byId;
       }
-      return backendFor(resolved).fromName(
-        resource.appName ?? resolved.appName,
-        resource.key,
-      );
+      return backendFor(resolved).fromName(resource.appName, resource.key);
     }
 
     async function deletePendingSnapshots(
       resource: ModalMachineResource,
       resolved: ResolvedSettings,
-      checkpoint?: (resource: ModalMachineResource) => void,
+      checkpoint?: (resource: ModalMachineResource) => Promise<void>,
     ): Promise<ModalMachineResource> {
       if (
-        resource.accountIdentity !== null &&
         resource.accountIdentity !==
-          (await backendFor(resolved).accountIdentity())
+        (await backendFor(resolved).accountIdentity())
       )
         throw new Error(
           "Restore the machine’s pinned Modal account before snapshot cleanup",
@@ -371,7 +365,7 @@ export function createModalSandboxPlugin(
             (candidate) => candidate !== imageId,
           ),
         };
-        checkpoint?.(current);
+        await checkpoint?.(current);
       }
       return current;
     }
@@ -488,11 +482,7 @@ export function createModalSandboxPlugin(
           ttlMs: null,
         });
         context.report.log(
-          JSON.stringify({
-            phase: "snapshot",
-            imageId: snapshotImageId,
-            elapsedMs: deps.now() - snapshotStartedAt,
-          }),
+          `Saved Modal filesystem snapshot ${snapshotImageId} in ${deps.now() - snapshotStartedAt} ms`,
         );
         const checkpoint = {
           ...resource,
@@ -508,13 +498,13 @@ export function createModalSandboxPlugin(
             ]),
           ],
         } satisfies ModalMachineResource;
-        context.checkpoint(checkpoint);
+        await context.checkpoint(checkpoint);
         await sandbox.terminate();
         context.report.log(
           `Terminated Modal sandbox ${sandbox.sandboxId} after its durable filesystem checkpoint`,
         );
         const suspended = { ...checkpoint, sandboxId: null };
-        context.checkpoint(suspended);
+        await context.checkpoint(suspended);
         return {
           resource: await deletePendingSnapshots(
             suspended,
@@ -542,7 +532,7 @@ export function createModalSandboxPlugin(
           }
           context.report.step("Restoring the Modal sandbox…");
           sandbox = await backendFor(resolved.settings).create({
-            appName: resource.appName ?? resolved.settings.appName,
+            appName: resource.appName,
             name: resource.key,
             image: {
               type: "snapshot",
@@ -559,7 +549,6 @@ export function createModalSandboxPlugin(
         const { hostId } = await bb.experimental_machines.bootstrap({
           key: resource.key,
           executor: createSandboxExecutor(sandbox),
-          daemon: { kind: "install" },
           report: context.report,
           signal: context.signal,
         });
@@ -602,8 +591,6 @@ export function createModalSandboxPlugin(
     if (!loaded.ok) bb.status.needsConfiguration(loaded.message);
   };
 }
-
-const machineInputsSchema = z.object({}).strict();
 
 export default createModalSandboxPlugin({
   backendFactory: createModalBackend,

@@ -1799,6 +1799,8 @@ describe("machine and environment provider composition", () => {
       const machine = {
         pluginId: "cloud",
         provider: validatePluginMachineProviderDeclaration({
+          description: "Provision a test machine.",
+          icon: "Terminal",
           id: "test-machine",
           displayName: "Test machine",
           create,
@@ -1912,6 +1914,8 @@ describe("machine and environment provider composition", () => {
           sessionId: session.id,
         });
         const machineProvider = validatePluginMachineProviderDeclaration({
+          description: "Provision a test machine.",
+          icon: "Terminal",
           id: "test-machine",
           displayName: "Test machine",
 
@@ -2449,6 +2453,8 @@ describe("a provider-produced environment over its life", () => {
           const machineRecord = {
             pluginId: "replacement-machine",
             provider: validatePluginMachineProviderDeclaration({
+              description: "Provision a test machine.",
+              icon: "Terminal",
               id: "replacement-machine",
               displayName: "Replacement machine",
 

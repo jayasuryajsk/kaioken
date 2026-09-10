@@ -4,7 +4,6 @@ import { enrolledInstallerScript } from "./manual-enrollment-command.js";
 import type { EnrollmentBootstrap } from "@get-bb/plugin-sdk";
 
 const bootstrap: EnrollmentBootstrap = {
-  version: 2,
   hostId: "host_test",
   credential: "short-lived-code",
   serverUrl: "https://test.getbb.app",

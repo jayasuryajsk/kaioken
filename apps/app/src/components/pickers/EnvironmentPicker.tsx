@@ -1,7 +1,5 @@
 import { EnvironmentProviderIcon } from "@/components/plugin/EnvironmentProviderIcon";
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
-import { getPluginConfigurationRoutePath } from "@/lib/route-paths";
 import type { Host, ProjectSource } from "@bb/domain";
 import type { SystemEnvironmentProvider } from "@bb/server-contract";
 import { Icon, type IconName } from "@bb/shared-ui/icon";
@@ -16,6 +14,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@bb/shared-ui/dropdown-menu";
 import {
@@ -113,25 +112,10 @@ function providerDisabledReason(
   return null;
 }
 
-function providerConfigureHref(
-  provider: SystemEnvironmentProvider,
-): string | undefined {
-  return provider.machineProviderId !== null &&
-    provider.availability?.status === "setup-required"
-    ? getPluginConfigurationRoutePath({ pluginId: provider.pluginId })
-    : undefined;
-}
-
 function providerDescription(
   provider: SystemEnvironmentProvider,
   inputsControlProviderIds: ReadonlySet<string>,
 ): string | undefined {
-  if (
-    provider.machineProviderId !== null &&
-    provider.availability?.status === "setup-required"
-  ) {
-    return "Set it up in plugin settings";
-  }
   return (
     providerDisabledReason(provider, inputsControlProviderIds) ?? undefined
   );
@@ -222,6 +206,11 @@ export function EnvironmentPickerUI({
           )
         : undefined,
     [providers, parsed],
+  );
+  const hostlessProviders = providers.filter(
+    (provider) =>
+      provider.machineProviderId &&
+      provider.requires.projectless === projectless,
   );
   const selected = useMemo((): SelectedEnvironment => {
     if (
@@ -376,34 +365,31 @@ export function EnvironmentPickerUI({
             onSelectProvider={onSelectProvider}
           />
         )}
+        {!isLoading &&
+        onSelectProvider &&
+        hostlessProviders.length > 0 &&
+        environmentProviders.length > 0 ? (
+          <DropdownMenuSeparator />
+        ) : null}
         {!isLoading && onSelectProvider
-          ? providers
-              .filter(
-                (provider) =>
-                  provider.machineProviderId &&
-                  provider.requires.projectless === projectless,
-              )
-              .map((provider) => (
-                <EnvironmentMenuItem
-                  key={provider.id}
-                  label={provider.displayName}
-                  description={providerDescription(
-                    provider,
-                    inputsControlProviderIds,
-                  )}
-                  icon={pluginIconName(provider.icon)}
-                  provider={provider}
-                  selected={providerValueSelected(value, provider)}
-                  disabled={
-                    providerDisabledReason(
-                      provider,
-                      inputsControlProviderIds,
-                    ) !== null
-                  }
-                  configureHref={providerConfigureHref(provider)}
-                  onSelect={() => onSelectProvider(provider, null)}
-                />
-              ))
+          ? hostlessProviders.map((provider) => (
+              <EnvironmentMenuItem
+                key={provider.id}
+                label={provider.displayName}
+                description={providerDescription(
+                  provider,
+                  inputsControlProviderIds,
+                )}
+                icon={pluginIconName(provider.icon)}
+                provider={provider}
+                selected={providerValueSelected(value, provider)}
+                disabled={
+                  providerDisabledReason(provider, inputsControlProviderIds) !==
+                  null
+                }
+                onSelect={() => onSelectProvider(provider, null)}
+              />
+            ))
           : null}
       </DropdownMenuContent>
     </DropdownMenu>
@@ -500,7 +486,6 @@ function EnvironmentOptionsSection({
                 selectedProviderHostId === hostId
               }
               disabled={disabledReason !== null}
-              configureHref={providerConfigureHref(provider)}
               onSelect={() => onSelectProvider(provider, hostId)}
             />
           );
@@ -655,9 +640,6 @@ function MachineSection({
                   selectedProviderHostId === host.id
                 }
                 disabled={!selectable || disabledReason !== null}
-                configureHref={
-                  connected ? providerConfigureHref(provider) : undefined
-                }
                 onSelect={() => onSelectProvider(provider, host.id)}
               />
             );
@@ -690,7 +672,6 @@ interface EnvironmentMenuItemProps {
   selected: boolean;
   onSelect: () => void;
   disabled?: boolean;
-  configureHref?: string;
 }
 
 function EnvironmentMenuItem({
@@ -701,10 +682,19 @@ function EnvironmentMenuItem({
   selected,
   onSelect,
   disabled,
-  configureHref,
 }: EnvironmentMenuItemProps) {
-  const content = (
-    <>
+  return (
+    <DropdownMenuItem
+      disabled={disabled}
+      onSelect={() => {
+        if (disabled) return;
+        onSelect();
+      }}
+      className={cn(
+        "flex items-start justify-between gap-3 whitespace-normal",
+        LIST_HOVER_TRANSITION,
+      )}
+    >
       <span className="flex min-w-0 flex-1 items-start gap-2">
         {provider === undefined ? (
           <Icon
@@ -734,36 +724,13 @@ function EnvironmentMenuItem({
         </span>
       </span>
       <Icon
-        name={configureHref === undefined ? "Check" : "ArrowRight"}
+        name="Check"
         className={cn(
           COARSE_POINTER_ICON_SIZE_CLASS,
           "shrink-0",
-          configureHref !== undefined || selected ? "opacity-100" : "opacity-0",
+          selected ? "opacity-100" : "opacity-0",
         )}
       />
-    </>
-  );
-  const itemClassName = cn(
-    "flex items-start justify-between gap-3 whitespace-normal",
-    LIST_HOVER_TRANSITION,
-  );
-  if (configureHref !== undefined) {
-    return (
-      <DropdownMenuItem asChild className={itemClassName}>
-        <Link to={configureHref}>{content}</Link>
-      </DropdownMenuItem>
-    );
-  }
-  return (
-    <DropdownMenuItem
-      disabled={disabled}
-      onSelect={() => {
-        if (disabled) return;
-        onSelect();
-      }}
-      className={itemClassName}
-    >
-      {content}
     </DropdownMenuItem>
   );
 }

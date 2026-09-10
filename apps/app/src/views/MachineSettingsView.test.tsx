@@ -28,12 +28,12 @@ vi.mock("@/lib/sdk", () => ({
     hosts: {
       delete: vi.fn(),
       list: vi.fn(),
-      listProviders: vi.fn(),
+      experimental_listProviders: vi.fn(),
       providerCliStatus: vi.fn(),
-      resume: vi.fn(),
-      retryCleanup: vi.fn(),
+      experimental_resume: vi.fn(),
+      experimental_retryCleanup: vi.fn(),
       retryUpdate: vi.fn(),
-      suspend: vi.fn(),
+      experimental_suspend: vi.fn(),
       update: vi.fn(),
     },
     providers: { list: vi.fn() },
@@ -127,7 +127,7 @@ function renderView() {
 }
 
 function stubSupportingFetches(): void {
-  vi.mocked(sdk.hosts.listProviders).mockResolvedValue([]);
+  vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue([]);
   vi.mocked(sdk.hosts.providerCliStatus).mockResolvedValue(
     providerCliStatusResponse(),
   );
@@ -169,11 +169,11 @@ describe("MachineSettingsView", () => {
         machineProviderId: "modal-sandbox",
       }),
     ]);
-    vi.mocked(sdk.hosts.listProviders).mockResolvedValue([
+    vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue([
       {
         id: "modal-sandbox",
         displayName: "Modal sandbox",
-        description: null,
+        description: "Run a machine for development.",
         icon: "./modal-logo.svg",
         machineTag: "modal",
         logoUrl: "/api/v1/system/providers/machine%3Amodal-sandbox/logo?h=hash",
@@ -200,12 +200,12 @@ describe("MachineSettingsView", () => {
     vi.mocked(sdk.hosts.list).mockResolvedValue([
       host({ machineProviderId: "test-machine" }),
     ]);
-    vi.mocked(sdk.hosts.listProviders).mockResolvedValue([
+    vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue([
       {
         id: "test-machine",
         displayName: "Test machine",
-        description: null,
-        icon: null,
+        description: "Run a machine for development.",
+        icon: "Terminal",
         machineTag: null,
         logoUrl: null,
         pluginId: "test-machine-provider",
@@ -427,6 +427,30 @@ describe("MachineSettingsView", () => {
     expect(
       screen.getByText("bb's primary machine can't be removed."),
     ).toBeDefined();
+  });
+
+  it("removes a machine after confirmation", async () => {
+    vi.mocked(sdk.system.config).mockResolvedValue(systemConfig());
+    vi.mocked(sdk.hosts.list).mockResolvedValue([host()]);
+    vi.mocked(sdk.hosts.delete).mockResolvedValue({ ok: true });
+    stubSupportingFetches();
+
+    renderView();
+
+    const confirmButtons = await screen.findAllByRole("button", {
+      name: "Remove machine",
+    });
+    fireEvent.click(confirmButtons.at(-1)!);
+    const openRemoveButtons = await screen.findAllByRole("button", {
+      name: "Remove machine",
+    });
+    fireEvent.click(openRemoveButtons.at(-1)!);
+
+    await waitFor(() => {
+      expect(vi.mocked(sdk.hosts.delete)).toHaveBeenCalledWith({
+        hostId: HOST_ID,
+      });
+    });
   });
 
   it("shows client-local identity only when several machines need disambiguation", async () => {

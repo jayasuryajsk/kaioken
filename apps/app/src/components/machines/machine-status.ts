@@ -1,31 +1,27 @@
 import type { Host, MachineLifecycle } from "@bb/domain";
 import { formatRelativeTime } from "@/lib/relative-time";
 
-export type MachineStatusTone =
-  | "online"
-  | "attention"
-  | "failed"
-  | "offline";
+export type MachineStatusTone = "online" | "attention" | "failed" | "offline";
 
 export function machinePhaseLabel(
   lifecycle: MachineLifecycle,
-): "Paused" | "Pausing" | "Retiring" | "Cleanup failed" | null {
+): "Paused" | "Pausing" | "Removing" | "Cleanup failed" | null {
   if (
-    lifecycle.phase === "retiring" &&
+    lifecycle.phase === "removing" &&
     lifecycle.teardown?.status === "failed"
   ) {
     return "Cleanup failed";
   }
   if (lifecycle.phase === "suspending") return "Pausing";
   if (lifecycle.phase === "suspended") return "Paused";
-  if (lifecycle.phase === "retiring") return "Retiring";
+  if (lifecycle.phase === "removing") return "Removing";
   return null;
 }
 
 export function machineStatusTone(host: Host): MachineStatusTone {
   if (machinePhaseLabel(host.lifecycle) === "Cleanup failed") return "failed";
   if (
-    host.lifecycle.phase === "retiring" ||
+    host.lifecycle.phase === "removing" ||
     host.lifecycle.phase === "suspending"
   )
     return "attention";

@@ -137,7 +137,7 @@ it("creates, cancels, and removes manual machines through the production lifecyc
           expect(getHost(h.db, enrollment.hostId)).toMatchObject({
             machineProviderId: "manual",
             resource: { version: 1, hostId: enrollment.hostId },
-            retireAt: null,
+            removeRetryAt: null,
           });
           expect(requestMachineRemoval(h.deps, enrollment.hostId)).toBe(true);
           await sweepProviderMachine(h.deps, enrollment.hostId);

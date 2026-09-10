@@ -16,7 +16,7 @@ function lifecycle(
   return {
     phase,
     suspendedAt: null,
-    retireAt: null,
+
     progress: null,
     teardown: null,
     ...overrides,
@@ -33,15 +33,15 @@ describe("machinePhaseLabel", () => {
     ["destroyed", null],
     ["suspending", "Pausing"],
     ["suspended", "Paused"],
-    ["retiring", "Retiring"],
+    ["removing", "Removing"],
   ] as const)("maps %s to %s", (phase, label) => {
     expect(machinePhaseLabel(lifecycle(phase))).toBe(label);
   });
 
-  it("prioritizes cleanup failure over retiring", () => {
+  it("prioritizes cleanup failure over removing", () => {
     expect(
       machinePhaseLabel(
-        lifecycle("retiring", {
+        lifecycle("removing", {
           teardown: { status: "failed", attempt: 1, message: "uninstall" },
         }),
       ),
@@ -50,7 +50,7 @@ describe("machinePhaseLabel", () => {
 });
 
 describe("machineStatusTone", () => {
-  it.each(["retiring", "suspending"] as const)(
+  it.each(["removing", "suspending"] as const)(
     "marks a %s machine for attention even while it is still connected",
     (phase) => {
       expect(machineStatusTone(host({ lifecycle: lifecycle(phase) }))).toBe(
@@ -59,12 +59,12 @@ describe("machineStatusTone", () => {
     },
   );
 
-  it("marks a failed teardown as failed rather than merely retiring", () => {
+  it("marks a failed teardown as failed rather than merely removing", () => {
     expect(
       machineStatusTone(
         host({
           status: "disconnected",
-          lifecycle: lifecycle("retiring", {
+          lifecycle: lifecycle("removing", {
             teardown: { status: "failed", attempt: 3 },
           }),
         }),

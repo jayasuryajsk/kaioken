@@ -73,7 +73,7 @@ environment settings.
 Use `bb modal account inspect --json` to validate credentials
 without allocating resources. Create with
 `bb machine create --provider modal-sandbox --json`, or SDK
-`hosts.submit({machineProviderId:"modal-sandbox",key})`. Machine creation
+`hosts.experimental_submit({machineProviderId:"modal-sandbox",key})`. Machine creation
 accepts no per-machine image inputs; configure the shared Dockerfile separately. Account inspection is also available through the
 plugin's typed `modalRpcContract` (`account.inspect`) and `sdk.plugins.callRpc`.
 See the [command reference](skills/modal-sandboxes/SKILL.md).

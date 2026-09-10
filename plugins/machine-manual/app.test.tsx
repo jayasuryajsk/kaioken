@@ -35,18 +35,17 @@ beforeEach(() => {
           {
             id: "connect",
             displayName: "bb connect",
-            attention: null,
             availability: { status: "available" },
           },
         ],
       },
     }),
   );
-  vi.spyOn(client.hosts, "submit").mockResolvedValue(launch);
-  vi.spyOn(client.hosts, "follow").mockImplementation(
+  vi.spyOn(client.hosts, "experimental_submit").mockResolvedValue(launch);
+  vi.spyOn(client.hosts, "experimental_follow").mockImplementation(
     async () => new Promise(() => {}),
   );
-  vi.spyOn(client.hosts, "cancel").mockResolvedValue({
+  vi.spyOn(client.hosts, "experimental_cancel").mockResolvedValue({
     ...launch,
     phase: "cancelled",
     terminal: true,
@@ -75,7 +74,9 @@ it("waits for a command before showing connection status and leaves enrollment v
       onClose={() => {}}
     />,
   );
-  await waitFor(() => expect(client.hosts.submit).toHaveBeenCalledTimes(1));
+  await waitFor(() =>
+    expect(client.hosts.experimental_submit).toHaveBeenCalledTimes(1),
+  );
   expect(screen.getByText("Preparing command…")).toBeTruthy();
   expect(screen.queryByText("Waiting for the machine to connect…")).toBeNull();
   await act(async () => {
@@ -84,8 +85,9 @@ it("waits for a command before showing connection status and leaves enrollment v
   await screen.findByRole("button", { name: "Copy command" });
   expect(screen.getByText("Waiting for the machine to connect…")).toBeTruthy();
   view.unmount();
-  expect(client.hosts.cancel).not.toHaveBeenCalled();
-  expect(vi.mocked(client.hosts.follow).mock.calls[0][0].signal?.aborted).toBe(
-    true,
-  );
+  expect(client.hosts.experimental_cancel).not.toHaveBeenCalled();
+  expect(
+    vi.mocked(client.hosts.experimental_follow).mock.calls[0][0].signal
+      ?.aborted,
+  ).toBe(true);
 });

@@ -1411,11 +1411,8 @@ export interface PluginTimelineRendererRegistration {
 export interface PluginEnvironmentProviderInputsProps {
   /** Project selected in the composer; null in projectless compose. */
   projectId: string | null;
-  /**
-   * The machine the selection names, for a provider that requires `host`;
-   * null before one is picked or for a provider that runs without one.
-   */
-  hostId: string | null;
+  /** Whether setup uses an existing host or provisions a new host before create. */
+  target: { kind: "existing-host"; hostId: string } | { kind: "new-host" };
   /**
    * The `inputs` value the selection will carry: null until `onChange`
    * supplies one.
@@ -1456,8 +1453,6 @@ export interface PluginEnvironmentProviderInputsRegistration {
  * settings.
  */
 export interface PluginMachineProviderInputsProps {
-  /** Project selected in the composer; null outside a project. */
-  projectId: string | null;
   /** The value persisted with the machine selection. */
   value: JsonValue | null;
   /** Replace the submitted value or block submission with a visible reason. */
@@ -1480,7 +1475,10 @@ export interface PluginMachineProviderInputsRegistration {
 
 export interface ExperimentalMachineSetupProps {
   client: {
-    hosts: Pick<HostsArea, "submit" | "follow" | "cancel">;
+    hosts: Pick<
+      HostsArea,
+      "experimental_submit" | "experimental_follow" | "experimental_cancel"
+    >;
   };
   onClose(): void;
 }
@@ -2059,7 +2057,7 @@ export interface ExperimentalProviderModelPickerProps {
  * The host owns fetching, searching, and refreshing the branch list; the
  * caller owns only the selection.
  */
-export interface ExperimentalBranchPickerProps {
+export interface BranchPickerProps {
   /**
    * The enrolled machine whose project checkout supplies the branch list.
    * Null renders the picker disabled with no options.
@@ -2555,11 +2553,11 @@ export interface PluginSdkApp {
   experimental_PermissionModePicker: ComponentType<ExperimentalPermissionModePickerProps>;
   /**
    * BB's branch picker with its branch-options loading for one host and
-   * project (see {@link ExperimentalBranchPickerProps}) — the same control
+   * project (see {@link BranchPickerProps}) — the same control
    * the New Thread composer renders as "Branch from". Experimental: see
    * docs/api_to_audit.md.
    */
-  experimental_BranchPicker: ComponentType<ExperimentalBranchPickerProps>;
+  experimental_BranchPicker: ComponentType<BranchPickerProps>;
   /**
    * Search and refresh the branch list for one project source. Experimental:
    * see docs/api_to_audit.md.

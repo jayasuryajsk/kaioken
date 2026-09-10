@@ -40,6 +40,7 @@ async function installPlugin(harness: TestAppHarness, id: string) {
     `export default function(bb) {
     bb.experimental_machines.register({
       id: "${id}-machine", displayName: "Runtime machine",
+      description: "Provision a runtime test machine.", icon: "Terminal",
 
       reconcileCleanup: async () => ({ status: "removed" }),
       create: async () => ({ status: "failed", failure: "terminal", message: "unused" }),
@@ -88,29 +89,26 @@ describe("production machine enrollment wiring", () => {
           updatedAt: 1,
         })
         .run();
-      expect(
-        await api.experimental_machines.experimental_getResource(hostId),
-      ).toEqual({ sandboxId: "sandbox-existing" });
+      expect(await api.experimental_machines.getResource(hostId)).toEqual({
+        sandboxId: "sandbox-existing",
+      });
       h.db
         .update(hosts)
         .set({ resource: { sandboxId: null, snapshotImageId: "image-1" } })
         .where(eq(hosts.id, hostId))
         .run();
-      expect(
-        await api.experimental_machines.experimental_getResource(hostId),
-      ).toEqual({ sandboxId: null, snapshotImageId: "image-1" });
+      expect(await api.experimental_machines.getResource(hostId)).toEqual({
+        sandboxId: null,
+        snapshotImageId: "image-1",
+      });
       h.db
         .update(hosts)
         .set({ resource: null })
         .where(eq(hosts.id, hostId))
         .run();
+      expect(await api.experimental_machines.getResource(hostId)).toBeNull();
       expect(
-        await api.experimental_machines.experimental_getResource(hostId),
-      ).toBeNull();
-      expect(
-        await api.experimental_machines.experimental_getResource(
-          "missing-host",
-        ),
+        await api.experimental_machines.getResource("missing-host"),
       ).toBeNull();
     });
   });
@@ -161,7 +159,6 @@ describe("production machine enrollment wiring", () => {
         api.experimental_machines.bootstrap({
           key: "runtime-launch",
           executor: { exec },
-          daemon: { kind: "preinstalled" },
           report: { step() {}, log() {} },
           signal: new AbortController().signal,
         }),
@@ -256,12 +253,6 @@ describe("production machine enrollment wiring", () => {
           .where(eq(hosts.id, enrollment.hostId))
           .get()?.providerId,
       ).toBeNull();
-      expect(
-        await getMachineEnrollmentService(h.deps).cancelByKey(
-          "enrollment-runtime",
-          "failure-launch",
-        ),
-      ).toEqual({ hostId: enrollment.hostId });
       const standalone = await api.experimental_machines.enrollments.prepare({
         key: "standalone",
         access: { providerId: "runtime-access" },

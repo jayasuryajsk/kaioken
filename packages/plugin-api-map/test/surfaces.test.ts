@@ -214,7 +214,7 @@ describe("surface card copy", () => {
       "PluginMachineProviderSuspendContext",
     );
     expect(machineProviders?.bullets.join(" ")).toContain(
-      "Checkpoint a recoverable resource during suspend",
+      "Await suspend.checkpoint(resource) before destructive cleanup",
     );
   });
 
@@ -230,7 +230,6 @@ describe("surface card copy", () => {
         "MachineConnectionRequest",
         "MachineEnrollments",
         "MachineBootstrapRequest",
-        "MachineInstallerCommand",
         "MachineBootstrapApi",
         "PluginMachineProviderCreateContext",
         "PluginMachineProviderInputsProps",

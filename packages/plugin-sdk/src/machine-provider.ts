@@ -44,8 +44,6 @@ export type PluginMachineProviderCreateResult =
       status: "failed";
       failure: "transient" | "terminal";
       message: string;
-      /** Definitive rejection before allocation. Omit when allocation may have occurred. */
-      allocation?: "none";
     };
 
 export interface PluginMachineProviderLifecycleContext {
@@ -57,7 +55,7 @@ export interface PluginMachineProviderLifecycleContext {
 
 export interface PluginMachineProviderSuspendContext extends PluginMachineProviderLifecycleContext {
   /** Persist the provider resource before terminating compute. The provider owns filesystem preservation. */
-  checkpoint(resource: JsonValue): void;
+  checkpoint(resource: JsonValue): Promise<void>;
 }
 
 export interface PluginMachineProviderResumeContext extends PluginMachineProviderLifecycleContext {
@@ -80,9 +78,9 @@ export interface PluginMachineProviderDefinition<
   id: string;
   displayName: string;
   /** One line telling a user what choosing this provider gets them, shown wherever a machine is added. */
-  description?: string;
-  /** Omit to present provider-created machines like ordinary enrolled machines. */
-  icon?: string;
+  description: string;
+  /** Provider glyph, declared icon, or plugin-relative icon path. */
+  icon: string;
   /** Short tag shown on every machine this provider made, beside its icon. Omit to leave those machines untagged. */
   machineTag?: string;
   /** Persisted and readable by every plugin. Store secret references, never secrets. */

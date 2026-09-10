@@ -67,13 +67,11 @@ function show(defaultProviderId: string, paired = false) {
             availability: paired
               ? { status: "available", serverUrl: "https://test.getbb.app" }
               : { status: "setup-required", message: "Set up bb connect" },
-            attention: paired ? "2 legacy access records need attention" : null,
           },
           {
             id: "direct",
             displayName: "Manual",
             availability: { status: "available" },
-            attention: null,
           },
         ],
         defaultProviderId,
@@ -123,9 +121,6 @@ it("retains diagnostics for paired Connect without showing setup", () => {
   expect(
     screen.getByRole("link", { name: "Manage" }).getAttribute("href"),
   ).toBe("/settings/plugins/connect");
-  expect(screen.getByRole("status").textContent).toBe(
-    "bb connect: 2 legacy access records need attention",
-  );
   expect(screen.queryByRole("link", { name: "Set up bb connect" })).toBeNull();
 });
 

@@ -10,7 +10,6 @@ export function MachineProviderIcon({
   provider: SystemMachineProvider;
   className?: string;
 }) {
-  if (provider.icon === null) return null;
   const info = getProviderIconInfo(provider.id, {
     logoUrl: provider.logoUrl,
     displayName: provider.displayName,

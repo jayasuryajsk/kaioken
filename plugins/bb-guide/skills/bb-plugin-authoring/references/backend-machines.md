@@ -12,14 +12,10 @@ Set up on machine; machine plugins do not clone projects. An existing source is
 reused. Core shares concurrent setup per project/host and recovers a completed
 clone at its stable project-ID target after a crash by verifying the remote and
 registering its source. Providers without that requirement, including personal workspace, do not
-trigger source setup. The Machines page and `bb.sdk.hosts.create` can instead create
-a standalone machine with `project: null`; create is not required to enrol a
-project source in that case.
+trigger source setup. The Machines page and `bb.sdk.hosts.experimental_create` can instead create
+a standalone machine without project context. Project source setup happens later when an environment needs it.
 
-`icon` is optional. Omit it when provider-created machines should look like
-ordinary enrolled machines: the Machines page and Add machine show no provider
-logo. Declaring it enables the normal provider glyph, plugin-relative SVG,
-declared icon, or React icon-slot presentation.
+`description` and `icon` are required. The icon supplies the normal provider glyph or plugin-relative SVG; a React icon slot can customize its presentation.
 
 `machineTag` is also optional: it is the short tag, up to 24
 characters, shown beside that logo on every machine the provider made. Declare
@@ -31,6 +27,7 @@ describes how a machine was added, and those machines stay untagged.
 bb.experimental_machines.register({
   id: "custom-machine",
   displayName: "Custom machine",
+  description: "Create a machine with custom compute.",
   icon: "Server",
   inputs: z.object({ target: z.string() }),
   async create({ inputs, key, checkpoint, report, signal }) {
@@ -43,7 +40,6 @@ bb.experimental_machines.register({
     const { hostId } = await bb.experimental_machines.bootstrap({
       key,
       executor: target.executor,
-      daemon: { kind: "install" },
       report,
       signal,
     });
@@ -78,12 +74,8 @@ for later lifecycle operations. `allocateTarget` and `disconnectTarget` above
 stand for provider-owned allocation, transport, and idempotent cleanup; removal
 must handle a checkpointed target whose daemon was never installed or enrolled.
 Core owns enrollment, identity files, and daemon installation internals.
-A definitive rejection before allocation returns `{ status: "failed", failure:
-"terminal", allocation: "none", message }`; persist that rejection first. Core
-skips allocation reconciliation and settles enrollment/access/the pending host.
-Omit `allocation` for unknown outcomes such as timeouts. Automatic unresolved
-cleanup retries are bounded to a 30-minute launch window; unresolved cleanup
-remains recorded for operator reconciliation.
+Automatic unresolved cleanup retries are bounded to a 30-minute launch window;
+unresolved cleanup remains recorded for operator reconciliation.
 
 Machine registration does not contribute environment-picker entries. Register
 an environment composition with `machineProviderId` and `environmentProviderId`
@@ -107,14 +99,14 @@ Allocation checkpoints are recovery records, not filesystem saves: providers
 must create any filesystem snapshot themselves. Daemon-connected is not
 agent-ready; checkout setup and provider authentication still need to complete.
 
-Standalone `bb machine create` and `bb.sdk.hosts.create` submit a durable launch
-and follow its progress. `create --no-wait` / `hosts.submit` return the launch ID;
-`machine status` / `hosts.launch` poll it. Only `machine cancel` / `hosts.cancel`
+Standalone `bb machine create` and `bb.sdk.hosts.experimental_create` submit a durable launch
+and follow its progress. `create --no-wait` / `hosts.experimental_submit` return the launch ID;
+`machine status` / `hosts.experimental_launch` poll it. Only `machine cancel` / `hosts.experimental_cancel`
 explicitly cancel; closing a client or aborting its signal stops following.
 
-Retirement is either last-thread plus a grace period or never. Removal always
-cascades through the machine's environment providers before machine remove;
-failures persist and retry after the core one-minute retry interval.
+Removal always cascades through the machine's environment providers before
+machine remove; failures persist and retry after the core one-minute retry
+interval.
 
 ## Server access
 
@@ -123,18 +115,17 @@ availability, acquire({ key, hostId, signal }) returning a ServerAccessGrant,
 and release({ key, hostId, grantId }). Acquire is idempotent by key. Return `{ id, serverUrl, headers?: Record<string, string> }`; the grant serves runtime requests as well
 as enrolment. Acquire must redeem provider-specific codes server-side and persist
 the revocation identity before returning, so release works before enrolment.
-Direct grants omit headers. Bootstrap v2 carries the headers; pending encrypted
-v1 bundles are upgraded server-side on preparation. Host metadata stores the provider id and grant id; pending
+Direct grants omit headers. Bootstrap carries the headers. Host metadata stores
+the provider id and grant id; pending
 bootstrap credentials are encrypted separately by core.
 An Error named `experimental_ServerAccessRecoveryError` exposes its deliberate
 user-safe recovery message through the plugin boundary; ordinary errors stay
 redacted. Release receives a null grantId when acquire was interrupted. Core persists the
 provider before acquisition and retries release by key and hostId. Keep intent
 and credential-bearing grants in secret storage; only non-secret revocation
-metadata belongs in KV. Delivered v1 bundles upgrade locally to v2 headers in the
-CLI and installer, including one-time legacy Connect redemption.
+metadata belongs in KV.
 
-`experimental_attention()` optionally returns a user-safe diagnostic or null,
+`attention()` optionally returns a user-safe diagnostic or null,
 synchronously or asynchronously. Machines settings displays it independently of
 availability; never include credentials or raw provider payloads.
 
@@ -148,21 +139,15 @@ prove reachability from a sandbox.
 `bb.experimental_machines` implements `MachineBootstrapApi` alongside register:
 
 - `enrollments.prepare({ key, access? })` returns a
-  `MachineEnrollment`: pending with a private `EnrollmentBootstrap` and expiry,
+  `MachineEnrollment`: pending with a private `EnrollmentBootstrap` containing
+  its expiry,
   or enrolled with the stable hostId. Keys are scoped to the calling plugin.
 - `enrollments.waitForConnection({ enrollmentId, timeoutMs, signal })` returns `{ hostId }` after the daemon connects.
-- `enrollments.cancel({ enrollmentId })` cancels pending enrollment and releases
-  its access; an already-enrolled identity retains its credentials and access.
-  This does not replace provider cleanup of an allocated resource.
-- `installerCommand(bootstrap)` synchronously returns `MachineInstallerCommand`
-  `{ command: string[], stdin: string }`. Pass stdin privately; never place the
-  bundle in argv, logs, progress, or persisted machine resources.
-- `bootstrap({ key, executor, access?, daemon, report, signal })` prepares or
-  recovers enrollment, installs or enrolls, starts the daemon, waits for its
+- `bootstrap({ key, executor, access?, report, signal })` prepares or recovers
+  enrollment, installs or starts the daemon, waits for its
   connection, and returns `{ hostId }`. Reuse the same key and access selection
-  used before the create checkpoint. `daemon` is `{ kind: "install" }` or
-  `{ kind: "preinstalled" }`; the latter needs compatible `bb` and `bb-app`.
-  Install needs Node, npm, and curl; the helper does not install OS packages.
+  used before the create checkpoint. Initial installation needs Node, npm, and
+  curl; the helper does not install OS packages.
 
 A `MachineExecutor` implements `exec({ command, timeoutMs, signal, stdin? })`
 returning `{ exitCode, stdout, stderr }`. Execute argv through the provider's
@@ -178,7 +163,7 @@ Own idle timing with plugin storage and background schedules. Subscribe to
 `experimental_thread.events` and `experimental_terminal.input` to extend your deadline.
 Modal v1 checks only `thread.status === "active"` in its thread-event callback.
 
-Call `bb.sdk.hosts.suspend({hostId})` for coordinated suspension. Core accepts follow-ups into the host-wait queue
+Call `bb.sdk.hosts.experimental_suspend({hostId})` for coordinated suspension. Core accepts follow-ups into the host-wait queue
 and drains active turns, setup hooks and terminals with a five-minute bound before
 calling your suspend callback. Persist opaque state with `checkpoint(resource)` before
 terminating compute. Core serializes resource transitions and restores the same host

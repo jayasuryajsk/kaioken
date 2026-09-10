@@ -1,4 +1,13 @@
-import { and, eq, inArray, isNull, isNotNull, notExists, ne, or } from "drizzle-orm";
+import {
+  and,
+  eq,
+  inArray,
+  isNull,
+  isNotNull,
+  notExists,
+  ne,
+  or,
+} from "drizzle-orm";
 import type {
   HostChangeKind,
   JsonValue,
@@ -27,10 +36,10 @@ export interface UpdateHostInput {
   name?: string;
   machineProviderId?: string | null;
   machineProviderSelection?: MachineProviderSelection | null;
-  phase?: "active" | "suspending" | "suspended" | "retiring" | "destroyed";
+  phase?: "active" | "suspending" | "suspended" | "removing" | "destroyed";
   resource?: JsonValue | null;
   removalStartedAt?: number | null;
-  retireAt?: number | null;
+  removeRetryAt?: number | null;
   suspendedAt?: number | null;
   teardownAttempt?: number;
   teardownMessage?: string | null;
@@ -111,7 +120,7 @@ export function upsertHost(
         machineProviderSelection: null,
         phase: "active",
         suspendedAt: null,
-        retireAt: null,
+        removeRetryAt: null,
         teardownAttempt: 0,
         teardownStatus: null,
         teardownMessage: null,
@@ -158,16 +167,44 @@ export function listHosts(db: DbConnection) {
 }
 
 export function listPublicHosts(db: DbConnection) {
-  return db.select().from(hosts).where(and(
-    isNull(hosts.destroyedAt),
-    or(
-      and(isNotNull(hosts.serverAccessProviderId), isNull(hosts.serverAccessGrantId), isNotNull(hosts.teardownMessage)),
+  return db
+    .select()
+    .from(hosts)
+    .where(
       and(
-        or(isNotNull(hosts.lastSeenAt), notExists(db.select({ id: machineEnrollments.id }).from(machineEnrollments).where(eq(machineEnrollments.hostId, hosts.id)))),
-        notExists(db.select({ key: machineLaunches.key }).from(machineLaunches).where(and(eq(machineLaunches.hostId, hosts.id), ne(machineLaunches.phase, "ready")))),
+        isNull(hosts.destroyedAt),
+        or(
+          and(
+            isNotNull(hosts.serverAccessProviderId),
+            isNull(hosts.serverAccessGrantId),
+            isNotNull(hosts.teardownMessage),
+          ),
+          and(
+            or(
+              isNotNull(hosts.lastSeenAt),
+              notExists(
+                db
+                  .select({ id: machineEnrollments.id })
+                  .from(machineEnrollments)
+                  .where(eq(machineEnrollments.hostId, hosts.id)),
+              ),
+            ),
+            notExists(
+              db
+                .select({ key: machineLaunches.key })
+                .from(machineLaunches)
+                .where(
+                  and(
+                    eq(machineLaunches.hostId, hosts.id),
+                    ne(machineLaunches.phase, "ready"),
+                  ),
+                ),
+            ),
+          ),
+        ),
       ),
-    ),
-  )).all();
+    )
+    .all();
 }
 
 export function listNonDestroyedHostsByIds(
@@ -185,9 +222,28 @@ export function listNonDestroyedHostsByIds(
     .all();
 }
 
-export function settleMachineEnrollments(db: DbConnection, hostId: string): void {
-  db.update(machineEnrollments).set({ state: "cancelled", encryptedBootstrap: null, expiresAt: null, updatedAt: Date.now() })
-    .where(and(eq(machineEnrollments.hostId, hostId), or(ne(machineEnrollments.state, "cancelled"), isNotNull(machineEnrollments.encryptedBootstrap), isNotNull(machineEnrollments.expiresAt)))).run();
+export function settleMachineEnrollments(
+  db: DbConnection,
+  hostId: string,
+): void {
+  db.update(machineEnrollments)
+    .set({
+      state: "cancelled",
+      encryptedBootstrap: null,
+      expiresAt: null,
+      updatedAt: Date.now(),
+    })
+    .where(
+      and(
+        eq(machineEnrollments.hostId, hostId),
+        or(
+          ne(machineEnrollments.state, "cancelled"),
+          isNotNull(machineEnrollments.encryptedBootstrap),
+          isNotNull(machineEnrollments.expiresAt),
+        ),
+      ),
+    )
+    .run();
 }
 
 export function updateHost(
@@ -221,13 +277,17 @@ export function updateHost(
       ...(input.machineProviderSelection !== undefined
         ? { machineProviderSelection: input.machineProviderSelection }
         : {}),
-      ...(input.machineOperationId !== undefined ? { machineOperationId: input.machineOperationId } : {}),
+      ...(input.machineOperationId !== undefined
+        ? { machineOperationId: input.machineOperationId }
+        : {}),
       ...(input.phase !== undefined ? { phase: input.phase } : {}),
       ...(input.resource !== undefined ? { resource: input.resource } : {}),
       ...(input.removalStartedAt !== undefined
         ? { removalStartedAt: input.removalStartedAt }
         : {}),
-      ...(input.retireAt !== undefined ? { retireAt: input.retireAt } : {}),
+      ...(input.removeRetryAt !== undefined
+        ? { removeRetryAt: input.removeRetryAt }
+        : {}),
       ...(input.suspendedAt !== undefined
         ? { suspendedAt: input.suspendedAt }
         : {}),

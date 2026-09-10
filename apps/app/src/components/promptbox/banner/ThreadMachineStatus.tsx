@@ -1,12 +1,15 @@
 import { useHosts } from "@/hooks/queries/host-queries";
 import { useResumeHost } from "@/hooks/mutations/host-mutations";
 import { Button } from "@bb/shared-ui/button";
-import { Icon } from "@bb/shared-ui/icon";
+import type { SystemMachineProvider } from "@bb/server-contract";
+import { MachineProviderIcon } from "@/components/plugin/MachineProviderIcon";
+import { useSystemMachineProviders } from "@/hooks/queries/machine-provider-queries";
 import { PromptStackCard } from "./PromptStackCard";
 import { getMutationErrorMessage } from "@/lib/mutation-errors";
 
 export function ThreadMachineStatus({ hostId }: { hostId: string }) {
   const hosts = useHosts();
+  const { providers } = useSystemMachineProviders();
   const resume = useResumeHost();
   const host = hosts.data?.find((candidate) => candidate.id === hostId);
   if (!host || host.machineProviderId === null) return null;
@@ -14,41 +17,80 @@ export function ThreadMachineStatus({ hostId }: { hostId: string }) {
   const paused = host.lifecycle.phase === "suspended";
   if (!pausing && !paused) return null;
   return (
+    <ThreadMachineStatusBanner
+      hostName={host.name}
+      provider={providers?.find(
+        (provider) => provider.id === host.machineProviderId,
+      )}
+      phase={pausing ? "suspending" : "suspended"}
+      resuming={resume.isPending}
+      error={
+        resume.error
+          ? getMutationErrorMessage({
+              error: resume.error,
+              fallbackMessage: "Could not resume the machine.",
+            })
+          : null
+      }
+      onResume={() => resume.mutate(hostId)}
+    />
+  );
+}
+
+export function ThreadMachineStatusBanner({
+  hostName,
+  provider,
+  phase,
+  resuming,
+  error,
+  onResume,
+}: {
+  hostName: string;
+  provider: SystemMachineProvider | undefined;
+  phase: "suspending" | "suspended";
+  resuming: boolean;
+  error: string | null;
+  onResume: () => void;
+}) {
+  return (
     <PromptStackCard ariaLabel="Machine status">
-      <div
-        className="flex min-h-8 items-center gap-2 px-3 py-1.5 text-xs"
-        role="status"
-      >
-        <Icon
-          name="Pause"
-          className="size-3.5 shrink-0 text-muted-foreground"
-        />
-        <span className="min-w-0 flex-1">
-          {resume.isPending
-            ? `Resuming ${host.name}…`
-            : pausing
-              ? `Pausing ${host.name}…`
-              : `${host.name} is paused`}
-        </span>
-        {paused ? (
+      <div className="flex min-h-8 items-start gap-2 px-3 py-1.5 text-xs">
+        {provider ? (
+          <MachineProviderIcon
+            provider={provider}
+            className="mt-1.5 size-3.5 shrink-0 text-muted-foreground"
+          />
+        ) : null}
+        <div className="min-w-0 flex-1 py-1">
+          <p role="status">
+            {hostName} is{" "}
+            {resuming
+              ? "resuming…"
+              : phase === "suspending"
+                ? "pausing…"
+                : "paused"}
+          </p>
+          {error && !resuming ? (
+            <p
+              role="alert"
+              className="mt-1 text-subtle-foreground leading-snug break-words"
+            >
+              {error}
+            </p>
+          ) : null}
+        </div>
+        {phase === "suspended" ? (
           <Button
             size="sm"
             variant="ghost"
-            disabled={resume.isPending}
-            onClick={() => resume.mutate(hostId)}
+            className="shrink-0"
+            disabled={resuming}
+            onClick={onResume}
           >
-            Resume
+            {error && !resuming ? "Retry" : "Resume"}
           </Button>
         ) : null}
       </div>
-      {resume.error ? (
-        <p role="alert" className="px-3 pb-2 text-xs text-destructive">
-          {getMutationErrorMessage({
-            error: resume.error,
-            fallbackMessage: "Could not resume the machine.",
-          })}
-        </p>
-      ) : null}
     </PromptStackCard>
   );
 }

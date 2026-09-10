@@ -5,6 +5,7 @@ summary: Command reference for listing and targeting execution machines.
 intent: Explain execution-machine discovery and selection from the CLI.
 editingNotes: Keep the user-facing noun machine; internal APIs and types use Host.
 ---
+
 Machine commands
 
 A host is an identity and daemon connection. A machine is a host with a
@@ -34,32 +35,32 @@ To opt out, remove `--auto-update` from the launchd plist or systemd user unit
 and reload that service. Foreground/manual `bb-app host-daemon` runs leave it off
 unless you pass `--auto-update` explicitly.
 
-  bb machine list                         List machines with ID, connection
-                                          status, and relative last-seen time
-    --json                                Print the raw host list
-  bb machine providers [--project <id>]   List installed machine providers
-    --json                                Include inputs schemas and policy
-  bb machine create --provider <id>       Create a standalone machine
-    --key <idempotency-key>                Reuse this creation on retries
-    --inputs <JSON>                       Non-secret provider inputs
-    --project <id-or-name>                 Optional project context
-    --json                                Print the created machine as JSON
-  bb machine enroll --bootstrap-file <path>
-    --bootstrap-env <NAME>                Alternative private bundle source
-  bb machine start --host-id <id>         Start an owned local daemon
-  bb machine stop --host-id <id>          Stop an owned local daemon
-  bb machine uninstall --host-id <id>     Remove an owned local installation
-  bb machine show <id-or-name>            Show machine details
-  bb machine join-code                    Create a machine pairing code
-  bb machine rename <id-or-name> <name>   Rename a machine
-  bb machine retry-update <id-or-name>    Retry a pending daemon update now
-  bb machine suspend <id-or-name>         Suspend a provider-managed machine
-  bb machine resume <id-or-name>          Resume a machine (already active is a no-op)
-  bb machine retry-cleanup <id-or-name>   Retry failed teardown now
-  bb machine remove <id-or-name> [--yes]  Revoke and remove a machine
-  bb machine provider-cli status <machine>
-  bb machine provider-cli install <machine> <provider-id>
-    --action <install|update>
+bb machine list List machines with ID, connection
+status, and relative last-seen time
+--json Print the raw host list
+bb machine providers List installed machine providers
+--json Include inputs schemas and policy
+bb machine create --provider <id> Create a standalone machine
+--key <idempotency-key> Reuse this creation on retries
+--inputs <JSON> Non-secret provider inputs
+--project <id-or-name> Optional project context
+--json Print the created machine as JSON
+bb machine enroll --bootstrap-file <path>
+--bootstrap-env <NAME> Alternative private bundle source
+bb machine start --host-id <id> Start an owned local daemon
+bb machine stop --host-id <id> Stop an owned local daemon
+bb machine uninstall --host-id <id> Remove an owned local installation
+bb machine show <id-or-name> Show machine details
+bb machine join-code Create a machine pairing code
+bb machine rename <id-or-name> <name> Rename a machine
+bb machine retry-update <id-or-name> Retry a pending daemon update now
+bb machine suspend <id-or-name> Suspend a provider-managed machine
+bb machine resume <id-or-name> Resume a machine (already active is a no-op)
+bb machine retry-cleanup <id-or-name> Retry failed teardown now
+bb machine remove <id-or-name> [--yes] Revoke and remove a machine
+bb machine provider-cli status <machine>
+bb machine provider-cli install <machine> <provider-id>
+--action <install|update>
 
 Each machine has a permission limit: the highest permission mode any thread on
 that machine can run with. The default is Full Access. A thread that asks for
@@ -79,8 +80,8 @@ the server generate one, or supply a stable key for retries. Creation is durable
 SIGINT stops following and exits 130 while creation continues. Use
 `bb machine status <launch-id>` to poll and `bb machine cancel <launch-id>`
 to explicitly cancel and clean up, including retrying cleanup after automatic
-reconciliation has stopped. The SDK provides `hosts.submit`, `hosts.launch`,
-`hosts.follow`, and `hosts.cancel`; `hosts.create` submits and follows. Aborting
+reconciliation has stopped. The SDK provides `hosts.experimental_submit`, `hosts.experimental_launch`,
+`hosts.experimental_follow`, and `hosts.experimental_cancel`; `hosts.experimental_create` submits and follows. Aborting
 a caller signal never cancels the server operation. A connected daemon does not
 yet imply an agent-ready checkout and authenticated provider.
 
@@ -93,14 +94,14 @@ Updates commands
 One consolidated view of bb and provider CLI updates across machines — the
 CLI counterpart of Settings → Updates and the sidebar Updates badge.
 
-  bb updates [status]                     Show bb-app and provider CLI update
-                                          status for every machine
-    --machine <id-or-name>                Limit to one machine
-    --json                                Print the aggregate as JSON
-  bb updates apply                        Run every available provider CLI
-                                          install/update, one at a time
-    --machine <id-or-name>                Limit to one machine
-    --json                                Print per-target results as JSON
+bb updates [status] Show bb-app and provider CLI update
+status for every machine
+--machine <id-or-name> Limit to one machine
+--json Print the aggregate as JSON
+bb updates apply Run every available provider CLI
+install/update, one at a time
+--machine <id-or-name> Limit to one machine
+--json Print per-target results as JSON
 
 `bb updates apply` covers provider CLIs only. Update bb-app itself with the
 printed upgrade command (`npx bb-app@latest`) or the desktop app's relaunch;
@@ -109,11 +110,11 @@ connected daemons then follow the server version automatically.
 Machine selectors accept either an exact machine ID or an unambiguous machine
 name. `--host` is an alias for `--machine`.
 
-  bb thread spawn --project <id> --machine <id-or-name> --prompt "..."
-  bb thread spawn --project <id> --new-machine <provider-id> --prompt "..."
-    --machine-inputs <json>
-  bb project create --name "..." --root <path> --machine <id-or-name>
-  bb project source add <projectId> --machine <id-or-name> --path <path>
+bb thread spawn --project <id> --machine <id-or-name> --prompt "..."
+bb thread spawn --project <id> --new-machine <provider-id> --prompt "..."
+--machine-inputs <json>
+bb project create --name "..." --root <path> --machine <id-or-name>
+bb project source add <projectId> --machine <id-or-name> --path <path>
 
 For thread spawning, machine targeting works with an unmanaged workspace path,
 a new managed worktree, or the personal workspace. Do not combine it with an
@@ -186,8 +187,8 @@ to the daemon for enrollment, connection and runtime requests. Server-access
 plugins redeem provider codes on the server. Pending encrypted v1 bundles are
 upgraded by the server when prepared again.
 
-
 Delivered enrollment bundles from v1 remain valid until their expiry. The CLI accepts both file and environment forms, upgrades the bundle to v2 headers locally, and persists legacy Connect redemption before enrollment so a retry reuses it. The installer upgrades v1 environment bundles before authenticated artifact downloads.
+
 ## DigitalOcean dev boxes
 
 `bb digitalocean configure <host-id> '<config-json>'` sets `idleMinutes` (null
@@ -266,7 +267,7 @@ Thread startup does not install or update agent CLIs, probe authentication, or v
 Maintenance interrupts active turns and closes terminals before saving. Submit a
 new continuation turn after restore; interrupted turns are never reported successful.
 
-`bb machine lifecycle MACHINE --remove --yes --json` runs provider removal through the normal machine removal path. Resuming a machine restores its provider state without rerunning environment setup.
+Resuming a machine restores its provider state without rerunning environment setup.
 
 Automatic machine GitHub credentials are enabled by default. Use
 `bb settings general machineGitCredentialsEnabled false` to stop forwarding the
@@ -279,7 +280,6 @@ Manual enrollment commands display the server expiry timestamp as a countdown.
 After expiry, Add a machine offers Generate new command: it cancels the old
 attempt and creates a fresh one. Manual owns the command and expiry in memory;
 polling does not renew it. Restart machine setup if the plugin or server restarts.
-
 
 For a new thread on a new Modal sandbox, select the environment composition:
 `bb thread spawn --project <id> --environment-provider modal-sandbox --prompt "..."`.

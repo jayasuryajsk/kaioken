@@ -55,7 +55,7 @@ Read the installed SDK declarations for the exact current signatures.
 - `PluginNewThreadPanelProps`
 - `PluginPendingInteractionView`
 - `PluginPendingInteractionProps`
-- `ExperimentalBranchPickerProps`
+- `BranchPickerProps`
 - `UseBranchesArgs`
 - `BranchesState`
 - `UseCheckoutStateArgs`

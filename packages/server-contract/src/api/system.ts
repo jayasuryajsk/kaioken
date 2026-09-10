@@ -126,7 +126,6 @@ export type SystemAiServices = z.infer<typeof systemAiServicesSchema>;
 export const serverAccessStatusSchema = z.object({
   providers: z.array(
     z.object({
-      attention: z.string().nullable(),
       id: z.string(),
       displayName: z.string(),
       availability: z.discriminatedUnion("status", [
@@ -269,6 +268,7 @@ export type SystemConfigReloadResponse = z.infer<
 >;
 
 export const systemEnvironmentProviderSchema = z.object({
+  environmentProviderId: z.string().min(1).optional(),
   machineProviderId: z.string().min(1).nullable(),
   id: z.string().min(1),
   displayName: z.string().min(1),
@@ -329,8 +329,8 @@ export type SystemEnvironmentProvidersQuery = z.infer<
 export const systemMachineProviderSchema = z.object({
   id: z.string().min(1),
   displayName: z.string().min(1),
-  description: z.string().min(1).nullable(),
-  icon: z.string().min(1).nullable(),
+  description: z.string().min(1),
+  icon: z.string().min(1),
   machineTag: z.string().min(1).nullable(),
   logoUrl: z.string().min(1).nullable(),
   pluginId: z.string().min(1),
@@ -358,11 +358,4 @@ export const systemMachineProvidersResponseSchema = z.object({
 });
 export type SystemMachineProvidersResponse = z.infer<
   typeof systemMachineProvidersResponseSchema
->;
-
-export const systemMachineProvidersQuerySchema = z.object({
-  projectId: z.string().min(1).optional(),
-});
-export type SystemMachineProvidersQuery = z.infer<
-  typeof systemMachineProvidersQuerySchema
 >;

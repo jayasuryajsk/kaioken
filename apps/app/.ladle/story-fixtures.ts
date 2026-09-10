@@ -380,7 +380,7 @@ export const STORY_MACHINE_PROVIDERS: readonly SystemMachineProvider[] = [
   {
     id: "modal-sandbox",
     displayName: "Modal Sandbox",
-    description: null,
+    description: "Run a machine for development.",
     icon: "Box",
     machineTag: null,
     logoUrl: null,

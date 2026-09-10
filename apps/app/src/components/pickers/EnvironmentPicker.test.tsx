@@ -3,7 +3,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { getPluginConfigurationRoutePath } from "@/lib/route-paths";
 import type { Host, ProjectSource } from "@bb/domain";
 import { makeHost } from "@bb/test-helpers/domain-fixtures";
 import { HOST_DAEMON_PROTOCOL_VERSION } from "@bb/host-daemon-contract";
@@ -246,6 +245,7 @@ describe("EnvironmentPickerUI", () => {
       screen.getByRole("menuitem", { name: /Optional sandbox/u }),
     ).toBeTruthy();
     expect(screen.queryByText("Configure credentials")).toBeNull();
+    expect(screen.queryByText("Set it up in plugin settings")).toBeNull();
   });
 
   it("omits a projectless-only provider from a project picker", () => {
@@ -317,7 +317,7 @@ describe("EnvironmentPickerUI", () => {
     expect(screen.queryByText("Project source unavailable")).toBeNull();
   });
 
-  it("sends a setup-required composed provider to its plugin settings instead of selecting it", () => {
+  it("selects a setup-required composed provider without navigating away", () => {
     const onSelectProvider = vi.fn();
     const setupRequiredProvider: SystemEnvironmentProvider = {
       ...sandboxProvider,
@@ -348,12 +348,13 @@ describe("EnvironmentPickerUI", () => {
     const providerItem = screen.getByRole("menuitem", {
       name: /Docker container/u,
     });
-    expect(providerItem.getAttribute("href")).toBe(
-      getPluginConfigurationRoutePath({ pluginId: sandboxProvider.pluginId }),
-    );
-    expect(screen.getByText("Set it up in plugin settings")).toBeTruthy();
+    expect(providerItem.getAttribute("href")).toBeNull();
+    expect(screen.queryByText("Set it up in plugin settings")).toBeNull();
     fireEvent.click(providerItem);
-    expect(onSelectProvider).not.toHaveBeenCalled();
+    expect(onSelectProvider).toHaveBeenCalledWith(
+      setupRequiredProvider,
+      null,
+    );
   });
 
   it("disables a provider that declares inputs until its plugin registers a control", () => {
@@ -437,6 +438,7 @@ describe("EnvironmentPickerUI", () => {
       id: "modal-sandbox",
       displayName: "Modal sandbox",
       machineProviderId: "modal-sandbox",
+      environmentProviderId: "project-checkout",
       inputs: null,
     };
     renderPicker(
@@ -454,6 +456,12 @@ describe("EnvironmentPickerUI", () => {
     fireEvent.pointerDown(screen.getByRole("button", { name: "Environment" }), {
       button: 0,
     });
+    expect(
+      screen.getByRole("button", { name: "Environment" }).textContent,
+    ).toContain("Modal sandbox");
+    expect(
+      screen.getByRole("button", { name: "Environment" }).textContent,
+    ).not.toContain("Project checkout");
     const items = screen.getAllByRole("menuitem", { name: /Modal sandbox/u });
     expect(items).toHaveLength(1);
     fireEvent.click(items[0]);
@@ -466,6 +474,7 @@ describe("EnvironmentPickerUI", () => {
       id: "modal-sandbox",
       displayName: "Modal Sandbox",
       machineProviderId: "modal-sandbox",
+      environmentProviderId: "project-checkout",
       inputs: null,
     };
     renderPicker(
@@ -483,6 +492,7 @@ describe("EnvironmentPickerUI", () => {
     fireEvent.pointerDown(screen.getByRole("button", { name: "Environment" }), {
       button: 0,
     });
+    expect(screen.getByRole("separator")).toBeTruthy();
     const labels = screen
       .getAllByRole("menuitem")
       .map((item) => item.textContent ?? "");

@@ -6,12 +6,6 @@ import { RETRY_ACTION_ICON } from "@bb/domain/update-state";
 import type { HostPlatform } from "@bb/host-daemon-contract";
 import { Button } from "@bb/shared-ui/button";
 import {
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@bb/shared-ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -30,8 +24,9 @@ import {
   TooltipTrigger,
 } from "@bb/shared-ui/tooltip";
 import { CreateMachineDialog } from "@/components/dialogs/CreateMachineDialog";
-import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
 import { appToast } from "@/components/ui/app-toast";
+import { MachineLifecycleActions } from "@/components/machines/MachineLifecycleActions";
+import { MachineRemoveDialog } from "@/components/machines/MachineRemoveDialog";
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
 import {
   machineStatusLabel,
@@ -46,7 +41,6 @@ import {
   SettingsSection,
 } from "@/components/ui/settings-section";
 import {
-  useRemoveHost,
   useRenameHost,
   useResumeHost,
   useRetryHostCleanup,
@@ -250,39 +244,15 @@ export function MachineRowContent({
                       </span>
                     </DropdownMenuItem>
                   ) : null}
-                  {machineProvider?.supportsSuspend &&
-                  host.lifecycle.phase === "active" ? (
-                    <DropdownMenuItem
-                      className={MACHINE_MENU_ITEM_CLASS}
-                      disabled={lifecycleActionPending}
-                      onSelect={onSuspend}
-                    >
-                      <Icon name="Pause" aria-hidden />
-                      <span className="min-w-0 truncate">Suspend</span>
-                    </DropdownMenuItem>
-                  ) : null}
-                  {machineProvider?.supportsSuspend &&
-                  host.lifecycle.phase === "suspended" ? (
-                    <DropdownMenuItem
-                      className={MACHINE_MENU_ITEM_CLASS}
-                      disabled={lifecycleActionPending}
-                      onSelect={onResume}
-                    >
-                      <Icon name="Play" aria-hidden />
-                      <span className="min-w-0 truncate">Resume</span>
-                    </DropdownMenuItem>
-                  ) : null}
-                  {host.lifecycle.phase === "retiring" &&
-                  host.lifecycle.teardown?.status === "failed" ? (
-                    <DropdownMenuItem
-                      className={MACHINE_MENU_ITEM_CLASS}
-                      disabled={lifecycleActionPending}
-                      onSelect={onRetryCleanup}
-                    >
-                      <Icon name="RotateCcw" aria-hidden />
-                      <span className="min-w-0 truncate">Retry cleanup</span>
-                    </DropdownMenuItem>
-                  ) : null}
+                  <MachineLifecycleActions
+                    host={host}
+                    machineProvider={machineProvider}
+                    pending={lifecycleActionPending}
+                    presentation="menu"
+                    onSuspend={onSuspend}
+                    onResume={onResume}
+                    onRetryCleanup={onRetryCleanup}
+                  />
                   {isPrimary ? (
                     <Tooltip>
                       <TooltipTrigger asChild>{removeItem}</TooltipTrigger>
@@ -311,7 +281,6 @@ export function MachinesSettingsSection() {
   const { localDaemonHostId, platform: localDaemonPlatform } = useHostDaemon();
   const sidebarNavigationQuery = useSidebarNavigation();
   const renameHost = useRenameHost();
-  const removeHost = useRemoveHost();
   const retryHostUpdate = useRetryHostUpdate();
   const suspendHost = useSuspendHost();
   const resumeHost = useResumeHost();
@@ -395,7 +364,6 @@ export function MachinesSettingsSection() {
                   setRenameTarget(host);
                 }}
                 onRemove={() => {
-                  removeHost.reset();
                   setRemoveTarget(host);
                 }}
                 onRetryUpdate={() =>
@@ -472,58 +440,12 @@ export function MachinesSettingsSection() {
         }
       />
 
-      <ConfirmDeleteDialog
-        modal={false}
-        open={removeTarget !== null}
+      <MachineRemoveDialog
+        target={removeTarget}
         onOpenChange={(open) => {
-          if (!open && !removeHost.isPending) setRemoveTarget(null);
+          if (!open) setRemoveTarget(null);
         }}
-      >
-        {removeTarget ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Remove {removeTarget.name}?</DialogTitle>
-              <DialogDescription>
-                This revokes {removeTarget.name}'s access to this server.
-                {removeTarget.machineProviderId === "manual" ? (
-                  <span className="block mt-2">
-                    Uninstall manually on the machine:{" "}
-                    <code>
-                      bb machine uninstall --host-id {removeTarget.id}
-                    </code>
-                  </span>
-                ) : null}
-                {removeTarget.machineProviderId !== null &&
-                removeTarget.machineProviderId !== "manual"
-                  ? "This deletes the managed compute and saved snapshots. Its environments remain as read-only history."
-                  : "Project checkouts stay on its disk, but its environments become read-only history and it cannot run new work until paired again."}
-              </DialogDescription>
-            </DialogHeader>
-            {removeHost.isError ? (
-              <p className="text-sm text-destructive" role="alert">
-                {getMutationErrorMessage({
-                  error: removeHost.error,
-                  fallbackMessage: `Couldn't remove ${removeTarget.name}.`,
-                })}
-              </p>
-            ) : null}
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="destructive"
-                disabled={removeHost.isPending}
-                onClick={() =>
-                  removeHost.mutate(removeTarget.id, {
-                    onSuccess: () => setRemoveTarget(null),
-                  })
-                }
-              >
-                Remove machine
-              </Button>
-            </DialogFooter>
-          </>
-        ) : null}
-      </ConfirmDeleteDialog>
+      />
     </>
   );
 }

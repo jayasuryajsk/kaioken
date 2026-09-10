@@ -32,7 +32,7 @@ describe("fixtures", () => {
       lifecycle: {
         phase: "active",
         suspendedAt: null,
-        retireAt: null,
+
         progress: null,
         teardown: null,
       },
@@ -2105,9 +2105,11 @@ describe("environment targets", () => {
     });
   });
 
-  it("accepts a machine provider without suspend and resume when idle suspension is disabled", () => {
+  it("accepts a machine provider without suspend and resume", () => {
     const { bb, harness } = createFakePluginHost();
     bb.experimental_machines.register({
+      description: "Provision a test machine.",
+      icon: "Terminal",
       id: "test-machine",
       displayName: "Test machine",
 
@@ -2122,10 +2124,31 @@ describe("environment targets", () => {
     expect(
       harness.registrations.machineProviders.get("test-machine"),
     ).toMatchObject({
-      icon: null,
+      icon: "Terminal",
       suspend: null,
       resume: null,
     });
+  });
+
+  it.each([
+    { description: "", icon: "Terminal" },
+    { description: "Provision a machine.", icon: " " },
+  ])("rejects empty required machine metadata: %j", (metadata) => {
+    const { bb } = createFakePluginHost();
+    expect(() =>
+      bb.experimental_machines.register({
+        id: "invalid-metadata",
+        displayName: "Invalid metadata",
+        ...metadata,
+        create: async () => ({
+          status: "created",
+          hostId: "host-test",
+          resource: null,
+        }),
+        reconcileCleanup: async () => ({ status: "removed" }),
+        remove: async () => ({ status: "removed" }),
+      }),
+    ).toThrow();
   });
 
   it("requires machine suspend and resume as a pair", () => {
@@ -2138,6 +2161,8 @@ describe("environment targets", () => {
     const lifecycle = async () => ({ resource: null });
     expect(() =>
       createFakePluginHost().bb.experimental_machines.register({
+        description: "Provision a test machine.",
+        icon: "Terminal",
         id: "half-lifecycle",
         displayName: "Half lifecycle",
         create,

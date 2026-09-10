@@ -170,7 +170,7 @@ export function hosts(now: number): Host[] {
       lifecycle: {
         phase: "active",
         suspendedAt: null,
-        retireAt: null,
+
         progress: null,
         teardown: null,
       },

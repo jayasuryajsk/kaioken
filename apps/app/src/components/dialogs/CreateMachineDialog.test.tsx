@@ -15,7 +15,8 @@ import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
 import { CreateMachineDialog } from "./CreateMachineDialog";
 
 const slots = vi.hoisted(() => ({ owner: "command-plugin" }));
-vi.mock("@/lib/plugin-slots", () => ({
+vi.mock("@/lib/plugin-slots", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/plugin-slots")>()),
   usePluginSlots: () => ({
     machineProviderInputs: [],
     machineSetup: [
@@ -36,10 +37,10 @@ vi.mock("@/lib/sdk", () => ({
     system: { config: vi.fn(), updateGeneralSettings: vi.fn() },
     projects: { list: vi.fn().mockResolvedValue([]) },
     hosts: {
-      submit: vi.fn(),
-      follow: vi.fn(),
+      experimental_submit: vi.fn(),
+      experimental_follow: vi.fn(),
       list: vi.fn().mockResolvedValue([]),
-      listProviders: vi.fn(),
+      experimental_listProviders: vi.fn(),
     },
   },
 }));
@@ -58,31 +59,32 @@ beforeEach(() => {
           {
             id: "connect",
             displayName: "bb connect",
-            attention: null,
             availability: { status: "available" },
           },
         ],
       },
     }),
   );
-  vi.mocked(sdk.hosts.listProviders).mockResolvedValue(
-    ["command-provider", "tailscale"].map((id): SystemMachineProvider => ({
-      id,
-      displayName: id,
-      description: null,
-      icon: null,
-      machineTag: null,
-      logoUrl: null,
-      pluginId:
-        id === "command-provider" ? "command-plugin" : "tailscale-plugin",
-      inputs: null,
-      acceptsEmptyInputs: true,
-      supportsSuspend: false,
+  vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue(
+    ["command-provider", "tailscale"].map(
+      (id): SystemMachineProvider => ({
+        id,
+        displayName: id,
+        description: "Run a machine for development.",
+        icon: "Terminal",
+        machineTag: null,
+        logoUrl: null,
+        pluginId:
+          id === "command-provider" ? "command-plugin" : "tailscale-plugin",
+        inputs: null,
+        acceptsEmptyInputs: true,
+        supportsSuspend: false,
 
-      availability: { status: "available" },
-    })),
+        availability: { status: "available" },
+      }),
+    ),
   );
-  vi.mocked(sdk.hosts.submit).mockResolvedValue({
+  vi.mocked(sdk.hosts.experimental_submit).mockResolvedValue({
     id: "launch",
     hostId: null,
     phase: "creating",
@@ -92,7 +94,7 @@ beforeEach(() => {
     cancelPending: false,
     terminal: false,
   });
-  vi.mocked(sdk.hosts.follow).mockImplementation(
+  vi.mocked(sdk.hosts.experimental_follow).mockImplementation(
     async () => new Promise(() => {}),
   );
 });
@@ -114,24 +116,26 @@ async function pickProvider(name: string) {
     await screen.findByRole("button", { name: "Machine provider" }),
     { button: 0 },
   );
-  fireEvent.click(await screen.findByRole("menuitem", { name }));
+  fireEvent.click(
+    await screen.findByRole("menuitem", { name: new RegExp(name) }),
+  );
 }
 it("opens the only provider directly without submitting in core", async () => {
-  const providers = await sdk.hosts.listProviders();
-  vi.mocked(sdk.hosts.listProviders).mockResolvedValue(providers.slice(0, 1));
+  const providers = await sdk.hosts.experimental_listProviders();
+  vi.mocked(sdk.hosts.experimental_listProviders).mockResolvedValue(
+    providers.slice(0, 1),
+  );
   show();
   await screen.findByRole("button", { name: "Plugin-owned setup" });
-  expect(sdk.hosts.submit).not.toHaveBeenCalled();
+  expect(sdk.hosts.experimental_submit).not.toHaveBeenCalled();
 });
 it("offers the generic provider picker when no owned default setup exists", async () => {
   slots.owner = "unrelated-plugin";
   show();
   await pickProvider("tailscale");
-  fireEvent.click(
-    screen.getByRole("button", { name: "Add machine" }),
-  );
+  fireEvent.click(screen.getByRole("button", { name: "Add machine" }));
   await waitFor(() =>
-    expect(sdk.hosts.submit).toHaveBeenCalledWith(
+    expect(sdk.hosts.experimental_submit).toHaveBeenCalledWith(
       expect.objectContaining({ machineProviderId: "tailscale" }),
     ),
   );
@@ -163,7 +167,7 @@ it("blocks provider selection until access is configured", async () => {
   expect(
     screen.queryByRole("button", { name: "Plugin-owned setup" }),
   ).toBeNull();
-  expect(sdk.hosts.submit).not.toHaveBeenCalled();
+  expect(sdk.hosts.experimental_submit).not.toHaveBeenCalled();
 });
 
 it("saves a manual address in the access gate and advances without reopening", async () => {
@@ -176,7 +180,6 @@ it("saves a manual address in the access gate and advances without reopening", a
       {
         id: "direct",
         displayName: "Manual",
-        attention: null,
         availability: { status: "available" },
       },
     ],

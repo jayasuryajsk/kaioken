@@ -64,7 +64,7 @@ ALTER TABLE `hosts` ADD `machine_provider_selection` text;--> statement-breakpoi
 ALTER TABLE `hosts` ADD `phase` text DEFAULT 'active' NOT NULL;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `suspended_at` integer;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `removal_started_at` integer;--> statement-breakpoint
-ALTER TABLE `hosts` ADD `retire_at` integer;--> statement-breakpoint
+ALTER TABLE `hosts` ADD `remove_retry_at` integer;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `teardown_attempt` integer DEFAULT 0 NOT NULL;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `teardown_status` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `teardown_message` text;--> statement-breakpoint

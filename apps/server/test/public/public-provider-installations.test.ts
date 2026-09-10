@@ -284,6 +284,8 @@ describe("public provider installation routes", () => {
         const record = {
           pluginId: "test-machine",
           provider: validatePluginMachineProviderDeclaration({
+            description: "Provision a test machine.",
+            icon: "Terminal",
             id: "test-machine",
             displayName: "Test machine",
 

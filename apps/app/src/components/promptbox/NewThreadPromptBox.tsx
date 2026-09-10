@@ -1,6 +1,7 @@
 import {
   memo,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -127,6 +128,7 @@ interface NewThreadPromptBoxUIProps {
   onChange: (value: string, mentionRanges: PromptTextMention[]) => void;
   onSubmit: () => void;
   promptBoxRef?: Ref<PromptBoxHandle>;
+  focusRequest?: string;
   isSubmitting: boolean;
   disabled: boolean;
   disabledReason?: string;
@@ -160,6 +162,7 @@ export const NewThreadPromptBoxUI = memo(function NewThreadPromptBoxUI({
   onChange,
   onSubmit,
   promptBoxRef: externalPromptBoxRef,
+  focusRequest,
   isSubmitting,
   disabled,
   disabledReason,
@@ -177,6 +180,10 @@ export const NewThreadPromptBoxUI = memo(function NewThreadPromptBoxUI({
   execution,
 }: NewThreadPromptBoxUIProps) {
   const promptBoxRef = useRef<PromptBoxHandle>(null);
+  useEffect(() => {
+    if (focusRequest === undefined) return;
+    promptBoxRef.current?.focusEnd();
+  }, [focusRequest]);
   const isFocusedPane = useOptionalPaneContext()?.isFocused ?? true;
   const focusDefault = useCallback(() => {
     promptBoxRef.current?.focusEnd();

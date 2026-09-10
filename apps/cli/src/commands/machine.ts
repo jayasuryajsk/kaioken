@@ -17,10 +17,6 @@ interface MachineListCommandOptions {
   json?: boolean;
 }
 
-interface MachineProvidersCommandOptions extends MachineListCommandOptions {
-  project?: string;
-}
-
 interface MachineCreateCommandOptions extends MachineListCommandOptions {
   provider: string;
   wait: boolean;
@@ -193,7 +189,7 @@ export function registerMachineCommands(
         try {
           const sdk = createCliBbSdk(getUrl());
           controller.signal.throwIfAborted();
-          let launch = await sdk.hosts.submit({
+          let launch = await sdk.hosts.experimental_submit({
             machineProviderId,
             inputs,
             ...(key === undefined ? {} : { key }),
@@ -216,7 +212,7 @@ export function registerMachineCommands(
               ).command;
               if (command !== null) break;
               await new Promise<void>((resolve) => setTimeout(resolve, 100));
-              launch = await sdk.hosts.launch({
+              launch = await sdk.hosts.experimental_launch({
                 id: launch.id,
                 signal: controller.signal,
               });
@@ -237,7 +233,7 @@ export function registerMachineCommands(
           if (command !== null) console.error(command);
           console.error(`Following machine launch ${launch.id}`);
           let step = "";
-          const host = await sdk.hosts.follow({
+          const host = await sdk.hosts.experimental_follow({
             id: launch.id,
             signal: controller.signal,
             onProgress: (status) => {
@@ -269,7 +265,9 @@ export function registerMachineCommands(
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(async (id: string, opts: MachineListCommandOptions) => {
-        const result = await createCliBbSdk(getUrl()).hosts.cancel({ id });
+        const result = await createCliBbSdk(getUrl()).hosts.experimental_cancel(
+          { id },
+        );
         if (!outputJson(opts, result))
           console.log(`${result.id}: ${result.phase}`);
       }),
@@ -281,7 +279,9 @@ export function registerMachineCommands(
     .option("--json", "Print machine-readable JSON output")
     .action(
       action(async (id: string, opts: MachineListCommandOptions) => {
-        const result = await createCliBbSdk(getUrl()).hosts.launch({ id });
+        const result = await createCliBbSdk(getUrl()).hosts.experimental_launch(
+          { id },
+        );
         if (!outputJson(opts, result))
           console.log(
             `${result.id}: ${result.phase} — ${result.message ?? result.step}`,
@@ -292,55 +292,27 @@ export function registerMachineCommands(
   machine
     .command("lifecycle <machine>")
     .description("Show machine maintenance state")
-    .option("--remove", "Remove the machine and its retained snapshots")
-    .option("--yes", "Skip removal confirmation")
     .option("--json", "Print machine-readable JSON output")
     .action(
-      action(
-        async (
-          target: string,
-          opts: {
-            remove?: boolean;
-            yes?: boolean;
-            json?: boolean;
-          },
-        ) => {
-          const sdk = createCliBbSdk(getUrl());
-          const hostId = resolveMachineId(await sdk.hosts.list(), target);
-          if (opts.remove) {
-            if (
-              !opts.yes &&
-              !(await confirmDestructiveAction(
-                `Remove machine ${hostId} and its snapshots?`,
-              ))
-            )
-              return;
-            const removed = await sdk.hosts.delete({ hostId });
-            if (!outputJson(opts, removed))
-              console.log(`Machine ${hostId} removed`);
-            return;
-          }
-          const result = await sdk.hosts.experimental_lifecycle({
-            hostId,
-          });
-          if (!outputJson(opts, result))
-            console.log(
-              `${result.phase}: ${result.recoveryState}${result.message === null ? "" : ` — ${result.message}`}\nControls: --remove --yes`,
-            );
-        },
-      ),
+      action(async (target: string, opts: MachineListCommandOptions) => {
+        const sdk = createCliBbSdk(getUrl());
+        const hostId = resolveMachineId(await sdk.hosts.list(), target);
+        const result = await sdk.hosts.experimental_lifecycle({ hostId });
+        if (!outputJson(opts, result))
+          console.log(
+            `${result.phase}: ${result.recoveryState}${result.message === null ? "" : ` — ${result.message}`}`,
+          );
+      }),
     );
 
   machine
     .command("providers")
     .description("List installed machine providers")
-    .option("--project <id>", "Resolve the environment row for a project")
     .option("--json", "Print machine-readable JSON output")
     .action(
-      action(async (opts: MachineProvidersCommandOptions) => {
-        const providers = await createCliBbSdk(getUrl()).hosts.listProviders({
-          ...(opts.project === undefined ? {} : { projectId: opts.project }),
-        });
+      action(async (opts: MachineListCommandOptions) => {
+        const providers =
+          await createCliBbSdk(getUrl()).hosts.experimental_listProviders();
         if (outputJson(opts, providers)) return;
         if (providers.length === 0) {
           console.log("No machine providers found");
@@ -469,7 +441,7 @@ export function registerMachineCommands(
       action(async (target: string, opts: MachineListCommandOptions) => {
         const sdk = createCliBbSdk(getUrl());
         const hostId = resolveMachineId(await sdk.hosts.list(), target);
-        const result = await sdk.hosts.suspend({ hostId });
+        const result = await sdk.hosts.experimental_suspend({ hostId });
         if (outputJson(opts, result)) return;
         console.log(`Machine ${hostId} suspended`);
       }),
@@ -483,7 +455,7 @@ export function registerMachineCommands(
       action(async (target: string, opts: MachineListCommandOptions) => {
         const sdk = createCliBbSdk(getUrl());
         const hostId = resolveMachineId(await sdk.hosts.list(), target);
-        const result = await sdk.hosts.resume({ hostId });
+        const result = await sdk.hosts.experimental_resume({ hostId });
         if (outputJson(opts, result)) return;
         console.log(`Machine ${hostId} resumed`);
       }),
@@ -497,7 +469,7 @@ export function registerMachineCommands(
       action(async (target: string, opts: MachineListCommandOptions) => {
         const sdk = createCliBbSdk(getUrl());
         const hostId = resolveMachineId(await sdk.hosts.list(), target);
-        const result = await sdk.hosts.retryCleanup({ hostId });
+        const result = await sdk.hosts.experimental_retryCleanup({ hostId });
         if (outputJson(opts, result)) return;
         console.log(`Machine ${hostId} cleanup retried`);
       }),

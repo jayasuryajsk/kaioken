@@ -77,7 +77,6 @@ export interface MachineCreateArgs extends CreateMachineRequest {
 }
 
 export interface MachineProviderListArgs {
-  projectId?: string;
   signal?: AbortSignal;
 }
 
@@ -100,15 +99,15 @@ export interface HostsArea {
   experimental_lifecycle(args: {
     hostId: string;
   }): Promise<experimental_HostLifecycleResponse>;
-  create(args: MachineCreateArgs): Promise<Host>;
-  submit(args: MachineCreateArgs): Promise<MachineLaunchStatus>;
-  launch(args: {
+  experimental_create(args: MachineCreateArgs): Promise<Host>;
+  experimental_submit(args: MachineCreateArgs): Promise<MachineLaunchStatus>;
+  experimental_launch(args: {
     id: string;
     scope?: "launch" | "thread";
     signal?: AbortSignal;
   }): Promise<MachineLaunchStatus>;
-  cancel(args: { id: string }): Promise<MachineLaunchStatus>;
-  follow(args: {
+  experimental_cancel(args: { id: string }): Promise<MachineLaunchStatus>;
+  experimental_follow(args: {
     id: string;
     signal?: AbortSignal;
     onProgress?: (status: MachineLaunchStatus) => void;
@@ -124,16 +123,16 @@ export interface HostsArea {
     args: HostProviderCliInstallArgs,
   ): Promise<HostProviderCliInstallResult>;
   list(args?: HostListArgs): Promise<HostListResult>;
-  listProviders(
+  experimental_listProviders(
     args?: MachineProviderListArgs,
   ): Promise<MachineProviderListResult>;
   pathsExist(args: HostPathsExistArgs): Promise<HostPathsExistResult>;
   pickFolder(args: HostPickFolderArgs): Promise<HostPickFolderResult>;
   providerCliStatus(args: HostGetArgs): Promise<HostProviderCliStatusResult>;
-  resume(args: HostActionArgs): Promise<HostActionResult>;
-  retryCleanup(args: HostActionArgs): Promise<HostActionResult>;
+  experimental_resume(args: HostActionArgs): Promise<HostActionResult>;
+  experimental_retryCleanup(args: HostActionArgs): Promise<HostActionResult>;
   retryUpdate(args: HostRetryUpdateArgs): Promise<HostRetryUpdateResult>;
-  suspend(args: HostActionArgs): Promise<HostActionResult>;
+  experimental_suspend(args: HostActionArgs): Promise<HostActionResult>;
   update(args: HostUpdateArgs): Promise<HostUpdateResult>;
 }
 
@@ -148,11 +147,11 @@ export function createHostsArea(args: CreateSdkAreaArgs): HostsArea {
         }),
       );
     },
-    async create(input) {
-      const launch = await this.submit(input);
-      return this.follow({ id: launch.id, signal: input.signal });
+    async experimental_create(input) {
+      const launch = await this.experimental_submit(input);
+      return this.experimental_follow({ id: launch.id, signal: input.signal });
     },
-    async launch(input) {
+    async experimental_launch(input) {
       return transport.readJson(
         transport.api.v1.hosts.launches[":id"].$get(
           { param: { id: input.id }, query: { scope: input.scope } },
@@ -160,17 +159,17 @@ export function createHostsArea(args: CreateSdkAreaArgs): HostsArea {
         ),
       );
     },
-    async cancel(input) {
+    async experimental_cancel(input) {
       return transport.readJson(
         transport.api.v1.hosts.launches[":id"].cancel.$post({
           param: { id: input.id },
         }),
       );
     },
-    async follow(input) {
+    async experimental_follow(input) {
       for (;;) {
         input.signal?.throwIfAborted();
-        const status = await this.launch(input);
+        const status = await this.experimental_launch(input);
         input.onProgress?.(status);
         if (status.phase === "ready" && status.hostId !== null)
           return this.get({ hostId: status.hostId, signal: input.signal });
@@ -179,7 +178,7 @@ export function createHostsArea(args: CreateSdkAreaArgs): HostsArea {
         await new Promise<void>((resolve) => setTimeout(resolve, 1000));
       }
     },
-    async submit(input) {
+    async experimental_submit(input) {
       return transport.readJson(
         transport.api.v1.hosts.$post(
           {
@@ -263,15 +262,10 @@ export function createHostsArea(args: CreateSdkAreaArgs): HostsArea {
         transport.api.v1.hosts.$get({}, ...signalRequestArgs(input?.signal)),
       );
     },
-    async listProviders(input) {
+    async experimental_listProviders(input) {
       const response = await transport.readJson(
         transport.api.v1.system["machine-providers"].$get(
-          {
-            query:
-              input?.projectId === undefined
-                ? {}
-                : { projectId: input.projectId },
-          },
+          {},
           ...signalRequestArgs(input?.signal),
         ),
       );
@@ -309,14 +303,14 @@ export function createHostsArea(args: CreateSdkAreaArgs): HostsArea {
         ),
       );
     },
-    async resume(input) {
+    async experimental_resume(input) {
       return transport.readJson(
         transport.api.v1.hosts[":id"].resume.$post({
           param: { id: input.hostId },
         }),
       );
     },
-    async retryCleanup(input) {
+    async experimental_retryCleanup(input) {
       return transport.readJson(
         transport.api.v1.hosts[":id"]["retry-cleanup"].$post({
           param: { id: input.hostId },
@@ -330,7 +324,7 @@ export function createHostsArea(args: CreateSdkAreaArgs): HostsArea {
         }),
       );
     },
-    async suspend(input) {
+    async experimental_suspend(input) {
       return transport.readJson(
         transport.api.v1.hosts[":id"].suspend.$post({
           param: { id: input.hostId },

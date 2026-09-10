@@ -1,6 +1,5 @@
 import { MachineAccessSettingsContent } from "./MachineAccessSettings";
 import {
-  CONNECT_NEEDS_ATTENTION,
   CONNECT_PAIRED,
   CONNECT_PAIRED_WITHOUT_URL,
   CONNECT_UNAVAILABLE,
@@ -48,14 +47,6 @@ export function Section() {
       >
         <MachineAccessSettingsContent
           machineAccess={machineAccessState(CONNECT_UNAVAILABLE)}
-        />
-      </StoryRow>
-      <StoryRow
-        label="needs attention"
-        hint="a diagnostic that does not change availability, shown above the row"
-      >
-        <MachineAccessSettingsContent
-          machineAccess={machineAccessState(CONNECT_NEEDS_ATTENTION)}
         />
       </StoryRow>
       <StoryRow

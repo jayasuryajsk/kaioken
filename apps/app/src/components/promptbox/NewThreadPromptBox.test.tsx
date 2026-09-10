@@ -212,7 +212,7 @@ describe("ProjectlessEnvSlot", () => {
   const modalMachineProvider: SystemMachineProvider = {
     id: "modal-sandbox",
     displayName: "Modal sandbox",
-    description: null,
+    description: "Run a machine for development.",
     icon: "Box",
     machineTag: null,
     logoUrl: null,

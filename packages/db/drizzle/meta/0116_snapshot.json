@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "7d17c9fa-b198-4a28-be4d-94e9b91cf35b",
+  "id": "f844e6dd-fe42-4bc6-96ae-1fc80148953c",
   "prevId": "29773b03-78e7-4083-a89c-e38d38412675",
   "tables": {
     "app_settings": {
@@ -1460,8 +1460,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "retire_at": {
-          "name": "retire_at",
+        "remove_retry_at": {
+          "name": "remove_retry_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,

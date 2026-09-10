@@ -193,7 +193,6 @@ import type {
   SystemExecutionOptionsResponse,
   SystemEnvironmentProvidersQuery,
   SystemEnvironmentProvidersResponse,
-  SystemMachineProvidersQuery,
   SystemMachineProvidersResponse,
   SystemProviderInfo,
   SystemProvidersQuery,
@@ -339,7 +338,6 @@ import {
   sendQueuedMessageRequestSchema,
   systemExecutionOptionsQuerySchema,
   systemEnvironmentProvidersQuerySchema,
-  systemMachineProvidersQuerySchema,
   systemProvidersQuerySchema,
   systemUsageLimitsQuerySchema,
   systemVersionQuerySchema,
@@ -1742,9 +1740,7 @@ export const publicApiRoutes = {
     machineProviders: defineRoute({
       path: "/system/machine-providers",
       method: "get",
-      request: optionalQueryRequest<EmptyInput, SystemMachineProvidersQuery>(
-        systemMachineProvidersQuerySchema,
-      ),
+      request: noRequest(),
       response: jsonResponse<SystemMachineProvidersResponse>(),
     }),
     providers: defineRoute({

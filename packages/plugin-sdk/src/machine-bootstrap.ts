@@ -5,7 +5,6 @@ import type {
 import type { PluginMachineProviderProgress } from "./machine-provider.js";
 
 export interface EnrollmentBootstrap {
-  version: 2;
   hostId: string;
   serverUrl: string;
   headers?: ServerAccessGrant["headers"];
@@ -19,7 +18,6 @@ export type MachineEnrollment =
       hostId: string;
       state: "pending";
       bootstrap: EnrollmentBootstrap;
-      expiresAt: number;
     }
   | { id: string; hostId: string; state: "enrolled" };
 
@@ -52,23 +50,15 @@ export interface MachineEnrollments {
   waitForConnection(
     request: MachineConnectionRequest,
   ): Promise<{ hostId: string }>;
-  cancel(request: { enrollmentId: string }): Promise<void>;
 }
 
 export interface MachineBootstrapRequest extends MachineEnrollmentRequest {
   executor: MachineExecutor;
-  daemon: { kind: "preinstalled" } | { kind: "install" };
   report: PluginMachineProviderProgress;
   signal: AbortSignal;
 }
 
-export interface MachineInstallerCommand {
-  command: string[];
-  stdin: string;
-}
-
 export interface MachineBootstrapApi {
   enrollments: MachineEnrollments;
-  installerCommand(bootstrap: EnrollmentBootstrap): MachineInstallerCommand;
   bootstrap(request: MachineBootstrapRequest): Promise<{ hostId: string }>;
 }

@@ -25,3 +25,5 @@ export function imageDefinition(bb: Pick<BbPluginApi, "storage">) {
     },
   };
 }
+
+export type ImageDefinition = ReturnType<typeof imageDefinition>;

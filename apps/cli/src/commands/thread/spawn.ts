@@ -396,7 +396,7 @@ export function registerSpawnCommand(
         }
         const machineProvider = opts.newMachine
           ? (
-              await createCliBbSdk(getUrl()).hosts.listProviders({ projectId })
+              await createCliBbSdk(getUrl()).hosts.experimental_listProviders()
             ).find((provider) => provider.id === opts.newMachine?.trim())
           : undefined;
         if (opts.newMachine && machineProvider === undefined) {

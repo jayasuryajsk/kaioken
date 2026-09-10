@@ -52,7 +52,7 @@ export function CreateMachineDialog({
   return (
     <Dialog open={open} onOpenChange={close} modal={false}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
-        {open && <CreateMachineContent open={open} onOpenChange={close} />}
+        {open && <CreateMachineContent onOpenChange={close} />}
       </DialogContent>
     </Dialog>
   );
@@ -61,7 +61,6 @@ export function CreateMachineDialog({
 export function CreateMachineContent({
   onOpenChange,
 }: {
-  open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const { providers: loadedProviders } = useSystemMachineProviders();
@@ -268,14 +267,14 @@ export function ProviderMachineSetup({
       createController.current = controller;
       createKey.current ??= crypto.randomUUID();
       try {
-        const launch = await sdk.hosts.submit({
+        const launch = await sdk.hosts.experimental_submit({
           key: createKey.current,
           machineProviderId: selectedMachineProvider.id,
           inputs: machineInputs,
           signal: controller.signal,
         });
         setLaunchId(launch.id);
-        return await sdk.hosts.follow({
+        return await sdk.hosts.experimental_follow({
           id: launch.id,
           signal: controller.signal,
           onProgress: (status) => {
@@ -361,9 +360,7 @@ export function ProviderMachineSetup({
                 ...(provider.availability !== null &&
                 provider.availability.status !== "available"
                   ? { description: provider.availability.message }
-                  : provider.description !== null
-                    ? { description: provider.description }
-                    : {}),
+                  : { description: provider.description }),
               }))}
               onChange={(providerId) => {
                 const provider = providers.find(
@@ -376,11 +373,9 @@ export function ProviderMachineSetup({
         </div>
         {selectedMachineProvider === null ? null : (
           <div className="space-y-3">
-            {selectedMachineProvider.description === null ? null : (
-              <p className="text-xs text-subtle-foreground">
-                {selectedMachineProvider.description}
-              </p>
-            )}
+            <p className="text-xs text-subtle-foreground">
+              {selectedMachineProvider.description}
+            </p>
             {machineInputsRegistration === undefined ||
             MachineInputsComponent === undefined ? null : (
               <PluginSlotMount
@@ -390,7 +385,6 @@ export function ProviderMachineSetup({
               >
                 <MachineInputsComponent
                   key={selectedMachineProvider.id}
-                  projectId={null}
                   value={machineInputs}
                   onChange={handleMachineInputsChange}
                 />
@@ -481,7 +475,7 @@ export function ProviderMachineSetup({
             variant="outline"
             size="sm"
             onClick={() =>
-              void sdk.hosts.cancel({ id: launchId }).then(() => {
+              void sdk.hosts.experimental_cancel({ id: launchId }).then(() => {
                 createController.current?.abort();
                 onOpenChange(false);
               })

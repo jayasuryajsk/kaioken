@@ -78,16 +78,15 @@ Read the installed declarations for exact current signatures.
 - `ServerAccessGrant`
 - `ServerAccessSelection`
 - `PluginMachines` — `bb.experimental_machines.register` and enrollment/bootstrap helpers (see backend-machines.md)
-- `EnrollmentBootstrap` — private versioned enrollment bundle
+- `EnrollmentBootstrap` — private enrollment bundle
 - `MachineEnrollment` — pending bundle or enrolled host identity
 - `MachineExecutorRequest` — argv, timeout, signal, optional private stdin
 - `MachineExecutor` — transport exec
 - `MachineEnrollmentRequest` — durable key and optional access selection
 - `MachineConnectionRequest` — enrollmentId, timeoutMs, signal
-- `MachineEnrollments` — prepare, waitForConnection, cancel
-- `MachineBootstrapRequest` — enrollment request, executor, daemon mode, report, signal
-- `MachineInstallerCommand` — command argv and private stdin
-- `MachineBootstrapApi` — enrollments, installerCommand, bootstrap
+- `MachineEnrollments` — prepare and waitForConnection
+- `MachineBootstrapRequest` — enrollment request, executor, report, signal
+- `MachineBootstrapApi` — enrollments and bootstrap
 - `PluginMachineProviderDeclaration`
 - `PluginMachineValidateDecision`
 - `PluginEnvironmentProviderDeclaration`
@@ -298,11 +297,10 @@ Read the installed declarations for exact current signatures.
 
 ## `@get-bb/plugin-sdk/machine-provider`
 
-- `PluginMachineProviderDefinition` — id, display, optional icon, inputs, availability,
-  validation, optional per-machine idle timeout, create, optional paired
+- `PluginMachineProviderDefinition` — id, display, description, icon, inputs,
+  availability, validation, create, optional paired
   suspend/resume, and remove
 - `PluginMachineProviderInputsSchema`
-- `PluginMachineProviderEnvironmentRow`
 - `PluginMachineProviderAvailability`
 - `PluginMachineProviderValidateContext`
 - `PluginMachineProviderCreateContext` — async `checkpoint(resource)` after

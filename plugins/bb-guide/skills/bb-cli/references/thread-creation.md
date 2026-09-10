@@ -15,7 +15,7 @@
   `--environment-inputs <json>` only when the provider's schema does not accept
   an empty object; otherwise the CLI supplies `{}` when the flag is omitted.
   `--machine` picks the existing machine.
-- List machine providers with `bb machine providers [--project <id>]`. Create a
+- List machine providers with `bb machine providers`. Create a
   new provider machine with
   `bb thread spawn --new-machine <provider-id> --environment-provider <id>`.
   For Modal's composed environment, use `--environment-provider modal-sandbox`
@@ -210,4 +210,4 @@ Thread startup does not validate agent credentials, fingerprint the checkout, or
 Maintenance interrupts active turns and closes terminals before saving. Submit a
 new continuation turn after restore; interrupted turns are never reported successful.
 
-`bb machine lifecycle MACHINE --remove --yes --json` runs provider removal through the normal machine removal path. Resuming a machine restores its provider state without rerunning environment setup.
+Resuming a machine restores its provider state without rerunning environment setup.
