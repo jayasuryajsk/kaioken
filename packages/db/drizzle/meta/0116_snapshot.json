@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "77b4527c-26bc-4afc-9303-840551a5c7f3",
+  "id": "4d3c37b4-243c-476c-813c-9780b7eeab71",
   "prevId": "29773b03-78e7-4083-a89c-e38d38412675",
   "tables": {
     "app_settings": {
@@ -1438,13 +1438,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "machine_provider_selection": {
-          "name": "machine_provider_selection",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "phase": {
           "name": "phase",
           "type": "text",
@@ -1460,8 +1453,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "suspend_message": {
-          "name": "suspend_message",
+        "status_message": {
+          "name": "status_message",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -1469,13 +1462,6 @@
         },
         "suspend_retry_at": {
           "name": "suspend_retry_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "removal_started_at": {
-          "name": "removal_started_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -1498,13 +1484,6 @@
         },
         "teardown_status": {
           "name": "teardown_status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "teardown_message": {
-          "name": "teardown_message",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -1891,20 +1870,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "encrypted_bootstrap": {
-          "name": "encrypted_bootstrap",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "created_at": {

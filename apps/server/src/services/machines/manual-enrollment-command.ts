@@ -1,4 +1,4 @@
-import type { EnrollmentBootstrap } from "@get-bb/plugin-sdk";
+import type { EnrollmentBootstrap } from "./enrollments.js";
 
 function quote(value: string): string {
   return "'" + value.replaceAll("'", "'\"'\"'") + "'";

@@ -15,8 +15,6 @@ CREATE TABLE `machine_enrollments` (
 	`key` text NOT NULL,
 	`host_id` text NOT NULL,
 	`state` text NOT NULL,
-	`encrypted_bootstrap` text,
-	`expires_at` integer,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL
 );
@@ -50,16 +48,13 @@ ALTER TABLE `hosts` ADD `server_access_provider_id` text;--> statement-breakpoin
 UPDATE `hosts` SET `server_access_provider_id` = 'connect' WHERE `connect_machine_id` IS NOT NULL;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `server_access_grant_id` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `resource` text;--> statement-breakpoint
-ALTER TABLE `hosts` ADD `machine_provider_selection` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `phase` text DEFAULT 'active' NOT NULL;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `suspended_at` integer;--> statement-breakpoint
-ALTER TABLE `hosts` ADD `suspend_message` text;--> statement-breakpoint
+ALTER TABLE `hosts` ADD `status_message` text;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `suspend_retry_at` integer;--> statement-breakpoint
-ALTER TABLE `hosts` ADD `removal_started_at` integer;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `remove_retry_at` integer;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `teardown_attempt` integer DEFAULT 0 NOT NULL;--> statement-breakpoint
 ALTER TABLE `hosts` ADD `teardown_status` text;--> statement-breakpoint
-ALTER TABLE `hosts` ADD `teardown_message` text;--> statement-breakpoint
 ALTER TABLE `project_sources` ADD `owns_path` integer DEFAULT false NOT NULL;--> statement-breakpoint
 ALTER TABLE `host_daemon_sessions` DROP COLUMN `host_type`;
 --> statement-breakpoint

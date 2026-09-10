@@ -123,7 +123,10 @@ describe("production machine enrollment wiring", () => {
       });
       const api = await installPlugin(h, "enrollment-runtime");
       launch(h, "runtime-launch", "enrollment-runtime-machine");
-      const enrollment = await api.experimental_machines.enrollments.prepare({
+      const enrollments = getMachineEnrollmentService(h.deps).forOwner(
+        "enrollment-runtime",
+      );
+      const enrollment = await enrollments.prepare({
         key: "runtime-launch",
       });
       expect(getMachineLaunch(h.db, "runtime-launch")).toMatchObject({
@@ -135,7 +138,7 @@ describe("production machine enrollment wiring", () => {
       expect(getMachineEnrollmentService(h.deps)).toBe(
         getMachineEnrollmentService(h.deps),
       );
-      const reissued = await api.experimental_machines.enrollments.prepare({
+      const reissued = await enrollments.prepare({
         key: "runtime-launch",
       });
       expect(reissued).toMatchObject({
@@ -179,10 +182,10 @@ describe("production machine enrollment wiring", () => {
           report: { step() {}, log() {} },
           signal: new AbortController().signal,
         }),
-      ).resolves.toBeUndefined();
+      ).resolves.toEqual({ hostId: enrollment.hostId });
       expect(exec).toHaveBeenCalledOnce();
       expect(
-        await api.experimental_machines.enrollments.prepare({
+        await enrollments.prepare({
           key: "runtime-launch",
         }),
       ).toEqual({
@@ -191,7 +194,7 @@ describe("production machine enrollment wiring", () => {
         state: "enrolled",
       });
       await expect(
-        api.experimental_machines.enrollments.waitForConnection({
+        enrollments.waitForConnection({
           enrollmentId: enrollment.id,
           timeoutMs: 100,
           signal: new AbortController().signal,
@@ -199,15 +202,25 @@ describe("production machine enrollment wiring", () => {
       ).resolves.toEqual({ hostId: enrollment.hostId });
       await h.pluginService.setEnabled("enrollment-runtime", false);
       expect(() =>
-        api.experimental_machines.enrollments.prepare({ key: "after-disable" }),
-      ).toThrow();
+        api.experimental_machines.bootstrap({
+          key: "after-disable",
+          report: { step() {}, log() {} },
+          signal: new AbortController().signal,
+        }),
+      ).rejects.toThrow();
     });
   });
 
   it("rejects foreign launches, checkpoints before failed access, and releases with the original owner key", async () => {
     await withTestHarness(async (h) => {
       const api = await installPlugin(h, "enrollment-runtime");
-      const other = await installPlugin(h, "enrollment-other");
+      await installPlugin(h, "enrollment-other");
+      const enrollments = getMachineEnrollmentService(h.deps).forOwner(
+        "enrollment-runtime",
+      );
+      const otherEnrollments = getMachineEnrollmentService(h.deps).forOwner(
+        "enrollment-other",
+      );
       const release = vi.fn(async () => {});
       const acquire = vi.fn(
         async ({
@@ -231,7 +244,7 @@ describe("production machine enrollment wiring", () => {
       });
       launch(h, "failure-launch", "enrollment-runtime-machine");
       await expect(
-        other.experimental_machines.enrollments.prepare({
+        otherEnrollments.prepare({
           key: "failure-launch",
           access: { providerId: "runtime-access" },
         }),
@@ -242,7 +255,7 @@ describe("production machine enrollment wiring", () => {
         message: "Cloud device may need dashboard revocation",
       });
       await expect(
-        api.experimental_machines.enrollments.prepare({
+        enrollments.prepare({
           key: "failure-launch",
           access: { providerId: "runtime-access" },
         }),
@@ -252,9 +265,9 @@ describe("production machine enrollment wiring", () => {
       expect(reserved?.resource).toEqual({ checkpoint: "preserve" });
       expect(
         listPublicHosts(h.db).find((host) => host.id === reserved?.hostId)
-          ?.teardownMessage,
+          ?.statusMessage,
       ).toBe("Cloud device may need dashboard revocation");
-      const enrollment = await api.experimental_machines.enrollments.prepare({
+      const enrollment = await enrollments.prepare({
         key: "failure-launch",
         access: { providerId: "runtime-access" },
       });
@@ -278,7 +291,7 @@ describe("production machine enrollment wiring", () => {
           .where(eq(hosts.id, enrollment.hostId))
           .get()?.providerId,
       ).toBeNull();
-      const standalone = await api.experimental_machines.enrollments.prepare({
+      const standalone = await enrollments.prepare({
         key: "standalone",
         access: { providerId: "runtime-access" },
       });

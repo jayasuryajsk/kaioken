@@ -18,7 +18,6 @@ import type {
   JsonValue,
   EnvironmentStatus,
   FaviconColorPreference,
-  MachineProviderSelection,
   PendingInteractionStatus,
   PermissionMode,
   PromptHistoryScope,
@@ -94,32 +93,25 @@ export const hosts = sqliteTable(
   {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
-    type: text("type")
-      .$type<"persistent" | "ephemeral">()
-      .notNull(),
+    type: text("type").$type<"persistent" | "ephemeral">().notNull(),
     connectMachineId: text("connect_machine_id"),
     machineProviderId: text("machine_provider_id"),
     machineOperationId: text("machine_operation_id"),
     serverAccessProviderId: text("server_access_provider_id"),
     serverAccessGrantId: text("server_access_grant_id"),
     resource: text("resource", { mode: "json" }).$type<JsonValue>(),
-    machineProviderSelection: text("machine_provider_selection", {
-      mode: "json",
-    }).$type<MachineProviderSelection>(),
     phase: text("phase")
       .$type<"active" | "suspending" | "suspended" | "removing" | "destroyed">()
       .notNull()
       .default("active"),
     suspendedAt: integer("suspended_at"),
-    suspendMessage: text("suspend_message"),
+    statusMessage: text("status_message"),
     suspendRetryAt: integer("suspend_retry_at"),
-    removalStartedAt: integer("removal_started_at"),
     removeRetryAt: integer("remove_retry_at"),
     teardownAttempt: integer("teardown_attempt").notNull().default(0),
     teardownStatus: text("teardown_status").$type<
       "running" | "failed" | "removed"
     >(),
-    teardownMessage: text("teardown_message"),
     maxPermissionMode: text("max_permission_mode")
       .$type<PermissionMode>()
       .notNull()
@@ -143,8 +135,6 @@ export const machineEnrollments = sqliteTable(
     state: text("state")
       .$type<"pending" | "enrolled" | "cancelled">()
       .notNull(),
-    encryptedBootstrap: text("encrypted_bootstrap"),
-    expiresAt: integer("expires_at"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },

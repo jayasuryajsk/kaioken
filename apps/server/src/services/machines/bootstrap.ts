@@ -1,8 +1,5 @@
-import type {
-  EnrollmentBootstrap,
-  MachineBootstrapApi,
-  MachineEnrollments,
-} from "@get-bb/plugin-sdk";
+import type { MachineBootstrapApi } from "@get-bb/plugin-sdk";
+import type { EnrollmentBootstrap, MachineEnrollments } from "./enrollments.js";
 import { readFile } from "node:fs/promises";
 import { INSTALL_MACHINE_SCRIPT_PATH } from "../../install-machine-asset.js";
 
@@ -44,7 +41,6 @@ export function createMachineBootstrapApi(
   enrollments: MachineEnrollments,
 ): MachineBootstrapApi {
   return {
-    enrollments,
     async bootstrap(request) {
       request.signal.throwIfAborted();
       request.report.step("Preparing machine enrollment");
@@ -52,34 +48,45 @@ export function createMachineBootstrapApi(
         key: request.key,
         access: request.access,
       });
-      request.signal.throwIfAborted();
-      request.report.step(
-        enrollment.state === "enrolled"
-          ? "Starting enrolled machine"
-          : "Bootstrapping machine",
-      );
-      const execution = await (enrollment.state === "enrolled"
-        ? installerStartCommand(enrollment.hostId)
-        : installerCommand(enrollment.bootstrap));
       try {
-        const result = await request.executor.exec({
-          ...execution,
-          timeoutMs: 600_000,
+        request.signal.throwIfAborted();
+        request.report.step(
+          request.executor === undefined
+            ? "Run the enrollment command shown below"
+            : enrollment.state === "enrolled"
+              ? "Starting enrolled machine"
+              : "Bootstrapping machine",
+        );
+        if (request.executor) {
+          const execution = await (enrollment.state === "enrolled"
+            ? installerStartCommand(enrollment.hostId)
+            : installerCommand(enrollment.bootstrap));
+          try {
+            const result = await request.executor.exec({
+              ...execution,
+              timeoutMs: 600_000,
+              signal: request.signal,
+            });
+            if (result.exitCode !== 0)
+              throw new Error("Machine bootstrap command failed");
+          } catch {
+            request.signal.throwIfAborted();
+            throw new Error("Machine bootstrap command failed");
+          }
+        }
+        request.signal.throwIfAborted();
+        if (request.executor !== undefined)
+          request.report.step("Waiting for machine connection");
+        await enrollments.waitForConnection({
+          enrollmentId: enrollment.id,
+          timeoutMs: request.executor ? 120_000 : 15 * 60_000,
           signal: request.signal,
         });
-        if (result.exitCode !== 0)
-          throw new Error("Machine bootstrap command failed");
-      } catch {
-        request.signal.throwIfAborted();
-        throw new Error("Machine bootstrap command failed");
+        return { hostId: enrollment.hostId };
+      } catch (error) {
+        enrollments.clearPending(request.key);
+        throw error;
       }
-      request.signal.throwIfAborted();
-      request.report.step("Waiting for machine connection");
-      await enrollments.waitForConnection({
-        enrollmentId: enrollment.id,
-        timeoutMs: 120_000,
-        signal: request.signal,
-      });
     },
   };
 }

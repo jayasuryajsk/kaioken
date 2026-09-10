@@ -1,26 +1,17 @@
 import { z } from "zod";
-import { jsonValueSchema } from "./json-value.js";
 import { permissionModeSchema } from "./shared-types.js";
 
 const hostStatusValues = ["connected", "disconnected"] as const;
 export const hostStatusSchema = z.enum(hostStatusValues);
 
-export const machineProviderSelectionSchema = z.object({
-  inputs: jsonValueSchema.nullable(),
-});
-export type MachineProviderSelection = z.infer<
-  typeof machineProviderSelectionSchema
->;
-
 export const machineLifecycleSchema = z.object({
   phase: z.enum(["active", "suspending", "suspended", "removing", "destroyed"]),
   suspendedAt: z.number().nullable(),
-  progress: z.string().nullable(),
+  message: z.string().nullable(),
   teardown: z
     .object({
       status: z.enum(["running", "failed", "removed"]),
       attempt: z.number().int().nonnegative(),
-      message: z.string().optional(),
     })
     .nullable(),
 });
@@ -32,7 +23,6 @@ export const hostSchema = z.object({
   type: z.enum(["persistent", "ephemeral"]),
   status: hostStatusSchema,
   machineProviderId: z.string().nullable(),
-  machineProviderSelection: machineProviderSelectionSchema.nullable(),
   lifecycle: machineLifecycleSchema,
   maxPermissionMode: permissionModeSchema,
   lastSeenAt: z.number().nullable(),

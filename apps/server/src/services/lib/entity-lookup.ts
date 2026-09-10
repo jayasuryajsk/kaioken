@@ -81,22 +81,16 @@ function toHostRecord(row: HostRow, status: Host["status"]): Host {
     type: row.type,
     status,
     machineProviderId: row.machineProviderId,
-    machineProviderSelection: row.machineProviderSelection,
     lifecycle: {
       phase: row.phase,
       suspendedAt: row.suspendedAt,
-      progress:
-        row.suspendMessage ??
-        (row.teardownStatus === null ? row.teardownMessage : null),
+      message: row.statusMessage,
       teardown:
         row.teardownStatus === null
           ? null
           : {
               status: row.teardownStatus,
               attempt: row.teardownAttempt,
-              ...(row.teardownMessage === null
-                ? {}
-                : { message: row.teardownMessage }),
             },
     },
     maxPermissionMode: row.maxPermissionMode,

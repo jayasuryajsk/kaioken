@@ -351,10 +351,7 @@ describe("EnvironmentPickerUI", () => {
     expect(providerItem.getAttribute("href")).toBeNull();
     expect(screen.queryByText("Set it up in plugin settings")).toBeNull();
     fireEvent.click(providerItem);
-    expect(onSelectProvider).toHaveBeenCalledWith(
-      setupRequiredProvider,
-      null,
-    );
+    expect(onSelectProvider).toHaveBeenCalledWith(setupRequiredProvider, null);
   });
 
   it("disables a provider that declares inputs until its plugin registers a control", () => {
@@ -654,6 +651,38 @@ describe("EnvironmentPickerUI multi-machine menu", () => {
     });
     expect(checkoutItems).toHaveLength(2);
     expect(checkoutItems[0]!.getAttribute("aria-disabled")).toBeNull();
+    expect(checkoutItems[1]!.getAttribute("aria-disabled")).toBe("true");
+  });
+
+  it("disables options on a machine being removed", () => {
+    const removingStudio: Host = {
+      ...studio,
+      lifecycle: { ...studio.lifecycle, phase: "removing" },
+    };
+    renderPicker(
+      <EnvironmentPickerUI
+        value="provider:project-checkout"
+        sources={machineSources}
+        host={thisMachine}
+        isLocal
+        machines={{
+          hosts: [thisMachine, removingStudio],
+          localDaemonHostId: thisMachine.id,
+          primaryHostId: thisMachine.id,
+        }}
+        providers={[checkoutProvider]}
+        selectedProviderHostId={thisMachine.id}
+        onSelectProvider={vi.fn()}
+        modal={false}
+      />,
+    );
+    fireEvent.pointerDown(screen.getByRole("button", { name: "Environment" }), {
+      button: 0,
+    });
+
+    const checkoutItems = screen.getAllByRole("menuitem", {
+      name: /Project checkout/u,
+    });
     expect(checkoutItems[1]!.getAttribute("aria-disabled")).toBe("true");
   });
 

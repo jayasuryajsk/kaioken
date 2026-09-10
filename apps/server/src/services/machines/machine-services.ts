@@ -10,13 +10,12 @@ export type MachineEnrollmentService = ReturnType<
 const services = new WeakMap<DbConnection, MachineEnrollmentService>();
 
 export function getMachineEnrollmentService(
-  deps: Pick<AppDeps, "db" | "config" | "machineAuth" | "hub">,
+  deps: Pick<AppDeps, "db" | "machineAuth" | "hub">,
 ): MachineEnrollmentService {
   let service = services.get(deps.db);
   if (!service) {
     service = createMachineEnrollmentService({
       db: deps.db,
-      dataDir: deps.config.dataDir,
       machineAuth: deps.machineAuth,
       serverAccess: {
         resolve: (request) => serverAccess.resolve(deps, request),

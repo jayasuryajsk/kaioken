@@ -1,5 +1,4 @@
 import { buildHostDaemonWebSocketProtocols } from "@bb/host-daemon-contract";
-import type { MachineEnrollments } from "@get-bb/plugin-sdk";
 import { eq } from "drizzle-orm";
 import {
   onDaemonSocketMessage,
@@ -29,15 +28,10 @@ import { createManualMachineProviderRecord } from "../../../src/services/machine
 
 it("reports the manual uninstall hint once during removal", async () => {
   const step = vi.fn();
-  const enrollments: MachineEnrollments = {
-    prepare: vi.fn<MachineEnrollments["prepare"]>(async () => ({
-      id: "enrollment-one",
-      hostId: "host-one",
-      state: "enrolled",
-    })),
-    waitForConnection: vi.fn(async () => ({ hostId: "host-one" })),
+  const machines = {
+    bootstrap: vi.fn(async () => ({ hostId: "host-one" })),
   };
-  const record = createManualMachineProviderRecord(enrollments);
+  const record = createManualMachineProviderRecord(machines);
   await record.provider.remove({
     hostId: "host-one",
     resource: { hostId: "host-one" },
@@ -161,7 +155,7 @@ it("creates, cancels, and removes manual machines through the production lifecyc
             name: expect.stringMatching(/^Manual machine [a-z0-9]{6}$/u),
             type: "persistent",
             machineProviderId: "manual",
-            resource: { hostId: enrollment.hostId },
+            resource: { key },
             removeRetryAt: null,
           });
           expect(requestMachineRemoval(h.deps, enrollment.hostId)).toBe(true);
@@ -208,7 +202,7 @@ it("creates, cancels, and removes manual machines through the production lifecyc
             .from(machineEnrollments)
             .all()
             .find((row) => row.hostId === enrollment.hostId),
-        ).toMatchObject({ state: "cancelled", encryptedBootstrap: null });
+        ).toMatchObject({ state: "cancelled" });
         expect(
           await h.deps.machineAuth.enrollHost({
             hostId: enrollment.hostId,

@@ -256,9 +256,6 @@ export function createModalSandboxPlugin(
           await launchOptions.get(),
         );
         context.signal.throwIfAborted();
-        const enrollment = await bb.experimental_machines.enrollments.prepare({
-          key: context.key,
-        });
         const accountIdentity = await retryModalApi(
           () => backend.accountIdentity(),
           context.signal,
@@ -315,17 +312,17 @@ export function createModalSandboxPlugin(
         };
         await context.checkpoint(allocation);
         context.signal.throwIfAborted();
-        await bb.experimental_machines.bootstrap({
+        const { hostId } = await bb.experimental_machines.bootstrap({
           key: context.key,
           executor: createSandboxExecutor(sandbox),
           report: context.report,
           signal: context.signal,
         });
         context.signal.throwIfAborted();
-        await bumpIdle(enrollment.hostId);
+        await bumpIdle(hostId);
         return {
           status: "created",
-          name: `Modal sandbox ${enrollment.hostId.replace(/[^a-z0-9]/giu, "").slice(-6)}`,
+          name: `Modal sandbox ${hostId.replace(/[^a-z0-9]/giu, "").slice(-6)}`,
           resource: allocation,
         };
       } catch (error) {

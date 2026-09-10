@@ -90,52 +90,16 @@ describe("machine enrollments", () => {
     ).rejects.toThrow("different server access provider");
   });
 
-  it("reissues an expired pending credential and rejects the previous one", async () => {
+  it("rejects removed identities", async () => {
     const h = await harness();
-    const prepared = await h.api.prepare({ key: "expiry" });
-    if (prepared.state !== "pending")
-      throw new Error("Expected pending enrollment");
-    h.db
-      .update(machineEnrollments)
-      .set({ expiresAt: 1 })
-      .where(eq(machineEnrollments.id, prepared.id))
-      .run();
-    const renewed = await h.api.prepare({ key: "expiry" });
-    if (renewed.state !== "pending")
-      throw new Error("Expected pending enrollment");
-    expect(renewed.hostId).toBe(prepared.hostId);
-    expect(renewed.bootstrap.credential).not.toBe(
-      prepared.bootstrap.credential,
-    );
-    expect(
-      await h.machineAuth.enrollHost({
-        hostId: prepared.hostId,
-        token: prepared.bootstrap.credential,
-        allowPublicEnrollment: true,
-      }),
-    ).toBeNull();
-  });
-
-  it("reissues corrupted bundles and rejects removed identities", async () => {
-    const h = await harness();
-    const prepared = await h.api.prepare({ key: "corrupt" });
+    const prepared = await h.api.prepare({ key: "removed" });
     if (prepared.state !== "pending") throw new Error("Expected enrollment");
-    h.db
-      .update(machineEnrollments)
-      .set({ encryptedBootstrap: "invalid" })
-      .where(eq(machineEnrollments.id, prepared.id))
-      .run();
-    const reissued = await h.api.prepare({ key: "corrupt" });
-    if (reissued.state !== "pending") throw new Error("Expected enrollment");
-    expect(reissued.bootstrap.credential).not.toBe(
-      prepared.bootstrap.credential,
-    );
     h.db
       .update(hosts)
       .set({ phase: "destroyed" })
       .where(eq(hosts.id, prepared.hostId))
       .run();
-    await expect(h.api.prepare({ key: "corrupt" })).rejects.toThrow("removed");
+    await expect(h.api.prepare({ key: "removed" })).rejects.toThrow("removed");
   });
 
   it("recovers a lost exchange response with a fresh credential for the same identity", async () => {

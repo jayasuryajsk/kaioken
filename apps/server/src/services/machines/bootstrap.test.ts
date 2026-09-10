@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import type {
-  MachineExecutor,
-  MachineEnrollments,
-  EnrollmentBootstrap,
-} from "@get-bb/plugin-sdk";
+import type { MachineExecutor } from "@get-bb/plugin-sdk";
+import type { MachineEnrollments, EnrollmentBootstrap } from "./enrollments.js";
 import { createMachineBootstrapApi } from "./bootstrap.js";
 
 const bootstrap: EnrollmentBootstrap = {
@@ -15,6 +12,7 @@ const bootstrap: EnrollmentBootstrap = {
 
 function harness() {
   const enrollments: MachineEnrollments = {
+    clearPending: vi.fn(),
     prepare: vi.fn<MachineEnrollments["prepare"]>(async () => ({
       id: "enrollment",
       hostId: "host_1",
@@ -54,7 +52,7 @@ describe("machine bootstrap", () => {
     );
     expect(h.report.log).not.toHaveBeenCalled();
     expect(h.enrollments.waitForConnection).toHaveBeenCalledOnce();
-    expect(result).toBeUndefined();
+    expect(result).toEqual({ hostId: "host_1" });
     expect(request[0].command.join(" ")).not.toContain(bootstrap.credential);
   });
 
@@ -92,6 +90,21 @@ describe("machine bootstrap", () => {
       }),
     );
     expect(h.enrollments.waitForConnection).toHaveBeenCalledOnce();
+  });
+
+  it("waits for a manual connection when executor is omitted", async () => {
+    const h = harness();
+    await expect(
+      h.api.bootstrap({
+        key: "key",
+        report: h.report,
+        signal: new AbortController().signal,
+      }),
+    ).resolves.toEqual({ hostId: "host_1" });
+    expect(h.exec).not.toHaveBeenCalled();
+    expect(h.enrollments.waitForConnection).toHaveBeenCalledWith(
+      expect.objectContaining({ timeoutMs: 15 * 60_000 }),
+    );
   });
 
   it("does no work after abort", async () => {

@@ -243,11 +243,11 @@ it("keeps interrupted access visible and releases the acquisition without a retu
     expect(getHost(deps.db, host.id)).toMatchObject({
       serverAccessProviderId: "relay",
       serverAccessGrantId: null,
-      teardownMessage: message,
+      statusMessage: message,
     });
     expect(
       listPublicHostsWithStatus(deps).find((entry) => entry.id === host.id)
-        ?.lifecycle.progress,
+        ?.lifecycle.message,
     ).toBe(message);
     await expect(
       serverAccess.release(deps, { key: "k", hostId: host.id }),

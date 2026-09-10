@@ -38,7 +38,7 @@ export function machineStatusLabel({
   const parts: string[] = [];
   const phase = machinePhaseLabel(host.lifecycle);
   parts.push(phase ?? (host.status === "connected" ? "Online" : "Offline"));
-  if (host.lifecycle.progress !== null) parts.push(host.lifecycle.progress);
+  if (host.lifecycle.message !== null) parts.push(host.lifecycle.message);
   else if (host.status !== "connected" && host.lastSeenAt !== null) {
     parts.push(
       `last seen ${formatRelativeTime({ timestamp: host.lastSeenAt, now })}`,

@@ -35,7 +35,7 @@ export function assertMachineLifecycleAdmission(
     throw new ApiError(
       409,
       "machine_maintenance",
-      host.suspendMessage ??
+      host.statusMessage ??
         "Machine is preserving its filesystem; dispatch will wait",
     );
 }
@@ -80,7 +80,7 @@ export async function maintainMachine(
   updateHost(deps.db, deps.hub, hostId, {
     phase: "suspending",
     machineOperationId: operationId,
-    suspendMessage:
+    statusMessage:
       "Preserving this machine. Active turns will be interrupted and open terminals closed before the filesystem is saved.",
     suspendRetryAt: null,
   });
@@ -186,12 +186,12 @@ export async function maintainMachine(
       );
     }
     updateHost(deps.db, deps.hub, hostId, {
-      suspendMessage: "Saving the filesystem before terminating compute.",
+      statusMessage: "Saving the filesystem before terminating compute.",
     });
     deps.hub.notifyHost(hostId, ["host-disconnected"]);
     await save();
     updateHost(deps.db, deps.hub, hostId, {
-      suspendMessage: null,
+      statusMessage: null,
       suspendRetryAt: null,
     });
   } catch (error) {
@@ -201,7 +201,7 @@ export async function maintainMachine(
     const message = error instanceof Error ? error.message : String(error);
     const current = getHost(deps.db, hostId);
     const phase =
-      current !== null && current.removalStartedAt !== null
+      current?.phase === "removing"
         ? current.phase
         : current !== null && current.suspendedAt !== null
           ? "suspended"
@@ -210,9 +210,7 @@ export async function maintainMachine(
             : originalPhase;
     updateHost(deps.db, deps.hub, hostId, {
       ...(phase === undefined ? {} : { phase }),
-      suspendMessage: cancelled
-        ? null
-        : `Machine suspension failed: ${message}`,
+      statusMessage: cancelled ? null : `Machine suspension failed: ${message}`,
       suspendRetryAt: cancelled ? null : Date.now() + RETRY_MS,
     });
     deps.hub.notifyHost(hostId, ["host-disconnected"]);

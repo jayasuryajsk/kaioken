@@ -68,12 +68,11 @@ export function makeHostResponse(
     type: "persistent",
     status: "connected",
     machineProviderId: null,
-    machineProviderSelection: null,
     lifecycle: {
       phase: "active",
       suspendedAt: null,
 
-      progress: null,
+      message: null,
       teardown: null,
     },
     maxPermissionMode: "full",
@@ -251,12 +250,11 @@ export function makeMessageDispatchHookContext(
     type: "persistent",
     status: "connected",
     machineProviderId: null,
-    machineProviderSelection: null,
     lifecycle: {
       phase: "active",
       suspendedAt: null,
 
-      progress: null,
+      message: null,
       teardown: null,
     },
     maxPermissionMode: "full",

@@ -1,13 +1,6 @@
 import { defaultKeyHasher } from "@better-auth/api-key";
 import { getMachineProvider } from "../plugins/plugin-machine-provider-registry.js";
-import { z } from "zod";
-import { readOrCreateSecretFile } from "@bb/secret-storage";
-import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes,
-  randomUUID,
-} from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import { and, eq, gt, sql } from "drizzle-orm";
 import {
@@ -19,17 +12,43 @@ import {
   type DbConnection,
 } from "@bb/db";
 import type {
-  EnrollmentBootstrap,
-  MachineEnrollments,
-  MachineEnrollment,
   ServerAccessGrant,
   ServerAccessSelection,
 } from "@get-bb/plugin-sdk";
 import type { MachineAuthService } from "../machine-auth.js";
 
+export interface EnrollmentBootstrap {
+  hostId: string;
+  serverUrl: string;
+  headers?: ServerAccessGrant["headers"];
+  credential: string;
+  expiresAt: number;
+}
+
+export type MachineEnrollment =
+  | {
+      id: string;
+      hostId: string;
+      state: "pending";
+      bootstrap: EnrollmentBootstrap;
+    }
+  | { id: string; hostId: string; state: "enrolled" };
+
+export interface MachineEnrollments {
+  clearPending(key: string): void;
+  prepare(request: {
+    key: string;
+    access?: ServerAccessSelection;
+  }): Promise<MachineEnrollment>;
+  waitForConnection(request: {
+    enrollmentId: string;
+    timeoutMs: number;
+    signal: AbortSignal;
+  }): Promise<{ hostId: string }>;
+}
+
 interface EnrollmentServiceDependencies {
   db: DbConnection;
-  dataDir: string;
   machineAuth: MachineAuthService;
   serverAccess: {
     resolve(request: {
@@ -50,63 +69,10 @@ interface EnrollmentServiceDependencies {
 export function createMachineEnrollmentService(
   deps: EnrollmentServiceDependencies,
 ) {
-  let encryptionKey: Promise<Buffer> | null = null;
-  function key(): Promise<Buffer> {
-    encryptionKey ??= readOrCreateSecretFile({
-      dataDir: deps.dataDir,
-      fileName: "machine-enrollment-secret",
-      bytes: 32,
-      encoding: "hex",
-    })
-      .then((value) => Buffer.from(value, "hex"))
-      .catch((error) => {
-        encryptionKey = null;
-        throw error;
-      });
-    return encryptionKey;
-  }
-  async function seal(
-    id: string,
-    bootstrap: EnrollmentBootstrap,
-  ): Promise<string> {
-    const iv = randomBytes(12);
-    const cipher = createCipheriv("aes-256-gcm", await key(), iv);
-    cipher.setAAD(Buffer.from(id));
-    const encrypted = Buffer.concat([
-      cipher.update(JSON.stringify(bootstrap), "utf8"),
-      cipher.final(),
-    ]);
-    return Buffer.concat([iv, cipher.getAuthTag(), encrypted]).toString(
-      "base64",
-    );
-  }
-  async function open(id: string, ciphertext: string) {
-    try {
-      const bytes = Buffer.from(ciphertext, "base64");
-      const decipher = createDecipheriv(
-        "aes-256-gcm",
-        await key(),
-        bytes.subarray(0, 12),
-      );
-      decipher.setAAD(Buffer.from(id));
-      decipher.setAuthTag(bytes.subarray(12, 28));
-      const plain = Buffer.concat([
-        decipher.update(bytes.subarray(28)),
-        decipher.final(),
-      ]).toString("utf8");
-      return z
-        .strictObject({
-          hostId: z.string().min(1),
-          serverUrl: z.string().url(),
-          headers: z.record(z.string(), z.string()).optional(),
-          credential: z.string().min(1),
-          expiresAt: z.number().positive(),
-        })
-        .parse(JSON.parse(plain));
-    } catch {
-      throw new Error("Could not recover pending machine enrollment");
-    }
-  }
+  const pending = new Map<
+    string,
+    { owner: string; bootstrap: EnrollmentBootstrap }
+  >();
   const locks = new Map<string, Promise<unknown>>();
 
   async function serialized<T>(
@@ -181,6 +147,10 @@ export function createMachineEnrollmentService(
       return row;
     }
     return {
+      clearPending(key) {
+        const entry = pending.get(key);
+        if (entry?.owner === owner) pending.delete(key);
+      },
       async prepare(request) {
         if (!request.key.trim())
           throw new Error("Machine enrollment key must not be empty");
@@ -272,12 +242,11 @@ export function createMachineEnrollmentService(
             (host && host.lastSeenAt !== null) ||
             deps.isConnected(row.hostId)
           ) {
+            pending.delete(request.key);
             deps.db
               .update(machineEnrollments)
               .set({
                 state: "enrolled",
-                encryptedBootstrap: null,
-                expiresAt: null,
                 updatedAt: now,
               })
               .where(eq(machineEnrollments.id, row.id))
@@ -321,12 +290,11 @@ export function createMachineEnrollmentService(
               expiresAt,
             },
           };
+          pending.set(request.key, { owner, bootstrap: result.bootstrap });
           deps.db
             .update(machineEnrollments)
             .set({
               state: "pending",
-              encryptedBootstrap: await seal(row.id, result.bootstrap),
-              expiresAt,
               updatedAt: Date.now(),
             })
             .where(eq(machineEnrollments.id, row.id))
@@ -348,12 +316,11 @@ export function createMachineEnrollmentService(
               .update(machineEnrollments)
               .set({
                 state: "enrolled",
-                encryptedBootstrap: null,
-                expiresAt: null,
                 updatedAt: Date.now(),
               })
               .where(eq(machineEnrollments.id, row.id))
               .run();
+            pending.delete(row.key);
             return { hostId: row.hostId };
           }
           const remaining = deadline - Date.now();
@@ -392,18 +359,17 @@ export function createMachineEnrollmentService(
   }): Promise<EnrollmentBootstrap | null> {
     const read = () => readPendingEnrollment(request.launchId, request.owner);
     const row = read();
+    const entry = pending.get(request.launchId);
     if (
-      !row?.enrollment.encryptedBootstrap ||
-      row.enrollment.expiresAt === null ||
-      row.enrollment.expiresAt <= Date.now() ||
+      !row ||
+      !entry ||
+      entry.owner !== request.owner ||
+      entry.bootstrap.expiresAt <= Date.now() ||
       deps.isConnected(row.enrollment.hostId) ||
       hasIssuedDaemonCredential(row.enrollment.hostId)
     )
       return null;
-    const bootstrap = await open(
-      row.enrollment.id,
-      row.enrollment.encryptedBootstrap,
-    );
+    const bootstrap = entry.bootstrap;
     if (
       !(await hasUnusedEnrollmentCredential(
         row.enrollment.hostId,
@@ -412,13 +378,7 @@ export function createMachineEnrollmentService(
       ))
     )
       return null;
-    const current = read();
-    if (
-      current?.enrollment.encryptedBootstrap !==
-        row.enrollment.encryptedBootstrap ||
-      deps.isConnected(row.enrollment.hostId) ||
-      hasIssuedDaemonCredential(row.enrollment.hostId)
-    )
+    if (read() === undefined || pending.get(request.launchId) !== entry)
       return null;
     return bootstrap;
   }
@@ -429,53 +389,16 @@ export function createMachineEnrollmentService(
       credential: string,
     ): Promise<EnrollmentBootstrap | null> {
       if (!credential || credential.length > 512) return null;
-      const hashedCredential = await defaultKeyHasher(credential);
-      const row = deps.db
-        .select({ launchId: machineLaunches.key })
-        .from(authApiKeys)
-        .innerJoin(
-          machineEnrollments,
-          sql`json_extract(${authApiKeys.metadata}, '$.hostId') = ${machineEnrollments.hostId}`,
-        )
-        .innerJoin(
-          machineLaunches,
-          and(
-            eq(machineLaunches.key, machineEnrollments.key),
-            eq(machineLaunches.hostId, machineEnrollments.hostId),
-          ),
-        )
-        .where(
-          and(
-            eq(authApiKeys.key, hashedCredential),
-            eq(authApiKeys.configId, "daemon-enroll"),
-            eq(authApiKeys.enabled, true),
-            gt(authApiKeys.remaining, 0),
-            gt(authApiKeys.expiresAt, new Date()),
-          ),
-        )
-        .get();
+      const row = [...pending].find(
+        ([, entry]) => entry.bootstrap.credential === credential,
+      );
       if (!row) return null;
-      const enrollment = deps.db
-        .select({ owner: machineEnrollments.owner })
-        .from(machineEnrollments)
-        .innerJoin(
-          machineLaunches,
-          and(
-            eq(machineLaunches.key, machineEnrollments.key),
-            eq(machineLaunches.hostId, machineEnrollments.hostId),
-          ),
-        )
-        .where(eq(machineLaunches.key, row.launchId))
-        .get();
-      if (!enrollment) return null;
+      const [launchId, entry] = row;
       const bootstrap = await pendingBootstrapForLaunch({
-        launchId: row.launchId,
-        owner: enrollment.owner,
+        launchId,
+        owner: entry.owner,
       });
-      return bootstrap &&
-        (await defaultKeyHasher(bootstrap.credential)) === hashedCredential
-        ? bootstrap
-        : null;
+      return bootstrap?.credential === credential ? bootstrap : null;
     },
   };
 }

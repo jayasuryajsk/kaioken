@@ -3,7 +3,7 @@ import {
   type NormalizedPluginEnvironmentComposition,
 } from "@get-bb/plugin-sdk/internal/host-policy";
 import { createMachineBootstrapApi } from "../machines/bootstrap.js";
-import type { MachineEnrollments } from "@get-bb/plugin-sdk";
+import type { MachineEnrollments } from "../machines/enrollments.js";
 import { listServerAccessProviders } from "./plugin-server-access-registry.js";
 import { createHash } from "node:crypto";
 import { mkdirSync } from "node:fs";
@@ -737,10 +737,9 @@ export function createPluginApi(options: {
         );
       }
       const rows = database
-        .prepare<
-          [],
-          { id: number; statement_hash: string | null }
-        >("SELECT id, statement_hash FROM _bb_migrations ORDER BY id")
+        .prepare<[], { id: number; statement_hash: string | null }>(
+          "SELECT id, statement_hash FROM _bb_migrations ORDER BY id",
+        )
         .all();
       const applied = new Map<number, string | null>();
       for (const row of rows) applied.set(row.id, row.statement_hash);
@@ -1635,6 +1634,10 @@ export function createPluginApi(options: {
     };
 
   const enrollmentApi: MachineEnrollments = {
+    clearPending(key) {
+      assertLive();
+      options.getMachineEnrollments().clearPending(key);
+    },
     prepare(request) {
       assertLive();
       return options.getMachineEnrollments().prepare(request);

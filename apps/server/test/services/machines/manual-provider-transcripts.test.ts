@@ -187,17 +187,6 @@ it("resolves replacement launch identity while Manual owns command retrieval", a
       });
       expect(forbidden.status).toBe(403);
       if (generation === 2) {
-        h.db
-          .update(machineEnrollments)
-          .set({ expiresAt: Date.now() - 1 })
-          .where(eq(machineEnrollments.id, enrollment.id))
-          .run();
-        expect((await install()).status).toBe(403);
-        h.db
-          .update(machineEnrollments)
-          .set({ expiresAt: bootstrap.expiresAt })
-          .where(eq(machineEnrollments.id, enrollment.id))
-          .run();
         await cancelMachineLaunch(h.deps, key);
         expect((await install()).status).toBe(403);
         expect((await readCommand(key)).command).toBeNull();

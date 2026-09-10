@@ -11,7 +11,6 @@ import {
 import type {
   HostChangeKind,
   JsonValue,
-  MachineProviderSelection,
   PermissionMode,
 } from "@bb/domain";
 import type { DbConnection, DbTransaction } from "../connection.js";
@@ -36,16 +35,13 @@ export interface UpdateHostInput {
   maxPermissionMode?: PermissionMode;
   name?: string;
   machineProviderId?: string | null;
-  machineProviderSelection?: MachineProviderSelection | null;
   phase?: "active" | "suspending" | "suspended" | "removing" | "destroyed";
   resource?: JsonValue | null;
-  removalStartedAt?: number | null;
   removeRetryAt?: number | null;
-  suspendMessage?: string | null;
+  statusMessage?: string | null;
   suspendRetryAt?: number | null;
   suspendedAt?: number | null;
   teardownAttempt?: number;
-  teardownMessage?: string | null;
   teardownStatus?: "running" | "failed" | "removed" | null;
 }
 
@@ -121,15 +117,13 @@ export function upsertHost(
         connectMachineId: input.connectMachineId ?? null,
         machineProviderId: null,
         resource: null,
-        machineProviderSelection: null,
         phase: "active",
         suspendedAt: null,
-        suspendMessage: null,
+        statusMessage: null,
         suspendRetryAt: null,
         removeRetryAt: null,
         teardownAttempt: 0,
         teardownStatus: null,
-        teardownMessage: null,
         destroyedAt: input.destroyedAt ?? null,
         lastSeenAt: null,
         lastRejectedProtocolVersion: null,
@@ -183,7 +177,7 @@ export function listPublicHosts(db: DbConnection) {
           and(
             isNotNull(hosts.serverAccessProviderId),
             isNull(hosts.serverAccessGrantId),
-            isNotNull(hosts.teardownMessage),
+            isNotNull(hosts.statusMessage),
           ),
           and(
             or(
@@ -235,18 +229,12 @@ export function settleMachineEnrollments(
   db.update(machineEnrollments)
     .set({
       state: "cancelled",
-      encryptedBootstrap: null,
-      expiresAt: null,
       updatedAt: Date.now(),
     })
     .where(
       and(
         eq(machineEnrollments.hostId, hostId),
-        or(
-          ne(machineEnrollments.state, "cancelled"),
-          isNotNull(machineEnrollments.encryptedBootstrap),
-          isNotNull(machineEnrollments.expiresAt),
-        ),
+        ne(machineEnrollments.state, "cancelled"),
       ),
     )
     .run();
@@ -281,34 +269,25 @@ export function updateHost(
       ...(input.machineProviderId !== undefined
         ? { machineProviderId: input.machineProviderId }
         : {}),
-      ...(input.machineProviderSelection !== undefined
-        ? { machineProviderSelection: input.machineProviderSelection }
-        : {}),
       ...(input.machineOperationId !== undefined
         ? { machineOperationId: input.machineOperationId }
         : {}),
       ...(input.phase !== undefined ? { phase: input.phase } : {}),
       ...(input.resource !== undefined ? { resource: input.resource } : {}),
-      ...(input.removalStartedAt !== undefined
-        ? { removalStartedAt: input.removalStartedAt }
-        : {}),
       ...(input.removeRetryAt !== undefined
         ? { removeRetryAt: input.removeRetryAt }
         : {}),
       ...(input.suspendedAt !== undefined
         ? { suspendedAt: input.suspendedAt }
         : {}),
-      ...(input.suspendMessage !== undefined
-        ? { suspendMessage: input.suspendMessage }
+      ...(input.statusMessage !== undefined
+        ? { statusMessage: input.statusMessage }
         : {}),
       ...(input.suspendRetryAt !== undefined
         ? { suspendRetryAt: input.suspendRetryAt }
         : {}),
       ...(input.teardownAttempt !== undefined
         ? { teardownAttempt: input.teardownAttempt }
-        : {}),
-      ...(input.teardownMessage !== undefined
-        ? { teardownMessage: input.teardownMessage }
         : {}),
       ...(input.teardownStatus !== undefined
         ? { teardownStatus: input.teardownStatus }

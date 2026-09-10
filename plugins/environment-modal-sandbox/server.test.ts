@@ -37,12 +37,11 @@ function host(status: Host["status"]): Host {
     type: "persistent",
     status,
     machineProviderId: null,
-    machineProviderSelection: null,
     lifecycle: {
       phase: "active",
       suspendedAt: null,
 
-      progress: null,
+      message: null,
       teardown: null,
     },
     maxPermissionMode: "full",
@@ -200,25 +199,12 @@ async function setup(
         signal: request.signal,
         stdin: "bootstrap-secret",
       });
+      return { hostId: HOST_ID };
     },
-  );
-  const prepare = vi.fn(
-    async (): Promise<import("@get-bb/plugin-sdk").MachineEnrollment> => ({
-      id: "enrollment-1",
-      hostId: HOST_ID,
-      state: "pending",
-      bootstrap: {
-        hostId: HOST_ID,
-        serverUrl: "https://bb.example.com",
-        credential: "bootstrap-secret",
-        expiresAt: 60000,
-      },
-    }),
   );
   Object.assign(fake.bb.experimental_machines, {
     bootstrap,
   });
-  fake.bb.experimental_machines.enrollments.prepare = prepare;
   await createModalSandboxPlugin({
     backendFactory: (credentials) => ({
       ...backend.backend,
@@ -242,7 +228,6 @@ async function setup(
     provider,
     backend,
     bootstrap,
-    prepare,
   };
 }
 
@@ -372,7 +357,6 @@ describe("Modal machine provider", () => {
       if (phase === "lookup") {
         await test.provider.create(createContext());
         test.bootstrap.mockClear();
-        test.prepare.mockClear();
       }
       const controller = new AbortController();
       if (phase === "create") {
@@ -410,9 +394,6 @@ describe("Modal machine provider", () => {
         pendingSnapshotImageIds: [],
       });
       expect(test.bootstrap).not.toHaveBeenCalled();
-      expect(test.prepare.mock.invocationCallOrder[0]).toBeLessThan(
-        checkpoint.mock.invocationCallOrder[0]!,
-      );
       expect(test.backend.states[0]?.terminated).toBe(false);
       if (resource === undefined) throw new Error("missing checkpoint");
       await test.provider.remove({
@@ -422,7 +403,6 @@ describe("Modal machine provider", () => {
         signal: new AbortController().signal,
       });
       expect(test.backend.states[0]?.terminated).toBe(true);
-      expect(test.prepare).toHaveBeenCalledOnce();
     },
   );
 
@@ -719,17 +699,16 @@ it("reconciles uncertain named allocations without creating or bootstrapping", a
   });
   expect(test.backend.creates).toHaveLength(0);
   expect(test.bootstrap).not.toHaveBeenCalled();
-  expect(test.prepare).not.toHaveBeenCalled();
   await test.harness.lifecycle.dispose();
 });
-it("does not build an image when enrollment preparation fails", async () => {
+it("reports bootstrap failures after preserving the allocation", async () => {
   const test = await setup();
-  test.prepare.mockRejectedValueOnce(new Error("Configure machine access"));
+  test.bootstrap.mockRejectedValueOnce(new Error("Configure machine access"));
   expect(await test.provider.create(createContext())).toMatchObject({
     status: "failed",
   });
-  expect(test.backend.image).not.toHaveBeenCalled();
-  expect(test.backend.creates).toHaveLength(0);
+  expect(test.backend.image).toHaveBeenCalledOnce();
+  expect(test.backend.creates).toHaveLength(1);
 });
 
 it("observes vendor deadlines", async () => {
@@ -910,7 +889,6 @@ it("builds without enrollment and runs a bounded debug sandbox with no runtime s
     timeoutMs: 1_800_000,
     image: { type: "image", imageId: "im-standard" },
   });
-  expect(test.prepare).not.toHaveBeenCalled();
   expect(test.bootstrap).not.toHaveBeenCalled();
 });
 

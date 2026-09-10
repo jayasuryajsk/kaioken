@@ -839,17 +839,14 @@ function rewindEnvironmentProvidersMigration(db: DbConnection): void {
     "server_access_provider_id",
     "server_access_grant_id",
     "resource",
-    "machine_provider_selection",
     "phase",
     "suspended_at",
-    "suspend_message",
+    "status_message",
     "suspend_retry_at",
     "idle_since",
-    "removal_started_at",
     "remove_retry_at",
     "teardown_attempt",
     "teardown_status",
-    "teardown_message",
   ]) {
     const columns = db.$client
       .prepare<[], TableInfoRow>("PRAGMA table_info(hosts)")
@@ -1687,10 +1684,9 @@ describe("migrate", () => {
 
       expect(
         db.$client
-          .prepare<
-            [],
-            MigratedEventDataRow
-          >("SELECT data FROM events WHERE id = 'evt-retained-output-migration'")
+          .prepare<[], MigratedEventDataRow>(
+            "SELECT data FROM events WHERE id = 'evt-retained-output-migration'",
+          )
           .get(),
       ).toEqual({ data: eventData });
       expect(
@@ -1761,10 +1757,9 @@ describe("migrate", () => {
 
       expect(
         db.$client
-          .prepare<
-            [],
-            { id: string; root: string | null }
-          >("SELECT id, git_checkout_root AS root FROM plugin_artifacts ORDER BY id")
+          .prepare<[], { id: string; root: string | null }>(
+            "SELECT id, git_checkout_root AS root FROM plugin_artifacts ORDER BY id",
+          )
           .all(),
       ).toEqual([
         { id: "collision", root: `/cache/repo/${commit}` },
@@ -1900,10 +1895,9 @@ describe("migrate", () => {
       });
       expect(
         db.$client
-          .prepare<
-            [],
-            { key: string; value: string }
-          >("SELECT key, value FROM app_settings_values WHERE key LIKE 'codex%' OR key LIKE 'claudeCode%' ORDER BY key")
+          .prepare<[], { key: string; value: string }>(
+            "SELECT key, value FROM app_settings_values WHERE key LIKE 'codex%' OR key LIKE 'claudeCode%' ORDER BY key",
+          )
           .all(),
       ).toEqual([
         { key: "claudeCodeMemoryEnabled", value: "true" },
@@ -1917,10 +1911,9 @@ describe("migrate", () => {
       ]);
       expect(
         db.$client
-          .prepare<
-            [],
-            { updatedAt: number }
-          >("SELECT updated_at AS updatedAt FROM app_settings_values WHERE key = 'showKeyboardHints'")
+          .prepare<[], { updatedAt: number }>(
+            "SELECT updated_at AS updatedAt FROM app_settings_values WHERE key = 'showKeyboardHints'",
+          )
           .get(),
       ).toEqual({ updatedAt: 1234 });
     } finally {
@@ -1966,7 +1959,9 @@ describe("migrate", () => {
           .prepare<
             [],
             { pluginId: string; key: string; value: string; updatedAt: number }
-          >("SELECT plugin_id AS pluginId, key, value, updated_at AS updatedAt FROM plugin_settings ORDER BY plugin_id, key")
+          >(
+            "SELECT plugin_id AS pluginId, key, value, updated_at AS updatedAt FROM plugin_settings ORDER BY plugin_id, key",
+          )
           .all(),
       ).toEqual([
         {
@@ -2002,10 +1997,9 @@ describe("migrate", () => {
       ]);
       expect(
         db.$client
-          .prepare<
-            [],
-            { key: string }
-          >("SELECT key FROM app_settings_values ORDER BY key")
+          .prepare<[], { key: string }>(
+            "SELECT key FROM app_settings_values ORDER BY key",
+          )
           .all(),
       ).toEqual([{ key: "showKeyboardHints" }]);
     } finally {
@@ -2074,10 +2068,9 @@ describe("migrate", () => {
 
       expect(
         db.$client
-          .prepare<
-            [],
-            { count: number }
-          >("SELECT COUNT(*) AS count FROM app_settings_values")
+          .prepare<[], { count: number }>(
+            "SELECT COUNT(*) AS count FROM app_settings_values",
+          )
           .get(),
       ).toEqual({ count: 0 });
       expect(getAppSettings(db)).toEqual(defaultAppSettings);
@@ -2153,10 +2146,9 @@ describe("migrate", () => {
 
       expect(
         db.$client
-          .prepare<
-            [],
-            { count: number }
-          >("SELECT COUNT(*) AS count FROM app_settings_values")
+          .prepare<[], { count: number }>(
+            "SELECT COUNT(*) AS count FROM app_settings_values",
+          )
           .get(),
       ).toEqual({ count: 0 });
       expect(getAppSettings(db).steerActiveThreadOnEnter).toBe(true);
@@ -2198,10 +2190,9 @@ describe("migrate", () => {
 
       expect(
         db.$client
-          .prepare<
-            [],
-            { value: string; updatedAt: number }
-          >("SELECT value, updated_at AS updatedAt FROM app_settings_values WHERE key = 'steerActiveThreadOnEnter'")
+          .prepare<[], { value: string; updatedAt: number }>(
+            "SELECT value, updated_at AS updatedAt FROM app_settings_values WHERE key = 'steerActiveThreadOnEnter'",
+          )
           .get(),
       ).toEqual({ value: "true", updatedAt: 1234 });
       expect(getAppSettings(db).steerActiveThreadOnEnter).toBe(true);
@@ -2261,10 +2252,9 @@ describe("migrate", () => {
       runMigrationFile({ db, migrationPath: sideChatPluginOnlyMigrationPath });
 
       const rows = db.$client
-        .prepare<
-          [],
-          MigratedThreadOriginRow
-        >("SELECT id, origin_kind AS originKind, origin_plugin_id AS originPluginId, visibility FROM threads")
+        .prepare<[], MigratedThreadOriginRow>(
+          "SELECT id, origin_kind AS originKind, origin_plugin_id AS originPluginId, visibility FROM threads",
+        )
         .all();
       const byId = new Map(rows.map((row) => [row.id, row]));
 
@@ -5182,10 +5172,9 @@ describe("migrate", () => {
       expect(readTableNames(db)).not.toContain("marketplaces");
       expect(
         db.$client
-          .prepare<
-            [],
-            { source: string }
-          >("SELECT source FROM plugins WHERE id = 'third-party'")
+          .prepare<[], { source: string }>(
+            "SELECT source FROM plugins WHERE id = 'third-party'",
+          )
           .get(),
       ).toEqual({ source: "git:https://example.test/tasks@main" });
     } finally {
@@ -5255,10 +5244,9 @@ describe("migrate", () => {
       });
       expect(
         db.$client
-          .prepare<
-            [],
-            MigrationCountRow
-          >("SELECT COUNT(*) AS count FROM plugin_catalog")
+          .prepare<[], MigrationCountRow>(
+            "SELECT COUNT(*) AS count FROM plugin_catalog",
+          )
           .get(),
       ).toEqual({ count: 0 });
     } finally {
@@ -5303,18 +5291,16 @@ describe("migrate", () => {
 
       expect(
         db.$client
-          .prepare<
-            [],
-            { name: string }
-          >("SELECT name FROM plugin_marketplaces ORDER BY name")
+          .prepare<[], { name: string }>(
+            "SELECT name FROM plugin_marketplaces ORDER BY name",
+          )
           .all(),
       ).toEqual([{ name: "acme" }, { name: "bb-community" }]);
       expect(
         db.$client
-          .prepare<
-            [],
-            { marketplaceName: string }
-          >("SELECT marketplace_name AS marketplaceName FROM plugin_marketplace_icons ORDER BY marketplace_name")
+          .prepare<[], { marketplaceName: string }>(
+            "SELECT marketplace_name AS marketplaceName FROM plugin_marketplace_icons ORDER BY marketplace_name",
+          )
           .all(),
       ).toEqual([
         { marketplaceName: "acme" },
@@ -5322,10 +5308,9 @@ describe("migrate", () => {
       ]);
       expect(
         db.$client
-          .prepare<
-            [],
-            { id: string; catalogMarketplaceName: string | null }
-          >("SELECT id, catalog_marketplace_name AS catalogMarketplaceName FROM plugins ORDER BY id")
+          .prepare<[], { id: string; catalogMarketplaceName: string | null }>(
+            "SELECT id, catalog_marketplace_name AS catalogMarketplaceName FROM plugins ORDER BY id",
+          )
           .all(),
       ).toEqual([
         { id: "local", catalogMarketplaceName: null },
@@ -5338,7 +5323,9 @@ describe("migrate", () => {
           .prepare<
             [],
             { name: string; etag: string | null; lastModified: string | null }
-          >("SELECT name, etag, last_modified AS lastModified FROM plugin_marketplaces ORDER BY name")
+          >(
+            "SELECT name, etag, last_modified AS lastModified FROM plugin_marketplaces ORDER BY name",
+          )
           .all(),
       ).toEqual([
         {
@@ -5632,9 +5619,9 @@ describe("environment providers migration", () => {
     rewindEnvironmentRowFactsMigration(db);
     rewindEnvironmentProvidersMigration(db);
     db.$client
-      .prepare<
-        [number]
-      >("DELETE FROM __drizzle_migrations WHERE created_at >= ?")
+      .prepare<[number]>(
+        "DELETE FROM __drizzle_migrations WHERE created_at >= ?",
+      )
       .run(environmentProvidersMigrationWhen);
     db.$client.exec(`
       INSERT INTO hosts (id, name, type, created_at, updated_at)
@@ -5709,10 +5696,9 @@ describe("environment providers migration", () => {
       seedPreProviderEnvironments(db);
       migrate(db);
       const rows = db.$client
-        .prepare<
-          [],
-          { provider: string; owner: string | null }
-        >("SELECT DISTINCT environment_provider_id AS provider, environment_provider_plugin_id AS owner FROM environments ORDER BY provider")
+        .prepare<[], { provider: string; owner: string | null }>(
+          "SELECT DISTINCT environment_provider_id AS provider, environment_provider_plugin_id AS owner FROM environments ORDER BY provider",
+        )
         .all();
       expect(rows).toEqual([
         { provider: "git-worktree", owner: "environment-git-worktree" },
@@ -5937,10 +5923,9 @@ describe("environment providers migration", () => {
 
       expect(
         db.$client
-          .prepare<
-            [],
-            { id: string; status: string }
-          >("SELECT id, status FROM environments ORDER BY id")
+          .prepare<[], { id: string; status: string }>(
+            "SELECT id, status FROM environments ORDER BY id",
+          )
           .all(),
       ).toEqual([
         { id: "env_default", status: "ready" },
@@ -6021,10 +6006,9 @@ describe("machine providers migration", () => {
 
       expect(
         db.$client
-          .prepare<
-            [],
-            { id: string; providerId: string | null; type: string }
-          >("SELECT id, server_access_provider_id AS providerId, type FROM hosts ORDER BY id")
+          .prepare<[], { id: string; providerId: string | null; type: string }>(
+            "SELECT id, server_access_provider_id AS providerId, type FROM hosts ORDER BY id",
+          )
           .all(),
       ).toEqual([
         { id: "direct", providerId: null, type: "persistent" },

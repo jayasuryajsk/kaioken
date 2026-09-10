@@ -35,13 +35,10 @@ bb.experimental_machines.register({
   ephemeral: true,
   inputs: z.object({ target: z.string() }),
   async create({ inputs, key, checkpoint, report, signal }) {
-    const enrollment = await bb.experimental_machines.enrollments.prepare({
-      key,
-    });
     const target = await allocateTarget({ target: inputs.target, key, signal });
-    const resource = { target: target.id, hostId: enrollment.hostId };
+    const resource = { target: target.id };
     await checkpoint(resource);
-    await bb.experimental_machines.bootstrap({
+    const { hostId } = await bb.experimental_machines.bootstrap({
       key,
       executor: target.executor,
       report,
@@ -49,14 +46,12 @@ bb.experimental_machines.register({
     });
     return {
       status: "created",
-      name: `Custom machine ${enrollment.hostId.slice(-6)}`,
+      name: `Custom machine ${hostId.slice(-6)}`,
       resource,
     };
   },
   async remove({ resource }) {
-    const owned = z
-      .object({ target: z.string(), hostId: z.string() })
-      .parse(resource);
+    const owned = z.object({ target: z.string() }).parse(resource);
     await disconnectTarget(owned.target);
     return { status: "removed" };
   },
@@ -65,17 +60,16 @@ bb.experimental_machines.register({
 
 A machine is not scoped to a project: nothing about creation names one, and
 projects reach a machine later through project sources. Optional Standard
-Schema `inputs` are parsed before create and persisted in
-`hosts.machine_provider_selection`. Every plugin
-can read them, so never put secrets there. Store credentials in plugin settings
+Schema `inputs` are parsed before create and persisted on the launch. Never put
+secrets there. Store credentials in plugin settings
 and pass a non-secret reference such as a target name in inputs.
 
 Create receives parsed inputs, a stable key, monotonic attempt, durable
 progress reporter, and abort signal. It must be
 idempotent by key: if enrolment completed before the server crashed, the next
 call reuses the already-enrolled host instead of creating another resource.
-Prepare enrollment before calling `await checkpoint(resource)` after durable
-allocation and before bootstrap. Create's checkpoint is asynchronous and makes
+Call `await checkpoint(resource)` after durable allocation and before
+bootstrap. Create's checkpoint is asynchronous and makes
 partial allocation recoverable even if enrollment never succeeds. Never put the
 bootstrap bundle in resource JSON. Return a readable name and private JSON
 resource for later lifecycle operations; core uses the host identity reserved
@@ -153,14 +147,10 @@ prove reachability from a sandbox.
 
 `bb.experimental_machines` implements `MachineBootstrapApi` alongside register:
 
-- `enrollments.prepare({ key, access? })` returns a
-  `MachineEnrollment`: pending with a private `EnrollmentBootstrap` containing
-  its expiry,
-  or enrolled with the stable hostId. Keys are scoped to the calling plugin.
-- `enrollments.waitForConnection({ enrollmentId, timeoutMs, signal })` returns `{ hostId }` after the daemon connects.
-- `bootstrap({ key, executor, access?, report, signal })` prepares or recovers
+- `bootstrap({ key, executor?, access?, report, signal })` prepares or recovers
   enrollment, installs or starts the daemon, waits for its
-  connection, and returns nothing. Reuse the same key and access selection
+  connection, and returns `{ hostId }`. When `executor` is omitted, it waits for
+  the user to run the manual command. Reuse the same key and access selection
   used before the create checkpoint. Initial installation needs Node, npm, and
   curl; the helper does not install OS packages.
 
@@ -169,7 +159,7 @@ returning `{ exitCode, stdout, stderr }`. Execute argv through the provider's
 transport, honor timeout and cancellation, and keep stdin private.
 The helper suppresses remote output and reports fixed progress messages. It
 restarts enrolled identities, including a restored preinstalled snapshot.
-Create's awaited checkpoint precedes bootstrap; suspend's synchronous checkpoint
+Create's awaited checkpoint precedes bootstrap; suspend's awaited checkpoint
 persists a recovery artifact before destructive cleanup.
 
 ### Coordinated suspension

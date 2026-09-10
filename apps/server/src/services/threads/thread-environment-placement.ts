@@ -158,7 +158,17 @@ export async function completeProviderSelection(
   const requires = record.provider.requires;
   let machine: EnvironmentMachineSelection;
   if (selection.machine.type === "existing") {
-    requireNonDestroyedHostWithStatus(deps, selection.machine.hostId);
+    const host = requireNonDestroyedHostWithStatus(
+      deps,
+      selection.machine.hostId,
+    );
+    if (host.lifecycle.phase === "removing") {
+      throw new ApiError(
+        409,
+        "machine_removing",
+        "Machine is being removed and cannot accept new environments",
+      );
+    }
     if (requires.projectCheckout) {
       requireSourceForHost(deps, projectId, selection.machine.hostId);
     }

@@ -77,16 +77,11 @@ Read the installed declarations for exact current signatures.
 - `ServerAccessProviderDeclaration`
 - `ServerAccessGrant`
 - `ServerAccessSelection`
-- `PluginMachines` — `bb.experimental_machines.register` and enrollment/bootstrap helpers (see backend-machines.md)
-- `EnrollmentBootstrap` — private enrollment bundle
-- `MachineEnrollment` — pending bundle or enrolled host identity
+- `PluginMachines` — `bb.experimental_machines.register` and bootstrap helper (see backend-machines.md)
 - `MachineExecutorRequest` — argv, timeout, signal, optional private stdin
 - `MachineExecutor` — transport exec
-- `MachineEnrollmentRequest` — durable key and optional access selection
-- `MachineConnectionRequest` — enrollmentId, timeoutMs, signal
-- `MachineEnrollments` — prepare and waitForConnection
-- `MachineBootstrapRequest` — enrollment request, executor, report, signal
-- `MachineBootstrapApi` — enrollments and bootstrap
+- `MachineBootstrapRequest` — durable key, optional executor and access selection, report, signal
+- `MachineBootstrapApi` — bootstrap
 - `PluginMachineProviderDeclaration`
 - `PluginMachineValidateDecision`
 - `PluginEnvironmentProviderDeclaration`

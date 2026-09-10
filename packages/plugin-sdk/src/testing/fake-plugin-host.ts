@@ -1093,10 +1093,9 @@ function createFakePluginHostInternal(
         );
       }
       const rows = database
-        .prepare<
-          [],
-          { id: number; statement_hash: string | null }
-        >("SELECT id, statement_hash FROM _bb_migrations ORDER BY id")
+        .prepare<[], { id: number; statement_hash: string | null }>(
+          "SELECT id, statement_hash FROM _bb_migrations ORDER BY id",
+        )
         .all();
       const applied = new Map<number, string | null>();
       for (const row of rows) applied.set(row.id, row.statement_hash);
@@ -2179,7 +2178,7 @@ function createFakePluginHostInternal(
 
   const unavailableMachineBootstrap = (): never => {
     throw new Error(
-      "Configure machineBootstrap in createFakePluginHost to exercise machine enrollment",
+      "Configure machineBootstrap in createFakePluginHost to exercise machine bootstrap",
     );
   };
   const experimental_machines: PluginMachines = {
@@ -2188,10 +2187,6 @@ function createFakePluginHostInternal(
       return options.machineResource ? options.machineResource(hostId) : null;
     },
     ...(options.machineBootstrap ?? {
-      enrollments: {
-        prepare: unavailableMachineBootstrap,
-        waitForConnection: unavailableMachineBootstrap,
-      },
       bootstrap: unavailableMachineBootstrap,
     }),
     register(declaration) {

@@ -592,11 +592,11 @@ credentials. Resource records are bounded to 16 KiB.
 
 Core owns enrollment, durable launches, cleanup retries and coordinated lifecycle
 transitions. Plugins own allocation, filesystem preservation and idle policy.
-Each `enrollments.prepare` call revokes any pending credential and issues a fresh
-one for the same durable host identity.
+Each `bootstrap` call revokes any pending credential and issues a fresh one for
+the same durable host identity.
 Create returns a readable machine name and private resource. Create failures are
 terminal; providers retry vendor API hiccups inside create.
-Create prepares enrollment and awaits checkpoint before bootstrap. Suspend and
+Create awaits checkpoint before bootstrap. Suspend and
 resume also await checkpoint before destructive cleanup/bootstrap. All three
 checkpoint signatures return Promise<void>; a rejected checkpoint stops the
 provider's subsequent work.
@@ -2672,20 +2672,18 @@ prove reachability from a remote machine.
 
 ## Machine enrollment and bootstrap
 
-`bb.experimental_machines.enrollments` exposes `prepare` and `waitForConnection`; these compose with `bootstrap`. Enrollment keys are scoped to the calling plugin and permanently retain their host identity. Pending credentials are single-use, short-lived, and encrypted at rest with a private server key; preparation after expiry reissues them, while an unexpired bundle survives a server restart. Bootstrap bundles carry optional access headers. A successful exchange is recovered as `enrolled` after a server crash.
+`bb.experimental_machines.bootstrap` prepares enrollment and waits for the daemon connection. Enrollment keys are scoped to the calling plugin and retain their host identity. Pending credentials are single-use and short-lived. Manual bootstrap bundles live only in server memory, so the user regenerates the command after a restart. Bootstrap bundles carry optional access headers. A successful exchange is recovered as `enrolled` after a server crash.
 
-`MachineExecutor` carries argv, stdin, a timeout, and an abort signal. `bootstrap` passes the bundle through private stdin, ignores remote output, and reports fixed progress messages. It installs pending enrollments and starts enrolled machines again so snapshot restores can reuse their identity. It returns no host ID; the prepared enrollment owns the reserved identity. Installation requires Node, npm, and curl and installs no OS packages.
+`MachineExecutor` carries argv, stdin, a timeout, and an abort signal. `bootstrap` passes the bundle through private stdin, ignores remote output, and reports fixed progress messages. It installs pending enrollments and starts enrolled machines again so snapshot restores can reuse their identity. When the executor is omitted, it waits for a manual connection. It returns the reserved host ID. Installation requires Node, npm, and curl and installs no OS packages.
 
 Stabilization requires independent Modal and SSH consumers, failure verification for expired credentials, concurrent retries, interrupted exchange, cancellation, identity mismatch, and restored snapshots, plus an audit that credentials never enter resource data or logs. Migration and live vendor verification remain part of the integration release gate.
 
-The bootstrap surface's supporting exports are `EnrollmentBootstrap`,
-`MachineEnrollment`, `MachineExecutorRequest`, `MachineExecutor`,
-`MachineEnrollmentRequest`, `MachineConnectionRequest`, `MachineEnrollments`,
-`MachineBootstrapRequest`, and `MachineBootstrapApi`.
+The bootstrap surface's supporting exports are `MachineExecutorRequest`,
+`MachineExecutor`, `MachineBootstrapRequest`, and `MachineBootstrapApi`.
 They belong to experimental `PluginMachines`; their unprefixed names do not
-indicate stabilization. Bootstrap uses executor `exec`. Create must prepare enrollment, persist an
-allocated resource with `await checkpoint(resource)`, then bootstrap with the
-same key. Never checkpoint a bootstrap bundle. Stabilization must verify cleanup
+indicate stabilization. Bootstrap uses executor `exec`. Create must persist an
+allocated resource with `await checkpoint(resource)`, then bootstrap with its
+durable key. Stabilization must verify cleanup
 of checkpointed allocation before successful enrollment, including safe no-op
 uninstall when installation never began, and retry after partial installation.
 
@@ -2738,10 +2736,10 @@ after automatic retries are exhausted.
 ## Transient provider setup data
 
 Machine setup slots receive launch identity and launch controls, not enrollment
-command retrieval. Manual keeps the result of `enrollments.prepare` in memory
-and serves command/expiry through its own typed RPC. Reading does not renew the
-enrollment. Completion, cancellation and expiry remove the cached command;
-plugin reload and server restart do not recover it. Commands stay out of
+command retrieval. Core keeps the manual bootstrap bundle in memory and serves
+the command and expiry through launch status. Reading does not renew the
+enrollment. Completion, cancellation, expiry, and server restart remove the
+cached command. Commands stay out of
 persisted progress and transcripts. Machine credentials cannot retrieve commands.
 
 The existing SDK `hosts.experimental_launch({ id, scope? })` defaults to exact launch lookup.

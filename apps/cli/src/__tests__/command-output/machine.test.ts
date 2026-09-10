@@ -32,12 +32,11 @@ const hosts: Host[] = [
     type: "persistent",
     status: "connected",
     machineProviderId: null,
-    machineProviderSelection: null,
     lifecycle: {
       phase: "active",
       suspendedAt: null,
 
-      progress: null,
+      message: null,
       teardown: null,
     },
     maxPermissionMode: "full",
@@ -52,12 +51,11 @@ const hosts: Host[] = [
     type: "persistent",
     status: "disconnected",
     machineProviderId: null,
-    machineProviderSelection: null,
     lifecycle: {
       phase: "active",
       suspendedAt: null,
 
-      progress: null,
+      message: null,
       teardown: null,
     },
     maxPermissionMode: "full",

@@ -212,9 +212,7 @@ function lifecycleReporter(
       )
         return;
       updateHost(deps.db, deps.hub, hostId, {
-        ...(owner.phase === "suspending" || owner.phase === "suspended"
-          ? { suspendMessage: text.slice(0, 500) }
-          : { teardownMessage: text.slice(0, 500) }),
+        statusMessage: text.slice(0, 500),
       });
       deps.hub.notifyHost(hostId, ["host-connected"]);
     },
@@ -245,10 +243,6 @@ async function invokeCreate(
           launch,
           ["creating", "cancelled", "failed"],
           (row) => {
-            if (row.hostId === null)
-              throw new Error(
-                "Prepare enrollment before checkpointing a machine resource",
-              );
             row.resource = parsed;
             row.cleanupResourceRemoved = false;
           },
@@ -362,13 +356,12 @@ async function runCreate(
         result.name ??
         `${record.provider.displayName} ${reservedHostId.replace(/[^a-z0-9]/giu, "").slice(-6)}`,
       machineProviderId: record.provider.id,
-      machineProviderSelection: { inputs: launch.inputs },
       phase: "active",
       resource: result.resource,
       removeRetryAt: null,
       suspendedAt: null,
       teardownAttempt: 0,
-      teardownMessage: null,
+      statusMessage: null,
       teardownStatus: null,
     });
     deps.hub.notifyHost(reservedHostId, ["host-connected"]);
@@ -551,11 +544,7 @@ export function resolveThreadMachineLaunchKey(
     const launch = getMachineLaunch(deps.db, key);
     if (launch?.phase !== "ready" || launch.hostId === null) return key;
     const host = getHost(deps.db, launch.hostId);
-    if (
-      host !== null &&
-      host.destroyedAt === null &&
-      host.removalStartedAt === null
-    )
+    if (host !== null && host.destroyedAt === null && host.phase !== "removing")
       return key;
     key = `${threadId}:replacement:${launch.hostId}`;
   }
@@ -587,7 +576,7 @@ export function askMachineLaunch(
     if (
       host !== null &&
       host.destroyedAt === null &&
-      host.removalStartedAt === null
+      host.phase !== "removing"
     ) {
       return {
         action: "ready",
@@ -658,22 +647,16 @@ function machineHostResponse(
     type: row.type,
     status: deps.hub.hasDaemonForHost(row.id) ? "connected" : "disconnected",
     machineProviderId: row.machineProviderId,
-    machineProviderSelection: row.machineProviderSelection,
     lifecycle: {
       phase: row.phase,
       suspendedAt: row.suspendedAt,
-      progress:
-        row.suspendMessage ??
-        (row.teardownStatus === null ? row.teardownMessage : null),
+      message: row.statusMessage,
       teardown:
         row.teardownStatus === null
           ? null
           : {
               status: row.teardownStatus,
               attempt: row.teardownAttempt,
-              ...(row.teardownMessage === null
-                ? {}
-                : { message: row.teardownMessage }),
             },
     },
     maxPermissionMode: row.maxPermissionMode,
@@ -785,7 +768,7 @@ export async function cancelMachineLaunch(
             removeRetryAt: null,
             suspendedAt: null,
             teardownStatus: "removed",
-            teardownMessage: null,
+            statusMessage: null,
           });
           deps.hub.notifyHost(removedHostId, ["host-disconnected"]);
         }
@@ -968,8 +951,7 @@ async function suspendMachine(
         updateHost(deps.db, deps.hub, hostId, {
           phase: "suspending",
           machineOperationId: operationId,
-          ...(coordinateMaintenance ? {} : { suspendMessage: null }),
-          teardownMessage: null,
+          ...(coordinateMaintenance ? {} : { statusMessage: null }),
           teardownStatus: null,
         });
         const daemonSessionId = deps.hub.getDaemonSessionIdForHost(hostId);
@@ -1043,7 +1025,7 @@ async function suspendMachine(
               : "suspended",
           resource: result.resource,
           suspendedAt: Date.now(),
-          teardownMessage: null,
+          statusMessage: null,
           teardownStatus: null,
         });
         deps.hub.notifyHost(hostId, ["host-disconnected"]);
@@ -1159,27 +1141,13 @@ async function resumeMachineWithIntent(
   if (
     row === null ||
     row.machineProviderId === null ||
-    row.removalStartedAt !== null
+    (row.phase === "removing" && !preserveRemoval)
   )
     return;
-  const hasLiveThreads = machineHasLiveThreads(deps.db, hostId);
-  if (row.phase === "removing" && row.suspendedAt === null && hasLiveThreads) {
-    updateHost(deps.db, deps.hub, hostId, {
-      phase: "active",
-      removeRetryAt: null,
-      teardownMessage: null,
-      teardownStatus: null,
-    });
-    return;
-  }
   if (
     row.phase !== "suspended" &&
     row.phase !== "suspending" &&
-    !(
-      row.phase === "removing" &&
-      row.suspendedAt !== null &&
-      (hasLiveThreads || preserveRemoval)
-    )
+    !(row.phase === "removing" && row.suspendedAt !== null && preserveRemoval)
   ) {
     return;
   }
@@ -1245,14 +1213,13 @@ async function resumeMachineWithIntent(
       ) {
         return;
       }
-      const keepRemoving =
-        current.phase === "removing" && !machineHasLiveThreads(deps.db, hostId);
+      const keepRemoving = current.phase === "removing";
       updateHost(deps.db, deps.hub, hostId, {
         phase: keepRemoving ? "removing" : "active",
         resource: result.resource,
         suspendedAt: null,
         removeRetryAt: keepRemoving ? current.removeRetryAt : null,
-        teardownMessage: null,
+        statusMessage: null,
         teardownStatus: null,
       });
       deps.hub.notifyHost(hostId, ["host-connected"]);
@@ -1261,7 +1228,7 @@ async function resumeMachineWithIntent(
   try {
     await operation.done;
     updateHost(deps.db, deps.hub, hostId, {
-      suspendMessage: null,
+      statusMessage: null,
       suspendRetryAt: null,
     });
   } catch (error) {
@@ -1273,7 +1240,7 @@ async function resumeMachineWithIntent(
       updateHost(deps.db, deps.hub, hostId, { phase });
     }
     updateHost(deps.db, deps.hub, hostId, {
-      suspendMessage: `Machine resume failed: ${errorMessage(error)}`,
+      statusMessage: `Machine resume failed: ${errorMessage(error)}`,
       suspendRetryAt: Date.now() + 10_000,
     });
     throw error;
@@ -1298,7 +1265,7 @@ export function requestMachineRemoval(deps: Deps, hostId: string): boolean {
       row.phase === "suspending" ? row.machineOperationId : null,
     removeRetryAt: Date.now(),
     teardownStatus: null,
-    teardownMessage: null,
+    statusMessage: null,
   });
   deps.hub.notifyHost(hostId, ["host-disconnected"]);
   return true;
@@ -1377,7 +1344,7 @@ async function removeMachine(deps: Deps, hostId: string): Promise<void> {
     row === null ||
     row.machineProviderId === null ||
     row.destroyedAt !== null ||
-    (row.removalStartedAt === null && machineHasLiveThreads(deps.db, hostId))
+    row.phase !== "removing"
   ) {
     return;
   }
@@ -1386,7 +1353,7 @@ async function removeMachine(deps: Deps, hostId: string): Promise<void> {
   if (row.resource === null) {
     updateHost(deps.db, deps.hub, hostId, {
       teardownStatus: "failed",
-      teardownMessage: `Machine "${hostId}" has no provider resource`,
+      statusMessage: `Machine "${hostId}" has no provider resource`,
       removeRetryAt: Date.now() + 60_000,
     });
     return;
@@ -1395,11 +1362,10 @@ async function removeMachine(deps: Deps, hostId: string): Promise<void> {
   const operationId = `${record.pluginId}:${randomUUID()}`;
   const attempt = row.teardownAttempt + 1;
   updateHost(deps.db, deps.hub, hostId, {
-    removalStartedAt: row.removalStartedAt ?? Date.now(),
     machineOperationId: operationId,
     teardownAttempt: attempt,
     teardownStatus: "running",
-    teardownMessage: null,
+    statusMessage: null,
   });
   const operation = runTrackedOperation({
     map: operations(removeOperations, deps.db),
@@ -1432,7 +1398,7 @@ async function removeMachine(deps: Deps, hostId: string): Promise<void> {
           removeRetryAt: null,
           suspendedAt: null,
           teardownStatus: "removed",
-          teardownMessage: null,
+          statusMessage: null,
         });
         deps.hub.notifyHost(hostId, ["host-disconnected"]);
       } catch (error) {
@@ -1443,7 +1409,7 @@ async function removeMachine(deps: Deps, hostId: string): Promise<void> {
           return;
         updateHost(deps.db, deps.hub, hostId, {
           teardownStatus: "failed",
-          teardownMessage: errorMessage(error),
+          statusMessage: errorMessage(error),
           removeRetryAt: Date.now() + 60_000,
         });
       }
@@ -1480,7 +1446,7 @@ export async function sweepProviderMachine(
       return;
     }
     updateHost(deps.db, deps.hub, hostId, {
-      suspendMessage:
+      statusMessage:
         row.suspendedAt !== null
           ? null
           : "Machine suspension was interrupted; recovery will use the last persisted provider resource.",
@@ -1490,31 +1456,8 @@ export async function sweepProviderMachine(
     return;
   }
   const now = Date.now();
-  if (row.removalStartedAt !== null) {
-    if (
-      !operations(removeOperations, deps.db).has(hostId) &&
-      (row.removeRetryAt === null || row.removeRetryAt <= now)
-    ) {
-      await removeMachine(deps, hostId);
-    }
-    return;
-  }
+  if (operations(removeOperations, deps.db).has(hostId)) return;
   if (operations(resumeOperations, deps.db).has(hostId)) return;
-  const hasLiveThreads = machineHasLiveThreads(deps.db, hostId);
-  if (
-    row.phase === "removing" &&
-    row.removalStartedAt === null &&
-    hasLiveThreads
-  ) {
-    updateHost(deps.db, deps.hub, hostId, {
-      phase: row.suspendedAt === null ? "active" : "suspended",
-      removeRetryAt: null,
-      teardownMessage: null,
-      teardownStatus: null,
-    });
-    row = getHost(deps.db, hostId);
-    if (row === null) return;
-  }
   if (
     row.phase !== "removing" ||
     row.removeRetryAt === null ||
@@ -1536,15 +1479,6 @@ export async function sweepProviderMachine(
     row.removeRetryAt === null ||
     row.removeRetryAt > Date.now()
   ) {
-    return;
-  }
-  if (row.removalStartedAt === null && machineHasLiveThreads(deps.db, hostId)) {
-    updateHost(deps.db, deps.hub, hostId, {
-      phase: row.suspendedAt === null ? "active" : "suspended",
-      removeRetryAt: null,
-      teardownMessage: null,
-      teardownStatus: null,
-    });
     return;
   }
   const environments = listEnvironments(deps.db, { hostId }).filter(
@@ -1638,7 +1572,7 @@ export async function sweepMachineLifecycles(
           updateHost(deps.db, deps.hub, machine.id, {
             teardownAttempt: current.teardownAttempt + 1,
             teardownStatus: "failed",
-            teardownMessage: errorMessage(error),
+            statusMessage: errorMessage(error),
             ...(current.phase === "removing"
               ? {
                   removeRetryAt: Date.now() + 60_000,

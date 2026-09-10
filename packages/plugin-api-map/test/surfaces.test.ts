@@ -217,21 +217,16 @@ describe("surface card copy", () => {
       "Await suspend.checkpoint(resource) before destructive cleanup",
     );
     expect(machineProviders?.bullets.join(" ")).toContain(
-      "host's lifecycle phase and progress",
+      "host's lifecycle phase and message",
     );
   });
 
-  it("maps enrollment helpers and checkpointed allocation to the machine surface", () => {
+  it("maps bootstrap and checkpointed allocation to the machine surface", () => {
     const machines = SURFACES_BY_ID.get("machine-providers");
     expect(machines?.apiSymbols).toEqual(
       expect.arrayContaining([
-        "EnrollmentBootstrap",
-        "MachineEnrollment",
         "MachineExecutorRequest",
         "MachineExecutor",
-        "MachineEnrollmentRequest",
-        "MachineConnectionRequest",
-        "MachineEnrollments",
         "MachineBootstrapRequest",
         "MachineBootstrapApi",
         "PluginMachineProviderCreateContext",
@@ -241,10 +236,7 @@ describe("surface card copy", () => {
       ]),
     );
     expect(machines?.bullets.join(" ")).toContain(
-      "await create.checkpoint(resource)",
-    );
-    expect(machines?.bullets.join(" ")).toContain(
-      "never checkpoint the bootstrap bundle",
+      "Await create.checkpoint(resource)",
     );
     expect(machines?.bullets.join(" ")).toContain("--environment-provider");
     expect(SURFACES_BY_ID.get("server-access")?.apiSymbols).toEqual(

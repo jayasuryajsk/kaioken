@@ -112,12 +112,11 @@ describe("@bb/sdk", () => {
       name: "Dev box",
       status: "connected",
       machineProviderId: "digitalocean",
-      machineProviderSelection: { inputs: {} },
       lifecycle: {
         phase: "active",
         suspendedAt: null,
 
-        progress: null,
+        message: null,
         teardown: null,
       },
       maxPermissionMode: "full",

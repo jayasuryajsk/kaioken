@@ -4,7 +4,7 @@ import {
   enrolledInstallerScript,
   manualEnrollmentCommand,
 } from "./manual-enrollment-command.js";
-import type { EnrollmentBootstrap } from "@get-bb/plugin-sdk";
+import type { EnrollmentBootstrap } from "./enrollments.js";
 
 const bootstrap: EnrollmentBootstrap = {
   hostId: "host_test",

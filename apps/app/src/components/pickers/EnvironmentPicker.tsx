@@ -608,7 +608,7 @@ function MachineSection({
   const connected = host.status === "connected";
   const hostProviders = environmentProviders;
   const selectable =
-    connected ||
+    (connected && host.lifecycle.phase !== "removing") ||
     (host.machineProviderId !== null && host.lifecycle.phase === "suspended");
   return (
     <DropdownMenuGroup>

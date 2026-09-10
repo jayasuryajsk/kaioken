@@ -17,7 +17,7 @@ export async function ensureHostSessionReadyForWork(
     throw new ApiError(404, "host_not_found", "Host not found");
   }
 
-  if (host.removalStartedAt !== null) {
+  if (host.phase === "removing") {
     throw new ApiError(
       409,
       "machine_removing",
@@ -29,7 +29,7 @@ export async function ensureHostSessionReadyForWork(
   await resumeMachine(deps, host.id);
   assertMachineLifecycleAdmission(deps, host.id);
   const current = getHost(deps.db, host.id);
-  if (current?.removalStartedAt !== null) {
+  if (current?.phase === "removing") {
     throw new ApiError(
       409,
       "machine_removing",

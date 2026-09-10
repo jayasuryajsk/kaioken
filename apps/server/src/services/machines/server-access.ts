@@ -159,8 +159,7 @@ async function resolve(
       deps.db
         .update(hosts)
         .set({
-          teardownMessage:
-            error instanceof Error ? error.message : String(error),
+          statusMessage: error instanceof Error ? error.message : String(error),
         })
         .where(eq(hosts.id, args.hostId))
         .run();
@@ -179,7 +178,7 @@ async function resolve(
     .set({
       serverAccessProviderId: providerId,
       serverAccessGrantId: grant.id,
-      teardownMessage: null,
+      statusMessage: null,
     })
     .where(eq(hosts.id, args.hostId))
     .run();

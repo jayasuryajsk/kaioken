@@ -22,7 +22,7 @@ function lifecycle(
     phase: "active",
     suspendedAt: null,
 
-    progress: null,
+    message: null,
     teardown: null,
     ...overrides,
   };
@@ -118,7 +118,7 @@ export function Header() {
             name: "Modal sandbox 91c4",
             lifecycle: lifecycle({
               phase: "suspending",
-              progress: "Saving the sandbox filesystem",
+              message: "Saving the sandbox filesystem",
             }),
           })}
           lifecycleNotice={{

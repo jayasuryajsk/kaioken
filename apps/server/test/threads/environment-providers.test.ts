@@ -281,6 +281,24 @@ function readyAt(host: { id: string }): TestProviderDecision {
 }
 
 describe("environment providers are asked inside provisioning", () => {
+  it("refuses placement on a machine being removed", async () => {
+    await withTestHarness(async (harness) => {
+      installTarget({ provision: () => ({ action: "wait", reason: "…" }) });
+      const { host, project } = seedTargetFixture(
+        harness,
+        "host-being-removed",
+      );
+      updateHost(harness.db, harness.hub, host.id, { phase: "removing" });
+
+      await expect(
+        createTargetThread(harness, {
+          projectId: project.id,
+          hostId: host.id,
+        }),
+      ).rejects.toThrow("Machine removal has begun");
+    });
+  });
+
   it("shares a projectless parent's personal workspace when no environment flags are supplied", async () => {
     await withTestHarness(async (harness) => {
       installTargets([

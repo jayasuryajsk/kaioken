@@ -274,8 +274,7 @@ export function MachineSettingsView() {
 
   const hosts = hostsQuery.data;
   const host = hosts?.find((candidate) => candidate.id === hostId) ?? null;
-  const lifecycleMessage =
-    host?.lifecycle.progress ?? host?.lifecycle.teardown?.message ?? null;
+  const lifecycleMessage = host?.lifecycle.message ?? null;
   const lifecycleNotice =
     host === null
       ? null
