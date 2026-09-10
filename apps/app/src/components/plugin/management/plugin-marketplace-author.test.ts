@@ -78,7 +78,7 @@ describe("plugin marketplace author identity", () => {
     );
     const key = pluginMarketplaceAuthorKey(selected);
 
-    expect(key).toBe("5:first:name:BB");
+    expect(key).toBe("5:first:name:Kaioken");
     if (key === null) throw new Error("Expected an author key");
     expect(
       entriesByMarketplaceAuthor(

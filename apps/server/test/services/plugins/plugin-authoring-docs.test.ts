@@ -523,8 +523,8 @@ describe("kaioken-plugin-authoring skill", () => {
 
   it("documents every KaiokenPluginApi property", () => {
     for (const key of KAIOKEN_PLUGIN_API_KEYS) {
-      expect(skill, `kaioken.${key} is not documented in the skill`).toContain(
-        `kaioken.${key}`,
+      expect(skill, `bb.${key} is not documented in the skill`).toContain(
+        `bb.${key}`,
       );
     }
   });

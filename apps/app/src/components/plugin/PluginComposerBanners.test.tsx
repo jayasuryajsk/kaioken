@@ -224,6 +224,6 @@ describe("ComposerBannersSlot", () => {
         <div>Kaioken row</div>
       </ComposerBannersSlot>,
     );
-    expect(view.container.textContent).toBe("Plugin rowBB row");
+    expect(view.container.textContent).toBe("Plugin rowKaioken row");
   });
 });

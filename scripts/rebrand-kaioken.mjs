@@ -43,8 +43,10 @@ import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   renameSync,
+  rmdirSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -96,6 +98,22 @@ const FIXUPS = [
     file: "packages/domain/test/plugin-icon.test.ts",
     from: /"kaioken",(\s*)"branding"/g,
     to: '"bb",$1"branding"',
+  },
+  // Fixture text where the product name is glued to other characters.
+  {
+    file: "apps/app/src/components/plugin/PluginComposerBanners.test.tsx",
+    from: /rowBB row/g,
+    to: "rowKaioken row",
+  },
+  {
+    file: "apps/app/src/components/plugin/management/plugin-marketplace-author.test.ts",
+    from: /name:BB\b/g,
+    to: "name:Kaioken",
+  },
+  {
+    file: "apps/app/src/components/tools/automation-overview.test.tsx",
+    from: /Projects: bb;/g,
+    to: "Projects: kaioken;",
   },
   // The injected mobile bridge global is renamed at runtime (NATIVE_BRIDGE_GLOBAL).
   {
@@ -191,7 +209,8 @@ function rebrandText(input, file = "") {
   s = s.replace(/(?<![\w$])Bb(?=[A-Z][a-z])/g, "Kaioken");
   s = s.replace(/(?<![\w$])bb(?=[A-Z][a-z])/g, "kaioken");
   s = s.replace(/(?<![\w-])\.bb-dev(?!\w)/g, ".kaioken-dev");
-  s = s.replace(/(?<![\w\-)\]])\.bb(?=$|["'`/\s\\$])/gm, ".kaioken"); // dir, not `x.bb`
+  s = s.replace(/(?<![\w\-)\]])\.bb(?=$|["'`/\s\\$%])/gm, ".kaioken"); // dir, not `x.bb`
+  s = s.replaceAll("%2F.bb%2F", "%2F.kaioken%2F");
   s = s.replace(/dev\.bb\.desktop/g, "dev.kaioken.desktop");
   s = s.replace(
     new RegExp(`(?<![\\w@$])bb\\.(?=(?:${DOTTED_EXTENSIONS})(?!\\w))`, "g"),
@@ -209,8 +228,8 @@ function rebrandText(input, file = "") {
   s = s.replace(/(?<![\w@.$:])bb(?!\w)/g, (match, offset, str) => {
     const before = str.slice(Math.max(0, offset - 40), offset);
     const after = str.slice(offset + 2, offset + 40);
-    if (/["']$/.test(before) && /^["']\s*:/.test(after)) return match; // "bb": key
-    if (/^(\\?\.[\w?]|\?[.:])/.test(after)) return match; // bb.log, bb?.app, bb?: key
+    if (/["']$/.test(before) && /^["']:/.test(after)) return match; // "bb": key
+    if (/^(\\?\.[\w?$]|\?[.:])/.test(after)) return match; // bb.log, bb?.app, bb?: key
     if (/^\s*[:=;,)}]/.test(after)) {
       // Prose reads "... inside bb, ..." (a word, a space, then bb). Code reads
       // "(bb, ctx)", "{ bb }", "return bb;", "  bb,".
@@ -228,6 +247,16 @@ function rebrandText(input, file = "") {
     if (fixup.file === file) s = s.replace(fixup.from, fixup.to);
   }
   return s;
+}
+
+function pruneEmptyDirectories(relativeDir) {
+  let dir = relativeDir;
+  while (dir && dir !== ".") {
+    const abs = resolve(root, dir);
+    if (!existsSync(abs) || readdirSync(abs).length > 0) return;
+    rmdirSync(abs);
+    dir = dirname(dir);
+  }
 }
 
 function isBinary(buffer) {
@@ -254,6 +283,7 @@ function main() {
       }
       renameSync(resolve(root, file), resolve(root, target));
       renamed += 1;
+      pruneEmptyDirectories(dirname(file));
     }
     const abs = resolve(root, target);
     const buffer = readFileSync(abs);

@@ -14,7 +14,7 @@ const RETIRED_LOCAL_STORAGE_KEYS: Partial<
 };
 
 function legacyLocalStorageKey(key: UiPreferenceKey): string {
-  return `kaioken.${key}`;
+  return `bb.${key}`;
 }
 
 export function readLegacyLocalUiPreference<Key extends UiPreferenceKey>(

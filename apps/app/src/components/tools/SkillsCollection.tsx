@@ -66,7 +66,7 @@ function providerFilterLabel(
   provider: ResourceProviderFilter,
   providerRoster: ProviderRoster,
 ): string {
-  return provider === "kaioken" ? "bb" : providerLabel(provider, providerRoster);
+  return provider === "kaioken" ? "kaioken" : providerLabel(provider, providerRoster);
 }
 
 function skillSourceFilterId(skill: SkillSummary): ResourceSkillSourceFilter {

@@ -239,7 +239,9 @@ describe("AutomationOverviewView", () => {
     expect(screen.getByText("Projects")).toBeTruthy();
     expect(screen.getByText("Status")).toBeTruthy();
 
-    const projectOption = screen.getByRole("menuitemcheckbox", { name: "kaioken" });
+    const projectOption = screen.getByRole("menuitemcheckbox", {
+      name: "kaioken",
+    });
     expect(projectOption.querySelector("[data-icon]")).toBeNull();
     expect(
       projectOption.querySelector(".truncate")?.getAttribute("title"),
@@ -300,7 +302,7 @@ describe("AutomationOverviewView", () => {
     fireEvent.keyDown(document, { key: "Escape" });
     expect(
       screen.getByRole("button", {
-        name: "Filters: Projects: bb; Status: Paused",
+        name: "Filters: Projects: kaioken; Status: Paused",
       }),
     ).toBeTruthy();
 

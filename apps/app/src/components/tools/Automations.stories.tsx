@@ -602,7 +602,7 @@ export function ProviderIdentities() {
           >
             <AutomationDetail
               value={value}
-              projectLabel={value.projectId === "proj_bb" ? "bb" : "Local"}
+              projectLabel={value.projectId === "proj_bb" ? "kaioken" : "Local"}
             />
           </DetailState>
         ))}

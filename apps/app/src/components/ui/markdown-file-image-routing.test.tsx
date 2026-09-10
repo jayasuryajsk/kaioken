@@ -124,7 +124,7 @@ describe("Markdown file preview image routing", () => {
     expect(
       screen.getByRole("img", { name: "absolute" }).getAttribute("src"),
     ).toBe(
-      "/api/v1/threads/thr_preview/host-files/content?path=%2FUsers%2Fme%2F.bb%2Fthread-storage%2Fthr_preview%2Fgenerated.png",
+      "/api/v1/threads/thr_preview/host-files/content?path=%2FUsers%2Fme%2F.kaioken%2Fthread-storage%2Fthr_preview%2Fgenerated.png",
     );
     expect(
       screen.getByRole("img", { name: "relative" }).getAttribute("src"),
