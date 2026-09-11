@@ -265,6 +265,16 @@ Each provider's own options live on its plugin: Codex memory and native
 subagents under the Codex provider plugin, and Claude Code memory, native
 subagents, and the Workflow tool under the Claude Code provider plugin.
 
+The Codex plugin also defaults `isolateCodexHome` to on: kaioken launches
+`codex app-server` with `CODEX_HOME=~/.kaioken/codex-home`, a private session
+store whose `auth.json`, `config.toml`, `plugins`, `skills`, and memories are
+symlinks into the shared home (`~/.codex` or `$CODEX_HOME`). This keeps kaioken
+threads out of the ChatGPT and Codex apps while sharing login, settings, and
+memories with the `codex` CLI. Rollouts kaioken wrote into the shared home
+before are moved over once. Set it to `false` with
+`kaioken plugin config provider-codex set isolateCodexHome false` to use the
+shared home directly.
+
 Claude Code starts without its Claude in Chrome browser tools when kaioken runs it,
 even when the interactive `claude` CLI has Chrome enabled by default. Turn the
 tools on for kaioken threads with

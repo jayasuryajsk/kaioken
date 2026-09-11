@@ -26,6 +26,7 @@ export type CodexSessionOptions = {
   reasoningLevel?: ReasoningLevel;
   memoryEnabled?: boolean;
   providerSubagentsEnabled?: boolean;
+  isolateCodexHome?: boolean;
   instructions?: string;
   envVars?: Record<string, string>;
 } & RuntimePermissionPolicy;

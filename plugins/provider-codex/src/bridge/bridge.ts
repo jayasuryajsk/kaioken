@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { createHash } from "node:crypto";
+import os from "node:os";
 import {
   isStandaloneBuiltinCompactCommand,
   type DynamicTool,
@@ -58,6 +59,11 @@ import {
   extractCodexMacOsPermissionRequest,
   type CodexMacOsPermissionRequest,
 } from "../interactive-requests.js";
+import { resolveCodexHome } from "../codex-home.js";
+import {
+  preparePrivateCodexHome,
+  resolvePrivateCodexHome,
+} from "../private-codex-home.js";
 import { parseModelsResponse } from "../models.js";
 import { macOsPermissionPresentation } from "../presentation.js";
 import {
@@ -385,14 +391,39 @@ function appServerLaunchEnv(
   };
 }
 
+function resolveIsolatedCodexHome(): string | null {
+  const homeDir = os.homedir();
+  const sharedHome = resolveCodexHome(homeDir, process.env);
+  const privateHome = resolvePrivateCodexHome(homeDir);
+  try {
+    const prepared = preparePrivateCodexHome({ sharedHome, privateHome });
+    if (prepared.migratedRollouts > 0) {
+      process.stderr.write(
+        `codex bridge moved ${prepared.migratedRollouts} kaioken rollout(s) into ${privateHome}\n`,
+      );
+    }
+    return privateHome;
+  } catch (error) {
+    process.stderr.write(
+      `codex bridge could not prepare ${privateHome}; using ${sharedHome}: ${
+        error instanceof Error ? error.message : String(error)
+      }\n`,
+    );
+    return null;
+  }
+}
+
 function buildAppServerEnv(
   envVars: Readonly<Record<string, string>> | undefined,
+  isolateCodexHome: boolean,
 ): NodeJS.ProcessEnv {
-  return withoutBridgeRuntimeEnv(
+  const env = withoutBridgeRuntimeEnv(
     sanitizeInheritedChildProcessEnv({
       env: appServerLaunchEnv(envVars),
     }),
   );
+  const codexHome = isolateCodexHome ? resolveIsolatedCodexHome() : null;
+  return codexHome === null ? env : { ...env, CODEX_HOME: codexHome };
 }
 
 function describeCodexLaunchError(error: unknown): string {
@@ -478,6 +509,7 @@ const codexProviderOptionsSchema = z
   .object({
     memoryEnabled: z.boolean().optional(),
     providerSubagentsEnabled: z.boolean().optional(),
+    isolateCodexHome: z.boolean().optional(),
     additionalWorkspaceWriteRoots: z.array(z.string()).optional(),
   })
   .passthrough();
@@ -501,6 +533,9 @@ function decodeCodexOptions(
         : {}),
       ...(decoded.providerSubagentsEnabled !== undefined
         ? { providerSubagentsEnabled: decoded.providerSubagentsEnabled }
+        : {}),
+      ...(decoded.isolateCodexHome !== undefined
+        ? { isolateCodexHome: decoded.isolateCodexHome }
         : {}),
     },
     additionalWorkspaceWriteRoots: decoded.additionalWorkspaceWriteRoots ?? [],
@@ -833,6 +868,7 @@ function handleChildExit(
 
 function spawnChildConnection(callbacks: {
   envVars?: Readonly<Record<string, string>>;
+  isolateCodexHome?: boolean;
   recordThreadId: string | null;
   onNotification: (method: string, params: unknown) => void;
   onRequest: (
@@ -842,9 +878,16 @@ function spawnChildConnection(callbacks: {
   ) => void;
   onExit: (info: CodexAppServerExitInfo) => void;
 }): CodexAppServerConnection {
-  const env = buildAppServerEnv(callbacks.envVars);
+  const env = buildAppServerEnv(
+    callbacks.envVars,
+    callbacks.isolateCodexHome ?? true,
+  );
   const launch = resolveAppServerLaunch(appServerLaunchEnv(callbacks.envVars));
-  const { envVars: _envVars, ...connectionCallbacks } = callbacks;
+  const {
+    envVars: _envVars,
+    isolateCodexHome: _isolateCodexHome,
+    ...connectionCallbacks
+  } = callbacks;
   return createCodexAppServerConnection({
     command: launch.command,
     args: launch.args,
@@ -987,6 +1030,7 @@ async function constructThreadSession(
 
   const connection = spawnChildConnection({
     envVars: decoded.sessionOptions.envVars,
+    isolateCodexHome: decoded.sessionOptions.isolateCodexHome ?? true,
     recordThreadId: args.threadId,
     onNotification: (method, params) =>
       handleChildNotification(args.threadId, serial, method, params),

@@ -24,6 +24,13 @@ export default function plugin(bb: KaiokenPluginApi) {
         "Prevent Codex from starting native subagents so agents use kaioken for delegation.",
       default: false,
     },
+    isolateCodexHome: {
+      type: "boolean",
+      label: "Keep threads out of the Codex app",
+      description:
+        "Run Codex with a private session store under ~/.kaioken/codex-home so kaioken threads do not appear in the ChatGPT or Codex apps. Login, config, plugins, skills, and memories stay shared with ~/.codex.",
+      default: true,
+    },
   });
 
   bb.providers.register({
@@ -70,6 +77,7 @@ export default function plugin(bb: KaiokenPluginApi) {
       return {
         memoryEnabled: context.settings.memoryEnabled !== false,
         providerSubagentsEnabled: context.settings.subagentsDisabled !== true,
+        isolateCodexHome: context.settings.isolateCodexHome !== false,
       };
     },
     extensionKinds: codexExtensionKinds,

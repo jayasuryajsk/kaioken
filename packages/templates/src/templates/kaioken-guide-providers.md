@@ -33,6 +33,13 @@ when a provider thread is started, resumed, or forked; they do not interrupt
 an active turn. These settings are separate from kaioken's optional Memory plugin,
 an official plugin bundled with the app.
 
+Codex threads started by kaioken run against a private Codex home at
+`~/.kaioken/codex-home`, so they do not show up in the ChatGPT or Codex apps'
+thread lists. Login, `config.toml`, plugins, skills, and memories are linked
+back to `~/.codex` (or `$CODEX_HOME`), and existing kaioken rollouts are moved
+across the first time. Turn this off on Settings → Providers → Codex
+(`isolateCodexHome`) to write sessions into the shared home again.
+
 Provider-native subagents can also be disabled on those provider pages. For
 Codex, kaioken turns off the native multi-agent feature and caps V2 sessions at the
 root thread so remote session policy cannot start a child. For Claude Code, kaioken
