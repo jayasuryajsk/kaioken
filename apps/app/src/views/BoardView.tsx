@@ -72,12 +72,37 @@ const TODO_COLUMN_ID = "todo";
 const DEFAULT_COLUMN_NAMES = ["Working", "Done"] as const;
 const ALL_PROJECTS = "all";
 const CARD_CLASS =
-  "group/board-card relative flex flex-col gap-0.5 rounded-md py-1.5 pl-2 pr-1 text-sm transition-colors hover:bg-state-hover";
+  "group/board-card relative flex flex-col gap-0.5 rounded-md py-1.5 pl-2.5 pr-1 text-sm transition-colors";
+
+type BoardTone = "todo" | "working" | "done" | "neutral";
 
 interface BoardColumn {
   id: string;
   sectionId: string | null;
   name: string;
+  tone: BoardTone;
+}
+
+const TONE_ROW_CLASS: Record<BoardTone, string> = {
+  todo: "border-l-2 border-timeline-accent/70 bg-timeline-accent/10 hover:bg-timeline-accent/15",
+  working:
+    "border-l-2 border-attention/70 bg-attention/10 hover:bg-attention/15",
+  done: "border-l-2 border-success/70 bg-success/10 hover:bg-success/15",
+  neutral: "border-l-2 border-border bg-surface-recessed hover:bg-state-hover",
+};
+
+const TONE_DOT_CLASS: Record<BoardTone, string> = {
+  todo: "bg-timeline-accent",
+  working: "bg-attention",
+  done: "bg-success",
+  neutral: "bg-muted-foreground/60",
+};
+
+function toneForColumnIndex(index: number): BoardTone {
+  if (index === 0) return "todo";
+  if (index === 1) return "working";
+  if (index === 2) return "done";
+  return "neutral";
 }
 
 interface BoardProject {
@@ -107,13 +132,14 @@ export function buildBoardColumns(
   sections: readonly ThreadSectionResponse[],
 ): BoardColumn[] {
   return [
-    { id: TODO_COLUMN_ID, sectionId: null, name: "To do" },
+    { id: TODO_COLUMN_ID, sectionId: null, name: "To do", tone: "todo" },
     ...[...sections]
       .sort((left, right) => left.createdAt - right.createdAt)
-      .map((section) => ({
+      .map((section, index) => ({
         id: section.id,
         sectionId: section.id,
         name: section.name,
+        tone: toneForColumnIndex(index + 1),
       })),
   ];
 }
@@ -160,11 +186,13 @@ function ThreadCard({
   thread,
   projectName,
   providers,
+  tone,
   onOpen,
 }: {
   thread: ThreadListEntry;
   projectName: string;
   providers: readonly ProviderInfo[];
+  tone: BoardTone;
   onOpen: () => void;
 }) {
   const title = getThreadDisplayTitle(thread);
@@ -185,7 +213,8 @@ function ThreadCard({
         data-testid="board-thread-card"
         className={cn(
           CARD_CLASS,
-          isDragging && "z-10 bg-state-active opacity-90",
+          TONE_ROW_CLASS[tone],
+          isDragging && "z-10 opacity-90",
           menuOpen && "bg-state-hover",
         )}
         {...attributes}
@@ -280,7 +309,8 @@ function IdeaCard({
       data-testid="board-idea-card"
       className={cn(
         CARD_CLASS,
-        isDragging && "z-10 bg-state-active opacity-90",
+        "border-l-2 border-dashed border-timeline-accent/50 hover:bg-timeline-accent/10",
+        isDragging && "z-10 opacity-90",
       )}
       {...attributes}
       {...listeners}
@@ -349,7 +379,14 @@ function BoardColumnView({
         isOver && "border-ring/40 bg-state-hover",
       )}
     >
-      <div className="flex h-9 shrink-0 items-center gap-1.5 border-b border-seam px-3">
+      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-seam px-3">
+        <span
+          aria-hidden="true"
+          className={cn(
+            "size-2 shrink-0 rounded-full",
+            TONE_DOT_CLASS[column.tone],
+          )}
+        />
         <span className="truncate text-sm font-medium">{column.name}</span>
         <span className="text-xs text-subtle-foreground">{count}</span>
         {onAddTask ? (
@@ -653,6 +690,7 @@ export function BoardView() {
                         thread={thread}
                         projectName={projectNameFor(thread.projectId)}
                         providers={providers}
+                        tone={column.tone}
                         onOpen={() =>
                           void navigate(
                             getThreadRoutePath({
