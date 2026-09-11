@@ -134,7 +134,7 @@ import {
   modifierSubmitShortcutAria,
 } from "./modifier-submit-shortcut";
 
-const PROMPTBOX_MIN_HEIGHT = 68;
+const PROMPTBOX_MIN_HEIGHT = 44;
 const PROMPTBOX_SELECTION_REVEAL_MARGIN = 12;
 const COMPACT_PROMPT_ACTION_BUTTON_CLASS =
   "size-8 p-0 transition-all [&_svg]:size-4";

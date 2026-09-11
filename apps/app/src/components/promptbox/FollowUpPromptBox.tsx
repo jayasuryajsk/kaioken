@@ -18,7 +18,10 @@ import type {
   ThreadRuntimeDisplayStatus,
   ThreadTimelineActivePromptMode,
 } from "@kaioken/domain";
-import type { ComposerView, PluginComposerScope } from "@get-kaioken/plugin-sdk";
+import type {
+  ComposerView,
+  PluginComposerScope,
+} from "@get-kaioken/plugin-sdk";
 import type { ComposerTextEffectSource } from "@/lib/composer-text-effects";
 import { modifierSubmitShortcutLabel } from "./modifier-submit-shortcut";
 import { isKeyboardFocusTarget } from "@/components/layout/useMobileVisualViewportHeight";
@@ -56,7 +59,6 @@ import { ThreadTimelineScrollToBottomButton } from "@/views/thread-detail/Thread
 import { useOptionalPaneContext } from "@/views/thread-detail/PaneContext";
 import { ThreadContextWindowIndicator } from "@/components/thread/timeline";
 import { PROMPT_STACK_TRACK_CLASS } from "@/components/promptbox/banner/PromptStackCard";
-import { THREAD_PROMPT_CONTEXT_BANNER_ROW_HEIGHT } from "@/components/promptbox/banner/ThreadPromptContextBanner";
 import {
   isPlanModePrompt,
   permissionDisplayForActivePromptMode,
@@ -112,10 +114,9 @@ function PromptBoxWithScrollAnchor({
   );
 }
 
-const FOLLOW_UP_PROMPT_BOX_DEFAULT_MIN_HEIGHT = 68;
+const FOLLOW_UP_PROMPT_BOX_DEFAULT_MIN_HEIGHT = 44;
 const FOLLOW_UP_PROMPT_BOX_ELASTIC_TARGET_HEIGHT =
-  FOLLOW_UP_PROMPT_BOX_DEFAULT_MIN_HEIGHT +
-  THREAD_PROMPT_CONTEXT_BANNER_ROW_HEIGHT;
+  FOLLOW_UP_PROMPT_BOX_DEFAULT_MIN_HEIGHT;
 const COMPOSER_OVERLAY_TRIGGER_SELECTOR = "[aria-haspopup]";
 const OPEN_COMPOSER_OVERLAY_TRIGGER_SELECTOR = `${COMPOSER_OVERLAY_TRIGGER_SELECTOR}[aria-expanded="true"]`;
 const MOBILE_KEYBOARD_VIEWPORT_MIN_DELTA_PX = 80;

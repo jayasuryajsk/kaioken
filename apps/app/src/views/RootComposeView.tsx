@@ -188,7 +188,8 @@ import {
   type RootComposeTerminalTarget,
 } from "./RootComposePanelTabContent";
 
-const ROOT_COMPOSE_SIDEBAR_ACTION_ALIGNED_TOP_PADDING_CLASS = "pt-14";
+const ROOT_COMPOSE_CENTERED_CONTENT_CLASS =
+  "min-h-full flex-1 justify-center pb-12";
 
 const ROOT_COMPOSE_EMPTY_WELCOME_CONTENT_CLASS =
   "min-h-full flex-1 items-center justify-center pb-12";
@@ -1979,7 +1980,7 @@ function RootComposeSurface({
               contentClassName={
                 showEmptyWelcome
                   ? ROOT_COMPOSE_EMPTY_WELCOME_CONTENT_CLASS
-                  : ROOT_COMPOSE_SIDEBAR_ACTION_ALIGNED_TOP_PADDING_CLASS
+                  : ROOT_COMPOSE_CENTERED_CONTENT_CLASS
               }
               compactScrollContent={
                 showEmptyWelcome ? null : (
