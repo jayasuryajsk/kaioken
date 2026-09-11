@@ -39,6 +39,10 @@ import { Icon } from "@kaioken/shared-ui/icon";
 import { cn } from "@kaioken/shared-ui/lib/utils";
 import { Textarea } from "@kaioken/shared-ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@kaioken/shared-ui/toggle-group";
+import {
+  OptionPicker,
+  type PickerOption,
+} from "@/components/pickers/OptionPicker";
 import { ProviderIconMark } from "@/components/settings/ProviderIconMark";
 import {
   ThreadActionsContextMenu,
@@ -332,10 +336,12 @@ function BoardColumnView({
   column,
   count,
   children,
+  onAddTask,
 }: {
   column: BoardColumn;
   count: number;
   children: ReactNode;
+  onAddTask?: () => void;
 }) {
   const { isOver, setNodeRef } = useDroppable({
     id: columnDroppableId(column),
@@ -345,15 +351,27 @@ function BoardColumnView({
       ref={setNodeRef}
       data-testid={`board-column-${column.id}`}
       className={cn(
-        "flex min-h-0 min-w-64 flex-1 flex-col rounded-md transition-colors",
-        isOver && "bg-state-hover/60",
+        "flex min-h-0 min-w-64 flex-1 flex-col rounded-lg border border-seam bg-surface-raised transition-colors",
+        isOver && "border-ring/40 bg-state-hover",
       )}
     >
-      <div className="kaioken-sidebar-section-label flex items-center gap-1.5 px-2 pb-1 text-xs text-muted-foreground">
-        <span className="truncate">{column.name}</span>
-        <span className="text-subtle-foreground">{count}</span>
+      <div className="flex h-9 shrink-0 items-center gap-1.5 border-b border-seam px-3">
+        <span className="truncate text-sm font-medium">{column.name}</span>
+        <span className="text-xs text-subtle-foreground">{count}</span>
+        {onAddTask ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="ml-auto size-6 text-subtle-foreground hover:text-foreground"
+            aria-label={`New task in ${column.name}`}
+            onClick={onAddTask}
+          >
+            <Icon name="Plus" className="size-3.5" />
+          </Button>
+        ) : null}
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto p-1.5">
         {children}
       </div>
     </section>
@@ -363,6 +381,7 @@ function BoardColumnView({
 function NewTaskComposer({
   projects,
   initialProjectId,
+  initialSectionId,
   columns,
   isCreating,
   onStart,
@@ -371,6 +390,7 @@ function NewTaskComposer({
 }: {
   projects: readonly BoardProject[];
   initialProjectId: string;
+  initialSectionId: string | null | undefined;
   columns: readonly BoardColumn[];
   isCreating: boolean;
   onStart: (args: StartTaskArgs) => Promise<void>;
@@ -380,7 +400,9 @@ function NewTaskComposer({
   const [text, setText] = useState("");
   const [projectId, setProjectId] = useState(initialProjectId);
   const [sectionId, setSectionId] = useState<string | null>(
-    columns.find((column) => column.sectionId !== null)?.sectionId ?? null,
+    initialSectionId === undefined
+      ? (columns.find((column) => column.sectionId !== null)?.sectionId ?? null)
+      : initialSectionId,
   );
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -413,7 +435,7 @@ function NewTaskComposer({
   return (
     <div
       data-testid="board-new-task"
-      className="flex flex-col gap-3 rounded-md bg-surface-recessed p-3"
+      className="flex flex-col gap-3 rounded-lg border border-seam bg-surface-raised p-3"
     >
       <Textarea
         ref={textareaRef}
@@ -508,7 +530,9 @@ export function BoardView() {
   const [ideas, setIdeas] = useAtom(boardIdeasAtom);
   const [rootComposeProjectId] = useRootComposeProjectId();
   const [projectFilter, setProjectFilter] = useState<string>(ALL_PROJECTS);
-  const [composerOpen, setComposerOpen] = useState(false);
+  const [composer, setComposer] = useState<{
+    sectionId: string | null | undefined;
+  } | null>(null);
   const createSection = useCreateThreadSection();
   const createThread = useCreateThread();
   const moveThreadToSection = useMoveThreadToSection();
@@ -569,6 +593,21 @@ export function BoardView() {
   );
   const firstStartColumn = columns.find((column) => column.sectionId !== null);
 
+  const openComposer = useCallback(
+    (sectionId?: string | null) => setComposer({ sectionId }),
+    [],
+  );
+  const closeComposer = useCallback(() => setComposer(null), []);
+  const repoOptions = useMemo<PickerOption<string>[]>(
+    () => [
+      { value: ALL_PROJECTS, label: "All repos" },
+      ...projects.map((project) => ({
+        value: project.id,
+        label: project.name,
+      })),
+    ],
+    [projects],
+  );
   const composerProjectId =
     projectFilter !== ALL_PROJECTS
       ? projectFilter
@@ -667,28 +706,13 @@ export function BoardView() {
       <div className="-mx-4 -mb-4 -mt-4 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:-mx-5 md:-mb-5 md:-mt-5">
         <header className="flex shrink-0 flex-wrap items-center gap-3 px-5 pb-2 pt-4">
           <h1 className="text-base font-medium">Board</h1>
-          <ToggleGroup
-            type="single"
+          <OptionPicker
+            label="Repo"
             value={projectFilter}
-            onValueChange={(value) => {
-              if (value) setProjectFilter(value);
-            }}
-            aria-label="Filter by repo"
-            className="flex flex-wrap gap-1"
-          >
-            <ToggleGroupItem value={ALL_PROJECTS} className={CHIP_CLASS}>
-              All
-            </ToggleGroupItem>
-            {projects.map((project) => (
-              <ToggleGroupItem
-                key={project.id}
-                value={project.id}
-                className={CHIP_CLASS}
-              >
-                {project.name}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
+            options={repoOptions}
+            onChange={setProjectFilter}
+            muted
+          />
           <span className="ml-auto flex items-center gap-2">
             {!hasSections ? (
               <Button
@@ -715,24 +739,26 @@ export function BoardView() {
             <Button
               type="button"
               size="sm"
-              onClick={() => setComposerOpen((open) => !open)}
-              aria-pressed={composerOpen}
+              onClick={() => (composer ? closeComposer() : openComposer())}
+              aria-pressed={composer !== null}
             >
               <Icon name="MessageSquarePlus" className="size-3.5" />
               New task
             </Button>
           </span>
         </header>
-        {composerOpen ? (
-          <div className="shrink-0 px-5 pb-2">
+        {composer ? (
+          <div className="shrink-0 px-5 pb-3">
             <NewTaskComposer
+              key={composer.sectionId ?? "todo"}
               projects={projects}
               initialProjectId={composerProjectId}
+              initialSectionId={composer.sectionId}
               columns={columns}
               isCreating={createThread.isPending}
               onStart={startTask}
               onSaveDraft={saveDraft}
-              onClose={() => setComposerOpen(false)}
+              onClose={closeComposer}
             />
           </div>
         ) : null}
@@ -742,7 +768,7 @@ export function BoardView() {
           </p>
         ) : (
           <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-            <div className="flex min-h-0 flex-1 gap-6 overflow-x-auto px-5 pb-5 pt-2">
+            <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto px-5 pb-5 pt-1">
               {columns.map((column) => {
                 const columnThreads = threadsForColumn(threads, column);
                 const isTodo = column.sectionId === null;
@@ -753,6 +779,7 @@ export function BoardView() {
                     key={column.id}
                     column={column}
                     count={count}
+                    onAddTask={() => openComposer(column.sectionId)}
                   >
                     {isTodo
                       ? visibleIdeas.map((idea) => (
@@ -792,7 +819,7 @@ export function BoardView() {
                     ))}
                     {count === 0 ? (
                       <p className="px-2 py-1.5 text-xs text-subtle-foreground">
-                        {isTodo ? "Nothing waiting." : "Empty."}
+                        {isTodo ? "Nothing waiting." : "Drop a thread here."}
                       </p>
                     ) : null}
                   </BoardColumnView>
