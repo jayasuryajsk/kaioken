@@ -71,8 +71,8 @@ function generalSettingValueCandidates(value: string): unknown[] {
   }
 }
 
-function updateGeneralSetting(
-  settings: AppSettings,
+export function updateGeneralSetting(
+  settings: AppSettings & { showUnhandledProviderEvents?: boolean },
   key: string,
   value: string,
 ): AppSettings {
@@ -85,9 +85,10 @@ function updateGeneralSetting(
     );
   }
 
+  const { showUnhandledProviderEvents: _compat, ...current } = settings;
   for (const candidate of generalSettingValueCandidates(value)) {
     const updated = appSettingsSchema.safeParse({
-      ...settings,
+      ...current,
       [settingKey.data]: candidate,
     });
     if (updated.success) return updated.data;
@@ -179,7 +180,9 @@ export function registerSettingsCommands(
         const { aiServices } = await createCliBbSdk(getUrl()).system.config();
         if (outputJson(opts, aiServices)) return;
         console.log(`KAIOKEN_INFERENCE          ${aiServices.inference}`);
-        console.log(`KAIOKEN_INFERENCE_FALLBACK ${aiServices.inferenceFallback}`);
+        console.log(
+          `KAIOKEN_INFERENCE_FALLBACK ${aiServices.inferenceFallback}`,
+        );
         console.log(`KAIOKEN_TRANSCRIPTION      ${aiServices.transcription}`);
         console.log("");
         if (aiServices.services.length === 0) {
