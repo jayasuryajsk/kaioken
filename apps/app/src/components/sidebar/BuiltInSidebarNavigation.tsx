@@ -14,7 +14,11 @@ import {
   ProjectListSearchThreadsAction,
 } from "./ProjectList";
 import { DEFAULT_BUILT_IN_SIDEBAR_NAVIGATION_ORDER } from "@/components/plugin/pluginNavSidebarOrder";
-import { getPluginsRoutePath, getSkillsRoutePath } from "@/lib/route-paths";
+import {
+  getBoardRoutePath,
+  getPluginsRoutePath,
+  getSkillsRoutePath,
+} from "@/lib/route-paths";
 
 export type BuiltInSidebarNavigationProps = ComponentProps<
   typeof ProjectListNewThreadAction
@@ -40,6 +44,7 @@ export function BuiltInSidebarNavigation({
   const pluginNavPanels = usePluginNavPanelChrome();
   const pluginsRoutePath = getPluginsRoutePath();
   const skillsRoutePath = getSkillsRoutePath();
+  const boardRoutePath = getBoardRoutePath();
   const builtInEntries: BuiltInSidebarNavEntry[] = [
     {
       kind: "built-in",
@@ -77,6 +82,25 @@ export function BuiltInSidebarNavigation({
       onActivate: () => {
         onSearchThreads?.();
         commandRunner.dispatch("thread.search", null);
+      },
+    },
+    {
+      kind: "built-in" as const,
+      pluginId: "__bb__" as const,
+      id: "board",
+      title: "Board",
+      icon: <Icon name="Columns2" aria-hidden="true" />,
+      content: (
+        <ResourceNavSidebarItem
+          icon="Columns2"
+          title="Board"
+          routePath={boardRoutePath}
+          onNavigate={onNavigate}
+        />
+      ),
+      onActivate: () => {
+        onNavigate?.();
+        void navigate(boardRoutePath);
       },
     },
     ...(toolsRoutePath

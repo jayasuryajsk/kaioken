@@ -1,5 +1,6 @@
 import { matchPath } from "react-router-dom";
 import {
+  BOARD_ROUTE_PATH,
   PLUGIN_DETAIL_ROUTE_PATH,
   PLUGINS_ROUTE_PATH,
   PLUGIN_PANEL_ROUTE_PATH,
@@ -14,6 +15,7 @@ import {
 
 export {
   APP_ROOT_ROUTE_PATH,
+  BOARD_ROUTE_PATH,
   AUTH_CALLBACK_ROUTE_PATH,
   SETTINGS_ROUTE_PATH,
   SETTINGS_SECTION_ROUTE_PATH,
@@ -93,6 +95,14 @@ interface ResolveRouteHrefArgs {
 
 interface RouteHrefResolution {
   path: string;
+}
+
+export function getBoardRoutePath(): string {
+  return BOARD_ROUTE_PATH;
+}
+
+export function isBoardRoutePath(pathname: string): boolean {
+  return pathname === BOARD_ROUTE_PATH;
 }
 
 export function isToolsRoutePath(pathname: string): boolean {

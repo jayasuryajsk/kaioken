@@ -5,9 +5,11 @@ import type {
 } from "@get-kaioken/plugin-sdk";
 import type { PluginNavPanelSlot } from "@/lib/plugin-slots";
 import {
+  getBoardRoutePath,
   getPluginPanelRoutePath,
   getPluginsRoutePath,
   getSkillsRoutePath,
+  isBoardRoutePath,
   isToolsRoutePath,
 } from "@/lib/route-paths";
 
@@ -15,12 +17,14 @@ export const NEW_THREAD_NAVIGATION_ITEM_ID = "new-thread";
 export const SEARCH_THREADS_NAVIGATION_ITEM_ID = "search-threads";
 export const PLUGINS_NAVIGATION_ITEM_ID = "extensions";
 export const SKILLS_NAVIGATION_ITEM_ID = "skills";
+export const BOARD_NAVIGATION_ITEM_ID = "board";
 
 export function getResourceNavigationItemRoutePath(
   itemId: string,
 ): string | null {
   if (itemId === PLUGINS_NAVIGATION_ITEM_ID) return getPluginsRoutePath();
   if (itemId === SKILLS_NAVIGATION_ITEM_ID) return getSkillsRoutePath();
+  if (itemId === BOARD_NAVIGATION_ITEM_ID) return getBoardRoutePath();
   return null;
 }
 
@@ -74,6 +78,15 @@ export function createSidebarNavigationItems({
       action: searchAction,
       isDisabled: searchThreadsDisabled,
       shortcut: searchThreadsShortcut,
+      experimental_splitProps: {},
+    },
+    {
+      id: BOARD_NAVIGATION_ITEM_ID,
+      label: "Board",
+      icon: { kind: "host", name: "extensions" },
+      action: resourceWorkspaceAction,
+      isDisabled: false,
+      shortcut: null,
       experimental_splitProps: {},
     },
     ...(showResourceWorkspaces
@@ -131,6 +144,11 @@ export function resolveActiveSidebarNavigationItemId({
   navPanels: readonly PluginNavPanelSlot[];
 }): string | null {
   if (pathname === "/") return NEW_THREAD_NAVIGATION_ITEM_ID;
+  if (isBoardRoutePath(pathname)) {
+    return items.some((item) => item.id === BOARD_NAVIGATION_ITEM_ID)
+      ? BOARD_NAVIGATION_ITEM_ID
+      : null;
+  }
   if (isToolsRoutePath(pathname)) {
     const itemId =
       pathname === getSkillsRoutePath() ||

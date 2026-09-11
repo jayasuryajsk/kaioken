@@ -11,6 +11,7 @@ export const SETTINGS_PROJECT_ROUTE_PATH = "/settings/projects/:projectId";
 export const PLUGINS_ROUTE_PATH = "/plugins";
 export const PLUGIN_DETAIL_ROUTE_PATH = "/plugins/:pluginId";
 export const SKILLS_ROUTE_PATH = "/skills";
+export const BOARD_ROUTE_PATH = "/board";
 export const SKILL_DETAIL_ROUTE_PATH = "/skills/library/:skillId";
 export const REGISTRY_SKILLS_ROUTE_PATH = "/skills/registry";
 export const REGISTRY_SKILL_DETAIL_ROUTE_PATH =
