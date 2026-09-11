@@ -6,6 +6,9 @@ describe("derivePluginId", () => {
   it.each([
     ["kaioken-plugin-hello", "hello"],
     ["@acme/kaioken-plugin-hello", "hello"],
+    ["bb-plugin-conductor-theme", "conductor-theme"],
+    ["@bottlebrushes/bb-plugin-conductor-theme", "conductor-theme"],
+    ["conductor-theme", "conductor-theme"],
   ])("derives %s as %s", (packageName, expectedId) => {
     expect(derivePluginId(packageName)).toBe(expectedId);
   });

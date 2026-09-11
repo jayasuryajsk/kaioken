@@ -86,6 +86,18 @@ const CODE_KEYWORDS =
  * it through property access, which the rules keep as the plugin API parameter.
  */
 const FIXUPS = [
+  // Marketplace plugins keep upstream's `bb-plugin-` package prefix, so the
+  // derived plugin id must strip both prefixes.
+  {
+    file: "packages/domain/src/plugin-id.ts",
+    from: /\.replace\(\/\^kaioken-plugin-\/, ""\)/g,
+    to: '.replace(/^(?:kaioken-plugin-|bb-plugin-)/, "")',
+  },
+  {
+    file: "packages/domain/src/plugin-id.ts",
+    from: / \* `kaioken-plugin-linear` becomes `linear`; scoped names first drop the scope\.\n/g,
+    to: " * `kaioken-plugin-linear` and `bb-plugin-linear` become `linear`; scoped names\n * first drop the scope. Marketplace plugins keep the upstream `bb-plugin-`\n * prefix, so both prefixes map to the same id.\n",
+  },
   // The checkout-instance hash is derived from the fixture path, which the
   // rename changed.
   {
