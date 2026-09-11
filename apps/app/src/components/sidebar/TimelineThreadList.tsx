@@ -32,6 +32,7 @@ import {
   SIDEBAR_ROW_SELECTED_STATE_CLASS,
 } from "./sidebarRowClasses";
 import { ThreadStatusGlyph } from "./ThreadRow";
+import { useThreadRowSplitDrag } from "./useThreadRowSplitDrag";
 
 const CLOCK_TICK_MS = 60_000;
 
@@ -70,8 +71,18 @@ function TimelineRow({
   const title = getThreadDisplayTitle(thread);
   const unread = isUnreadDoneThread(thread);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { onPointerDown: onSplitDragPointerDown, openInSplit } =
+    useThreadRowSplitDrag({
+      projectId: thread.projectId,
+      threadId: thread.id,
+      title,
+    });
+  const splitAvailable = onSplitDragPointerDown !== undefined;
   return (
-    <ThreadActionsContextMenu thread={thread}>
+    <ThreadActionsContextMenu
+      thread={thread}
+      onOpenInSplit={splitAvailable ? openInSplit : undefined}
+    >
       <div
         data-testid="timeline-row"
         className={cn(
@@ -87,7 +98,15 @@ function TimelineRow({
             projectId: thread.projectId,
             threadId: thread.id,
           })}
-          onClick={onProjectSelect}
+          onPointerDown={onSplitDragPointerDown}
+          onClick={(event) => {
+            if (splitAvailable && (event.metaKey || event.ctrlKey)) {
+              event.preventDefault();
+              openInSplit();
+              return;
+            }
+            onProjectSelect?.();
+          }}
           data-sidebar-thread-id={thread.id}
           className="flex min-w-0 flex-1 flex-col outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
         >
@@ -130,6 +149,7 @@ function TimelineRow({
           >
             <ThreadActionsMenu
               thread={thread}
+              onOpenInSplit={splitAvailable ? openInSplit : undefined}
               triggerClassName={cn(SIDEBAR_CONTROL_BUTTON_CLASS, "size-6")}
               onOpenChange={setMenuOpen}
             />
