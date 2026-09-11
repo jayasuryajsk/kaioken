@@ -72,7 +72,7 @@ const TODO_COLUMN_ID = "todo";
 const DEFAULT_COLUMN_NAMES = ["Working", "Done"] as const;
 const ALL_PROJECTS = "all";
 const CARD_CLASS =
-  "group/board-card relative flex flex-col gap-0.5 rounded-md py-1.5 pl-2.5 pr-1 text-sm transition-colors";
+  "group/board-card relative flex flex-col gap-0.5 rounded-md py-1.5 pl-2 pr-1 text-sm transition-colors";
 
 type BoardTone = "todo" | "working" | "done" | "neutral";
 
@@ -84,11 +84,10 @@ interface BoardColumn {
 }
 
 const TONE_ROW_CLASS: Record<BoardTone, string> = {
-  todo: "border-l-2 border-timeline-accent/70 bg-timeline-accent/10 hover:bg-timeline-accent/15",
-  working:
-    "border-l-2 border-attention/70 bg-attention/10 hover:bg-attention/15",
-  done: "border-l-2 border-success/70 bg-success/10 hover:bg-success/15",
-  neutral: "border-l-2 border-border bg-surface-recessed hover:bg-state-hover",
+  todo: "bg-timeline-accent/8 hover:bg-timeline-accent/14",
+  working: "bg-attention/8 hover:bg-attention/14",
+  done: "bg-success/8 hover:bg-success/14",
+  neutral: "hover:bg-state-hover",
 };
 
 const TONE_DOT_CLASS: Record<BoardTone, string> = {
@@ -309,7 +308,7 @@ function IdeaCard({
       data-testid="board-idea-card"
       className={cn(
         CARD_CLASS,
-        "border-l-2 border-dashed border-timeline-accent/50 hover:bg-timeline-accent/10",
+        "bg-timeline-accent/5 hover:bg-timeline-accent/10",
         isDragging && "z-10 opacity-90",
       )}
       {...attributes}
