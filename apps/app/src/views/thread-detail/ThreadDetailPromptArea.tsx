@@ -64,6 +64,7 @@ import {
   type QueuedMessageInlineEditor,
 } from "@/components/promptbox/banner/QueuedMessagesList";
 import { ThreadEnvironmentSummary } from "@/components/promptbox/ThreadEnvironmentSummary";
+import { ThreadChangesChip } from "@/components/promptbox/ThreadChangesChip";
 import type { WorkspaceCheckoutDisplay } from "@/lib/workspace-checkout-display";
 import { useComposerTextEffects } from "@/lib/composer-text-effects";
 import { useLatestRef } from "@/hooks/useLatestRef";
@@ -124,8 +125,6 @@ import {
   type FollowUpExecutionSelection,
 } from "@kaioken/client-core";
 
-const ignorePromptBannerFileClick = () => {};
-
 export interface ThreadDetailSentMessageEdit {
   draft: PromptDraftState;
   hostElement: HTMLDivElement | null;
@@ -165,6 +164,7 @@ interface ThreadDetailPromptAreaProps {
   pendingInteractionsInitialLoading: boolean;
   queuedMessageCount: number;
   onChangedFileClick: (selection: WorkspaceChangedFileSelection) => void;
+  onOpenChangesPanel?: () => void;
   projectId: string;
   resolveMentionLink: PromptMentionLinkResolver;
   workspaceChangedFilesSection: WorkspaceChangedFilesSection | null;
@@ -358,6 +358,7 @@ export function ThreadDetailPromptArea({
   pendingInteractionsInitialLoading,
   queuedMessageCount,
   onChangedFileClick,
+  onOpenChangesPanel,
   projectId,
   resolveMentionLink,
   workspaceChangedFilesSection,
@@ -1231,17 +1232,28 @@ export function ThreadDetailPromptArea({
   const environmentSummary = useMemo(
     () =>
       thread.environmentId !== null ? (
-        <ThreadEnvironmentSummary
-          projectName={projectName}
-          environmentLabel={environmentLabel}
-          environmentCompactLabel={environmentCompactLabel}
-          environmentIcon={environmentIcon}
-          environmentTypeLabel={environmentTypeLabel}
-          environmentCheckout={environmentCheckout}
-          onCreateNewThreadInEnvironment={onCreateNewThreadInEnvironment}
-        />
+        <>
+          <ThreadEnvironmentSummary
+            projectName={projectName}
+            environmentLabel={environmentLabel}
+            environmentCompactLabel={environmentCompactLabel}
+            environmentIcon={environmentIcon}
+            environmentTypeLabel={environmentTypeLabel}
+            environmentCheckout={environmentCheckout}
+            onCreateNewThreadInEnvironment={onCreateNewThreadInEnvironment}
+          />
+          {workspaceChangedFilesSection ? (
+            <ThreadChangesChip
+              section={workspaceChangedFilesSection}
+              onOpen={canUseGitUi ? onOpenChangesPanel : undefined}
+            />
+          ) : null}
+        </>
       ) : null,
     [
+      canUseGitUi,
+      onOpenChangesPanel,
+      workspaceChangedFilesSection,
       environmentCheckout,
       environmentCompactLabel,
       environmentIcon,
@@ -1571,18 +1583,8 @@ export function ThreadDetailPromptArea({
           parentThreadSection={parentThreadSection}
           childThreadsSection={childThreadsSection}
           pullRequestSection={pullRequestSection}
-          gitSection={
-            workspaceChangedFilesSection
-              ? {
-                  changedFiles: workspaceChangedFilesSection,
-                  mergeBase: contextBannerMergeBase,
-                  onPromptBannerFileClick: canUseGitUi
-                    ? onChangedFileClick
-                    : ignorePromptBannerFileClick,
-                }
-              : null
-          }
-          gitSectionPending={workspaceStatusPending}
+          gitSection={null}
+          gitSectionPending={false}
           expandedSection={expandedBannerSection}
           onToggleSection={handleToggleBannerSection}
         />
@@ -1621,13 +1623,10 @@ export function ThreadDetailPromptArea({
       </>
     ),
     [
-      canUseGitUi,
       childPendingInteractionBanners,
-      contextBannerMergeBase,
       expandedBannerSection,
       handleDeleteQueuedMessage,
       beginEditQueuedMessage,
-      onChangedFileClick,
       handleReorderQueuedMessage,
       handleSendQueuedMessage,
       handleSetQueuedMessageGroupBoundary,
@@ -1662,8 +1661,6 @@ export function ThreadDetailPromptArea({
       submitMode.kind,
       thread.archivedAt,
       thread.id,
-      workspaceChangedFilesSection,
-      workspaceStatusPending,
     ],
   );
 

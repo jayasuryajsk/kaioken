@@ -2519,6 +2519,7 @@ function ThreadDetailViewInternal(props: ThreadRoutePathArgs) {
       onPullRequestReady={handlePullRequestReady}
       pullRequestMergeMethod={pullRequestMergeMethod}
       onChangedFileClick={handleChangedFileClick}
+      onOpenChangesPanel={openSecondaryPanelDiffPanel}
       projectId={projectId}
       resolveMentionLink={resolveMentionLink}
       workspaceChangedFilesSection={
