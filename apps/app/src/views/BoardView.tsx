@@ -83,11 +83,13 @@ export function buildBoardColumns(
 ): BoardColumn[] {
   return [
     { id: TODO_COLUMN_ID, sectionId: null, name: "To do" },
-    ...sections.map((section) => ({
-      id: section.id,
-      sectionId: section.id,
-      name: section.name,
-    })),
+    ...[...sections]
+      .sort((left, right) => left.createdAt - right.createdAt)
+      .map((section) => ({
+        id: section.id,
+        sectionId: section.id,
+        name: section.name,
+      })),
   ];
 }
 
