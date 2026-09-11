@@ -14,7 +14,11 @@ import type { ThreadListEntry } from "@kaioken/domain";
 import type { PluginComposerThreadRowStatus } from "@get-kaioken/plugin-sdk";
 import { getThreadConversationCollapsedAtom } from "@/components/secondary-panel/threadSecondaryPanelAtoms";
 import { Icon } from "@kaioken/shared-ui/icon";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@kaioken/shared-ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@kaioken/shared-ui/tooltip";
 import { SidebarStickyTier } from "@/components/ui/sidebar.js";
 import { NavLink } from "react-router-dom";
 import {
@@ -139,6 +143,7 @@ interface ThreadRowContainerArgs {
   children: ReactNode;
   className: string;
   dragBindings?: SidebarSortableDragBindings;
+  indicatorKind: ReturnType<typeof resolveThreadListIndicator>;
   onClickCapture?: ThreadRowClickCaptureHandler;
   onSplitDragPointerDown?: PointerEventHandler<HTMLElement>;
   stickyLevel?: number;
@@ -226,6 +231,7 @@ function renderThreadRowContainer({
   children,
   className,
   dragBindings,
+  indicatorKind,
   onClickCapture,
   onSplitDragPointerDown,
   stickyLevel,
@@ -239,6 +245,7 @@ function renderThreadRowContainer({
         level={stickyLevel}
         className={className}
         style={style}
+        data-thread-indicator={indicatorKind}
         {...dragBindings?.attributes}
         {...(dragBindings?.listeners ?? {})}
         onClickCapture={onClickCapture}
@@ -254,6 +261,7 @@ function renderThreadRowContainer({
       ref={dragBindings?.setActivatorNodeRef}
       className={className}
       style={style}
+      data-thread-indicator={indicatorKind}
       {...dragBindings?.attributes}
       {...(dragBindings?.listeners ?? {})}
       onClickCapture={onClickCapture}
@@ -845,6 +853,7 @@ function ThreadRowComponent({
     children: rowContent,
     className: rowClassName,
     dragBindings: rowDragBindings,
+    indicatorKind: trailingIndicatorKind,
     onClickCapture: options.consumeClickSuppression
       ? handleRowClickCapture
       : undefined,

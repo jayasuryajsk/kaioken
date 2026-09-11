@@ -10,6 +10,7 @@ import { registerProviderCliInstallQueryClient } from "./components/provider-cli
 import { initializePreferredTheme } from "./hooks/useTheme";
 import { initializeFavicon } from "./lib/favicon-color-preference";
 import { initializeFontPreferences } from "./lib/font-preference";
+import { initializeSidebarPreferences } from "./lib/sidebar-preference";
 import { installForeignDomMutationGuard } from "./lib/foreign-dom-mutation-guard";
 import { installAppQueryClientBrowserEvents } from "./lib/query-client";
 import { appQueryClient } from "./lib/app-query-client";
@@ -27,6 +28,7 @@ initializePreferredTheme();
 applyCachedAppThemeCss();
 initializeFavicon();
 initializeFontPreferences();
+initializeSidebarPreferences();
 disableGlobalCursorStyles();
 
 createRoot(document.getElementById("root")!, {

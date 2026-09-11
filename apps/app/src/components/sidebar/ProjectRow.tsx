@@ -154,6 +154,7 @@ import {
   type BuiltInSidebarSectionOptionsById,
 } from "./BuiltInSidebarSection";
 import { SectionThreadDndProvider } from "./SectionThreadDndContext";
+import { projectStripColor } from "@/lib/sidebar-preference";
 
 const SIDEBAR_STICKY_PARENT_DEPTH_CAP = 4;
 
@@ -2323,6 +2324,12 @@ function ProjectRowComponent({
       <div
         data-sidebar-sticky-project-item=""
         data-sidebar-project-id={project.id}
+        data-sidebar-project-strip=""
+        style={
+          {
+            "--kaioken-project-strip": projectStripColor(project.name),
+          } as CSSProperties
+        }
       >
         <TopLevelSidebarSection
           label={project.name}

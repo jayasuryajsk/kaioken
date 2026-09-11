@@ -1,4 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAtomValue } from "jotai";
+import {
+  applySidebarPreferences,
+  sidebarPreferencesAtom,
+} from "@/lib/sidebar-preference";
+import {
+  setPreferredTheme,
+  useThemePreference,
+  type ThemePreference,
+} from "@/hooks/useTheme";
 import { cn } from "@kaioken/shared-ui/lib/utils";
 import { THREAD_JUMP_APP_COMMAND_IDS } from "@kaioken/domain";
 import { Link, useNavigate } from "react-router-dom";
@@ -58,6 +68,18 @@ import { SidebarNavigationRegion } from "./SidebarNavigationRegion";
 const NEW_THREAD_PANE_CONTENT = { kind: "new-thread" } as const;
 
 const BUG_REPORT_NEW_ISSUE_URL = "https://github.com/get-bb/bb/issues/new";
+const THEME_TOGGLE_LABELS: Record<ThemePreference, string> = {
+  system: "System",
+  light: "Light",
+  dark: "Dark",
+};
+
+function nextThemePreference(current: ThemePreference): ThemePreference {
+  if (current === "system") return "light";
+  if (current === "light") return "dark";
+  return "system";
+}
+
 const SIDEBAR_FOOTER_ACTION_CLASS = cn(
   COARSE_POINTER_CHILD_ICON_BUTTON_CLASS,
   "text-muted-foreground hover:text-sidebar-foreground [&>svg]:opacity-80",
@@ -107,6 +129,11 @@ export function AppSidebar({
   const isAppCommandModifierHeld = useIsAppCommandModifierHeld();
   const settingsShortcut = useAppCommandShortcut("settings.open");
   const pluginSidebarFooter = usePluginSidebarFooterDisclosure();
+  const sidebarPreferences = useAtomValue(sidebarPreferencesAtom);
+  useEffect(() => {
+    applySidebarPreferences(sidebarPreferences);
+  }, [sidebarPreferences]);
+  const themePreference = useThemePreference();
 
   const handleNewChat = useCallback(() => {
     closeOnMobile();
@@ -247,7 +274,9 @@ export function AppSidebar({
         onCompactCustomizeModeChange={setCompactCustomizeMode}
         onNavigate={closeOnMobile}
         splitEnabled
-        toolsRoutePath={toolsRoutePath}
+        toolsRoutePath={
+          sidebarPreferences.hideResourceNav ? undefined : toolsRoutePath
+        }
         newThreadSplit={newThreadSplit}
         onNewChat={handleNewChat}
         onSearchThreads={closeOnMobile}
@@ -324,6 +353,23 @@ export function AppSidebar({
             >
               <Icon name="Bug" />
               <span className="sr-only">Report a bug</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem className="min-w-0">
+            <SidebarMenuButton
+              className={SIDEBAR_FOOTER_ACTION_CLASS}
+              tooltip={{
+                children: `Theme: ${THEME_TOGGLE_LABELS[themePreference]} (click to switch)`,
+                hidden: false,
+                side: "top",
+              }}
+              aria-label={`Theme: ${THEME_TOGGLE_LABELS[themePreference]}. Switch theme`}
+              onClick={() =>
+                setPreferredTheme(nextThemePreference(themePreference))
+              }
+            >
+              <Icon name="Palette" />
+              <span className="sr-only">Switch theme</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <li aria-hidden="true" className="min-w-0 flex-1" />

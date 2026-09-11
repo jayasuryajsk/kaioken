@@ -9,6 +9,14 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
+import { SidebarSectionRow } from "./SidebarSectionRow";
+import { ThreadRow } from "./ThreadRow";
+import {
+  compareByAttentionThen,
+  selectRecentThreads,
+  sidebarPreferencesAtom,
+} from "@/lib/sidebar-preference";
 import type {
   ProjectResponse,
   ThreadSectionResponse,
@@ -447,7 +455,10 @@ function getSectionMutationErrorMessage(
   error: unknown,
   fallbackMessage: string,
 ): string {
-  if (error instanceof KaiokenHttpError && error.code === "section_name_conflict") {
+  if (
+    error instanceof KaiokenHttpError &&
+    error.code === "section_name_conflict"
+  ) {
     return "Section name already exists.";
   }
   return getMutationErrorMessage({ error, fallbackMessage });
@@ -591,6 +602,60 @@ export function ProjectListActionButtons({
     </div>
   );
 }
+
+interface RecentThreadsSectionProps {
+  draftThreadIds: ReadonlySet<string>;
+  onProjectSelect?: () => void;
+  selectedThreadId?: string;
+  threads: readonly ThreadListEntry[];
+}
+
+function RecentThreadsSection({
+  draftThreadIds,
+  onProjectSelect,
+  selectedThreadId,
+  threads,
+}: RecentThreadsSectionProps) {
+  const [collapsed, setCollapsed] = useAtom(recentSectionCollapsedAtom);
+  return (
+    <div data-testid="sidebar-recent-section" className="space-y-0.5">
+      <SidebarSectionRow
+        name="Recent"
+        label="Recent"
+        depth={0}
+        isCollapsed={collapsed}
+        onToggleCollapsed={() => setCollapsed((current) => !current)}
+        activity={getCollapsedChildActivity(threads, draftThreadIds)}
+        collapsedThreads={threads}
+      />
+      {collapsed ? null : (
+        <SidebarGroupContent>
+          {threads.map((thread) => (
+            <ThreadRow
+              key={thread.id}
+              projectId={thread.projectId}
+              thread={thread}
+              crossProjectId={
+                thread.projectId === PERSONAL_PROJECT_ID
+                  ? null
+                  : thread.projectId
+              }
+              isActive={thread.id === selectedThreadId}
+              hasComposerDraft={draftThreadIds.has(thread.id)}
+              onProjectSelect={onProjectSelect}
+              options={{ kind: "default", depth: 0, isCompact: false }}
+            />
+          ))}
+        </SidebarGroupContent>
+      )}
+    </div>
+  );
+}
+
+const recentSectionCollapsedAtom = atomWithStorage<boolean>(
+  "bb.sidebar.recentCollapsed",
+  false,
+);
 
 export function ProjectListShell({ children }: ProjectListShellProps) {
   return (
@@ -1398,14 +1463,29 @@ function ProjectListComponent({
   const setCollapsedSectionList = useSetAtom(
     sidebarCollapsedThreadSectionsAtom,
   );
-  const sidebarThreadComparator = useMemo<ThreadComparator>(
+  const sidebarPreferences = useAtomValue(sidebarPreferencesAtom);
+  const sidebarThreadComparator = useMemo<ThreadComparator>(() => {
+    const base = getSidebarThreadComparator(
+      chronologicalSort,
+      titleMentionResources,
+      sortDirection,
+    );
+    return sidebarPreferences.needsYouFirst
+      ? compareByAttentionThen(base)
+      : base;
+  }, [
+    chronologicalSort,
+    sidebarPreferences.needsYouFirst,
+    sortDirection,
+    titleMentionResources,
+  ]);
+  const recentThreads = useMemo(
     () =>
-      getSidebarThreadComparator(
-        chronologicalSort,
-        titleMentionResources,
-        sortDirection,
+      selectRecentThreads(
+        threads.filter(isSidebarProjectThread),
+        sidebarPreferences.recentCount,
       ),
-    [chronologicalSort, titleMentionResources, sortDirection],
+    [sidebarPreferences.recentCount, threads],
   );
   const collapsedThreadIds = useMemo(
     () => new Set(collapsedThreadIdList),
@@ -1652,6 +1732,14 @@ function ProjectListComponent({
       }}
     >
       <ProjectListShell>
+        {recentThreads.length > 0 ? (
+          <RecentThreadsSection
+            threads={recentThreads}
+            selectedThreadId={selectedThreadId}
+            draftThreadIds={draftThreadIds}
+            onProjectSelect={onProjectSelect}
+          />
+        ) : null}
         <ActiveSidebarModeSections
           mode={organizationMode}
           renderMachine={() => (
