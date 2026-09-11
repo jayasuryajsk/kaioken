@@ -79,6 +79,22 @@ import {
 export { formatModelLabel, resolvePermissionModeSelection };
 
 const EMPTY_PROVIDERS: ProviderInfo[] = [];
+const EMPTY_HIDDEN_PROVIDER_IDS: readonly string[] = [];
+
+export function selectVisibleProviders(
+  providers: readonly ProviderInfo[],
+  hiddenProviderIds: readonly string[],
+  pinnedProviderId: string | null,
+): readonly ProviderInfo[] {
+  if (hiddenProviderIds.length === 0) {
+    return providers;
+  }
+  return providers.filter(
+    (provider) =>
+      provider.id === pinnedProviderId ||
+      !hiddenProviderIds.includes(provider.id),
+  );
+}
 const EMPTY_COMPOSER_ACTIONS: ProviderComposerAction[] = [];
 
 const DEFAULT_SUPPORTED_PERMISSION_MODES: readonly PermissionMode[] = ["full"];
@@ -387,7 +403,18 @@ export function useThreadCreationOptions(
   });
   const hostsQuery = useHosts();
   const systemConfig = useSystemConfig();
-  const providers = executionOptionsQuery.data?.providers ?? EMPTY_PROVIDERS;
+  const hiddenProviderIds =
+    systemConfig.data?.generalSettings.hiddenProviderIds ??
+    EMPTY_HIDDEN_PROVIDER_IDS;
+  const pinnedProviderId = usesStoredCreateSelections
+    ? null
+    : (initialProviderId ?? null);
+  const allProviders = executionOptionsQuery.data?.providers ?? EMPTY_PROVIDERS;
+  const providers = useMemo(
+    () =>
+      selectVisibleProviders(allProviders, hiddenProviderIds, pinnedProviderId),
+    [allProviders, hiddenProviderIds, pinnedProviderId],
+  );
   const isLoadingModels =
     executionOptionsQueryEnabled &&
     (executionOptionsQuery.isLoading ||

@@ -22,6 +22,7 @@ import { Button } from "@kaioken/shared-ui/button";
 import { COARSE_POINTER_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
 import { Icon } from "@kaioken/shared-ui/icon";
 import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Switch } from "@kaioken/shared-ui/switch";
 import {
   SettingsBadge,
   SettingsRow,
@@ -113,6 +114,14 @@ function SortableProviderRow({
   const isDefault =
     generalSettings.defaultProviderId === provider.id ||
     (generalSettings.defaultProviderId === null && index === 0);
+  const isHidden = generalSettings.hiddenProviderIds.includes(provider.id);
+  const setHidden = (hidden: boolean) =>
+    onGeneralSettingsChange({
+      ...generalSettings,
+      hiddenProviderIds: hidden
+        ? [...generalSettings.hiddenProviderIds, provider.id]
+        : generalSettings.hiddenProviderIds.filter((id) => id !== provider.id),
+    });
 
   return (
     <SettingsRow
@@ -150,10 +159,22 @@ function SortableProviderRow({
           <Icon name="Zap" className="text-muted-foreground" />
         )}
       </span>
-      <span className="min-w-0 flex-1 truncate font-medium">
+      <span
+        className={cn(
+          "min-w-0 flex-1 truncate font-medium",
+          isHidden && "text-muted-foreground",
+        )}
+      >
         {provider.displayName}
       </span>
       {!provider.available ? <SettingsBadge>Unavailable</SettingsBadge> : null}
+      {isHidden ? <SettingsBadge>Hidden</SettingsBadge> : null}
+      <Switch
+        checked={!isHidden}
+        disabled={disabled}
+        aria-label={`Show ${provider.displayName} in pickers`}
+        onCheckedChange={(checked) => setHidden(!checked)}
+      />
       {isDefault ? (
         <SettingsBadge>Default</SettingsBadge>
       ) : (
@@ -221,7 +242,7 @@ export function ProvidersSettingsSection({
   return (
     <SettingsSection
       title="Providers"
-      description="Set the default agent and its order in provider pickers. Configure each provider on its plugin page under Plugins."
+      description="Set the default agent, its order in provider pickers, and which providers the pickers show. A hidden provider keeps working for threads already on it. Configure each provider on its plugin page under Plugins."
     >
       {providersQuery.isPending ? (
         <p className="text-sm text-muted-foreground">Loading providers…</p>

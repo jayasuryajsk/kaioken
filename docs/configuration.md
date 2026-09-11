@@ -259,7 +259,12 @@ that names no registered provider is ignored) and `defaultProviderId` is the
 provider new threads use when neither the caller nor the project chose one
 (`null` means the first available provider in picker order). Set them with
 `kaioken settings general providerOrder '["claude-code","codex"]'` and
-`kaioken settings general defaultProviderId claude-code` (or `null`).
+`kaioken settings general defaultProviderId claude-code` (or `null`). Each
+provider row also has a switch that hides the provider from the model pickers;
+`hiddenProviderIds` holds those ids
+(`kaioken settings general hiddenProviderIds '["pi","cursor"]'`). A hidden
+provider still runs the threads already on it and can still be named
+explicitly by the CLI or SDK.
 
 Each provider's own options live on its plugin: Codex memory and native
 subagents under the Codex provider plugin, and Claude Code memory, native

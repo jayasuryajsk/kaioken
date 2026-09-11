@@ -8,7 +8,13 @@ import {
 
 describe("managedBranchPrefixSchema", () => {
   it("accepts prefixes that start a valid branch name", () => {
-    for (const prefix of ["kaioken/", "", "sawyer/wt-", "team/kaioken/", "wip_"]) {
+    for (const prefix of [
+      "kaioken/",
+      "",
+      "sawyer/wt-",
+      "team/kaioken/",
+      "wip_",
+    ]) {
       expect(managedBranchPrefixSchema.safeParse(prefix).success).toBe(true);
     }
   });
@@ -30,6 +36,22 @@ describe("managedBranchPrefixSchema", () => {
     ]) {
       expect(managedBranchPrefixSchema.safeParse(prefix).success).toBe(false);
     }
+  });
+
+  it("hides no provider by default and rejects blank provider ids", () => {
+    expect(defaultAppSettings.hiddenProviderIds).toEqual([]);
+    expect(
+      appSettingsSchema.safeParse({
+        ...defaultAppSettings,
+        hiddenProviderIds: ["pi", ""],
+      }).success,
+    ).toBe(false);
+    expect(
+      appSettingsSchema.parse({
+        ...defaultAppSettings,
+        hiddenProviderIds: ["pi"],
+      }).hiddenProviderIds,
+    ).toEqual(["pi"]);
   });
 
   it("defaults to the kaioken namespace", () => {

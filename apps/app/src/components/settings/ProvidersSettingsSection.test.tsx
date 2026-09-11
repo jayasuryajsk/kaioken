@@ -79,6 +79,42 @@ describe("ProvidersSettingsSection", () => {
     });
   });
 
+  it("hides a provider from pickers with a switch and shows it again", () => {
+    mocks.providers = [provider("alpha", "Alpha"), provider("beta", "Beta")];
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <ProvidersSettingsSection
+        disabled={false}
+        generalSettings={defaultAppSettings}
+        onGeneralSettingsChange={onChange}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("switch", { name: "Show Beta in pickers" }),
+    );
+    expect(onChange).toHaveBeenLastCalledWith({
+      ...defaultAppSettings,
+      hiddenProviderIds: ["beta"],
+    });
+
+    rerender(
+      <ProvidersSettingsSection
+        disabled={false}
+        generalSettings={{ ...defaultAppSettings, hiddenProviderIds: ["beta"] }}
+        onGeneralSettingsChange={onChange}
+      />,
+    );
+    expect(screen.getByText("Hidden")).toBeTruthy();
+    fireEvent.click(
+      screen.getByRole("switch", { name: "Show Beta in pickers" }),
+    );
+    expect(onChange).toHaveBeenLastCalledWith({
+      ...defaultAppSettings,
+      hiddenProviderIds: [],
+    });
+  });
+
   it("marks an unavailable provider and blocks it as the default", () => {
     mocks.providers = [
       provider("alpha", "Alpha"),
