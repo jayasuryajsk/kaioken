@@ -112,6 +112,7 @@ import { findPaneByThread } from "@/lib/split-layout";
 import { applyThreadOpenToLayout } from "@/views/thread-detail/splitThreadNavigation";
 import { useAppSettingsRouteMemory } from "@/hooks/useAppSettingsRouteMemory";
 import { useSetRootComposeProjectId } from "@/lib/root-compose-selection";
+import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import { BackToAppCommandHandler } from "./BackToAppCommandHandler";
 
 const SIDEBAR_WIDTH_KEY = "bb.sidebar.width";
@@ -451,6 +452,13 @@ export function AppLayout({ children }: AppLayoutProps) {
     if (projectId !== undefined) {
       setRootComposeProjectId(projectId);
     }
+    void navigate(getRootComposeRoutePath(), {
+      state: { focusPrompt: true },
+    });
+    return true;
+  });
+  useAppCommandHandler("thread.quick", () => {
+    setRootComposeProjectId(PERSONAL_PROJECT_ID);
     void navigate(getRootComposeRoutePath(), {
       state: { focusPrompt: true },
     });

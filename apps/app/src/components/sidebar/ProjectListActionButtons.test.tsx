@@ -2,7 +2,10 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ProjectListSearchThreadsAction } from "./ProjectList";
+import {
+  ProjectListNewThreadAction,
+  ProjectListSearchThreadsAction,
+} from "./ProjectList";
 
 const mocks = vi.hoisted(() => ({
   dispatch: vi.fn(),
@@ -16,7 +19,9 @@ vi.mock("@/components/commands/AppCommandProvider", () => ({
   useAppCommandShortcut: (command: string) =>
     command === "thread.search"
       ? { ariaKeyshortcuts: "Meta+K", label: "⌘K" }
-      : null,
+      : command === "thread.quick"
+        ? { ariaKeyshortcuts: "Meta+Shift+J", label: "⇧⌘J" }
+        : null,
   useIsAppCommandModifierHeld: () => false,
 }));
 
@@ -65,5 +70,34 @@ describe("ProjectListSearchThreadsAction", () => {
 
     expect(onSearchThreads).toHaveBeenCalledOnce();
     expect(mocks.dispatch).toHaveBeenCalledWith("thread.search", button);
+  });
+});
+
+describe("ProjectListNewThreadAction", () => {
+  it("offers a quick chat beside New thread that starts without a project", () => {
+    const onNewChat = vi.fn();
+    const onQuickChat = vi.fn();
+    render(
+      <ProjectListNewThreadAction
+        onNewChat={onNewChat}
+        onQuickChat={onQuickChat}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Quick chat without a project (⇧⌘J)",
+      }),
+    );
+    expect(onQuickChat).toHaveBeenCalledTimes(1);
+    expect(onNewChat).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "New thread" }));
+    expect(onNewChat).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders only the New thread button when quick chat is unavailable", () => {
+    render(<ProjectListNewThreadAction onNewChat={vi.fn()} />);
+    expect(screen.queryByRole("button", { name: /Quick chat/ })).toBeNull();
   });
 });

@@ -30,6 +30,7 @@ export function BuiltInSidebarNavigation({
   onCompactCustomizeModeChange,
   onNavigate,
   onNewChat,
+  onQuickChat,
   onSearchThreads,
   splitEnabled,
   toolsRoutePath,
@@ -51,6 +52,7 @@ export function BuiltInSidebarNavigation({
           splitEnabled={splitEnabled}
           newThreadSplit={newThreadSplit}
           onNewChat={onNewChat}
+          onQuickChat={onQuickChat}
         />
       ),
       disabled: onNewChat === undefined,

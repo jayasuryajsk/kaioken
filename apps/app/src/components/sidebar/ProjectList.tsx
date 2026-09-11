@@ -171,6 +171,7 @@ interface ProjectListNewThreadActionProps {
     openInSplit(): void;
   };
   onNewChat?: () => void;
+  onQuickChat?: () => void;
 }
 
 interface ProjectListSearchThreadsActionProps {
@@ -500,15 +501,17 @@ export function ProjectListNewThreadAction({
   splitEnabled = false,
   newThreadSplit,
   onNewChat,
+  onQuickChat,
 }: ProjectListNewThreadActionProps) {
   const isNewChatDisabled = !onNewChat;
   const newThreadShortcut = useAppCommandShortcut("thread.new");
+  const quickChatShortcut = useAppCommandShortcut("thread.quick");
   const newThreadSplitIndicator = usePaneContentSplitIndicator(
     { kind: "new-thread" },
     splitEnabled,
   );
 
-  return (
+  const newThreadButton = (
     <Button
       type="button"
       size="sm"
@@ -542,6 +545,32 @@ export function ProjectListNewThreadAction({
         <AppCommandShortcutHint shortcut={newThreadShortcut} />
       </span>
     </Button>
+  );
+  if (!onQuickChat) {
+    return newThreadButton;
+  }
+  return (
+    <span className="flex w-full min-w-0 items-center gap-0.5">
+      <span className="min-w-0 flex-1">{newThreadButton}</span>
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        className={cn(
+          PROJECT_LIST_ACTION_BUTTON_CLASS,
+          "w-7 shrink-0 justify-center px-0",
+        )}
+        onClick={onQuickChat}
+        aria-label={
+          quickChatShortcut
+            ? `Quick chat without a project (${quickChatShortcut.label})`
+            : "Quick chat without a project"
+        }
+        aria-keyshortcuts={quickChatShortcut?.ariaKeyshortcuts}
+      >
+        <Icon name="MessageSquare" />
+      </Button>
+    </span>
   );
 }
 

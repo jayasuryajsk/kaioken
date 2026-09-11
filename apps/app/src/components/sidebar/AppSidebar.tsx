@@ -5,7 +5,11 @@ import {
   sidebarPreferencesAtom,
 } from "@/lib/sidebar-preference";
 import { cn } from "@kaioken/shared-ui/lib/utils";
-import { THREAD_JUMP_APP_COMMAND_IDS } from "@kaioken/domain";
+import {
+  PERSONAL_PROJECT_ID,
+  THREAD_JUMP_APP_COMMAND_IDS,
+} from "@kaioken/domain";
+import { useSetRootComposeProjectId } from "@/lib/root-compose-selection";
 import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "@kaioken/shared-ui/icon";
 import { COARSE_POINTER_CHILD_ICON_BUTTON_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
@@ -122,6 +126,14 @@ export function AppSidebar({
       state: { focusPrompt: true },
     });
   }, [closeOnMobile, navigate]);
+  const setRootComposeProjectId = useSetRootComposeProjectId();
+  const handleQuickChat = useCallback(() => {
+    closeOnMobile();
+    setRootComposeProjectId(PERSONAL_PROJECT_ID);
+    void navigate(getRootComposeRoutePath(), {
+      state: { focusPrompt: true },
+    });
+  }, [closeOnMobile, navigate, setRootComposeProjectId]);
 
   const showThreadShortcuts = useCallback(() => {
     const targets = getSidebarThreadShortcutTargets(sidebarRef.current);
@@ -260,6 +272,7 @@ export function AppSidebar({
         }
         newThreadSplit={newThreadSplit}
         onNewChat={handleNewChat}
+        onQuickChat={handleQuickChat}
         onSearchThreads={closeOnMobile}
       />
       <div
@@ -360,6 +373,7 @@ export function AppSidebar({
           !isCompactViewport ? (
             <SidebarRail
               onNewChat={handleNewChat}
+              onQuickChat={handleQuickChat}
               settingsRoutePath={settingsRoutePath}
               showResources={
                 toolsRoutePath !== undefined &&

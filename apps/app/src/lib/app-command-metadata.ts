@@ -43,6 +43,11 @@ export const APP_COMMAND_GROUPS: readonly AppCommandGroup[] = [
         "Start a thread in the active project.",
       ),
       command(
+        "thread.quick",
+        "Quick chat",
+        "Start a thread without a project.",
+      ),
+      command(
         "thread.search",
         "Search threads",
         "Search threads in the quick palette.",
@@ -80,7 +85,11 @@ export const APP_COMMAND_GROUPS: readonly AppCommandGroup[] = [
         "Open quick palette",
         "Search and run kaioken commands from the keyboard.",
       ),
-      command("window.new", "New window", "Open another kaioken desktop window."),
+      command(
+        "window.new",
+        "New window",
+        "Open another kaioken desktop window.",
+      ),
       command(
         "app.back",
         "Back to app",

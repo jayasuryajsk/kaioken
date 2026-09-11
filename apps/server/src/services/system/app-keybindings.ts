@@ -143,6 +143,7 @@ export const DEFAULT_APP_KEYBINDINGS: AppDefaultKeybindings = [
       desktopOnly: true,
     },
   ),
+  binding("thread.quick", "j", { mod: true, shift: true }, mainWithoutModal),
   binding("thread.search", "k", { mod: true }, mainWithoutModal),
   unassignedBinding("thread.rename", mainWithoutModal),
   unassignedBinding("thread.archive", mainWithoutModal),

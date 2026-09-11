@@ -21,6 +21,7 @@ const RAIL_BUTTON_CLASS =
 
 interface SidebarRailProps {
   onNewChat: () => void;
+  onQuickChat: () => void;
   settingsRoutePath: string;
   showResources: boolean;
 }
@@ -55,6 +56,7 @@ function RailLink({ label, to, children }: RailLinkProps) {
 
 export function SidebarRail({
   onNewChat,
+  onQuickChat,
   settingsRoutePath,
   showResources,
 }: SidebarRailProps) {
@@ -90,6 +92,16 @@ export function SidebarRail({
             onClick={onNewChat}
           >
             <Icon name="MessageSquarePlus" />
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            className={RAIL_BUTTON_CLASS}
+            tooltip={{ children: "Quick chat", hidden: false, side: "right" }}
+            aria-label="Quick chat without a project"
+            onClick={onQuickChat}
+          >
+            <Icon name="MessageSquare" />
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>

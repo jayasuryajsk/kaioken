@@ -327,6 +327,7 @@ delayed shortcut badges without disabling any shortcuts.
 | --------- | ----------------------------------------- | --------------------------------- | ------------------------ |
 | Palette   | Quick palette                             | `Mod+Shift+P`                     | All clients              |
 | Threads   | New thread                                | `Mod+N` / `Mod+Shift+O`           | Desktop / web            |
+| Threads   | Quick chat (no project)                   | `Mod+Shift+J`                     | Desktop / web            |
 | Threads   | Search threads                            | `Mod+K`                           | All clients              |
 | Threads   | Rename focused thread                     | Unassigned                        | Thread view              |
 | Threads   | Archive focused thread                    | Unassigned                        | Thread view              |
