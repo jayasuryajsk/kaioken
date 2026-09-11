@@ -43,14 +43,14 @@ const THREAD_LIST_OPTIONS: ReadonlyArray<{
   description: string;
 }> = [
   {
+    value: "timeline",
+    label: "Timeline",
+    description: "Flat list by day, with a bell for priority mode",
+  },
+  {
     value: "projects",
     label: "Projects",
     description: "Grouped by project, like bb",
-  },
-  {
-    value: "inbox",
-    label: "Inbox",
-    description: "Flat list: needs you, running, recent; settle and snooze",
   },
 ];
 
@@ -206,7 +206,7 @@ export function SidebarSettings() {
     <div className="space-y-5">
       <SidebarChoice
         label="Thread list"
-        description="How the sidebar lists threads."
+        description="Timeline lists threads by day; its bell shows only what needs you or is running. Projects is the grouped list from bb."
         preferenceKey="threadList"
         options={THREAD_LIST_OPTIONS}
         preferences={preferences}

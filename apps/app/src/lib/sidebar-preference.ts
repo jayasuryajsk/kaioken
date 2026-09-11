@@ -8,7 +8,7 @@ export const SIDEBAR_PREFERENCE_STORAGE_KEY = "bb.appearance.sidebar";
 export const SIDEBAR_DENSITIES = ["compact", "default", "comfortable"] as const;
 export type SidebarDensity = (typeof SIDEBAR_DENSITIES)[number];
 
-export const SIDEBAR_THREAD_LISTS = ["projects", "inbox"] as const;
+export const SIDEBAR_THREAD_LISTS = ["timeline", "projects"] as const;
 export type SidebarThreadList = (typeof SIDEBAR_THREAD_LISTS)[number];
 
 export const SIDEBAR_RECENT_COUNTS = [0, 3, 5, 8] as const;
@@ -16,7 +16,7 @@ export type SidebarRecentCount = (typeof SIDEBAR_RECENT_COUNTS)[number];
 
 const sidebarPreferencesSchema = z.object({
   density: z.enum(SIDEBAR_DENSITIES).default("default"),
-  threadList: z.enum(SIDEBAR_THREAD_LISTS).default("projects"),
+  threadList: z.enum(SIDEBAR_THREAD_LISTS).default("timeline"),
   headingLabels: z.boolean().default(false),
   needsYouFirst: z.boolean().default(false),
   recentCount: z

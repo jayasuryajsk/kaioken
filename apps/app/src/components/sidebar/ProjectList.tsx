@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { SidebarSectionRow } from "./SidebarSectionRow";
-import { InboxThreadList } from "./InboxThreadList";
+import { TimelineThreadList } from "./TimelineThreadList";
 import { ThreadRow } from "./ThreadRow";
 import {
   compareByAttentionThen,
@@ -1733,8 +1733,8 @@ function ProjectListComponent({
       }}
     >
       <ProjectListShell>
-        {sidebarPreferences.threadList === "inbox" ? (
-          <InboxThreadList
+        {sidebarPreferences.threadList === "timeline" ? (
+          <TimelineThreadList
             threads={threads}
             selectedThreadId={selectedThreadId}
             draftThreadIds={draftThreadIds}
