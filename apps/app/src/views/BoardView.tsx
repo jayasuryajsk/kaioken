@@ -1,4 +1,13 @@
-import { useCallback, useMemo, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import {
@@ -19,12 +28,18 @@ import {
   isRuntimeBusyThread,
   isUnreadDoneThread,
 } from "@kaioken/client-core";
-import { PERSONAL_PROJECT_ID, type ThreadListEntry } from "@kaioken/domain";
+import {
+  PERSONAL_PROJECT_ID,
+  type ProviderInfo,
+  type ThreadListEntry,
+} from "@kaioken/domain";
 import type { ThreadSectionResponse } from "@kaioken/server-contract";
 import { Button } from "@kaioken/shared-ui/button";
 import { Icon } from "@kaioken/shared-ui/icon";
-import { Input } from "@kaioken/shared-ui/input";
 import { cn } from "@kaioken/shared-ui/lib/utils";
+import { Textarea } from "@kaioken/shared-ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@kaioken/shared-ui/toggle-group";
+import { ProviderIconMark } from "@/components/settings/ProviderIconMark";
 import {
   ThreadActionsContextMenu,
   ThreadActionsMenu,
@@ -39,6 +54,7 @@ import { useCreateThreadSection } from "@/hooks/mutations/thread-section-mutatio
 import { useCreateThread } from "@/hooks/mutations/thread-runtime-mutations";
 import { useMoveThreadToSection } from "@/hooks/mutations/thread-state-mutations";
 import { useSidebarNavigation } from "@/hooks/queries/sidebar-navigation-query";
+import { useSystemProviders } from "@/hooks/queries/system-queries";
 import {
   boardIdeaTitle,
   boardIdeasAtom,
@@ -46,6 +62,7 @@ import {
   removeBoardIdea,
   type BoardIdea,
 } from "@/lib/board-ideas";
+import { getProviderIconInfo } from "@/lib/provider-icon";
 import { useRootComposeProjectId } from "@/lib/root-compose-selection";
 import { getThreadRoutePath } from "@/lib/route-paths";
 import { isListedThread } from "@/lib/sidebar-timeline";
@@ -54,6 +71,10 @@ import { getThreadDisplayTitle } from "@/lib/thread-title";
 const TODO_COLUMN_ID = "todo";
 const DEFAULT_COLUMN_NAMES = ["Working", "Done"] as const;
 const ALL_PROJECTS = "all";
+const CHIP_CLASS =
+  "h-7 rounded-md px-2.5 text-xs data-[state=on]:bg-state-active data-[state=on]:text-foreground";
+const CARD_CLASS =
+  "group/board-card relative flex flex-col gap-1.5 rounded-lg border border-border bg-card px-3 py-2.5 text-sm shadow-sm transition-[background-color,box-shadow,border-color] hover:border-ring/40 hover:bg-state-hover";
 
 interface BoardColumn {
   id: string;
@@ -64,6 +85,12 @@ interface BoardColumn {
 interface BoardProject {
   id: string;
   name: string;
+}
+
+interface StartTaskArgs {
+  text: string;
+  projectId: string;
+  sectionId: string | null;
 }
 
 function columnDroppableId(column: BoardColumn): string {
@@ -102,13 +129,44 @@ export function threadsForColumn(
     .sort((left, right) => right.updatedAt - left.updatedAt);
 }
 
+function dragStyle(
+  transform: { x: number; y: number } | null,
+): CSSProperties | undefined {
+  return transform
+    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+    : undefined;
+}
+
+function ProviderGlyph({
+  providerId,
+  providers,
+}: {
+  providerId: string;
+  providers: readonly ProviderInfo[];
+}) {
+  const provider = providers.find((candidate) => candidate.id === providerId);
+  const info = provider ? getProviderIconInfo(providerId, provider) : undefined;
+  if (!provider || !info?.icon) {
+    return null;
+  }
+  return (
+    <ProviderIconMark
+      provider={provider}
+      icon={info.icon}
+      className="size-3.5 shrink-0 text-muted-foreground"
+    />
+  );
+}
+
 function ThreadCard({
   thread,
   projectName,
+  providers,
   onOpen,
 }: {
   thread: ThreadListEntry;
   projectName: string;
+  providers: readonly ProviderInfo[];
   onOpen: () => void;
 }) {
   const title = getThreadDisplayTitle(thread);
@@ -121,18 +179,15 @@ function ThreadCard({
   });
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: threadDraggableId(thread) });
-  const style = transform
-    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
-    : undefined;
   return (
     <ThreadActionsContextMenu thread={thread} onOpenInSplit={openInSplit}>
       <div
         ref={setNodeRef}
-        style={style}
+        style={dragStyle(transform)}
         data-testid="board-thread-card"
         className={cn(
-          "group/board-card relative flex flex-col gap-1 rounded-md border border-border bg-card px-3 py-2 text-sm shadow-sm transition-colors hover:bg-state-hover",
-          isDragging && "z-10 opacity-80 shadow-lift",
+          CARD_CLASS,
+          isDragging && "z-10 opacity-90 shadow-lift",
           menuOpen && "bg-state-hover",
         )}
         {...attributes}
@@ -149,7 +204,7 @@ function ThreadCard({
               onOpen();
             }}
             className={cn(
-              "min-w-0 flex-1 truncate text-left outline-none focus-visible:ring-1 focus-visible:ring-ring",
+              "line-clamp-2 min-w-0 flex-1 text-left leading-snug outline-none focus-visible:ring-1 focus-visible:ring-ring",
               unread && "font-medium",
             )}
           >
@@ -190,13 +245,16 @@ function ThreadCard({
             </span>
           </span>
         </div>
-        <div className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-          <Icon name="Folder" className="size-3 shrink-0" />
+        <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+          <ProviderGlyph providerId={thread.providerId} providers={providers} />
           <span className="min-w-0 truncate">{projectName}</span>
           {thread.environmentBranchName ? (
-            <span className="min-w-0 truncate">
-              · {thread.environmentBranchName}
-            </span>
+            <>
+              <span className="shrink-0 text-subtle-foreground">·</span>
+              <span className="min-w-0 truncate font-mono text-2xs">
+                {thread.environmentBranchName}
+              </span>
+            </>
           ) : null}
         </div>
       </div>
@@ -217,23 +275,24 @@ function IdeaCard({
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: ideaDraggableId(idea) });
-  const style = transform
-    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
-    : undefined;
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={dragStyle(transform)}
       data-testid="board-idea-card"
       className={cn(
-        "group/board-card flex flex-col gap-1 rounded-md border border-dashed border-border bg-card/60 px-3 py-2 text-sm transition-colors hover:bg-state-hover",
-        isDragging && "z-10 opacity-80 shadow-lift",
+        CARD_CLASS,
+        "border-dashed bg-card/60",
+        isDragging && "z-10 opacity-90 shadow-lift",
       )}
       {...attributes}
       {...listeners}
     >
       <div className="flex min-w-0 items-start gap-2">
-        <span className="min-w-0 flex-1 truncate" title={idea.text}>
+        <span
+          className="line-clamp-2 min-w-0 flex-1 leading-snug"
+          title={idea.text}
+        >
           {boardIdeaTitle(idea.text)}
         </span>
         <span className="hidden shrink-0 items-center gap-0.5 group-hover/board-card:inline-flex">
@@ -242,7 +301,7 @@ function IdeaCard({
             variant="ghost"
             size="icon"
             className="size-6"
-            aria-label="Start this idea"
+            aria-label="Start this task"
             onClick={onStart}
           >
             <Icon name="Play" className="size-3.5" />
@@ -252,17 +311,19 @@ function IdeaCard({
             variant="ghost"
             size="icon"
             className="size-6"
-            aria-label="Remove this idea"
+            aria-label="Remove this task"
             onClick={onRemove}
           >
             <Icon name="X" className="size-3.5" />
           </Button>
         </span>
       </div>
-      <div className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+      <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
         <Icon name="Folder" className="size-3 shrink-0" />
         <span className="min-w-0 truncate">{projectName}</span>
-        <span className="ml-auto shrink-0">not started</span>
+        <span className="ml-auto shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-2xs uppercase tracking-wide text-subtle-foreground">
+          Draft
+        </span>
       </div>
     </div>
   );
@@ -272,12 +333,10 @@ function BoardColumnView({
   column,
   count,
   children,
-  header,
 }: {
   column: BoardColumn;
   count: number;
-  children: React.ReactNode;
-  header?: React.ReactNode;
+  children: ReactNode;
 }) {
   const { isOver, setNodeRef } = useDroppable({
     id: columnDroppableId(column),
@@ -287,32 +346,172 @@ function BoardColumnView({
       ref={setNodeRef}
       data-testid={`board-column-${column.id}`}
       className={cn(
-        "flex w-72 shrink-0 flex-col rounded-lg border border-border bg-surface-recessed transition-colors",
-        isOver && "border-ring bg-state-hover",
+        "flex min-h-0 min-w-64 flex-1 flex-col rounded-xl border border-transparent bg-surface-recessed transition-colors",
+        isOver && "border-ring/50 bg-state-hover",
       )}
     >
-      <div className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground">
-        <span className="truncate">{column.name}</span>
-        <span className="ml-auto rounded-sm bg-muted px-1.5 py-0.5 text-2xs">
+      <div className="flex items-center gap-2 px-3 pb-1 pt-3">
+        <span className="text-sm font-medium">{column.name}</span>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-2xs text-muted-foreground">
           {count}
         </span>
       </div>
-      {header}
-      <div className="flex min-h-24 flex-1 flex-col gap-2 overflow-y-auto px-2 pb-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
         {children}
       </div>
     </section>
   );
 }
 
+function NewTaskComposer({
+  projects,
+  initialProjectId,
+  columns,
+  isCreating,
+  onStart,
+  onSaveDraft,
+  onClose,
+}: {
+  projects: readonly BoardProject[];
+  initialProjectId: string;
+  columns: readonly BoardColumn[];
+  isCreating: boolean;
+  onStart: (args: StartTaskArgs) => Promise<void>;
+  onSaveDraft: (args: { text: string; projectId: string }) => void;
+  onClose: () => void;
+}) {
+  const [text, setText] = useState("");
+  const [projectId, setProjectId] = useState(initialProjectId);
+  const [sectionId, setSectionId] = useState<string | null>(
+    columns.find((column) => column.sectionId !== null)?.sectionId ?? null,
+  );
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
+  const hasText = text.trim().length > 0;
+  const start = async () => {
+    if (!hasText || isCreating) return;
+    await onStart({ text, projectId, sectionId });
+    setText("");
+    onClose();
+  };
+  const saveDraft = () => {
+    if (!hasText) return;
+    onSaveDraft({ text, projectId });
+    setText("");
+    onClose();
+  };
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+      event.preventDefault();
+      void start();
+    }
+  };
+  return (
+    <div
+      data-testid="board-new-task"
+      className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
+    >
+      <Textarea
+        ref={textareaRef}
+        value={text}
+        onChange={(event) => setText(event.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="What should the agent do? Write it like a message to a teammate."
+        aria-label="Task description"
+        rows={3}
+        className="min-h-20 resize-y text-sm"
+      />
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-xs text-muted-foreground">Repo</span>
+        <ToggleGroup
+          type="single"
+          value={projectId}
+          onValueChange={(value) => {
+            if (value) setProjectId(value);
+          }}
+          aria-label="Repo"
+          className="flex flex-wrap gap-1"
+        >
+          {projects.map((project) => (
+            <ToggleGroupItem
+              key={project.id}
+              value={project.id}
+              className={CHIP_CLASS}
+            >
+              {project.name}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+        {columns.length > 1 ? (
+          <>
+            <span className="ml-2 text-xs text-muted-foreground">Column</span>
+            <ToggleGroup
+              type="single"
+              value={sectionId ?? TODO_COLUMN_ID}
+              onValueChange={(value) => {
+                if (!value) return;
+                setSectionId(value === TODO_COLUMN_ID ? null : value);
+              }}
+              aria-label="Column"
+              className="flex flex-wrap gap-1"
+            >
+              {columns.map((column) => (
+                <ToggleGroupItem
+                  key={column.id}
+                  value={column.id}
+                  className={CHIP_CLASS}
+                >
+                  {column.name}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </>
+        ) : null}
+        <span className="ml-auto flex items-center gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!hasText}
+            onClick={saveDraft}
+          >
+            Save as draft
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            disabled={!hasText || isCreating}
+            onClick={() => void start()}
+          >
+            <Icon name="Play" className="size-3.5" />
+            Start
+            <span className="ml-1 text-2xs opacity-70">⌘↩</span>
+          </Button>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function BoardView() {
   const navigate = useNavigate();
   const navigationQuery = useSidebarNavigation();
+  const providersQuery = useSystemProviders();
+  const providers = providersQuery.data ?? [];
   const [ideas, setIdeas] = useAtom(boardIdeasAtom);
   const [rootComposeProjectId] = useRootComposeProjectId();
   const [projectFilter, setProjectFilter] = useState<string>(ALL_PROJECTS);
-  const [ideaText, setIdeaText] = useState("");
-  const [ideaProjectId, setIdeaProjectId] = useState<string | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
   const createSection = useCreateThreadSection();
   const createThread = useCreateThread();
   const moveThreadToSection = useMoveThreadToSection();
@@ -321,11 +520,11 @@ export function BoardView() {
     const data = navigationQuery.data;
     if (!data) return [];
     return [
-      { id: PERSONAL_PROJECT_ID, name: "Kaioken" },
       ...data.projects.map((project) => ({
         id: project.id,
         name: project.name,
       })),
+      { id: PERSONAL_PROJECT_ID, name: "No repo" },
     ];
   }, [navigationQuery.data]);
   const projectNames = useMemo(
@@ -333,7 +532,7 @@ export function BoardView() {
     [projects],
   );
   const projectNameFor = useCallback(
-    (projectId: string) => projectNames.get(projectId) ?? "Kaioken",
+    (projectId: string) => projectNames.get(projectId) ?? "No repo",
     [projectNames],
   );
 
@@ -371,32 +570,49 @@ export function BoardView() {
       })),
     [columns],
   );
+  const firstStartColumn = columns.find((column) => column.sectionId !== null);
 
-  const effectiveIdeaProjectId =
-    ideaProjectId ??
-    (projectFilter !== ALL_PROJECTS ? projectFilter : rootComposeProjectId);
+  const composerProjectId =
+    projectFilter !== ALL_PROJECTS
+      ? projectFilter
+      : projectNames.has(rootComposeProjectId)
+        ? rootComposeProjectId
+        : (projects[0]?.id ?? PERSONAL_PROJECT_ID);
 
-  const addIdea = useCallback(() => {
-    const idea = createBoardIdea(ideaText, effectiveIdeaProjectId);
-    if (idea === null) return;
-    setIdeas((current) => [idea, ...current]);
-    setIdeaText("");
-  }, [effectiveIdeaProjectId, ideaText, setIdeas]);
-
-  const startIdea = useCallback(
-    async (idea: BoardIdea, sectionId: string | null) => {
+  const startTask = useCallback(
+    async ({ text, projectId, sectionId }: StartTaskArgs) => {
       await createThread.mutateAsync({
-        projectId: idea.projectId,
-        input: [{ type: "text", text: idea.text, mentions: [] }],
+        projectId,
+        input: [{ type: "text", text: text.trim(), mentions: [] }],
         environment:
-          idea.projectId === PERSONAL_PROJECT_ID
+          projectId === PERSONAL_PROJECT_ID
             ? { type: "host", workspace: { type: "personal" } }
             : { type: "project-default" },
         ...(sectionId === null ? {} : { sectionId }),
       });
+    },
+    [createThread],
+  );
+
+  const saveDraft = useCallback(
+    ({ text, projectId }: { text: string; projectId: string }) => {
+      const idea = createBoardIdea(text, projectId);
+      if (idea === null) return;
+      setIdeas((current) => [idea, ...current]);
+    },
+    [setIdeas],
+  );
+
+  const startIdea = useCallback(
+    async (idea: BoardIdea, sectionId: string | null) => {
+      await startTask({
+        text: idea.text,
+        projectId: idea.projectId,
+        sectionId,
+      });
       setIdeas((current) => removeBoardIdea(current, idea.id));
     },
-    [createThread, setIdeas],
+    [setIdeas, startTask],
   );
 
   const handleDragEnd = useCallback(
@@ -449,31 +665,33 @@ export function BoardView() {
     await createSection.mutateAsync({ name: name.trim() });
   }, [createSection]);
 
-  const handleIdeaKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      addIdea();
-    }
-  };
-
   return (
     <ThreadSectionMoveProvider destinations={moveDestinations}>
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="-mx-4 -mb-4 -mt-4 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:-mx-5 md:-mb-5 md:-mt-5">
+        <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-border px-5 py-3">
           <h1 className="text-base font-medium">Board</h1>
-          <select
-            aria-label="Filter by project"
+          <ToggleGroup
+            type="single"
             value={projectFilter}
-            onChange={(event) => setProjectFilter(event.target.value)}
-            className="h-7 rounded-md border border-border bg-background px-2 text-xs"
+            onValueChange={(value) => {
+              if (value) setProjectFilter(value);
+            }}
+            aria-label="Filter by repo"
+            className="flex flex-wrap gap-1"
           >
-            <option value={ALL_PROJECTS}>All projects</option>
+            <ToggleGroupItem value={ALL_PROJECTS} className={CHIP_CLASS}>
+              All
+            </ToggleGroupItem>
             {projects.map((project) => (
-              <option key={project.id} value={project.id}>
+              <ToggleGroupItem
+                key={project.id}
+                value={project.id}
+                className={CHIP_CLASS}
+              >
                 {project.name}
-              </option>
+              </ToggleGroupItem>
             ))}
-          </select>
+          </ToggleGroup>
           <span className="ml-auto flex items-center gap-2">
             {!hasSections ? (
               <Button
@@ -492,17 +710,42 @@ export function BoardView() {
               variant="ghost"
               disabled={createSection.isPending}
               onClick={() => void addColumn()}
+              aria-label="Add column"
             >
               <Icon name="Plus" className="size-3.5" />
               Column
             </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setComposerOpen((open) => !open)}
+              aria-pressed={composerOpen}
+            >
+              <Icon name="MessageSquarePlus" className="size-3.5" />
+              New task
+            </Button>
           </span>
-        </div>
+        </header>
+        {composerOpen ? (
+          <div className="shrink-0 px-5 pt-4">
+            <NewTaskComposer
+              projects={projects}
+              initialProjectId={composerProjectId}
+              columns={columns}
+              isCreating={createThread.isPending}
+              onStart={startTask}
+              onSaveDraft={saveDraft}
+              onClose={() => setComposerOpen(false)}
+            />
+          </div>
+        ) : null}
         {navigationQuery.isPending ? (
-          <p className="text-sm text-muted-foreground">Loading threads…</p>
+          <p className="px-5 py-4 text-sm text-muted-foreground">
+            Loading threads…
+          </p>
         ) : (
           <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-            <div className="flex min-h-0 flex-1 gap-3 overflow-x-auto pb-2">
+            <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto p-5">
               {columns.map((column) => {
                 const columnThreads = threadsForColumn(threads, column);
                 const isTodo = column.sectionId === null;
@@ -513,36 +756,6 @@ export function BoardView() {
                     key={column.id}
                     column={column}
                     count={count}
-                    header={
-                      isTodo ? (
-                        <div className="flex items-center gap-1 px-2 pb-2">
-                          <Input
-                            aria-label="New idea"
-                            placeholder="Type an idea, press Enter"
-                            value={ideaText}
-                            onChange={(event) =>
-                              setIdeaText(event.target.value)
-                            }
-                            onKeyDown={handleIdeaKeyDown}
-                            className="h-7 text-xs"
-                          />
-                          <select
-                            aria-label="Idea project"
-                            value={effectiveIdeaProjectId}
-                            onChange={(event) =>
-                              setIdeaProjectId(event.target.value)
-                            }
-                            className="h-7 max-w-24 rounded-md border border-border bg-background px-1 text-xs"
-                          >
-                            {projects.map((project) => (
-                              <option key={project.id} value={project.id}>
-                                {project.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      ) : undefined
-                    }
                   >
                     {isTodo
                       ? visibleIdeas.map((idea) => (
@@ -553,7 +766,7 @@ export function BoardView() {
                             onStart={() =>
                               void startIdea(
                                 idea,
-                                columns[1]?.sectionId ?? null,
+                                firstStartColumn?.sectionId ?? null,
                               )
                             }
                             onRemove={() =>
@@ -569,6 +782,7 @@ export function BoardView() {
                         key={thread.id}
                         thread={thread}
                         projectName={projectNameFor(thread.projectId)}
+                        providers={providers}
                         onOpen={() =>
                           void navigate(
                             getThreadRoutePath({
@@ -580,11 +794,15 @@ export function BoardView() {
                       />
                     ))}
                     {count === 0 ? (
-                      <p className="px-1 py-2 text-xs text-muted-foreground">
+                      <button
+                        type="button"
+                        onClick={() => setComposerOpen(true)}
+                        className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground transition-colors hover:border-ring/40 hover:text-foreground"
+                      >
                         {isTodo
-                          ? "Nothing waiting. Type an idea above."
-                          : "Drop threads here."}
-                      </p>
+                          ? "No tasks waiting. Add one."
+                          : "Empty. Drop a card here or add a task."}
+                      </button>
                     ) : null}
                   </BoardColumnView>
                 );
