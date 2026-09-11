@@ -1,11 +1,8 @@
 import {
   useCallback,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type CSSProperties,
-  type KeyboardEvent,
   type ReactNode,
 } from "react";
 import { useNavigate } from "react-router-dom";
@@ -37,12 +34,11 @@ import type { ThreadSectionResponse } from "@kaioken/server-contract";
 import { Button } from "@kaioken/shared-ui/button";
 import { Icon } from "@kaioken/shared-ui/icon";
 import { cn } from "@kaioken/shared-ui/lib/utils";
-import { Textarea } from "@kaioken/shared-ui/textarea";
-import { ToggleGroup, ToggleGroupItem } from "@kaioken/shared-ui/toggle-group";
 import {
   OptionPicker,
   type PickerOption,
 } from "@/components/pickers/OptionPicker";
+import { BoardTaskDialog } from "./BoardTaskDialog";
 import { ProviderIconMark } from "@/components/settings/ProviderIconMark";
 import {
   ThreadActionsContextMenu,
@@ -75,8 +71,6 @@ import { getThreadDisplayTitle } from "@/lib/thread-title";
 const TODO_COLUMN_ID = "todo";
 const DEFAULT_COLUMN_NAMES = ["Working", "Done"] as const;
 const ALL_PROJECTS = "all";
-const CHIP_CLASS =
-  "h-7 rounded-md px-2.5 text-xs data-[state=on]:bg-state-active data-[state=on]:text-foreground";
 const CARD_CLASS =
   "group/board-card relative flex flex-col gap-0.5 rounded-md py-1.5 pl-2 pr-1 text-sm transition-colors hover:bg-state-hover";
 
@@ -378,150 +372,6 @@ function BoardColumnView({
   );
 }
 
-function NewTaskComposer({
-  projects,
-  initialProjectId,
-  initialSectionId,
-  columns,
-  isCreating,
-  onStart,
-  onSaveDraft,
-  onClose,
-}: {
-  projects: readonly BoardProject[];
-  initialProjectId: string;
-  initialSectionId: string | null | undefined;
-  columns: readonly BoardColumn[];
-  isCreating: boolean;
-  onStart: (args: StartTaskArgs) => Promise<void>;
-  onSaveDraft: (args: { text: string; projectId: string }) => void;
-  onClose: () => void;
-}) {
-  const [text, setText] = useState("");
-  const [projectId, setProjectId] = useState(initialProjectId);
-  const [sectionId, setSectionId] = useState<string | null>(
-    initialSectionId === undefined
-      ? (columns.find((column) => column.sectionId !== null)?.sectionId ?? null)
-      : initialSectionId,
-  );
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
-  const hasText = text.trim().length > 0;
-  const start = async () => {
-    if (!hasText || isCreating) return;
-    await onStart({ text, projectId, sectionId });
-    setText("");
-    onClose();
-  };
-  const saveDraft = () => {
-    if (!hasText) return;
-    onSaveDraft({ text, projectId });
-    setText("");
-    onClose();
-  };
-  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      onClose();
-      return;
-    }
-    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-      event.preventDefault();
-      void start();
-    }
-  };
-  return (
-    <div
-      data-testid="board-new-task"
-      className="flex flex-col gap-3 rounded-lg border border-seam bg-surface-raised p-3"
-    >
-      <Textarea
-        ref={textareaRef}
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="What should the agent do? Write it like a message to a teammate."
-        aria-label="Task description"
-        rows={3}
-        className="min-h-20 resize-y border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0"
-      />
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="text-xs text-muted-foreground">Repo</span>
-        <ToggleGroup
-          type="single"
-          value={projectId}
-          onValueChange={(value) => {
-            if (value) setProjectId(value);
-          }}
-          aria-label="Repo"
-          className="flex flex-wrap gap-1"
-        >
-          {projects.map((project) => (
-            <ToggleGroupItem
-              key={project.id}
-              value={project.id}
-              className={CHIP_CLASS}
-            >
-              {project.name}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-        {columns.length > 1 ? (
-          <>
-            <span className="ml-2 text-xs text-muted-foreground">Column</span>
-            <ToggleGroup
-              type="single"
-              value={sectionId ?? TODO_COLUMN_ID}
-              onValueChange={(value) => {
-                if (!value) return;
-                setSectionId(value === TODO_COLUMN_ID ? null : value);
-              }}
-              aria-label="Column"
-              className="flex flex-wrap gap-1"
-            >
-              {columns.map((column) => (
-                <ToggleGroupItem
-                  key={column.id}
-                  value={column.id}
-                  className={CHIP_CLASS}
-                >
-                  {column.name}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
-          </>
-        ) : null}
-        <span className="ml-auto flex items-center gap-2">
-          <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={!hasText}
-            onClick={saveDraft}
-          >
-            Save as draft
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            disabled={!hasText || isCreating}
-            onClick={() => void start()}
-          >
-            <Icon name="Play" className="size-3.5" />
-            Start
-            <span className="ml-1 text-2xs opacity-70">⌘↩</span>
-          </Button>
-        </span>
-      </div>
-    </div>
-  );
-}
-
 export function BoardView() {
   const navigate = useNavigate();
   const navigationQuery = useSidebarNavigation();
@@ -748,19 +598,15 @@ export function BoardView() {
           </span>
         </header>
         {composer ? (
-          <div className="shrink-0 px-5 pb-3">
-            <NewTaskComposer
-              key={composer.sectionId ?? "todo"}
-              projects={projects}
-              initialProjectId={composerProjectId}
-              initialSectionId={composer.sectionId}
-              columns={columns}
-              isCreating={createThread.isPending}
-              onStart={startTask}
-              onSaveDraft={saveDraft}
-              onClose={closeComposer}
-            />
-          </div>
+          <BoardTaskDialog
+            key={composer.sectionId ?? "todo"}
+            open
+            columns={columns}
+            initialProjectId={composerProjectId}
+            initialSectionId={composer.sectionId}
+            onSaveDraft={saveDraft}
+            onClose={closeComposer}
+          />
         ) : null}
         {navigationQuery.isPending ? (
           <p className="px-5 py-4 text-sm text-muted-foreground">
