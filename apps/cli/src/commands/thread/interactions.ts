@@ -783,7 +783,7 @@ export function registerInteractionCommands(
   interactions
     .command("approve <interactionId> [id]")
     .description(
-      "Approve a command, file-change, or plan interaction for this turn",
+      "Approve a command, file-change, plan, or tool-use interaction for this turn",
     )
     .option("--self", "Target the current thread (from KAIOKEN_THREAD_ID)")
     .option("--json", "Print machine-readable JSON output")

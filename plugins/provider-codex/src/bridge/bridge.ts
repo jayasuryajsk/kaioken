@@ -3,7 +3,6 @@
 import { createHash } from "node:crypto";
 import {
   isStandaloneBuiltinCompactCommand,
-  approvalInteractionOutcomeSchema,
   type DynamicTool,
   type PromptInput,
   type ThreadDelta,
@@ -40,7 +39,6 @@ import {
   runBridgeRequest,
   withoutBridgeRuntimeEnv,
   type BridgeJsonRpcResponse,
-  type DecodedInteractiveRequest,
   type PreparedProviderCommandDispatch,
   type ProviderPostInitializeRequest,
   type ProviderRuntimeEvent,
@@ -53,8 +51,10 @@ import {
   summarizeCodexMacOsPermissions,
 } from "../extension-kinds.js";
 import {
-  buildCodexInteractiveResponse,
+  buildCodexDeclinedElicitationResponse,
+  buildCodexInteractiveResponseForResolution,
   decodeCodexInteractiveRequest,
+  type CodexDecodedInteractiveRequest,
   extractCodexMacOsPermissionRequest,
   type CodexMacOsPermissionRequest,
 } from "../interactive-requests.js";
@@ -726,7 +726,7 @@ function handleChildRequest(
     sendThreadDeltas(session, [buildMacOsPermissionItemDelta(macOsPermission)]);
   }
 
-  let decoded: DecodedInteractiveRequest | null;
+  let decoded: CodexDecodedInteractiveRequest | null;
   try {
     decoded = decodeCodexInteractiveRequest({ id: 0, method, params });
   } catch (error) {
@@ -737,6 +737,11 @@ function handleChildRequest(
     return;
   }
   if (decoded === null) {
+    const declined = buildCodexDeclinedElicitationResponse(method);
+    if (declined !== null) {
+      responder.result(declined);
+      return;
+    }
     responder.error(
       BRIDGE_JSON_RPC_ERRORS.METHOD_NOT_FOUND,
       `Unhandled codex request "${method}"`,
@@ -753,11 +758,9 @@ function handleChildRequest(
     providerNativeIds: true,
   })
     .then((result) => {
-      const outcome = approvalInteractionOutcomeSchema.parse({
-        payload: request.payload,
-        resolution: result,
-      });
-      responder.result(buildCodexInteractiveResponse(outcome));
+      responder.result(
+        buildCodexInteractiveResponseForResolution(request, result),
+      );
     })
     .catch((error: unknown) => {
       responder.error(
@@ -1021,7 +1024,10 @@ async function constructThreadSession(
     };
 
     let method: string;
-    let params: KaiokenThreadStartParams | KaiokenThreadResumeParams | KaiokenThreadForkParams;
+    let params:
+      | KaiokenThreadStartParams
+      | KaiokenThreadResumeParams
+      | KaiokenThreadForkParams;
     switch (args.request.kind) {
       case "start": {
         method = "thread/start";

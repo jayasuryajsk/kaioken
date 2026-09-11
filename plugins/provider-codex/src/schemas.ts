@@ -315,6 +315,95 @@ export const codexFileChangeRequestApprovalParamsSchema = z.object({
   grantRoot: z.string().nullable().optional(),
 });
 
+const codexElicitationConstOptionSchema = z.object({
+  const: z.string(),
+  title: z.string(),
+});
+
+const codexElicitationEnumItemsSchema = z.object({
+  enum: z.array(z.string()).optional(),
+  oneOf: z.array(codexElicitationConstOptionSchema).optional(),
+});
+
+const codexElicitationPropertySchema = z
+  .object({
+    type: z
+      .enum(["string", "number", "integer", "boolean", "array"])
+      .optional(),
+    title: z.string().nullable().optional(),
+    description: z.string().nullable().optional(),
+    enum: z.array(z.string()).optional(),
+    enumNames: z.array(z.string()).nullable().optional(),
+    oneOf: z.array(codexElicitationConstOptionSchema).optional(),
+    items: codexElicitationEnumItemsSchema.optional(),
+  })
+  .passthrough();
+export type CodexElicitationProperty = z.infer<
+  typeof codexElicitationPropertySchema
+>;
+
+const codexElicitationDisplayParamSchema = z
+  .object({
+    display_name: z.string(),
+    name: z.string(),
+    value: z.unknown(),
+  })
+  .passthrough();
+
+const codexElicitationMetaSchema = z
+  .object({
+    callId: z.string().optional(),
+    connector_name: z.string().optional(),
+    tool_name: z.string().optional(),
+    persist: z.array(z.string()).optional(),
+    tool_params_display: z.array(codexElicitationDisplayParamSchema).optional(),
+  })
+  .passthrough();
+
+export const codexMcpElicitationRequestParamsSchema = z.object({
+  threadId: z.string(),
+  turnId: z.string().nullable().optional(),
+  serverName: z.string(),
+  mode: z.string(),
+  message: z.string(),
+  requestedSchema: z
+    .object({
+      type: z.literal("object"),
+      properties: z.record(z.string(), codexElicitationPropertySchema),
+      required: z.array(z.string()).nullable().optional(),
+    })
+    .optional(),
+  _meta: codexElicitationMetaSchema.nullable().optional(),
+});
+export type CodexMcpElicitationRequestParams = z.infer<
+  typeof codexMcpElicitationRequestParamsSchema
+>;
+
+const codexToolRequestUserInputOptionSchema = z.object({
+  label: z.string(),
+  description: z.string().nullable().optional(),
+});
+
+const codexToolRequestUserInputQuestionSchema = z.object({
+  id: z.string(),
+  header: z.string(),
+  question: z.string(),
+  options: z.array(codexToolRequestUserInputOptionSchema).nullable().optional(),
+  isOther: z.boolean().nullable().optional(),
+  isSecret: z.boolean().nullable().optional(),
+});
+
+export const codexToolRequestUserInputParamsSchema = z.object({
+  threadId: z.string(),
+  turnId: z.string(),
+  itemId: z.string(),
+  isBlocking: z.boolean().nullable().optional(),
+  questions: z.array(codexToolRequestUserInputQuestionSchema),
+});
+export type CodexToolRequestUserInputParams = z.infer<
+  typeof codexToolRequestUserInputParamsSchema
+>;
+
 export const codexPermissionsRequestApprovalParamsSchema = z.object({
   threadId: z.string(),
   turnId: z.string(),

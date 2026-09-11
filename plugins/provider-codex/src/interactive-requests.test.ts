@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildCodexDeclinedElicitationResponse,
   buildCodexInteractiveResponse,
+  buildCodexInteractiveResponseForResolution,
+  buildCodexUserQuestionResponse,
   decodeCodexInteractiveRequest,
   extractCodexMacOsPermissionRequest,
 } from "./interactive-requests.js";
@@ -580,5 +583,392 @@ describe("buildCodexInteractiveResponse", () => {
       },
       scope: "session",
     });
+  });
+});
+
+const COMPUTER_USE_ELICITATION_PARAMS = {
+  threadId: "t1",
+  turnId: "turn-cua",
+  serverName: "cua_repl",
+  mode: "form",
+  _meta: {
+    callId: "call_cua",
+    codex_approval_kind: "mcp_tool_call",
+    connector_id: "computer-use",
+    connector_name: "Computer Use",
+    persist: ["session", "always"],
+    riskLevel: "low",
+    tool_name: "get_app_state",
+    tool_params: { app: "dev.kaioken.desktop" },
+    tool_params_display: [
+      { display_name: "App", name: "app", value: "Kaioken" },
+    ],
+  },
+  message: 'Allow Computer Use to use "Kaioken"?',
+  requestedSchema: { type: "object", properties: {} },
+};
+
+describe("MCP elicitation requests", () => {
+  it("maps an empty-form elicitation into a tool_use approval", () => {
+    expect(
+      decodeCodexInteractiveRequest({
+        id: 21,
+        method: "mcpServer/elicitation/request",
+        params: COMPUTER_USE_ELICITATION_PARAMS,
+      }),
+    ).toEqual({
+      requestId: 21,
+      method: "mcpServer/elicitation/request",
+      providerThreadId: "t1",
+      turnId: "turn-cua",
+      payload: {
+        kind: "approval",
+        subject: {
+          kind: "tool_use",
+          itemId: "call_cua",
+          tool: "get_app_state",
+          presentation: {
+            label: {
+              pending: "Waiting for Computer Use approval",
+              completed: "Answered Computer Use approval",
+            },
+            icon: { glyph: "Toolbox" },
+            title: "Computer Use",
+            detail: "App: Kaioken",
+          },
+        },
+        reason: 'Allow Computer Use to use "Kaioken"?',
+        availableDecisions: ["allow_once", "allow_for_session", "deny"],
+      },
+      context: {
+        kind: "elicitation",
+        persist: ["session", "always"],
+        properties: {},
+      },
+    });
+  });
+
+  it("omits session approval and falls back to the server name without metadata", () => {
+    const decoded = decodeCodexInteractiveRequest({
+      id: 22,
+      method: "mcpServer/elicitation/request",
+      params: {
+        threadId: "t1",
+        turnId: null,
+        serverName: "docs",
+        mode: "form",
+        message: "Continue?",
+        requestedSchema: { type: "object", properties: {} },
+      },
+    });
+    expect(decoded?.turnId).toBeNull();
+    expect(decoded?.payload).toEqual({
+      kind: "approval",
+      subject: {
+        kind: "tool_use",
+        itemId: "docs:elicitation:22",
+        tool: "docs",
+        presentation: {
+          label: {
+            pending: "Waiting for docs approval",
+            completed: "Answered docs approval",
+          },
+          icon: { glyph: "Toolbox" },
+          title: "docs",
+        },
+      },
+      reason: "Continue?",
+      availableDecisions: ["allow_once", "deny"],
+    });
+  });
+
+  it("maps a form with fields into a user question", () => {
+    const decoded = decodeCodexInteractiveRequest({
+      id: 23,
+      method: "mcpServer/elicitation/request",
+      params: {
+        threadId: "t1",
+        turnId: "turn-form",
+        serverName: "deploy",
+        mode: "form",
+        message: "Configure the deploy",
+        requestedSchema: {
+          type: "object",
+          properties: {
+            confirm: { type: "boolean", title: "Confirm deploy" },
+            region: {
+              type: "string",
+              enum: ["us", "eu"],
+              enumNames: ["United States", "Europe"],
+            },
+            tags: {
+              type: "array",
+              items: { oneOf: [{ const: "a", title: "Alpha" }] },
+            },
+            note: { type: "string", description: "Release note" },
+          },
+          required: ["confirm"],
+        },
+      },
+    });
+    expect(decoded?.payload).toEqual({
+      kind: "user_question",
+      questions: [
+        {
+          id: "confirm",
+          prompt: "Configure the deploy\n\nConfirm deploy",
+          shortLabel: "Confirm deploy",
+          multiSelect: false,
+          options: [
+            { value: "true", label: "Yes" },
+            { value: "false", label: "No" },
+          ],
+          allowFreeText: false,
+        },
+        {
+          id: "region",
+          prompt: "region",
+          shortLabel: "region",
+          multiSelect: false,
+          options: [
+            { value: "us", label: "United States" },
+            { value: "eu", label: "Europe" },
+          ],
+          allowFreeText: false,
+        },
+        {
+          id: "tags",
+          prompt: "tags",
+          shortLabel: "tags",
+          multiSelect: true,
+          options: [{ value: "a", label: "Alpha" }],
+          allowFreeText: false,
+        },
+        {
+          id: "note",
+          prompt: "note: Release note",
+          shortLabel: "note",
+          multiSelect: false,
+          allowFreeText: true,
+        },
+      ],
+    });
+  });
+
+  it("declines elicitation modes it cannot render instead of failing the request", () => {
+    expect(
+      decodeCodexInteractiveRequest({
+        id: 24,
+        method: "mcpServer/elicitation/request",
+        params: {
+          threadId: "t1",
+          turnId: "turn-url",
+          serverName: "auth",
+          mode: "url",
+          message: "Sign in",
+          url: "https://example.com",
+          elicitationId: "e1",
+        },
+      }),
+    ).toBeNull();
+    expect(
+      buildCodexDeclinedElicitationResponse("mcpServer/elicitation/request"),
+    ).toEqual({ action: "decline", content: null });
+    expect(
+      buildCodexDeclinedElicitationResponse("item/tool/requestUserInput"),
+    ).toBeNull();
+  });
+
+  it("answers tool_use approvals with accept, session persistence, or decline", () => {
+    const decoded = decodeCodexInteractiveRequest({
+      id: 25,
+      method: "mcpServer/elicitation/request",
+      params: COMPUTER_USE_ELICITATION_PARAMS,
+    });
+    if (decoded === null) throw new Error("expected a decoded request");
+    expect(
+      buildCodexInteractiveResponseForResolution(decoded, {
+        decision: "allow_once",
+        grantedPermissions: null,
+      }),
+    ).toEqual({ action: "accept", content: {} });
+    expect(
+      buildCodexInteractiveResponseForResolution(decoded, {
+        decision: "allow_for_session",
+        grantedPermissions: null,
+      }),
+    ).toEqual({
+      action: "accept",
+      content: {},
+      _meta: { persist: "session" },
+    });
+    expect(
+      buildCodexInteractiveResponseForResolution(decoded, {
+        decision: "deny",
+      }),
+    ).toEqual({ action: "decline", content: null });
+  });
+
+  it("rejects tool_use approvals that lack an elicitation context", () => {
+    expect(() =>
+      buildCodexInteractiveResponse({
+        payload: {
+          kind: "approval",
+          subject: {
+            kind: "tool_use",
+            itemId: "item",
+            tool: "tool",
+            presentation: {
+              label: { pending: "Waiting", completed: "Done" },
+              icon: { glyph: "Toolbox" },
+            },
+          },
+          reason: null,
+          availableDecisions: ["allow_once", "deny"],
+        },
+        resolution: { decision: "allow_once", grantedPermissions: null },
+      }),
+    ).toThrow(/elicitation context/);
+  });
+
+  it("encodes form answers using the requested property types", () => {
+    const decoded = decodeCodexInteractiveRequest({
+      id: 26,
+      method: "mcpServer/elicitation/request",
+      params: {
+        threadId: "t1",
+        turnId: "turn-form",
+        serverName: "deploy",
+        mode: "form",
+        message: "",
+        requestedSchema: {
+          type: "object",
+          properties: {
+            confirm: { type: "boolean" },
+            count: { type: "integer" },
+            tags: { type: "array", items: { enum: ["a", "b"] } },
+            note: { type: "string" },
+          },
+        },
+      },
+    });
+    if (decoded === null) throw new Error("expected a decoded request");
+    expect(
+      buildCodexInteractiveResponseForResolution(decoded, {
+        kind: "user_answer",
+        answers: {
+          confirm: { selected: ["true"] },
+          count: { selected: [], freeText: "3" },
+          tags: { selected: ["a", "b"] },
+        },
+      }),
+    ).toEqual({
+      action: "accept",
+      content: { confirm: true, count: 3, tags: ["a", "b"] },
+    });
+  });
+});
+
+describe("tool user input requests", () => {
+  const params = {
+    threadId: "t1",
+    turnId: "turn-input",
+    itemId: "item-input",
+    isBlocking: true,
+    questions: [
+      {
+        id: "env",
+        header: "Environment",
+        question: "Which environment?",
+        options: [
+          { label: "Staging", description: "Pre-production" },
+          { label: "Production", description: "" },
+        ],
+        isOther: true,
+      },
+      { id: "reason", header: "", question: "Why?", options: null },
+    ],
+  };
+
+  it("maps request_user_input questions into a user question", () => {
+    expect(
+      decodeCodexInteractiveRequest({
+        id: 31,
+        method: "item/tool/requestUserInput",
+        params,
+      }),
+    ).toEqual({
+      requestId: 31,
+      method: "item/tool/requestUserInput",
+      providerThreadId: "t1",
+      turnId: "turn-input",
+      payload: {
+        kind: "user_question",
+        questions: [
+          {
+            id: "env",
+            prompt: "Which environment?",
+            shortLabel: "Environment",
+            multiSelect: false,
+            options: [
+              {
+                value: "env:option-1",
+                label: "Staging",
+                description: "Pre-production",
+              },
+              { value: "env:option-2", label: "Production" },
+            ],
+            allowFreeText: true,
+          },
+          {
+            id: "reason",
+            prompt: "Why?",
+            multiSelect: false,
+            allowFreeText: true,
+          },
+        ],
+      },
+      context: {
+        kind: "user_input",
+        optionLabels: {
+          env: { "env:option-1": "Staging", "env:option-2": "Production" },
+          reason: {},
+        },
+      },
+    });
+  });
+
+  it("answers with option labels and free text, leaving unanswered questions empty", () => {
+    const decoded = decodeCodexInteractiveRequest({
+      id: 32,
+      method: "item/tool/requestUserInput",
+      params,
+    });
+    if (decoded === null) throw new Error("expected a decoded request");
+    expect(
+      buildCodexInteractiveResponseForResolution(decoded, {
+        kind: "user_answer",
+        answers: { env: { selected: ["env:option-2"], freeText: "with care" } },
+      }),
+    ).toEqual({
+      answers: {
+        env: { answers: ["Production", "with care"] },
+        reason: { answers: [] },
+      },
+    });
+  });
+
+  it("requires the request context to answer user questions", () => {
+    expect(() =>
+      buildCodexUserQuestionResponse({
+        payload: {
+          kind: "user_question",
+          questions: [
+            { id: "q", prompt: "?", multiSelect: false, allowFreeText: true },
+          ],
+        },
+        resolution: { kind: "user_answer", answers: {} },
+      }),
+    ).toThrow(/request context/);
   });
 });
