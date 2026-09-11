@@ -74,7 +74,7 @@ const ALL_PROJECTS = "all";
 const CHIP_CLASS =
   "h-7 rounded-md px-2.5 text-xs data-[state=on]:bg-state-active data-[state=on]:text-foreground";
 const CARD_CLASS =
-  "group/board-card relative flex flex-col gap-1.5 rounded-lg border border-border bg-card px-3 py-2.5 text-sm shadow-sm transition-[background-color,box-shadow,border-color] hover:border-ring/40 hover:bg-state-hover";
+  "group/board-card relative flex flex-col gap-0.5 rounded-md py-1.5 pl-2 pr-1 text-sm transition-colors hover:bg-state-hover";
 
 interface BoardColumn {
   id: string;
@@ -187,7 +187,7 @@ function ThreadCard({
         data-testid="board-thread-card"
         className={cn(
           CARD_CLASS,
-          isDragging && "z-10 opacity-90 shadow-lift",
+          isDragging && "z-10 bg-state-active opacity-90",
           menuOpen && "bg-state-hover",
         )}
         {...attributes}
@@ -204,7 +204,7 @@ function ThreadCard({
               onOpen();
             }}
             className={cn(
-              "line-clamp-2 min-w-0 flex-1 text-left leading-snug outline-none focus-visible:ring-1 focus-visible:ring-ring",
+              "min-w-0 flex-1 truncate text-left outline-none focus-visible:ring-1 focus-visible:ring-ring",
               unread && "font-medium",
             )}
           >
@@ -282,15 +282,14 @@ function IdeaCard({
       data-testid="board-idea-card"
       className={cn(
         CARD_CLASS,
-        "border-dashed bg-card/60",
-        isDragging && "z-10 opacity-90 shadow-lift",
+        isDragging && "z-10 bg-state-active opacity-90",
       )}
       {...attributes}
       {...listeners}
     >
       <div className="flex min-w-0 items-start gap-2">
         <span
-          className="line-clamp-2 min-w-0 flex-1 leading-snug"
+          className="min-w-0 flex-1 truncate text-muted-foreground"
           title={idea.text}
         >
           {boardIdeaTitle(idea.text)}
@@ -321,8 +320,8 @@ function IdeaCard({
       <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
         <Icon name="Folder" className="size-3 shrink-0" />
         <span className="min-w-0 truncate">{projectName}</span>
-        <span className="ml-auto shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-2xs uppercase tracking-wide text-subtle-foreground">
-          Draft
+        <span className="ml-auto shrink-0 text-2xs text-subtle-foreground">
+          draft
         </span>
       </div>
     </div>
@@ -346,17 +345,15 @@ function BoardColumnView({
       ref={setNodeRef}
       data-testid={`board-column-${column.id}`}
       className={cn(
-        "flex min-h-0 min-w-64 flex-1 flex-col rounded-xl border border-transparent bg-surface-recessed transition-colors",
-        isOver && "border-ring/50 bg-state-hover",
+        "flex min-h-0 min-w-64 flex-1 flex-col rounded-md transition-colors",
+        isOver && "bg-state-hover/60",
       )}
     >
-      <div className="flex items-center gap-2 px-3 pb-1 pt-3">
-        <span className="text-sm font-medium">{column.name}</span>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-2xs text-muted-foreground">
-          {count}
-        </span>
+      <div className="kaioken-sidebar-section-label flex items-center gap-1.5 px-2 pb-1 text-xs text-muted-foreground">
+        <span className="truncate">{column.name}</span>
+        <span className="text-subtle-foreground">{count}</span>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
         {children}
       </div>
     </section>
@@ -416,7 +413,7 @@ function NewTaskComposer({
   return (
     <div
       data-testid="board-new-task"
-      className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
+      className="flex flex-col gap-3 rounded-md bg-surface-recessed p-3"
     >
       <Textarea
         ref={textareaRef}
@@ -426,7 +423,7 @@ function NewTaskComposer({
         placeholder="What should the agent do? Write it like a message to a teammate."
         aria-label="Task description"
         rows={3}
-        className="min-h-20 resize-y text-sm"
+        className="min-h-20 resize-y border-0 bg-transparent px-1 text-sm shadow-none focus-visible:ring-0"
       />
       <div className="flex flex-wrap items-center gap-3">
         <span className="text-xs text-muted-foreground">Repo</span>
@@ -668,7 +665,7 @@ export function BoardView() {
   return (
     <ThreadSectionMoveProvider destinations={moveDestinations}>
       <div className="-mx-4 -mb-4 -mt-4 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:-mx-5 md:-mb-5 md:-mt-5">
-        <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-border px-5 py-3">
+        <header className="flex shrink-0 flex-wrap items-center gap-3 px-5 pb-2 pt-4">
           <h1 className="text-base font-medium">Board</h1>
           <ToggleGroup
             type="single"
@@ -727,7 +724,7 @@ export function BoardView() {
           </span>
         </header>
         {composerOpen ? (
-          <div className="shrink-0 px-5 pt-4">
+          <div className="shrink-0 px-5 pb-2">
             <NewTaskComposer
               projects={projects}
               initialProjectId={composerProjectId}
@@ -745,7 +742,7 @@ export function BoardView() {
           </p>
         ) : (
           <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-            <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto p-5">
+            <div className="flex min-h-0 flex-1 gap-6 overflow-x-auto px-5 pb-5 pt-2">
               {columns.map((column) => {
                 const columnThreads = threadsForColumn(threads, column);
                 const isTodo = column.sectionId === null;
@@ -794,15 +791,9 @@ export function BoardView() {
                       />
                     ))}
                     {count === 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => setComposerOpen(true)}
-                        className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground transition-colors hover:border-ring/40 hover:text-foreground"
-                      >
-                        {isTodo
-                          ? "No tasks waiting. Add one."
-                          : "Empty. Drop a card here or add a task."}
-                      </button>
+                      <p className="px-2 py-1.5 text-xs text-subtle-foreground">
+                        {isTodo ? "Nothing waiting." : "Empty."}
+                      </p>
                     ) : null}
                   </BoardColumnView>
                 );
