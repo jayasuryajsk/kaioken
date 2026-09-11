@@ -2,6 +2,12 @@ import { defineRpcContract } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { environmentHostProgressSchema } from "kaioken-environment-provider-host/progress";
 
+export const worktreeDependencyPreparationSchema = z.enum([
+  "link",
+  "install",
+  "off",
+]);
+
 export const worktreeBaseBranchSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("named"), name: z.string().min(1) }).strict(),
   z.object({ kind: z.literal("default") }).strict(),
@@ -17,6 +23,8 @@ export const worktreeHostContract = defineRpcContract({
         branchName: z.string().min(1),
         baseBranch: worktreeBaseBranchSchema,
         branchMode: z.enum(["reset", "reuse-existing"]),
+        prepareDependencies:
+          worktreeDependencyPreparationSchema.default("link"),
         timeoutMs: z.number().int().positive(),
       })
       .strict(),

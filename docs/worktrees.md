@@ -85,6 +85,28 @@ Contract:
 - Large directories such as `node_modules` are copied file by file, which is
   slow. Install dependencies in `.kaioken-env-setup.sh` instead.
 
+## Dependencies are prepared for you
+
+A fresh worktree has no `node_modules`. Right after creating one, the worktree
+plugin looks at the checkout and does the cheap thing automatically:
+
+- JavaScript repos: if the project checkout has `node_modules` and the branch's
+  lockfile matches, `node_modules` is symlinked from the checkout. No disk, no
+  wait. If the lockfile differs, it runs the package manager the lockfile
+  implies (`pnpm install --frozen-lockfile`, `bun install`, `yarn install`, or
+  `npm ci`).
+- Python repos: a `.venv` in the checkout is symlinked.
+- Rust and Go need nothing; their caches are already global.
+
+The step reports what it did in the environment transcript and never fails the
+worktree: if an install errors, the worktree still opens and the transcript
+says why. A repo with its own `.kaioken-env-setup.sh` skips this step, so the
+script keeps full control.
+
+Change the behaviour in Settings → Plugins → Worktree, or with
+`kaioken plugin config environment-git-worktree set prepareDependencies install`
+(`link`, `install`, or `off`).
+
 ## Run setup with `.kaioken-env-setup.sh`
 
 Drop a file named `.kaioken-env-setup.sh` at the root of your project. If kaioken finds

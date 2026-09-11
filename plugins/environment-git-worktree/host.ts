@@ -64,6 +64,7 @@ export function createWorktreeHostEntry() {
             branchName: input.branchName,
             baseBranch,
             branchMode: input.branchMode,
+            prepareDependencies: input.prepareDependencies,
             timeoutMs: input.timeoutMs,
             onProgress: createHostProgress({
               operationId: input.operationId,

@@ -4,6 +4,7 @@ import { reportHostProgress } from "kaioken-environment-provider-host/progress";
 import { z } from "zod";
 import {
   worktreeBaseBranchSchema,
+  worktreeDependencyPreparationSchema,
   worktreeHostContract,
   worktreeHostSignals,
 } from "./contract.js";
@@ -23,7 +24,29 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export default async function worktreePlugin(bb: KaiokenPluginApi): Promise<void> {
+const DEPENDENCY_OPTIONS = ["link", "install", "off"] as const;
+
+export default async function worktreePlugin(
+  bb: KaiokenPluginApi,
+): Promise<void> {
+  const settings = bb.settings.define({
+    prepareDependencies: {
+      type: "select",
+      label: "Prepare dependencies in new worktrees",
+      description:
+        "link: reuse node_modules and .venv from the project checkout when the lockfile matches, otherwise install. install: always run the package manager. off: do nothing. A repo's .kaioken-env-setup.sh takes over when present.",
+      options: [...DEPENDENCY_OPTIONS],
+      default: "link",
+    },
+  });
+  let prepareDependencies = worktreeDependencyPreparationSchema.parse(
+    (await settings.get()).prepareDependencies,
+  );
+  settings.onChange((next) => {
+    prepareDependencies = worktreeDependencyPreparationSchema.parse(
+      next.prepareDependencies,
+    );
+  });
   const host = bb.hosts.experimental_client({
     contract: worktreeHostContract,
     experimental_signals: worktreeHostSignals,
@@ -59,6 +82,7 @@ export default async function worktreePlugin(bb: KaiokenPluginApi): Promise<void
               : context.suggestedBranchName,
             baseBranch: context.inputs.branch,
             branchMode: context.rebuild ? "reuse-existing" : "reset",
+            prepareDependencies,
             timeoutMs: CREATE_TIMEOUT_MS,
           },
           { hostId, signal: context.signal, timeoutMs: CREATE_TIMEOUT_MS },

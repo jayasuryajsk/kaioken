@@ -31,6 +31,10 @@ import {
   type ProgressCallback,
 } from "kaioken-environment-provider-host/transcript";
 import {
+  prepareWorktreeDependenciesStep,
+  type DependencyPreparationMode,
+} from "./dependencies.js";
+import {
   copyWorktreeIncludeFiles,
   WORKTREE_INCLUDE_FILE_NAME,
   type CopyWorktreeIncludeFilesResult,
@@ -46,6 +50,7 @@ interface CreateWorktreeArgs {
   branchName: string;
   baseBranch: string | null;
   branchMode: BranchMode;
+  prepareDependencies?: DependencyPreparationMode;
   timeoutMs: number;
   shellPath?: string | undefined;
   onProgress?: ProgressCallback | undefined;
@@ -478,6 +483,14 @@ async function finishWorktreeSetup(args: CreateWorktreeArgs): Promise<void> {
   await copyIncludedFiles({
     sourcePath: args.sourcePath,
     targetPath: args.targetPath,
+    onProgress: args.onProgress,
+    shellPath: args.shellPath,
+    signal: args.signal,
+  });
+  await prepareWorktreeDependenciesStep({
+    sourcePath: args.sourcePath,
+    targetPath: args.targetPath,
+    mode: args.prepareDependencies ?? "link",
     onProgress: args.onProgress,
     shellPath: args.shellPath,
     signal: args.signal,
