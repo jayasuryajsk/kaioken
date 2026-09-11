@@ -39,6 +39,7 @@ import {
   type PickerOption,
 } from "@/components/pickers/OptionPicker";
 import { BoardTaskDialog } from "./BoardTaskDialog";
+import { BoardThreadDialog } from "./BoardThreadDialog";
 import { ProviderIconMark } from "@/components/settings/ProviderIconMark";
 import {
   ThreadActionsContextMenu,
@@ -187,12 +188,14 @@ function ThreadCard({
   providers,
   tone,
   onOpen,
+  onPeek,
 }: {
   thread: ThreadListEntry;
   projectName: string;
   providers: readonly ProviderInfo[];
   tone: BoardTone;
   onOpen: () => void;
+  onPeek: () => void;
 }) {
   const title = getThreadDisplayTitle(thread);
   const unread = isUnreadDoneThread(thread);
@@ -227,7 +230,11 @@ function ThreadCard({
                 openInSplit();
                 return;
               }
-              onOpen();
+              if (event.altKey || event.shiftKey) {
+                onOpen();
+                return;
+              }
+              onPeek();
             }}
             className={cn(
               "min-w-0 flex-1 truncate text-left outline-none focus-visible:ring-1 focus-visible:ring-ring",
@@ -419,6 +426,7 @@ export function BoardView() {
   const [composer, setComposer] = useState<{
     sectionId: string | null | undefined;
   } | null>(null);
+  const [peekThreadId, setPeekThreadId] = useState<string | null>(null);
   const createSection = useCreateThreadSection();
   const createThread = useCreateThread();
   const moveThreadToSection = useMoveThreadToSection();
@@ -587,6 +595,19 @@ export function BoardView() {
     await createSection.mutateAsync({ name: name.trim() });
   }, [createSection]);
 
+  const peekThread = useMemo(
+    () =>
+      peekThreadId === null
+        ? null
+        : (threads.find((thread) => thread.id === peekThreadId) ?? null),
+    [peekThreadId, threads],
+  );
+  const peekSplit = useThreadRowSplitDrag({
+    projectId: peekThread?.projectId ?? PERSONAL_PROJECT_ID,
+    threadId: peekThread?.id ?? "",
+    title: peekThread ? getThreadDisplayTitle(peekThread) : "",
+  });
+
   return (
     <ThreadSectionMoveProvider destinations={moveDestinations}>
       <div className="-mx-4 -mb-4 -mt-4 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:-mx-5 md:-mb-5 md:-mt-5">
@@ -633,6 +654,33 @@ export function BoardView() {
             </Button>
           </span>
         </header>
+        {peekThread ? (
+          <BoardThreadDialog
+            key={peekThread.id}
+            threadId={peekThread.id}
+            title={getThreadDisplayTitle(peekThread)}
+            subtitle={[
+              projectNameFor(peekThread.projectId),
+              peekThread.environmentBranchName,
+            ]
+              .filter((part) => part !== null && part !== undefined)
+              .join(" · ")}
+            onOpenFull={() => {
+              setPeekThreadId(null);
+              void navigate(
+                getThreadRoutePath({
+                  projectId: peekThread.projectId,
+                  threadId: peekThread.id,
+                }),
+              );
+            }}
+            onOpenInSplit={() => {
+              setPeekThreadId(null);
+              peekSplit.openInSplit();
+            }}
+            onClose={() => setPeekThreadId(null)}
+          />
+        ) : null}
         {composer ? (
           <BoardTaskDialog
             key={composer.sectionId ?? "todo"}
@@ -698,6 +746,7 @@ export function BoardView() {
                             }),
                           )
                         }
+                        onPeek={() => setPeekThreadId(thread.id)}
                       />
                     ))}
                     {count === 0 ? (
