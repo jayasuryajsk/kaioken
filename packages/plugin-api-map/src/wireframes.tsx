@@ -15,7 +15,6 @@ import {
   ArrowMoveDownLeftIcon,
   ArrowUp01Icon,
   ArrowRight01Icon,
-  Bug01Icon,
   Copy01Icon,
   File01Icon,
   Folder01Icon,
@@ -531,7 +530,6 @@ const FOOTER_ITEM_RENDERERS: Record<string, () => ReactNode> = {
       </span>
     </span>
   ),
-  "bug-report": () => <MiniIcon icon={Bug01Icon} className="size-4" />,
 };
 
 const SIDEBAR_SECTION_RENDERERS: Record<string, () => ReactNode> = {

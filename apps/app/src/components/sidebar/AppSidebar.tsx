@@ -4,11 +4,6 @@ import {
   applySidebarPreferences,
   sidebarPreferencesAtom,
 } from "@/lib/sidebar-preference";
-import {
-  setPreferredTheme,
-  useThemePreference,
-  type ThemePreference,
-} from "@/hooks/useTheme";
 import { cn } from "@kaioken/shared-ui/lib/utils";
 import { THREAD_JUMP_APP_COMMAND_IDS } from "@kaioken/domain";
 import { Link, useNavigate } from "react-router-dom";
@@ -46,7 +41,6 @@ import {
 } from "@/lib/kaioken-desktop";
 import { getRootComposeRoutePath, getThreadRoutePath } from "@/lib/route-paths";
 import { usePaneContentSplitDrag } from "./usePaneContentSplitDrag";
-import { openUrlInExternalBrowser } from "@/lib/url-open-routing";
 import {
   EMPTY_SIDEBAR_THREAD_SHORTCUT_KEYS,
   getSidebarThreadNavigationTargets,
@@ -67,19 +61,6 @@ import { SidebarNavigationRegion } from "./SidebarNavigationRegion";
 import { SidebarRail } from "./SidebarRail";
 
 const NEW_THREAD_PANE_CONTENT = { kind: "new-thread" } as const;
-
-const BUG_REPORT_NEW_ISSUE_URL = "https://github.com/get-bb/bb/issues/new";
-const THEME_TOGGLE_LABELS: Record<ThemePreference, string> = {
-  system: "System",
-  light: "Light",
-  dark: "Dark",
-};
-
-function nextThemePreference(current: ThemePreference): ThemePreference {
-  if (current === "system") return "light";
-  if (current === "light") return "dark";
-  return "system";
-}
 
 const SIDEBAR_FOOTER_ACTION_CLASS = cn(
   COARSE_POINTER_CHILD_ICON_BUTTON_CLASS,
@@ -134,7 +115,6 @@ export function AppSidebar({
   useEffect(() => {
     applySidebarPreferences(sidebarPreferences);
   }, [sidebarPreferences]);
-  const themePreference = useThemePreference();
 
   const handleNewChat = useCallback(() => {
     closeOnMobile();
@@ -338,41 +318,6 @@ export function AppSidebar({
             onDisclosureCommand={pluginSidebarFooter.handleCommand}
             onNavigate={closeOnMobile}
           />
-          <SidebarMenuItem className="min-w-0">
-            <SidebarMenuButton
-              className={SIDEBAR_FOOTER_ACTION_CLASS}
-              tooltip={{
-                children: "Report a bug",
-                hidden: false,
-                side: "top",
-              }}
-              aria-label="Report a bug"
-              onClick={() => {
-                closeOnMobile();
-                openUrlInExternalBrowser(BUG_REPORT_NEW_ISSUE_URL);
-              }}
-            >
-              <Icon name="Bug" />
-              <span className="sr-only">Report a bug</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem className="min-w-0">
-            <SidebarMenuButton
-              className={SIDEBAR_FOOTER_ACTION_CLASS}
-              tooltip={{
-                children: `Theme: ${THEME_TOGGLE_LABELS[themePreference]} (click to switch)`,
-                hidden: false,
-                side: "top",
-              }}
-              aria-label={`Theme: ${THEME_TOGGLE_LABELS[themePreference]}. Switch theme`}
-              onClick={() =>
-                setPreferredTheme(nextThemePreference(themePreference))
-              }
-            >
-              <Icon name="Palette" />
-              <span className="sr-only">Switch theme</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <li aria-hidden="true" className="min-w-0 flex-1" />
           <SidebarPluginAttentionGlyph
             className={SIDEBAR_FOOTER_ACTION_CLASS}
