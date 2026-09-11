@@ -43,15 +43,18 @@ describe("sidebar preferences", () => {
   it("mirrors preferences onto html data attributes and clears them", () => {
     const root = document.createElement("html");
     applySidebarPreferences(
-      { ...DEFAULT_SIDEBAR_PREFERENCES, density: "compact", statusTint: true },
+      {
+        ...DEFAULT_SIDEBAR_PREFERENCES,
+        density: "compact",
+        headingLabels: true,
+      },
       root,
     );
     expect(root.getAttribute("data-sidebar-density")).toBe("compact");
-    expect(root.hasAttribute("data-sidebar-status-tint")).toBe(true);
-    expect(root.hasAttribute("data-sidebar-accent-active")).toBe(false);
+    expect(root.hasAttribute("data-sidebar-heading-labels")).toBe(true);
     applySidebarPreferences(DEFAULT_SIDEBAR_PREFERENCES, root);
     expect(root.getAttribute("data-sidebar-density")).toBe("default");
-    expect(root.hasAttribute("data-sidebar-status-tint")).toBe(false);
+    expect(root.hasAttribute("data-sidebar-heading-labels")).toBe(false);
   });
 
   it("ranks waiting threads before failed ones before everything else", () => {

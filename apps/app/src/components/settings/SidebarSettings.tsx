@@ -20,7 +20,7 @@ import {
   type SidebarDensity,
   type SidebarPreferences,
   type SidebarRecentCount,
-  type SidebarSurface,
+  type SidebarThreadList,
 } from "@/lib/sidebar-preference";
 
 const TRIGGER_CLASS =
@@ -37,14 +37,21 @@ const DENSITY_OPTIONS: ReadonlyArray<{
   { value: "comfortable", label: "Comfortable", description: "32px rows" },
 ];
 
-const SURFACE_OPTIONS: ReadonlyArray<{
-  value: SidebarSurface;
+const THREAD_LIST_OPTIONS: ReadonlyArray<{
+  value: SidebarThreadList;
   label: string;
   description: string;
 }> = [
-  { value: "match", label: "Match canvas", description: "Same as the page" },
-  { value: "recessed", label: "Recessed", description: "A step darker" },
-  { value: "aura", label: "Aura", description: "Warm red-black tint" },
+  {
+    value: "projects",
+    label: "Projects",
+    description: "Grouped by project, like bb",
+  },
+  {
+    value: "inbox",
+    label: "Inbox",
+    description: "Flat list: needs you, running, recent; settle and snooze",
+  },
 ];
 
 const RECENT_OPTIONS: ReadonlyArray<{
@@ -154,14 +161,7 @@ function SidebarChoice<K extends keyof SidebarPreferences>({
 interface ToggleProps {
   label: string;
   description: string;
-  preferenceKey:
-    | "headingLabels"
-    | "accentActive"
-    | "statusTint"
-    | "needsYouFirst"
-    | "hideResourceNav"
-    | "projectStrips"
-    | "rail";
+  preferenceKey: "headingLabels" | "needsYouFirst" | "hideResourceNav" | "rail";
   preferences: SidebarPreferences;
   onChange: (key: ToggleProps["preferenceKey"], value: boolean) => void;
 }
@@ -205,6 +205,15 @@ export function SidebarSettings() {
   return (
     <div className="space-y-5">
       <SidebarChoice
+        label="Thread list"
+        description="How the sidebar lists threads."
+        preferenceKey="threadList"
+        options={THREAD_LIST_OPTIONS}
+        preferences={preferences}
+        onPreview={preview}
+        onSelect={select}
+      />
+      <SidebarChoice
         label="Sidebar density"
         description="Row height for threads and sections."
         preferenceKey="density"
@@ -214,17 +223,8 @@ export function SidebarSettings() {
         onSelect={select}
       />
       <SidebarChoice
-        label="Sidebar surface"
-        description="Background of the sidebar relative to the page."
-        preferenceKey="surface"
-        options={SURFACE_OPTIONS}
-        preferences={preferences}
-        onPreview={preview}
-        onSelect={select}
-      />
-      <SidebarChoice
         label="Recent threads"
-        description="A section at the top with the threads you touched last, across projects."
+        description="In the Projects list, a section at the top with the threads you touched last, across projects."
         preferenceKey="recentCount"
         options={RECENT_OPTIONS}
         preferences={preferences}
@@ -233,29 +233,8 @@ export function SidebarSettings() {
       />
       <SidebarToggle
         label="Needs you first"
-        description="Threads waiting on a question or approval, then failed ones, sort to the top of each section."
+        description="In the Projects list, threads waiting on a question or approval, then failed ones, sort to the top of each section."
         preferenceKey="needsYouFirst"
-        preferences={preferences}
-        onChange={select}
-      />
-      <SidebarToggle
-        label="Tint rows by status"
-        description="Amber for threads waiting on you, red for failures."
-        preferenceKey="statusTint"
-        preferences={preferences}
-        onChange={select}
-      />
-      <SidebarToggle
-        label="Accent the active thread"
-        description="A red edge on the selected row."
-        preferenceKey="accentActive"
-        preferences={preferences}
-        onChange={select}
-      />
-      <SidebarToggle
-        label="Project color strips"
-        description="A colored edge on each project group, derived from its name."
-        preferenceKey="projectStrips"
         preferences={preferences}
         onChange={select}
       />

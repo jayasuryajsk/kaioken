@@ -911,9 +911,6 @@
   }
   /* Sidebar preferences (Settings > Appearance > Sidebar) are data attributes
      on <html>; see lib/sidebar-preference.ts. */
-  :root {
-    --kaioken-aura: oklch(0.62 0.22 27);
-  }
   :root[data-sidebar-density="compact"] {
     --kaioken-sidebar-row-height: 1.5rem;
     --kaioken-sidebar-sticky-label-height: 1.375rem;
@@ -922,34 +919,8 @@
     --kaioken-sidebar-row-height: 2rem;
     --kaioken-sidebar-sticky-label-height: 1.625rem;
   }
-  :root[data-sidebar-surface="recessed"] {
-    --sidebar: color-mix(in oklch, var(--ink) 5%, var(--canvas));
-    --sidebar-accent: color-mix(in oklch, var(--ink) 11%, var(--canvas));
-  }
-  :root[data-sidebar-surface="aura"] {
-    --sidebar: color-mix(in oklab, var(--kaioken-aura) 6%, var(--canvas));
-    --sidebar-accent: color-mix(
-      in oklab,
-      var(--kaioken-aura) 16%,
-      var(--canvas)
-    );
-  }
   :root[data-sidebar-heading-labels] .kaioken-sidebar-section-label {
     font-family: var(--font-heading, var(--font-sans));
-  }
-  :root[data-sidebar-accent-active] .kaioken-sidebar-selected-row {
-    box-shadow: inset 2px 0 0 color-mix(in oklab, var(--kaioken-aura) 70%, transparent);
-  }
-  :root[data-sidebar-status-tint] [data-thread-indicator="waiting-for-input"],
-  :root[data-sidebar-status-tint] [data-thread-indicator="queued-waiting"] {
-    background-color: color-mix(in oklab, oklch(0.8 0.15 80) 10%, transparent);
-  }
-  :root[data-sidebar-status-tint] [data-thread-indicator="unread-error"],
-  :root[data-sidebar-status-tint] [data-thread-indicator="queued-failed"] {
-    background-color: color-mix(in oklab, var(--kaioken-aura) 10%, transparent);
-  }
-  :root[data-sidebar-project-strips] [data-sidebar-project-strip] {
-    box-shadow: inset 2px 0 0 var(--kaioken-project-strip, transparent);
   }
 
   button,
