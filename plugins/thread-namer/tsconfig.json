@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "node"
+    ],
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "@get-kaioken/plugin-sdk": [
+        "../../packages/plugin-sdk/bundled-types/kaioken-plugin-sdk.d.ts"
+      ],
+      "@get-kaioken/plugin-sdk/app": [
+        "../../packages/plugin-sdk/bundled-types/kaioken-plugin-sdk-app.d.ts"
+      ],
+      "@get-kaioken/plugin-sdk/testing": [
+        "../../packages/plugin-sdk/bundled-types/kaioken-plugin-sdk-testing.d.ts"
+      ],
+      "@get-kaioken/plugin-sdk/testing/app": [
+        "../../packages/plugin-sdk/bundled-types/kaioken-plugin-sdk-testing-app.d.ts"
+      ]
+    },
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "server.ts",
+    "server.test.ts",
+    "app.tsx",
+    "app.test.tsx",
+    "vitest.config.ts",
+    "components",
+    "lib"
+  ]
+}

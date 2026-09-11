@@ -39,6 +39,7 @@ const EXPECTED_RUNNING_BUILTIN_PLUGINS = [
   "provider-retry",
   "scheduled-send",
   "secrets",
+  "thread-namer",
 ];
 // The smoke drives every bridge as a canonical Provider Bridge Protocol
 // client, which is the only dialect the bridges still speak. Mirrors

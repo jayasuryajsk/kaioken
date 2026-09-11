@@ -137,5 +137,9 @@
   "kaioken-guide": {
     "category": "memory-and-context",
     "screenshots": []
+  },
+  "thread-namer": {
+    "category": "utilities",
+    "screenshots": []
   }
 }
