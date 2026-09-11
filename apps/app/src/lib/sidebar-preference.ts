@@ -26,6 +26,7 @@ const sidebarPreferencesSchema = z.object({
     .default(0),
   hideResourceNav: z.boolean().default(false),
   projectStrips: z.boolean().default(false),
+  rail: z.boolean().default(false),
 });
 
 export type SidebarPreferences = z.infer<typeof sidebarPreferencesSchema>;

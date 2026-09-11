@@ -160,7 +160,8 @@ interface ToggleProps {
     | "statusTint"
     | "needsYouFirst"
     | "hideResourceNav"
-    | "projectStrips";
+    | "projectStrips"
+    | "rail";
   preferences: SidebarPreferences;
   onChange: (key: ToggleProps["preferenceKey"], value: boolean) => void;
 }
@@ -269,6 +270,13 @@ export function SidebarSettings() {
         label="Hide Plugins and Skills from navigation"
         description="They stay reachable from Settings and the command palette."
         preferenceKey="hideResourceNav"
+        preferences={preferences}
+        onChange={select}
+      />
+      <SidebarToggle
+        label="Collapse to an icon rail"
+        description="Hiding the sidebar leaves a narrow strip of icons instead of removing it entirely."
+        preferenceKey="rail"
         preferences={preferences}
         onChange={select}
       />

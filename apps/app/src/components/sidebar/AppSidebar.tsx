@@ -64,6 +64,7 @@ import {
 } from "@/components/commands/AppCommandProvider";
 import { useRouteState } from "@/hooks/useRouteState";
 import { SidebarNavigationRegion } from "./SidebarNavigationRegion";
+import { SidebarRail } from "./SidebarRail";
 
 const NEW_THREAD_PANE_CONTENT = { kind: "new-thread" } as const;
 
@@ -112,7 +113,7 @@ export function AppSidebar({
     label: "New thread",
   });
   const closeOnMobile = useCloseMobileSidebar();
-  const { isCompactViewport, openMobile } = useSidebar();
+  const { isCompactViewport, openMobile, state: sidebarState } = useSidebar();
   const [compactCustomizeMode, setCompactCustomizeMode] = useState(false);
   const [desktopInfo] = useState(getBbDesktopInfo);
   const [threadShortcutKeysById, setThreadShortcutKeysById] = useState<
@@ -405,7 +406,25 @@ export function AppSidebar({
           {body}
         </div>
       ) : (
-        <Sidebar ref={sidebarRef}>{body}</Sidebar>
+        <Sidebar
+          ref={sidebarRef}
+          collapsible={sidebarPreferences.rail ? "icon" : "offcanvas"}
+        >
+          {sidebarPreferences.rail &&
+          sidebarState === "collapsed" &&
+          !isCompactViewport ? (
+            <SidebarRail
+              onNewChat={handleNewChat}
+              settingsRoutePath={settingsRoutePath}
+              showResources={
+                toolsRoutePath !== undefined &&
+                !sidebarPreferences.hideResourceNav
+              }
+            />
+          ) : (
+            body
+          )}
+        </Sidebar>
       )}
     </SidebarThreadShortcutKeysContext.Provider>
   );

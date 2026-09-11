@@ -685,8 +685,16 @@ const SidebarProvider = React.forwardRef<
 );
 SidebarProvider.displayName = "SidebarProvider";
 
-const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
-  ({ className, style, children, ...props }, ref) => {
+type SidebarCollapsible = "offcanvas" | "icon";
+
+const Sidebar = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div"> & { collapsible?: SidebarCollapsible }
+>(
+  (
+    { className, style, children, collapsible = "offcanvas", ...props },
+    ref,
+  ) => {
     const {
       isCompactViewport,
       state,
@@ -756,7 +764,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>(
         ref={ref}
         className="group peer text-sidebar-foreground"
         data-state={state}
-        data-collapsible={state === "collapsed" ? "offcanvas" : ""}
+        data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant="sidebar"
         data-side="left"
       >
