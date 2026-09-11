@@ -98,9 +98,8 @@ import {
 } from "@/lib/mutation-errors";
 import { promptHistoryEntriesToDrafts } from "@/lib/prompt-history";
 import { usePromptHistoryEnabled } from "@/hooks/usePromptHistoryEnabled";
-import { getProjectComposeRoutePath } from "@/lib/route-paths";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
-import { buildThreadHandoffLocationState } from "@kaioken/client-core";
+import { ProviderHandoffDialog, useProviderHandoff } from "./provider-handoff";
 import {
   emptyPromptDraftState,
   promptDraftToInput,
@@ -992,22 +991,15 @@ export function ThreadDetailPromptArea({
     title: thread.title,
     titleFallback: thread.titleFallback,
   });
-  const handleHandoffToNewThread = useCallback(() => {
-    navigate(getProjectComposeRoutePath(thread.projectId), {
-      state: buildThreadHandoffLocationState({
-        environmentId: thread.environmentId,
-        projectId: thread.projectId,
-        sourceThreadId: thread.id,
-        sourceThreadTitle: sourceThreadDisplayTitle,
-      }),
-    });
-  }, [
+  const providerHandoff = useProviderHandoff({
+    thread,
+    sourceThreadTitle: sourceThreadDisplayTitle,
+    providerOptions,
+    execution: followUpExecutionSelection,
+    sendMessage,
     navigate,
-    sourceThreadDisplayTitle,
-    thread.environmentId,
-    thread.id,
-    thread.projectId,
-  ]);
+  });
+  const requestProviderHandoff = providerHandoff.request;
 
   const bottomAttachmentsConfig = useMemo(
     () => ({
@@ -1123,6 +1115,9 @@ export function ThreadDetailPromptArea({
         options: providerOptions,
         selectedId: selectedProviderId,
         hasMultiple: hasMultipleProviders,
+        onSelectSaved: hasMultipleProviders
+          ? requestProviderHandoff
+          : undefined,
       },
       model: {
         active: effectiveSelectedModel
@@ -1148,16 +1143,12 @@ export function ThreadDetailPromptArea({
         options: reasoningOptions,
         onChange: setReasoningLevel,
       },
-      footerAction: {
-        label: "Handoff to new thread",
-        onClick: handleHandoffToNewThread,
-      },
     }),
     [
       effectiveSelectedModel,
       executionOptionsRouting,
       hasMultipleProviders,
-      handleHandoffToNewThread,
+      requestProviderHandoff,
       handleModelChange,
       isLoadingModels,
       modelLoadFailed,
@@ -1177,11 +1168,7 @@ export function ThreadDetailPromptArea({
       serviceTierFastLabel,
     ],
   );
-  const compactExecutionConfig = useMemo(() => {
-    const { footerAction: _footerAction, ...executionWithoutFooterAction } =
-      bottomExecutionConfig;
-    return executionWithoutFooterAction;
-  }, [bottomExecutionConfig]);
+  const compactExecutionConfig = bottomExecutionConfig;
   const inlineExecutionConfig = useMemo(() => {
     if (!inlineEditingQueuedMessage) return null;
     return {
@@ -1718,6 +1705,12 @@ export function ThreadDetailPromptArea({
     <>
       {sentMessageEditorPortal}
       {bottomContent}
+      <ProviderHandoffDialog
+        state={providerHandoff.state}
+        canStart={providerHandoff.canStart}
+        onCancel={providerHandoff.cancel}
+        onConfirm={() => void providerHandoff.confirm()}
+      />
     </>
   );
 }

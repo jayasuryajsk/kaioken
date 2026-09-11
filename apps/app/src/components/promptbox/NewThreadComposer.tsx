@@ -34,6 +34,7 @@ import {
   encodeProviderValue,
   parseEnvironmentValue,
 } from "@/components/pickers/environment-picker-value";
+import type { SavedModelSelection } from "@/components/pickers/ModelReasoningPicker";
 import { providerInputsControlRequired } from "@/components/pickers/environment-provider-inputs";
 import { formatModelLoadErrorText } from "@/components/pickers/model-load-error-message";
 import {
@@ -161,6 +162,8 @@ export interface NewThreadComposerState {
     model: string;
     reasoningLevel: ReasoningLevel;
   }) => void;
+  setSelectedProviderId: (value: string) => void;
+  reasoningLevel: ReasoningLevel;
   setPermissionMode: (value: PermissionMode) => void;
   setServiceTier: (value: ServiceTier | undefined) => void;
   renderPromptBox: (options: NewThreadComposerPromptOptions) => ReactNode;
@@ -1321,6 +1324,26 @@ export function NewThreadComposer({
     },
     [selectedModel, setSelectedModel, snapshotDraftBeforeOptionChange],
   );
+  const handleSelectSaved = useCallback(
+    (selection: SavedModelSelection) => {
+      if (selection.model.length === 0) {
+        handleProviderChange(selection.providerId);
+        return;
+      }
+      snapshotDraftBeforeOptionChange();
+      setProviderModelReasoning({
+        providerId: selection.providerId,
+        model: selection.model,
+        reasoningLevel: selection.reasoningLevel ?? reasoningLevel,
+      });
+    },
+    [
+      handleProviderChange,
+      reasoningLevel,
+      setProviderModelReasoning,
+      snapshotDraftBeforeOptionChange,
+    ],
+  );
   const handleReasoningChange = useCallback(
     (value: ReasoningLevel) => {
       if (!hasPromptOptionValueChanged(reasoningLevel, value)) return;
@@ -1461,6 +1484,7 @@ export function NewThreadComposer({
               options: providerOptions,
               selectedId: selectedProviderId,
               onChange: locks.provider ? undefined : handleProviderChange,
+              onSelectSaved: locks.provider ? undefined : handleSelectSaved,
               hasMultiple: hasMultipleProviders,
             },
             model: {
@@ -1507,6 +1531,7 @@ export function NewThreadComposer({
       handleProviderChange,
       handleReasoningChange,
       handleSelectProvider,
+      handleSelectSaved,
       handleServiceTierChange,
       handleSubmit,
       handleWorktreeChange,
@@ -1574,6 +1599,8 @@ export function NewThreadComposer({
     seedEnvironmentSelectionValue: setCreationEnvironmentSelectionValue,
     setEnvironmentSelectionValue: changeEnvironment,
     setProviderModelReasoning,
+    setSelectedProviderId,
+    reasoningLevel,
     setPermissionMode,
     setServiceTier,
     renderPromptBox,

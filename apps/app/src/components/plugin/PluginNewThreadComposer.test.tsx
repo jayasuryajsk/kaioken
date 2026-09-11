@@ -1124,6 +1124,8 @@ describe("PluginNewThreadComposer seeding", () => {
               projectId: "proj_1",
               sourceThreadId: "thr_source",
               sourceThreadTitle: "Source thread",
+              summary: null,
+              target: null,
             }),
           },
         ],

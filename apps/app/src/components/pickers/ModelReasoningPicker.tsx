@@ -18,7 +18,10 @@ import {
   stripModelBrandPrefix,
   type ProviderPickerOption,
 } from "./model-brand-prefix";
-import { fastServiceTierLabel } from "@/lib/reasoning-labels";
+import {
+  fastServiceTierLabel,
+  reasoningLevelLabel,
+} from "@/lib/reasoning-labels";
 import { Button } from "@kaioken/shared-ui/button";
 import { Icon, type IconName } from "@kaioken/shared-ui/icon";
 import { Input } from "@kaioken/shared-ui/input";
@@ -55,6 +58,11 @@ import {
 } from "@kaioken/shared-ui/option-display";
 import { type PickerOption } from "./OptionPicker";
 import type { ModelPickerOption } from "./model-picker-option";
+import {
+  isFavoriteModel,
+  type ModelRecentEntry,
+  type ModelSelectionEntry,
+} from "@/lib/model-picker-preferences";
 import { searchPickerOptions } from "./picker-search";
 import { useResetPickerScroll } from "./useResetPickerScroll";
 import {
@@ -111,6 +119,15 @@ const REASONING_CYCLE_COMMANDS = [
 
 const MODEL_SEARCH_MIN_OPTIONS = 5;
 const MODEL_PICKER_MENU_WIDTH_CLASS_NAME = "w-max min-w-64 max-w-80";
+const MODEL_PICKER_MODEL_LAYOUT_WIDTH_CLASS_NAME = "w-max min-w-56 max-w-72";
+const EMPTY_FAVORITES: readonly ModelSelectionEntry[] = [];
+const EMPTY_RECENTS: readonly ModelRecentEntry[] = [];
+
+export interface SavedModelSelection {
+  providerId: string;
+  model: string;
+  reasoningLevel?: ReasoningLevel;
+}
 
 function splitModelLabelTag(label: string): ModelLabelParts {
   const match = label.match(/^(.*\S)\s*\(([^()]+)\)$/u);
@@ -137,10 +154,12 @@ export function buildModelNavRows({
   isSearching: boolean;
   showMoreModels: boolean;
 }): ModelNavRow[] {
-  const rows: ModelNavRow[] = modelOptions.map((option): ModelNavRow => ({
-    kind: "model",
-    option,
-  }));
+  const rows: ModelNavRow[] = modelOptions.map(
+    (option): ModelNavRow => ({
+      kind: "model",
+      option,
+    }),
+  );
   if (moreModelOptions.length === 0) return rows;
 
   if (isSearching) {
@@ -161,6 +180,11 @@ export function buildModelNavRows({
 }
 
 interface ModelReasoningPickerProps {
+  layout?: "combined" | "model";
+  favorites?: readonly ModelSelectionEntry[];
+  recents?: readonly ModelRecentEntry[];
+  onToggleFavorite?: (entry: ModelSelectionEntry) => void;
+  onSelectSaved?: (selection: SavedModelSelection) => void;
   providerRouting?: SystemProvidersQuery;
   providerOptions: readonly ProviderPickerOption[];
   selectedProviderId: string;
@@ -234,7 +258,13 @@ export function ModelReasoningPicker({
   align = "start",
   disabled,
   footerAction,
+  layout = "combined",
+  favorites = EMPTY_FAVORITES,
+  recents = EMPTY_RECENTS,
+  onToggleFavorite,
+  onSelectSaved,
 }: ModelReasoningPickerProps) {
+  const isModelLayout = layout === "model";
   const isCompactViewport = useIsCompactViewport();
   const [open, setOpen] = useState(defaultOpen);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -491,6 +521,7 @@ export function ModelReasoningPicker({
     activeIndex >= 0 && activeIndex < navRows.length ? activeIndex : -1;
 
   const effectiveShowFastModeToggle =
+    !isModelLayout &&
     hasActiveModelOptions &&
     (serviceTierSupportByProvider
       ? (serviceTierSupportByProvider[activeProviderId] ?? false)
@@ -502,6 +533,7 @@ export function ModelReasoningPicker({
   const showSelectedFastMode =
     hasSelectedModel && fastModeEnabled && modelOptions.length > 0;
   const showReasoningSection =
+    !isModelLayout &&
     !isShowingModelError &&
     activeReasoningOptions.length > 0 &&
     (isPreviewing
@@ -531,11 +563,63 @@ export function ModelReasoningPicker({
   const handleModelSelect = useCallback(
     (model: string) => {
       if (previewSelectionBlocked) return;
+      if (isPreviewing && previewProviderId !== null && onSelectSaved) {
+        onSelectSaved({ providerId: previewProviderId, model });
+        setMoreModelsOpen(false);
+        setPreviewProviderId(null);
+        setOpen(false);
+        return;
+      }
       onModelChange(model);
       setMoreModelsOpen(false);
       setPreviewProviderId(null);
     },
-    [onModelChange, previewSelectionBlocked],
+    [
+      isPreviewing,
+      onModelChange,
+      onSelectSaved,
+      previewProviderId,
+      previewSelectionBlocked,
+    ],
+  );
+
+  const handleSavedSelect = useCallback(
+    (entry: ModelSelectionEntry, reasoningLevel?: ReasoningLevel) => {
+      if (previewSelectionBlocked) return;
+      if (entry.providerId === selectedProviderId && !isPreviewing) {
+        onModelChange(entry.model);
+        if (reasoningLevel !== undefined) {
+          onReasoningChange(reasoningLevel);
+        }
+        setMoreModelsOpen(false);
+        setOpen(false);
+        return;
+      }
+      if (onSelectSaved) {
+        onSelectSaved({
+          providerId: entry.providerId,
+          model: entry.model,
+          ...(reasoningLevel === undefined ? {} : { reasoningLevel }),
+        });
+        setPreviewProviderId(null);
+        setMoreModelsOpen(false);
+        setOpen(false);
+        return;
+      }
+      onSelectedProviderChange?.(entry.providerId);
+      setPreviewProviderId(
+        entry.providerId !== selectedProviderId ? entry.providerId : null,
+      );
+    },
+    [
+      isPreviewing,
+      onModelChange,
+      onReasoningChange,
+      onSelectSaved,
+      onSelectedProviderChange,
+      previewSelectionBlocked,
+      selectedProviderId,
+    ],
   );
 
   const handleProviderSelect = useCallback(
@@ -788,6 +872,16 @@ export function ModelReasoningPicker({
     triggerReasoningLabel ? ` · ${triggerReasoningLabel} reasoning` : "",
     showSelectedFastMode ? " (Fast mode)" : "",
   ].join("");
+  const triggerAriaLabel = isModelLayout
+    ? "Model"
+    : "Provider, model and reasoning";
+  const selectedIsFavorite =
+    isModelLayout &&
+    hasSelectedModel &&
+    isFavoriteModel(favorites, {
+      providerId: selectedProviderId,
+      model: modelValue,
+    });
   const trigger = (
     <Button
       ref={triggerRef}
@@ -796,8 +890,8 @@ export function ModelReasoningPicker({
       size="sm"
       aria-label={
         toggleShortcut
-          ? `Provider, model and reasoning (${toggleShortcut.label})`
-          : "Provider, model and reasoning"
+          ? `${triggerAriaLabel} (${toggleShortcut.label})`
+          : triggerAriaLabel
       }
       aria-keyshortcuts={toggleShortcut?.ariaKeyshortcuts}
       disabled={disabled}
@@ -836,7 +930,7 @@ export function ModelReasoningPicker({
               className="h-3 w-8 shrink-0 rounded-sm"
             />
           </>
-        ) : showSelectedFastMode ? (
+        ) : showSelectedFastMode && !isModelLayout ? (
           <Icon
             name="Zap"
             className="size-3.5 shrink-0 fill-current text-subtle-foreground"
@@ -859,13 +953,20 @@ export function ModelReasoningPicker({
                 {triggerModelTag}
               </span>
             ) : null}
-            {triggerReasoningLabel ? (
+            {triggerReasoningLabel && !isModelLayout ? (
               <span
                 className="shrink-0 text-subtle-foreground"
                 data-promptbox-hide-compact=""
               >
                 {triggerReasoningLabel}
               </span>
+            ) : null}
+            {selectedIsFavorite ? (
+              <Icon
+                name="Star"
+                aria-label="Favorite"
+                className="size-3 shrink-0 fill-current text-subtle-foreground"
+              />
             ) : null}
           </>
         )}
@@ -908,7 +1009,9 @@ export function ModelReasoningPicker({
         autoFocusRef={showSearchInput ? searchInputRef : undefined}
         className={cn(
           "flex min-h-0 flex-col p-0",
-          MODEL_PICKER_MENU_WIDTH_CLASS_NAME,
+          isModelLayout
+            ? MODEL_PICKER_MODEL_LAYOUT_WIDTH_CLASS_NAME
+            : MODEL_PICKER_MENU_WIDTH_CLASS_NAME,
           isCompactViewport
             ? "overflow-y-hidden"
             : "max-h-[min(var(--radix-popover-content-available-height),calc(100dvh-0.5rem))] overflow-hidden",
@@ -989,8 +1092,23 @@ export function ModelReasoningPicker({
                 !isCompactViewport && "max-h-64",
               )}
             >
+              {isModelLayout && !isShowingModelError ? (
+                <SavedModelSections
+                  favorites={favorites}
+                  recents={recents}
+                  searchQuery={isSearching ? searchQuery : ""}
+                  activeProviderId={activeProviderId}
+                  selectedProviderId={selectedProviderId}
+                  selectedModel={modelValue}
+                  isPreviewing={isPreviewing}
+                  disabled={previewSelectionBlocked}
+                  onSelect={handleSavedSelect}
+                />
+              ) : null}
               {isShowingModelError ? null : (
-                <MenuSectionLabel>Model</MenuSectionLabel>
+                <MenuSectionLabel>
+                  {isModelLayout ? `${activeProviderLabel} models` : "Model"}
+                </MenuSectionLabel>
               )}
               {activeModelIsLoading ? (
                 <ModelPickerLoadingRows />
@@ -1013,20 +1131,37 @@ export function ModelReasoningPicker({
                       );
                     }
                     const option = row.option;
+                    const optionLabel = stripModelBrandPrefix(
+                      option.label,
+                      activeBrandPrefix,
+                    );
+                    const favoriteEntry: ModelSelectionEntry = {
+                      providerId: activeProviderId,
+                      providerLabel: activeProviderLabel,
+                      model: option.value,
+                      label: optionLabel,
+                    };
                     return (
                       <MenuRowButton
                         key={option.value}
                         id={domId}
                         role={showSearchInput ? "option" : undefined}
                         isActive={active}
-                        label={stripModelBrandPrefix(
-                          option.label,
-                          activeBrandPrefix,
-                        )}
+                        label={optionLabel}
                         qualifier={option.routeProviderId}
                         selected={!isPreviewing && option.value === modelValue}
                         disabled={previewSelectionBlocked}
                         onClick={() => handleModelSelect(option.value)}
+                        {...(isModelLayout && onToggleFavorite
+                          ? {
+                              favorite: isFavoriteModel(
+                                favorites,
+                                favoriteEntry,
+                              ),
+                              onToggleFavorite: () =>
+                                onToggleFavorite(favoriteEntry),
+                            }
+                          : {})}
                       />
                     );
                   })}
@@ -1385,6 +1520,8 @@ function MenuRowButton({
   isActive,
   id,
   role,
+  favorite,
+  onToggleFavorite,
   onPointerEnter: callerPointerEnter,
   onKeyDown: callerKeyDown,
 }: {
@@ -1396,6 +1533,8 @@ function MenuRowButton({
   isActive?: boolean;
   id?: string;
   role?: React.AriaRole;
+  favorite?: boolean;
+  onToggleFavorite?: () => void;
   onPointerEnter?: PointerEventHandler<HTMLButtonElement>;
   onKeyDown?: KeyboardEventHandler<HTMLButtonElement>;
 }) {
@@ -1405,7 +1544,8 @@ function MenuRowButton({
   });
   const isCompactViewport = useIsCompactViewport();
   const { base, tag } = splitModelLabelTag(label);
-  return (
+  const hasFavoriteToggle = onToggleFavorite !== undefined;
+  const button = (
     <button
       type="button"
       id={id}
@@ -1420,20 +1560,23 @@ function MenuRowButton({
         isActive && "bg-state-active",
         disabled && "cursor-not-allowed opacity-60",
         isCompactViewport ? "py-2" : "py-[0.3125rem]",
+        hasFavoriteToggle && "pr-8",
       )}
       {...hoverProps}
     >
       <span
-        className="truncate"
+        className="min-w-0 flex-1 text-left"
         title={qualifier ? `${label} · ${qualifier}` : label}
       >
-        {base}
-        {tag ? (
-          <span className="ml-1.5 text-subtle-foreground">{tag}</span>
-        ) : null}
-        {qualifier ? (
-          <span className="ml-1.5 text-subtle-foreground">{qualifier}</span>
-        ) : null}
+        <span className="block truncate">
+          {base}
+          {tag ? (
+            <span className="ml-1.5 text-subtle-foreground">{tag}</span>
+          ) : null}
+          {qualifier ? (
+            <span className="ml-1.5 text-subtle-foreground">{qualifier}</span>
+          ) : null}
+        </span>
       </span>
       <span className="flex shrink-0 items-center gap-1.5">
         <Icon
@@ -1446,6 +1589,120 @@ function MenuRowButton({
         />
       </span>
     </button>
+  );
+  if (!hasFavoriteToggle) {
+    return button;
+  }
+  return (
+    <div className="group/model-row relative">
+      {button}
+      <button
+        type="button"
+        aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
+        aria-pressed={favorite}
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={(event) => {
+          event.stopPropagation();
+          onToggleFavorite();
+        }}
+        className={cn(
+          "absolute right-7 top-1/2 flex size-5 -translate-y-1/2 items-center justify-center rounded-sm text-subtle-foreground hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none",
+          LIST_HOVER_TRANSITION,
+          favorite
+            ? "opacity-100"
+            : "opacity-0 group-hover/model-row:opacity-100",
+        )}
+      >
+        <Icon
+          name="Star"
+          className={cn("size-3.5", favorite && "fill-current")}
+        />
+      </button>
+    </div>
+  );
+}
+
+function SavedModelSections({
+  favorites,
+  recents,
+  searchQuery,
+  activeProviderId,
+  selectedProviderId,
+  selectedModel,
+  isPreviewing,
+  disabled,
+  onSelect,
+}: {
+  favorites: readonly ModelSelectionEntry[];
+  recents: readonly ModelRecentEntry[];
+  searchQuery: string;
+  activeProviderId: string;
+  selectedProviderId: string;
+  selectedModel: string;
+  isPreviewing: boolean;
+  disabled: boolean;
+  onSelect: (
+    entry: ModelSelectionEntry,
+    reasoningLevel?: ReasoningLevel,
+  ) => void;
+}) {
+  const query = searchQuery.trim().toLowerCase();
+  const matches = (entry: ModelSelectionEntry) =>
+    query.length === 0 ||
+    entry.label.toLowerCase().includes(query) ||
+    entry.model.toLowerCase().includes(query) ||
+    entry.providerLabel.toLowerCase().includes(query);
+  const visibleFavorites = favorites.filter(matches);
+  const visibleRecents = recents.filter(
+    (entry) => matches(entry) && !isFavoriteModel(favorites, entry),
+  );
+  if (visibleFavorites.length === 0 && visibleRecents.length === 0) {
+    return null;
+  }
+  const isSelected = (entry: ModelSelectionEntry) =>
+    !isPreviewing &&
+    entry.providerId === selectedProviderId &&
+    entry.model === selectedModel;
+  const qualifierFor = (entry: ModelSelectionEntry) =>
+    entry.providerId === activeProviderId ? undefined : entry.providerLabel;
+  return (
+    <>
+      {visibleFavorites.length > 0 ? (
+        <section data-testid="model-picker-favorites">
+          <MenuSectionLabel>Favorites</MenuSectionLabel>
+          {visibleFavorites.map((entry) => (
+            <MenuRowButton
+              key={`favorite:${entry.providerId}:${entry.model}`}
+              label={entry.label}
+              qualifier={qualifierFor(entry)}
+              selected={isSelected(entry)}
+              disabled={disabled}
+              onClick={() => onSelect(entry)}
+            />
+          ))}
+        </section>
+      ) : null}
+      {visibleRecents.length > 0 ? (
+        <section data-testid="model-picker-recents">
+          <MenuSectionLabel>Recent</MenuSectionLabel>
+          {visibleRecents.map((entry) => (
+            <MenuRowButton
+              key={`recent:${entry.providerId}:${entry.model}`}
+              label={entry.label}
+              qualifier={[
+                qualifierFor(entry),
+                reasoningLevelLabel(entry.reasoningLevel, undefined),
+              ]
+                .filter((part) => part !== undefined)
+                .join(" · ")}
+              selected={isSelected(entry)}
+              disabled={disabled}
+              onClick={() => onSelect(entry, entry.reasoningLevel)}
+            />
+          ))}
+        </section>
+      ) : null}
+    </>
   );
 }
 

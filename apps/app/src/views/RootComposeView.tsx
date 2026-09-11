@@ -677,6 +677,8 @@ function RootComposeSurface({
     seedEnvironmentSelectionValue,
     setEnvironmentSelectionValue,
     setProviderModelReasoning,
+    setSelectedProviderId,
+    reasoningLevel,
     setPermissionMode,
     setServiceTier,
     renderPromptBox,
@@ -777,6 +779,16 @@ function RootComposeSurface({
           encodeReuseValue(nextHandoffSeed.environmentId),
         );
       }
+      const handoffTarget = nextHandoffSeed.target;
+      if (handoffTarget !== null && handoffTarget.model.length > 0) {
+        setProviderModelReasoning({
+          providerId: handoffTarget.providerId,
+          model: handoffTarget.model,
+          reasoningLevel: handoffTarget.reasoningLevel ?? reasoningLevel,
+        });
+      } else if (handoffTarget !== null) {
+        setSelectedProviderId(handoffTarget.providerId);
+      }
       setPromptDraft(buildThreadHandoffPromptDraft(nextHandoffSeed));
     }
     navigate(getRootComposeRoutePath() + location.search, {
@@ -787,11 +799,13 @@ function RootComposeSurface({
     location.search,
     location.state,
     navigate,
+    reasoningLevel,
     seedEnvironmentSelectionValue,
     setForkSeed,
     setPermissionMode,
     setPromptDraft,
     setProviderModelReasoning,
+    setSelectedProviderId,
     setRootComposeProjectId,
     setRootComposeSectionId,
     setServiceTier,

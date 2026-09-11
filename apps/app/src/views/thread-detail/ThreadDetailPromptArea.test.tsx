@@ -27,7 +27,7 @@ import {
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { workflowRow } from "@/test/fixtures/thread-timeline-rows";
-import { THREAD_HANDOFF_CREATE_SEED_LOCATION_STATE_KEY } from "@kaioken/client-core";
+import { HANDOFF_SUMMARY_PROMPT } from "./provider-handoff";
 import { KaiokenHttpError } from "@/lib/sdk";
 import type { PluginComposerHost } from "@/components/plugin/plugin-composer-host";
 import { setComposerTextEffect } from "@/lib/composer-text-effects";
@@ -46,6 +46,8 @@ const mocks = vi.hoisted(() => ({
   cancelThreadPlanMutate: vi.fn(),
   clearThreadGoalMutate: vi.fn(),
   createQueuedMessageMutateAsync: vi.fn(),
+  creationOptionsOverrides: {} as Record<string, unknown>,
+  sendMessageMutateAsync: vi.fn(),
   defaultExecutionOptions: null as ResolvedThreadExecutionOptions | null,
   deleteQueuedMessageMutateAsync: vi.fn(),
   navigate: vi.fn(),
@@ -121,9 +123,12 @@ vi.mock("@/components/promptbox/FollowUpPromptBox", async () => {
       } | null;
       environmentSummary?: ReactNode;
       execution: {
-        footerAction?: {
-          label: string;
-          onClick: () => void;
+        provider: {
+          options?: readonly { value: string; label: string }[];
+          onSelectSaved?: (selection: {
+            providerId: string;
+            model: string;
+          }) => void;
         };
         model: {
           active?: { model: string } | null;
@@ -275,11 +280,23 @@ vi.mock("@/components/promptbox/FollowUpPromptBox", async () => {
             </button>
           </>
         ) : null}
-        {execution.footerAction ? (
-          <button type="button" onClick={execution.footerAction.onClick}>
-            {execution.footerAction.label}
-          </button>
-        ) : null}
+        {execution.provider.onSelectSaved
+          ? (execution.provider.options ?? []).map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() =>
+                  execution.provider.onSelectSaved?.({
+                    providerId: option.value,
+                    model: "",
+                  })
+                }
+              >
+                {`Switch to ${option.label}`}
+              </button>
+            ))
+          : null}
+        {false ? <button type="button">{""}</button> : null}
       </div>
     ),
   };
@@ -504,6 +521,7 @@ vi.mock("@/hooks/useThreadCreationOptions", () => ({
       setServiceTier: vi.fn(),
       supportsPermissionModeSelection: true,
       supportsServiceTier: false,
+      ...mocks.creationOptionsOverrides,
     };
   },
 }));
@@ -739,7 +757,7 @@ function buildPromptAreaElement({
       resolveMentionLink={() => null}
       sendMessage={{
         isPending: false,
-        mutateAsync: vi.fn(),
+        mutateAsync: mocks.sendMessageMutateAsync,
       }}
       sentMessageEdit={sentMessageEdit}
       steerActiveThreadOnEnter={false}
@@ -756,6 +774,8 @@ function renderPromptArea(options: RenderPromptAreaOptions = {}) {
 
 beforeEach(() => {
   mocks.defaultExecutionOptions = null;
+  mocks.creationOptionsOverrides = {};
+  mocks.sendMessageMutateAsync.mockResolvedValue(undefined);
   mocks.pluginComposerHost = null;
   mocks.promptDraft.text = "";
   mocks.promptDraft.getCurrent.mockImplementation(() => ({
@@ -1746,32 +1766,78 @@ describe("ThreadDetailPromptArea", () => {
     expect(screen.getByText("Model fallback")).toBeTruthy();
   });
 
-  it("opens root compose with a handoff seed for the current thread", () => {
+  it("asks for confirmation before handing off to another provider, then requests a summary from the current thread", async () => {
+    mocks.creationOptionsOverrides = {
+      hasMultipleProviders: true,
+      providerOptions: [
+        { value: "codex", label: "Codex" },
+        { value: "claude-code", label: "Claude Code" },
+      ],
+    };
+    mocks.defaultExecutionOptions = {
+      model: "gpt-5",
+      permissionMode: "auto",
+      reasoningLevel: "medium",
+      serviceTier: "default",
+      source: "client/turn/requested",
+    };
     renderPromptArea({
       thread: makeThread({
         environmentId: "env_1",
         id: "thr_source",
         projectId: "proj_source",
+        status: "idle",
         title: "Source thread",
         titleFallback: null,
       }),
     });
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Handoff to new thread" }),
+      screen.getByRole("button", { name: "Switch to Claude Code" }),
     );
 
-    expect(mocks.navigate).toHaveBeenCalledWith("/projects/proj_source", {
-      state: {
-        focusPrompt: true,
-        reuseEnvironmentId: "env_1",
-        [THREAD_HANDOFF_CREATE_SEED_LOCATION_STATE_KEY]: {
-          environmentId: "env_1",
-          projectId: "proj_source",
-          sourceThreadId: "thr_source",
-          sourceThreadTitle: "Source thread",
-        },
-      },
+    expect(
+      screen.getByRole("heading", {
+        name: "Continue in a new Claude Code thread?",
+      }),
+    ).toBeTruthy();
+    expect(mocks.sendMessageMutateAsync).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Hand off" }));
+
+    await waitFor(() => {
+      expect(mocks.sendMessageMutateAsync).toHaveBeenCalledTimes(1);
     });
+    expect(mocks.sendMessageMutateAsync.mock.calls[0]?.[0]).toMatchObject({
+      id: "thr_source",
+      input: [{ type: "text", text: HANDOFF_SUMMARY_PROMPT }],
+    });
+    expect(screen.getByRole("status").textContent).toContain(
+      "Writing the summary",
+    );
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it("blocks a provider handoff while the thread is still working", () => {
+    mocks.creationOptionsOverrides = {
+      hasMultipleProviders: true,
+      providerOptions: [
+        { value: "codex", label: "Codex" },
+        { value: "claude-code", label: "Claude Code" },
+      ],
+    };
+    renderPromptArea({ thread: makeThread({ status: "active" }) });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Switch to Claude Code" }),
+    );
+
+    expect(
+      screen.getByText("Wait for the thread to finish before handing off."),
+    ).toBeTruthy();
+    expect(
+      (screen.getByRole("button", { name: "Hand off" }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
   });
 });

@@ -12,6 +12,8 @@ const SEED: ThreadHandoffCreateSeed = {
   projectId: "proj_source",
   sourceThreadId: "thr_source",
   sourceThreadTitle: "Source thread",
+  summary: null,
+  target: null,
 };
 
 describe("thread handoff request", () => {
@@ -51,6 +53,48 @@ describe("thread handoff request", () => {
         },
       },
     ]);
+  });
+
+  it("keeps a summary and target from a provider handoff, dropping unknown reasoning", () => {
+    const seed = readThreadHandoffCreateSeedFromLocationState({
+      [THREAD_HANDOFF_CREATE_SEED_LOCATION_STATE_KEY]: {
+        ...SEED,
+        summary: "  Fixed the login bug; tests still failing.  ",
+        target: {
+          providerId: "claude-code",
+          model: "claude-opus-5",
+          reasoningLevel: "bogus",
+        },
+      },
+    });
+    expect(seed).toEqual({
+      ...SEED,
+      summary: "Fixed the login bug; tests still failing.",
+      target: {
+        providerId: "claude-code",
+        model: "claude-opus-5",
+        reasoningLevel: null,
+      },
+    });
+    const draft = buildThreadHandoffPromptDraft(seed ?? SEED);
+    expect(draft.text).toBe(
+      "Continue from @thread:thr_source\n\nSummary written by the previous thread:\n\nFixed the login bug; tests still failing.",
+    );
+    expect(draft.mentions[0]).toMatchObject({
+      start: "Continue from ".length,
+      end: "Continue from @thread:thr_source".length,
+    });
+  });
+
+  it("rejects a malformed target instead of guessing", () => {
+    expect(
+      readThreadHandoffCreateSeedFromLocationState({
+        [THREAD_HANDOFF_CREATE_SEED_LOCATION_STATE_KEY]: {
+          ...SEED,
+          target: { providerId: "", model: "x" },
+        },
+      }),
+    ).toBeNull();
   });
 
   it("returns null for unusable handoff state", () => {
