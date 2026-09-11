@@ -29,7 +29,7 @@ export function ThreadChangesChip({ onOpen, section }: ThreadChangesChipProps) {
   const label = `${KIND_LABEL[section.kind]}: ${summary}`;
   const body = (
     <>
-      <Icon name="GitBranch" className="size-3.5 shrink-0" />
+      <Icon name="FileDiff" className="size-3.5 shrink-0" />
       <span className="min-w-0 truncate tabular-nums">
         {tally.lineStatsComplete &&
         (tally.insertions > 0 || tally.deletions > 0)
