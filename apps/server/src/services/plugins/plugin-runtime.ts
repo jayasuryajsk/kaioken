@@ -1,3 +1,4 @@
+import { UPSTREAM_COMPAT_VERSION } from "./update-resolver.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 import {
   assertAiServiceRegistrable,
@@ -807,7 +808,10 @@ export function createPluginRuntime(context: PluginRuntimeContext) {
     if (version.major === 0 && version.minor === 0 && version.patch === 0) {
       return undefined;
     }
-    if (!semver.satisfies(version, manifest.kaiokenEngineRange)) {
+    if (
+      !semver.satisfies(version, manifest.kaiokenEngineRange) &&
+      !semver.satisfies(UPSTREAM_COMPAT_VERSION, manifest.kaiokenEngineRange)
+    ) {
       return `requires kaioken ${manifest.kaiokenEngineRange}, this is ${version.version}`;
     }
     return undefined;
@@ -1545,7 +1549,8 @@ export function createPluginRuntime(context: PluginRuntimeContext) {
       handle.invalidate();
       let message = error instanceof Error ? error.message : String(error);
       if (/ERR_DLOPEN_FAILED|\.node/.test(message)) {
-        message += " (native dependencies are not supported in Kaioken plugins)";
+        message +=
+          " (native dependencies are not supported in Kaioken plugins)";
       }
       if (previous !== undefined) {
         setStatus(row.id, "running", `reload failed: ${message}`);
