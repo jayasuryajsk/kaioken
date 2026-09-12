@@ -9,6 +9,7 @@ import {
   stat,
   writeFile,
 } from "node:fs/promises";
+import type { Dirent } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import type { KaiokenDesktopVersionFeed } from "@kaioken/desktop-contract";
@@ -25,6 +26,14 @@ import {
   DESKTOP_UPDATE_CHECK_TIMEOUT_MS,
   parseDesktopVersionFeed,
 } from "./desktop-update-check.js";
+import {
+  assembleDelta,
+  fileSize,
+  parseBlockMap,
+  planDelta,
+  sha512Base64,
+  type BlockMap,
+} from "./desktop-delta-download.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -182,6 +191,93 @@ export function createBundleSwapUpdater(
     return outcome;
   }
 
+  function archiveUrl(fileUrl: string): string {
+    return new URL(fileUrl, args.releaseBaseUrl).toString();
+  }
+
+  async function fetchBytes(
+    url: string,
+    signal: AbortSignal,
+  ): Promise<Uint8Array> {
+    const response = await fetchImpl(url, { signal });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return new Uint8Array(await response.arrayBuffer());
+  }
+
+  async function fetchRange(
+    url: string,
+    start: number,
+    endInclusive: number,
+    signal: AbortSignal,
+  ): Promise<Uint8Array> {
+    const response = await fetchImpl(url, {
+      signal,
+      headers: { range: `bytes=${start}-${endInclusive}` },
+    });
+    if (response.status !== 206) {
+      throw new Error(`range request returned HTTP ${response.status}`);
+    }
+    return new Uint8Array(await response.arrayBuffer());
+  }
+
+  async function findBaseArchive(
+    excludeVersion: string,
+  ): Promise<{ archivePath: string; blockMap: BlockMap } | null> {
+    const entries: Dirent[] = await readdir(args.downloadDir, {
+      withFileTypes: true,
+    }).catch(() => []);
+    const candidates = entries
+      .filter((entry) => entry.isDirectory() && entry.name !== excludeVersion)
+      .map((entry) => entry.name)
+      .sort()
+      .reverse();
+    for (const version of candidates) {
+      const dir = join(args.downloadDir, version);
+      const files: string[] = await readdir(dir).catch(() => []);
+      const zip = files.find((name) => name.endsWith(".zip"));
+      if (zip === undefined || !files.includes(`${zip}.blockmap`)) continue;
+      try {
+        const blockMap = parseBlockMap(
+          await readFile(join(dir, `${zip}.blockmap`)),
+        );
+        return { archivePath: join(dir, zip), blockMap };
+      } catch {}
+    }
+    return null;
+  }
+
+  async function streamDownload(
+    url: string,
+    destination: string,
+    signal: AbortSignal,
+  ): Promise<{ digest: string; received: number }> {
+    const response = await fetchImpl(url, { signal });
+    if (!response.ok || response.body === null) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const hash = createHash("sha512");
+    let received = 0;
+    const reader = response.body.getReader();
+    const output = createWriteStream(destination);
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const buffer = Buffer.from(value);
+        hash.update(buffer);
+        received += buffer.length;
+        if (!output.write(buffer)) {
+          await new Promise<void>((resolveDrain) =>
+            output.once("drain", resolveDrain),
+          );
+        }
+      }
+    } finally {
+      await new Promise<void>((resolveEnd) => output.end(resolveEnd));
+    }
+    return { digest: hash.digest("base64"), received };
+  }
+
   async function downloadUpdate(): Promise<Array<string>> {
     const feed = latestFeed;
     if (feed === null) {
@@ -191,49 +287,79 @@ export function createBundleSwapUpdater(
     if (archive === null) {
       throw new Error("The update feed lists no .zip archive for macOS");
     }
+    const archiveName = archive.url.split("/").pop() ?? archive.url;
     const versionDir = join(args.downloadDir, feed.version);
-    const archivePath = join(versionDir, archive.url);
+    const archivePath = join(versionDir, archiveName);
+    const blockMapPath = `${archivePath}.blockmap`;
     await mkdir(versionDir, { recursive: true });
     if (!(await fileMatches(archivePath, archive))) {
       const partialPath = `${archivePath}.part`;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
+      const url = archiveUrl(archive.url);
       try {
-        const response = await fetchImpl(
-          `${args.releaseBaseUrl}${archive.url}`,
-          {
-            signal: controller.signal,
-          },
-        );
-        if (!response.ok || response.body === null) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        const hash = createHash("sha512");
-        let received = 0;
-        const reader = response.body.getReader();
-        const output = createWriteStream(partialPath);
+        let done = false;
         try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const buffer = Buffer.from(value);
-            hash.update(buffer);
-            received += buffer.length;
-            if (!output.write(buffer)) {
-              await new Promise<void>((resolveDrain) =>
-                output.once("drain", resolveDrain),
-              );
-            }
-          }
-        } finally {
-          await new Promise<void>((resolveEnd) => output.end(resolveEnd));
-        }
-        const digest = hash.digest("base64");
-        if (digest !== archive.sha512 || received !== archive.size) {
-          await rm(partialPath, { force: true });
-          throw new Error(
-            `Downloaded archive did not match the feed (size ${received}/${archive.size}, sha512 ${digest === archive.sha512 ? "ok" : "mismatch"})`,
+          const blockMapBytes = await fetchBytes(
+            `${url}.blockmap`,
+            controller.signal,
           );
+          const newMap = parseBlockMap(blockMapBytes);
+          const base = await findBaseArchive(feed.version);
+          const plan = planDelta(
+            base?.blockMap ?? { version: "", files: [] },
+            newMap,
+          );
+          if (base !== null) {
+            args.logger.info(
+              `Desktop update ${feed.version}: reusing ${Math.round(plan.copyBytes / 1e6)} MB from the previous archive, fetching ${Math.round(plan.fetchBytes / 1e6)} MB`,
+            );
+          }
+          if (base === null) await writeFile(partialPath, "");
+          await assembleDelta({
+            plan,
+            basePath: base?.archivePath ?? partialPath,
+            outputPath: partialPath,
+            totalSize: archive.size,
+            source: {
+              fetchRange: (start, endInclusive) =>
+                fetchRange(url, start, endInclusive, controller.signal),
+            },
+          });
+          const digest = await sha512Base64(partialPath);
+          const size = await fileSize(partialPath);
+          if (digest === archive.sha512 && size === archive.size) {
+            await writeFile(blockMapPath, blockMapBytes);
+            done = true;
+          } else {
+            args.logger.warn(
+              `Desktop update ${feed.version}: delta assembly did not match the feed; falling back to a full download`,
+            );
+          }
+        } catch (error) {
+          args.logger.warn(
+            `Desktop update ${feed.version}: delta download unavailable (${error instanceof Error ? error.message : String(error)}); falling back to a full download`,
+          );
+        }
+        if (!done) {
+          await rm(partialPath, { force: true });
+          const { digest, received } = await streamDownload(
+            url,
+            partialPath,
+            controller.signal,
+          );
+          if (digest !== archive.sha512 || received !== archive.size) {
+            await rm(partialPath, { force: true });
+            throw new Error(
+              `Downloaded archive did not match the feed (size ${received}/${archive.size}, sha512 ${digest === archive.sha512 ? "ok" : "mismatch"})`,
+            );
+          }
+          try {
+            await writeFile(
+              blockMapPath,
+              await fetchBytes(`${url}.blockmap`, controller.signal),
+            );
+          } catch {}
         }
         await rm(archivePath, { force: true });
         await execFileAsync("/bin/mv", [partialPath, archivePath]);
@@ -241,8 +367,12 @@ export function createBundleSwapUpdater(
         clearTimeout(timeout);
       }
     }
+    const keep = new Set<string>([feed.version]);
+    const previous = await findBaseArchive(feed.version);
+    if (previous !== null)
+      keep.add(dirname(previous.archivePath).split("/").pop() ?? "");
     for (const entry of await readdir(args.downloadDir).catch(() => [])) {
-      if (entry !== feed.version) {
+      if (!keep.has(entry) && !entry.includes(".")) {
         await rm(join(args.downloadDir, entry), {
           recursive: true,
           force: true,

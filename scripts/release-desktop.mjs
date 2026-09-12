@@ -1,5 +1,5 @@
 import { execFile, spawn } from "node:child_process";
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -63,7 +63,7 @@ const LATEST_TAG = "desktop-latest";
 const RELEASE_ENV_FILE = join(repoRoot, ".env.release");
 const DEVELOPER_ID_PREFIX = "Developer ID Application:";
 const USAGE =
-  "Usage: pnpm release:desktop <version>|--patch|--minor|--major [--notes <text>] [--dry-run] [--skip-build]\n       pnpm release:desktop --publish-only [--notes <text>]   (retry the GitHub release for the current version)";
+  "Usage: pnpm release:desktop <version>|--patch|--minor|--major [--notes <text>] [--dry-run] [--skip-build] [--single-upload]\n       pnpm release:desktop --publish-only [--notes <text>]   (retry the GitHub release for the current version)\n       --single-upload keeps the zip on the versioned release only; safe once every install runs 1.0.3 or newer";
 
 function parseArgs(argv) {
   const options = {
@@ -72,11 +72,13 @@ function parseArgs(argv) {
     dryRun: false,
     skipBuild: false,
     publishOnly: false,
+    singleUpload: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--dry-run") options.dryRun = true;
     else if (arg === "--publish-only") options.publishOnly = true;
+    else if (arg === "--single-upload") options.singleUpload = true;
     else if (arg === "--skip-build") options.skipBuild = true;
     else if (arg === "--notes") {
       options.notes = argv[index + 1] ?? null;
@@ -253,8 +255,31 @@ async function releaseExists(tag) {
   }
 }
 
-async function publishReleases({ version, sha, assets, notes }) {
+async function pointFeedAtVersionedRelease(assets, versionTag) {
+  const repo = await resolveGithubRepo();
+  const feedPath = assets.find((asset) =>
+    asset.endsWith("desktop-version.json"),
+  );
+  if (feedPath === undefined) return;
+  const feed = JSON.parse(await readFile(feedPath, "utf8"));
+  const base = `https://github.com/${repo}/releases/download/${versionTag}/`;
+  const absolute = (name) =>
+    /^https?:\/\//u.test(name) ? name : new URL(name, base).toString();
+  feed.files = feed.files.map((file) => ({ ...file, url: absolute(file.url) }));
+  feed.path = absolute(feed.path);
+  await writeFile(feedPath, `${JSON.stringify(feed, null, 2)}\n`);
+}
+
+function isBinaryAsset(asset) {
+  return asset.endsWith(".zip") || asset.endsWith(".blockmap");
+}
+
+async function publishReleases({ version, sha, assets, notes, singleUpload }) {
   const versionTag = `desktop-v${version}`;
+  if (singleUpload) await pointFeedAtVersionedRelease(assets, versionTag);
+  const latestAssets = singleUpload
+    ? assets.filter((asset) => !isBinaryAsset(asset))
+    : assets;
   if (!(await releaseExists(versionTag))) {
     await gh([
       "release",
@@ -303,13 +328,13 @@ async function publishReleases({ version, sha, assets, notes }) {
     for (const name of existing.split("\n").filter((line) => line.length > 0)) {
       await gh(["release", "delete-asset", LATEST_TAG, name, "--yes"]);
     }
-    await gh(["release", "upload", LATEST_TAG, ...assets]);
+    await gh(["release", "upload", LATEST_TAG, ...latestAssets]);
   } else {
     await gh([
       "release",
       "create",
       LATEST_TAG,
-      ...assets,
+      ...latestAssets,
       "--target",
       sha,
       "--title",
@@ -352,6 +377,7 @@ async function main() {
       sha,
       assets,
       notes: options.notes ?? `Kaioken desktop ${version}`,
+      singleUpload: options.singleUpload,
     });
     return;
   }
@@ -434,6 +460,7 @@ async function main() {
     sha,
     assets,
     notes: options.notes ?? `Kaioken desktop ${version}`,
+    singleUpload: options.singleUpload,
   });
 }
 
