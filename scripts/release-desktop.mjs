@@ -5,6 +5,57 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
+const MINIMUM_NODE_MAJOR = 22;
+
+async function findNewerNode() {
+  const nvmVersionsDir = join(
+    process.env.HOME ?? "",
+    ".nvm",
+    "versions",
+    "node",
+  );
+  const entries = await readdir(nvmVersionsDir).catch(() => []);
+  const candidates = entries
+    .map((name) => /^v(\d+)\.(\d+)\.(\d+)$/u.exec(name))
+    .filter((match) => match !== null)
+    .map((match) => ({
+      name: match[0],
+      parts: [Number(match[1]), Number(match[2]), Number(match[3])],
+    }))
+    .filter(({ parts }) => parts[0] >= MINIMUM_NODE_MAJOR)
+    .sort((a, b) => {
+      for (let index = 0; index < 3; index += 1) {
+        if (a.parts[index] !== b.parts[index])
+          return b.parts[index] - a.parts[index];
+      }
+      return 0;
+    });
+  const best = candidates[0];
+  return best === undefined ? null : join(nvmVersionsDir, best.name, "bin");
+}
+
+async function ensureSupportedNode() {
+  const major = Number(process.versions.node.split(".")[0]);
+  if (major >= MINIMUM_NODE_MAJOR) return false;
+  const binDir = await findNewerNode();
+  if (binDir === null) {
+    throw new Error(
+      `Node ${process.versions.node} is too old for the desktop build; install Node ${MINIMUM_NODE_MAJOR}+ (for example via nvm) and retry.`,
+    );
+  }
+  console.log(
+    `Node ${process.versions.node} is too old for the desktop build; re-running with ${binDir}.`,
+  );
+  const child = spawn(join(binDir, "node"), process.argv.slice(1), {
+    cwd: process.cwd(),
+    env: { ...process.env, PATH: `${binDir}:${process.env.PATH ?? ""}` },
+    stdio: "inherit",
+  });
+  const code = await new Promise((resolvePromise) =>
+    child.on("close", resolvePromise),
+  );
+  process.exit(code ?? 1);
+}
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const desktopRoot = join(repoRoot, "apps", "desktop");
 const releaseDir = join(desktopRoot, "release");
@@ -273,7 +324,17 @@ async function publishReleases({ version, sha, assets, notes }) {
   );
 }
 
+async function restoreVersionFiles() {
+  await run("git", [
+    "checkout",
+    "--",
+    "apps/desktop/package.json",
+    "packages/kaioken-app/package.json",
+  ]);
+}
+
 async function main() {
+  await ensureSupportedNode();
   const options = parseArgs(process.argv.slice(2));
 
   if (options.publishOnly) {
@@ -305,69 +366,54 @@ async function main() {
   const version = await readDesktopVersion();
   const versionTag = `desktop-v${version}`;
   if (await releaseExists(versionTag)) {
-    await run("git", [
-      "checkout",
-      "--",
-      "apps/desktop/package.json",
-      "packages/kaioken-app/package.json",
-    ]);
+    await restoreVersionFiles();
     throw new Error(
       `Release ${versionTag} already exists; pick a new version.`,
     );
   }
   console.log(`Releasing Kaioken desktop ${previousVersion} → ${version}`);
 
-  if (!options.skipBuild) {
-    const signing = await describeSigning();
-    console.log(`Signing: ${signing.summary}`);
-    await run("pnpm", [
-      "--filter",
-      "@kaioken/desktop",
-      "run",
-      "prepare-runtime",
-    ]);
-    await run("pnpm", ["--filter", "@kaioken/desktop", "run", "build"]);
-    await run(
-      "node",
-      [
-        join(desktopRoot, "scripts", "run-electron-builder.mjs"),
-        "--mac",
-        "zip",
-        "--arm64",
-        "--publish",
-        "never",
-      ],
-      { cwd: desktopRoot, env: signing.env },
-    );
-    await run("pnpm", [
-      "--filter",
-      "@kaioken/desktop",
-      "run",
-      "desktop:version-feed",
-    ]);
-  }
   let assets;
   try {
+    if (!options.skipBuild) {
+      const signing = await describeSigning();
+      console.log(`Signing: ${signing.summary}`);
+      await run("pnpm", [
+        "--filter",
+        "@kaioken/desktop",
+        "run",
+        "prepare-runtime",
+      ]);
+      await run("pnpm", ["--filter", "@kaioken/desktop", "run", "build"]);
+      await run(
+        "node",
+        [
+          join(desktopRoot, "scripts", "run-electron-builder.mjs"),
+          "--mac",
+          "zip",
+          "--arm64",
+          "--publish",
+          "never",
+        ],
+        { cwd: desktopRoot, env: signing.env },
+      );
+      await run("pnpm", [
+        "--filter",
+        "@kaioken/desktop",
+        "run",
+        "desktop:version-feed",
+      ]);
+    }
     assets = await collectAssets(version);
   } catch (error) {
-    await run("git", [
-      "checkout",
-      "--",
-      "apps/desktop/package.json",
-      "packages/kaioken-app/package.json",
-    ]);
+    await restoreVersionFiles();
     throw error;
   }
   console.log(`Assets:\n  ${assets.join("\n  ")}`);
 
   if (options.dryRun) {
     console.log("Dry run: not committing, tagging, or publishing.");
-    await run("git", [
-      "checkout",
-      "--",
-      "apps/desktop/package.json",
-      "packages/kaioken-app/package.json",
-    ]);
+    await restoreVersionFiles();
     return;
   }
 
