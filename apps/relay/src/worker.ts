@@ -560,8 +560,7 @@ export default {
     }
     if (subject !== "server") {
       const machineId = subject.slice("machine:".length);
-      const machines = await store.listMachines();
-      if (!machines.some((machine) => machine.id === machineId)) {
+      if (!(await store.machineExists(machineId))) {
         return wantsHtml(request)
           ? signInPage("This device was removed. Pair it again.")
           : json({ error: "unauthorized" }, 401);
