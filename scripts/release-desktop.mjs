@@ -1,0 +1,246 @@
+import { execFile, spawn } from "node:child_process";
+import { readdir, readFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const desktopRoot = join(repoRoot, "apps", "desktop");
+const releaseDir = join(desktopRoot, "release");
+const LATEST_TAG = "desktop-latest";
+const USAGE =
+  "Usage: pnpm release:desktop <version>|--patch|--minor|--major [--notes <text>] [--dry-run] [--skip-build]";
+
+function parseArgs(argv) {
+  const options = {
+    version: null,
+    notes: null,
+    dryRun: false,
+    skipBuild: false,
+  };
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--dry-run") options.dryRun = true;
+    else if (arg === "--skip-build") options.skipBuild = true;
+    else if (arg === "--notes") {
+      options.notes = argv[index + 1] ?? null;
+      index += 1;
+    } else if (options.version === null) options.version = arg;
+    else throw new Error(USAGE);
+  }
+  if (options.version === null) throw new Error(USAGE);
+  return options;
+}
+
+function run(command, args, options = {}) {
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn(command, args, {
+      cwd: options.cwd ?? repoRoot,
+      env: { ...process.env, ...(options.env ?? {}) },
+      stdio: "inherit",
+    });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      if (code === 0) resolvePromise();
+      else
+        reject(new Error(`${command} ${args.join(" ")} exited with ${code}`));
+    });
+  });
+}
+
+async function capture(command, args, cwd = repoRoot) {
+  const { stdout } = await execFileAsync(command, args, { cwd });
+  return stdout.trim();
+}
+
+async function readDesktopVersion() {
+  const packageJson = JSON.parse(
+    await readFile(join(desktopRoot, "package.json"), "utf8"),
+  );
+  return packageJson.version;
+}
+
+async function assertReadyToRelease() {
+  const branch = await capture("git", ["rev-parse", "--abbrev-ref", "HEAD"]);
+  if (branch !== "main") {
+    throw new Error(`Releases ship from main; currently on ${branch}.`);
+  }
+  const status = await capture("git", ["status", "--porcelain"]);
+  if (status.length > 0) {
+    throw new Error("Working tree is not clean; commit or stash first.");
+  }
+  await capture("gh", ["auth", "status"]);
+}
+
+async function collectAssets(version) {
+  const names = await readdir(releaseDir);
+  const wanted = names.filter(
+    (name) =>
+      (name.includes(version) &&
+        (name.endsWith(".zip") || name.endsWith(".blockmap"))) ||
+      name === "latest-mac.yml" ||
+      name === "desktop-version.json",
+  );
+  const missing = ["latest-mac.yml", "desktop-version.json"].filter(
+    (name) => !wanted.includes(name),
+  );
+  if (missing.length > 0 || !wanted.some((name) => name.endsWith(".zip"))) {
+    throw new Error(
+      `Release assets incomplete in ${releaseDir}: have ${wanted.join(", ") || "nothing"}`,
+    );
+  }
+  return wanted.map((name) => join(releaseDir, name));
+}
+
+async function releaseExists(tag) {
+  try {
+    await capture("gh", ["release", "view", tag]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function main() {
+  const options = parseArgs(process.argv.slice(2));
+  await assertReadyToRelease();
+
+  const previousVersion = await readDesktopVersion();
+  await run("node", [
+    join(repoRoot, "scripts", "bump-version.mjs"),
+    options.version,
+  ]);
+  const version = await readDesktopVersion();
+  const versionTag = `desktop-v${version}`;
+  if (await releaseExists(versionTag)) {
+    await run("git", [
+      "checkout",
+      "--",
+      "apps/desktop/package.json",
+      "packages/kaioken-app/package.json",
+    ]);
+    throw new Error(
+      `Release ${versionTag} already exists; pick a new version.`,
+    );
+  }
+  console.log(`Releasing Kaioken desktop ${previousVersion} → ${version}`);
+
+  if (!options.skipBuild) {
+    await run("pnpm", [
+      "--filter",
+      "@kaioken/desktop",
+      "run",
+      "prepare-runtime",
+    ]);
+    await run("pnpm", ["--filter", "@kaioken/desktop", "run", "build"]);
+    await run(
+      "node",
+      [
+        join(desktopRoot, "scripts", "run-electron-builder.mjs"),
+        "--mac",
+        "zip",
+        "--arm64",
+        "--publish",
+        "never",
+      ],
+      { cwd: desktopRoot, env: { CSC_IDENTITY_AUTO_DISCOVERY: "false" } },
+    );
+    await run("pnpm", [
+      "--filter",
+      "@kaioken/desktop",
+      "run",
+      "desktop:version-feed",
+    ]);
+  }
+  const assets = await collectAssets(version);
+  console.log(`Assets:\n  ${assets.join("\n  ")}`);
+
+  if (options.dryRun) {
+    console.log("Dry run: not committing, tagging, or publishing.");
+    await run("git", [
+      "checkout",
+      "--",
+      "apps/desktop/package.json",
+      "packages/kaioken-app/package.json",
+    ]);
+    return;
+  }
+
+  await run("git", [
+    "add",
+    "apps/desktop/package.json",
+    "packages/kaioken-app/package.json",
+  ]);
+  await run("git", ["commit", "-q", "-m", `Release desktop ${version}`]);
+  const sha = await capture("git", ["rev-parse", "HEAD"]);
+  await run("git", ["tag", versionTag, sha]);
+  await run("git", ["tag", "-f", LATEST_TAG, sha]);
+  await run("git", ["push", "origin", "main", `refs/tags/${versionTag}`]);
+  await run("git", ["push", "--force", "origin", `refs/tags/${LATEST_TAG}`]);
+
+  const notes = options.notes ?? `Kaioken desktop ${version}`;
+  await run("gh", [
+    "release",
+    "create",
+    versionTag,
+    ...assets,
+    "--target",
+    sha,
+    "--title",
+    `Kaioken desktop ${version}`,
+    "--notes",
+    notes,
+    "--latest",
+  ]);
+
+  if (await releaseExists(LATEST_TAG)) {
+    await run("gh", [
+      "release",
+      "edit",
+      LATEST_TAG,
+      "--target",
+      sha,
+      "--title",
+      "Kaioken desktop latest",
+      "--notes",
+      "Moving release that serves the desktop auto-update feed.",
+      "--latest=false",
+    ]);
+    const existing = await capture("gh", [
+      "release",
+      "view",
+      LATEST_TAG,
+      "--json",
+      "assets",
+      "--jq",
+      ".assets[].name",
+    ]);
+    for (const name of existing.split("\n").filter((line) => line.length > 0)) {
+      await run("gh", ["release", "delete-asset", LATEST_TAG, name, "--yes"]);
+    }
+    await run("gh", ["release", "upload", LATEST_TAG, ...assets]);
+  } else {
+    await run("gh", [
+      "release",
+      "create",
+      LATEST_TAG,
+      ...assets,
+      "--target",
+      sha,
+      "--title",
+      "Kaioken desktop latest",
+      "--notes",
+      "Moving release that serves the desktop auto-update feed.",
+      "--latest=false",
+    ]);
+  }
+  console.log(
+    `Published ${versionTag}. Running Kaioken installs pick it up on their next update check.`,
+  );
+}
+
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+});

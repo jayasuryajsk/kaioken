@@ -1,9 +1,4 @@
-import type {
-  AppUpdater,
-  UpdateCheckResult,
-  UpdateDownloadedEvent,
-  UpdateInfo,
-} from "electron-updater";
+import type { AppUpdater } from "electron-updater";
 import type {
   KaiokenDesktopInfo,
   KaiokenDesktopInfoChangeHandler,
@@ -25,11 +20,24 @@ export interface DesktopAutoUpdateLogger {
   warn(message: string): void;
 }
 
-export type DesktopAutoUpdateAvailableHandler = (info: UpdateInfo) => void;
-export type DesktopAutoUpdateDownloadedHandler = (
-  event: UpdateDownloadedEvent,
+export interface DesktopAutoUpdateVersionInfo {
+  version: string;
+}
+
+export interface DesktopAutoUpdateCheckOutcome {
+  isUpdateAvailable: boolean;
+  updateInfo: DesktopAutoUpdateVersionInfo;
+}
+
+export type DesktopAutoUpdateAvailableHandler = (
+  info: DesktopAutoUpdateVersionInfo,
 ) => void;
-export type DesktopAutoUpdateNotAvailableHandler = (info: UpdateInfo) => void;
+export type DesktopAutoUpdateDownloadedHandler = (
+  event: DesktopAutoUpdateVersionInfo,
+) => void;
+export type DesktopAutoUpdateNotAvailableHandler = (
+  info: DesktopAutoUpdateVersionInfo,
+) => void;
 
 export interface DesktopAutoUpdateErrorArgs {
   error: Error;
@@ -41,7 +49,7 @@ export type DesktopAutoUpdateErrorHandler = (
 ) => void;
 
 export interface DesktopAutoUpdaterAdapter {
-  checkForUpdates(): Promise<UpdateCheckResult | null>;
+  checkForUpdates(): Promise<DesktopAutoUpdateCheckOutcome | null>;
   downloadUpdate(): Promise<Array<string>>;
   onError(handler: DesktopAutoUpdateErrorHandler): void;
   onUpdateAvailable(handler: DesktopAutoUpdateAvailableHandler): void;
@@ -317,7 +325,7 @@ export function createDesktopAutoUpdateService(
       lastAttemptedAt = now();
       const checkedAt = new Date(lastAttemptedAt).toISOString();
 
-      let result: UpdateCheckResult | null;
+      let result: DesktopAutoUpdateCheckOutcome | null;
       try {
         result = await args.updater.checkForUpdates();
       } catch (error: unknown) {
@@ -449,7 +457,9 @@ export function createDesktopAutoUpdateService(
       clearInterval(intervalHandle);
       intervalHandle = null;
     },
-    subscribe(listener: KaiokenDesktopInfoChangeHandler): KaiokenDesktopInfoUnsubscribe {
+    subscribe(
+      listener: KaiokenDesktopInfoChangeHandler,
+    ): KaiokenDesktopInfoUnsubscribe {
       listeners.add(listener);
       return () => {
         listeners.delete(listener);

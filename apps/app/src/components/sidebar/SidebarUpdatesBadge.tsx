@@ -1,7 +1,11 @@
 import { Link } from "react-router-dom";
 import type { ProviderCliKey } from "@kaioken/host-daemon-contract";
 import { Icon } from "@kaioken/shared-ui/icon";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@kaioken/shared-ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@kaioken/shared-ui/tooltip";
 import { cn } from "@kaioken/shared-ui/lib/utils";
 import { useProviderCliInstallRunner } from "@/components/provider-cli/provider-cli-install";
 import { providerCliJobKey } from "@/components/provider-cli/provider-cli-install-store";
@@ -10,7 +14,10 @@ import { useSystemProviders } from "@/hooks/queries/system-queries";
 import { useUpdateInventory } from "@/hooks/useUpdateInventory";
 import { ProviderIconMark } from "@/components/settings/ProviderIconMark";
 import { getProviderIconInfo } from "@/lib/provider-icon";
+import { getBbDesktopInfo } from "@/lib/kaioken-desktop";
 import { getSettingsRoutePath } from "@/lib/route-paths";
+import { appToast } from "@/components/ui/app-toast";
+import { checkErrorDescription } from "@/components/settings/app-update-check-store";
 
 interface SidebarUpdatesBadgeProps {
   onNavigate?: () => void;
@@ -45,6 +52,21 @@ export function SidebarUpdatesBadge({ onNavigate }: SidebarUpdatesBadgeProps) {
     (inventory.appUpdateAvailable ? 1 : 0) +
     (inventory.desktopUpdateReady ? 1 : 0) +
     stuckDaemonCount;
+  const restartVersion = inventory.desktopUpdateReady
+    ? (inventory.desktopInfo?.pendingVersion ?? null)
+    : null;
+  const restartLabel = restartVersion
+    ? `Restart to update to ${restartVersion}`
+    : "Restart to update";
+  const restartToUpdate = () => {
+    const desktopApi = getBbDesktopInfo();
+    if (desktopApi === null) return;
+    void desktopApi.installUpdate().catch((error: unknown) => {
+      appToast.error("Restart failed", {
+        description: checkErrorDescription(error),
+      });
+    });
+  };
 
   const staleProvidersByKey = new Map<ProviderCliKey, StaleProvider>();
   for (const machine of inventory.machines) {
@@ -75,14 +97,35 @@ export function SidebarUpdatesBadge({ onNavigate }: SidebarUpdatesBadgeProps) {
 
   const updatesRoutePath = getSettingsRoutePath("updates");
   const kaiokenLabel =
-    kaiokenUpdateCount === 1 ? "kaioken update available" : "kaioken updates available";
+    kaiokenUpdateCount === 1
+      ? "kaioken update available"
+      : "kaioken updates available";
   const providerLabel = `${joinNames(
     staleProviders.map((stale) => stale.displayName),
   )} ${staleProviders.length === 1 ? "update" : "updates"} available`;
 
   return (
     <SidebarMenuItem className="flex min-w-0 items-center gap-1">
-      {kaiokenUpdateCount > 0 ? (
+      {inventory.desktopUpdateReady ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={restartToUpdate}
+              aria-label={restartLabel}
+              data-testid="sidebar-updates-restart"
+              className={cn(
+                CHIP_CLASS,
+                "border-timeline-accent/40 bg-timeline-accent/10 hover:bg-timeline-accent/20",
+              )}
+            >
+              <Icon name="RotateCcw" className="size-3" />
+              Restart to update
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top">{restartLabel}</TooltipContent>
+        </Tooltip>
+      ) : kaiokenUpdateCount > 0 ? (
         <Tooltip>
           <TooltipTrigger asChild>
             <Link

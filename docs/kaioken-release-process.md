@@ -66,14 +66,14 @@ succeeds, so a nightly failure cannot affect the release that already shipped.
 
 Before changing files, resolve these inputs from the user request:
 
-| Input                   | Default  | Notes                                                             |
-| ----------------------- | -------- | ----------------------------------------------------------------- |
+| Input                   | Default       | Notes                                                             |
+| ----------------------- | ------------- | ----------------------------------------------------------------- |
 | Package                 | `kaioken-app` | This runbook does not publish other packages.                     |
-| Version bump            | `patch`  | Example: `0.0.1` to `0.0.2`.                                      |
-| npm dist-tag            | `latest` | This is the tag plain `npx kaioken-app` uses.                          |
-| Allow prerelease latest | `false`  | Set to `true` only for an explicit prerelease-on-latest decision. |
-| Publish dry run         | `false`  | Use `true` only when testing the workflow itself.                 |
-| Source branch           | `main`   | Release commit must land on `main` before publishing.             |
+| Version bump            | `patch`       | Example: `0.0.1` to `0.0.2`.                                      |
+| npm dist-tag            | `latest`      | This is the tag plain `npx kaioken-app` uses.                     |
+| Allow prerelease latest | `false`       | Set to `true` only for an explicit prerelease-on-latest decision. |
+| Publish dry run         | `false`       | Use `true` only when testing the workflow itself.                 |
+| Source branch           | `main`        | Release commit must land on `main` before publishing.             |
 
 If any input is unclear, ask before bumping the version.
 
@@ -235,6 +235,31 @@ gh workflow run build-desktop.yml \
 
 If the `npm-release`-style environment or branch protection gates the run, tell
 the user and let the human approval be the release control point.
+
+## Publish An Unsigned Desktop Release From Your Mac
+
+Kaioken ships unsigned macOS builds, so the packaged app cannot use Squirrel to
+install updates. On macOS the desktop app instead downloads the release zip
+itself, verifies the sha512 from `desktop-version.json`, and on "Restart to
+update" extracts it and swaps the `.app` bundle in place via a detached shell
+script (see `apps/desktop/src/desktop-bundle-swap-update.ts`). Files the app
+downloads carry no quarantine flag, so the swapped bundle launches without a
+Gatekeeper prompt. The swap log lives at `<userData>/updates/bundle-swap.log`.
+
+Publish from a clean `main` checkout on an Apple Silicon Mac with `gh` logged in:
+
+```bash
+pnpm release:desktop --patch            # or --minor, --major, or an explicit version
+pnpm release:desktop 0.43.0 --notes "Board dialog, ASCII backdrop, OTA updates"
+pnpm release:desktop --patch --dry-run  # build and list assets without publishing
+```
+
+The script bumps both locked package versions, packages the arm64 zip,
+generates the feed, commits `Release desktop <version>`, tags `desktop-v<version>`
+and moves `desktop-latest`, pushes, creates the immutable release, and resets the
+`desktop-latest` assets. Every running Kaioken checks the feed on launch and every
+hour, downloads in the background, and shows "Restart to update" bottom-left in
+the sidebar.
 
 ## Verify The Desktop Release
 

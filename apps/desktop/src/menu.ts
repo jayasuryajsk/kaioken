@@ -42,6 +42,7 @@ export interface InstallApplicationMenuArgs {
   accelerators: ApplicationMenuAccelerators;
   isMac: boolean;
   openAbout(): void;
+  updateMenu?: { label: string; enabled: boolean; click(): void } | null;
   openNewTab(): void;
   openNewThread(): void;
   openSettings(): void;
@@ -123,6 +124,17 @@ export function buildApplicationMenuTemplate(
             args.openAbout();
           },
         },
+        ...(args.updateMenu
+          ? [
+              {
+                label: args.updateMenu.label,
+                enabled: args.updateMenu.enabled,
+                click() {
+                  args.updateMenu?.click();
+                },
+              },
+            ]
+          : []),
         { type: "separator" },
         {
           accelerator: args.accelerators.openSettings,

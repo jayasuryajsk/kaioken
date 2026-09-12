@@ -129,6 +129,7 @@ import {
   DESKTOP_RELEASE_INFO,
   resolveDesktopUpdateSupport,
 } from "./desktop-update-provider.js";
+import { createBundleSwapUpdater } from "./desktop-bundle-swap-update.js";
 import {
   createDesktopAutoUpdateService,
   createElectronAutoUpdaterAdapter,
@@ -517,7 +518,10 @@ function sendDesktopInfoChanged(): void {
         info,
       );
     } else {
-      browserWindow.webContents.send(KAIOKEN_DESKTOP_INFO_CHANGED_CHANNEL, info);
+      browserWindow.webContents.send(
+        KAIOKEN_DESKTOP_INFO_CHANGED_CHANNEL,
+        info,
+      );
     }
   }
 }
@@ -737,6 +741,7 @@ function installCurrentApplicationMenu(): void {
     openAbout() {
       void showAboutDialog();
     },
+    updateMenu: describeUpdateMenu(),
     openNewTab() {
       const browserWindow = getFocusedApplicationWindow();
       if (browserWindow !== null) {
@@ -1585,6 +1590,67 @@ async function finishQuit(): Promise<void> {
   await stopOwnedRuntime();
 }
 
+async function installDownloadedDesktopUpdate(): Promise<void> {
+  if (desktopAutoUpdateService === null) {
+    return;
+  }
+  if (!desktopAutoUpdateService.getInfo().updateDownloaded) {
+    desktopAutoUpdateService.installUpdate();
+    return;
+  }
+  const appImagePath = process.env.APPIMAGE?.trim() ?? "";
+  if (
+    process.platform === "linux" &&
+    (appImagePath.length === 0 || !canReplaceAppImage(appImagePath))
+  ) {
+    createDesktopLogger().error(
+      `Desktop update install skipped: ${appImagePath || "this build"} cannot be replaced in place. The runtime stays up; download the new AppImage instead.`,
+    );
+    return;
+  }
+  quitting = true;
+  stoppingForQuit = true;
+  await finishQuit();
+  desktopAutoUpdateService.installUpdate();
+}
+
+function describeUpdateMenu(): {
+  label: string;
+  enabled: boolean;
+  click(): void;
+} | null {
+  if (desktopAutoUpdateService === null) {
+    return null;
+  }
+  const info = desktopAutoUpdateService.getInfo();
+  if (info.updateDownloaded) {
+    return {
+      label: `Restart to Update${info.pendingVersion ? ` to ${info.pendingVersion}` : ""}`,
+      enabled: true,
+      click() {
+        void installDownloadedDesktopUpdate();
+      },
+    };
+  }
+  if (info.downloadState === "downloading") {
+    return {
+      label: `Downloading Update${info.latestVersion ? ` ${info.latestVersion}` : ""}…`,
+      enabled: false,
+      click() {},
+    };
+  }
+  return {
+    label: "Check for Updates…",
+    enabled: true,
+    click() {
+      void Promise.all([
+        desktopUpdateService?.checkForUpdates() ?? Promise.resolve(null),
+        desktopAutoUpdateService?.checkForUpdates() ?? Promise.resolve(null),
+      ]);
+    },
+  };
+}
+
 function registerDesktopUpdateIpc(): void {
   ipcMain.handle(KAIOKEN_DESKTOP_GET_INFO_CHANNEL, () => {
     return getCurrentDesktopInfo();
@@ -1603,27 +1669,7 @@ function registerDesktopUpdateIpc(): void {
     return getCurrentDesktopInfo();
   });
   ipcMain.handle(KAIOKEN_DESKTOP_INSTALL_UPDATE_CHANNEL, async () => {
-    if (desktopAutoUpdateService === null) {
-      return;
-    }
-    if (!desktopAutoUpdateService.getInfo().updateDownloaded) {
-      desktopAutoUpdateService.installUpdate();
-      return;
-    }
-    const appImagePath = process.env.APPIMAGE?.trim() ?? "";
-    if (
-      process.platform === "linux" &&
-      (appImagePath.length === 0 || !canReplaceAppImage(appImagePath))
-    ) {
-      createDesktopLogger().error(
-        `Desktop update install skipped: ${appImagePath || "this build"} cannot be replaced in place. The runtime stays up; download the new AppImage instead.`,
-      );
-      return;
-    }
-    quitting = true;
-    stoppingForQuit = true;
-    await finishQuit();
-    desktopAutoUpdateService.installUpdate();
+    await installDownloadedDesktopUpdate();
   });
   ipcMain.on(KAIOKEN_DESKTOP_SET_THEME_CHANNEL, (_event, payload: unknown) => {
     const parsed = kaiokenDesktopThemeSchema.safeParse(payload);
@@ -1633,16 +1679,19 @@ function registerDesktopUpdateIpc(): void {
     nativeTheme.themeSource = parsed.data;
   });
 
-  ipcMain.on(KAIOKEN_DESKTOP_CLOSE_WINDOW_RESPONSE_CHANNEL, (event, payload) => {
-    const pending = pendingCloseWindowRequests.get(event.sender.id);
-    if (pending !== undefined) {
-      clearTimeout(pending);
-      pendingCloseWindowRequests.delete(event.sender.id);
-    }
-    if (payload === false) {
-      resolveApplicationWindow(event.sender)?.close();
-    }
-  });
+  ipcMain.on(
+    KAIOKEN_DESKTOP_CLOSE_WINDOW_RESPONSE_CHANNEL,
+    (event, payload) => {
+      const pending = pendingCloseWindowRequests.get(event.sender.id);
+      if (pending !== undefined) {
+        clearTimeout(pending);
+        pendingCloseWindowRequests.delete(event.sender.id);
+      }
+      if (payload === false) {
+        resolveApplicationWindow(event.sender)?.close();
+      }
+    },
+  );
   ipcMain.on(
     KAIOKEN_DESKTOP_OPEN_EXTERNAL_URL_CHANNEL,
     (_event, payload: unknown) => {
@@ -2189,13 +2238,29 @@ async function runDesktopApp(): Promise<void> {
       !app.isPackaged && process.env.KAIOKEN_DESKTOP_AUTO_UPDATE === "1",
     logger: createDesktopLogger(),
     platform: desktopPlatform,
-    updater: createElectronAutoUpdaterAdapter(autoUpdater),
+    updater:
+      desktopPlatform === "macos"
+        ? createBundleSwapUpdater({
+            bundlePath: resolve(process.execPath, "..", "..", ".."),
+            channel: DESKTOP_RELEASE_CHANNEL,
+            currentVersion: desktopVersion,
+            downloadDir: join(app.getPath("userData"), "updates"),
+            exit: () => {
+              app.exit(0);
+            },
+            feedUrl: desktopUpdateFeedUrl,
+            logger: createDesktopLogger(),
+            processId: process.pid,
+            releaseBaseUrl: DESKTOP_RELEASE_INFO.updateReleaseBaseUrl,
+          })
+        : createElectronAutoUpdaterAdapter(autoUpdater),
   });
   desktopUpdateService.subscribe(() => {
     sendDesktopInfoChanged();
   });
   desktopAutoUpdateService.subscribe(() => {
     sendDesktopInfoChanged();
+    installCurrentApplicationMenu();
   });
   registerDesktopUpdateIpc();
   desktopBrowserViewManager = createDesktopBrowserViewManager({

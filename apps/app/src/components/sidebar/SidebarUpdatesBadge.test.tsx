@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
 import type { Host } from "@kaioken/domain";
@@ -164,6 +170,38 @@ describe("SidebarUpdatesBadge", () => {
   it("renders nothing when no update needs attention", () => {
     const result = renderBadge({});
     expect(result.container.innerHTML).toBe("");
+  });
+
+  it("turns into a restart button once the desktop update is downloaded", () => {
+    const installUpdate = vi.fn(() => Promise.resolve());
+    const previous = window.kaiokenDesktop;
+    window.kaiokenDesktop = {
+      installUpdate,
+    } as unknown as typeof window.kaiokenDesktop;
+    try {
+      renderBadge({
+        desktopUpdateReady: true,
+        desktopInfo: {
+          downloadState: "downloaded",
+          lastCheckedAt: null,
+          latestVersion: "0.43.0",
+          pendingVersion: "0.43.0",
+          platform: "macos",
+          updateAvailable: true,
+          updateDownloaded: true,
+          version: "0.42.1",
+        },
+      });
+      const button = screen.getByTestId("sidebar-updates-restart");
+      expect(button.getAttribute("aria-label")).toBe(
+        "Restart to update to 0.43.0",
+      );
+      expect(screen.queryByTestId("sidebar-updates-badge-kaioken")).toBeNull();
+      fireEvent.click(button);
+      expect(installUpdate).toHaveBeenCalledTimes(1);
+    } finally {
+      window.kaiokenDesktop = previous;
+    }
   });
 
   it("shows only the kaioken chip for a kaioken-only update", () => {
