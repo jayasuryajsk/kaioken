@@ -1,4 +1,4 @@
-import type { PushPlatform } from "./push-contract";
+import type { PushPlatform, PushTransport } from "./push-contract";
 import type { PushRegistrationRecord, PushStore } from "./push-store";
 import {
   PUSH_NOTIFICATIONS_PLUGIN_DISABLED_STATUS,
@@ -10,9 +10,11 @@ export type PushPermissionState = "granted" | "denied" | "undetermined";
 export interface PushNotificationsModule {
   readonly projectId: string | null;
   readonly platform: PushPlatform;
+  readonly transport?: PushTransport;
   getPermission(): Promise<PushPermissionState>;
   requestPermission(): Promise<PushPermissionState>;
   getExpoPushToken(projectId: string): Promise<string>;
+  getDevicePushToken?(): Promise<string>;
   addTokenListener(listener: (deviceToken: string) => void): () => void;
   setBadgeCount(count: number): Promise<void>;
 }
@@ -76,6 +78,7 @@ export type PushSyncDecision =
 export function decidePushSync(input: {
   enabled: boolean;
   projectId: string | null;
+  transport?: PushTransport;
   permission: PushPermissionState;
   existing: PushRegistrationRecord | null;
 }): PushSyncDecision {
@@ -84,7 +87,7 @@ export function decidePushSync(input: {
       ? { action: "unregister" }
       : { action: "skip", reason: "disabled" };
   }
-  if (input.projectId === null) {
+  if ((input.transport ?? "expo") === "expo" && input.projectId === null) {
     return { action: "skip", reason: "no-project-id" };
   }
   if (input.permission === "denied") {
@@ -126,9 +129,11 @@ export async function syncPushRegistration(
     if (existing) return unregisterPushRegistration(deps, profile.id);
     return { action: "skipped", reason: "insecure-http" };
   }
+  const transport: PushTransport = notifications.transport ?? "expo";
   const decision = decidePushSync({
     enabled: store.isEnabled(profile.id),
     projectId: notifications.projectId,
+    transport,
     permission: await notifications.getPermission(),
     existing,
   });
@@ -141,9 +146,10 @@ export async function syncPushRegistration(
 
   let expoPushToken: string;
   try {
-    expoPushToken = await notifications.getExpoPushToken(
-      notifications.projectId ?? "",
-    );
+    expoPushToken =
+      transport === "apns" && notifications.getDevicePushToken
+        ? await notifications.getDevicePushToken()
+        : await notifications.getExpoPushToken(notifications.projectId ?? "");
   } catch (error) {
     return { action: "failed", step: "token", error: describe(error) };
   }
@@ -173,6 +179,7 @@ export async function syncPushRegistration(
   try {
     ({ subscriptionId } = await api.register(profile.serverUrl, {
       expoPushToken,
+      ...(transport === "apns" ? { transport } : {}),
       platform,
       deviceLabel: deps.deviceLabel,
     }));
@@ -221,6 +228,7 @@ export async function enablePushForProfile(
 export function describePushStatus(input: {
   profile: PushSyncProfile;
   projectId: string | null;
+  transport?: PushTransport;
   enabled: boolean;
   permission: PushPermissionState | null;
   registration: PushRegistrationRecord | null;
@@ -229,7 +237,7 @@ export function describePushStatus(input: {
   if (!isPushRegistrationAllowed(input.profile)) {
     return "Push needs HTTPS or kaioken connect";
   }
-  if (input.projectId === null) {
+  if ((input.transport ?? "expo") === "expo" && input.projectId === null) {
     return "Push unavailable until the app is built with EAS";
   }
   if (!input.enabled) return "Off";
@@ -237,9 +245,7 @@ export function describePushStatus(input: {
     return "Notifications are blocked in system settings";
   }
   if (input.lastOutcome?.action === "failed") {
-    if (
-      input.lastOutcome.error === PUSH_NOTIFICATIONS_PLUGIN_DISABLED_STATUS
-    ) {
+    if (input.lastOutcome.error === PUSH_NOTIFICATIONS_PLUGIN_DISABLED_STATUS) {
       return PUSH_NOTIFICATIONS_PLUGIN_DISABLED_STATUS;
     }
     return `Could not register: ${input.lastOutcome.error}`;

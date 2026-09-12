@@ -11,7 +11,13 @@ describe("parsePushNotificationData", () => {
   it("reads the thread id and optional project / server hints", () => {
     expect(
       parsePushNotificationData({ threadId: "thr_1", projectId: "prj_1" }),
-    ).toEqual({ threadId: "thr_1", projectId: "prj_1", serverUrl: null });
+    ).toEqual({
+      threadId: "thr_1",
+      projectId: "prj_1",
+      serverUrl: null,
+      interactionId: null,
+      category: null,
+    });
     expect(
       parsePushNotificationData({
         threadId: "thr_1",
@@ -22,6 +28,8 @@ describe("parsePushNotificationData", () => {
       threadId: "thr_1",
       projectId: null,
       serverUrl: "https://sawyer.getbb.app",
+      interactionId: null,
+      category: null,
     });
     expect(
       parsePushNotificationData({
@@ -32,7 +40,16 @@ describe("parsePushNotificationData", () => {
       threadId: "thr_1",
       projectId: null,
       serverUrl: "https://home.example.com/kaioken",
+      interactionId: null,
+      category: null,
     });
+    expect(
+      parsePushNotificationData({
+        threadId: "thr_1",
+        interactionId: "int_1",
+        category: "approval",
+      }),
+    ).toMatchObject({ interactionId: "int_1", category: "approval" });
   });
 
   it("rejects payloads without a thread id", () => {
@@ -43,7 +60,13 @@ describe("parsePushNotificationData", () => {
 });
 
 describe("resolvePushTargetProfile", () => {
-  const target = { threadId: "thr_1", projectId: null, serverUrl: null };
+  const target = {
+    threadId: "thr_1",
+    projectId: null,
+    serverUrl: null,
+    interactionId: null,
+    category: null,
+  };
 
   it("uses the server hint when it names a saved profile", async () => {
     const hasThread = vi.fn(async () => false);

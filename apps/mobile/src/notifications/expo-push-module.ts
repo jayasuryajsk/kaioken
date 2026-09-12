@@ -48,6 +48,11 @@ export function createExpoPushModule(): PushNotificationsModule {
   return {
     projectId: getEasProjectId(),
     platform: currentPlatform(),
+    transport: Platform.OS === "ios" ? "apns" : "expo",
+    async getDevicePushToken() {
+      const token = await Notifications.getDevicePushTokenAsync();
+      return String(token.data);
+    },
     async getPermission() {
       return toPermissionState(await Notifications.getPermissionsAsync());
     },

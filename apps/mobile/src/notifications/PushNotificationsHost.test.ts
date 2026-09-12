@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 interface NotificationResponse {
+  actionIdentifier?: string;
+  userText?: string;
   notification: {
     request: {
       content: {
@@ -17,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   push: vi.fn(),
   receivedListener: vi.fn(),
   responseListener: vi.fn<(response: NotificationResponse) => void>(),
+  resolveInteraction: vi.fn(async () => ({ status: "resolved" as const })),
   setNotificationHandler: vi.fn(),
 }));
 
@@ -32,7 +35,18 @@ vi.mock("expo-notifications", () => ({
   clearLastNotificationResponse: mocks.clearLastNotificationResponse,
   getLastNotificationResponse: mocks.getLastNotificationResponse,
   setNotificationHandler: mocks.setNotificationHandler,
+  setNotificationCategoryAsync: vi.fn(async () => undefined),
+  DEFAULT_ACTION_IDENTIFIER: "expo.modules.notifications.actions.DEFAULT",
 }));
+
+vi.mock("./interaction-actions", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./interaction-actions")>();
+  return {
+    ...actual,
+    registerInteractionCategories: vi.fn(async () => undefined),
+    resolveInteractionOnServer: mocks.resolveInteraction,
+  };
+});
 
 vi.mock("expo-router", () => ({
   useRouter: () => ({ push: mocks.push }),
@@ -75,7 +89,7 @@ vi.mock("@/app-shell", () => {
 
 vi.mock("@/ui", () => ({
   ActionSheet: () => null,
-  toast: { error: vi.fn(), message: vi.fn() },
+  toast: { error: vi.fn(), message: vi.fn(), success: vi.fn() },
   useSheet: () => ({ present: vi.fn() }),
 }));
 
@@ -114,8 +128,38 @@ describe("PushNotificationsHost", () => {
     PushNotificationsHost();
   });
 
+  it("approves a pending interaction straight from the notification action", async () => {
+    mocks.responseListener({
+      actionIdentifier: "allow_once",
+      notification: {
+        request: {
+          content: {
+            data: {
+              projectId: "proj_1",
+              serverUrl: "https://kaioken.example.test",
+              threadId: "thr_1",
+              interactionId: "int_1",
+              category: "approval",
+            },
+          },
+        },
+      },
+    });
+    await vi.waitFor(() =>
+      expect(mocks.resolveInteraction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          threadId: "thr_1",
+          interactionId: "int_1",
+          resolution: { kind: "approval", decision: "allow_once" },
+        }),
+      ),
+    );
+    expect(mocks.push).not.toHaveBeenCalled();
+  });
+
   it("opens a project thread from a push response with its project route", async () => {
     mocks.responseListener({
+      actionIdentifier: "expo.modules.notifications.actions.DEFAULT",
       notification: {
         request: {
           content: {

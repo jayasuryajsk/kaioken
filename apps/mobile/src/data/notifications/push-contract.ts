@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 export const pushPlatformSchema = z.enum(["ios", "android"]);
+export const pushTransportSchema = z.enum(["expo", "apns"]);
+export type PushTransport = z.infer<typeof pushTransportSchema>;
 
 const EXPO_PUSH_TOKEN_MAX_LENGTH = 512;
 const DEVICE_LABEL_MAX_LENGTH = 120;
@@ -8,6 +10,7 @@ const DEVICE_LABEL_MAX_LENGTH = 120;
 export const pushSubscriptionInputSchema = z
   .object({
     expoPushToken: z.string().trim().min(1).max(EXPO_PUSH_TOKEN_MAX_LENGTH),
+    transport: pushTransportSchema.optional(),
     platform: pushPlatformSchema,
     deviceLabel: z.string().trim().min(1).max(DEVICE_LABEL_MAX_LENGTH),
   })
@@ -42,9 +45,7 @@ export const pushSubscriptionsRemoveOutputSchema = z
   .strict();
 
 export type PushPlatform = z.infer<typeof pushPlatformSchema>;
-export type PushSubscriptionInput = z.infer<
-  typeof pushSubscriptionInputSchema
->;
+export type PushSubscriptionInput = z.infer<typeof pushSubscriptionInputSchema>;
 export type PushSubscriptionRecord = z.infer<
   typeof pushSubscriptionRecordSchema
 >;

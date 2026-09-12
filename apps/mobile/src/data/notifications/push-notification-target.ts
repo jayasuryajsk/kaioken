@@ -8,6 +8,8 @@ export interface PushNotificationTarget {
   threadId: string;
   projectId: string | null;
   serverUrl: string | null;
+  interactionId: string | null;
+  category: "approval" | "question" | null;
 }
 
 const pushDataSchema = z.object({
@@ -15,6 +17,8 @@ const pushDataSchema = z.object({
   projectId: z.string().min(1).nullish(),
   serverUrl: z.string().min(1).nullish(),
   url: z.string().min(1).nullish(),
+  interactionId: z.string().min(1).nullish(),
+  category: z.enum(["approval", "question"]).nullish(),
 });
 
 function normalizedHint(value: string, preservePath: boolean): string | null {
@@ -42,6 +46,8 @@ export function parsePushNotificationData(
       : fallbackUrl
         ? normalizedHint(fallbackUrl, false)
         : null,
+    interactionId: parsed.data.interactionId ?? null,
+    category: parsed.data.category ?? null,
   };
 }
 

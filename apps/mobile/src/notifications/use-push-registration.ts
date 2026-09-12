@@ -57,7 +57,9 @@ export function usePushRegistration(profile: {
   );
   return {
     available:
-      notifications.projectId !== null && isPushRegistrationAllowed(profile),
+      (notifications.transport === "apns" ||
+        notifications.projectId !== null) &&
+      isPushRegistrationAllowed(profile),
     enabled,
     permission: state.permission,
     syncing: state.syncing,
@@ -65,6 +67,9 @@ export function usePushRegistration(profile: {
     statusText: describePushStatus({
       profile,
       projectId: notifications.projectId,
+      ...(notifications.transport === undefined
+        ? {}
+        : { transport: notifications.transport }),
       enabled,
       permission: state.permission,
       registration,

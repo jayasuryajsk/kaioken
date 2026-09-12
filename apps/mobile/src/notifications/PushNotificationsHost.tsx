@@ -19,6 +19,11 @@ import { getPushNotificationsModule } from "./expo-push-module";
 import { getPushRegistrationController } from "./push-controller";
 import { getPushStore } from "./push-storage";
 import { hasThreadOnServer } from "./thread-probe";
+import {
+  registerInteractionCategories,
+  resolutionForAction,
+  resolveInteractionOnServer,
+} from "./interaction-actions";
 import { usePushStoreSnapshot } from "./use-push-store";
 
 export function PushNotificationsHost() {
@@ -60,6 +65,7 @@ export function PushNotificationsHost() {
         shouldSetBadge: false,
       }),
     });
+    void registerInteractionCategories().catch(() => undefined);
     return () => Notifications.setNotificationHandler(null);
   }, []);
 
@@ -92,12 +98,81 @@ export function PushNotificationsHost() {
     [router],
   );
 
+  const actOnTarget = useCallback(
+    async (
+      target: PushNotificationTarget,
+      actionIdentifier: string,
+      userText: string | undefined,
+    ) => {
+      const resolution = resolutionForAction(actionIdentifier, userText);
+      if (resolution === null || target.interactionId === null) {
+        await openTarget(target);
+        return;
+      }
+      const profile = await resolvePushTargetProfile(target, {
+        profiles: profilesRef.current,
+        activeProfileId: activeProfileIdRef.current,
+        hasThread: hasThreadOnServer,
+      });
+      if (!profile) {
+        await openTarget(target);
+        return;
+      }
+      let outcome: Awaited<ReturnType<typeof resolveInteractionOnServer>>;
+      try {
+        outcome = await resolveInteractionOnServer({
+          serverUrl: profile.serverUrl,
+          threadId: target.threadId,
+          interactionId: target.interactionId,
+          resolution,
+        });
+      } catch (error) {
+        outcome = {
+          status: "failed",
+          message: error instanceof Error ? error.message : String(error),
+        };
+      }
+      if (outcome.status === "resolved") {
+        toast.success(
+          resolution.kind === "approval"
+            ? resolution.decision === "deny"
+              ? "Denied"
+              : "Approved"
+            : "Answer sent",
+        );
+        return;
+      }
+      toast.error(
+        outcome.status === "gone"
+          ? "That request was already handled"
+          : "Could not send your answer",
+        {
+          description:
+            outcome.status === "failed" ? outcome.message : undefined,
+        },
+      );
+      await openTarget(target);
+    },
+    [openTarget],
+  );
+
   useEffect(() => {
     const handle = (response: Notifications.NotificationResponse) => {
       const target = parsePushNotificationData(
         response.notification.request.content.data,
       );
-      if (target) void openTarget(target);
+      if (!target) return;
+      if (
+        response.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER
+      ) {
+        void openTarget(target);
+        return;
+      }
+      void actOnTarget(
+        target,
+        response.actionIdentifier,
+        response.userText ?? undefined,
+      );
     };
     const subscription =
       Notifications.addNotificationResponseReceivedListener(handle);
@@ -107,7 +182,7 @@ export function PushNotificationsHost() {
       handle(last);
     }
     return () => subscription.remove();
-  }, [openTarget]);
+  }, [actOnTarget, openTarget]);
 
   useEffect(() => {
     const subscription = Notifications.addNotificationReceivedListener(
