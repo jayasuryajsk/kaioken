@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { PLUGIN_SDK_VERSION } from "@kaioken/domain";
 import {
   createNpmResolverRun,
+  evaluateCompatibility,
+  UPSTREAM_COMPAT_VERSION,
   listGitSemverTags,
   resolveGitRange,
   resolveGitRef,
@@ -63,6 +65,29 @@ function npmIntent(
     specKind,
   } as const;
 }
+
+describe("engine compatibility", () => {
+  it("accepts ranges written for the upstream bb version once Kaioken is 1.x", () => {
+    const result = evaluateCompatibility({
+      kaiokenRange: ">=0.40.0 <1.0.0",
+      sdkRange: undefined,
+      appVersion: "1.0.0",
+    });
+    expect(result.effective).toEqual([]);
+    expect(UPSTREAM_COMPAT_VERSION.startsWith("0.")).toBe(true);
+  });
+
+  it("still rejects ranges neither version satisfies", () => {
+    const result = evaluateCompatibility({
+      kaiokenRange: ">=99.0.0",
+      sdkRange: undefined,
+      appVersion: "1.0.0",
+    });
+    expect(result.effective.map((problem) => problem.message)).toEqual([
+      "requires kaioken >=99.0.0, running kaioken is 1.0.0",
+    ]);
+  });
+});
 
 describe("npm update candidate selection", () => {
   it("selects an older compatible range candidate and reports the newer block", async () => {
@@ -535,7 +560,8 @@ describe("git semver tag resolution", () => {
                   engine: "kaioken",
                   required: ">=99.0.0",
                   actual: "1.0.0",
-                  message: "requires kaioken >=99.0.0, running kaioken is 1.0.0",
+                  message:
+                    "requires kaioken >=99.0.0, running kaioken is 1.0.0",
                 },
               ],
             }

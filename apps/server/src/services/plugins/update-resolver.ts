@@ -203,6 +203,18 @@ function allowedNpmVersions(
     .sort(semver.rcompare);
 }
 
+export const UPSTREAM_COMPAT_VERSION = "0.42.3";
+
+function satisfiesKaiokenRange(
+  appVersion: semver.SemVer,
+  range: string,
+): boolean {
+  return (
+    semver.satisfies(appVersion, range) ||
+    semver.satisfies(UPSTREAM_COMPAT_VERSION, range)
+  );
+}
+
 export function evaluateCompatibility(args: {
   kaiokenRange: string | undefined;
   sdkRange: string | undefined;
@@ -214,7 +226,9 @@ export function evaluateCompatibility(args: {
 } {
   const appVersion = semver.coerce(args.appVersion);
   if (!appVersion) {
-    throw new Error(`cannot parse running kaioken version "${args.appVersion}"`);
+    throw new Error(
+      `cannot parse running kaioken version "${args.appVersion}"`,
+    );
   }
   const devMode = appVersion.version === "0.0.0";
   const kaiokenProblems: CompatibilityProblem[] = [];
@@ -226,7 +240,7 @@ export function evaluateCompatibility(args: {
         actual: appVersion.version,
         message: `declares invalid engines.bb range ${JSON.stringify(args.kaiokenRange)}`,
       });
-    } else if (!semver.satisfies(appVersion, args.kaiokenRange)) {
+    } else if (!satisfiesKaiokenRange(appVersion, args.kaiokenRange)) {
       kaiokenProblems.push({
         engine: "kaioken",
         required: args.kaiokenRange,
