@@ -10,7 +10,7 @@ const desktopRoot = join(repoRoot, "apps", "desktop");
 const releaseDir = join(desktopRoot, "release");
 const LATEST_TAG = "desktop-latest";
 const USAGE =
-  "Usage: pnpm release:desktop <version>|--patch|--minor|--major [--notes <text>] [--dry-run] [--skip-build]";
+  "Usage: pnpm release:desktop <version>|--patch|--minor|--major [--notes <text>] [--dry-run] [--skip-build]\n       pnpm release:desktop --publish-only [--notes <text>]   (retry the GitHub release for the current version)";
 
 function parseArgs(argv) {
   const options = {
@@ -18,10 +18,12 @@ function parseArgs(argv) {
     notes: null,
     dryRun: false,
     skipBuild: false,
+    publishOnly: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--dry-run") options.dryRun = true;
+    else if (arg === "--publish-only") options.publishOnly = true;
     else if (arg === "--skip-build") options.skipBuild = true;
     else if (arg === "--notes") {
       options.notes = argv[index + 1] ?? null;
@@ -29,7 +31,7 @@ function parseArgs(argv) {
     } else if (options.version === null) options.version = arg;
     else throw new Error(USAGE);
   }
-  if (options.version === null) throw new Error(USAGE);
+  if (options.version === null && !options.publishOnly) throw new Error(USAGE);
   return options;
 }
 
@@ -47,6 +49,27 @@ function run(command, args, options = {}) {
         reject(new Error(`${command} ${args.join(" ")} exited with ${code}`));
     });
   });
+}
+
+let githubRepo = null;
+
+async function resolveGithubRepo() {
+  if (githubRepo !== null) return githubRepo;
+  const url = await capture("git", ["remote", "get-url", "origin"]);
+  const match = /github\.com[:/]([^/]+)\/([^/.]+)(?:\.git)?$/u.exec(url);
+  if (match === null) {
+    throw new Error(`Cannot derive a GitHub repo from origin url ${url}`);
+  }
+  githubRepo = `${match[1]}/${match[2]}`;
+  return githubRepo;
+}
+
+async function gh(args, { capture: captureOutput = false } = {}) {
+  const repo = await resolveGithubRepo();
+  const fullArgs = [args[0], ...args.slice(1), "--repo", repo];
+  if (captureOutput) return capture("gh", fullArgs);
+  await run("gh", fullArgs);
+  return "";
 }
 
 async function capture(command, args, cwd = repoRoot) {
@@ -95,15 +118,106 @@ async function collectAssets(version) {
 
 async function releaseExists(tag) {
   try {
-    await capture("gh", ["release", "view", tag]);
+    await gh(["release", "view", tag], { capture: true });
     return true;
   } catch {
     return false;
   }
 }
 
+async function publishReleases({ version, sha, assets, notes }) {
+  const versionTag = `desktop-v${version}`;
+  if (!(await releaseExists(versionTag))) {
+    await gh([
+      "release",
+      "create",
+      versionTag,
+      ...assets,
+      "--target",
+      sha,
+      "--title",
+      `Kaioken desktop ${version}`,
+      "--notes",
+      notes,
+      "--latest",
+    ]);
+  } else {
+    console.log(
+      `Release ${versionTag} already exists; refreshing ${LATEST_TAG} only.`,
+    );
+  }
+
+  if (await releaseExists(LATEST_TAG)) {
+    await gh([
+      "release",
+      "edit",
+      LATEST_TAG,
+      "--target",
+      sha,
+      "--title",
+      "Kaioken desktop latest",
+      "--notes",
+      "Moving release that serves the desktop auto-update feed.",
+      "--latest=false",
+    ]);
+    const existing = await gh(
+      [
+        "release",
+        "view",
+        LATEST_TAG,
+        "--json",
+        "assets",
+        "--jq",
+        ".assets[].name",
+      ],
+      { capture: true },
+    );
+    for (const name of existing.split("\n").filter((line) => line.length > 0)) {
+      await gh(["release", "delete-asset", LATEST_TAG, name, "--yes"]);
+    }
+    await gh(["release", "upload", LATEST_TAG, ...assets]);
+  } else {
+    await gh([
+      "release",
+      "create",
+      LATEST_TAG,
+      ...assets,
+      "--target",
+      sha,
+      "--title",
+      "Kaioken desktop latest",
+      "--notes",
+      "Moving release that serves the desktop auto-update feed.",
+      "--latest=false",
+    ]);
+  }
+  console.log(
+    `Published ${versionTag}. Running Kaioken installs pick it up on their next update check.`,
+  );
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
+
+  if (options.publishOnly) {
+    await capture("gh", ["auth", "status"]);
+    const version = await readDesktopVersion();
+    const sha = await capture("git", [
+      "rev-list",
+      "-n",
+      "1",
+      `desktop-v${version}`,
+    ]);
+    const assets = await collectAssets(version);
+    await publishReleases({
+      version,
+      sha,
+      assets,
+      notes: options.notes ?? `Kaioken desktop ${version}`,
+    });
+    return;
+  }
+
   await assertReadyToRelease();
 
   const previousVersion = await readDesktopVersion();
@@ -179,65 +293,12 @@ async function main() {
   await run("git", ["push", "origin", "main", `refs/tags/${versionTag}`]);
   await run("git", ["push", "--force", "origin", `refs/tags/${LATEST_TAG}`]);
 
-  const notes = options.notes ?? `Kaioken desktop ${version}`;
-  await run("gh", [
-    "release",
-    "create",
-    versionTag,
-    ...assets,
-    "--target",
+  await publishReleases({
+    version,
     sha,
-    "--title",
-    `Kaioken desktop ${version}`,
-    "--notes",
-    notes,
-    "--latest",
-  ]);
-
-  if (await releaseExists(LATEST_TAG)) {
-    await run("gh", [
-      "release",
-      "edit",
-      LATEST_TAG,
-      "--target",
-      sha,
-      "--title",
-      "Kaioken desktop latest",
-      "--notes",
-      "Moving release that serves the desktop auto-update feed.",
-      "--latest=false",
-    ]);
-    const existing = await capture("gh", [
-      "release",
-      "view",
-      LATEST_TAG,
-      "--json",
-      "assets",
-      "--jq",
-      ".assets[].name",
-    ]);
-    for (const name of existing.split("\n").filter((line) => line.length > 0)) {
-      await run("gh", ["release", "delete-asset", LATEST_TAG, name, "--yes"]);
-    }
-    await run("gh", ["release", "upload", LATEST_TAG, ...assets]);
-  } else {
-    await run("gh", [
-      "release",
-      "create",
-      LATEST_TAG,
-      ...assets,
-      "--target",
-      sha,
-      "--title",
-      "Kaioken desktop latest",
-      "--notes",
-      "Moving release that serves the desktop auto-update feed.",
-      "--latest=false",
-    ]);
-  }
-  console.log(
-    `Published ${versionTag}. Running Kaioken installs pick it up on their next update check.`,
-  );
+    assets,
+    notes: options.notes ?? `Kaioken desktop ${version}`,
+  });
 }
 
 main().catch((error) => {
