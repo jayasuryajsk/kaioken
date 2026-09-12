@@ -9,6 +9,8 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const desktopRoot = join(repoRoot, "apps", "desktop");
 const releaseDir = join(desktopRoot, "release");
 const LATEST_TAG = "desktop-latest";
+const RELEASE_ENV_FILE = join(repoRoot, ".env.release");
+const DEVELOPER_ID_PREFIX = "Developer ID Application:";
 const USAGE =
   "Usage: pnpm release:desktop <version>|--patch|--minor|--major [--notes <text>] [--dry-run] [--skip-build]\n       pnpm release:desktop --publish-only [--notes <text>]   (retry the GitHub release for the current version)";
 
@@ -75,6 +77,81 @@ async function gh(args, { capture: captureOutput = false } = {}) {
 async function capture(command, args, cwd = repoRoot) {
   const { stdout } = await execFileAsync(command, args, { cwd });
   return stdout.trim();
+}
+
+async function loadReleaseEnv() {
+  let text;
+  try {
+    text = await readFile(RELEASE_ENV_FILE, "utf8");
+  } catch {
+    return {};
+  }
+  const loaded = {};
+  for (const rawLine of text.split("\n")) {
+    const line = rawLine.trim();
+    if (line.length === 0 || line.startsWith("#")) continue;
+    const separator = line.indexOf("=");
+    if (separator === -1) continue;
+    const key = line.slice(0, separator).trim();
+    let value = line.slice(separator + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (process.env[key] === undefined) loaded[key] = value;
+  }
+  return loaded;
+}
+
+async function findDeveloperIdIdentity() {
+  try {
+    const output = await capture("security", [
+      "find-identity",
+      "-v",
+      "-p",
+      "codesigning",
+    ]);
+    const line = output
+      .split("\n")
+      .find((candidate) => candidate.includes(DEVELOPER_ID_PREFIX));
+    if (line === undefined) return null;
+    const match = /"([^"]+)"/u.exec(line);
+    return match === null ? null : match[1];
+  } catch {
+    return null;
+  }
+}
+
+async function describeSigning() {
+  const releaseEnv = await loadReleaseEnv();
+  const identity = await findDeveloperIdIdentity();
+  const appleKeys = [
+    "APPLE_ID",
+    "APPLE_APP_SPECIFIC_PASSWORD",
+    "APPLE_TEAM_ID",
+  ];
+  const hasAppleCredentials = appleKeys.every(
+    (key) => (process.env[key] ?? releaseEnv[key] ?? "").length > 0,
+  );
+  if (identity === null) {
+    return {
+      env: { CSC_IDENTITY_AUTO_DISCOVERY: "false" },
+      summary:
+        "unsigned (no Developer ID Application identity in the keychain)",
+    };
+  }
+  if (!hasAppleCredentials) {
+    return {
+      env: { ...releaseEnv, CSC_IDENTITY_AUTO_DISCOVERY: "true" },
+      summary: `signed with ${identity}, not notarized (add APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID to ${RELEASE_ENV_FILE})`,
+    };
+  }
+  return {
+    env: { ...releaseEnv, CSC_IDENTITY_AUTO_DISCOVERY: "true" },
+    summary: `signed with ${identity} and notarized`,
+  };
 }
 
 async function readDesktopVersion() {
@@ -241,6 +318,8 @@ async function main() {
   console.log(`Releasing Kaioken desktop ${previousVersion} → ${version}`);
 
   if (!options.skipBuild) {
+    const signing = await describeSigning();
+    console.log(`Signing: ${signing.summary}`);
     await run("pnpm", [
       "--filter",
       "@kaioken/desktop",
@@ -258,7 +337,7 @@ async function main() {
         "--publish",
         "never",
       ],
-      { cwd: desktopRoot, env: { CSC_IDENTITY_AUTO_DISCOVERY: "false" } },
+      { cwd: desktopRoot, env: signing.env },
     );
     await run("pnpm", [
       "--filter",

@@ -254,6 +254,12 @@ pnpm release:desktop 0.43.0 --notes "Board dialog, ASCII backdrop, OTA updates"
 pnpm release:desktop --patch --dry-run  # build and list assets without publishing
 ```
 
+Signing is automatic when a "Developer ID Application" identity is in the login
+keychain, and notarization runs when `.env.release` (gitignored; see
+`.env.release.example`) provides `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, and
+`APPLE_TEAM_ID`. Without the identity the release ships unsigned; the script
+prints which of the three it is doing before it builds.
+
 The script bumps both locked package versions, packages the arm64 zip,
 generates the feed, commits `Release desktop <version>`, tags `desktop-v<version>`
 and moves `desktop-latest`, pushes, creates the immutable release, and resets the

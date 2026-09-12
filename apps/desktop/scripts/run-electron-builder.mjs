@@ -84,7 +84,9 @@ function logSigningPlan(signingPlan) {
     }
   } else if (signingPlan.mode === "keychain") {
     console.log(
-      "macOS code signing via keychain auto-discovery; artifacts stay unsigned if no identity is installed. Notarization skipped.",
+      signingPlan.notarizationEnabled
+        ? "macOS code signing via keychain auto-discovery with notarization."
+        : "macOS code signing via keychain auto-discovery; artifacts stay unsigned if no identity is installed. Notarization skipped.",
     );
   } else {
     logWarning(
@@ -109,8 +111,11 @@ function autoDiscoveryExplicitlyDisabled(env) {
  *
  * - "environment": all CI signing/notarization secrets are set — sign with the
  *   provided certificate and notarize (the published-release path).
- * - "keychain": no secrets — sign with an auto-discovered keychain identity and
- *   skip notarization. Locally built apps never get the quarantine xattr, so
+ * - "keychain": no certificate secrets — sign with an auto-discovered keychain
+ *   identity. Notarization runs when the three Apple credentials are set (a
+ *   Developer ID identity installed in the login keychain plus APPLE_ID,
+ *   APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID) and is skipped otherwise.
+ *   Locally built apps never get the quarantine xattr, so
  *   notarization is unnecessary, but a valid signature is not optional: an
  *   unsigned bundle is provenance-tracked by macOS, which forces syspolicyd to
  *   evaluate every exec in the app's process tree and can stall execs
@@ -130,6 +135,24 @@ function createSigningPlan(env) {
   );
   const hasAnySigningKeys = presentSigningKeys.length > 0;
   const hasAllSigningKeys = missingSigningKeys.length === 0;
+  const hasNoCodeSigningKeys =
+    presentEnvironmentKeys(codeSigningKeys, env).length === 0;
+  const hasAllNotarizationKeys =
+    missingEnvironmentKeys(notarizationKeys, env).length === 0;
+
+  if (
+    hasNoCodeSigningKeys &&
+    hasAllNotarizationKeys &&
+    !autoDiscoveryExplicitlyDisabled(env)
+  ) {
+    return {
+      mode: "keychain",
+      identityName: envValueIsSet(env.CSC_NAME)
+        ? env.CSC_NAME.trim()
+        : undefined,
+      notarizationEnabled: true,
+    };
+  }
 
   if (hasAnySigningKeys && !hasAllSigningKeys) {
     throw new Error(

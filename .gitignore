@@ -55,6 +55,7 @@ yarn-error.log*
 # cloudflare wrangler local state
 .wrangler/
 !.env.example
+!.env.release.example
 
 # vercel
 .vercel

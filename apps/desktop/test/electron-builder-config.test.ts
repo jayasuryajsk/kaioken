@@ -553,7 +553,9 @@ describe("electron-builder signing config", () => {
 
     expect(config.appId).toBe("dev.kaioken.desktop.nightly");
     expect(config.productName).toBe("Kaioken Nightly");
-    expect(config.artifactName).toBe("kaioken-nightly-${version}-${arch}.${ext}");
+    expect(config.artifactName).toBe(
+      "kaioken-nightly-${version}-${arch}.${ext}",
+    );
     expect(config.linux.icon).toBe("assets/icon-nightly.png");
     expect(config.linux.executableName).toBe("kaioken-nightly");
     expect(config.mac.icon).toBe("assets/icon-nightly.icns");
@@ -615,6 +617,17 @@ describe("electron-builder signing config", () => {
     expect(partialAppleCredentials.stderr).toContain(
       "Missing: APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID.",
     );
+  });
+
+  it("notarizes a keychain-signed build when only the Apple credentials are set", async () => {
+    const { config } = await readResolvedConfig({
+      APPLE_APP_SPECIFIC_PASSWORD: "app-password",
+      APPLE_ID: "sawyer@example.com",
+      APPLE_TEAM_ID: "TEAMID1234",
+    });
+
+    expect(config.mac.identity).toBeUndefined();
+    expect(config.mac.notarize).toBe(true);
   });
 
   it("enables app signing and notarization when signing and Apple credentials are complete", async () => {
