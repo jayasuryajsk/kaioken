@@ -74,30 +74,11 @@ describe("ProjectListSearchThreadsAction", () => {
 });
 
 describe("ProjectListNewThreadAction", () => {
-  it("offers a quick chat beside New thread that starts without a project", () => {
+  it("renders a single New thread button without a quick chat companion", () => {
     const onNewChat = vi.fn();
-    const onQuickChat = vi.fn();
-    render(
-      <ProjectListNewThreadAction
-        onNewChat={onNewChat}
-        onQuickChat={onQuickChat}
-      />,
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "Quick chat without a project (⇧⌘J)",
-      }),
-    );
-    expect(onQuickChat).toHaveBeenCalledTimes(1);
-    expect(onNewChat).not.toHaveBeenCalled();
-
+    render(<ProjectListNewThreadAction onNewChat={onNewChat} />);
+    expect(screen.queryByRole("button", { name: /Quick chat/ })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "New thread" }));
     expect(onNewChat).toHaveBeenCalledTimes(1);
-  });
-
-  it("renders only the New thread button when quick chat is unavailable", () => {
-    render(<ProjectListNewThreadAction onNewChat={vi.fn()} />);
-    expect(screen.queryByRole("button", { name: /Quick chat/ })).toBeNull();
   });
 });

@@ -272,7 +272,6 @@ export function AppSidebar({
         }
         newThreadSplit={newThreadSplit}
         onNewChat={handleNewChat}
-        onQuickChat={handleQuickChat}
         onSearchThreads={closeOnMobile}
       />
       <div
