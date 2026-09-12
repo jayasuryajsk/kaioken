@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { Miniflare } from "miniflare";
 import { build } from "esbuild";
 import { join } from "node:path";
@@ -23,7 +23,10 @@ function createRelay(bindings: Record<string, string>): Miniflare {
     scriptPath: "/worker.mjs",
     compatibilityDate: "2026-06-11",
     compatibilityFlags: ["nodejs_compat"],
-    durableObjects: { TUNNEL_DO: "TunnelDO" },
+    durableObjects: {
+      TUNNEL_DO: "TunnelDO",
+      PAIRING_LIMITER: "PairingLimiter",
+    },
     kvNamespaces: ["STATE"],
     bindings: { PAIR_CODE, SESSION_SECRET, ...bindings },
   });
@@ -49,8 +52,29 @@ afterAll(async () => {
   await Promise.all([mf?.dispose(), domainMf?.dispose()]);
 });
 
+let testAddress = 0;
+
+beforeEach(() => {
+  testAddress += 1;
+});
+
+function withTestAddress(init?: DispatchInit): DispatchInit {
+  const headers: Record<string, string> = {
+    "cf-connecting-ip": `10.1.${testAddress}.1`,
+  };
+  const given = init?.headers;
+  if (given !== undefined) {
+    for (const [name, value] of Object.entries(
+      given as Record<string, string>,
+    )) {
+      headers[name] = value;
+    }
+  }
+  return { ...init, headers };
+}
+
 function request(path: string, init?: DispatchInit): Promise<DispatchResponse> {
-  return mf.dispatchFetch(`${ORIGIN}${path}`, init);
+  return mf.dispatchFetch(`${ORIGIN}${path}`, withTestAddress(init));
 }
 
 async function pairServer(): Promise<string> {
@@ -241,9 +265,12 @@ describe("Kaioken relay", () => {
 
 describe("Kaioken relay in domain mode", () => {
   const apex = (path: string, init?: DispatchInit) =>
-    domainMf.dispatchFetch(`https://kaioken.app${path}`, init);
+    domainMf.dispatchFetch(`https://kaioken.app${path}`, withTestAddress(init));
   const studio = (path: string, init?: DispatchInit) =>
-    domainMf.dispatchFetch(`https://studio.kaioken.app${path}`, init);
+    domainMf.dispatchFetch(
+      `https://studio.kaioken.app${path}`,
+      withTestAddress(init),
+    );
 
   it("serves pairing on the apex and the app on the handle host", async () => {
     const wrongHost = await domainMf.dispatchFetch(
@@ -324,6 +351,45 @@ describe("Kaioken relay in domain mode", () => {
       },
     );
     expect(share.status).toBe(503);
+  });
+});
+
+describe("pairing rate limit", () => {
+  it("blocks the seventh bad attempt from one address within a minute", async () => {
+    const limited = createRelay({});
+    await limited.ready;
+    try {
+      const statuses: number[] = [];
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const response = await limited.dispatchFetch(
+          `${ORIGIN}/api/connect/redeem-machine`,
+          {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "cf-connecting-ip": "203.0.113.9",
+            },
+            body: JSON.stringify({ code: "WRONG-CODE" }),
+          },
+        );
+        statuses.push(response.status);
+      }
+      expect(statuses).toEqual([400, 400, 400, 400, 400, 400, 429, 429]);
+      const otherAddress = await limited.dispatchFetch(
+        `${ORIGIN}/api/connect/redeem-machine`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "cf-connecting-ip": "203.0.113.10",
+          },
+          body: JSON.stringify({ code: "WRONG-CODE" }),
+        },
+      );
+      expect(otherAddress.status).toBe(400);
+    } finally {
+      await limited.dispose();
+    }
   });
 });
 

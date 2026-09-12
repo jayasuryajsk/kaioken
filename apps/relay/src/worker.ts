@@ -1,4 +1,5 @@
 import { TUNNEL_OFFLINE_HEADER, TunnelDO, type Env } from "./tunnel-do.js";
+import { PairingLimiter } from "./pairing-limiter.js";
 import type { TunnelStatus } from "./tunnel-do.js";
 import {
   API_SESSION_TTL_MS,
@@ -30,7 +31,7 @@ import {
   TUNNEL_TARGET_HEADER,
 } from "./protocol-headers.js";
 
-export { TunnelDO };
+export { TunnelDO, PairingLimiter };
 
 const ROUTING_KEY = "server";
 const SERVER_OFFLINE_AFTER_MS = 90_000;
@@ -445,15 +446,16 @@ async function pairingAttemptsExhausted(
   request: Request,
   env: Env,
 ): Promise<boolean> {
-  if (env.PAIRING_LIMITER === undefined || request.method !== "POST") {
-    return false;
-  }
+  if (request.method !== "POST") return false;
   const key =
     request.headers.get("cf-connecting-ip") ??
     request.headers.get("x-forwarded-for") ??
     "unknown";
-  const { success } = await env.PAIRING_LIMITER.limit({ key });
-  return !success;
+  const stub = env.PAIRING_LIMITER.get(env.PAIRING_LIMITER.idFromName(key));
+  const { allowed } = (await (
+    await stub.fetch("https://limiter/attempt", { method: "POST" })
+  ).json()) as { allowed: boolean };
+  return !allowed;
 }
 
 function tooManyAttempts(request: Request): Response {

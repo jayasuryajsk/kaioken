@@ -17,7 +17,7 @@ export interface Env {
   SESSION_SECRET: string;
   BASE_DOMAIN?: string;
   HANDLE?: string;
-  PAIRING_LIMITER?: RateLimit;
+  PAIRING_LIMITER: DurableObjectNamespace;
 }
 
 export interface TunnelStatus {
