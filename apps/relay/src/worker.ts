@@ -435,6 +435,37 @@ function apexPage(topology: RelayTopology): Response {
   );
 }
 
+const PAIRING_PATHS = new Set([
+  "/api/connect/redeem",
+  "/api/connect/redeem-machine",
+  "/__login",
+]);
+
+async function pairingAttemptsExhausted(
+  request: Request,
+  env: Env,
+): Promise<boolean> {
+  if (env.PAIRING_LIMITER === undefined || request.method !== "POST") {
+    return false;
+  }
+  const key =
+    request.headers.get("cf-connecting-ip") ??
+    request.headers.get("x-forwarded-for") ??
+    "unknown";
+  const { success } = await env.PAIRING_LIMITER.limit({ key });
+  return !success;
+}
+
+function tooManyAttempts(request: Request): Response {
+  return wantsHtml(request)
+    ? gatePage(
+        `<h1>Too many attempts</h1>
+     <p>Wait a minute, then try the pairing code again.</p>`,
+        429,
+      )
+    : json({ error: "too_many_attempts" }, 429);
+}
+
 async function handleAccountApi(
   request: Request,
   topology: RelayTopology,
@@ -473,6 +504,13 @@ export default {
       return text("Kaioken relay: unknown host\n", 404);
     }
     const store = new RelayStore(env.STATE);
+
+    if (
+      PAIRING_PATHS.has(url.pathname) &&
+      (await pairingAttemptsExhausted(request, env))
+    ) {
+      return tooManyAttempts(request);
+    }
 
     if (url.pathname.startsWith("/api/connect/")) {
       if (!acceptsAccountApi(topology)) {

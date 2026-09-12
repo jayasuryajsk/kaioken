@@ -25,9 +25,14 @@
         "NSAppTransportSecurity": {
           "NSAllowsLocalNetworking": true
         },
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       },
-      "associatedDomains": ["applinks:kaioken.app", "applinks:*.kaioken.app"]
+      "associatedDomains": [
+        "applinks:kaioken.app",
+        "applinks:*.kaioken.app"
+      ]
     },
     "android": {
       "package": "app.kaioken.mobile",
@@ -59,7 +64,10 @@
               "pathPrefix": "/settings/"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -99,7 +107,8 @@
             "usesCleartextTraffic": true
           }
         }
-      ]
+      ],
+      "./plugins/with-ios-scene-lifecycle.js"
     ],
     "experiments": {
       "typedRoutes": true

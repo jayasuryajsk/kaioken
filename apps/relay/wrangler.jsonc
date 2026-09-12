@@ -28,4 +28,11 @@
   "kv_namespaces": [
     { "binding": "STATE", "id": "4189fe88541a44c7828f06ee4b9b9934" },
   ],
+  "ratelimits": [
+    {
+      "name": "PAIRING_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 6, "period": 60 },
+    },
+  ],
 }

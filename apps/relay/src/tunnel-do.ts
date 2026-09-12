@@ -17,6 +17,7 @@ export interface Env {
   SESSION_SECRET: string;
   BASE_DOMAIN?: string;
   HANDLE?: string;
+  PAIRING_LIMITER?: RateLimit;
 }
 
 export interface TunnelStatus {

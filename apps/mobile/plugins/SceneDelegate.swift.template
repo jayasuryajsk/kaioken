@@ -1,0 +1,40 @@
+import UIKit
+import React
+
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+  var window: UIWindow?
+
+  func scene(
+    _ scene: UIScene,
+    willConnectTo session: UISceneSession,
+    options connectionOptions: UIScene.ConnectionOptions
+  ) {
+    guard let windowScene = scene as? UIWindowScene else { return }
+    guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+    let window = UIWindow(windowScene: windowScene)
+    self.window = window
+    appDelegate.window = window
+    appDelegate.startReactNative(in: window, launchOptions: appDelegate.launchOptions)
+    window.makeKeyAndVisible()
+    for context in connectionOptions.urlContexts {
+      RCTLinkingManager.application(UIApplication.shared, open: context.url, options: [:])
+    }
+    for activity in connectionOptions.userActivities {
+      RCTLinkingManager.application(UIApplication.shared, continue: activity) { _ in }
+    }
+  }
+
+  func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+    for context in URLContexts {
+      _ = UIApplication.shared.delegate?.application?(UIApplication.shared, open: context.url, options: [:])
+    }
+  }
+
+  func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+    _ = UIApplication.shared.delegate?.application?(
+      UIApplication.shared,
+      continue: userActivity,
+      restorationHandler: { _ in }
+    )
+  }
+}
