@@ -55,7 +55,11 @@ export function resolveTopology(url: URL, env: TopologyEnv): RelayTopology {
 }
 
 export function acceptsAccountApi(topology: RelayTopology): boolean {
-  return topology.role === "apex" || topology.role === "single";
+  return (
+    topology.role === "apex" ||
+    topology.role === "server" ||
+    topology.role === "single"
+  );
 }
 
 export function acceptsTunnel(topology: RelayTopology): boolean {

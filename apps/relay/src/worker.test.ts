@@ -265,11 +265,11 @@ describe("Kaioken relay in domain mode", () => {
     expect(handle).toBe("studio");
     expect(tunnelUrl).toBe("https://studio.kaioken.app/__tunnel");
 
-    const onStudio = await studio("/api/connect/machine-code", {
+    const onStudio = await studio("/api/connect/desktop-session", {
       method: "POST",
       headers: { "x-bb-connect-machine": credential },
     });
-    expect(onStudio.status).toBe(404);
+    expect(onStudio.status).toBe(200);
     const issued = await apex("/api/connect/machine-code", {
       method: "POST",
       headers: { "x-bb-connect-machine": credential },
