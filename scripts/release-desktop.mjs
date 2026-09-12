@@ -174,7 +174,7 @@ async function assertReadyToRelease() {
 }
 
 async function collectAssets(version) {
-  const names = await readdir(releaseDir);
+  const names = await readdir(releaseDir).catch(() => []);
   const wanted = names.filter(
     (name) =>
       (name.includes(version) &&
@@ -346,7 +346,18 @@ async function main() {
       "desktop:version-feed",
     ]);
   }
-  const assets = await collectAssets(version);
+  let assets;
+  try {
+    assets = await collectAssets(version);
+  } catch (error) {
+    await run("git", [
+      "checkout",
+      "--",
+      "apps/desktop/package.json",
+      "packages/kaioken-app/package.json",
+    ]);
+    throw error;
+  }
   console.log(`Assets:\n  ${assets.join("\n  ")}`);
 
   if (options.dryRun) {
