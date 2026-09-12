@@ -12,7 +12,7 @@
 #   cd apps/mobile && maestro test e2e/manual/demo-server.yaml
 #
 # To rehearse against the deployed worker, set SERVER_URL to its https URL.
-appId: app.getbb.mobile
+appId: app.kaioken.mobile
 env:
   METRO_URL: "http://127.0.0.1:8082"
   SERVER_URL: "http://127.0.0.1:8799"

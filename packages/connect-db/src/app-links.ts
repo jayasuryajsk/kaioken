@@ -1,5 +1,5 @@
-export const KAIOKEN_MOBILE_IOS_APP_ID = "9QCU24SXK5.app.getbb.mobile";
-export const KAIOKEN_MOBILE_ANDROID_PACKAGE = "app.getbb.mobile";
+export const KAIOKEN_MOBILE_IOS_APP_ID = "9M7CM7S55D.app.kaioken.mobile";
+export const KAIOKEN_MOBILE_ANDROID_PACKAGE = "app.kaioken.mobile";
 
 const KAIOKEN_MOBILE_APP_LINK_PATHS: readonly string[] = [
   "/threads/*",

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Kaioken",
     "slug": "kaioken-app",
-    "owner": "kaioken-team",
+    "owner": "jayasuryajsk",
     "version": "0.39.0",
     "scheme": "kaioken",
     "orientation": "default",
@@ -14,7 +14,7 @@
         "light": "./assets/icon.png",
         "dark": "./assets/icon-dark.png"
       },
-      "bundleIdentifier": "app.getbb.mobile",
+      "bundleIdentifier": "app.kaioken.mobile",
       "supportsTablet": true,
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "kaioken connects to a kaioken server on your local network or tailnet.",
@@ -27,10 +27,10 @@
         },
         "UIBackgroundModes": ["remote-notification"]
       },
-      "associatedDomains": ["applinks:getbb.app", "applinks:*.getbb.app"]
+      "associatedDomains": ["applinks:kaioken.app", "applinks:*.kaioken.app"]
     },
     "android": {
-      "package": "app.getbb.mobile",
+      "package": "app.kaioken.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -45,17 +45,17 @@
           "data": [
             {
               "scheme": "https",
-              "host": "*.getbb.app",
+              "host": "*.kaioken.app",
               "pathPrefix": "/threads/"
             },
             {
               "scheme": "https",
-              "host": "*.getbb.app",
+              "host": "*.kaioken.app",
               "pathPrefix": "/projects/"
             },
             {
               "scheme": "https",
-              "host": "*.getbb.app",
+              "host": "*.kaioken.app",
               "pathPrefix": "/settings/"
             }
           ],

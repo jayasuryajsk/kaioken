@@ -53,7 +53,7 @@ export function describeEnrollmentError(error: unknown): EnrollmentFailure {
           code: "machine_limit",
           title: "Device limit reached",
           message:
-            "This account already has the maximum number of paired devices (20). Revoke one you no longer use in the getbb.app dashboard under Machines, then pair again.",
+            "This account already has the maximum number of paired devices (20). Revoke one you no longer use in Kaioken Settings → Remote access, then pair again.",
         };
       case "network":
         return {

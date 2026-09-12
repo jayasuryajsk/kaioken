@@ -71,8 +71,8 @@ describe("resolveEnrollmentTarget", () => {
     ).toEqual({
       ok: true,
       code: "ABCD-EFGH",
-      apexUrl: "https://getbb.app",
-      serverUrl: "https://bee.getbb.app",
+      apexUrl: "https://kaioken.app",
+      serverUrl: "https://bee.kaioken.app",
     });
     expect(
       resolveEnrollmentTarget({
@@ -103,7 +103,7 @@ describe("resolveEnrollmentTarget", () => {
     ).toEqual({
       ok: true,
       code: "ABCD-EFGH",
-      apexUrl: "https://getbb.app",
+      apexUrl: "https://kaioken.app",
       serverUrl: null,
     });
   });

@@ -183,7 +183,7 @@ export function ConnectEnrollScreen() {
           </Stack.Toolbar>
         ) : null}
         <GroupedScreen testID="connect-enrolled-screen">
-          <SettingsSection footnote="This phone is now a device on your getbb.app account. You can revoke it any time in the dashboard under Machines.">
+          <SettingsSection footnote="This phone is now paired with your Kaioken. You can revoke it any time in Kaioken Settings → Remote access.">
             <View
               className="flex-row items-center gap-3 px-4 py-3"
               testID="connect-enrolled-card"
@@ -228,7 +228,7 @@ export function ConnectEnrollScreen() {
           title: reauth
             ? `Sign in again to ${reauth.label}`
             : firstRun
-              ? "Connect to getbb.app"
+              ? "Connect to kaioken.app"
               : "Pair with kaioken connect",
         }}
       />
@@ -250,7 +250,7 @@ export function ConnectEnrollScreen() {
             footnote={
               reauth
                 ? "This phone's access was revoked or has expired. Generate a new pairing code on the server and enter it here; your saved server keeps its place."
-                : "Pair this phone with your kaioken server through getbb.app. Generate a code in kaioken Settings → Remote access → Add mobile device, or run `kaioken connect machine-code`."
+                : "Pair this phone with your Kaioken through kaioken.app. Generate a code in kaioken Settings → Remote access → Add mobile device, or run `kaioken connect machine-code`."
             }
           >
             <GroupedRow
@@ -317,7 +317,7 @@ export function ConnectEnrollScreen() {
               <Input
                 value={server}
                 onChangeText={setServer}
-                placeholder="bee or https://bee.getbb.app"
+                placeholder="studio or https://studio.kaioken.app"
                 keyboardType="url"
                 autoCapitalize="none"
                 autoCorrect={false}

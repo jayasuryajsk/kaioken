@@ -4,7 +4,7 @@ import {
   serverUrlForHandle,
 } from "@kaioken/connect-client";
 
-export const DEFAULT_CONNECT_APEX_URL = "https://getbb.app";
+export const DEFAULT_CONNECT_APEX_URL = "https://kaioken.app";
 
 export interface ConnectPairingInput {
   code: string;

@@ -96,7 +96,7 @@ export function AddServerScreen() {
         options={{ title: firstRun ? "Connect to a kaioken server" : "Add server" }}
       />
       <GroupedScreen testID="add-server-screen">
-        <SettingsSection footnote="Pair through getbb.app from anywhere: scan or type a pairing code from kaioken Settings → Remote access.">
+        <SettingsSection footnote="Pair through kaioken.app from anywhere: scan or type a pairing code from kaioken Settings → Remote access.">
           <GroupedRow
             title="Connect with kaioken connect"
             badge={{ icon: "Globe", symbol: "globe", color: colors.blue }}

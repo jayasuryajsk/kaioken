@@ -27,7 +27,7 @@
   "submit": {
     "production": {
       "ios": {
-        "appleTeamId": "9QCU24SXK5",
+        "appleTeamId": "9M7CM7S55D",
         "ascAppId": "6803559210",
         "ascApiKeyPath": "./asc-api-key.p8",
         "ascApiKeyId": "XPRY95WQUJ",

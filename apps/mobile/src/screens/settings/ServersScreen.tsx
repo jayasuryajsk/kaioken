@@ -55,7 +55,7 @@ export function ServersScreen() {
       title: `Remove ${profile.label}?`,
       message:
         profile.mode === "connect"
-          ? "The app forgets this server and its device credential. The phone stays listed under Machines in the getbb.app dashboard until you revoke it there."
+          ? "The app forgets this server and its device credential. The phone stays listed under devices in Kaioken Settings → Remote access until you revoke it there."
           : "The app forgets this server. Nothing on the server changes.",
       actionLabel: "Remove",
       onConfirm: () => remove(profile),
@@ -122,7 +122,7 @@ export function ServersScreen() {
       )}
       <GroupedScreen testID="servers-screen">
         {profiles.length === 0 ? (
-          <SettingsSection footnote="No servers saved yet. Pair through getbb.app or enter a direct URL.">
+          <SettingsSection footnote="No servers saved yet. Pair through kaioken.app or enter a direct URL.">
             <GroupedRow
               title="Add server"
               leading="Plus"

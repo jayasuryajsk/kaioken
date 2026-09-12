@@ -1,4 +1,4 @@
-appId: app.getbb.mobile
+appId: app.kaioken.mobile
 ---
 - swipe:
     start: 30%, 45%

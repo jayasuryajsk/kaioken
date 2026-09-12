@@ -5,7 +5,7 @@
 # "bundled" note, logs viewer), the default-enabled provider-retry settings,
 # and Browse (BB Official group). Not part of `pnpm e2e:ios` (e2e/flows)
 # because it needs a running dev server.
-appId: app.getbb.mobile
+appId: app.kaioken.mobile
 env:
   METRO_URL: "http://127.0.0.1:8082"
   SERVER_URL: "http://127.0.0.1:20304"
