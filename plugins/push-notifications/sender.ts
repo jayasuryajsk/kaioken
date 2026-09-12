@@ -12,6 +12,7 @@ import {
   type PushSubscription,
 } from "./contract.js";
 import type { PushSubscriptionStore } from "./subscriptions.js";
+import type { ApnsTransport } from "./apns.js";
 
 type ThreadResponse = PluginThreadEventPayloads["thread.idle"]["thread"];
 type PendingInteraction =
@@ -73,11 +74,15 @@ export const lastSendOutcomeSchema = z.discriminatedUnion("status", [
 
 export type LastSendOutcome = z.infer<typeof lastSendOutcomeSchema>;
 
+export type PushNotificationCategory = "approval" | "question";
+
 interface PushNotificationData {
   kind: PushNotificationKind;
   projectId: string;
   serverUrl?: string;
   threadId: string;
+  interactionId?: string;
+  category?: PushNotificationCategory;
 }
 
 export interface ExpoPushMessage {
@@ -132,6 +137,7 @@ export interface PushSender {
 export interface CreatePushSenderArgs {
   bb: KaiokenPluginApi;
   subscriptions: PushSubscriptionStore;
+  apns: ApnsTransport | null;
   getExpoPushUrl(): Promise<string>;
   getDeliverySettings(): Promise<{
     mobileEnabled: boolean;
@@ -269,7 +275,11 @@ export function createPushSender(args: CreatePushSenderArgs): PushSender {
   async function resolvePush(
     thread: ThreadResponse,
     entry: PendingThreadPush,
-  ): Promise<{ kind: PushNotificationKind; body: string } | null> {
+  ): Promise<{
+    kind: PushNotificationKind;
+    body: string;
+    interaction: PendingInteraction | null;
+  } | null> {
     const kinds = new Set(entry.kinds);
     let interaction: PendingInteraction | null = null;
     if (kinds.has("pending-interaction")) {
@@ -295,6 +305,7 @@ export function createPushSender(args: CreatePushSenderArgs): PushSender {
         body: interaction
           ? describePendingInteraction(interaction)
           : "Waiting for your input",
+        interaction,
       };
     }
     return {
@@ -304,7 +315,17 @@ export function createPushSender(args: CreatePushSenderArgs): PushSender {
         (kind === "thread-error"
           ? "The thread hit an error"
           : "Finished and waiting for you"),
+      interaction: null,
     };
+  }
+
+  function categoryFor(
+    interaction: PendingInteraction | null,
+  ): PushNotificationCategory | null {
+    if (interaction === null) return null;
+    if (interaction.payload.kind === "approval") return "approval";
+    if (interaction.payload.kind === "user_question") return "question";
+    return null;
   }
 
   async function flushThread(
@@ -349,29 +370,64 @@ export function createPushSender(args: CreatePushSenderArgs): PushSender {
     const rows = await subscriptions.list();
     if (rows.length === 0) return;
     const serverUrl = bb.server.experimental_appUrl;
-    const deliveries: Delivery[] = rows.map((subscription) => ({
-      subscription,
-      message: {
-        to: subscription.expoPushToken,
-        title,
-        body,
-        data: {
-          kind: resolved.kind,
-          projectId: thread.projectId,
-          ...(serverUrl === null ? {} : { serverUrl }),
-          threadId: thread.id,
+    const category = categoryFor(resolved.interaction);
+    const data: PushNotificationData = {
+      kind: resolved.kind,
+      projectId: thread.projectId,
+      ...(serverUrl === null ? {} : { serverUrl }),
+      threadId: thread.id,
+      ...(resolved.interaction === null
+        ? {}
+        : { interactionId: resolved.interaction.id }),
+      ...(category === null ? {} : { category }),
+    };
+    const deliveries: Delivery[] = rows
+      .filter((subscription) => subscription.transport === "expo")
+      .map((subscription) => ({
+        subscription,
+        message: {
+          to: subscription.expoPushToken,
+          title,
+          body,
+          data,
+          sound: "default",
+          channelId: "default",
+          priority: "high",
         },
-        sound: "default",
-        channelId: "default",
-        priority: "high",
-      },
-    }));
+      }));
     let sentCount = 0;
     let failure: string | null = null;
     for (const batch of chunks(deliveries, EXPO_PUSH_BATCH_SIZE)) {
       const result = await sendBatch(batch);
       sentCount += result.sentCount;
       failure ??= result.failure;
+    }
+    for (const subscription of rows) {
+      if (subscription.transport !== "apns") continue;
+      if (args.apns === null) {
+        failure ??= "Apple push is not configured";
+        continue;
+      }
+      const outcome = await args.apns.send(subscription.expoPushToken, {
+        title,
+        body,
+        category,
+        threadId: thread.id,
+        data: { ...data },
+      });
+      if (outcome.status === "sent") {
+        sentCount += 1;
+      } else if (outcome.status === "unregistered") {
+        await subscriptions.remove(subscription.id);
+        bb.log.info(
+          `Removed push subscription row ${subscription.id}: device is not registered`,
+        );
+      } else {
+        failure ??= outcome.reason;
+        bb.log.warn(
+          `Apple push failed for subscription row ${subscription.id}: ${outcome.reason}`,
+        );
+      }
     }
     await setLastOutcome(
       failure === null

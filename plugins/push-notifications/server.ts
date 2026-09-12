@@ -17,11 +17,24 @@ import {
   type LastSendOutcome,
 } from "./sender.js";
 import { createPushSubscriptionStore } from "./subscriptions.js";
+import {
+  createApnsTransport,
+  type ApnsCredentials,
+  type ApnsRequest,
+} from "./apns.js";
+
+const DEFAULT_APNS_TOPIC = "app.kaioken.mobile";
+
+function decodePrivateKey(encoded: string): string {
+  if (encoded.includes("-----BEGIN")) return encoded;
+  return Buffer.from(encoded, "base64").toString("utf8");
+}
 
 interface PushNotificationsPluginOptions {
   coalesceMs?: number;
   createId?: () => string;
   fetch?: CreatePushSenderArgs["fetch"];
+  apnsRequest?: ApnsRequest;
   now?: () => number;
 }
 
@@ -32,6 +45,7 @@ interface StatusView {
   webEnabled: boolean;
   desktopEnabled: boolean;
   relayUrl: string;
+  applePush: string;
   lastSendOutcome: LastSendOutcome;
 }
 
@@ -113,6 +127,7 @@ function formatStatus(status: StatusView): string {
     `Desktop: ${status.desktopEnabled}`,
     `Subscriptions: ${status.subscriptionCount}`,
     `Relay URL: ${status.relayUrl}`,
+    `Apple push: ${status.applePush}`,
     `Last send: ${formatLastOutcome(status.lastSendOutcome)}`,
   ].join("\n");
 }
@@ -159,7 +174,76 @@ export function createPushNotificationsPlugin(
         default: DEFAULT_EXPO_PUSH_URL,
         experimental_schema: z.string().url(),
       },
+      apnsTeamId: {
+        type: "string",
+        label: "Apple team id",
+        description:
+          "Apple Developer team that owns the APNs key. Leave empty to send only through Expo.",
+        default: "",
+      },
+      apnsKeyId: {
+        type: "string",
+        label: "APNs key id",
+        description: "The 10-character id of the APNs auth key (.p8).",
+        default: "",
+      },
+      apnsTopic: {
+        type: "string",
+        label: "APNs topic",
+        description: "The iOS bundle identifier the key pushes to.",
+        default: DEFAULT_APNS_TOPIC,
+      },
+      apnsEnvironment: {
+        type: "select",
+        label: "APNs environment",
+        description:
+          "Sandbox for Xcode-installed builds, production for TestFlight and App Store builds.",
+        options: ["sandbox", "production"],
+        default: "sandbox",
+      },
+      apnsPrivateKey: {
+        type: "string",
+        label: "APNs private key",
+        description: "Contents of the .p8 auth key, base64-encoded.",
+        secret: true,
+      },
     });
+    async function apnsCredentials(): Promise<ApnsCredentials | null> {
+      const config = await settings.get();
+      const teamId = config.apnsTeamId.trim();
+      const keyId = config.apnsKeyId.trim();
+      const encodedKey = (config.apnsPrivateKey ?? "").trim();
+      if (
+        teamId.length === 0 ||
+        keyId.length === 0 ||
+        encodedKey.length === 0
+      ) {
+        return null;
+      }
+      return {
+        teamId,
+        keyId,
+        topic: config.apnsTopic.trim() || DEFAULT_APNS_TOPIC,
+        environment:
+          config.apnsEnvironment === "production" ? "production" : "sandbox",
+        privateKeyPem: decodePrivateKey(encodedKey),
+      };
+    }
+    const apns = createApnsTransport(
+      async () => {
+        const credentials = await apnsCredentials();
+        if (credentials === null) {
+          throw new Error("Apple push is not configured");
+        }
+        return credentials;
+      },
+      {
+        ...(options.apnsRequest === undefined
+          ? {}
+          : { request: options.apnsRequest }),
+        ...(options.now === undefined ? {} : { now: options.now }),
+      },
+    );
     const subscriptions = createPushSubscriptionStore(bb, {
       ...(options.now === undefined ? {} : { now: options.now }),
       ...(options.createId === undefined ? {} : { createId: options.createId }),
@@ -167,6 +251,7 @@ export function createPushNotificationsPlugin(
     const sender = createPushSender({
       bb,
       subscriptions,
+      apns,
       getDeliverySettings: () => settings.get(),
       getExpoPushUrl: async () => (await settings.get()).expoPushUrl,
       ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
@@ -179,6 +264,7 @@ export function createPushNotificationsPlugin(
     async function status(): Promise<StatusView> {
       const [{ expoPushUrl, mobileEnabled, webEnabled, desktopEnabled }, rows] =
         await Promise.all([settings.get(), subscriptions.list()]);
+      const credentials = await apnsCredentials();
       return {
         enabled: true,
         subscriptionCount: rows.length,
@@ -186,6 +272,10 @@ export function createPushNotificationsPlugin(
         webEnabled,
         desktopEnabled,
         relayUrl: expoPushUrl,
+        applePush:
+          credentials === null
+            ? "not configured"
+            : `${credentials.environment} · key ${credentials.keyId} · ${credentials.topic}`,
         lastSendOutcome: sender.getLastOutcome(),
       };
     }
@@ -337,6 +427,7 @@ export function createPushNotificationsPlugin(
           await waitForAbort(signal);
         } finally {
           await sender.stop();
+          await apns.close();
         }
       },
     });

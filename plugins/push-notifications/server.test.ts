@@ -11,6 +11,8 @@ import { describe, expect, it, vi } from "vitest";
 import { listPushSubscriptionsOutputSchema } from "./contract.js";
 import { createPushNotificationsPlugin } from "./server.js";
 import type { ExpoPushMessage, PushSenderFetch } from "./sender.js";
+import type { ApnsRequest } from "./apns.js";
+import { generateKeyPairSync } from "node:crypto";
 
 type ThreadResponse = PluginThreadEventPayloads["thread.idle"]["thread"];
 type PendingInteraction =
@@ -91,6 +93,7 @@ interface SetupOptions {
   expo?: FakeExpo;
   fetch?: PushSenderFetch;
   now?: () => number;
+  apnsRequest?: ApnsRequest;
 }
 
 async function setup(options: SetupOptions = {}) {
@@ -119,6 +122,9 @@ async function setup(options: SetupOptions = {}) {
     coalesceMs: COALESCE_MS,
     createId: () => `subscription-${nextId++}`,
     fetch: options.fetch ?? expo.fetch,
+    ...(options.apnsRequest === undefined
+      ? {}
+      : { apnsRequest: options.apnsRequest }),
     ...(options.now === undefined ? {} : { now: options.now }),
   })(fake.bb);
 
@@ -256,6 +262,7 @@ describe("push subscription RPC and CLI", () => {
         desktopEnabled: true,
         subscriptionCount: 1,
         relayUrl: EXPO_URL,
+        applePush: "not configured",
         lastSendOutcome: { status: "never" },
       });
       await expect(
@@ -434,6 +441,66 @@ describe("push sender", () => {
       host.interactions.set(answered.id, []);
       await waitForCoalesce();
       expect(host.expo.requests).toHaveLength(1);
+    } finally {
+      await host.cleanup();
+    }
+  });
+
+  it("delivers to Apple-registered devices through APNs with the interaction category", async () => {
+    const apnsCalls: Parameters<ApnsRequest>[0][] = [];
+    const host = await setup({
+      apnsRequest: async (args) => {
+        apnsCalls.push(args);
+        return { status: 200, reason: null };
+      },
+    });
+    try {
+      const { privateKey } = generateKeyPairSync("ec", {
+        namedCurve: "prime256v1",
+      });
+      await host.harness.behavior.setSettings({
+        apnsTeamId: "TEAM123456",
+        apnsKeyId: "ABC1234567",
+        apnsPrivateKey: Buffer.from(
+          privateKey.export({ type: "pkcs8", format: "pem" }).toString(),
+        ).toString("base64"),
+      });
+      await host.harness.behavior.callRpc("pushSubscriptions.add", {
+        expoPushToken: "ab".repeat(32),
+        transport: "apns",
+        platform: "ios",
+        deviceLabel: "iPhone",
+      });
+      const thread = host.setThread({ status: "active", title: "Deploy" });
+      const interaction = pendingQuestion(thread.id, "Ship it?");
+      host.interactions.set(thread.id, [interaction]);
+      await host.harness.behavior.emitThreadEvent("interaction.pending", {
+        thread,
+        interaction,
+      });
+      await vi.waitFor(() => expect(apnsCalls).toHaveLength(1));
+      expect(host.expo.requests).toHaveLength(0);
+      const call = apnsCalls[0]!;
+      expect(call.url).toBe(
+        `https://api.sandbox.push.apple.com/3/device/${"ab".repeat(32)}`,
+      );
+      expect(call.headers["apns-topic"]).toBe("app.kaioken.mobile");
+      expect(JSON.parse(call.body)).toEqual(
+        expect.objectContaining({
+          aps: expect.objectContaining({
+            alert: { title: "Deploy", body: "Ship it?" },
+            category: "question",
+          }),
+          kind: "pending-interaction",
+          interactionId: interaction.id,
+          category: "question",
+          threadId: thread.id,
+        }),
+      );
+      const status = await host.harness.behavior.runCli(["status", "--json"]);
+      expect(JSON.parse(status.stdout).applePush).toBe(
+        "sandbox · key ABC1234567 · app.kaioken.mobile",
+      );
     } finally {
       await host.cleanup();
     }

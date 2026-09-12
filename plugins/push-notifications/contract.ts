@@ -6,11 +6,14 @@ export const EXPO_PUSH_TOKEN_MAX_LENGTH = 512;
 export const DEVICE_LABEL_MAX_LENGTH = 120;
 
 export const pushPlatformSchema = z.enum(["ios", "android"]);
+export const pushTransportSchema = z.enum(["expo", "apns"]);
+export type PushTransport = z.infer<typeof pushTransportSchema>;
 
 export const pushSubscriptionSchema = z
   .object({
     id: z.string().min(1),
     expoPushToken: z.string().min(1).max(EXPO_PUSH_TOKEN_MAX_LENGTH),
+    transport: pushTransportSchema.default("expo"),
     platform: pushPlatformSchema,
     deviceLabel: z.string().min(1).max(DEVICE_LABEL_MAX_LENGTH),
     createdAt: z.number().int().nonnegative(),
@@ -26,6 +29,7 @@ export const pushSubscriptionSummarySchema = pushSubscriptionSchema
 export const addPushSubscriptionInputSchema = z
   .object({
     expoPushToken: z.string().trim().min(1).max(EXPO_PUSH_TOKEN_MAX_LENGTH),
+    transport: pushTransportSchema.default("expo"),
     platform: pushPlatformSchema,
     deviceLabel: z.string().trim().min(1).max(DEVICE_LABEL_MAX_LENGTH),
   })
