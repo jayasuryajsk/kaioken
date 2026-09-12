@@ -1,4 +1,5 @@
 import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
+import { z } from "zod";
 import { registerConnectCli } from "./cli.js";
 import { createKvCredentialStore } from "./credential.js";
 import {
@@ -18,6 +19,34 @@ import {
 
 export default async function plugin(bb: KaiokenPluginApi) {
   const settings = bb.settings.define({
+    relayUrl: {
+      type: "string",
+      label: "Relay URL",
+      description:
+        "Origin of the Connect relay to pair with, for example https://kaioken-relay.you.workers.dev. Leave empty to use the bb-hosted relay.",
+      default: "",
+      experimental_schema: z.string().superRefine((value, context) => {
+        const trimmed = value.trim();
+        if (trimmed.length === 0) return;
+        let url: URL | null = null;
+        try {
+          url = new URL(trimmed);
+        } catch {}
+        if (
+          url === null ||
+          (url.protocol !== "https:" && url.protocol !== "http:") ||
+          url.pathname !== "/" ||
+          url.search.length > 0 ||
+          url.hash.length > 0
+        ) {
+          context.addIssue({
+            code: "custom",
+            message:
+              "Use an origin such as https://kaioken-relay.you.workers.dev",
+          });
+        }
+      }),
+    },
     sendRemoteInstructions: {
       type: "boolean",
       label: "Tell agents about remote access",
@@ -54,7 +83,12 @@ export default async function plugin(bb: KaiokenPluginApi) {
   tunnel = new ConnectTunnel({
     store,
     shares,
-    defaultBaseUrl: resolveDefaultConnectBaseUrl(process.env),
+    defaultBaseUrl: () => {
+      const configured = currentSettings.relayUrl.trim();
+      return configured.length > 0
+        ? new URL(configured).origin
+        : resolveDefaultConnectBaseUrl(process.env);
+    },
     getLoopbackBaseUrl,
     log: bb.log,
     onStatusChange: (status) =>

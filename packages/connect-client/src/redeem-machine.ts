@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ConnectCredential } from "./credential.js";
+import { isSingleHostRelay } from "./urls.js";
 
 const redeemMachineResponseSchema = z.object({
   credential: z.string().min(1),
@@ -53,6 +54,9 @@ function handleForApex(serverUrl: string, apexUrl: string): string | null {
   const [label, ...rest] = parsed.hostname.split(".");
   if (label === undefined || label.length === 0) {
     return null;
+  }
+  if (isSingleHostRelay(parsed.hostname) && parsed.hostname === apex.hostname) {
+    return label;
   }
   return rest.join(".") === apex.hostname ? label : null;
 }

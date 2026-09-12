@@ -1,0 +1,31 @@
+// Kaioken relay — a single-user "connect" gate + TunnelDO for one Kaioken server.
+//
+// Deploy:  pnpm --filter @kaioken/relay exec wrangler deploy
+// Secrets: wrangler secret put PAIR_CODE        (the code you type into Settings → Connect)
+//          wrangler secret put SESSION_SECRET   (any long random string; signs visitor cookies)
+// State:   one KV namespace bound as STATE (create with `wrangler kv namespace create STATE`)
+// Hosts:   BASE_DOMAIN serves the pairing API (and a landing page); HANDLE.BASE_DOMAIN is
+//          the Kaioken app. Drop both vars (and set workers_dev: true) for a single-host
+//          relay on a *.workers.dev name.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kaioken-relay",
+  "account_id": "aacfaf92d9e6e1ac5904dfc1769b1283",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-06-11",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "kaioken.app", "custom_domain": true },
+    { "pattern": "studio.kaioken.app", "custom_domain": true },
+  ],
+  "vars": { "BASE_DOMAIN": "kaioken.app", "HANDLE": "studio" },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["TunnelDO"] }],
+  "durable_objects": {
+    "bindings": [{ "name": "TUNNEL_DO", "class_name": "TunnelDO" }],
+  },
+  "kv_namespaces": [
+    { "binding": "STATE", "id": "4189fe88541a44c7828f06ee4b9b9934" },
+  ],
+}

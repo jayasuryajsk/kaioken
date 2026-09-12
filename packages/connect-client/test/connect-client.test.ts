@@ -32,6 +32,18 @@ describe("connect URL helpers", () => {
     expect(connectPublicProtocol("kaioken.localhost:42745")).toBe("http:");
     expect(connectPublicProtocol("getbb.app")).toBe("https:");
   });
+
+  it("treats a workers.dev relay as a single host that is its own apex", () => {
+    expect(deriveConnectBaseUrl("https://kaioken-relay.jsk.workers.dev")).toBe(
+      "https://kaioken-relay.jsk.workers.dev",
+    );
+    expect(
+      serverUrlForHandle(
+        "https://kaioken-relay.jsk.workers.dev",
+        "kaioken-relay",
+      ),
+    ).toBe("https://kaioken-relay.jsk.workers.dev");
+  });
 });
 
 describe("listAccountServers", () => {

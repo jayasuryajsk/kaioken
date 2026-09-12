@@ -4,6 +4,7 @@ export {
 } from "./credential.js";
 export {
   connectPublicProtocol,
+  isSingleHostRelay,
   deriveConnectBaseUrl,
   serverUrlForHandle,
 } from "./urls.js";

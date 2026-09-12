@@ -57,7 +57,7 @@ async function notifyCloudOfDisconnect(
 interface ConnectTunnelOptions {
   store: CredentialStore;
   shares: ShareRegistry;
-  defaultBaseUrl: string;
+  defaultBaseUrl: string | (() => string);
   getLoopbackBaseUrl: () => string;
   log: PluginLogger;
   onStatusChange?: (status: ConnectStatus) => void;
@@ -111,7 +111,7 @@ export class ConnectTunnel {
       args.baseUrl ??
       (args.serverUrl !== undefined
         ? deriveConnectBaseUrl(args.serverUrl)
-        : this.options.defaultBaseUrl);
+        : this.defaultBaseUrl());
     this.pairing = true;
     this.publish();
     try {
@@ -246,8 +246,13 @@ export class ConnectTunnel {
     const base =
       this.credential !== null
         ? deriveConnectBaseUrl(this.credential.serverUrl)
-        : this.options.defaultBaseUrl;
+        : this.defaultBaseUrl();
     return `${base.replace(/\/$/, "")}/dashboard`;
+  }
+
+  private defaultBaseUrl(): string {
+    const configured = this.options.defaultBaseUrl;
+    return typeof configured === "function" ? configured() : configured;
   }
 
   stop(): void {

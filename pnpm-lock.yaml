@@ -1018,6 +1018,37 @@ importers:
         specifier: ^4.1.1
         version: 4.1.1(@opentelemetry/api@1.9.1)(@types/node@22.19.10)(jsdom@29.0.1(@noble/hashes@2.4.0))(msw@2.12.14(@types/node@22.19.10)(@typescript/typescript6@6.0.2))(vite@8.0.12(@types/node@22.19.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.1)(yaml@2.9.0))
 
+  apps/relay:
+    dependencies:
+      '@kaioken/tunnel-contract':
+        specifier: workspace:*
+        version: link:../../packages/tunnel-contract
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20260610.0
+        version: 4.20260702.1
+      '@kaioken/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.10
+      esbuild:
+        specifier: ^0.28.1
+        version: 0.28.1
+      miniflare:
+        specifier: ^4.20260701.0
+        version: 4.20260701.0
+      typescript:
+        specifier: npm:@typescript/typescript6@^6.0.2
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: ^4.1.1
+        version: 4.1.1(@opentelemetry/api@1.9.1)(@types/node@22.19.10)(jsdom@29.0.1(@noble/hashes@2.4.0))(msw@2.12.14(@types/node@22.19.10)(@typescript/typescript6@6.0.2))(vite@8.0.12(@types/node@22.19.10)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.1)(yaml@2.9.0))
+      wrangler:
+        specifier: ^4.100.0
+        version: 4.107.0(@cloudflare/workers-types@4.20260702.1)
+
   apps/server:
     dependencies:
       '@better-auth/api-key':
