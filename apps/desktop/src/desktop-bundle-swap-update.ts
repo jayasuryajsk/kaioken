@@ -195,6 +195,13 @@ export function createBundleSwapUpdater(
     return new URL(fileUrl, args.releaseBaseUrl).toString();
   }
 
+  function versionedReleaseBase(version: string): string {
+    return args.releaseBaseUrl.replace(
+      /desktop-latest\/?$/u,
+      `desktop-v${version}/`,
+    );
+  }
+
   async function fetchBytes(
     url: string,
     signal: AbortSignal,
@@ -235,11 +242,28 @@ export function createBundleSwapUpdater(
       const dir = join(args.downloadDir, version);
       const files: string[] = await readdir(dir).catch(() => []);
       const zip = files.find((name) => name.endsWith(".zip"));
-      if (zip === undefined || !files.includes(`${zip}.blockmap`)) continue;
+      if (zip === undefined) continue;
+      const blockMapPath = join(dir, `${zip}.blockmap`);
       try {
-        const blockMap = parseBlockMap(
-          await readFile(join(dir, `${zip}.blockmap`)),
-        );
+        if (!files.includes(`${zip}.blockmap`)) {
+          const controller = new AbortController();
+          const timeout = setTimeout(
+            () => controller.abort(),
+            DESKTOP_UPDATE_CHECK_TIMEOUT_MS,
+          );
+          try {
+            await writeFile(
+              blockMapPath,
+              await fetchBytes(
+                `${versionedReleaseBase(version)}${zip}.blockmap`,
+                controller.signal,
+              ),
+            );
+          } finally {
+            clearTimeout(timeout);
+          }
+        }
+        const blockMap = parseBlockMap(await readFile(blockMapPath));
         return { archivePath: join(dir, zip), blockMap };
       } catch {}
     }
