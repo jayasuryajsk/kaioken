@@ -24,6 +24,16 @@ export type SidebarChronologicalSort = z.infer<
 
 const collapsibleSidebarSectionIdSchema = z.enum(["pinned", "threads"]);
 
+export const COMPOSE_BACKDROP_PATTERNS = [
+  "off",
+  "drift",
+  "rain",
+  "life",
+  "static",
+] as const;
+export type ComposeBackdropPattern = (typeof COMPOSE_BACKDROP_PATTERNS)[number];
+const composeBackdropSchema = z.enum(COMPOSE_BACKDROP_PATTERNS);
+
 const uiPreferenceStringSchema = z
   .string()
   .min(1)
@@ -49,6 +59,7 @@ export const UI_PREFERENCE_KEYS = [
   "sidebar.visiblePluginPanels",
   "sidebar.navigationProvider",
   "sidebar.threadListProvider",
+  "compose.backdrop",
 ] as const;
 export type UiPreferenceKey = (typeof UI_PREFERENCE_KEYS)[number];
 const uiPreferenceKeySchema = z.enum(UI_PREFERENCE_KEYS);
@@ -153,6 +164,11 @@ export const uiPreferenceDefinitions = {
     uiPreferenceStringSchema,
     "__automatic__",
     "Plugin that renders the sidebar thread list, or __automatic__ / __builtin__.",
+  ),
+  "compose.backdrop": defineUiPreference(
+    composeBackdropSchema,
+    "drift",
+    "Animated character field behind the new-thread composer: off, drift, rain, life, or static.",
   ),
 } as const satisfies Record<UiPreferenceKey, UiPreferenceDefinition>;
 

@@ -639,6 +639,7 @@ client wrote first, so a stale window cannot silently clobber a newer value.
 | `sidebar.visiblePluginPanels`     | Navigation entries shown, or `null` for every entry |
 | `sidebar.navigationProvider`      | Plugin key, `__automatic__`, or `__builtin__`       |
 | `sidebar.threadListProvider`      | Plugin key, `__automatic__`, or `__builtin__`       |
+| `compose.backdrop`                | `off`, `drift`, `rain`, `life`, or `static`         |
 
 Read and write them with:
 

@@ -1,3 +1,4 @@
+import { ComposeBackdrop } from "@/components/compose/ComposeBackdrop";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import { Skeleton } from "@kaioken/shared-ui/skeleton";
@@ -85,6 +86,7 @@ export function RootComposeSecondaryContent({
 
   const mainContent = (
     <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <ComposeBackdrop />
       {rendersWindowDragStrip ? (
         <div
           data-testid="root-compose-main-window-drag-strip"
@@ -153,9 +155,8 @@ export function RootComposeSecondaryContent({
         compactPresentation={getCompactPanelPresentation(
           threadSecondaryPanelProps.activeTab?.kind,
           threadSecondaryPanelProps.fixedTabs[0]?.tab.kind ??
-            threadSecondaryPanelProps.tabs.find(
-              (tab) => tab.isHidden !== true,
-            )?.tab.kind,
+            threadSecondaryPanelProps.tabs.find((tab) => tab.isHidden !== true)
+              ?.tab.kind,
         )}
         renderPanel={({
           presentation,

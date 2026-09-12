@@ -49,6 +49,7 @@ import { UsageLimitsSettingsSection } from "@/components/settings/UsageLimitsSet
 import { ProvidersSettingsSection } from "@/components/settings/ProvidersSettingsSection";
 import { CodeRendererSettings } from "@/components/settings/CodeRendererSettings";
 import { FontSettings } from "@/components/settings/FontSettings";
+import { ComposeBackdropSetting } from "@/components/settings/ComposeBackdropSetting";
 import { SidebarSettings } from "@/components/settings/SidebarSettings";
 import { SidebarThreadListSetting } from "@/components/settings/SidebarThreadListSetting";
 import { SidebarNavigationSetting } from "@/components/settings/SidebarNavigationSetting";
@@ -832,6 +833,7 @@ export function AppearanceSettingsSection({
         />
         <SplitDimmingSetting />
         <FontSettings />
+        <ComposeBackdropSetting />
         <SidebarSettings />
       </div>
     </SettingsSection>
