@@ -114,12 +114,9 @@ export function SidebarUpdatesBadge({ onNavigate }: SidebarUpdatesBadgeProps) {
               onClick={restartToUpdate}
               aria-label={restartLabel}
               data-testid="sidebar-updates-restart"
-              className={cn(
-                CHIP_CLASS,
-                "border-timeline-accent/40 bg-timeline-accent/10 hover:bg-timeline-accent/20",
-              )}
+              className={CHIP_CLASS}
             >
-              <Icon name="RotateCcw" className="size-3" />
+              <Icon name="RotateCcw" className="size-3 text-muted-foreground" />
               Restart to update
             </button>
           </TooltipTrigger>
