@@ -249,6 +249,47 @@ describe("Kaioken relay", () => {
     ).toBe(true);
   });
 
+  it("lets enrolled machines reach the daemon API and serves the installer publicly", async () => {
+    const credential = await pairServer();
+    const installer = await request("/install.sh");
+    expect(installer.status).toBe(503);
+    const anonymous = await request("/internal/hosts/enroll", {
+      method: "POST",
+    });
+    expect(anonymous.status).toBe(403);
+    const bogus = await request("/internal/hosts/enroll", {
+      method: "POST",
+      headers: { "x-bb-connect-machine": "not-a-credential" },
+    });
+    expect(bogus.status).toBe(403);
+    const asServer = await request("/internal/hosts/enroll", {
+      method: "POST",
+      headers: { "x-bb-connect-machine": credential },
+    });
+    expect(asServer.status).toBe(503);
+
+    const issued = await request("/api/connect/machine-code", {
+      method: "POST",
+      headers: { "x-bb-connect-machine": credential },
+    });
+    const { code } = (await issued.json()) as { code: string };
+    const redeemed = await request("/api/connect/redeem-machine", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ code, label: "mini" }),
+    });
+    const machine = (await redeemed.json()) as { credential: string };
+    const asMachine = await request("/api/v1/threads", {
+      headers: { "x-bb-connect-machine": machine.credential },
+    });
+    expect(asMachine.status).toBe(503);
+    const forbidden = await request("/api/v1/hosts/join-codes", {
+      method: "POST",
+      headers: { "x-bb-connect-machine": machine.credential },
+    });
+    expect(forbidden.status).toBe(403);
+  });
+
   it("disconnect unpairs the server", async () => {
     const credential = await pairServer();
     const response = await request("/api/connect/disconnect", {

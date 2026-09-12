@@ -152,10 +152,44 @@ function wantsHtml(request: Request): boolean {
   return (request.headers.get("accept") ?? "").includes("text/html");
 }
 
+const PUBLIC_INSTALL_PATHS = new Set([
+  "/install.sh",
+  "/install/version",
+  "/install/kaioken-app.tgz",
+]);
+
+function isMachinePath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/internal") ||
+    pathname === "/api/v1" ||
+    pathname.startsWith("/api/v1/")
+  );
+}
+
+function isHostManagementMutation(request: Request, pathname: string): boolean {
+  if (request.method === "POST" && pathname === "/internal/hosts/enroll-key") {
+    return true;
+  }
+  if (request.method === "POST" && pathname === "/api/v1/hosts/join-codes") {
+    return true;
+  }
+  if (
+    request.method === "PATCH" &&
+    /^\/api\/v1\/hosts\/[^/]+\/permission-ceiling$/u.test(pathname)
+  ) {
+    return true;
+  }
+  return (
+    (request.method === "PATCH" || request.method === "DELETE") &&
+    /^\/api\/v1\/hosts\/[^/]+$/u.test(pathname)
+  );
+}
+
 export function requestForTunnelDo(
   request: Request,
   target: string | null,
   machineId?: string,
+  authKind: "session" | "machine" | null = "session",
 ): Request {
   const headers = new Headers(request.headers);
   headers.delete(TUNNEL_TARGET_HEADER);
@@ -163,7 +197,7 @@ export function requestForTunnelDo(
   headers.delete(GATE_AUTH_HEADER);
   headers.delete(GATE_MACHINE_ID_HEADER);
   if (target !== null) headers.set(TUNNEL_TARGET_HEADER, target);
-  headers.set(GATE_AUTH_HEADER, "session");
+  if (authKind !== null) headers.set(GATE_AUTH_HEADER, authKind);
   if (machineId !== undefined) headers.set(GATE_MACHINE_ID_HEADER, machineId);
   return new Request(request, { headers });
 }
@@ -546,6 +580,43 @@ export default {
       return text("Kaioken relay: not found\n", 404);
     }
 
+    const stub = tunnelStub(env);
+    if (
+      request.method === "GET" &&
+      topology.target === null &&
+      PUBLIC_INSTALL_PATHS.has(url.pathname)
+    ) {
+      return stub.fetch(requestForTunnelDo(request, null));
+    }
+
+    const presentedCredential = request.headers.get(MACHINE_CREDENTIAL_HEADER);
+    if (isMachinePath(url.pathname) && presentedCredential !== null) {
+      if (topology.target !== null) {
+        return text("Kaioken relay: not found\n", 404);
+      }
+      const subject = await store.resolveCredential(presentedCredential);
+      if (subject === null) {
+        return text("Kaioken relay: machine not authorized\n", 403);
+      }
+      if (
+        subject.kind === "machine" &&
+        isHostManagementMutation(request, url.pathname)
+      ) {
+        return text("Kaioken relay: machine cannot manage hosts\n", 403);
+      }
+      return stub.fetch(
+        requestForTunnelDo(
+          request,
+          null,
+          subject.kind === "machine" ? subject.machineId : undefined,
+          "machine",
+        ),
+      );
+    }
+    if (url.pathname.startsWith("/internal")) {
+      return text("Kaioken relay: machine not authorized\n", 403);
+    }
+
     const cookie = parseCookie(
       request.headers.get("cookie"),
       SESSION_COOKIE_NAME,
@@ -567,7 +638,6 @@ export default {
       }
     }
 
-    const stub = tunnelStub(env);
     const doRequest = requestForTunnelDo(
       request,
       topology.target,
