@@ -23,7 +23,7 @@ version=$(printf '%s\n' "$feed" | sed -n 's/^version: *//p' | head -n 1)
 
 case "$archive" in
   http://*|https://*) url=$archive; archive=$(basename "$archive") ;;
-  *) url="$BASE/$archive" ;;
+  *) url="https://github.com/$REPO/releases/download/desktop-v$version/$archive" ;;
 esac
 
 work=$(mktemp -d "${TMPDIR:-/tmp}/kaioken-desktop.XXXXXX")
