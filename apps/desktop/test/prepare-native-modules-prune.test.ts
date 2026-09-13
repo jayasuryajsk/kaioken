@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
-const require = createRequire(import.meta.url);
+const require = createRequire(__filename);
 const { prunePackagedNodeModules } =
   require("../scripts/prepare-native-modules.cjs") as {
     prunePackagedNodeModules: (dir: string) => Promise<string[]>;
@@ -62,11 +62,21 @@ describe("prunePackagedNodeModules", () => {
       "zod/src/index.ts": "",
       "zod/index.js": "",
       "other/lib/tsconfig.json": "",
+      "date-fns/locale.js": "",
+      "date-fns/locale/en-US.js": "",
+      "date-fns/locale/en-US/_lib/x.js": "",
+      "date-fns/locale/_lib/buildFormatLongFn.cjs": "",
+      "date-fns/locale/fr/_lib/x.js": "",
+      "date-fns/locale/zh-CN/_lib/x.js": "",
     });
     const removed = await prunePackagedNodeModules(root);
     expect(removed.length).toBeGreaterThan(0);
     expect(await listFiles(root)).toEqual([
       "better-sqlite3/build/Release/better_sqlite3.node",
+      "date-fns/locale.js",
+      "date-fns/locale/_lib/buildFormatLongFn.cjs",
+      "date-fns/locale/en-US.js",
+      "date-fns/locale/en-US/_lib/x.js",
       "kaioken-app/package.json",
       "kaioken-app/server/dist/drizzle/0001_init.sql",
       "kaioken-app/server/dist/drizzle/meta/_journal.json",

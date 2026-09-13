@@ -190,6 +190,7 @@ function resolveElectronBuilderConfig(baseConfig, env) {
     ...config.mac,
     icon: releaseConfig.macIconPath,
     notarize: signingPlan.notarizationEnabled,
+    ...(signingPlan.notarizationEnabled ? {} : { timestamp: "none" }),
   };
 
   if (signingPlan.mode === "disabled") {

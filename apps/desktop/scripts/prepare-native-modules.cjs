@@ -226,8 +226,29 @@ function isPrunedFile(filePath) {
   );
 }
 
+const DATE_FNS_LOCALE_KEEP_PREFIX = "en-US";
+
+async function pruneDateFnsLocales(nodeModulesDir, removed) {
+  const localeDir = path.join(nodeModulesDir, "date-fns", "locale");
+  let entries;
+  try {
+    entries = await readdir(localeDir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (entry.name.startsWith(DATE_FNS_LOCALE_KEEP_PREFIX)) continue;
+    if (entry.name === "_lib") continue;
+    if (!entry.isDirectory()) continue;
+    const entryPath = path.join(localeDir, entry.name);
+    await rm(entryPath, { recursive: true, force: true });
+    removed.push(entryPath);
+  }
+}
+
 async function prunePackagedNodeModules(nodeModulesDir) {
   const removed = [];
+  await pruneDateFnsLocales(nodeModulesDir, removed);
   const pending = [nodeModulesDir];
   while (pending.length > 0) {
     const directoryPath = pending.pop();
