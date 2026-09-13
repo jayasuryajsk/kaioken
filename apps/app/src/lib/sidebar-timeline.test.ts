@@ -3,6 +3,7 @@ import type { ThreadListEntry } from "@kaioken/domain";
 import {
   buildPriorityList,
   buildTimelineGroups,
+  buildTimelineSections,
   countNeedsYou,
   timelineGroupFor,
 } from "./sidebar-timeline";
@@ -109,5 +110,24 @@ describe("priority mode", () => {
         thread({ id: "c" }),
       ]),
     ).toBe(2);
+  });
+});
+
+describe("buildTimelineSections", () => {
+  it("keeps threads that need you out of the day groups", () => {
+    const waiting = thread({
+      id: "thr_waiting",
+      hasPendingInteraction: true,
+      updatedAt: NOON - 1000,
+    });
+    const idle = thread({ id: "thr_idle", updatedAt: NOON - 2000 });
+    const sections = buildTimelineSections([waiting, idle], NOON);
+    expect(sections.priority.map((entry) => entry.id)).toEqual(["thr_waiting"]);
+    expect(
+      sections.groups.map((group) => [
+        group.id,
+        group.threads.map((entry) => entry.id),
+      ]),
+    ).toEqual([["today", ["thr_idle"]]]);
   });
 });

@@ -1,4 +1,3 @@
-import { atomWithStorage } from "jotai/utils";
 import {
   hasActiveBackgroundAgentActivity,
   hasActiveBackgroundCommandActivity,
@@ -9,13 +8,6 @@ import {
   isUnreadDoneThread,
 } from "@kaioken/client-core";
 import type { ThreadListEntry } from "@kaioken/domain";
-
-export const SIDEBAR_PRIORITY_MODE_STORAGE_KEY = "bb.sidebar.priorityMode";
-
-export const priorityModeAtom = atomWithStorage<boolean>(
-  SIDEBAR_PRIORITY_MODE_STORAGE_KEY,
-  false,
-);
 
 export function threadNeedsYou(thread: ThreadListEntry): boolean {
   if (thread.hasPendingInteraction) return true;
@@ -134,4 +126,24 @@ export function countNeedsYou(threads: readonly ThreadListEntry[]): number {
     if (isListedThread(thread) && threadNeedsYou(thread)) count += 1;
   }
   return count;
+}
+
+export interface TimelineSections {
+  priority: ThreadListEntry[];
+  groups: TimelineGroup[];
+}
+
+export function buildTimelineSections(
+  threads: readonly ThreadListEntry[],
+  now: number,
+): TimelineSections {
+  const priority = buildPriorityList(threads);
+  const prioritized = new Set(priority.map((thread) => thread.id));
+  return {
+    priority,
+    groups: buildTimelineGroups(
+      threads.filter((thread) => !prioritized.has(thread.id)),
+      now,
+    ),
+  };
 }

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useAtom } from "jotai";
 import {
   hasActiveBackgroundAgentActivity,
   hasActiveBackgroundCommandActivity,
@@ -18,13 +17,13 @@ import {
   ThreadActionsMenu,
 } from "@/components/thread/ThreadActionsMenu";
 import { useSidebarProjectName } from "@/components/thread/ThreadTitleMentions";
-import { getThreadRoutePath } from "@/lib/route-paths";
 import {
-  buildPriorityList,
-  buildTimelineGroups,
-  countNeedsYou,
-  priorityModeAtom,
-} from "@/lib/sidebar-timeline";
+  selectPersistentHosts,
+  useHosts,
+  usePrimaryHost,
+} from "@/hooks/queries/host-queries";
+import { getThreadRoutePath } from "@/lib/route-paths";
+import { buildTimelineSections } from "@/lib/sidebar-timeline";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
 import {
   SIDEBAR_CONTROL_BUTTON_CLASS,
@@ -52,22 +51,51 @@ function useNow(): number {
   return now;
 }
 
+interface RowMachine {
+  name: string;
+  remote: boolean;
+}
+
 interface RowProps {
   hasDraft: boolean;
   isActive: boolean;
+  machine: RowMachine | null;
   onProjectSelect?: () => void;
   thread: ThreadListEntry;
+}
+
+export function useTimelineMachines(): (
+  thread: ThreadListEntry,
+) => RowMachine | null {
+  const hostsQuery = useHosts();
+  const primaryHost = usePrimaryHost();
+  const hosts = useMemo(
+    () => selectPersistentHosts(hostsQuery.data),
+    [hostsQuery.data],
+  );
+  return useMemo(() => {
+    const byId = new Map(hosts.map((host) => [host.id, host]));
+    return (thread) => {
+      const hostId = thread.environmentHostId;
+      if (hostId === null) return null;
+      const host = byId.get(hostId);
+      if (host === undefined) return null;
+      return { name: host.name, remote: host.id !== primaryHost?.id };
+    };
+  }, [hosts, primaryHost?.id]);
 }
 
 function TimelineRow({
   hasDraft,
   isActive,
+  machine,
   onProjectSelect,
   thread,
 }: RowProps) {
   const projectName = useSidebarProjectName(
     thread.projectId === PERSONAL_PROJECT_ID ? null : thread.projectId,
   );
+  const location = projectName ?? machine?.name ?? "Kaioken";
   const title = getThreadDisplayTitle(thread);
   const unread = isUnreadDoneThread(thread);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -86,7 +114,7 @@ function TimelineRow({
       <div
         data-testid="timeline-row"
         className={cn(
-          "group/timeline-row relative flex items-center gap-2 rounded-md py-1.5 pl-2 pr-1 text-sm transition-colors",
+          "group/timeline-row relative flex items-center gap-2 rounded-md py-1 pl-2 pr-1 text-sm transition-colors",
           isActive
             ? SIDEBAR_ROW_SELECTED_STATE_CLASS
             : "text-sidebar-foreground hover:bg-sidebar-accent",
@@ -118,9 +146,23 @@ function TimelineRow({
           >
             {title}
           </span>
-          <span className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-            <Icon name="Folder" className="size-3 shrink-0" />
-            <span className="min-w-0 truncate">{projectName ?? "Kaioken"}</span>
+          <span
+            data-testid="timeline-row-meta"
+            className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground"
+          >
+            <Icon
+              name={machine?.remote ? "Laptop" : "Folder"}
+              className="size-3 shrink-0"
+            />
+            <span className="min-w-0 truncate">
+              {location}
+              {machine?.remote && projectName !== null ? (
+                <span className="text-subtle-foreground">
+                  {" "}
+                  · {machine.name}
+                </span>
+              ) : null}
+            </span>
           </span>
         </NavLink>
         <span className="flex shrink-0 items-center">
@@ -167,20 +209,10 @@ export function TimelineThreadList({
   threads,
 }: TimelineThreadListProps) {
   const now = useNow();
-  const [priorityMode, setPriorityMode] = useAtom(priorityModeAtom);
-  const needsYouCount = useMemo(() => countNeedsYou(threads), [threads]);
-  const groups = useMemo(
-    () =>
-      priorityMode
-        ? [
-            {
-              id: "priority",
-              label: "Priority",
-              threads: buildPriorityList(threads),
-            },
-          ]
-        : buildTimelineGroups(threads, now),
-    [now, priorityMode, threads],
+  const machineFor = useTimelineMachines();
+  const sections = useMemo(
+    () => buildTimelineSections(threads, now),
+    [now, threads],
   );
   const renderRow = (thread: ThreadListEntry) => (
     <TimelineRow
@@ -188,69 +220,48 @@ export function TimelineThreadList({
       thread={thread}
       hasDraft={draftThreadIds.has(thread.id)}
       isActive={thread.id === selectedThreadId}
+      machine={machineFor(thread)}
       onProjectSelect={onProjectSelect}
     />
   );
+  const labelClass = cn(
+    "kaioken-sidebar-section-label mb-1 px-2 text-xs",
+    SIDEBAR_GROUP_TEXT_CLASS,
+  );
   return (
-    <div data-testid="timeline-thread-list" className="px-2 pb-2">
-      <div className="mb-1 flex h-7 items-center justify-end">
-        <button
-          type="button"
-          aria-pressed={priorityMode}
-          aria-label={
-            priorityMode
-              ? "Show all threads"
-              : `Show only threads that need you or are running${
-                  needsYouCount > 0 ? ` (${needsYouCount} waiting)` : ""
-                }`
-          }
-          onClick={() => setPriorityMode((current) => !current)}
-          className={cn(
-            SIDEBAR_CONTROL_BUTTON_CLASS,
-            "relative size-7",
-            priorityMode && "bg-state-active text-foreground",
+    <div data-testid="timeline-thread-list" className="px-2 pb-2 pt-1">
+      <div className="space-y-3">
+        <section data-testid="timeline-group-priority">
+          <p className={labelClass}>
+            Priority
+            {sections.priority.length > 0 ? (
+              <span className="ml-1 text-subtle-foreground">
+                {sections.priority.length}
+              </span>
+            ) : null}
+          </p>
+          {sections.priority.length > 0 ? (
+            <div className="space-y-0.5">
+              {sections.priority.map(renderRow)}
+            </div>
+          ) : (
+            <p className="px-2 py-1 text-xs text-subtle-foreground">
+              Nothing needs attention
+            </p>
           )}
-        >
-          <Icon name="BellDot" className="size-4" />
-          {needsYouCount > 0 ? (
-            <span
-              aria-hidden="true"
-              className="absolute right-1 top-1 size-1.5 rounded-full bg-foreground"
-            />
-          ) : null}
-        </button>
+        </section>
+        {sections.groups.length === 0 && sections.priority.length === 0 ? (
+          <p className="px-2 py-2 text-xs text-muted-foreground">
+            No threads yet. Start one above.
+          </p>
+        ) : null}
+        {sections.groups.map((group) => (
+          <section key={group.id} data-testid={`timeline-group-${group.id}`}>
+            <p className={labelClass}>{group.label}</p>
+            <div className="space-y-0.5">{group.threads.map(renderRow)}</div>
+          </section>
+        ))}
       </div>
-      {groups.length === 0 ||
-      groups.every((group) => group.threads.length === 0) ? (
-        <p className="px-2 py-2 text-xs text-muted-foreground">
-          {priorityMode
-            ? "Nothing needs you right now."
-            : "No threads yet. Start one above."}
-        </p>
-      ) : (
-        <div className="space-y-4">
-          {groups
-            .filter((group) => group.threads.length > 0)
-            .map((group) => (
-              <section
-                key={group.id}
-                data-testid={`timeline-group-${group.id}`}
-              >
-                <p
-                  className={cn(
-                    "kaioken-sidebar-section-label mb-1 px-2 text-xs",
-                    SIDEBAR_GROUP_TEXT_CLASS,
-                  )}
-                >
-                  {group.label}
-                </p>
-                <div className="space-y-0.5">
-                  {group.threads.map(renderRow)}
-                </div>
-              </section>
-            ))}
-        </div>
-      )}
     </div>
   );
 }
