@@ -82,7 +82,7 @@ describe("LocalOpenTargetSettingsSection", () => {
     fireEvent.click(screen.getByRole("link", { name: "Setup guide" }));
 
     expect(openWindow).toHaveBeenCalledExactlyOnceWith(
-      "https://github.com/get-bb/bb/blob/main/docs/multiple-devices.md#open-kaioken-from-another-browser",
+      "https://github.com/jayasuryajsk/kaioken/blob/main/docs/multiple-devices.md#open-kaioken-from-another-browser",
       "_blank",
       "noopener,noreferrer",
     );

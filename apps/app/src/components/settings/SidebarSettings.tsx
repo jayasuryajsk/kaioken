@@ -56,7 +56,7 @@ const LAYOUT_OPTIONS: ReadonlyArray<{
   {
     value: "projects",
     label: "Projects",
-    description: "Grouped by project, like bb",
+    description: "Grouped by project",
   },
 ];
 

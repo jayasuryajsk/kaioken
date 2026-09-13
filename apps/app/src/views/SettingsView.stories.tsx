@@ -18,7 +18,6 @@ import type {
 import { UsageLimitsSettingsSectionContent } from "@/components/settings/UsageLimitsSettingsSection";
 import { VoiceInputSettingsSectionContent } from "@/components/settings/VoiceInputSettingsSection";
 import { ArchivedThreadsSettingsSection } from "@/components/settings/ArchivedThreadsSettingsSection";
-import { CommunitySettingsSection } from "@/components/settings/CommunitySettingsSection";
 import { KeyboardSettingsSection } from "@/components/settings/KeyboardSettingsSection";
 import { MarketplacesSettingsSection } from "@/components/settings/MarketplacesSettingsSection";
 import { MachinesSettingsSection } from "@/components/settings/MachinesSettingsSection";
@@ -471,8 +470,6 @@ function SettingsStoryContent({ route }: { route: SettingsStoryRoute }) {
       return <ExperimentsStory />;
     case "marketplaces":
       return <MarketplacesSettingsSection />;
-    case "community":
-      return <CommunitySettingsSection />;
     case "archived":
       return <ArchivedThreadsSettingsSection />;
     case "general":

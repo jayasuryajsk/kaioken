@@ -61,7 +61,6 @@ import { SETTINGS_PLUGIN_ROUTE_PATH } from "@/lib/route-paths";
 import { PluginSettingsPage } from "@/components/plugin/PluginSettings";
 import { FileOpenersSettingsSection } from "@/components/settings/FileOpenersSettingsSection";
 import { VoiceInputSettingsSection } from "@/components/settings/VoiceInputSettingsSection";
-import { CommunitySettingsSection } from "@/components/settings/CommunitySettingsSection";
 import { UpdatesSettingsSection } from "@/components/settings/UpdatesSettingsSection";
 import { KeyboardSettingsSection } from "@/components/settings/KeyboardSettingsSection";
 import { BrowserSettingsSection } from "@/components/settings/BrowserSettingsSection";
@@ -104,7 +103,7 @@ import type { LocalHostDaemonAccessState } from "@/lib/local-host-daemon-access"
 import { openUrlInExternalBrowser } from "@/lib/url-open-routing";
 
 const LOCAL_EDITOR_INTEGRATION_DOCS_URL =
-  "https://github.com/get-bb/bb/blob/main/docs/multiple-devices.md#open-kaioken-from-another-browser";
+  "https://github.com/jayasuryajsk/kaioken/blob/main/docs/multiple-devices.md#open-kaioken-from-another-browser";
 
 interface ThemePreferenceOption {
   label: string;
@@ -1257,8 +1256,6 @@ export function SettingsView() {
     );
   } else if (activeSection === "marketplaces") {
     content = <MarketplacesSettingsSection />;
-  } else if (activeSection === "community") {
-    content = <CommunitySettingsSection />;
   } else if (activeSection === "archived") {
     content = <ArchivedThreadsSettingsSection />;
   } else {

@@ -161,7 +161,7 @@ const toolUse: PendingInteraction = {
       presentation: {
         label: { pending: "Creating issue", completed: "Created issue" },
         icon: { glyph: "Globe" },
-        title: "get-bb/bb · Banner clips long titles",
+        title: "jayasuryajsk/kaioken · Banner clips long titles",
         detail: "Opens a **bug** issue with the repro steps from this thread.",
         tint: { light: "#2563eb", dark: "#93c5fd" },
       },

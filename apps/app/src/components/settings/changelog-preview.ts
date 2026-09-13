@@ -2,7 +2,7 @@ import changelogSource from "../../../../../CHANGELOG.md?raw";
 export { RELEASE_META } from "../../../../../changelog-metadata";
 
 const LATEST_CHANGELOG_SOURCE_URL =
-  "https://raw.githubusercontent.com/get-bb/bb/main/CHANGELOG.md";
+  "https://raw.githubusercontent.com/jayasuryajsk/kaioken/main/CHANGELOG.md";
 
 export type ChangelogBlock =
   | { kind: "paragraph"; text: string }

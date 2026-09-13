@@ -178,7 +178,7 @@ function UnreachableServerNotice({
           )}
         </Button>
         <a
-          href="https://github.com/get-bb/bb/blob/main/docs/multiple-devices.md"
+          href="https://github.com/jayasuryajsk/kaioken/blob/main/docs/multiple-devices.md"
           target="_blank"
           rel="noreferrer"
           className="text-xs text-subtle-foreground underline underline-offset-2"

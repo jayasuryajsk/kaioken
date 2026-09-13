@@ -94,7 +94,11 @@ const EMPTY_PROVIDER_CLI_FAILURES: ReadonlyMap<
   string,
   ProviderCliInstallFailure
 > = new Map();
-const CHANGELOG_URL = "https://getbb.app/changelog";
+const RELEASES_URL = "https://github.com/jayasuryajsk/kaioken/releases";
+
+function changelogUrlFor(version: string): string {
+  return `${RELEASES_URL}/tag/desktop-v${version}`;
+}
 const CHANGELOG_STALE_TIME_MS = 5 * 60_000;
 const CHANGELOG_DISMISSED_VERSION_STORAGE_KEY =
   "bb.settings.updates.dismissed-changelog-version";
@@ -670,9 +674,7 @@ export function ChangelogPreviewCard() {
                 disabled={!releaseVisible}
                 aria-label={`Open the full kaioken ${entry.version} changelog`}
                 onClick={() =>
-                  openUrlInExternalBrowser(
-                    `${CHANGELOG_URL}#${entry.version.replaceAll(".", "-")}`,
-                  )
+                  openUrlInExternalBrowser(changelogUrlFor(entry.version))
                 }
                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-sm text-xs font-semibold text-background underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-background"
               >
@@ -771,7 +773,11 @@ export function KaiokenAppUpdateRows({
       desktopInfo.pendingVersion ?? desktopInfo.latestVersion;
     const latest = desktopInfo.updateAvailable ? pendingVersion : null;
     const name = (
-      <RowName name="kaioken app" current={desktopInfo.version} latest={latest} />
+      <RowName
+        name="kaioken app"
+        current={desktopInfo.version}
+        latest={latest}
+      />
     );
 
     if (desktopInfo.updateDownloaded) {

@@ -14,7 +14,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Host } from "@kaioken/domain";
 import { makeHost as makeHostFixture } from "@kaioken/test-helpers/domain-fixtures";
-import type { KaiokenDesktopApi, KaiokenDesktopInfo } from "@kaioken/desktop-contract";
+import type {
+  KaiokenDesktopApi,
+  KaiokenDesktopInfo,
+} from "@kaioken/desktop-contract";
 import {
   HOST_DAEMON_PROTOCOL_VERSION,
   type ProviderCliKey,
@@ -51,7 +54,8 @@ vi.mock("@/components/ui/app-toast", () => ({
 }));
 
 vi.mock("@/lib/sdk", async () => {
-  const { makeProviderInfo } = await import("@kaioken/test-helpers/domain-fixtures");
+  const { makeProviderInfo } =
+    await import("@kaioken/test-helpers/domain-fixtures");
   return {
     sdk: {
       system: { version: vi.fn() },
@@ -478,7 +482,9 @@ The canonical release summary.
     expect(screen.queryByRole("button", { name: /check/i })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Updates" })).toBeNull();
     expect(
-      screen.getByRole("button", { name: /^Open the full kaioken .* changelog$/ }),
+      screen.getByRole("button", {
+        name: /^Open the full kaioken .* changelog$/,
+      }),
     ).toBeDefined();
     const changelog = document.querySelector(
       '[data-updates-domain="changelog"]',
@@ -555,7 +561,7 @@ The canonical release summary.
       }),
     );
     expect(openUrlInExternalBrowserMock).toHaveBeenCalledWith(
-      "https://getbb.app/changelog#9-9-9",
+      "https://github.com/jayasuryajsk/kaioken/releases/tag/desktop-v9.9.9",
     );
     vi.useFakeTimers();
     fireEvent.click(dismissChangelog);
@@ -818,7 +824,8 @@ The canonical release summary.
     expect(screen.queryByText("1 machine needs attention")).toBeNull();
     expect(screen.queryByText(/daemon protocol/)).toBeNull();
     expect(
-      screen.getByText("kaioken daemon").closest("[data-resource-row]")?.className,
+      screen.getByText("kaioken daemon").closest("[data-resource-row]")
+        ?.className,
     ).not.toContain("bg-surface-destructive");
     expect(screen.queryByText(/^Up to date/)).toBeNull();
     const stalledMessage = screen.getByText("Update didn't finish");
@@ -1384,7 +1391,10 @@ The canonical release summary.
     const checkForUpdates = vi.fn().mockResolvedValue(desktopInfo);
     const installUpdate = vi.fn().mockResolvedValue(undefined);
     useDesktopUpdateInfoMock.mockReturnValue({
-      desktopApi: { checkForUpdates, installUpdate } as unknown as KaiokenDesktopApi,
+      desktopApi: {
+        checkForUpdates,
+        installUpdate,
+      } as unknown as KaiokenDesktopApi,
       desktopInfo,
       isDesktop: true,
     });
