@@ -7,7 +7,7 @@ import {
   type Dirent,
 } from "node:fs";
 import path from "node:path";
-import { readRolloutHeader } from "./summary.js";
+import { readRolloutHeader, readRolloutLastOrdinal } from "./summary.js";
 
 export const ROLLOUT_DIRECTORIES = ["sessions", "archived_sessions"] as const;
 export type RolloutDirectory = (typeof ROLLOUT_DIRECTORIES)[number];
@@ -125,4 +125,49 @@ export function copyRolloutBetweenHomes(args: {
   mkdirSync(path.dirname(targetPath), { recursive: true });
   copyFileSync(args.sourcePath, targetPath);
   return targetPath;
+}
+
+export type CodexHomeKey = keyof CodexHomes;
+
+export interface RolloutFiles {
+  home: string;
+  homeKey: CodexHomeKey;
+  paths: string[];
+}
+
+export function findRolloutsInHomes(
+  homes: CodexHomes,
+  id: string,
+  order: readonly CodexHomeKey[],
+): RolloutFiles | null {
+  const visited = new Set<string>();
+  for (const key of order) {
+    const home = homes[key];
+    if (visited.has(home)) continue;
+    visited.add(home);
+    const files = findRolloutsById(home, id);
+    if (files.length > 0) {
+      return { home, homeKey: key, paths: files.map((file) => file.path) };
+    }
+  }
+  return null;
+}
+
+export function copyRolloutsToHome(
+  files: RolloutFiles,
+  targetHome: string,
+): string[] {
+  return files.paths.map((sourcePath) =>
+    copyRolloutBetweenHomes({
+      sourceHome: files.home,
+      sourcePath,
+      targetHome,
+    }),
+  );
+}
+
+export function lastRolloutOrdinal(paths: readonly string[]): number {
+  return paths.length === 0
+    ? -1
+    : Math.max(...paths.map((path) => readRolloutLastOrdinal(path)));
 }

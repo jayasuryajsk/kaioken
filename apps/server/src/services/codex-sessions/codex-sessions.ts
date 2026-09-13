@@ -1,13 +1,15 @@
 import { homedir } from "node:os";
 import path from "node:path";
 import {
-  copyRolloutBetweenHomes,
-  findRolloutsById,
+  copyRolloutsToHome,
+  findRolloutsInHomes,
   isExistingDirectory,
+  lastRolloutOrdinal,
   listRolloutFiles,
+  mergeRollouts,
   mergeRolloutSummaries,
   parseRolloutFiles,
-  readRolloutLastOrdinal,
+  parseRolloutText,
   readRolloutSummary,
   resolveCodexHomes,
   rolloutFirstPrompt,
@@ -22,6 +24,8 @@ import {
 import {
   ensurePersonalProject,
   findOrCreateProjectByLocalPathSource,
+  getEnvironment,
+  getHost,
   getLiveThreadIdBySourceProviderThreadId,
   getPublicProjectByLocalPathSource,
   getThread,
@@ -52,7 +56,11 @@ import type {
 } from "@kaioken/server-contract";
 import { ApiError } from "../../errors.js";
 import type { LoggedPendingInteractionWorkSessionDeps } from "../../types.js";
-import { requirePrimaryHostId } from "../hosts/primary-host.js";
+import { callHostRetryableOnlineRpc } from "../hosts/online-rpc.js";
+import {
+  requirePrimaryHostId,
+  resolvePrimaryHostId,
+} from "../hosts/primary-host.js";
 import {
   requirePublicProject,
   requirePublicThread,
@@ -107,7 +115,18 @@ export interface CodexHandoffOutcome {
   providerThreadId: string;
   rolloutPath: string;
   command: string;
+  hostId: string | null;
+  hostName: string | null;
+  hostIsServer: boolean;
 }
+
+interface RolloutHost {
+  hostId: string | null;
+  hostName: string | null;
+  remote: boolean;
+}
+
+const CODEX_ROLLOUT_RPC_TIMEOUT_MS = 30_000;
 
 export interface CodexSyncOutcome {
   threadId: string;
@@ -526,39 +545,6 @@ function importExecutionFor(
   };
 }
 
-interface RolloutFiles {
-  home: string;
-  paths: string[];
-}
-
-function findRolloutsInHomes(
-  homes: CodexHomes,
-  id: string,
-  order: readonly ("shared" | "private")[],
-): RolloutFiles | null {
-  const visited = new Set<string>();
-  for (const key of order) {
-    const home = homes[key];
-    if (visited.has(home)) continue;
-    visited.add(home);
-    const files = findRolloutsById(home, id);
-    if (files.length > 0) {
-      return { home, paths: files.map((file) => file.path) };
-    }
-  }
-  return null;
-}
-
-function copyRollouts(files: RolloutFiles, targetHome: string): string[] {
-  return files.paths.map((sourcePath) =>
-    copyRolloutBetweenHomes({
-      sourceHome: files.home,
-      sourcePath,
-      targetHome,
-    }),
-  );
-}
-
 function requireCodexThread(
   deps: Pick<CodexSessionsDeps, "db">,
   threadId: string,
@@ -712,7 +698,7 @@ export async function importCodexSession(
     },
   );
   if (files.home !== homes.private) {
-    copyRollouts(files, homes.private);
+    copyRolloutsToHome(files, homes.private);
   }
   deps.hub.notifyThread(thread.id, ["events-appended"], {
     eventTypes: imported.eventTypes,
@@ -725,32 +711,102 @@ export async function importCodexSession(
   };
 }
 
-export function handoffCodexSession(
-  deps: Pick<CodexSessionsDeps, "db" | "hub">,
+function resolveRolloutHost(
+  deps: CodexSessionsDeps,
+  thread: Thread,
+): RolloutHost {
+  const primaryHostId = resolvePrimaryHostId(deps);
+  const environment =
+    thread.environmentId === null
+      ? null
+      : getEnvironment(deps.db, thread.environmentId);
+  const hostId = environment?.hostId ?? primaryHostId;
+  const host = hostId === null ? null : getHost(deps.db, hostId);
+  return {
+    hostId,
+    hostName: host?.name ?? null,
+    remote: hostId !== null && hostId !== primaryHostId,
+  };
+}
+
+function rolloutMissingError(
+  providerThreadId: string,
+  where: string,
+): ApiError {
+  return new ApiError(
+    404,
+    "codex_session_not_found",
+    `No rollout for Codex session ${providerThreadId} ${where}`,
+  );
+}
+
+async function callRolloutHost<
+  TCommand extends
+    | { type: "codex.rollouts.locate" }
+    | { type: "codex.rollouts.copy" }
+    | { type: "codex.rollouts.read" },
+>(
+  deps: CodexSessionsDeps,
+  hostId: string,
+  command: Parameters<typeof callHostRetryableOnlineRpc>[1]["command"] &
+    TCommand,
+) {
+  return callHostRetryableOnlineRpc(deps, {
+    hostId,
+    timeoutMs: CODEX_ROLLOUT_RPC_TIMEOUT_MS,
+    command,
+  });
+}
+
+export async function handoffCodexSession(
+  deps: CodexSessionsDeps,
   args: { threadId: string; homes?: CodexHomes },
-): CodexHandoffOutcome {
+): Promise<CodexHandoffOutcome> {
   const homes = args.homes ?? defaultCodexHomes();
   const thread = requireCodexThread(deps, args.threadId);
   requireSettledThread(thread);
   const providerThreadId = requireProviderThreadId(deps, thread);
-  const files = findRolloutsInHomes(homes, providerThreadId, [
-    "private",
-    "shared",
-  ]);
-  if (files === null) {
-    throw new ApiError(
-      404,
-      "codex_session_not_found",
-      `No rollout for Codex session ${providerThreadId} under ${homes.private}`,
-    );
+  const rolloutHost = resolveRolloutHost(deps, thread);
+  let rolloutPath: string;
+  let lastOrdinal: number;
+  if (rolloutHost.remote && rolloutHost.hostId !== null) {
+    const hostLabel = rolloutHost.hostName ?? rolloutHost.hostId;
+    const located = await callRolloutHost(deps, rolloutHost.hostId, {
+      type: "codex.rollouts.locate",
+      providerThreadId,
+      homes: ["private", "shared"],
+    });
+    if (located.rollouts === null) {
+      throw rolloutMissingError(providerThreadId, `on ${hostLabel}`);
+    }
+    const copied = await callRolloutHost(deps, rolloutHost.hostId, {
+      type: "codex.rollouts.copy",
+      providerThreadId,
+      from: located.rollouts.home,
+      to: "shared",
+    });
+    if (copied.copied === null) {
+      throw rolloutMissingError(providerThreadId, `on ${hostLabel}`);
+    }
+    rolloutPath = copied.copied.paths[copied.copied.paths.length - 1] ?? "";
+    lastOrdinal = copied.copied.lastOrdinal;
+  } else {
+    const files = findRolloutsInHomes(homes, providerThreadId, [
+      "private",
+      "shared",
+    ]);
+    if (files === null) {
+      throw rolloutMissingError(providerThreadId, `under ${homes.private}`);
+    }
+    const copied = copyRolloutsToHome(files, homes.shared);
+    rolloutPath = copied[copied.length - 1] ?? files.paths[0] ?? "";
+    lastOrdinal = lastRolloutOrdinal(copied);
   }
-  const copied = copyRollouts(files, homes.shared);
-  const rolloutPath = copied[copied.length - 1] ?? files.paths[0] ?? "";
   setThreadCodexLink(deps.db, {
     threadId: thread.id,
     sourceProviderThreadId: providerThreadId,
     handoffState: "handed-off",
-    sourceSyncedOrdinal: Math.max(...copied.map(readRolloutLastOrdinal)),
+    sourceSyncedOrdinal: lastOrdinal,
   });
   deps.hub.notifyThread(thread.id, ["title-changed"], {});
   return {
@@ -758,11 +814,14 @@ export function handoffCodexSession(
     providerThreadId,
     rolloutPath,
     command: `codex resume ${providerThreadId}`,
+    hostId: rolloutHost.hostId,
+    hostName: rolloutHost.hostName,
+    hostIsServer: !rolloutHost.remote,
   };
 }
 
 export async function syncCodexSession(
-  deps: Pick<CodexSessionsDeps, "db" | "hub">,
+  deps: CodexSessionsDeps,
   args: { threadId: string; homes?: CodexHomes },
 ): Promise<CodexSyncOutcome> {
   const homes = args.homes ?? defaultCodexHomes();
@@ -777,15 +836,31 @@ export async function syncCodexSession(
       `Thread ${thread.id} was never imported from or handed off to Codex`,
     );
   }
-  const files = findRolloutsInHomes(homes, providerThreadId, ["shared"]);
-  if (files === null) {
-    throw new ApiError(
-      404,
-      "codex_session_not_found",
-      `No rollout for Codex session ${providerThreadId} under ${homes.shared}`,
-    );
+  const rolloutHost = resolveRolloutHost(deps, thread);
+  const remoteHostId =
+    rolloutHost.remote && rolloutHost.hostId !== null
+      ? rolloutHost.hostId
+      : null;
+  const hostLabel = rolloutHost.hostName ?? rolloutHost.hostId ?? "";
+  let rollout: CodexRollout;
+  let localFiles: ReturnType<typeof findRolloutsInHomes> = null;
+  if (remoteHostId !== null) {
+    const read = await callRolloutHost(deps, remoteHostId, {
+      type: "codex.rollouts.read",
+      providerThreadId,
+      home: "shared",
+    });
+    if (read.rollouts === null) {
+      throw rolloutMissingError(providerThreadId, `on ${hostLabel}`);
+    }
+    rollout = mergeRollouts(read.rollouts.contents.map(parseRolloutText));
+  } else {
+    localFiles = findRolloutsInHomes(homes, providerThreadId, ["shared"]);
+    if (localFiles === null) {
+      throw rolloutMissingError(providerThreadId, `under ${homes.shared}`);
+    }
+    rollout = await parseRolloutFiles(localFiles.paths);
   }
-  const rollout = await parseRolloutFiles(files.paths);
   const syncedOrdinal = link.sourceSyncedOrdinal;
   const execution = importExecutionFor(rollout);
   const appended = deps.db.transaction(
@@ -814,8 +889,21 @@ export async function syncCodexSession(
     },
     { behavior: "immediate" },
   );
-  const copied = copyRollouts(files, homes.private);
-  const rolloutPath = copied[copied.length - 1] ?? files.paths[0] ?? "";
+  let rolloutPath: string;
+  if (remoteHostId !== null) {
+    const copied = await callRolloutHost(deps, remoteHostId, {
+      type: "codex.rollouts.copy",
+      providerThreadId,
+      from: "shared",
+      to: "private",
+    });
+    rolloutPath = copied.copied?.paths[copied.copied.paths.length - 1] ?? "";
+  } else if (localFiles !== null) {
+    const copied = copyRolloutsToHome(localFiles, homes.private);
+    rolloutPath = copied[copied.length - 1] ?? localFiles.paths[0] ?? "";
+  } else {
+    rolloutPath = "";
+  }
   deps.hub.notifyThread(thread.id, ["events-appended", "title-changed"], {
     eventTypes: appended.eventTypes,
   });

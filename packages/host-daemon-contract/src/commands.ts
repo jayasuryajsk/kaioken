@@ -588,6 +588,63 @@ const hostPickFolderCommandSchema = z
   })
   .strict();
 
+export const codexRolloutHomeSchema = z.enum(["private", "shared"]);
+export type CodexRolloutHome = z.infer<typeof codexRolloutHomeSchema>;
+
+const codexRolloutsLocateCommandSchema = z
+  .object({
+    type: z.literal("codex.rollouts.locate"),
+    providerThreadId: z.string().min(1),
+    homes: z.array(codexRolloutHomeSchema).min(1),
+  })
+  .strict();
+
+export const codexRolloutsLocateResultSchema = z.object({
+  rollouts: z
+    .object({
+      home: codexRolloutHomeSchema,
+      paths: z.array(z.string().min(1)).min(1),
+      lastOrdinal: z.number().int(),
+    })
+    .nullable(),
+});
+
+const codexRolloutsCopyCommandSchema = z
+  .object({
+    type: z.literal("codex.rollouts.copy"),
+    providerThreadId: z.string().min(1),
+    from: codexRolloutHomeSchema,
+    to: codexRolloutHomeSchema,
+  })
+  .strict();
+
+export const codexRolloutsCopyResultSchema = z.object({
+  copied: z
+    .object({
+      paths: z.array(z.string().min(1)).min(1),
+      lastOrdinal: z.number().int(),
+    })
+    .nullable(),
+});
+
+const codexRolloutsReadCommandSchema = z
+  .object({
+    type: z.literal("codex.rollouts.read"),
+    providerThreadId: z.string().min(1),
+    home: codexRolloutHomeSchema,
+  })
+  .strict();
+
+export const codexRolloutsReadResultSchema = z.object({
+  rollouts: z
+    .object({
+      paths: z.array(z.string().min(1)).min(1),
+      contents: z.array(z.string()).min(1),
+      lastOrdinal: z.number().int(),
+    })
+    .nullable(),
+});
+
 const pluginHostArtifactSchema = z
   .object({
     digest: z.string().regex(/^[a-f0-9]{64}$/u),
@@ -1634,6 +1691,33 @@ export const hostDaemonCommandRegistry = {
     flushEventsBeforeResult: false,
     envLane: null,
   }),
+  "codex.rollouts.locate": defineHostDaemonCommandDescriptor({
+    type: "codex.rollouts.locate",
+    schema: codexRolloutsLocateCommandSchema,
+    resultSchema: codexRolloutsLocateResultSchema,
+    transport: "onlineRpc",
+    retryable: true,
+    flushEventsBeforeResult: false,
+    envLane: null,
+  }),
+  "codex.rollouts.copy": defineHostDaemonCommandDescriptor({
+    type: "codex.rollouts.copy",
+    schema: codexRolloutsCopyCommandSchema,
+    resultSchema: codexRolloutsCopyResultSchema,
+    transport: "onlineRpc",
+    retryable: true,
+    flushEventsBeforeResult: false,
+    envLane: null,
+  }),
+  "codex.rollouts.read": defineHostDaemonCommandDescriptor({
+    type: "codex.rollouts.read",
+    schema: codexRolloutsReadCommandSchema,
+    resultSchema: codexRolloutsReadResultSchema,
+    transport: "onlineRpc",
+    retryable: true,
+    flushEventsBeforeResult: false,
+    envLane: null,
+  }),
   "environment.hook.run": defineHostDaemonCommandDescriptor({
     type: "environment.hook.run",
     schema: environmentHookRunCommandSchema,
@@ -1912,9 +1996,7 @@ type HostDaemonRetryableOnlineRpcCommandSchema =
 type HostDaemonResultSchemaMapForTransport<
   Transport extends HostDaemonCommandTransport,
 > = {
-  [
-    Descriptor in HostDaemonCommandDescriptorForTransport<Transport> as Descriptor["type"]
-  ]: Descriptor["resultSchema"];
+  [Descriptor in HostDaemonCommandDescriptorForTransport<Transport> as Descriptor["type"]]: Descriptor["resultSchema"];
 };
 
 type HostDaemonCommandResultSchemaMap =

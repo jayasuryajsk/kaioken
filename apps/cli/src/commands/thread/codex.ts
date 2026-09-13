@@ -54,7 +54,11 @@ export function registerCodexCommands(
           if (outputJson(opts, result)) return;
           console.log(`Handed off ${result.threadId} to Codex.`);
           console.log(`Rollout: ${result.rolloutPath}`);
-          console.log(`Continue in Codex with: ${result.command}`);
+          console.log(
+            result.hostIsServer
+              ? `Continue in Codex with: ${result.command}`
+              : `Continue in Codex on ${result.hostName ?? result.hostId ?? "that machine"} with: ${result.command}`,
+          );
           console.log(
             "Run `kaioken thread codex sync` when you come back so Kaioken picks up the Codex turns.",
           );

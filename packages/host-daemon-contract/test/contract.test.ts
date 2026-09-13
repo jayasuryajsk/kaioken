@@ -284,6 +284,26 @@ const ONLINE_RPC_RESPONSE_RESULT_FIXTURES: OnlineRpcResponseResultFixtures = {
   "host.pick_folder": {
     path: "/home/me/project",
   },
+  "codex.rollouts.locate": {
+    rollouts: {
+      home: "private",
+      paths: ["/home/me/.kaioken/codex-home/sessions/2026/09/13/rollout.jsonl"],
+      lastOrdinal: 12,
+    },
+  },
+  "codex.rollouts.copy": {
+    copied: {
+      paths: ["/home/me/.codex/sessions/2026/09/13/rollout.jsonl"],
+      lastOrdinal: 12,
+    },
+  },
+  "codex.rollouts.read": {
+    rollouts: {
+      paths: ["/home/me/.codex/sessions/2026/09/13/rollout.jsonl"],
+      contents: ['{"ordinal":0,"type":"session_meta","payload":{}}\n'],
+      lastOrdinal: 0,
+    },
+  },
   "host.list_commands": {
     commands: [
       {
@@ -1000,7 +1020,7 @@ const CONTRIBUTED_ENV = [
 
 describe("host-daemon command schemas", () => {
   it("uses the current host-daemon protocol version", () => {
-    expect(HOST_DAEMON_PROTOCOL_VERSION).toBe(199);
+    expect(HOST_DAEMON_PROTOCOL_VERSION).toBe(200);
     expect(HOST_ARTIFACT_MAX_BYTES).toBe(256 * 1024 * 1024);
   });
 

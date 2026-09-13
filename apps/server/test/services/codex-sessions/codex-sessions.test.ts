@@ -16,6 +16,7 @@ import {
   getThreadCodexLink,
   listEvents,
   listProjectSourcesByHost,
+  setThreadCodexLink,
 } from "@kaioken/db";
 import { afterEach, describe, expect, it } from "vitest";
 import { ApiError } from "../../../src/errors.js";
@@ -28,6 +29,7 @@ import {
 } from "../../../src/services/codex-sessions/codex-sessions.js";
 import { getLastProviderThreadId } from "../../../src/services/threads/thread-events.js";
 import { reportNextEnvironmentAttachSuccess } from "../../helpers/commands.js";
+import { registerHostRpcResponder } from "../../helpers/host-rpc.js";
 import { installFakePersonalWorkspaceProvider } from "../../helpers/environment-provider.js";
 import {
   seedEnvironment,
@@ -443,7 +445,7 @@ describe("handoff and sync", () => {
       await waitForIdle(harness, thread.id);
       await rm(join(homes.shared, MODERN_RELATIVE));
 
-      const handoff = handoffCodexSession(harness.deps, {
+      const handoff = await handoffCodexSession(harness.deps, {
         threadId: thread.id,
         homes,
       });
@@ -452,6 +454,9 @@ describe("handoff and sync", () => {
         providerThreadId: MODERN_ID,
         rolloutPath: join(homes.shared, MODERN_RELATIVE),
         command: `codex resume ${MODERN_ID}`,
+        hostId: "host-codex-sessions",
+        hostName: "Test Host",
+        hostIsServer: true,
       });
       expect(existsSync(handoff.rolloutPath)).toBe(true);
       expect(getCodexThreadLink(harness.deps, thread.id)).toMatchObject({
@@ -529,6 +534,139 @@ describe("handoff and sync", () => {
     });
   });
 
+  it("runs the handoff and sync on the thread's own machine when it is not the server", async () => {
+    await withTestHarness(async (harness) => {
+      const homes = await seedHomes();
+      seedLocalProject(harness);
+      const remote = seedHostSession(harness.deps, {
+        id: "host-remote",
+        name: "Mac mini",
+      });
+      const { project } = seedProjectWithSource(harness.deps, {
+        hostId: remote.host.id,
+        path: "/Users/me/on-the-mini",
+      });
+      const environment = seedEnvironment(harness.deps, {
+        hostId: remote.host.id,
+        projectId: project.id,
+        path: "/Users/me/on-the-mini",
+      });
+      const thread = seedThread(harness.deps, {
+        projectId: project.id,
+        environmentId: environment.id,
+      });
+      setThreadCodexLink(harness.db, {
+        threadId: thread.id,
+        sourceProviderThreadId: MODERN_ID,
+        handoffState: null,
+        sourceSyncedOrdinal: null,
+      });
+      const remoteRollout = await readFile(
+        join(fixtures, "modern.jsonl"),
+        "utf8",
+      );
+      const remotePrivate = `/Users/me/.kaioken/codex-home/${MODERN_RELATIVE}`;
+      const remoteShared = `/Users/me/.codex/${MODERN_RELATIVE}`;
+      const responder = registerHostRpcResponder(harness, {
+        hostId: remote.host.id,
+        sessionId: remote.session.id,
+        handle(request) {
+          const command = request.command;
+          switch (command.type) {
+            case "codex.rollouts.locate":
+              return {
+                ok: true,
+                result: {
+                  rollouts: {
+                    home: "private",
+                    paths: [remotePrivate],
+                    lastOrdinal: 19,
+                  },
+                },
+              };
+            case "codex.rollouts.copy":
+              return {
+                ok: true,
+                result: {
+                  copied: {
+                    paths: [
+                      command.to === "shared" ? remoteShared : remotePrivate,
+                    ],
+                    lastOrdinal: 19,
+                  },
+                },
+              };
+            case "codex.rollouts.read":
+              return {
+                ok: true,
+                result: {
+                  rollouts: {
+                    paths: [remoteShared],
+                    contents: [remoteRollout],
+                    lastOrdinal: 19,
+                  },
+                },
+              };
+            default:
+              return {
+                ok: false,
+                errorCode: "unexpected",
+                errorMessage: `unexpected ${command.type}`,
+              };
+          }
+        },
+      });
+
+      const handoff = await handoffCodexSession(harness.deps, {
+        threadId: thread.id,
+        homes,
+      });
+      expect(handoff).toEqual({
+        threadId: thread.id,
+        providerThreadId: MODERN_ID,
+        rolloutPath: remoteShared,
+        command: `codex resume ${MODERN_ID}`,
+        hostId: remote.host.id,
+        hostName: "Mac mini",
+        hostIsServer: false,
+      });
+      expect(existsSync(join(homes.shared, MODERN_RELATIVE))).toBe(true);
+      expect(getCodexThreadLink(harness.deps, thread.id)).toMatchObject({
+        handoffState: "handed-off",
+        sourceSyncedOrdinal: 19,
+      });
+
+      const synced = await syncCodexSession(harness.deps, {
+        threadId: thread.id,
+        homes,
+      });
+      expect(synced).toMatchObject({
+        appendedTurns: 2,
+        rolloutPath: remotePrivate,
+      });
+      expect(eventShapes(harness, thread.id).map((row) => row.type)).toContain(
+        "item/completed",
+      );
+      expect(
+        getCodexThreadLink(harness.deps, thread.id).handoffState,
+      ).toBeNull();
+      expect(
+        responder.requests.map((request) => {
+          const command = request.command;
+          return command.type === "codex.rollouts.copy"
+            ? `${command.type}:${command.from}->${command.to}`
+            : command.type;
+        }),
+      ).toEqual([
+        "codex.rollouts.locate",
+        "codex.rollouts.copy:private->shared",
+        "codex.rollouts.read",
+        "codex.rollouts.copy:shared->private",
+      ]);
+      responder.unregister();
+    });
+  });
+
   it("refuses non-Codex, busy, and never-linked threads", async () => {
     await withTestHarness(async (harness) => {
       const homes = await seedHomes();
@@ -537,9 +675,9 @@ describe("handoff and sync", () => {
         projectId: project.id,
         providerId: "claude",
       });
-      expect(() =>
+      await expect(
         handoffCodexSession(harness.deps, { threadId: claude.id, homes }),
-      ).toThrow(ApiError);
+      ).rejects.toBeInstanceOf(ApiError);
       await expect(
         syncCodexSession(harness.deps, { threadId: claude.id, homes }),
       ).rejects.toMatchObject({ body: { code: "codex_thread_required" } });
@@ -548,22 +686,14 @@ describe("handoff and sync", () => {
         projectId: project.id,
         status: "active",
       });
-      expect(() =>
+      await expect(
         handoffCodexSession(harness.deps, { threadId: active.id, homes }),
-      ).toThrow(
-        expect.objectContaining({
-          body: expect.objectContaining({ code: "thread_busy" }),
-        }),
-      );
+      ).rejects.toMatchObject({ body: { code: "thread_busy" } });
 
       const unlinked = seedThread(harness.deps, { projectId: project.id });
-      expect(() =>
+      await expect(
         handoffCodexSession(harness.deps, { threadId: unlinked.id, homes }),
-      ).toThrow(
-        expect.objectContaining({
-          body: expect.objectContaining({ code: "codex_session_unavailable" }),
-        }),
-      );
+      ).rejects.toMatchObject({ body: { code: "codex_session_unavailable" } });
     });
   });
 });

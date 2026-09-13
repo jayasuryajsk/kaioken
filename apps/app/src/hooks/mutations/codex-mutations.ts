@@ -39,19 +39,26 @@ export function useCodexHandoff() {
   return useMutation<CodexHandoffResponse, Error, { threadId: string }>({
     mutationFn: ({ threadId }) => sdk.threads.codex.handoff({ threadId }),
     onSuccess: async (result, { threadId }) => {
-      appToast.success("Ready to continue in Codex", {
-        description: result.command,
-        duration: 12_000,
-        action: {
-          label: "Copy",
-          onClick: () => {
-            void copyToClipboardWithToast(result.command, {
-              successMessage: "Command copied",
-              errorMessage: "Failed to copy command",
-            });
+      appToast.success(
+        result.hostIsServer || result.hostName === null
+          ? "Ready to continue in Codex"
+          : `Ready to continue in Codex on ${result.hostName}`,
+        {
+          description: result.hostIsServer
+            ? result.command
+            : `Run on ${result.hostName ?? result.hostId ?? "that machine"}: ${result.command}`,
+          duration: 12_000,
+          action: {
+            label: "Copy",
+            onClick: () => {
+              void copyToClipboardWithToast(result.command, {
+                successMessage: "Command copied",
+                errorMessage: "Failed to copy command",
+              });
+            },
           },
         },
-      });
+      );
       await queryClient.invalidateQueries({
         queryKey: codexThreadLinkQueryKey(threadId),
       });

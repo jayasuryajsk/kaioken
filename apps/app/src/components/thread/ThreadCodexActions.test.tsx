@@ -129,6 +129,9 @@ describe("ThreadCodexActions", () => {
       providerThreadId: "019e-codex",
       rolloutPath: "/Users/me/.codex/sessions/2026/06/12/rollout.jsonl",
       command: "codex resume 019e-codex",
+      hostId: "host-local",
+      hostName: "MacBook",
+      hostIsServer: true,
     });
     renderMenu();
 

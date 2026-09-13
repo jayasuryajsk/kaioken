@@ -66,6 +66,12 @@ deleted. `sync` reads the rollout Codex appended to, adds the new turns to the
 thread's timeline, copies the file back into the private home, and clears the
 handoff mark.
 
+Both run on the machine the thread's environment lives on. For a thread on an
+enrolled machine the server asks that machine's host daemon to locate, copy, and
+read the rollout, so `codex resume` must be run there; the handoff output and
+the app's toast name the machine. `kaioken codex sessions list` and `import`
+only see sessions on the Kaioken server machine.
+
 Drive a session from one side at a time. After a handoff, send messages from
 Codex until you sync; after a sync, send messages from Kaioken until the next
 handoff. Both tools append to the same session id, and the last writer's

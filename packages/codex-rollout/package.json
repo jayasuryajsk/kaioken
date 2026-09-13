@@ -8,6 +8,11 @@
       "source": "./src/index.ts",
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./files": {
+      "source": "./src/files.ts",
+      "types": "./src/files.ts",
+      "default": "./src/files.ts"
     }
   },
   "types": "./src/index.ts",

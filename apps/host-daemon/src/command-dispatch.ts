@@ -55,6 +55,11 @@ import {
 import { resolveInteractiveRequest } from "./command-handlers/interactive.js";
 import { pickHostFolder } from "./command-handlers/native-folder-picker.js";
 import {
+  copyCodexRollouts,
+  locateCodexRollouts,
+  readCodexRollouts,
+} from "./command-handlers/codex-rollouts.js";
+import {
   ProviderInstallationInProgressError,
   streamProviderInstallation,
 } from "./provider-installation.js";
@@ -608,6 +613,9 @@ const onlineRpcHandlers: OnlineRpcHandlerMap = {
     path: resolveProjectCloneDefaultPath(options.dataDir, command.projectSlug),
   }),
   "host.pick_folder": pickHostFolder,
+  "codex.rollouts.locate": (command) => locateCodexRollouts(command),
+  "codex.rollouts.copy": (command) => copyCodexRollouts(command),
+  "codex.rollouts.read": (command) => readCodexRollouts(command),
   "plugin.host.call": async () => {
     throw new Error("plugin.host.call must be routed by CommandRouter");
   },

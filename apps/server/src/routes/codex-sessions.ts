@@ -48,9 +48,9 @@ export function registerCodexSessionRoutes(app: Hono, deps: AppDeps): void {
     context.json(getCodexThreadLink(deps, context.req.param("id"))),
   );
 
-  post(routes.handoff, (context) =>
+  post(routes.handoff, async (context) =>
     context.json(
-      handoffCodexSession(deps, { threadId: context.req.param("id") }),
+      await handoffCodexSession(deps, { threadId: context.req.param("id") }),
     ),
   );
 

@@ -682,6 +682,9 @@ importers:
       '@kaioken/cli':
         specifier: workspace:*
         version: link:../cli
+      '@kaioken/codex-rollout':
+        specifier: workspace:*
+        version: link:../../packages/codex-rollout
       '@kaioken/config':
         specifier: workspace:*
         version: link:../../packages/config

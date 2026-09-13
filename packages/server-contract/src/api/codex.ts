@@ -60,6 +60,9 @@ export const codexHandoffResponseSchema = z.object({
   providerThreadId: z.string(),
   rolloutPath: z.string(),
   command: z.string(),
+  hostId: z.string().nullable(),
+  hostName: z.string().nullable(),
+  hostIsServer: z.boolean(),
 });
 export type CodexHandoffResponse = z.infer<typeof codexHandoffResponseSchema>;
 
