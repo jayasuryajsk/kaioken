@@ -52,7 +52,10 @@ export function printCodexSessionTable(
     session.id,
     formatDate(session.createdAt, session.updatedAt),
     truncate(shortenHome(session.cwd), 40),
-    truncate(session.firstPrompt ?? "(no prompt)", PROMPT_COLUMN_WIDTH),
+    truncate(
+      session.name ?? session.firstPrompt ?? "(no prompt)",
+      PROMPT_COLUMN_WIDTH,
+    ),
     session.importedThreadId ?? (session.archived ? "archived" : "-"),
   ]);
   console.log(

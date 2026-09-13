@@ -1,3 +1,4 @@
+import Database from "better-sqlite3";
 import { existsSync } from "node:fs";
 import {
   appendFile,
@@ -155,6 +156,57 @@ describe("listCodexSessions", () => {
         listCodexSessions(harness.deps, { includeArchived: false, homes })
           .sessions[0]?.importedThreadId,
       ).toBe(imported.thread.id);
+    });
+  });
+});
+
+describe("listCodexSessions with Codex's state database", () => {
+  it("uses Codex's names, pins, sections, and archived flags", async () => {
+    await withTestHarness(async (harness) => {
+      const homes = await seedHomes();
+      seedLocalProject(harness);
+      const state = new Database(join(homes.shared, "state_5.sqlite"));
+      state.exec(`
+        CREATE TABLE thread_sections (id TEXT PRIMARY KEY, name TEXT NOT NULL);
+        CREATE TABLE projects (id TEXT PRIMARY KEY, name TEXT NOT NULL);
+        CREATE TABLE threads (
+          id TEXT PRIMARY KEY, rollout_path TEXT NOT NULL, cwd TEXT NOT NULL,
+          title TEXT NOT NULL, first_user_message TEXT NOT NULL DEFAULT '',
+          archived INTEGER NOT NULL DEFAULT 0, is_pinned INTEGER NOT NULL DEFAULT 0,
+          name TEXT, thread_section_id TEXT, project_id TEXT, agent_role TEXT,
+          created_at_ms INTEGER, updated_at_ms INTEGER, recency_at_ms INTEGER
+        );
+        INSERT INTO thread_sections VALUES ('sec', 'Work');
+      `);
+      state
+        .prepare(
+          "INSERT INTO threads (id, rollout_path, cwd, title, archived, is_pinned, name, thread_section_id) VALUES (?, '', ?, 'first', ?, ?, ?, ?)",
+        )
+        .run(MODERN_ID, PROJECT_PATH, 1, 1, "Green CI", "sec");
+      state.close();
+
+      expect(
+        listCodexSessions(harness.deps, { includeArchived: false, homes })
+          .sessions,
+      ).toHaveLength(0);
+      const listed = listCodexSessions(harness.deps, {
+        includeArchived: true,
+        homes,
+      }).sessions.find((session) => session.id === MODERN_ID);
+      expect(listed).toMatchObject({
+        name: "Green CI",
+        pinned: true,
+        section: "Work",
+        archived: true,
+        firstPrompt: "Fix the failing test in src/app.ts",
+      });
+
+      const imported = await importCodexSession(harness.deps, {
+        id: MODERN_ID,
+        origin: "sdk",
+        homes,
+      });
+      expect(imported.thread.title).toBe("Green CI");
     });
   });
 });

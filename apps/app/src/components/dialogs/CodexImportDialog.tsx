@@ -35,17 +35,27 @@ interface CodexSessionGroup {
 
 const TITLE_MAX_LENGTH = 140;
 
-export function codexSessionTitle(session: CodexSession): string {
+function promptLine(session: CodexSession): string | null {
   const firstLine = session.firstPrompt
     ?.split("\n")
     .map((line) => line.trim())
     .find((line) => line.length > 0);
-  if (firstLine === undefined) {
-    return `Codex session ${session.id.slice(0, 8)}`;
-  }
+  if (firstLine === undefined) return null;
   return firstLine.length > TITLE_MAX_LENGTH
     ? `${firstLine.slice(0, TITLE_MAX_LENGTH - 1)}…`
     : firstLine;
+}
+
+export function codexSessionTitle(session: CodexSession): string {
+  return (
+    session.name ??
+    promptLine(session) ??
+    `Codex session ${session.id.slice(0, 8)}`
+  );
+}
+
+export function codexSessionSubtitle(session: CodexSession): string | null {
+  return session.name === null ? null : promptLine(session);
 }
 
 function folderName(cwd: string): string {
@@ -63,6 +73,8 @@ export function groupCodexSessions(
     if (
       needle.length > 0 &&
       !codexSessionTitle(session).toLowerCase().includes(needle) &&
+      !(session.firstPrompt ?? "").toLowerCase().includes(needle) &&
+      !(session.section ?? "").toLowerCase().includes(needle) &&
       !session.cwd.toLowerCase().includes(needle) &&
       !session.id.toLowerCase().includes(needle)
     ) {
@@ -99,6 +111,7 @@ function CodexSessionRow({
   onImport: (session: CodexSession) => void;
 }) {
   const imported = session.importedThreadId !== null;
+  const subtitle = codexSessionSubtitle(session);
   return (
     <li>
       <button
@@ -124,10 +137,17 @@ function CodexSessionRow({
           <span className="truncate text-sm text-foreground">
             {codexSessionTitle(session)}
           </span>
+          {subtitle !== null ? (
+            <span className="truncate text-xs text-muted-foreground">
+              {subtitle}
+            </span>
+          ) : null}
           <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
             <span>
               {formatRelativeTime({ timestamp: session.updatedAt, now })}
             </span>
+            {session.pinned ? <span>Pinned</span> : null}
+            {session.section !== null ? <span>{session.section}</span> : null}
             {session.archived ? <span>Archived</span> : null}
             {imported ? (
               <span className="text-subtle-foreground">Imported</span>

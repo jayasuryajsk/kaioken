@@ -5,6 +5,7 @@ export const RESERVED_KAIOKEN_CLI_COMMANDS: readonly string[] = [
   "file",
   "guide",
   "help",
+  "labels",
   "machine",
   "manager",
   "marketplace",

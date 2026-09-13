@@ -11,6 +11,9 @@ export const codexSessionSchema = z.object({
   createdAt: z.string().nullable(),
   updatedAt: z.number(),
   firstPrompt: z.string().nullable(),
+  name: z.string().nullable(),
+  pinned: z.boolean(),
+  section: z.string().nullable(),
   archived: z.boolean(),
   importedThreadId: z.string().nullable(),
 });

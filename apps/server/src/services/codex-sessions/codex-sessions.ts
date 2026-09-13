@@ -16,6 +16,8 @@ import {
   type CodexRollout,
   type CodexRolloutItem,
   type CodexRolloutTurn,
+  readCodexStateThread,
+  readCodexStateThreads,
 } from "@kaioken/codex-rollout";
 import {
   ensurePersonalProject,
@@ -79,6 +81,9 @@ export interface CodexSessionListItem {
   createdAt: string | null;
   updatedAt: number;
   firstPrompt: string | null;
+  name: string | null;
+  pinned: boolean;
+  section: string | null;
   archived: boolean;
   importedThreadId: string | null;
 }
@@ -141,25 +146,44 @@ export function listCodexSessions(
     }
     return [summary];
   });
-  const merged = mergeRolloutSummaries(summaries);
+  const state = readCodexStateThreads(homes.shared);
+  const merged = mergeRolloutSummaries(summaries).filter((summary) => {
+    const known = state.get(summary.id);
+    if (known === undefined) return true;
+    if (known.agentRole !== null) return false;
+    return args.includeArchived || !known.archived;
+  });
   const imported = listLiveThreadIdsBySourceProviderThreadIds(
     deps.db,
     merged.map((summary) => summary.id),
   );
   const sessions = merged
-    .map((summary): CodexSessionListItem => ({
-      id: summary.id,
-      path: summary.path,
-      cwd: summary.cwd,
-      originator: summary.originator,
-      source: summary.source,
-      createdAt: summary.createdAt,
-      updatedAt: summary.updatedAt,
-      firstPrompt: summary.firstPrompt,
-      archived: summary.archived,
-      importedThreadId: imported.get(summary.id) ?? null,
-    }))
-    .sort((a, b) => b.updatedAt - a.updatedAt);
+    .map((summary): CodexSessionListItem => {
+      const known = state.get(summary.id);
+      return {
+        id: summary.id,
+        path: summary.path,
+        cwd: summary.cwd,
+        originator: summary.originator,
+        source: summary.source,
+        createdAt: summary.createdAt,
+        updatedAt: Math.max(
+          summary.updatedAt,
+          known?.recencyAtMs ?? 0,
+          known?.updatedAtMs ?? 0,
+        ),
+        firstPrompt: summary.firstPrompt ?? known?.firstUserMessage ?? null,
+        name: known?.name ?? null,
+        pinned: known?.pinned ?? false,
+        section: known?.section ?? null,
+        archived: summary.archived || (known?.archived ?? false),
+        importedThreadId: imported.get(summary.id) ?? null,
+      };
+    })
+    .sort(
+      (a, b) =>
+        Number(b.pinned) - Number(a.pinned) || b.updatedAt - a.updatedAt,
+    );
   return { sessions, sharedHome: homes.shared, privateHome: homes.private };
 }
 
@@ -655,7 +679,9 @@ export async function importCodexSession(
       projectId: target.projectId,
       providerId: CODEX_PROVIDER_ID,
       startedOnBehalfOf: null,
-      title: deriveImportTitle(firstPrompt, `Codex session ${args.id}`),
+      title:
+        readCodexStateThread(homes.shared, args.id)?.name ??
+        deriveImportTitle(firstPrompt, `Codex session ${args.id}`),
       ...(rollout.meta.model !== null ? { model: rollout.meta.model } : {}),
       ...(reasoningLevel !== undefined ? { reasoningLevel } : {}),
     },

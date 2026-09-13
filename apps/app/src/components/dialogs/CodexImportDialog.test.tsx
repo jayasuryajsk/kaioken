@@ -14,7 +14,12 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { sdk } from "@/lib/sdk";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
-import { CodexImportDialog, groupCodexSessions } from "./CodexImportDialog";
+import {
+  CodexImportDialog,
+  codexSessionSubtitle,
+  codexSessionTitle,
+  groupCodexSessions,
+} from "./CodexImportDialog";
 
 vi.mock("@/lib/sdk", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/lib/sdk")>();
@@ -39,6 +44,9 @@ function session(
     createdAt: null,
     updatedAt: NOW - 60_000,
     firstPrompt: "Fix the flaky test",
+    name: null,
+    pinned: false,
+    section: null,
     archived: false,
     importedThreadId: null,
     ...overrides,
@@ -99,6 +107,29 @@ describe("groupCodexSessions", () => {
 });
 
 describe("CodexImportDialog", () => {
+  it("prefers Codex's own name and keeps the prompt as a subtitle", () => {
+    const named = session({
+      id: "n",
+      name: "Green CI",
+      firstPrompt: "make the tests pass",
+      pinned: true,
+      section: "Work",
+    });
+    expect(codexSessionTitle(named)).toBe("Green CI");
+    expect(codexSessionSubtitle(named)).toBe("make the tests pass");
+    expect(codexSessionSubtitle(session({ id: "p" }))).toBeNull();
+    expect(
+      groupCodexSessions([named, session({ id: "x" })], "tests pass").flatMap(
+        (group) => group.sessions.map((entry) => entry.id),
+      ),
+    ).toEqual(["n"]);
+    expect(
+      groupCodexSessions([named], "work").flatMap((group) =>
+        group.sessions.map((entry) => entry.id),
+      ),
+    ).toEqual(["n"]);
+  });
+
   it("lists sessions grouped by folder with imported markers", async () => {
     listMock.mockResolvedValue({
       sessions: [

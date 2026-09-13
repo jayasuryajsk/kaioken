@@ -43,6 +43,7 @@ describe("kaioken thread organization commands", () => {
     const create = vi.fn(async () => ({
       id: "section-review",
       name: "Review",
+      projectIds: [],
       createdAt: 1,
       updatedAt: 1,
     }));

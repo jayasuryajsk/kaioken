@@ -31,8 +31,11 @@ kaioken codex sessions import <id> [<id>...] [--project <id>]
 
 `list` skips subagent rollouts (guardian and other delegated sessions) and
 sessions Kaioken itself created. Each row shows the session id, its date, the
-folder it ran in, the first prompt, and the Kaioken thread it was already
-imported as, if any.
+folder it ran in, the name Codex shows for it, and the Kaioken thread it was
+already imported as, if any. Names, pins, sections, and archived flags come
+from Codex's own index (`state_<n>.sqlite` in the Codex home) when it exists;
+without it the first prompt stands in for the name. Imported threads take the
+Codex name as their title.
 
 `import` creates an idle Codex thread whose timeline is the session's history:
 user prompts, assistant replies, reasoning summaries, commands, file changes,
