@@ -20,7 +20,7 @@ import {
   type SidebarDensity,
   type SidebarPreferences,
   type SidebarRecentCount,
-  type SidebarThreadList,
+  type SidebarLayout,
 } from "@/lib/sidebar-preference";
 
 const TRIGGER_CLASS =
@@ -37,15 +37,21 @@ const DENSITY_OPTIONS: ReadonlyArray<{
   { value: "comfortable", label: "Comfortable", description: "32px rows" },
 ];
 
-const THREAD_LIST_OPTIONS: ReadonlyArray<{
-  value: SidebarThreadList;
+const LAYOUT_OPTIONS: ReadonlyArray<{
+  value: SidebarLayout;
   label: string;
   description: string;
 }> = [
   {
+    value: "unified",
+    label: "Unified",
+    description:
+      "Priority, pinned, sections, projects, and recents in one list",
+  },
+  {
     value: "timeline",
     label: "Timeline",
-    description: "Flat list by day, with a bell for priority mode",
+    description: "Flat list by day",
   },
   {
     value: "projects",
@@ -205,10 +211,10 @@ export function SidebarSettings() {
   return (
     <div className="space-y-5">
       <SidebarChoice
-        label="Thread list"
-        description="Timeline lists threads by day; its bell shows only what needs you or is running. Projects is the grouped list from bb."
-        preferenceKey="threadList"
-        options={THREAD_LIST_OPTIONS}
+        label="Layout"
+        description="Unified is the single list with Priority, Pinned, your sections, Projects, and Recents. Timeline and Projects are the older single-purpose lists."
+        preferenceKey="layout"
+        options={LAYOUT_OPTIONS}
         preferences={preferences}
         onPreview={preview}
         onSelect={select}

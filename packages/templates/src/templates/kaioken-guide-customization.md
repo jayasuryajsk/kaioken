@@ -5,6 +5,7 @@ summary: Command reference for customizing the kaioken app color palette, keyboa
 intent: Explain the CLI theme surface, server-backed app customization, and push-notification device registration.
 editingNotes: Keep flags accurate against the CLI implementation. Theme details live in the kaioken-cli skill's references/theming.md.
 ---
+
 Customization commands
 
 Theming — the app-wide color palette
@@ -15,16 +16,16 @@ separate per-client setting the palette layers on top of. Custom themes live on
 disk, one folder per theme, at <kaioken-data-dir>/theme/<name>/theme.css (the packaged
 app uses ~/.kaioken/theme/…). The folder name is the theme id.
 
-  kaioken theme list                  Built-in and custom themes; shows the active one
-  kaioken theme dir                   Print the custom-theme directory (where to author)
-  kaioken theme set <id> [--favicon-color <color>]
-                                 Activate a theme, preserving the favicon color
-                                 unless the flag supplies the complete selection
-  kaioken theme show [id] [--css]     Print the active palette, or resolve <id> without
-                                 activating it; --css dumps the CSS
-  kaioken theme reset                 Back to the default theme; preserve favicon color
-  kaioken theme favicon set <color>   Set favicon color; preserve the active theme
-  kaioken theme favicon reset         Reset favicon color; preserve the active theme
+kaioken theme list Built-in and custom themes; shows the active one
+kaioken theme dir Print the custom-theme directory (where to author)
+kaioken theme set <id> [--favicon-color <color>]
+Activate a theme, preserving the favicon color
+unless the flag supplies the complete selection
+kaioken theme show [id] [--css] Print the active palette, or resolve <id> without
+activating it; --css dumps the CSS
+kaioken theme reset Back to the default theme; preserve favicon color
+kaioken theme favicon set <color> Set favicon color; preserve the active theme
+kaioken theme favicon reset Reset favicon color; preserve the active theme
 
 To author a custom theme, run `kaioken theme dir`, write <that-dir>/<name>/theme.css,
 then `kaioken theme set <name>`. Optional `pierre-dark.json` / `pierre-light.json`
@@ -63,8 +64,8 @@ Server helper completions use `KAIOKEN_INFERENCE` first, then
 service-unavailable failure. Their defaults are `codex/gpt-5.6-luna` and
 `codex/gpt-5.4-mini`, respectively.
 
-  kaioken-app config set KAIOKEN_INFERENCE <provider/model>
-  kaioken-app config set KAIOKEN_INFERENCE_FALLBACK <provider/model>
+kaioken-app config set KAIOKEN_INFERENCE <provider/model>
+kaioken-app config set KAIOKEN_INFERENCE_FALLBACK <provider/model>
 
 Server-backed General settings
 
@@ -113,13 +114,13 @@ the default gives `kaioken/fix-login-flow-thr_ab12cd34ef`. Set `sawyer/wt-` to g
 a prefix that cannot start a valid git branch name. The new prefix applies to
 branches kaioken creates after the change.
 
-  kaioken settings show
-  kaioken settings ai-services
-  kaioken settings general <key> <value>
-  kaioken settings experiment <key> <value>
-  kaioken settings usage [--machine <id-or-name>]
-  kaioken settings version [--force]
-  kaioken settings reload
+kaioken settings show
+kaioken settings ai-services
+kaioken settings general <key> <value>
+kaioken settings experiment <key> <value>
+kaioken settings usage [--machine <id-or-name>]
+kaioken settings version [--force]
+kaioken settings reload
 
 `kaioken settings ai-services` shows the helper-inference and voice-transcription
 settings (`KAIOKEN_INFERENCE`, `KAIOKEN_INFERENCE_FALLBACK`, `KAIOKEN_TRANSCRIPTION`, set with
@@ -173,10 +174,10 @@ contexts and native-only availability remain server-owned, and desktop menu
 accelerators for New Thread, New Window, New Tab, Close, and Settings use the
 same resolved bindings. The complete default table is in docs/configuration.md.
 
-  kaioken settings keyboard list
-  kaioken settings keyboard hints <true|false>
-  kaioken settings keyboard set <command> <shortcut|disabled>
-  kaioken settings keyboard reset [command]
+kaioken settings keyboard list
+kaioken settings keyboard hints <true|false>
+kaioken settings keyboard set <command> <shortcut|disabled>
+kaioken settings keyboard reset [command]
 
 Push notifications
 
@@ -184,13 +185,13 @@ The built-in Push notifications plugin sends mobile updates through Expo and
 system notifications to connected web and desktop clients. Web tabs or desktop
 windows must stay open; browser permission is requested in the plugin settings.
 
-  kaioken push-notifications list
-  kaioken push-notifications add --token <expo-push-token>
-      --platform <ios|android> --label <device-name>
-  kaioken push-notifications remove <id>
-  kaioken push-notifications status
-  kaioken push-notifications test <web|desktop>
-  kaioken plugin config push-notifications set <mobileEnabled|webEnabled|desktopEnabled> <true|false>
+kaioken push-notifications list
+kaioken push-notifications add --token <expo-push-token>
+--platform <ios|android> --label <device-name>
+kaioken push-notifications remove <id>
+kaioken push-notifications status
+kaioken push-notifications test <web|desktop>
+kaioken plugin config push-notifications set <mobileEnabled|webEnabled|desktopEnabled> <true|false>
 
 `add` is an upsert by token: a known token refreshes its label and last-seen
 time and keeps its id. Expo tokens that are no longer registered are removed
@@ -204,8 +205,8 @@ permission; OS notification settings still control whether a banner appears.
 
 Host files and voice transcription
 
-  kaioken file read|write|list|paths|mkdir|move|remove ...
-  kaioken voice transcribe <audio-file> [--prompt <context>]
+kaioken file read|write|list|paths|mkdir|move|remove ...
+kaioken voice transcribe <audio-file> [--prompt <context>]
 
 Voice transcription uses the `KAIOKEN_TRANSCRIPTION` model, which defaults to
 `codex/gpt-transcribe`. Override it with
@@ -229,10 +230,10 @@ visibility, and the navigation and thread-list provider pickers. The sidebar
 waits for them alongside the project list, and an upgrade uploads the old
 browser-stored layout once.
 
-  kaioken settings ui list [--json]
-  kaioken settings ui get <key> [--json]
-  kaioken settings ui set <key> <value> [--json]
-  kaioken settings ui reset <key> [--json]
+kaioken settings ui list [--json]
+kaioken settings ui get <key> [--json]
+kaioken settings ui set <key> <value> [--json]
+kaioken settings ui reset <key> [--json]
 
 `kaioken settings ui list` prints every key with its value, revision, and a short
 description. `set` takes plain strings for enum and provider keys and JSON for
@@ -240,7 +241,19 @@ lists and `null`; it reads the current revision, writes with it, and retries
 once on a conflict. `reset` writes the default. The SDK offers
 `sdk.system.uiPreferences.list()`, `.set()`, and `.reset()`.
 
-Every thread-list header's actions menu offers New project, New section,
+The default sidebar layout is Unified (Settings > Appearance > Layout): one
+list with Priority (threads waiting on you or running, "Nothing needs
+attention" when empty), Pinned, one collapsible group per section, Projects,
+and Recents by day. Project rows show the repo and, for repos on another
+machine, the machine name with a green dot while it is connected; each
+project lists its three newest threads with Show more, and the section
+shows eight projects with Show more. The Projects header's menu sorts by
+Recent activity, Name, or Machine (`sidebar.projectsSort`) and offers New
+section; its + adds a project. The title row's bell shows how many threads
+need you and scrolls to Priority; the footer names the server machine.
+
+The Timeline and Projects layouts remain selectable. In the Projects layout
+every thread-list header's actions menu offers New project, New section,
 Organize, and Sort by. Organize selects By project, By machine, By connection,
 or Custom; Sort by selects a field, and selecting it again reverses its
 arrow/direction. By connection shows one collapsible group per machine (the
@@ -254,12 +267,12 @@ top-level order for this mode.
 
 Labels from the CLI
 
-  kaioken labels list [--json]
-  kaioken labels add <name> [--json]
-  kaioken labels rename <label> <name> [--json]
-  kaioken labels remove <label> [--yes] [--json]
-  kaioken labels move <label> <id...> [--json]
-  kaioken labels unlabel <id...> [--json]
+kaioken labels list [--json]
+kaioken labels add <name> [--json]
+kaioken labels rename <label> <name> [--json]
+kaioken labels remove <label> [--yes] [--json]
+kaioken labels move <label> <id...> [--json]
+kaioken labels unlabel <id...> [--json]
 
 `<label>` is a section id or its exact name. `move` accepts repo ids
 (`proj_...`) and thread ids (`thr_...`) in one call; each member belongs to at

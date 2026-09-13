@@ -40,6 +40,22 @@ describe("sidebar preferences", () => {
     );
   });
 
+  it("migrates the old threadList key onto layout", () => {
+    expect(parseSidebarPreferences('{"threadList":"projects"}').layout).toBe(
+      "projects",
+    );
+    expect(parseSidebarPreferences('{"threadList":"timeline"}').layout).toBe(
+      "timeline",
+    );
+    expect(parseSidebarPreferences('{"threadList":"bogus"}').layout).toBe(
+      "unified",
+    );
+    expect(
+      parseSidebarPreferences('{"threadList":"projects","layout":"unified"}')
+        .layout,
+    ).toBe("unified");
+  });
+
   it("mirrors preferences onto html data attributes and clears them", () => {
     const root = document.createElement("html");
     applySidebarPreferences(

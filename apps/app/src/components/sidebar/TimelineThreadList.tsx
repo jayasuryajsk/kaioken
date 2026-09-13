@@ -42,7 +42,7 @@ interface TimelineThreadListProps {
   threads: readonly ThreadListEntry[];
 }
 
-function useNow(): number {
+export function useNow(): number {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), CLOCK_TICK_MS);
@@ -56,12 +56,14 @@ interface RowMachine {
   remote: boolean;
 }
 
-interface RowProps {
+export interface TimelineRowProps {
   hasDraft: boolean;
   isActive: boolean;
   machine: RowMachine | null;
   onProjectSelect?: () => void;
   thread: ThreadListEntry;
+  showMeta?: boolean;
+  indent?: boolean;
 }
 
 export function useTimelineMachines(): (
@@ -85,13 +87,15 @@ export function useTimelineMachines(): (
   }, [hosts, primaryHost?.id]);
 }
 
-function TimelineRow({
+export function TimelineRow({
   hasDraft,
   isActive,
   machine,
   onProjectSelect,
   thread,
-}: RowProps) {
+  showMeta = true,
+  indent = false,
+}: TimelineRowProps) {
   const projectName = useSidebarProjectName(
     thread.projectId === PERSONAL_PROJECT_ID ? null : thread.projectId,
   );
@@ -114,7 +118,8 @@ function TimelineRow({
       <div
         data-testid="timeline-row"
         className={cn(
-          "group/timeline-row relative flex items-center gap-2 rounded-md py-1 pl-2 pr-1 text-sm transition-colors",
+          "group/timeline-row relative flex items-center gap-2 rounded-md py-1 pr-1 text-sm transition-colors",
+          indent ? "pl-7" : "pl-2",
           isActive
             ? SIDEBAR_ROW_SELECTED_STATE_CLASS
             : "text-sidebar-foreground hover:bg-sidebar-accent",
@@ -146,24 +151,26 @@ function TimelineRow({
           >
             {title}
           </span>
-          <span
-            data-testid="timeline-row-meta"
-            className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground"
-          >
-            <Icon
-              name={machine?.remote ? "Laptop" : "Folder"}
-              className="size-3 shrink-0"
-            />
-            <span className="min-w-0 truncate">
-              {location}
-              {machine?.remote && projectName !== null ? (
-                <span className="text-subtle-foreground">
-                  {" "}
-                  · {machine.name}
-                </span>
-              ) : null}
+          {showMeta ? (
+            <span
+              data-testid="timeline-row-meta"
+              className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground"
+            >
+              <Icon
+                name={machine?.remote ? "Laptop" : "Folder"}
+                className="size-3 shrink-0"
+              />
+              <span className="min-w-0 truncate">
+                {location}
+                {machine?.remote && projectName !== null ? (
+                  <span className="text-subtle-foreground">
+                    {" "}
+                    · {machine.name}
+                  </span>
+                ) : null}
+              </span>
             </span>
-          </span>
+          ) : null}
         </NavLink>
         <span className="flex shrink-0 items-center">
           <span className="inline-flex size-6 items-center justify-center group-hover/timeline-row:hidden">

@@ -47,6 +47,10 @@ export const sidebarOrganizationModeAtom = createSyncedPreferenceAtom(
   "sidebar.organizationMode",
 );
 
+export const sidebarProjectsSortAtom = createSyncedPreferenceAtom(
+  "sidebar.projectsSort",
+);
+
 export const sidebarChronologicalSortAtom = createSyncedPreferenceAtom(
   "sidebar.chronologicalSort",
 );

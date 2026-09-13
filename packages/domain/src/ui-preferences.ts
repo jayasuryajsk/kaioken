@@ -45,6 +45,7 @@ const uiPreferenceStringListSchema = z
 
 export const UI_PREFERENCE_KEYS = [
   "sidebar.organizationMode",
+  "sidebar.projectsSort",
   "sidebar.chronologicalSort",
   "sidebar.sortDirection",
   "sidebar.sectionOrder",
@@ -89,6 +90,11 @@ export const uiPreferenceDefinitions = {
     sidebarOrganizationModeSchema,
     "project",
     "How the sidebar groups threads: by project, chronologically, by machine, or by connection (machines holding their repos, plus sections).",
+  ),
+  "sidebar.projectsSort": defineUiPreference(
+    z.enum(["recent", "name", "machine"]),
+    "recent",
+    "Order of the Projects section in the unified sidebar: recent activity, name, or machine.",
   ),
   "sidebar.chronologicalSort": defineUiPreference(
     sidebarChronologicalSortSchema,

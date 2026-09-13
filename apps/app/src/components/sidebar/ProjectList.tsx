@@ -12,6 +12,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { SidebarSectionRow } from "./SidebarSectionRow";
 import { TimelineThreadList } from "./TimelineThreadList";
+import { UnifiedSidebarList } from "./UnifiedSidebarList";
 import { ThreadRow } from "./ThreadRow";
 import {
   compareByAttentionThen,
@@ -1295,7 +1296,8 @@ function ProjectListComponent({
       sidebarNavigationQuery.error,
     ),
   });
-  const { threadId: selectedThreadId } = useRouteState();
+  const { threadId: selectedThreadId, projectId: routeProjectId } =
+    useRouteState();
   const {
     isPending: isPinnedReorderPending,
     mutate: reorderPinnedThreadMutate,
@@ -1787,7 +1789,24 @@ function ProjectListComponent({
       }}
     >
       <ProjectListShell>
-        {sidebarPreferences.threadList === "timeline" ? (
+        {sidebarPreferences.layout === "unified" ? (
+          <UnifiedSidebarList
+            threads={threads}
+            projects={projects ?? EMPTY_PROJECTS}
+            sections={sections}
+            pinnedThreadIds={pinnedRootThreads.map((thread) => thread.id)}
+            draftThreadIds={draftThreadIds}
+            selectedThreadId={selectedThreadId}
+            selectedProjectId={routeProjectId ?? undefined}
+            onProjectSelect={onProjectSelect}
+            onNewProject={onNewProject}
+            isCreatingProject={isCreatingProject}
+            onCreateThreadInSection={handleCreateThreadInSection}
+            onRenameSection={handleOpenRenameThreadSection}
+            onRemoveSection={handleRemoveThreadSection}
+            onRequestNewSection={handleOpenCreateSectionDialog}
+          />
+        ) : sidebarPreferences.layout === "timeline" ? (
           <TimelineThreadList
             threads={threads}
             selectedThreadId={selectedThreadId}

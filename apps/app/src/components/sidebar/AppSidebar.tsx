@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
 import {
   applySidebarPreferences,
@@ -55,6 +55,7 @@ import {
 } from "./sidebarThreadShortcuts";
 import {
   useAppCommandHandler,
+  useAppCommandRunner,
   useAppCommandShortcut,
   useAppCommandShortcuts,
   useIsAppCommandModifierHeld,
@@ -63,8 +64,72 @@ import {
 import { useRouteState } from "@/hooks/useRouteState";
 import { SidebarNavigationRegion } from "./SidebarNavigationRegion";
 import { SidebarRail } from "./SidebarRail";
+import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
+import { usePrimaryHost } from "@/hooks/queries/host-queries";
+import { useSidebarNavigation } from "@/hooks/queries/sidebar-navigation-query";
+import { countNeedsYou } from "@/lib/sidebar-timeline";
+import { SIDEBAR_CONTROL_BUTTON_CLASS } from "./sidebarRowClasses";
 
 const NEW_THREAD_PANE_CONTENT = { kind: "new-thread" } as const;
+
+const SIDEBAR_TITLE_BUTTON_CLASS = cn(
+  SIDEBAR_CONTROL_BUTTON_CLASS,
+  "size-7 text-muted-foreground hover:text-sidebar-foreground",
+);
+
+export function SidebarTitleRow({
+  needsYouCount,
+  onSearch,
+  onPriority,
+  className,
+}: {
+  needsYouCount: number;
+  onSearch: (element: HTMLElement) => void;
+  onPriority: () => void;
+  className?: string;
+}) {
+  return (
+    <div
+      data-testid="app-sidebar-title-row"
+      className={cn(
+        "flex h-9 shrink-0 items-center gap-1 pl-4 pr-2",
+        className,
+      )}
+    >
+      <span className="min-w-0 flex-1 truncate text-base font-semibold text-sidebar-foreground">
+        Kaioken
+      </span>
+      <button
+        type="button"
+        aria-label="Search threads"
+        className={SIDEBAR_TITLE_BUTTON_CLASS}
+        onClick={(event) => onSearch(event.currentTarget)}
+      >
+        <Icon name="Search" className="size-4" />
+      </button>
+      <button
+        type="button"
+        aria-label={
+          needsYouCount > 0
+            ? `Priority (${needsYouCount} waiting)`
+            : "Priority (nothing waiting)"
+        }
+        className={SIDEBAR_TITLE_BUTTON_CLASS}
+        onClick={onPriority}
+      >
+        <Icon name="BellDot" className="size-4" />
+        {needsYouCount > 0 ? (
+          <span
+            data-testid="app-sidebar-priority-count"
+            className="absolute -right-0.5 -top-0.5 inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-foreground px-0.5 text-2xs font-medium leading-none text-background"
+          >
+            {needsYouCount > 9 ? "9+" : needsYouCount}
+          </span>
+        ) : null}
+      </button>
+    </div>
+  );
+}
 
 const SIDEBAR_FOOTER_ACTION_CLASS = cn(
   COARSE_POINTER_CHILD_ICON_BUTTON_CLASS,
@@ -119,6 +184,28 @@ export function AppSidebar({
   useEffect(() => {
     applySidebarPreferences(sidebarPreferences);
   }, [sidebarPreferences]);
+  const commandRunner = useAppCommandRunner();
+  const sidebarNavigation = useSidebarNavigation().data;
+  const needsYouCount = useMemo(() => {
+    if (!sidebarNavigation) return 0;
+    return countNeedsYou([
+      ...sidebarNavigation.projects.flatMap((project) => project.threads),
+      ...sidebarNavigation.personalProject.threads,
+    ]);
+  }, [sidebarNavigation]);
+  const primaryHost = usePrimaryHost();
+  const showTitleRow = sidebarPreferences.layout === "unified";
+  const handleSearch = useCallback(
+    (element: HTMLElement) => {
+      commandRunner.dispatch("thread.search", element);
+    },
+    [commandRunner],
+  );
+  const handlePriority = useCallback(() => {
+    sidebarRef.current
+      ?.querySelector('[data-sidebar-section="priority"]')
+      ?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, []);
 
   const handleNewChat = useCallback(() => {
     closeOnMobile();
@@ -262,6 +349,14 @@ export function AppSidebar({
           />
         </div>
       ) : null}
+      {showTitleRow && !isCompactCustomizeModeActive ? (
+        <SidebarTitleRow
+          needsYouCount={needsYouCount}
+          onSearch={handleSearch}
+          onPriority={handlePriority}
+          className="group-data-[collapsible=icon]:hidden"
+        />
+      ) : null}
       <SidebarNavigationRegion
         compactCustomizeMode={isCompactCustomizeModeActive}
         onCompactCustomizeModeChange={setCompactCustomizeMode}
@@ -301,6 +396,17 @@ export function AppSidebar({
           onDismiss={pluginSidebarFooter.dismiss}
         />
         <SidebarMenu className="flex-row flex-wrap-reverse items-center gap-1">
+          {primaryHost ? (
+            <li
+              data-testid="app-sidebar-footer-machine"
+              className="flex min-w-0 items-center gap-1.5 pl-2 pr-1 text-xs text-muted-foreground"
+            >
+              <MachineStatusDot
+                connected={primaryHost.status === "connected"}
+              />
+              <span className="min-w-0 truncate">{primaryHost.name}</span>
+            </li>
+          ) : null}
           <SidebarMenuItem className="min-w-0">
             <SidebarMenuButton
               asChild

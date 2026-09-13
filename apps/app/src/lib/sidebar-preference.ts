@@ -8,15 +8,15 @@ export const SIDEBAR_PREFERENCE_STORAGE_KEY = "bb.appearance.sidebar";
 export const SIDEBAR_DENSITIES = ["compact", "default", "comfortable"] as const;
 export type SidebarDensity = (typeof SIDEBAR_DENSITIES)[number];
 
-export const SIDEBAR_THREAD_LISTS = ["timeline", "projects"] as const;
-export type SidebarThreadList = (typeof SIDEBAR_THREAD_LISTS)[number];
+export const SIDEBAR_LAYOUTS = ["unified", "timeline", "projects"] as const;
+export type SidebarLayout = (typeof SIDEBAR_LAYOUTS)[number];
 
 export const SIDEBAR_RECENT_COUNTS = [0, 3, 5, 8] as const;
 export type SidebarRecentCount = (typeof SIDEBAR_RECENT_COUNTS)[number];
 
 const sidebarPreferencesSchema = z.object({
   density: z.enum(SIDEBAR_DENSITIES).default("default"),
-  threadList: z.enum(SIDEBAR_THREAD_LISTS).default("timeline"),
+  layout: z.enum(SIDEBAR_LAYOUTS).default("unified"),
   headingLabels: z.boolean().default(false),
   needsYouFirst: z.boolean().default(false),
   recentCount: z
@@ -31,12 +31,30 @@ export type SidebarPreferences = z.infer<typeof sidebarPreferencesSchema>;
 export const DEFAULT_SIDEBAR_PREFERENCES: SidebarPreferences =
   sidebarPreferencesSchema.parse({});
 
+const LEGACY_THREAD_LIST_LAYOUTS: Record<string, SidebarLayout> = {
+  timeline: "timeline",
+  projects: "projects",
+};
+
+function migrateLegacyThreadList(value: unknown): unknown {
+  if (typeof value !== "object" || value === null) return value;
+  const record = value as Record<string, unknown>;
+  if ("layout" in record || typeof record.threadList !== "string") {
+    return value;
+  }
+  const { threadList, ...rest } = record;
+  const layout = LEGACY_THREAD_LIST_LAYOUTS[threadList];
+  return layout === undefined ? rest : { ...rest, layout };
+}
+
 export function parseSidebarPreferences(
   raw: string | null,
 ): SidebarPreferences {
   if (raw === null) return DEFAULT_SIDEBAR_PREFERENCES;
   try {
-    const parsed = sidebarPreferencesSchema.safeParse(JSON.parse(raw));
+    const parsed = sidebarPreferencesSchema.safeParse(
+      migrateLegacyThreadList(JSON.parse(raw)),
+    );
     return parsed.success ? parsed.data : DEFAULT_SIDEBAR_PREFERENCES;
   } catch {
     return DEFAULT_SIDEBAR_PREFERENCES;

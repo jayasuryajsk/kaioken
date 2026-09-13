@@ -625,6 +625,7 @@ client wrote first, so a stale window cannot silently clobber a newer value.
 | Key                               | Value                                                  |
 | --------------------------------- | ------------------------------------------------------ |
 | `sidebar.organizationMode`        | `project`, `chronological`, `machine`, or `connection` |
+| `sidebar.projectsSort`            | `recent`, `name`, or `machine` (unified sidebar)       |
 | `sidebar.chronologicalSort`       | `updated`, `created`, `alpha`, or `none`               |
 | `sidebar.sectionOrder`            | Section id list for **By project**                     |
 | `sidebar.manualSectionOrder`      | Section id list for **Manually**                       |
