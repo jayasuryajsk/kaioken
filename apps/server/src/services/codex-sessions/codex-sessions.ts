@@ -867,6 +867,7 @@ export async function syncCodexSession(
     (tx) => {
       const newTurns = rollout.turns.filter(
         (turn) =>
+          turn.lastOrdinal > syncedOrdinal &&
           !hasStoredTurnStarted(tx, {
             threadId: thread.id,
             turnId: turn.turnId,

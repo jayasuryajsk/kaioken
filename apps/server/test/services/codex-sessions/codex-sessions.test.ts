@@ -561,10 +561,36 @@ describe("handoff and sync", () => {
         handoffState: null,
         sourceSyncedOrdinal: null,
       });
-      const remoteRollout = await readFile(
-        join(fixtures, "modern.jsonl"),
-        "utf8",
-      );
+      const cliTurnId = "019ebb9f-dddd-7d00-8a11-2f4c9e1b0ccc";
+      const cliLine = (ordinal: number, payload: unknown) =>
+        `${JSON.stringify({
+          timestamp: "2026-06-13T09:00:00.000Z",
+          ordinal,
+          type: "event_msg",
+          payload,
+        })}\n`;
+      const remoteRollout =
+        (await readFile(join(fixtures, "modern.jsonl"), "utf8")) +
+        cliLine(20, { type: "task_started", turn_id: cliTurnId }) +
+        cliLine(21, {
+          type: "item_completed",
+          turn_id: cliTurnId,
+          item: {
+            type: "UserMessage",
+            id: "item-30",
+            content: [{ type: "text", text: "asked on the mini" }],
+          },
+        }) +
+        cliLine(22, {
+          type: "item_completed",
+          turn_id: cliTurnId,
+          item: {
+            type: "AgentMessage",
+            id: "item-31",
+            content: [{ type: "Text", text: "answered on the mini" }],
+          },
+        }) +
+        cliLine(23, { type: "task_complete", turn_id: cliTurnId });
       const remotePrivate = `/Users/me/.kaioken/codex-home/${MODERN_RELATIVE}`;
       const remoteShared = `/Users/me/.codex/${MODERN_RELATIVE}`;
       const responder = registerHostRpcResponder(harness, {
@@ -603,7 +629,7 @@ describe("handoff and sync", () => {
                   rollouts: {
                     paths: [remoteShared],
                     contents: [remoteRollout],
-                    lastOrdinal: 19,
+                    lastOrdinal: 23,
                   },
                 },
               };
@@ -641,12 +667,17 @@ describe("handoff and sync", () => {
         homes,
       });
       expect(synced).toMatchObject({
-        appendedTurns: 2,
+        appendedTurns: 1,
         rolloutPath: remotePrivate,
       });
-      expect(eventShapes(harness, thread.id).map((row) => row.type)).toContain(
-        "item/completed",
-      );
+      expect(
+        eventShapes(harness, thread.id).filter(
+          (row) => row.type === "turn/started",
+        ),
+      ).toHaveLength(1);
+      expect(
+        getCodexThreadLink(harness.deps, thread.id).sourceSyncedOrdinal,
+      ).toBe(23);
       expect(
         getCodexThreadLink(harness.deps, thread.id).handoffState,
       ).toBeNull();
