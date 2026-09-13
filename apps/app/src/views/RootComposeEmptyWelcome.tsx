@@ -5,6 +5,7 @@ import kaiokenLogoUrl from "../../../../assets/kaioken-logo.svg";
 interface RootComposeEmptyWelcomeProps {
   onCompose: (prompt?: string) => void;
   onAddProject: () => void;
+  onImportCodexSession: () => void;
   addProjectDisabled?: boolean;
 }
 
@@ -52,6 +53,7 @@ function WelcomeAction({
 export function RootComposeEmptyWelcome({
   onCompose,
   onAddProject,
+  onImportCodexSession,
   addProjectDisabled,
 }: RootComposeEmptyWelcomeProps) {
   const reducedMotion = usePrefersReducedMotion();
@@ -147,6 +149,12 @@ export function RootComposeEmptyWelcome({
           description="Create one from a local folder"
           onClick={onAddProject}
           disabled={addProjectDisabled}
+        />
+        <WelcomeAction
+          icon="Terminal"
+          title="Import from Codex"
+          description="Continue a Codex CLI session here"
+          onClick={onImportCodexSession}
         />
         <WelcomeAction
           icon="Explore"

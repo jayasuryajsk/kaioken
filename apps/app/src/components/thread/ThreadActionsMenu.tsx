@@ -35,6 +35,7 @@ import { isThreadRead } from "@kaioken/client-core";
 import { copyToClipboardWithToast } from "@/lib/clipboard";
 import { getThreadRoutePath } from "@/lib/route-paths";
 import { useThreadActions } from "./ThreadActionsProvider";
+import { ThreadCodexActions } from "./ThreadCodexActions";
 import { useThreadSectionMove } from "./ThreadSectionMoveProvider";
 
 interface ThreadActionsMenuBaseProps {
@@ -243,6 +244,11 @@ function ThreadActionsMenuItems({
           {showSeparators ? <ActionMenuSeparator surface={surface} /> : null}
         </>
       ) : null}
+      <ThreadCodexActions
+        thread={thread}
+        surface={surface}
+        showSeparator={showSeparators}
+      />
       <ActionMenuItem
         surface={surface}
         icon="Copy"

@@ -30,6 +30,10 @@ vi.mock("@/hooks/mutations/thread-state-mutations", () => ({
   useMoveThreadToSection: () => moveThreadToSection,
 }));
 
+vi.mock("./ThreadCodexActions", () => ({
+  ThreadCodexActions: () => null,
+}));
+
 vi.mock("./ThreadActionsProvider", () => ({
   useThreadActions: () => ({
     ...threadActions,

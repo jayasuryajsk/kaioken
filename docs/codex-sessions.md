@@ -10,6 +10,17 @@ The Codex CLI stores every session as a rollout: one JSONL file under
 defaults to `~/.codex`. Kaioken reads and writes those files directly; it never
 asks the Codex CLI to export anything.
 
+## In the app
+
+The new-thread page has an "Import from Codex" link under the composer, and
+the command palette offers the same action. The picker groups sessions by the
+folder they ran in, newest first, marks sessions that are already imported, and
+can include Codex's archived sessions. Picking a session opens its thread.
+
+A thread's actions menu shows "Continue in Codex" once the thread has a Codex
+session; it runs the handoff and shows the `codex resume` command with a copy
+button. "Sync from Codex" appears while the thread is handed off.
+
 ## Import a Codex session
 
 ```sh

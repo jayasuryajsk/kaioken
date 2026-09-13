@@ -1,5 +1,8 @@
 import type { WorkspaceDiffTarget } from "@kaioken/domain";
-import type { ThreadListFilters, ThreadSearchFilters } from "@kaioken/client-core";
+import type {
+  ThreadListFilters,
+  ThreadSearchFilters,
+} from "@kaioken/client-core";
 import type { EnvironmentFilePreviewSource } from "@kaioken/client-core";
 import {
   DEFAULT_THREAD_STORAGE_FILE_LIST_OPTIONS,
@@ -58,6 +61,8 @@ const THREAD_TIMELINE_TURN_SUMMARY_DETAILS_QUERY_KEY =
 const SYSTEM_PROVIDERS_QUERY_KEY = "systemProviders";
 const SYSTEM_CONFIG_QUERY_KEY = "systemConfig";
 const UI_PREFERENCES_QUERY_KEY = "uiPreferences";
+const CODEX_SESSIONS_QUERY_KEY = "codexSessions";
+const CODEX_THREAD_LINK_QUERY_KEY = "codexThreadLink";
 const SYSTEM_THEME_QUERY_KEY = "systemTheme";
 export const SYSTEM_EXECUTION_OPTIONS_QUERY_KEY = "systemExecutionOptions";
 const SYSTEM_CLI_SKILLS_QUERY_KEY = "systemCliSkills";
@@ -187,6 +192,15 @@ type DisabledThreadListQueryKey = readonly [
   ThreadListQueryFilters?,
 ];
 type ThreadQueryKeyPrefix = readonly [typeof THREAD_QUERY_KEY];
+type CodexSessionsQueryKey = readonly [
+  typeof CODEX_SESSIONS_QUERY_KEY,
+  { includeArchived: boolean },
+];
+type CodexSessionsQueryKeyPrefix = readonly [typeof CODEX_SESSIONS_QUERY_KEY];
+type CodexThreadLinkQueryKey = readonly [
+  typeof CODEX_THREAD_LINK_QUERY_KEY,
+  string,
+];
 type ThreadQueryKey = readonly [typeof THREAD_QUERY_KEY, string];
 type ThreadTabsQueryKey = readonly [typeof THREAD_TABS_QUERY_KEY, string];
 type ThreadDetailBootstrapQueryKeyPrefix = readonly [
@@ -673,6 +687,22 @@ export function disabledThreadListQueryKey(
 
 export function threadQueryKey(threadId: string): ThreadQueryKey {
   return [THREAD_QUERY_KEY, threadId];
+}
+
+export function codexSessionsQueryKey(
+  includeArchived: boolean,
+): CodexSessionsQueryKey {
+  return [CODEX_SESSIONS_QUERY_KEY, { includeArchived }];
+}
+
+export function allCodexSessionsQueryKeyPrefix(): CodexSessionsQueryKeyPrefix {
+  return [CODEX_SESSIONS_QUERY_KEY];
+}
+
+export function codexThreadLinkQueryKey(
+  threadId: string,
+): CodexThreadLinkQueryKey {
+  return [CODEX_THREAD_LINK_QUERY_KEY, threadId];
 }
 
 export function threadTabsQueryKey(threadId: string): ThreadTabsQueryKey {

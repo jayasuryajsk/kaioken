@@ -25,6 +25,7 @@ import {
 } from "@/components/thread/ThreadTitleMentions";
 import { AppCommandShortcutHint } from "@/components/commands/AppCommandShortcutHint";
 import { CommandPalette } from "@/components/commands/CommandPalette";
+import { CodexImportDialogHost } from "@/components/dialogs/CodexImportDialog";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import {
   resolveAutomationBreadcrumbs,
@@ -796,6 +797,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             projectId={projectId ?? null}
           />
           <NotificationCenter />
+          <CodexImportDialogHost />
           <ProjectPathDialog
             target={quickCreateProject.projectPathDialog.target}
             pending={quickCreateProject.isCreating}

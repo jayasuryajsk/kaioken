@@ -8,6 +8,8 @@ import {
 } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSetAtom } from "jotai";
+import { codexImportDialogOpenAtom } from "@/lib/codex-import/atoms";
 import { Dialog, DialogContent, DialogTitle } from "@kaioken/shared-ui/dialog";
 import { Icon } from "@kaioken/shared-ui/icon";
 import { cn } from "@kaioken/shared-ui/lib/utils";
@@ -59,6 +61,7 @@ export interface CommandPaletteProps {
 
 export function CommandPalette({ threadId, projectId }: CommandPaletteProps) {
   const navigate = useNavigate();
+  const openCodexImport = useSetAtom(codexImportDialogOpenAtom);
   const runner = useAppCommandRunner();
   const shortcuts = useAppCommandShortcuts(PALETTE_COMMAND_IDS);
   const listId = useId();
@@ -173,9 +176,26 @@ export function CommandPalette({ threadId, projectId }: CommandPaletteProps) {
 
   const mode: PaletteMode = query.startsWith(">") ? "commands" : "threads";
   const modeQuery = mode === "commands" ? query.slice(1) : query;
+  const codexActions = useMemo<readonly PaletteAction[]>(
+    () => [
+      {
+        id: "codex:import",
+        group: "Threads",
+        title: "Import from Codex",
+        shortcut: null,
+        run: () => openCodexImport(true),
+      },
+    ],
+    [openCodexImport],
+  );
   const commandActions = useMemo<readonly PaletteAction[]>(
-    () => [...actions, ...settingsActions, ...pluginPageActions],
-    [actions, pluginPageActions, settingsActions],
+    () => [
+      ...actions,
+      ...codexActions,
+      ...settingsActions,
+      ...pluginPageActions,
+    ],
+    [actions, codexActions, pluginPageActions, settingsActions],
   );
   const rankedCommands = useMemo(
     () =>

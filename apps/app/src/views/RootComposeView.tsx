@@ -148,6 +148,9 @@ import {
 } from "./RootComposeSecondaryContent";
 import { RootComposeMobileRecents } from "./RootComposeMobileRecents";
 import { RootComposeEmptyWelcome } from "./RootComposeEmptyWelcome";
+import { RootComposeCodexImportLink } from "./RootComposeCodexImportLink";
+import { useSetAtom } from "jotai";
+import { codexImportDialogOpenAtom } from "@/lib/codex-import/atoms";
 import {
   shouldLoadThreadStorageFileList,
   useThreadStorageViewer,
@@ -1793,6 +1796,11 @@ function RootComposeSurface({
     </div>
   ) : null;
   const isForkDraft = forkSeed !== null;
+  const setCodexImportOpen = useSetAtom(codexImportDialogOpenAtom);
+  const openCodexImport = useCallback(
+    () => setCodexImportOpen(true),
+    [setCodexImportOpen],
+  );
   const showEmptyWelcome =
     !isForkDraft &&
     !startedComposing &&
@@ -2038,13 +2046,19 @@ function RootComposeSurface({
                 <RootComposeEmptyWelcome
                   onCompose={handleStartComposing}
                   onAddProject={quickCreateProject.openCreateDialog}
+                  onImportCodexSession={openCodexImport}
                   addProjectDisabled={
                     !quickCreateProject.isAvailable ||
                     quickCreateProject.isCreating
                   }
                 />
               ) : (
-                promptBox
+                <>
+                  {promptBox}
+                  {isForkDraft ? null : (
+                    <RootComposeCodexImportLink onOpen={openCodexImport} />
+                  )}
+                </>
               )}
             </RootComposeSecondaryContent>
           </AppNavigationHostProvider>
