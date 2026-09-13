@@ -308,11 +308,31 @@ function dropAppSettingsValuesTable(db: DbConnection): void {
   db.$client.prepare("DROP TABLE IF EXISTS app_settings_values").run();
 }
 
+function dropThreadCodexLinkColumns(db: DbConnection): void {
+  const columns = new Set(
+    db.$client
+      .prepare<[], TableInfoRow>("PRAGMA table_info(threads)")
+      .all()
+      .map((column) => column.name),
+  );
+  db.$client.exec("DROP INDEX IF EXISTS threads_source_provider_thread_idx");
+  for (const column of [
+    "source_provider_thread_id",
+    "handoff_state",
+    "source_synced_ordinal",
+  ]) {
+    if (columns.has(column)) {
+      db.$client.prepare(`ALTER TABLE threads DROP COLUMN ${column}`).run();
+    }
+  }
+}
+
 function dropThreadConversationOutlinesTable(db: DbConnection): void {
   db.$client.prepare("DROP TABLE IF EXISTS thread_conversation_outlines").run();
 }
 
 function dropRewindAddedTables(db: DbConnection): void {
+  dropThreadCodexLinkColumns(db);
   rewindEnvironmentRowFactsMigration(db);
   rewindEnvironmentProvidersMigration(db);
   dropThreadConversationOutlinesTable(db);
@@ -668,6 +688,7 @@ function dropMarketplaceCatalogSchema(db: DbConnection): void {
 }
 
 function dropEventToolNameColumn(db: DbConnection): void {
+  dropThreadCodexLinkColumns(db);
   db.$client.prepare("DROP TABLE IF EXISTS ui_preferences").run();
   db.$client.prepare("DROP TABLE IF EXISTS retained_event_outputs").run();
   dropThreadConversationOutlinesTable(db);
@@ -1603,6 +1624,7 @@ describe("migrate", () => {
       });
       const eventData = JSON.stringify({ message: "existing event" });
 
+      dropThreadCodexLinkColumns(db);
       db.$client.prepare("DROP TABLE ui_preferences").run();
       db.$client.prepare("DROP TABLE retained_event_outputs").run();
       db.$client
@@ -5553,6 +5575,7 @@ describe("environment providers migration", () => {
   const environmentProvidersMigrationWhen = 1788386943764;
 
   function seedPreProviderEnvironments(db: DbConnection): void {
+    dropThreadCodexLinkColumns(db);
     db.$client.prepare("DROP TABLE ui_preferences").run();
     db.$client.prepare("DROP TABLE retained_event_outputs").run();
     rewindEnvironmentRowFactsMigration(db);

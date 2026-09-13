@@ -22,6 +22,11 @@ export {
   threadOriginKindValues,
 } from "./thread-origin-kind.js";
 export type { ThreadOriginKind } from "./thread-origin-kind.js";
+export {
+  threadHandoffStateSchema,
+  threadHandoffStateValues,
+} from "./thread-handoff-state.js";
+export type { ThreadHandoffState } from "./thread-handoff-state.js";
 
 /**
  * The three additions to {@link threadStatusValues} are display-only: they

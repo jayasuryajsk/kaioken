@@ -257,6 +257,18 @@ import type {
   UiPreferencesResponse,
   UpdateUiPreferenceRequest,
 } from "./api/ui-preferences.js";
+import type {
+  CodexHandoffResponse,
+  CodexSessionListQuery,
+  CodexSessionListResponse,
+  CodexSyncResponse,
+  CodexThreadLinkResponse,
+  ImportCodexSessionRequest,
+} from "./api/codex.js";
+import {
+  codexSessionListQuerySchema,
+  importCodexSessionRequestSchema,
+} from "./api/codex.js";
 import { updateUiPreferenceRequestSchema } from "./api/ui-preferences.js";
 import {
   closeTerminalRequestSchema,
@@ -1502,6 +1514,43 @@ export const publicApiRoutes = {
         threadFilesRawQuerySchema,
       ),
       response: binaryResponse<Uint8Array>(),
+    }),
+  },
+
+  codex: {
+    listSessions: defineRoute({
+      path: "/codex/sessions",
+      method: "get",
+      request: optionalQueryRequest<EmptyInput, CodexSessionListQuery>(
+        codexSessionListQuerySchema,
+      ),
+      response: jsonResponse<CodexSessionListResponse>(),
+    }),
+    importSession: defineRoute({
+      path: "/codex/sessions/import",
+      method: "post",
+      request: jsonRequest<EmptyInput, ImportCodexSessionRequest>(
+        importCodexSessionRequestSchema,
+      ),
+      response: jsonResponse<ThreadResponse>({ status: 201 }),
+    }),
+    threadLink: defineRoute({
+      path: "/threads/:id/codex",
+      method: "get",
+      request: noRequest<PathId>(),
+      response: jsonResponse<CodexThreadLinkResponse>(),
+    }),
+    handoff: defineRoute({
+      path: "/threads/:id/codex/handoff",
+      method: "post",
+      request: noRequest<PathId>(),
+      response: jsonResponse<CodexHandoffResponse>(),
+    }),
+    sync: defineRoute({
+      path: "/threads/:id/codex/sync",
+      method: "post",
+      request: noRequest<PathId>(),
+      response: jsonResponse<CodexSyncResponse>(),
     }),
   },
 

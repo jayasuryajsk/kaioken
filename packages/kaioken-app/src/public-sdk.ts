@@ -60,6 +60,7 @@ export type ThreadWaitUnreachableErrorConstructor =
   typeof ThreadWaitUnreachableError;
 
 export class BBSdk implements KaiokenSdk {
+  readonly codex: KaiokenSdk["codex"];
   readonly environments: KaiokenSdk["environments"];
   readonly experimental_desktopBrowsers: KaiokenSdk["experimental_desktopBrowsers"];
   readonly files: KaiokenSdk["files"];
@@ -88,6 +89,7 @@ export class BBSdk implements KaiokenSdk {
     this.projects = sdk.projects;
     this.providers = sdk.providers;
     this.skills = sdk.skills;
+    this.codex = sdk.codex;
     this.status = sdk.status;
     this.system = sdk.system;
     this.terminals = sdk.terminals;

@@ -78,6 +78,7 @@ interface ClientTurnRequestedEventArgs {
    * asked for.
    */
   retryOf?: TurnRequestRetryMarker;
+  createdAt?: number;
   environmentId: string | null;
   execution: ResolvedThreadExecutionOptions;
   initiator: ThreadTurnInitiator;
@@ -316,6 +317,7 @@ function appendBuiltClientTurnRequestedEvent(
     type: args.type,
     scope: threadScope(),
     data: buildClientTurnRequestedEventData(args, args.requestId),
+    ...(args.createdAt !== undefined ? { createdAt: args.createdAt } : {}),
   });
   return { requestId: args.requestId, sequence };
 }

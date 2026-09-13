@@ -1,4 +1,8 @@
-import { getThread, type DbTransaction, type EnvironmentRow } from "@kaioken/db";
+import {
+  getThread,
+  type DbTransaction,
+  type EnvironmentRow,
+} from "@kaioken/db";
 import {
   type EnvironmentProviderSelection,
   type PromptInput,
@@ -15,6 +19,7 @@ import { requestQueuedMessageDispatch } from "./queued-message-dispatch.js";
 import {
   appendClientTurnEvent,
   appendPreparedClientTurnRequestedEventWithNotificationInTransaction,
+  appendThreadProvisioningEvent,
   buildCwdBranchEntries,
   createClientTurnRequestId,
 } from "./thread-events.js";
@@ -49,6 +54,7 @@ interface RequestThreadProvisionArgs {
   fork: ThreadForkDescriptor | null;
   input: PromptInput[];
   providerInput?: PromptInput[];
+  seedWithoutRun?: boolean;
   startedOnBehalfOf: StartedOnBehalfOf | null;
   thread: Thread;
   titleProvided: boolean;
@@ -174,6 +180,13 @@ async function startThreadIfEnvironmentReady(
     args.context.request.seedWithoutRun &&
     args.context.request.fork === null
   ) {
+    appendThreadProvisioningEvent(deps, {
+      threadId: args.thread.id,
+      environmentId: args.environment.id,
+      provisioningId: args.context.state.provisioningId,
+      status: "completed",
+      entries: [],
+    });
     const outcome = applyLoggedThreadLifecycleEvent(deps, {
       threadId: args.thread.id,
       event: { type: "run.succeeded" },
@@ -251,7 +264,8 @@ export function requestThreadProvision(
     ...args,
     clientRequestId: request.requestId,
     input: args.providerInput ?? args.input,
-    seedWithoutRun: args.startedOnBehalfOf !== null,
+    seedWithoutRun:
+      args.startedOnBehalfOf !== null || args.seedWithoutRun === true,
   });
   rememberActiveThreadProvisionContext({
     threadId: args.thread.id,

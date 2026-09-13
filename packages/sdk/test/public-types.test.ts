@@ -221,6 +221,7 @@ interface NodeSurface {
 }
 
 type ExpectedBbSdkKey =
+  | "codex"
   | "experimental_desktopBrowsers"
   | "environments"
   | "files"
@@ -362,6 +363,7 @@ type ExpectedThreadsKey =
   | "childSummary"
   | "clearContext"
   | "clearGoal"
+  | "codex"
   | "compact"
   | "conversationOutline"
   | "count"
@@ -402,6 +404,9 @@ type ExpectedThreadsKey =
   | "wait";
 
 type ExpectedThreadEventsKey = "list" | "wait";
+type ExpectedThreadCodexKey = "handoff" | "link" | "sync";
+type ExpectedCodexKey = "sessions";
+type ExpectedCodexSessionsKey = "import" | "list";
 /**
  * The cross-thread queue area answers exactly one question — what is queued
  * right now — so it has exactly one method. A row's own operations (send-now,
@@ -560,6 +565,13 @@ describe("SDK public type entrypoints", () => {
     expectTypeOf<
       keyof RootBbSdk["threads"]["events"]
     >().toEqualTypeOf<ExpectedThreadEventsKey>();
+    expectTypeOf<
+      keyof RootBbSdk["threads"]["codex"]
+    >().toEqualTypeOf<ExpectedThreadCodexKey>();
+    expectTypeOf<keyof RootBbSdk["codex"]>().toEqualTypeOf<ExpectedCodexKey>();
+    expectTypeOf<
+      keyof RootBbSdk["codex"]["sessions"]
+    >().toEqualTypeOf<ExpectedCodexSessionsKey>();
     expectTypeOf<
       keyof RootBbSdk["threads"]["queue"]
     >().toEqualTypeOf<ExpectedThreadQueueKey>();

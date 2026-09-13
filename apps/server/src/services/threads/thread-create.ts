@@ -71,6 +71,8 @@ interface CreateProvisioningThreadArgs {
   fork: ThreadForkPoint | null;
   request: ThreadCreateServiceRequest;
   providerInput?: ThreadCreateServiceRequestInput["input"];
+  seedWithoutRun?: boolean;
+  onCreated?: (thread: Thread) => void;
 }
 
 interface ResolveForkPointArgs {
@@ -369,6 +371,7 @@ async function createPendingThreadAndAttemptFirstDispatch(
         sourceThreadId: args.fork.sourceThreadId,
       });
     }
+    args.onCreated?.(thread);
     const executionPlanArgs = {
       projectDefaults: args.executionDefaults,
       hostId: hostIdForEnvironmentIntent(deps, args.environmentIntent),
@@ -386,6 +389,7 @@ async function createPendingThreadAndAttemptFirstDispatch(
       ...(args.providerInput !== undefined
         ? { providerInput: args.providerInput }
         : {}),
+      seedWithoutRun: args.seedWithoutRun ?? false,
       startedOnBehalfOf: args.request.startedOnBehalfOf,
       titleProvided: Boolean(args.request.title),
     };
@@ -457,6 +461,8 @@ export async function createThreadFromRequest(
   options: {
     providerInput?: ThreadCreateServiceRequestInput["input"];
     forkSourceEnvironmentId?: string;
+    seedWithoutRun?: boolean;
+    onCreated?: (thread: Thread) => void;
   } = {},
 ) {
   const project = requirePublicProjectForThreadCreate(
@@ -698,6 +704,12 @@ export async function createThreadFromRequest(
     fork,
     ...(options.providerInput !== undefined
       ? { providerInput: options.providerInput }
+      : {}),
+    ...(options.seedWithoutRun !== undefined
+      ? { seedWithoutRun: options.seedWithoutRun }
+      : {}),
+    ...(options.onCreated !== undefined
+      ? { onCreated: options.onCreated }
       : {}),
     request,
   };

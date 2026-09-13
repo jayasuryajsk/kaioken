@@ -303,6 +303,7 @@ export type AppendStoredThreadEventArgs<
   TType extends ThreadEventType = ThreadEventType,
 > = {
   [TEventType in TType]: {
+    createdAt?: number;
     data: StoredThreadEventDataForType<TEventType>;
     environmentId?: string | null;
     providerThreadId?: string | null;
@@ -967,7 +968,7 @@ export function appendStoredThreadEventsInTransaction(
 
     insertStoredEventRow(db, {
       conflict: "error",
-      createdAt: now,
+      createdAt: args.createdAt ?? now,
       data: JSON.stringify(args.data),
       environmentId: args.environmentId ?? null,
       itemId: itemFields.itemId,

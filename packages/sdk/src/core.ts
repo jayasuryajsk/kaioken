@@ -16,6 +16,7 @@ import { createPluginsArea, type PluginsArea } from "./areas/plugins.js";
 import { createBbRealtimeClient } from "./realtime-client.js";
 import type { KaiokenRealtime } from "./realtime-types.js";
 import { createStatusArea, type StatusArea } from "./areas/status.js";
+import { createCodexArea, type CodexArea } from "./areas/codex.js";
 import { createSkillsArea, type SkillsArea } from "./areas/skills.js";
 import { createThemeArea, type ThemeArea } from "./areas/theme.js";
 import { createSystemArea, type SystemArea } from "./areas/system.js";
@@ -39,6 +40,7 @@ export interface CreateBbSdkWithGuideArgs extends CreateBbSdkArgs {
 }
 
 export interface KaiokenSdkAreas extends KaiokenRealtime {
+  codex: CodexArea;
   experimental_desktopBrowsers: ExperimentalDesktopBrowsersArea;
   environments: EnvironmentsArea;
   files: FilesArea;
@@ -69,6 +71,7 @@ export function createBbSdk(
     transport: args.transport,
   });
   const areas: KaiokenSdkAreas = {
+    codex: createCodexArea(sdkContext),
     experimental_desktopBrowsers: createDesktopBrowsersArea(sdkContext),
     environments: createEnvironmentsArea(sdkContext),
     files: createFilesArea(sdkContext),

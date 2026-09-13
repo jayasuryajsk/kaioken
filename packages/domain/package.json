@@ -53,6 +53,11 @@
       "source": "./src/plugin-interaction-limits.ts",
       "types": "./src/plugin-interaction-limits.ts",
       "default": "./src/plugin-interaction-limits.ts"
+    },
+    "./thread-handoff-state": {
+      "source": "./src/thread-handoff-state.ts",
+      "types": "./src/thread-handoff-state.ts",
+      "default": "./src/thread-handoff-state.ts"
     }
   },
   "types": "./src/index.ts",

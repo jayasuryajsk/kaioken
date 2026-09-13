@@ -25,6 +25,7 @@ import { registerQueueRoutes } from "./routes/queue.js";
 import { registerPluginRoutes } from "./routes/plugins.js";
 import { registerPluginCatalogRoutes } from "./routes/plugin-catalog.js";
 import { registerSkillsRegistryRoutes } from "./routes/skills-registry.js";
+import { registerCodexSessionRoutes } from "./routes/codex-sessions.js";
 import {
   createPluginService,
   type PluginService,
@@ -657,6 +658,7 @@ export function createApp(
   registerPluginCatalogRoutes(publicApi, pluginCatalogService);
   registerPluginRoutes(publicApi, deps, pluginService, upgradeWebSocket);
   registerSkillsRegistryRoutes(publicApi, deps);
+  registerCodexSessionRoutes(publicApi, deps);
   app.route("/api/v1", publicApi);
   app.use("/api/v1/*", () => {
     throw new ApiError(404, "not_found", "Not found");

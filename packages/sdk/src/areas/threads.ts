@@ -73,6 +73,7 @@ import type {
   UpdateThreadRequest,
   UpdateQueuedMessageRequest,
 } from "@kaioken/server-contract";
+import { createThreadCodexArea, type ThreadCodexArea } from "./codex.js";
 import { signalRequestArgs, type CreateSdkAreaArgs } from "./common.js";
 
 export const DEFAULT_THREAD_WAIT_TIMEOUT_MS = 20 * 60 * 1000;
@@ -541,6 +542,7 @@ export interface ThreadsArea {
   ): Promise<ThreadDefaultExecutionOptionsResult>;
   delete(args: ThreadDeleteArgs): Promise<ThreadDeleteResult>;
   editMessage(args: ThreadEditMessageArgs): Promise<ThreadEditMessageResult>;
+  codex: ThreadCodexArea;
   events: ThreadEventsArea;
   fork(args: ThreadForkArgs): Promise<ThreadForkResult>;
   get(args: ThreadGetArgs): Promise<ThreadGetResult>;
@@ -817,6 +819,7 @@ function isThreadWaitTargetUnreachable(
 
 export function createThreadsArea(args: CreateSdkAreaArgs): ThreadsArea {
   const { transport } = args;
+  const codex = createThreadCodexArea(args);
   const getThread = (input: ThreadGetArgs) =>
     transport.readJson(
       transport.api.v1.threads[":id"].$get(
@@ -1108,6 +1111,7 @@ export function createThreadsArea(args: CreateSdkAreaArgs): ThreadsArea {
         }),
       );
     },
+    codex,
     events,
     async fork(input) {
       return transport.readJson(

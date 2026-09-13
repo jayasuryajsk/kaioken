@@ -17,6 +17,7 @@ import {
 import type {
   ReasoningLevel,
   ThreadChangeKind,
+  ThreadHandoffState,
   ThreadLifecycleEvent,
   ThreadLifecycleNoopReason,
   ThreadOriginKind,
@@ -2122,4 +2123,101 @@ export function applyThreadLifecycleEvent(
     (tx) => applyThreadLifecycleEventInTransaction(tx, args),
     { behavior: "immediate" },
   );
+}
+
+export interface ThreadCodexLink {
+  handoffState: ThreadHandoffState | null;
+  sourceProviderThreadId: string | null;
+  sourceSyncedOrdinal: number | null;
+  threadId: string;
+}
+
+const threadCodexLinkFields = {
+  handoffState: threads.handoffState,
+  sourceProviderThreadId: threads.sourceProviderThreadId,
+  sourceSyncedOrdinal: threads.sourceSyncedOrdinal,
+  threadId: threads.id,
+};
+
+export function getThreadCodexLink(
+  db: DbQueryConnection,
+  threadId: string,
+): ThreadCodexLink | null {
+  return (
+    db
+      .select(threadCodexLinkFields)
+      .from(threads)
+      .where(eq(threads.id, threadId))
+      .get() ?? null
+  );
+}
+
+export function getLiveThreadIdBySourceProviderThreadId(
+  db: DbQueryConnection,
+  sourceProviderThreadId: string,
+): string | null {
+  return (
+    db
+      .select({ id: threads.id })
+      .from(threads)
+      .where(
+        and(
+          eq(threads.sourceProviderThreadId, sourceProviderThreadId),
+          isNull(threads.deletedAt),
+        ),
+      )
+      .orderBy(desc(threads.createdAt))
+      .limit(1)
+      .get()?.id ?? null
+  );
+}
+
+export function listLiveThreadIdsBySourceProviderThreadIds(
+  db: DbQueryConnection,
+  sourceProviderThreadIds: readonly string[],
+): Map<string, string> {
+  const result = new Map<string, string>();
+  if (sourceProviderThreadIds.length === 0) return result;
+  const rows = db
+    .select({
+      id: threads.id,
+      sourceProviderThreadId: threads.sourceProviderThreadId,
+    })
+    .from(threads)
+    .where(
+      and(
+        inArray(threads.sourceProviderThreadId, [...sourceProviderThreadIds]),
+        isNull(threads.deletedAt),
+      ),
+    )
+    .orderBy(asc(threads.createdAt))
+    .all();
+  for (const row of rows) {
+    if (row.sourceProviderThreadId !== null) {
+      result.set(row.sourceProviderThreadId, row.id);
+    }
+  }
+  return result;
+}
+
+export interface SetThreadCodexLinkInput {
+  handoffState: ThreadHandoffState | null;
+  sourceProviderThreadId: string | null;
+  sourceSyncedOrdinal: number | null;
+  threadId: string;
+}
+
+export function setThreadCodexLink(
+  db: ThreadWriteConnection,
+  input: SetThreadCodexLinkInput,
+): void {
+  db.update(threads)
+    .set({
+      handoffState: input.handoffState,
+      sourceProviderThreadId: input.sourceProviderThreadId,
+      sourceSyncedOrdinal: input.sourceSyncedOrdinal,
+      updatedAt: Date.now(),
+    })
+    .where(eq(threads.id, input.threadId))
+    .run();
 }

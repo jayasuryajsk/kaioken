@@ -11,6 +11,7 @@ import {
 import { sql } from "drizzle-orm";
 import type { AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 import { threadStatusValues } from "@kaioken/domain/thread-status";
+import { threadHandoffStateValues } from "@kaioken/domain/thread-handoff-state";
 import { threadOriginKindValues } from "@kaioken/domain/thread-origin-kind";
 import { threadVisibilityValues } from "@kaioken/domain/thread-visibility";
 import type {
@@ -549,6 +550,11 @@ export const threads = sqliteTable(
       enum: threadOriginKindValues,
     }),
     originPluginId: text("origin_plugin_id"),
+    sourceProviderThreadId: text("source_provider_thread_id"),
+    handoffState: text("handoff_state", {
+      enum: threadHandoffStateValues,
+    }),
+    sourceSyncedOrdinal: integer("source_synced_ordinal"),
     visibility: text("visibility", { enum: threadVisibilityValues })
       .notNull()
       .default("visible"),
@@ -577,6 +583,9 @@ export const threads = sqliteTable(
     index("threads_source_origin_idx").on(
       table.sourceThreadId,
       table.originKind,
+    ),
+    index("threads_source_provider_thread_idx").on(
+      table.sourceProviderThreadId,
     ),
     index("threads_origin_plugin_archived_idx").on(
       table.originPluginId,

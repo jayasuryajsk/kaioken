@@ -92,6 +92,8 @@ export const pendingThreadStartContextSchema = z.object({
   fork: threadForkDescriptorSchema.nullable(),
   /** Provider-facing input when it differs from the persisted start seed. */
   providerInput: z.array(promptInputSchema).optional(),
+  /** Settle idle after provisioning instead of dispatching a first turn. */
+  seedWithoutRun: z.boolean().default(false),
   startedOnBehalfOf: startedOnBehalfOfSchema.nullable(),
   titleProvided: z.boolean(),
 });
@@ -321,6 +323,7 @@ async function runDispatchAttempt(
       : {
           environmentIntent: failedProviderLaunch.environmentIntent,
           fork: failedProviderLaunch.fork,
+          seedWithoutRun: false,
           startedOnBehalfOf: args.startedOnBehalfOf,
           titleProvided: failedProviderLaunch.titleProvided,
         };
@@ -773,6 +776,7 @@ async function launchAdmittedThread(
     ...(startContext.providerInput !== undefined
       ? { providerInput: startContext.providerInput }
       : {}),
+    seedWithoutRun: startContext.seedWithoutRun,
     startedOnBehalfOf: startContext.startedOnBehalfOf,
     titleProvided: startContext.titleProvided,
   });
