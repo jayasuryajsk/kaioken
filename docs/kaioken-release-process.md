@@ -252,13 +252,26 @@ Publish from a clean `main` checkout on an Apple Silicon Mac with `gh` logged in
 pnpm release:desktop --patch            # or --minor, --major, or an explicit version
 pnpm release:desktop 0.43.0 --notes "Board dialog, ASCII backdrop, OTA updates"
 pnpm release:desktop --patch --dry-run  # build and list assets without publishing
+pnpm release:desktop --patch --notarize # also submit to Apple (adds minutes)
 ```
 
 Signing is automatic when a "Developer ID Application" identity is in the login
-keychain, and notarization runs when `.env.release` (gitignored; see
-`.env.release.example`) provides `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, and
-`APPLE_TEAM_ID`. Without the identity the release ships unsigned; the script
-prints which of the three it is doing before it builds.
+keychain. Notarization is off by default because every supported install path
+(the in-app update and `scripts/install-desktop.sh`) avoids the quarantine
+flag; pass `--notarize` when a build must open from a browser download, which
+uses `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, and `APPLE_TEAM_ID` from
+`.env.release` (gitignored; see `.env.release.example`). Without the identity
+the release ships unsigned; the script prints what it is doing before it builds.
+
+The zip is uploaded once, to the versioned release, and the feed carries
+absolute URLs. Installs older than 1.0.3 prefix the feed's file names with the
+`desktop-latest` URL instead; pass `--double-upload` while any such install
+still needs to update.
+
+Signing skips everything under `app.asar.unpacked/node_modules` except the
+`.node` addons and node-pty's `spawn-helper` (`mac.signIgnore`), and the
+afterPack hook prunes source maps, SQLite sources, non-macOS prebuilds, and
+Drizzle snapshots from the bundle before signing.
 
 The script bumps both locked package versions, packages the arm64 zip,
 generates the feed, commits `Release desktop <version>`, tags `desktop-v<version>`

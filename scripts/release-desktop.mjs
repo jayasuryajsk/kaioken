@@ -63,7 +63,7 @@ const LATEST_TAG = "desktop-latest";
 const RELEASE_ENV_FILE = join(repoRoot, ".env.release");
 const DEVELOPER_ID_PREFIX = "Developer ID Application:";
 const USAGE =
-  "Usage: pnpm release:desktop <version>|--patch|--minor|--major [--notes <text>] [--dry-run] [--skip-build] [--single-upload]\n       pnpm release:desktop --publish-only [--notes <text>]   (retry the GitHub release for the current version)\n       --single-upload keeps the zip on the versioned release only; safe once every install runs 1.0.3 or newer";
+  "Usage: pnpm release:desktop <version>|--patch|--minor|--major [--notes <text>] [--dry-run] [--skip-build] [--notarize] [--double-upload]\n       pnpm release:desktop --publish-only [--notes <text>]   (retry the GitHub release for the current version)\n       --notarize submits the build to Apple (slow; only needed for browser downloads, not OTA or the installer script)\n       --double-upload also attaches the zip to desktop-latest, for installs older than 1.0.3";
 
 function parseArgs(argv) {
   const options = {
@@ -72,13 +72,16 @@ function parseArgs(argv) {
     dryRun: false,
     skipBuild: false,
     publishOnly: false,
-    singleUpload: false,
+    singleUpload: true,
+    notarize: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--dry-run") options.dryRun = true;
     else if (arg === "--publish-only") options.publishOnly = true;
     else if (arg === "--single-upload") options.singleUpload = true;
+    else if (arg === "--double-upload") options.singleUpload = false;
+    else if (arg === "--notarize") options.notarize = true;
     else if (arg === "--skip-build") options.skipBuild = true;
     else if (arg === "--notes") {
       options.notes = argv[index + 1] ?? null;
@@ -177,7 +180,7 @@ async function findDeveloperIdIdentity() {
   }
 }
 
-async function describeSigning() {
+async function describeSigning(notarize) {
   const releaseEnv = await loadReleaseEnv();
   const identity = await findDeveloperIdIdentity();
   const appleKeys = [
@@ -193,6 +196,14 @@ async function describeSigning() {
       env: { CSC_IDENTITY_AUTO_DISCOVERY: "false" },
       summary:
         "unsigned (no Developer ID Application identity in the keychain)",
+    };
+  }
+  if (!notarize) {
+    const env = { ...releaseEnv, CSC_IDENTITY_AUTO_DISCOVERY: "true" };
+    for (const key of appleKeys) delete env[key];
+    return {
+      env,
+      summary: `signed with ${identity}, not notarized (pass --notarize to submit to Apple)`,
     };
   }
   if (!hasAppleCredentials) {
@@ -402,7 +413,7 @@ async function main() {
   let assets;
   try {
     if (!options.skipBuild) {
-      const signing = await describeSigning();
+      const signing = await describeSigning(options.notarize);
       console.log(`Signing: ${signing.summary}`);
       await run("pnpm", [
         "--filter",

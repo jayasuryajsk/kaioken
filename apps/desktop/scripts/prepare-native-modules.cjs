@@ -1,5 +1,5 @@
 const { spawn } = require("node:child_process");
-const { chmod, readFile, readdir, writeFile } = require("node:fs/promises");
+const { chmod, readFile, readdir, rm, writeFile } = require("node:fs/promises");
 const { createRequire } = require("node:module");
 const path = require("node:path");
 
@@ -200,6 +200,87 @@ async function prepareBetterSqlite3PackageDirectory(packageDirectory, options) {
   );
 }
 
+const PRUNED_DIRECTORY_SUFFIXES = [
+  path.join("better-sqlite3", "deps"),
+  path.join("node-pty", "prebuilds", "win32-x64"),
+  path.join("node-pty", "prebuilds", "win32-arm64"),
+  path.join("node-pty", "prebuilds", "linux-x64"),
+  path.join("node-pty", "prebuilds", "linux-arm64"),
+  path.join("zod", "src"),
+  path.join("kaioken-app", "src"),
+];
+const PRUNED_FILE_NAMES = new Set(["vitest.config.ts", "tsconfig.json"]);
+
+function isPrunedFile(filePath) {
+  const base = path.basename(filePath);
+  if (base.endsWith(".map")) return true;
+  if (
+    base.endsWith("_snapshot.json") &&
+    path.basename(path.dirname(filePath)) === "meta"
+  ) {
+    return true;
+  }
+  return (
+    PRUNED_FILE_NAMES.has(base) &&
+    path.basename(path.dirname(filePath)) === "kaioken-app"
+  );
+}
+
+async function prunePackagedNodeModules(nodeModulesDir) {
+  const removed = [];
+  const pending = [nodeModulesDir];
+  while (pending.length > 0) {
+    const directoryPath = pending.pop();
+    let entries;
+    try {
+      entries = await readdir(directoryPath, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const entryPath = path.join(directoryPath, entry.name);
+      if (entry.isDirectory()) {
+        if (
+          PRUNED_DIRECTORY_SUFFIXES.some((suffix) =>
+            entryPath.endsWith(`${path.sep}${suffix}`),
+          )
+        ) {
+          await rm(entryPath, { recursive: true, force: true });
+          removed.push(entryPath);
+        } else {
+          pending.push(entryPath);
+        }
+      } else if (entry.isFile() && isPrunedFile(entryPath)) {
+        await rm(entryPath, { force: true });
+        removed.push(entryPath);
+      }
+    }
+  }
+  return removed;
+}
+
+async function findUnpackedNodeModules(appOutDir) {
+  const pending = [appOutDir];
+  while (pending.length > 0) {
+    const directoryPath = pending.pop();
+    let entries;
+    try {
+      entries = await readdir(directoryPath, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const entryPath = path.join(directoryPath, entry.name);
+      if (entry.name === "app.asar.unpacked") {
+        return path.join(entryPath, NODE_MODULES_DIRECTORY);
+      }
+      pending.push(entryPath);
+    }
+  }
+  return null;
+}
+
 async function preparePackagedNativeModules(appOutDir, options = {}) {
   if (!(await isDirectory(appOutDir))) {
     throw new Error(`Packaged app output does not exist: ${appOutDir}`);
@@ -216,11 +297,16 @@ async function preparePackagedNativeModules(appOutDir, options = {}) {
     );
   }
   await Promise.all(nodePtyDirectories.map(prepareNodePtyPackageDirectory));
+  const unpackedNodeModules = await findUnpackedNodeModules(appOutDir);
+  const pruned =
+    unpackedNodeModules === null
+      ? []
+      : await prunePackagedNodeModules(unpackedNodeModules);
 
   // The Electron target is only known on the real afterPack path. Standalone
   // invocations (e.g. tests, manual node-pty repair) omit it and skip the fetch.
   if (options.electronVersion === undefined) {
-    return { betterSqlite3Directories: [], nodePtyDirectories };
+    return { betterSqlite3Directories: [], nodePtyDirectories, pruned };
   }
 
   const betterSqlite3Directories = packageDirectories.get(
@@ -241,7 +327,7 @@ async function preparePackagedNativeModules(appOutDir, options = {}) {
     ),
   );
 
-  return { betterSqlite3Directories, nodePtyDirectories };
+  return { betterSqlite3Directories, nodePtyDirectories, pruned };
 }
 
 function resolveElectronVersion() {
@@ -326,6 +412,7 @@ module.exports.prepareNodePtyPackageDirectory = prepareNodePtyPackageDirectory;
 module.exports.prepareBetterSqlite3PackageDirectory =
   prepareBetterSqlite3PackageDirectory;
 module.exports.preparePackagedNativeModules = preparePackagedNativeModules;
+module.exports.prunePackagedNodeModules = prunePackagedNodeModules;
 module.exports.parseStandaloneArguments = parseStandaloneArguments;
 module.exports.resolveBetterSqlite3PrebuildArguments =
   resolveBetterSqlite3PrebuildArguments;
