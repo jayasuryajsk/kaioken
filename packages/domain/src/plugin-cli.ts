@@ -1,5 +1,6 @@
 export const RESERVED_KAIOKEN_CLI_COMMANDS: readonly string[] = [
   "browser",
+  "codex",
   "environment",
   "file",
   "guide",

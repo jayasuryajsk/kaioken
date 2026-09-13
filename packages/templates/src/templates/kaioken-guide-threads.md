@@ -82,6 +82,21 @@ Spawning:
   unavailable and why. The first-party providers are Project checkout,
   Worktree, and Personal workspace.
 
+Codex sessions:
+
+  kaioken codex sessions list [--archived] [--limit <count>]
+  kaioken codex sessions import <session-id...> [--project <id>]
+  kaioken thread codex show|handoff|sync [thread-id] [--self]
+
+  `codex sessions list` reads the Codex CLI's own rollouts under $CODEX_HOME
+  (default ~/.codex) and skips subagent sessions. `import` creates an idle Codex
+  thread with the session's history and binds it to the session id, so the
+  next message continues that conversation. The project comes from the session
+  folder unless --project is given. `handoff` copies a thread's session into
+  $CODEX_HOME and prints the `codex resume <id>` command; `sync` pulls the turns
+  Codex added back into the thread. Drive a session from one side at a time.
+  See docs/codex-sessions.md.
+
 Forking:
 
   kaioken thread fork <source-thread-id> [options]

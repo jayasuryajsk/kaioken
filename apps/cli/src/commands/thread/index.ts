@@ -9,6 +9,7 @@ import { registerOrganizationCommands } from "./organization.js";
 import { registerShowCommand } from "./show.js";
 import { registerSpawnCommand } from "./spawn.js";
 import { registerForkCommand } from "./fork.js";
+import { registerCodexCommands } from "./codex.js";
 import { registerWaitCommand } from "./wait.js";
 
 export function registerThreadCommands(
@@ -27,4 +28,5 @@ export function registerThreadCommands(
   registerOrganizationCommands(thread, getUrl);
   registerActionsCommands(thread, getUrl);
   registerInteractionCommands(thread, getUrl);
+  registerCodexCommands(thread, getUrl);
 }

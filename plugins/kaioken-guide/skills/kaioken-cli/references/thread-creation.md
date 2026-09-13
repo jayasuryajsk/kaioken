@@ -35,6 +35,11 @@ worktree` only; a provider takes its branch through `--environment-inputs`.
   `--source-seq-end` on a completed source turn (the clone and inherited
   timeline both end with the turn containing that sequence). Permission mode
   inherits the source thread unless explicitly overridden.
+- Use `kaioken codex sessions list` and `kaioken codex sessions import <id>` to
+  turn a Codex CLI session into an idle Kaioken thread that continues the same
+  Codex conversation. `kaioken thread codex handoff <id>` copies a thread's
+  session into `$CODEX_HOME` for `codex resume`; `kaioken thread codex sync <id>`
+  brings the Codex turns back. Drive a session from one side at a time.
 - Pass `--visibility hidden` for background/plugin workers that should remain
   out of sidebar organization without contributing unread/pending favicon
   attention. `kaioken thread list` excludes them by

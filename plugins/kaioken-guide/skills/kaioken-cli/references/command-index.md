@@ -156,6 +156,17 @@ This index lists every command path that the core CLI registers. Read the task-s
 - `kaioken thread interactions answer`
 - `kaioken thread interactions respond`
 - `kaioken thread interactions deny`
+- `kaioken thread codex`
+- `kaioken thread codex show`
+- `kaioken thread codex handoff`
+- `kaioken thread codex sync`
+
+## codex
+
+- `kaioken codex`
+- `kaioken codex sessions`
+- `kaioken codex sessions list`
+- `kaioken codex sessions import`
 
 ## environment
 

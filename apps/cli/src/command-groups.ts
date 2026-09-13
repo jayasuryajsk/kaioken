@@ -104,6 +104,11 @@ export const CORE_COMMAND_GROUPS: readonly CommandGroup[] = [
       m.registerMarketplaceCommands(program, deps.getUrl),
   ),
   group(
+    "codex",
+    () => import("./commands/codex.js"),
+    (m) => (program, deps) => m.registerCodexCommands(program, deps.getUrl),
+  ),
+  group(
     "skill",
     () => import("./commands/skill.js"),
     (m) => (program, deps) =>
