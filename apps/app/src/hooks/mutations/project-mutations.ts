@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type {
   CreateProjectRequest,
@@ -76,6 +77,21 @@ export function useUpdateProject() {
       invalidateProjectUpdateQueries({ projectId: variables.id, queryClient });
     },
   });
+}
+
+interface MoveProjectToSectionRequest {
+  projectId: string;
+  sectionId: string | null;
+}
+
+export function useMoveProjectToSection() {
+  const { mutate: updateProject } = useUpdateProject();
+  return useCallback(
+    ({ projectId, sectionId }: MoveProjectToSectionRequest) => {
+      updateProject({ id: projectId, sectionId });
+    },
+    [updateProject],
+  );
 }
 
 export function useReorderProject() {

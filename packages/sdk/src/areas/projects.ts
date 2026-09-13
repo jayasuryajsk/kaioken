@@ -161,7 +161,8 @@ export interface ProjectAttachmentReadResult {
 export type ProjectAttachmentUploadResult = UploadedPromptAttachment;
 export type ProjectCommandsResult = CommandListResponse;
 export type ProjectCreateResult = ProjectResponse;
-export type ProjectDefaultExecutionOptionsResult = ProjectExecutionDefaults | null;
+export type ProjectDefaultExecutionOptionsResult =
+  ProjectExecutionDefaults | null;
 export type ProjectDeleteResult = { ok: true };
 export interface ProjectFileContentResult {
   content: string;
@@ -224,7 +225,8 @@ export interface ProjectsArea {
 
 function projectUpdateJson(args: ProjectUpdateArgs): UpdateProjectRequest {
   return {
-    name: args.name,
+    ...(args.name === undefined ? {} : { name: args.name }),
+    ...(args.sectionId === undefined ? {} : { sectionId: args.sectionId }),
   };
 }
 

@@ -7,6 +7,7 @@ const sidebarOrganizationModeSchema = z.enum([
   "project",
   "chronological",
   "machine",
+  "connection",
 ]);
 export type SidebarOrganizationMode = z.infer<
   typeof sidebarOrganizationModeSchema
@@ -49,6 +50,7 @@ export const UI_PREFERENCE_KEYS = [
   "sidebar.sectionOrder",
   "sidebar.manualSectionOrder",
   "sidebar.machineSectionOrder",
+  "sidebar.connectionSectionOrder",
   "sidebar.collapsedSections",
   "sidebar.collapsedProjects",
   "sidebar.collapsedThreads",
@@ -86,7 +88,7 @@ export const uiPreferenceDefinitions = {
   "sidebar.organizationMode": defineUiPreference(
     sidebarOrganizationModeSchema,
     "project",
-    "How the sidebar groups threads: by project, chronologically, or by machine.",
+    "How the sidebar groups threads: by project, chronologically, by machine, or by connection (machines holding their repos, plus sections).",
   ),
   "sidebar.chronologicalSort": defineUiPreference(
     sidebarChronologicalSortSchema,
@@ -112,6 +114,11 @@ export const uiPreferenceDefinitions = {
     uiPreferenceStringListSchema,
     ["pinned", "machines", "threads"],
     "Top-level section order when the sidebar is organized by machine.",
+  ),
+  "sidebar.connectionSectionOrder": defineUiPreference(
+    uiPreferenceStringListSchema,
+    ["pinned", "sections", "threads"],
+    "Top-level section order when the sidebar is organized by connection.",
   ),
   "sidebar.collapsedSections": defineUiPreference(
     z

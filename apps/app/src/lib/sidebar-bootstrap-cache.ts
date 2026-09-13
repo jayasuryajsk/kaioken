@@ -6,7 +6,7 @@ import { createLastKnownCache } from "@/lib/last-known-cache";
 
 const sidebarBootstrapCache = createLastKnownCache({
   prefix: "bb.sidebar-bootstrap",
-  version: "1",
+  version: "2",
   schema: sidebarBootstrapResponseSchema,
 });
 

@@ -241,8 +241,32 @@ once on a conflict. `reset` writes the default. The SDK offers
 `sdk.system.uiPreferences.list()`, `.set()`, and `.reset()`.
 
 Every thread-list header's actions menu offers New project, New section,
-Organize, and Sort by. Organize selects By project, By machine, or Custom;
-Sort by selects a field, and selecting it again reverses its arrow/direction.
+Organize, and Sort by. Organize selects By project, By machine, By connection,
+or Custom; Sort by selects a field, and selecting it again reverses its
+arrow/direction. By connection shows one collapsible group per machine (the
+primary machine first) holding that machine's repos with their threads, plus
+one group per section above them. A section is a global label: it can hold
+repos and threads from any machine, and a labelled repo or thread appears
+under its section instead of its machine. Move a repo from its actions menu
+(Move to section) and a thread from its menu; removing a section returns its
+members to their machines. `sidebar.connectionSectionOrder` stores the
+top-level order for this mode.
+
+Labels from the CLI
+
+  kaioken labels list [--json]
+  kaioken labels add <name> [--json]
+  kaioken labels rename <label> <name> [--json]
+  kaioken labels remove <label> [--yes] [--json]
+  kaioken labels move <label> <id...> [--json]
+  kaioken labels unlabel <id...> [--json]
+
+`<label>` is a section id or its exact name. `move` accepts repo ids
+(`proj_...`) and thread ids (`thr_...`) in one call; each member belongs to at
+most one label. The same sections back `kaioken thread section` and the
+sidebar's Custom mode. The SDK exposes `sdk.threadSections.list()` (each entry
+carries `projectIds`), `sdk.projects.update({ projectId, sectionId })`, and
+`sdk.threads.update({ threadId, sectionId })`.
 `sidebar.sortDirection` accepts `ascending`, `descending`, or `default`.
 The default preserves each field's original order (newest first for dates,
 A–Z for titles). For example: `kaioken settings ui set sidebar.sortDirection ascending`.

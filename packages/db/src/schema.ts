@@ -629,6 +629,20 @@ export const threadSections = sqliteTable(
   (table) => [uniqueIndex("thread_sections_name_idx").on(table.name)],
 );
 
+export const threadSectionProjects = sqliteTable(
+  "thread_section_projects",
+  {
+    projectId: text("project_id")
+      .primaryKey()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    sectionId: text("section_id")
+      .notNull()
+      .references(() => threadSections.id, { onDelete: "cascade" }),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [index("thread_section_projects_section_idx").on(table.sectionId)],
+);
+
 export const threadSearchSegments = sqliteTable(
   "thread_search_segments",
   {

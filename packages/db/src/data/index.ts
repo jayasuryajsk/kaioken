@@ -28,6 +28,9 @@ export type { ThreadConversationOutlineRecord } from "./thread-conversation-outl
 
 export {
   createThreadSection,
+  getProjectThreadSectionId,
+  listThreadSectionProjectIds,
+  setProjectThreadSection,
   deleteThreadSection,
   getThreadSectionById,
   listThreadSections,

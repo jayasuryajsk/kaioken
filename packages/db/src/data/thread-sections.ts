@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import type {
   DbConnection,
@@ -7,7 +7,12 @@ import type {
 } from "../connection.js";
 import { createThreadSectionId } from "../ids.js";
 import type { DbNotifier } from "../notifier.js";
-import { threadSections, threads } from "../schema.js";
+import {
+  projects,
+  threadSectionProjects,
+  threadSections,
+  threads,
+} from "../schema.js";
 
 type ThreadSectionWriteConnection = DbConnection | DbTransaction;
 
@@ -26,10 +31,21 @@ export interface DeleteThreadSectionInput {
   id: string;
 }
 
+export interface SetProjectThreadSectionInput {
+  projectId: string;
+  sectionId: string | null;
+}
+
+export type SetProjectThreadSectionResult =
+  | { status: "updated"; previousSectionId: string | null }
+  | { status: "project_not_found" }
+  | { status: "section_not_found" };
+
 export interface ThreadSectionMutationResult {
   id: string;
   name: string;
   updatedThreadCount: number;
+  updatedProjectCount: number;
 }
 
 export type CreateThreadSectionResult =
@@ -66,8 +82,10 @@ export function getThreadSectionById(
   db: DbQueryConnection,
   id: string,
 ): ThreadSectionRow | null {
-  return db.select().from(threadSections).where(eq(threadSections.id, id)).get()
-    ?? null;
+  return (
+    db.select().from(threadSections).where(eq(threadSections.id, id)).get() ??
+    null
+  );
 }
 
 function getThreadSectionByName(
@@ -93,6 +111,95 @@ export function listThreadSections(db: DbQueryConnection): ThreadSectionRow[] {
     .from(threadSections)
     .orderBy(asc(threadSections.name), asc(threadSections.id))
     .all();
+}
+
+export function listThreadSectionProjectIds(
+  db: DbQueryConnection,
+): Map<string, string[]> {
+  const rows = db
+    .select({
+      projectId: threadSectionProjects.projectId,
+      sectionId: threadSectionProjects.sectionId,
+    })
+    .from(threadSectionProjects)
+    .innerJoin(projects, eq(projects.id, threadSectionProjects.projectId))
+    .where(isNull(projects.deletedAt))
+    .orderBy(asc(projects.sortKey), asc(projects.id))
+    .all();
+  const bySection = new Map<string, string[]>();
+  for (const row of rows) {
+    const existing = bySection.get(row.sectionId);
+    if (existing) {
+      existing.push(row.projectId);
+    } else {
+      bySection.set(row.sectionId, [row.projectId]);
+    }
+  }
+  return bySection;
+}
+
+export function getProjectThreadSectionId(
+  db: DbQueryConnection,
+  projectId: string,
+): string | null {
+  return (
+    db
+      .select({ sectionId: threadSectionProjects.sectionId })
+      .from(threadSectionProjects)
+      .where(eq(threadSectionProjects.projectId, projectId))
+      .get()?.sectionId ?? null
+  );
+}
+
+export function setProjectThreadSection(
+  db: DbConnection,
+  notifier: DbNotifier,
+  input: SetProjectThreadSectionInput,
+): SetProjectThreadSectionResult {
+  return db.transaction(
+    (tx): SetProjectThreadSectionResult => {
+      const project = tx
+        .select({ id: projects.id })
+        .from(projects)
+        .where(
+          and(eq(projects.id, input.projectId), isNull(projects.deletedAt)),
+        )
+        .get();
+      if (!project) {
+        return { status: "project_not_found" };
+      }
+      if (
+        input.sectionId !== null &&
+        !getThreadSectionById(tx, input.sectionId)
+      ) {
+        return { status: "section_not_found" };
+      }
+      const previousSectionId = getProjectThreadSectionId(tx, input.projectId);
+      if (previousSectionId === input.sectionId) {
+        return { status: "updated", previousSectionId };
+      }
+      tx.delete(threadSectionProjects)
+        .where(eq(threadSectionProjects.projectId, input.projectId))
+        .run();
+      if (input.sectionId !== null) {
+        tx.insert(threadSectionProjects)
+          .values({
+            projectId: input.projectId,
+            sectionId: input.sectionId,
+            createdAt: Date.now(),
+          })
+          .run();
+      }
+      tx.update(projects)
+        .set({ updatedAt: Date.now() })
+        .where(eq(projects.id, input.projectId))
+        .run();
+      notifier.notifyProject(input.projectId, ["project-updated"]);
+      notifyThreadSectionListChanged(notifier);
+      return { status: "updated", previousSectionId };
+    },
+    { behavior: "immediate" },
+  );
 }
 
 export function createThreadSection(
@@ -149,6 +256,7 @@ export function renameThreadSection(
             id: existing.id,
             name: existing.name,
             updatedThreadCount: 0,
+            updatedProjectCount: 0,
           },
         };
       }
@@ -169,6 +277,7 @@ export function renameThreadSection(
           id: input.id,
           name,
           updatedThreadCount: 0,
+          updatedProjectCount: 0,
         },
       };
     },
@@ -197,6 +306,12 @@ export function deleteThreadSection(
         .where(eq(threads.sectionId, input.id))
         .all();
 
+      const sectionProjects = tx
+        .select({ projectId: threadSectionProjects.projectId })
+        .from(threadSectionProjects)
+        .where(eq(threadSectionProjects.sectionId, input.id))
+        .all();
+
       const now = Date.now();
       const affectedProjects = new Set<string>();
       tx.update(threads)
@@ -209,6 +324,16 @@ export function deleteThreadSection(
           projectId: thread.projectId,
         });
       }
+      tx.delete(threadSectionProjects)
+        .where(eq(threadSectionProjects.sectionId, input.id))
+        .run();
+      for (const row of sectionProjects) {
+        tx.update(projects)
+          .set({ updatedAt: now })
+          .where(eq(projects.id, row.projectId))
+          .run();
+        notifier.notifyProject(row.projectId, ["project-updated"]);
+      }
 
       tx.delete(threadSections).where(eq(threadSections.id, input.id)).run();
       notifyThreadSectionMutationProjects(notifier, affectedProjects);
@@ -216,6 +341,7 @@ export function deleteThreadSection(
         id: section.id,
         name: section.name,
         updatedThreadCount: matchingThreads.length,
+        updatedProjectCount: sectionProjects.length,
       };
     },
     { behavior: "immediate" },
