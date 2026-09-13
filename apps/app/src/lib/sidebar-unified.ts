@@ -1,9 +1,25 @@
-import { findLocalPathProjectSourceForHost } from "@kaioken/domain";
-import type { Host, ProjectSource, ThreadListEntry } from "@kaioken/domain";
 import {
-  buildPriorityList,
+  findLocalPathProjectSourceForHost,
+  PERSONAL_PROJECT_ID,
+} from "@kaioken/domain";
+import type {
+  Host,
+  PendingInteraction,
+  ProjectSource,
+  ThreadListEntry,
+} from "@kaioken/domain";
+import {
+  hasActiveBackgroundAgentActivity,
+  hasActiveBackgroundCommandActivity,
+  hasActiveGoalActivity,
+  hasActivePlanModeActivity,
+  hasActiveWorkflowActivity,
+} from "@kaioken/client-core";
+import {
   buildTimelineGroups,
   isListedThread,
+  threadIsRunning,
+  threadNeedsYou,
   type TimelineGroup,
 } from "./sidebar-timeline";
 
@@ -47,7 +63,8 @@ export interface UnifiedCustomSection<P extends UnifiedProjectLike> {
 }
 
 export interface UnifiedSidebar<P extends UnifiedProjectLike> {
-  priority: ThreadListEntry[];
+  needsYou: ThreadListEntry[];
+  running: ThreadListEntry[];
   pinned: ThreadListEntry[];
   sections: UnifiedCustomSection<P>[];
   projects: UnifiedProjectGroup<P>[];
@@ -134,8 +151,13 @@ export function buildUnifiedSidebar<P extends UnifiedProjectLike>({
   now,
 }: BuildUnifiedSidebarArgs<P>): UnifiedSidebar<P> {
   const listed = threads.filter(isListedThread);
-  const priority = buildPriorityList(listed);
-  const shown = new Set(priority.map((thread) => thread.id));
+  const needsYou = listed
+    .filter(threadNeedsYou)
+    .sort((left, right) => left.latestAttentionAt - right.latestAttentionAt);
+  const running = listed
+    .filter((thread) => !threadNeedsYou(thread) && threadIsRunning(thread))
+    .sort(byNewest);
+  const shown = new Set([...needsYou, ...running].map((thread) => thread.id));
   const threadById = new Map(listed.map((thread) => [thread.id, thread]));
   const pinned: ThreadListEntry[] = [];
   for (const id of pinnedThreadIds) {
@@ -198,15 +220,119 @@ export function buildUnifiedSidebar<P extends UnifiedProjectLike>({
 
   const recents = buildTimelineGroups(
     listed.filter(
-      (thread) => !shown.has(thread.id) && thread.pinnedAt === null,
+      (thread) =>
+        thread.projectId === PERSONAL_PROJECT_ID &&
+        !shown.has(thread.id) &&
+        thread.pinnedAt === null,
     ),
     now,
   );
   return {
-    priority,
+    needsYou,
+    running,
     pinned,
     sections: customSections,
     projects: projectGroups,
     recents,
   };
+}
+
+const MINUTE_MS = 60_000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+
+export function formatWaitDuration(waitMs: number): string {
+  if (waitMs < MINUTE_MS) return "waiting now";
+  if (waitMs < HOUR_MS) return `waiting ${Math.floor(waitMs / MINUTE_MS)}m`;
+  if (waitMs < DAY_MS) return `waiting ${Math.floor(waitMs / HOUR_MS)}h`;
+  return `waiting ${Math.floor(waitMs / DAY_MS)}d`;
+}
+
+export function describeRunningThread(thread: ThreadListEntry): string {
+  if (thread.queuedWork === "waiting") return "Queued";
+  if (hasActiveWorkflowActivity(thread)) return "Workflow running";
+  if (hasActiveBackgroundAgentActivity(thread)) return "Background agent";
+  if (hasActiveBackgroundCommandActivity(thread)) return "Background command";
+  if (hasActivePlanModeActivity(thread)) return "Planning";
+  if (hasActiveGoalActivity(thread)) return "Working on goal";
+  switch (thread.runtime.displayStatus) {
+    case "provisioning":
+      return "Provisioning";
+    case "host-reconnecting":
+      return "Reconnecting to machine";
+    case "waiting-for-host":
+      return "Waiting for machine";
+    default:
+      return "Running";
+  }
+}
+
+export type NeedsYouRequest =
+  | {
+      kind: "approval";
+      summary: string;
+      decisions: readonly ("allow_once" | "allow_for_session" | "deny")[];
+    }
+  | { kind: "question"; summary: string }
+  | { kind: "input"; summary: string };
+
+function firstLine(text: string): string {
+  return (
+    text
+      .split("\n")
+      .find((line) => line.trim().length > 0)
+      ?.trim() ?? ""
+  );
+}
+
+export function describeNeedsYouRequest(
+  interaction: PendingInteraction,
+): NeedsYouRequest {
+  const payload = interaction.payload;
+  if (payload.kind === "approval") {
+    const subject = payload.subject;
+    let summary: string;
+    switch (subject.kind) {
+      case "command":
+        summary = firstLine(subject.command);
+        break;
+      case "file_change":
+        summary =
+          subject.writeScope === null
+            ? "Edit files"
+            : `Edit files in ${subject.writeScope}`;
+        break;
+      case "permission_grant":
+        summary =
+          subject.toolName === null
+            ? "Grant permissions"
+            : `Grant permissions to ${subject.toolName}`;
+        break;
+      case "plan":
+        summary = "Review the plan";
+        break;
+      case "tool_use":
+        summary = `Use ${subject.tool}`;
+        break;
+    }
+    return {
+      kind: "approval",
+      summary:
+        payload.reason !== null && summary.length === 0
+          ? payload.reason
+          : summary,
+      decisions: payload.availableDecisions,
+    };
+  }
+  if (payload.kind === "user_question") {
+    const [question] = payload.questions;
+    return {
+      kind: "question",
+      summary:
+        payload.questions.length > 1
+          ? `${payload.questions.length} questions`
+          : firstLine(question?.prompt ?? "Question"),
+    };
+  }
+  return { kind: "input", summary: "Needs your input" };
 }

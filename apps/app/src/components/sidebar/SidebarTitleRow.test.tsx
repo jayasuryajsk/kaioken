@@ -24,7 +24,7 @@ describe("SidebarTitleRow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Search threads" }));
     expect(onSearch).toHaveBeenCalled();
     fireEvent.click(
-      screen.getByRole("button", { name: "Priority (3 waiting)" }),
+      screen.getByRole("button", { name: "Needs you (3 waiting)" }),
     );
     expect(onPriority).toHaveBeenCalled();
   });
@@ -39,7 +39,7 @@ describe("SidebarTitleRow", () => {
     );
     expect(screen.queryByTestId("app-sidebar-priority-count")).toBeNull();
     expect(
-      screen.getByRole("button", { name: "Priority (nothing waiting)" }),
+      screen.getByRole("button", { name: "Needs you (nothing waiting)" }),
     ).toBeTruthy();
   });
 });

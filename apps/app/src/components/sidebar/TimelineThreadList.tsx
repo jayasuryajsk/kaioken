@@ -64,6 +64,7 @@ export interface TimelineRowProps {
   thread: ThreadListEntry;
   showMeta?: boolean;
   indent?: boolean;
+  statusText?: string;
 }
 
 export function useTimelineMachines(): (
@@ -95,6 +96,7 @@ export function TimelineRow({
   thread,
   showMeta = true,
   indent = false,
+  statusText,
 }: TimelineRowProps) {
   const projectName = useSidebarProjectName(
     thread.projectId === PERSONAL_PROJECT_ID ? null : thread.projectId,
@@ -151,7 +153,14 @@ export function TimelineRow({
           >
             {title}
           </span>
-          {showMeta ? (
+          {statusText !== undefined ? (
+            <span
+              data-testid="timeline-row-status"
+              className="min-w-0 truncate text-xs text-muted-foreground"
+            >
+              {statusText}
+            </span>
+          ) : showMeta ? (
             <span
               data-testid="timeline-row-meta"
               className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground"

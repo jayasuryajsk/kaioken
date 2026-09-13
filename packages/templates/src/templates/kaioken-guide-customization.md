@@ -242,15 +242,21 @@ once on a conflict. `reset` writes the default. The SDK offers
 `sdk.system.uiPreferences.list()`, `.set()`, and `.reset()`.
 
 The default sidebar layout is Unified (Settings > Appearance > Layout): one
-list with Priority (threads waiting on you or running, "Nothing needs
-attention" when empty), Pinned, one collapsible group per section, Projects,
-and Recents by day. Project rows show the repo and, for repos on another
+list that starts with two attention tiers shown only when non-empty: Needs
+you (longest wait first; each card names the repo and machine, shows the
+pending command or question with its wait time, and offers Allow / Deny,
+Allow for session under its menu, Reply, or Open inline) and Running
+(newest first, with the thread's current state). Then Pinned, one
+collapsible group per section, Projects, and Recents. Recents holds only
+projectless chats, grouped by day; threads that belong to a project appear
+under that project. Project rows show the repo and, for repos on another
 machine, the machine name with a green dot while it is connected; each
-project lists its three newest threads with Show more, and the section
+project row collapses with its chevron, lists its three newest threads with
+Show more, and the Projects section itself collapses from its header and
 shows eight projects with Show more. The Projects header's menu sorts by
 Recent activity, Name, or Machine (`sidebar.projectsSort`) and offers New
 section; its + adds a project. The title row's bell shows how many threads
-need you and scrolls to Priority; the footer names the server machine.
+need you and scrolls to Needs you; the footer names the server machine.
 
 The Timeline and Projects layouts remain selectable. In the Projects layout
 every thread-list header's actions menu offers New project, New section,

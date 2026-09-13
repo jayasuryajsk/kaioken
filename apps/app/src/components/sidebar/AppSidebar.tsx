@@ -111,8 +111,8 @@ export function SidebarTitleRow({
         type="button"
         aria-label={
           needsYouCount > 0
-            ? `Priority (${needsYouCount} waiting)`
-            : "Priority (nothing waiting)"
+            ? `Needs you (${needsYouCount} waiting)`
+            : "Needs you (nothing waiting)"
         }
         className={SIDEBAR_TITLE_BUTTON_CLASS}
         onClick={onPriority}
@@ -203,7 +203,7 @@ export function AppSidebar({
   );
   const handlePriority = useCallback(() => {
     sidebarRef.current
-      ?.querySelector('[data-sidebar-section="priority"]')
+      ?.querySelector('[data-sidebar-section="needs-you"]')
       ?.scrollIntoView({ block: "start", behavior: "smooth" });
   }, []);
 

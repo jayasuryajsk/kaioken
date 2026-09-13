@@ -29,6 +29,7 @@ import type { ProjectResponse } from "@kaioken/server-contract";
 import { getProjectComposeRoutePath } from "@/lib/route-paths";
 import {
   buildUnifiedSidebar,
+  describeRunningThread,
   UNIFIED_PROJECT_THREADS_PREVIEW_COUNT,
   UNIFIED_PROJECTS_PREVIEW_COUNT,
   UNIFIED_RECENTS_PREVIEW_COUNT,
@@ -36,7 +37,11 @@ import {
   type UnifiedProjectsSort,
   type UnifiedSectionLike,
 } from "@/lib/sidebar-unified";
-import { sidebarProjectsSortAtom } from "./sidebarCollapsedAtoms";
+import { NeedsYouCard } from "./NeedsYouCard";
+import {
+  collapsedProjectIdsAtom,
+  sidebarProjectsSortAtom,
+} from "./sidebarCollapsedAtoms";
 import {
   SIDEBAR_CONTROL_BUTTON_CLASS,
   SIDEBAR_GROUP_TEXT_CLASS,
@@ -53,6 +58,47 @@ const collapsedUnifiedSectionsAtom = atomWithStorage<string[]>(
   UNIFIED_COLLAPSED_SECTIONS_STORAGE_KEY,
   [],
 );
+export const UNIFIED_PROJECTS_SECTION_ID = "projects";
+
+function toggleId(current: string[], id: string): string[] {
+  return current.includes(id)
+    ? current.filter((entry) => entry !== id)
+    : [...current, id];
+}
+
+function CollapseChevron({
+  collapsed,
+  label,
+  onToggle,
+  className,
+}: {
+  collapsed: boolean;
+  label: string;
+  onToggle: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-expanded={!collapsed}
+      aria-label={`${collapsed ? "Expand" : "Collapse"} ${label}`}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onToggle();
+      }}
+      className={cn(
+        "inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-subtle-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-sidebar-ring",
+        className,
+      )}
+    >
+      <Icon
+        name="ChevronRight"
+        className={cn("size-3 transition-transform", !collapsed && "rotate-90")}
+      />
+    </button>
+  );
+}
 
 const PROJECT_SORT_OPTIONS: ReadonlyArray<{
   value: UnifiedProjectsSort;
@@ -131,6 +177,8 @@ interface ProjectRowsProps {
   selectedProjectId?: string;
   expandedProjectIds: ReadonlySet<string>;
   onToggleProjectExpanded: (projectId: string) => void;
+  collapsed: boolean;
+  onToggleCollapsed: (projectId: string) => void;
   onProjectSelect?: () => void;
 }
 
@@ -141,6 +189,8 @@ function UnifiedProjectRows({
   selectedProjectId,
   expandedProjectIds,
   onToggleProjectExpanded,
+  collapsed,
+  onToggleCollapsed,
   onProjectSelect,
 }: ProjectRowsProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -153,18 +203,31 @@ function UnifiedProjectRows({
   const isActive =
     selectedThreadId === undefined && selectedProjectId === project.id;
   return (
-    <div data-testid="unified-project" data-project-id={project.id}>
+    <div
+      data-testid="unified-project"
+      data-project-id={project.id}
+      data-collapsed={collapsed ? "true" : undefined}
+    >
       <ProjectActionsContextMenu project={project} onOpenChange={setMenuOpen}>
         <div
           data-testid="unified-project-row"
           className={cn(
-            "group/project-row relative flex h-8 items-center gap-2 rounded-md pl-2 pr-1 text-sm transition-colors",
+            "group/project-row relative flex h-8 items-center gap-1 rounded-md pl-1 pr-1 text-sm transition-colors",
             isActive
               ? SIDEBAR_ROW_SELECTED_STATE_CLASS
               : "text-sidebar-foreground hover:bg-sidebar-accent",
             menuOpen && "bg-sidebar-accent",
           )}
         >
+          {threads.length > 0 ? (
+            <CollapseChevron
+              collapsed={collapsed}
+              label={project.name}
+              onToggle={() => onToggleCollapsed(project.id)}
+            />
+          ) : (
+            <span className="size-5 shrink-0" aria-hidden="true" />
+          )}
           <NavLink
             to={getProjectComposeRoutePath(project.id)}
             onClick={onProjectSelect}
@@ -199,7 +262,7 @@ function UnifiedProjectRows({
           </span>
         </div>
       </ProjectActionsContextMenu>
-      {visibleThreads.length > 0 ? (
+      {!collapsed && visibleThreads.length > 0 ? (
         <div className="space-y-0.5">
           {visibleThreads.map((thread) => (
             <TimelineRow
@@ -215,7 +278,7 @@ function UnifiedProjectRows({
           ))}
         </div>
       ) : null}
-      {hiddenCount > 0 || expanded ? (
+      {!collapsed && (hiddenCount > 0 || expanded) ? (
         <div className="pl-5">
           <ShowMoreRow
             count={hiddenCount}
@@ -374,6 +437,20 @@ export function UnifiedSidebarList({
     [setCollapsedSectionIds],
   );
   const [expandedProjectIds, toggleProjectExpanded] = useToggleSet();
+  const [collapsedProjectIdList, setCollapsedProjectIdList] = useAtom(
+    collapsedProjectIdsAtom,
+  );
+  const collapsedProjectIds = useMemo(
+    () => new Set(collapsedProjectIdList),
+    [collapsedProjectIdList],
+  );
+  const toggleProjectCollapsed = useCallback(
+    (projectId: string) => {
+      setCollapsedProjectIdList((current) => toggleId(current, projectId));
+    },
+    [setCollapsedProjectIdList],
+  );
+  const projectsCollapsed = collapsedSections.has(UNIFIED_PROJECTS_SECTION_ID);
   const [projectsExpanded, setProjectsExpanded] = useState(false);
   const [recentsExpanded, setRecentsExpanded] = useState(false);
   const model = useMemo(
@@ -420,7 +497,20 @@ export function UnifiedSidebarList({
       selectedProjectId={selectedProjectId}
       expandedProjectIds={expandedProjectIds}
       onToggleProjectExpanded={toggleProjectExpanded}
+      collapsed={collapsedProjectIds.has(group.project.id)}
+      onToggleCollapsed={toggleProjectCollapsed}
       onProjectSelect={onProjectSelect}
+    />
+  );
+  const renderRunning = (thread: ThreadListEntry) => (
+    <TimelineRow
+      key={thread.id}
+      thread={thread}
+      hasDraft={draftThreadIds.has(thread.id)}
+      isActive={thread.id === selectedThreadId}
+      machine={machineFor(thread)}
+      onProjectSelect={onProjectSelect}
+      statusText={describeRunningThread(thread)}
     />
   );
   const visibleProjects = projectsExpanded
@@ -443,7 +533,8 @@ export function UnifiedSidebarList({
     }))
     .filter((group) => group.threads.length > 0);
   const isEmpty =
-    model.priority.length === 0 &&
+    model.needsYou.length === 0 &&
+    model.running.length === 0 &&
     model.pinned.length === 0 &&
     model.sections.length === 0 &&
     model.projects.length === 0 &&
@@ -454,25 +545,37 @@ export function UnifiedSidebarList({
       data-testid="unified-sidebar-list"
       className="flex flex-col gap-3 px-2 pb-2 pt-1"
     >
-      <section data-testid="unified-priority" data-sidebar-section="priority">
-        <p className={SECTION_LABEL_CLASS}>
-          Priority
-          {model.priority.length > 0 ? (
+      {model.needsYou.length > 0 ? (
+        <section
+          data-testid="unified-needs-you"
+          data-sidebar-section="needs-you"
+        >
+          <p className={SECTION_LABEL_CLASS}>
+            Needs you
             <span className="text-subtle-foreground">
-              {model.priority.length}
+              {model.needsYou.length}
             </span>
-          ) : null}
-        </p>
-        {model.priority.length > 0 ? (
-          <div className="space-y-0.5">
-            {model.priority.map((thread) => renderThread(thread, true))}
-          </div>
-        ) : (
-          <p className="px-2 py-1 text-xs text-subtle-foreground">
-            Nothing needs attention
           </p>
-        )}
-      </section>
+          <div className="space-y-1">
+            {model.needsYou.map((thread) => (
+              <NeedsYouCard
+                key={thread.id}
+                thread={thread}
+                machine={machineFor(thread)}
+                isActive={thread.id === selectedThreadId}
+                now={now ?? clock}
+                onProjectSelect={onProjectSelect}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+      {model.running.length > 0 ? (
+        <section data-testid="unified-running">
+          <p className={SECTION_LABEL_CLASS}>Running</p>
+          <div className="space-y-0.5">{model.running.map(renderRunning)}</div>
+        </section>
+      ) : null}
       {model.pinned.length > 0 ? (
         <section data-testid="unified-pinned">
           <p className={SECTION_LABEL_CLASS}>Pinned</p>
@@ -534,9 +637,27 @@ export function UnifiedSidebarList({
           </section>
         );
       })}
-      <section data-testid="unified-projects">
+      <section
+        data-testid="unified-projects"
+        data-collapsed={projectsCollapsed ? "true" : undefined}
+      >
         <div className={cn(SECTION_LABEL_CLASS, "pr-0")}>
-          <span className="min-w-0 truncate">Projects</span>
+          <button
+            type="button"
+            aria-expanded={!projectsCollapsed}
+            aria-label={`${projectsCollapsed ? "Expand" : "Collapse"} Projects`}
+            onClick={() => toggleSectionCollapsed(UNIFIED_PROJECTS_SECTION_ID)}
+            className="flex min-w-0 flex-1 items-center gap-1 rounded-sm text-left outline-none hover:text-foreground focus-visible:ring-1 focus-visible:ring-sidebar-ring"
+          >
+            <span className="min-w-0 truncate">Projects</span>
+            <Icon
+              name="ChevronRight"
+              className={cn(
+                "size-3 shrink-0 transition-transform",
+                !projectsCollapsed && "rotate-90",
+              )}
+            />
+          </button>
           <span className="ml-auto inline-flex shrink-0 items-center">
             <ProjectsSortMenu
               sort={projectsSort}
@@ -551,7 +672,7 @@ export function UnifiedSidebarList({
             />
           </span>
         </div>
-        {model.projects.length === 0 ? (
+        {projectsCollapsed ? null : model.projects.length === 0 ? (
           <p className="px-2 py-1 text-xs text-subtle-foreground">
             No projects yet. Add one with +.
           </p>

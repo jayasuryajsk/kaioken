@@ -32,8 +32,8 @@ export const DEFAULT_SIDEBAR_PREFERENCES: SidebarPreferences =
   sidebarPreferencesSchema.parse({});
 
 const LEGACY_THREAD_LIST_LAYOUTS: Record<string, SidebarLayout> = {
-  timeline: "timeline",
-  projects: "projects",
+  timeline: "unified",
+  projects: "unified",
 };
 
 function migrateLegacyThreadList(value: unknown): unknown {

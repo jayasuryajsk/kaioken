@@ -59,6 +59,54 @@ vi.mock("@/components/project/ProjectActionsMenu", () => ({
   ProjectActionsMenu: () => null,
 }));
 
+const interactionState = vi.hoisted(() => ({
+  byThread: {} as Record<string, unknown[]>,
+  resolve: vi.fn(async () => ({})),
+}));
+
+vi.mock("@/hooks/queries/thread-queries", () => ({
+  useThreadPendingInteractions: (id: string) => ({
+    data: interactionState.byThread[id] ?? [],
+  }),
+}));
+
+vi.mock("@/hooks/mutations/thread-interaction-mutations", () => ({
+  useResolveThreadPendingInteraction: () => ({
+    mutateAsync: interactionState.resolve,
+    isPending: false,
+    error: null,
+  }),
+}));
+
+function approvalInteraction(threadId: string, command: string) {
+  return {
+    id: `int_${threadId}`,
+    threadId,
+    status: "pending",
+    statusReason: null,
+    createdAt: 1,
+    resolvedAt: null,
+    turnId: "turn_1",
+    providerId: "codex",
+    providerThreadId: "p1",
+    providerRequestId: "r1",
+    resolution: null,
+    payload: {
+      kind: "approval",
+      reason: null,
+      availableDecisions: ["allow_once", "allow_for_session", "deny"],
+      subject: {
+        kind: "command",
+        itemId: "item",
+        command,
+        cwd: null,
+        actions: [],
+        sessionGrant: null,
+      },
+    },
+  };
+}
+
 const NOW = Date.now();
 
 function thread(overrides: Partial<ThreadListEntry> & { id: string }) {
@@ -133,17 +181,19 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
   hostsState.hosts = [];
+  interactionState.byThread = {};
+  window.localStorage.clear();
 });
 
 describe("UnifiedSidebarList", () => {
-  it("renders the sections in Codex order with the empty priority state", () => {
+  it("renders the sections in order and omits empty attention tiers", () => {
     renderList({
       projects: [project("proj_a", "alpha")],
       sections: [{ id: "sec_work", name: "work", projectIds: [] }],
       pinnedThreadIds: ["thr_pin"],
       threads: [
         thread({ id: "thr_pin", pinnedAt: 1 }),
-        thread({ id: "thr_new" }),
+        thread({ id: "thr_new", projectId: "proj_personal" }),
       ],
     });
     const list = screen.getByTestId("unified-sidebar-list");
@@ -151,22 +201,121 @@ describe("UnifiedSidebarList", () => {
       node.getAttribute("data-testid"),
     );
     expect(order).toEqual([
-      "unified-priority",
       "unified-pinned",
       "unified-section-sec_work",
       "unified-projects",
       "unified-recents",
     ]);
-    expect(
-      within(screen.getByTestId("unified-priority")).getByText(
-        "Nothing needs attention",
-      ),
-    ).toBeTruthy();
+    expect(screen.queryByText("Priority")).toBeNull();
+    expect(screen.queryByText("Nothing needs attention")).toBeNull();
     expect(
       within(screen.getByTestId("unified-pinned")).queryByTestId(
         "timeline-row-meta",
       ),
     ).toBeNull();
+  });
+
+  it("puts approvals in Needs you as cards whose Allow resolves the interaction", () => {
+    interactionState.byThread = {
+      thr_wait: [approvalInteraction("thr_wait", "rm -rf dist\nnpm run build")],
+    };
+    renderList({
+      projects: [project("proj_a", "alpha")],
+      threads: [
+        thread({
+          id: "thr_wait",
+          hasPendingInteraction: true,
+          latestAttentionAt: NOW - 4 * 60_000,
+        }),
+        thread({
+          id: "thr_run",
+          status: "active",
+          runtime: {
+            displayStatus: "active",
+            hostReconnectGraceExpiresAt: null,
+          },
+        }),
+      ],
+    });
+    const order = [
+      ...screen.getByTestId("unified-sidebar-list").querySelectorAll("section"),
+    ].map((node) => node.getAttribute("data-testid"));
+    expect(order.slice(0, 2)).toEqual(["unified-needs-you", "unified-running"]);
+    const card = screen.getByTestId("needs-you-card");
+    expect(within(card).getByTestId("needs-you-summary").textContent).toBe(
+      "rm -rf dist",
+    );
+    expect(within(card).getByTestId("needs-you-wait").textContent).toBe(
+      "waiting 4m",
+    );
+    fireEvent.click(within(card).getByRole("button", { name: "Allow" }));
+    expect(interactionState.resolve).toHaveBeenCalledWith({
+      threadId: "thr_wait",
+      interactionId: "int_thr_wait",
+      resolution: { decision: "allow_once", grantedPermissions: null },
+    });
+    expect(
+      within(screen.getByTestId("unified-running")).getByTestId(
+        "timeline-row-status",
+      ).textContent,
+    ).toBe("Running");
+    expect(
+      within(screen.getByTestId("unified-projects")).getAllByTestId(
+        "timeline-row",
+      ),
+    ).toHaveLength(2);
+    expect(screen.queryByTestId("unified-recents")).toBeNull();
+  });
+
+  it("lists only projectless chats under Recents", () => {
+    renderList({
+      projects: [project("proj_a", "alpha")],
+      threads: [
+        thread({ id: "thr_project", projectId: "proj_a" }),
+        thread({ id: "thr_loose", projectId: "proj_personal" }),
+      ],
+    });
+    const recents = screen.getByTestId("unified-recents");
+    expect(
+      within(recents)
+        .getAllByTestId("timeline-row")
+        .map((row) =>
+          row
+            .querySelector("[data-sidebar-thread-id]")
+            ?.getAttribute("data-sidebar-thread-id"),
+        ),
+    ).toEqual(["thr_loose"]);
+  });
+
+  it("collapses the Projects section and individual projects", () => {
+    renderList({
+      projects: [project("proj_a", "alpha"), project("proj_b", "beta")],
+      threads: [thread({ id: "thr_a", projectId: "proj_a" })],
+    });
+    const projectsSection = screen.getByTestId("unified-projects");
+    const alpha = within(projectsSection).getAllByTestId("unified-project")[0]!;
+    expect(within(alpha).getAllByTestId("timeline-row")).toHaveLength(1);
+    fireEvent.click(
+      within(alpha).getByRole("button", { name: "Collapse alpha" }),
+    );
+    expect(within(alpha).queryAllByTestId("timeline-row")).toHaveLength(0);
+    expect(alpha.getAttribute("data-collapsed")).toBe("true");
+    fireEvent.click(
+      within(alpha).getByRole("button", { name: "Expand alpha" }),
+    );
+    expect(within(alpha).getAllByTestId("timeline-row")).toHaveLength(1);
+
+    fireEvent.click(
+      within(projectsSection).getByRole("button", {
+        name: "Collapse Projects",
+      }),
+    );
+    expect(
+      within(projectsSection).queryAllByTestId("unified-project"),
+    ).toHaveLength(0);
+    expect(
+      within(projectsSection).getByRole("button", { name: "New project" }),
+    ).toBeTruthy();
   });
 
   it("caps projects, per-project threads, and recents behind Show more", () => {
@@ -181,7 +330,7 @@ describe("UnifiedSidebarList", () => {
           updatedAt: NOW - index * 1000,
         }),
       ),
-      ...Array.from({ length: 10 }, (_, index) =>
+      ...Array.from({ length: 14 }, (_, index) =>
         thread({
           id: `thr_r_${index}`,
           projectId: "proj_personal",

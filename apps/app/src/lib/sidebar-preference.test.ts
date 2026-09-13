@@ -40,12 +40,15 @@ describe("sidebar preferences", () => {
     );
   });
 
-  it("migrates the old threadList key onto layout", () => {
+  it("migrates every old threadList value onto the unified layout", () => {
     expect(parseSidebarPreferences('{"threadList":"projects"}').layout).toBe(
-      "projects",
+      "unified",
     );
     expect(parseSidebarPreferences('{"threadList":"timeline"}').layout).toBe(
-      "timeline",
+      "unified",
+    );
+    expect(parseSidebarPreferences('{"layout":"projects"}').layout).toBe(
+      "projects",
     );
     expect(parseSidebarPreferences('{"threadList":"bogus"}').layout).toBe(
       "unified",
