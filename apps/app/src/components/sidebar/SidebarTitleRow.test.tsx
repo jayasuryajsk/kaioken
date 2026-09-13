@@ -7,14 +7,15 @@ import { SidebarTitleRow } from "./AppSidebar";
 afterEach(() => cleanup());
 
 describe("SidebarTitleRow", () => {
-  it("shows the priority count and routes search and bell clicks", () => {
+  it("shows the waiting count and toggles the priority view from the bell", () => {
     const onSearch = vi.fn();
-    const onPriority = vi.fn();
+    const onTogglePriority = vi.fn();
     render(
       <SidebarTitleRow
         needsYouCount={3}
         onSearch={onSearch}
-        onPriority={onPriority}
+        priorityView={false}
+        onTogglePriority={onTogglePriority}
       />,
     );
     expect(screen.getByText("Kaioken")).toBeTruthy();
@@ -23,23 +24,28 @@ describe("SidebarTitleRow", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Search threads" }));
     expect(onSearch).toHaveBeenCalled();
-    fireEvent.click(
-      screen.getByRole("button", { name: "Needs you (3 waiting)" }),
-    );
-    expect(onPriority).toHaveBeenCalled();
+    const bell = screen.getByRole("button", {
+      name: "Show priority view (3 waiting)",
+    });
+    expect(bell.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(bell);
+    expect(onTogglePriority).toHaveBeenCalled();
   });
 
-  it("hides the count when nothing is waiting", () => {
+  it("marks the bell pressed while the priority view is on", () => {
     render(
       <SidebarTitleRow
         needsYouCount={0}
         onSearch={vi.fn()}
-        onPriority={vi.fn()}
+        priorityView
+        onTogglePriority={vi.fn()}
       />,
     );
     expect(screen.queryByTestId("app-sidebar-priority-count")).toBeNull();
     expect(
-      screen.getByRole("button", { name: "Needs you (nothing waiting)" }),
-    ).toBeTruthy();
+      screen
+        .getByRole("button", { name: "Show all threads" })
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
   });
 });

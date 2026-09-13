@@ -281,7 +281,7 @@ describe("getSidebarThreadComparator", () => {
     ).toEqual(["thr_plain", "thr_env_a"]);
   });
 
-  it("sorts mention-shaped section names as literal text", () => {
+  it("sorts mention-shaped label names as literal text", () => {
     const target = thread({
       id: "thr_target",
       title: "Zulu resolved label",

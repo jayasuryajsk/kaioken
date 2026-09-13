@@ -5,7 +5,7 @@ import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ThreadSectionRenameDialog } from "./ThreadSectionCreateDialog";
 
-const DUPLICATE_NAME_MESSAGE = "Section name already exists";
+const DUPLICATE_NAME_MESSAGE = "Label name already exists";
 
 function RenameDialogHarness({ onRename }: { onRename: () => void }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -34,18 +34,18 @@ describe("ThreadSectionRenameDialog", () => {
     const onRename = vi.fn();
     render(<RenameDialogHarness onRename={onRename} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Rename section" }));
+    fireEvent.click(screen.getByRole("button", { name: "Rename label" }));
 
     expect(onRename).toHaveBeenCalledTimes(1);
     expect(screen.getByText(DUPLICATE_NAME_MESSAGE)).not.toBeNull();
 
-    fireEvent.change(screen.getByRole("textbox", { name: "Section name" }), {
+    fireEvent.change(screen.getByRole("textbox", { name: "Label name" }), {
       target: { value: "Beta" },
     });
 
     expect(screen.queryByText(DUPLICATE_NAME_MESSAGE)).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: "Rename section" }));
+    fireEvent.click(screen.getByRole("button", { name: "Rename label" }));
 
     expect(onRename).toHaveBeenCalledTimes(2);
     expect(screen.getByText(DUPLICATE_NAME_MESSAGE)).not.toBeNull();

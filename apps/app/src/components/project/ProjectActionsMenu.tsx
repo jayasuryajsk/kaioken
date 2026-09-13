@@ -101,7 +101,7 @@ function ProjectSectionMoveMenu({
       {sectionMove.requestNewSection ? (
         <Item inset={inline} onSelect={() => sectionMove.requestNewSection?.()}>
           <Icon name="SectionAdd" aria-hidden="true" />
-          New section…
+          New label…
         </Item>
       ) : null}
     </>
@@ -117,7 +117,7 @@ function ProjectSectionMoveMenu({
           }}
         >
           <Icon name="MoveTo" aria-hidden="true" />
-          <span className="min-w-0 flex-1 truncate">Move to section</span>
+          <span className="min-w-0 flex-1 truncate">Move to label</span>
           <Icon
             name={expanded ? "ChevronDown" : "ChevronRight"}
             className="ml-auto"
@@ -138,7 +138,7 @@ function ProjectSectionMoveMenu({
     <Sub>
       <SubTrigger>
         <Icon name="MoveTo" aria-hidden="true" />
-        Move to section
+        Move to label
       </SubTrigger>
       <SubContent className="max-h-[min(24rem,calc(100vh-2rem))] min-w-44 overflow-y-auto">
         {items}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
   applySidebarPreferences,
   sidebarPreferencesAtom,
@@ -43,6 +43,7 @@ import {
   MACOS_WINDOW_DRAG_CLASS,
   shouldUseMacosDesktopChrome,
 } from "@/lib/kaioken-desktop";
+import { sidebarPriorityViewAtom } from "@/lib/sidebar-priority-view";
 import { getRootComposeRoutePath, getThreadRoutePath } from "@/lib/route-paths";
 import { usePaneContentSplitDrag } from "./usePaneContentSplitDrag";
 import {
@@ -64,8 +65,6 @@ import {
 import { useRouteState } from "@/hooks/useRouteState";
 import { SidebarNavigationRegion } from "./SidebarNavigationRegion";
 import { SidebarRail } from "./SidebarRail";
-import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
-import { usePrimaryHost } from "@/hooks/queries/host-queries";
 import { useSidebarNavigation } from "@/hooks/queries/sidebar-navigation-query";
 import { countNeedsYou } from "@/lib/sidebar-timeline";
 import { SIDEBAR_CONTROL_BUTTON_CLASS } from "./sidebarRowClasses";
@@ -80,12 +79,14 @@ const SIDEBAR_TITLE_BUTTON_CLASS = cn(
 export function SidebarTitleRow({
   needsYouCount,
   onSearch,
-  onPriority,
+  priorityView,
+  onTogglePriority,
   className,
 }: {
   needsYouCount: number;
   onSearch: (element: HTMLElement) => void;
-  onPriority: () => void;
+  priorityView: boolean;
+  onTogglePriority: () => void;
   className?: string;
 }) {
   return (
@@ -109,13 +110,17 @@ export function SidebarTitleRow({
       </button>
       <button
         type="button"
+        aria-pressed={priorityView}
         aria-label={
-          needsYouCount > 0
-            ? `Needs you (${needsYouCount} waiting)`
-            : "Needs you (nothing waiting)"
+          priorityView
+            ? "Show all threads"
+            : `Show priority view${needsYouCount > 0 ? ` (${needsYouCount} waiting)` : ""}`
         }
-        className={SIDEBAR_TITLE_BUTTON_CLASS}
-        onClick={onPriority}
+        className={cn(
+          SIDEBAR_TITLE_BUTTON_CLASS,
+          priorityView && "bg-state-active text-sidebar-foreground",
+        )}
+        onClick={onTogglePriority}
       >
         <Icon name="BellDot" className="size-4" />
         {needsYouCount > 0 ? (
@@ -193,7 +198,6 @@ export function AppSidebar({
       ...sidebarNavigation.personalProject.threads,
     ]);
   }, [sidebarNavigation]);
-  const primaryHost = usePrimaryHost();
   const showTitleRow = sidebarPreferences.layout === "unified";
   const handleSearch = useCallback(
     (element: HTMLElement) => {
@@ -201,11 +205,10 @@ export function AppSidebar({
     },
     [commandRunner],
   );
-  const handlePriority = useCallback(() => {
-    sidebarRef.current
-      ?.querySelector('[data-sidebar-section="needs-you"]')
-      ?.scrollIntoView({ block: "start", behavior: "smooth" });
-  }, []);
+  const [priorityView, setPriorityView] = useAtom(sidebarPriorityViewAtom);
+  const handleTogglePriority = useCallback(() => {
+    setPriorityView((current) => !current);
+  }, [setPriorityView]);
 
   const handleNewChat = useCallback(() => {
     closeOnMobile();
@@ -353,7 +356,8 @@ export function AppSidebar({
         <SidebarTitleRow
           needsYouCount={needsYouCount}
           onSearch={handleSearch}
-          onPriority={handlePriority}
+          priorityView={priorityView}
+          onTogglePriority={handleTogglePriority}
           className="group-data-[collapsible=icon]:hidden"
         />
       ) : null}
@@ -396,17 +400,6 @@ export function AppSidebar({
           onDismiss={pluginSidebarFooter.dismiss}
         />
         <SidebarMenu className="flex-row flex-wrap-reverse items-center gap-1">
-          {primaryHost ? (
-            <li
-              data-testid="app-sidebar-footer-machine"
-              className="flex min-w-0 items-center gap-1.5 pl-2 pr-1 text-xs text-muted-foreground"
-            >
-              <MachineStatusDot
-                connected={primaryHost.status === "connected"}
-              />
-              <span className="min-w-0 truncate">{primaryHost.name}</span>
-            </li>
-          ) : null}
           <SidebarMenuItem className="min-w-0">
             <SidebarMenuButton
               asChild

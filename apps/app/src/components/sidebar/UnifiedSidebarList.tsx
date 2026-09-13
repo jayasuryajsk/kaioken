@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import type { ThreadListEntry } from "@kaioken/domain";
 import { Button } from "@kaioken/shared-ui/button";
@@ -27,9 +27,10 @@ import {
 } from "@/hooks/queries/host-queries";
 import type { ProjectResponse } from "@kaioken/server-contract";
 import { getProjectComposeRoutePath } from "@/lib/route-paths";
+import { sidebarPriorityViewAtom } from "@/lib/sidebar-priority-view";
 import {
+  buildPrioritySidebar,
   buildUnifiedSidebar,
-  describeRunningThread,
   UNIFIED_PROJECT_THREADS_PREVIEW_COUNT,
   UNIFIED_PROJECTS_PREVIEW_COUNT,
   UNIFIED_RECENTS_PREVIEW_COUNT,
@@ -37,7 +38,6 @@ import {
   type UnifiedProjectsSort,
   type UnifiedSectionLike,
 } from "@/lib/sidebar-unified";
-import { NeedsYouCard } from "./NeedsYouCard";
 import {
   collapsedProjectIdsAtom,
   sidebarProjectsSortAtom,
@@ -340,7 +340,7 @@ function ProjectsSortMenu({
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={onNewSection}>
               <Icon name="SectionAdd" />
-              New section
+              New label
             </DropdownMenuItem>
           </>
         ) : null}
@@ -453,6 +453,11 @@ export function UnifiedSidebarList({
   const projectsCollapsed = collapsedSections.has(UNIFIED_PROJECTS_SECTION_ID);
   const [projectsExpanded, setProjectsExpanded] = useState(false);
   const [recentsExpanded, setRecentsExpanded] = useState(false);
+  const priorityView = useAtomValue(sidebarPriorityViewAtom);
+  const priorityModel = useMemo(
+    () => buildPrioritySidebar(threads, now ?? clock),
+    [clock, now, threads],
+  );
   const model = useMemo(
     () =>
       buildUnifiedSidebar({
@@ -502,17 +507,6 @@ export function UnifiedSidebarList({
       onProjectSelect={onProjectSelect}
     />
   );
-  const renderRunning = (thread: ThreadListEntry) => (
-    <TimelineRow
-      key={thread.id}
-      thread={thread}
-      hasDraft={draftThreadIds.has(thread.id)}
-      isActive={thread.id === selectedThreadId}
-      machine={machineFor(thread)}
-      onProjectSelect={onProjectSelect}
-      statusText={describeRunningThread(thread)}
-    />
-  );
   const visibleProjects = projectsExpanded
     ? model.projects
     : model.projects.slice(0, UNIFIED_PROJECTS_PREVIEW_COUNT);
@@ -533,49 +527,50 @@ export function UnifiedSidebarList({
     }))
     .filter((group) => group.threads.length > 0);
   const isEmpty =
-    model.needsYou.length === 0 &&
-    model.running.length === 0 &&
     model.pinned.length === 0 &&
     model.sections.length === 0 &&
     model.projects.length === 0 &&
     recentThreads.length === 0;
 
+  if (priorityView) {
+    return (
+      <div
+        data-testid="unified-sidebar-list"
+        data-sidebar-view="priority"
+        className="flex flex-col gap-3 px-2 pb-2 pt-1"
+      >
+        <section data-testid="unified-priority">
+          <p className={SECTION_LABEL_CLASS}>Priority</p>
+          {priorityModel.priority.length > 0 ? (
+            <div className="space-y-0.5">
+              {priorityModel.priority.map((thread) =>
+                renderThread(thread, true),
+              )}
+            </div>
+          ) : (
+            <p className="px-2 py-1 text-xs text-subtle-foreground">
+              Nothing needs attention
+            </p>
+          )}
+        </section>
+        {priorityModel.groups.map((group) => (
+          <section key={group.id} data-testid={`unified-priority-${group.id}`}>
+            <p className={SECTION_LABEL_CLASS}>{group.label}</p>
+            <div className="space-y-0.5">
+              {group.threads.map((thread) => renderThread(thread, true))}
+            </div>
+          </section>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div
       data-testid="unified-sidebar-list"
+      data-sidebar-view="default"
       className="flex flex-col gap-3 px-2 pb-2 pt-1"
     >
-      {model.needsYou.length > 0 ? (
-        <section
-          data-testid="unified-needs-you"
-          data-sidebar-section="needs-you"
-        >
-          <p className={SECTION_LABEL_CLASS}>
-            Needs you
-            <span className="text-subtle-foreground">
-              {model.needsYou.length}
-            </span>
-          </p>
-          <div className="space-y-1">
-            {model.needsYou.map((thread) => (
-              <NeedsYouCard
-                key={thread.id}
-                thread={thread}
-                machine={machineFor(thread)}
-                isActive={thread.id === selectedThreadId}
-                now={now ?? clock}
-                onProjectSelect={onProjectSelect}
-              />
-            ))}
-          </div>
-        </section>
-      ) : null}
-      {model.running.length > 0 ? (
-        <section data-testid="unified-running">
-          <p className={SECTION_LABEL_CLASS}>Running</p>
-          <div className="space-y-0.5">{model.running.map(renderRunning)}</div>
-        </section>
-      ) : null}
       {model.pinned.length > 0 ? (
         <section data-testid="unified-pinned">
           <p className={SECTION_LABEL_CLASS}>Pinned</p>

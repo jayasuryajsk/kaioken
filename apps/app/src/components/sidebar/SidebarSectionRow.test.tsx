@@ -24,7 +24,7 @@ afterEach(() => {
 });
 
 describe("SidebarSectionRow", () => {
-  it("renders the section name before the disclosure without a sidebar icon", () => {
+  it("renders the label name before the disclosure without a sidebar icon", () => {
     const result = render(
       <SidebarSectionRow
         name="Nested work"

@@ -3,8 +3,10 @@ import { useEffect, useRef } from "react";
 import { cn } from "@kaioken/shared-ui/lib/utils";
 import { composeBackdropAtom } from "@/lib/compose-backdrop/atom";
 import {
+  BACKDROP_PALETTE_TOKENS,
   createBackdropSimulation,
   isAnimatedBackdrop,
+  pickBackdropColor,
   type BackdropSimulation,
 } from "@/lib/compose-backdrop/patterns";
 
@@ -12,7 +14,7 @@ const CELL_WIDTH = 8;
 const CELL_HEIGHT = 15;
 const FONT_SIZE = 12;
 const FRAME_INTERVAL_MS = 1000 / 12;
-const BASE_ALPHA = 0.11;
+const BASE_ALPHA = 0.16;
 
 function prefersReducedMotion(): boolean {
   return (
@@ -52,8 +54,13 @@ export function ComposeBackdrop({ className }: { className?: string }) {
       context.clearRect(0, 0, canvas.width, canvas.height);
       context.font = `${FONT_SIZE}px ui-monospace, Menlo, monospace`;
       context.textBaseline = "top";
-      context.fillStyle = getComputedStyle(canvas).color;
+      const style = getComputedStyle(canvas);
+      const base = style.color;
+      const palette = BACKDROP_PALETTE_TOKENS.map((token) =>
+        style.getPropertyValue(token).trim(),
+      ).filter((value) => value.length > 0);
       for (const glyph of glyphs) {
+        context.fillStyle = pickBackdropColor(glyph, palette, base);
         context.globalAlpha = BASE_ALPHA * glyph.alpha;
         context.fillText(
           glyph.char,

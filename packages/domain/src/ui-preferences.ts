@@ -30,6 +30,10 @@ export const COMPOSE_BACKDROP_PATTERNS = [
   "drift",
   "rain",
   "life",
+  "waves",
+  "matrix",
+  "stars",
+  "flow",
   "static",
 ] as const;
 export type ComposeBackdropPattern = (typeof COMPOSE_BACKDROP_PATTERNS)[number];
@@ -181,7 +185,7 @@ export const uiPreferenceDefinitions = {
   "compose.backdrop": defineUiPreference(
     composeBackdropSchema,
     "drift",
-    "Animated character field behind the new-thread composer: off, drift, rain, life, or static.",
+    "Animated character field behind the new-thread composer: off, drift, rain, life, waves, matrix, stars, flow, or static.",
   ),
 } as const satisfies Record<UiPreferenceKey, UiPreferenceDefinition>;
 

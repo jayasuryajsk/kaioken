@@ -59,54 +59,6 @@ vi.mock("@/components/project/ProjectActionsMenu", () => ({
   ProjectActionsMenu: () => null,
 }));
 
-const interactionState = vi.hoisted(() => ({
-  byThread: {} as Record<string, unknown[]>,
-  resolve: vi.fn(async () => ({})),
-}));
-
-vi.mock("@/hooks/queries/thread-queries", () => ({
-  useThreadPendingInteractions: (id: string) => ({
-    data: interactionState.byThread[id] ?? [],
-  }),
-}));
-
-vi.mock("@/hooks/mutations/thread-interaction-mutations", () => ({
-  useResolveThreadPendingInteraction: () => ({
-    mutateAsync: interactionState.resolve,
-    isPending: false,
-    error: null,
-  }),
-}));
-
-function approvalInteraction(threadId: string, command: string) {
-  return {
-    id: `int_${threadId}`,
-    threadId,
-    status: "pending",
-    statusReason: null,
-    createdAt: 1,
-    resolvedAt: null,
-    turnId: "turn_1",
-    providerId: "codex",
-    providerThreadId: "p1",
-    providerRequestId: "r1",
-    resolution: null,
-    payload: {
-      kind: "approval",
-      reason: null,
-      availableDecisions: ["allow_once", "allow_for_session", "deny"],
-      subject: {
-        kind: "command",
-        itemId: "item",
-        command,
-        cwd: null,
-        actions: [],
-        sessionGrant: null,
-      },
-    },
-  };
-}
-
 const NOW = Date.now();
 
 function thread(overrides: Partial<ThreadListEntry> & { id: string }) {
@@ -181,12 +133,11 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
   hostsState.hosts = [];
-  interactionState.byThread = {};
   window.localStorage.clear();
 });
 
 describe("UnifiedSidebarList", () => {
-  it("renders the sections in order and omits empty attention tiers", () => {
+  it("renders the default view sections in order without a priority tier", () => {
     renderList({
       projects: [project("proj_a", "alpha")],
       sections: [{ id: "sec_work", name: "work", projectIds: [] }],
@@ -215,56 +166,53 @@ describe("UnifiedSidebarList", () => {
     ).toBeNull();
   });
 
-  it("puts approvals in Needs you as cards whose Allow resolves the interaction", () => {
-    interactionState.byThread = {
-      thr_wait: [approvalInteraction("thr_wait", "rm -rf dist\nnpm run build")],
-    };
+  it("switches to the priority view when the bell is on", () => {
+    window.localStorage.setItem("kaioken.sidebar.priorityView", "true");
     renderList({
       projects: [project("proj_a", "alpha")],
+      pinnedThreadIds: ["thr_pin"],
       threads: [
+        thread({ id: "thr_pin", pinnedAt: 1 }),
         thread({
           id: "thr_wait",
           hasPendingInteraction: true,
           latestAttentionAt: NOW - 4 * 60_000,
         }),
-        thread({
-          id: "thr_run",
-          status: "active",
-          runtime: {
-            displayStatus: "active",
-            hostReconnectGraceExpiresAt: null,
-          },
-        }),
+        thread({ id: "thr_new", projectId: "proj_personal" }),
       ],
     });
-    const order = [
-      ...screen.getByTestId("unified-sidebar-list").querySelectorAll("section"),
-    ].map((node) => node.getAttribute("data-testid"));
-    expect(order.slice(0, 2)).toEqual(["unified-needs-you", "unified-running"]);
-    const card = screen.getByTestId("needs-you-card");
-    expect(within(card).getByTestId("needs-you-summary").textContent).toBe(
-      "rm -rf dist",
+    const list = screen.getByTestId("unified-sidebar-list");
+    expect(list.getAttribute("data-sidebar-view")).toBe("priority");
+    const order = [...list.querySelectorAll("section")].map((node) =>
+      node.getAttribute("data-testid"),
     );
-    expect(within(card).getByTestId("needs-you-wait").textContent).toBe(
-      "waiting 4m",
-    );
-    fireEvent.click(within(card).getByRole("button", { name: "Allow" }));
-    expect(interactionState.resolve).toHaveBeenCalledWith({
-      threadId: "thr_wait",
-      interactionId: "int_thr_wait",
-      resolution: { decision: "allow_once", grantedPermissions: null },
-    });
+    expect(order).toEqual(["unified-priority", "unified-priority-today"]);
     expect(
-      within(screen.getByTestId("unified-running")).getByTestId(
-        "timeline-row-status",
-      ).textContent,
-    ).toBe("Running");
+      within(screen.getByTestId("unified-priority"))
+        .getAllByTestId("timeline-row")
+        .map((row) =>
+          row
+            .querySelector("[data-sidebar-thread-id]")
+            ?.getAttribute("data-sidebar-thread-id"),
+        ),
+    ).toEqual(["thr_wait"]);
     expect(
-      within(screen.getByTestId("unified-projects")).getAllByTestId(
+      within(screen.getByTestId("unified-priority-today")).getAllByTestId(
         "timeline-row",
       ),
     ).toHaveLength(2);
-    expect(screen.queryByTestId("unified-recents")).toBeNull();
+    expect(screen.queryByTestId("unified-projects")).toBeNull();
+    expect(screen.queryByTestId("needs-you-card")).toBeNull();
+  });
+
+  it("says nothing needs attention in the priority view when the list is quiet", () => {
+    window.localStorage.setItem("kaioken.sidebar.priorityView", "true");
+    renderList({
+      projects: [],
+      threads: [thread({ id: "thr_new", projectId: "proj_personal" })],
+    });
+    expect(screen.getByText("Nothing needs attention")).toBeTruthy();
+    expect(screen.getByText("Priority")).toBeTruthy();
   });
 
   it("lists only projectless chats under Recents", () => {

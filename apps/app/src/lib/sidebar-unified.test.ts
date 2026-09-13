@@ -5,10 +5,8 @@ import {
   makeThreadListEntry,
 } from "@kaioken/test-helpers/domain-fixtures";
 import {
+  buildPrioritySidebar,
   buildUnifiedSidebar,
-  describeNeedsYouRequest,
-  describeRunningThread,
-  formatWaitDuration,
   projectMachine,
 } from "./sidebar-unified";
 
@@ -66,59 +64,27 @@ function build(args: Partial<Parameters<typeof buildUnifiedSidebar>[0]> = {}) {
 }
 
 describe("buildUnifiedSidebar", () => {
-  it("shows a thread in exactly one of needs you, running, pinned, or recents", () => {
+  it("keeps pinned threads out of Recents and everything else in", () => {
     const waiting = thread({
       id: "thr_wait",
       projectId: "proj_personal",
       hasPendingInteraction: true,
       latestAttentionAt: NOON - 5000,
     });
-    const waitingLonger = thread({
-      id: "thr_wait_longer",
-      projectId: "proj_personal",
-      hasPendingInteraction: true,
-      latestAttentionAt: NOON - 9000,
-    });
-    const running = thread({
-      id: "thr_run",
-      projectId: "proj_personal",
-      status: "active",
-      runtime: { displayStatus: "active", hostReconnectGraceExpiresAt: null },
-    });
     const pinned = thread({
       id: "thr_pin",
       projectId: "proj_personal",
       pinnedAt: 5,
     });
-    const pinnedButWaiting = thread({
-      id: "thr_pin_wait",
-      projectId: "proj_personal",
-      pinnedAt: 6,
-      hasPendingInteraction: true,
-      latestAttentionAt: NOON - 1000,
-    });
     const plain = thread({ id: "thr_plain", projectId: "proj_personal" });
     const model = build({
-      threads: [
-        waiting,
-        waitingLonger,
-        running,
-        pinned,
-        pinnedButWaiting,
-        plain,
-      ],
-      pinnedThreadIds: ["thr_pin_wait", "thr_pin"],
+      threads: [waiting, pinned, plain],
+      pinnedThreadIds: ["thr_pin"],
     });
-    expect(model.needsYou.map((entry) => entry.id)).toEqual([
-      "thr_wait_longer",
-      "thr_wait",
-      "thr_pin_wait",
-    ]);
-    expect(model.running.map((entry) => entry.id)).toEqual(["thr_run"]);
     expect(model.pinned.map((entry) => entry.id)).toEqual(["thr_pin"]);
     expect(
       model.recents.flatMap((group) => group.threads.map((t) => t.id)),
-    ).toEqual(["thr_plain"]);
+    ).toEqual(["thr_wait", "thr_plain"]);
   });
 
   it("keeps project threads out of Recents", () => {
@@ -252,79 +218,44 @@ describe("buildUnifiedSidebar", () => {
   });
 });
 
-describe("attention tier descriptions", () => {
-  it("formats wait times and running states", () => {
-    expect(formatWaitDuration(30_000)).toBe("waiting now");
-    expect(formatWaitDuration(4 * 60_000)).toBe("waiting 4m");
-    expect(formatWaitDuration(3 * 60 * 60_000)).toBe("waiting 3h");
-    expect(formatWaitDuration(2 * DAY)).toBe("waiting 2d");
-    expect(
-      describeRunningThread(thread({ id: "q", queuedWork: "waiting" })),
-    ).toBe("Queued");
-    expect(
-      describeRunningThread(
-        thread({
-          id: "p",
-          runtime: {
-            displayStatus: "provisioning",
-            hostReconnectGraceExpiresAt: null,
-          },
-        }),
-      ),
-    ).toBe("Provisioning");
-  });
-
-  it("summarises approvals and questions for the card", () => {
-    const base = {
-      id: "int_1",
-      threadId: "thr_1",
-      status: "pending" as const,
-      statusReason: null,
-      createdAt: 1,
-      resolvedAt: null,
-      turnId: "turn_1",
-      providerId: "codex",
-      providerThreadId: "p1",
-      providerRequestId: "r1",
-      resolution: null,
-    };
-    expect(
-      describeNeedsYouRequest({
-        ...base,
-        payload: {
-          kind: "approval",
-          reason: null,
-          availableDecisions: ["allow_once", "deny"],
-          subject: {
-            kind: "command",
-            itemId: "i",
-            command: "ls -la\necho done",
-            cwd: null,
-            actions: [],
-            sessionGrant: null,
-          },
-        },
-      }),
-    ).toEqual({
-      kind: "approval",
-      summary: "ls -la",
-      decisions: ["allow_once", "deny"],
+describe("buildPrioritySidebar", () => {
+  it("lists waiting then running threads first and the rest by day, ignoring pins", () => {
+    const waiting = thread({
+      id: "thr_wait",
+      projectId: "proj_a",
+      hasPendingInteraction: true,
+      latestAttentionAt: NOON - 5000,
     });
+    const running = thread({
+      id: "thr_run",
+      projectId: "proj_personal",
+      status: "active",
+      runtime: { displayStatus: "active", hostReconnectGraceExpiresAt: null },
+    });
+    const pinned = thread({
+      id: "thr_pin",
+      projectId: "proj_a",
+      pinnedAt: 5,
+      updatedAt: NOON - 1000,
+    });
+    const old = thread({
+      id: "thr_old",
+      projectId: "proj_personal",
+      updatedAt: NOON - 2 * DAY,
+    });
+    const view = buildPrioritySidebar([old, pinned, running, waiting], NOON);
+    expect(view.priority.map((entry) => entry.id)).toEqual([
+      "thr_wait",
+      "thr_run",
+    ]);
     expect(
-      describeNeedsYouRequest({
-        ...base,
-        payload: {
-          kind: "user_question",
-          questions: [
-            {
-              id: "q1",
-              prompt: "Which branch?",
-              allowFreeText: true,
-              multiSelect: false,
-            },
-          ],
-        },
-      }),
-    ).toMatchObject({ kind: "question", summary: "Which branch?" });
+      view.groups.map((group) => [
+        group.id,
+        group.threads.map((entry) => entry.id),
+      ]),
+    ).toEqual([
+      ["today", ["thr_pin"]],
+      ["this-week", ["thr_old"]],
+    ]);
   });
 });

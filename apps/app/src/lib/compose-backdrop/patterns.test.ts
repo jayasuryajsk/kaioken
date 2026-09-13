@@ -3,6 +3,7 @@ import {
   createBackdropSimulation,
   driftValue,
   lifeStep,
+  pickBackdropColor,
   seedLife,
 } from "./patterns";
 
@@ -61,5 +62,55 @@ describe("compose backdrop patterns", () => {
     const c = simulation.step(600);
     expect(a).toEqual(b);
     expect(c).not.toEqual(a);
+  });
+});
+
+describe("newer backdrop patterns", () => {
+  it.each(["waves", "matrix", "stars", "flow"] as const)(
+    "%s animates and stays inside the grid",
+    (pattern) => {
+      const simulation = createBackdropSimulation(pattern, grid, 9);
+      const first = simulation.step(0);
+      const later = simulation.step(2500);
+      expect(later.length).toBeGreaterThan(0);
+      expect(first).not.toEqual(later);
+      for (const glyph of later) {
+        expect(glyph.column).toBeGreaterThanOrEqual(0);
+        expect(glyph.column).toBeLessThan(grid.columns);
+        expect(glyph.row).toBeGreaterThanOrEqual(0);
+        expect(glyph.row).toBeLessThan(grid.rows);
+        expect(glyph.alpha).toBeGreaterThan(0);
+        expect(glyph.alpha).toBeLessThanOrEqual(1);
+        expect(glyph.char.trim().length).toBeGreaterThan(0);
+      }
+    },
+  );
+
+  it("stars keep the same positions and only twinkle", () => {
+    const simulation = createBackdropSimulation("stars", grid, 4);
+    const key = (glyphs: readonly { column: number; row: number }[]) =>
+      glyphs.map((glyph) => `${glyph.column}:${glyph.row}`).join(",");
+    expect(key(simulation.step(0))).toBe(key(simulation.step(900)));
+  });
+});
+
+describe("pickBackdropColor", () => {
+  it("tints only strong glyphs and falls back to the base colour", () => {
+    const palette = ["red", "green", "blue"];
+    expect(
+      pickBackdropColor({ column: 0, row: 0, alpha: 0.2 }, palette, "base"),
+    ).toBe("base");
+    expect(
+      pickBackdropColor({ column: 0, row: 0, alpha: 0.9 }, [], "base"),
+    ).toBe("base");
+    const strong = pickBackdropColor(
+      { column: 3, row: 1, alpha: 0.9 },
+      palette,
+      "base",
+    );
+    expect(palette).toContain(strong);
+    expect(
+      pickBackdropColor({ column: 3, row: 1, alpha: 0.9 }, palette, "base"),
+    ).toBe(strong);
   });
 });

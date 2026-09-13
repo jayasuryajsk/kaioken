@@ -80,7 +80,7 @@ function renderCompact(children: ReactNode) {
 
 async function openMoveSubmenu() {
   const trigger = await screen.findByRole("menuitem", {
-    name: "Move to section",
+    name: "Move to label",
   });
   fireEvent.keyDown(trigger, { key: "ArrowRight" });
   return screen.findByRole("menuitem", { name: "Building" });
@@ -160,7 +160,7 @@ describe("ThreadActionsMenu section moves", () => {
       { button: 0 },
     );
     expect(
-      screen.queryByRole("menuitem", { name: "Move to section" }),
+      screen.queryByRole("menuitem", { name: "Move to label" }),
     ).toBeNull();
   });
 
@@ -177,7 +177,7 @@ describe("ThreadActionsMenu section moves", () => {
       { button: 0 },
     );
     expect(
-      screen.queryByRole("menuitem", { name: "Move to section" }),
+      screen.queryByRole("menuitem", { name: "Move to label" }),
     ).toBeNull();
   });
 
@@ -187,12 +187,12 @@ describe("ThreadActionsMenu section moves", () => {
     const trigger = screen.getByRole("button", { name: "Thread actions" });
     fireEvent.click(trigger);
     const moveToSection = await screen.findByRole("menuitem", {
-      name: "Move to section",
+      name: "Move to label",
     });
     expect(moveToSection.querySelector('[data-icon="MoveTo"]')).not.toBeNull();
     fireEvent.click(moveToSection);
 
-    expect(await screen.findByText("Move to section")).not.toBeNull();
+    expect(await screen.findByText("Move to label")).not.toBeNull();
     expect(screen.getByRole("menuitem", { name: "Building" })).not.toBeNull();
     fireEvent.click(screen.getByRole("menuitem", { name: "Back" }));
     expect(
@@ -200,13 +200,13 @@ describe("ThreadActionsMenu section moves", () => {
     ).not.toBeNull();
 
     fireEvent.click(
-      await screen.findByRole("menuitem", { name: "Move to section" }),
+      await screen.findByRole("menuitem", { name: "Move to label" }),
     );
     fireEvent.click(await screen.findByRole("menuitem", { name: "Building" }));
 
     fireEvent.click(trigger);
     expect(
-      await screen.findByRole("menuitem", { name: "Move to section" }),
+      await screen.findByRole("menuitem", { name: "Move to label" }),
     ).not.toBeNull();
     expect(screen.queryByRole("menuitem", { name: "Back" })).toBeNull();
   });
@@ -221,13 +221,13 @@ describe("ThreadActionsMenu section moves", () => {
     const row = screen.getByTestId("thread-row");
     fireEvent.contextMenu(row);
     fireEvent.click(
-      await screen.findByRole("menuitem", { name: "Move to section" }),
+      await screen.findByRole("menuitem", { name: "Move to label" }),
     );
     fireEvent.click(await screen.findByRole("menuitem", { name: "Building" }));
 
     fireEvent.contextMenu(row);
     expect(
-      await screen.findByRole("menuitem", { name: "Move to section" }),
+      await screen.findByRole("menuitem", { name: "Move to label" }),
     ).not.toBeNull();
     expect(screen.queryByRole("menuitem", { name: "Back" })).toBeNull();
   });

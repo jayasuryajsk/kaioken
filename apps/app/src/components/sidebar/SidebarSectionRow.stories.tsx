@@ -206,7 +206,7 @@ export function DragInto() {
       </StoryRow>
       <StoryRow
         label="empty placeholder"
-        hint="after the hover dwell, an empty slot opens inside the section"
+        hint="after the hover dwell, an empty slot opens inside the label"
       >
         <SidebarStage>
           <SectionRow

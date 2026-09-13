@@ -622,26 +622,26 @@ schema, a default, and a revision that increments on every write. Writes name
 the revision they expect and receive `409 ui_preference_conflict` when another
 client wrote first, so a stale window cannot silently clobber a newer value.
 
-| Key                               | Value                                                  |
-| --------------------------------- | ------------------------------------------------------ |
-| `sidebar.organizationMode`        | `project`, `chronological`, `machine`, or `connection` |
-| `sidebar.projectsSort`            | `recent`, `name`, or `machine` (unified sidebar)       |
-| `sidebar.chronologicalSort`       | `updated`, `created`, `alpha`, or `none`               |
-| `sidebar.sectionOrder`            | Section id list for **By project**                     |
-| `sidebar.manualSectionOrder`      | Section id list for **Manually**                       |
-| `sidebar.machineSectionOrder`     | Section id list for **By machine**                     |
-| `sidebar.connectionSectionOrder`  | Section id list for **By connection**                  |
-| `sidebar.collapsedSections`       | Collapsed built-in sections (`pinned`, `threads`)      |
-| `sidebar.collapsedProjects`       | Collapsed project ids                                  |
-| `sidebar.collapsedThreads`        | Thread ids whose children are collapsed                |
-| `sidebar.collapsedEnvironments`   | Collapsed environment ids                              |
-| `sidebar.collapsedThreadSections` | Collapsed thread section ids                           |
-| `sidebar.collapsedMachines`       | Collapsed machine ids                                  |
-| `sidebar.pluginPanelOrder`        | Navigation entry order                                 |
-| `sidebar.visiblePluginPanels`     | Navigation entries shown, or `null` for every entry    |
-| `sidebar.navigationProvider`      | Plugin key, `__automatic__`, or `__builtin__`          |
-| `sidebar.threadListProvider`      | Plugin key, `__automatic__`, or `__builtin__`          |
-| `compose.backdrop`                | `off`, `drift`, `rain`, `life`, or `static`            |
+| Key                               | Value                                                                           |
+| --------------------------------- | ------------------------------------------------------------------------------- |
+| `sidebar.organizationMode`        | `project`, `chronological`, `machine`, or `connection`                          |
+| `sidebar.projectsSort`            | `recent`, `name`, or `machine` (unified sidebar)                                |
+| `sidebar.chronologicalSort`       | `updated`, `created`, `alpha`, or `none`                                        |
+| `sidebar.sectionOrder`            | Section id list for **By project**                                              |
+| `sidebar.manualSectionOrder`      | Section id list for **Manually**                                                |
+| `sidebar.machineSectionOrder`     | Section id list for **By machine**                                              |
+| `sidebar.connectionSectionOrder`  | Section id list for **By connection**                                           |
+| `sidebar.collapsedSections`       | Collapsed built-in sections (`pinned`, `threads`)                               |
+| `sidebar.collapsedProjects`       | Collapsed project ids                                                           |
+| `sidebar.collapsedThreads`        | Thread ids whose children are collapsed                                         |
+| `sidebar.collapsedEnvironments`   | Collapsed environment ids                                                       |
+| `sidebar.collapsedThreadSections` | Collapsed thread section ids                                                    |
+| `sidebar.collapsedMachines`       | Collapsed machine ids                                                           |
+| `sidebar.pluginPanelOrder`        | Navigation entry order                                                          |
+| `sidebar.visiblePluginPanels`     | Navigation entries shown, or `null` for every entry                             |
+| `sidebar.navigationProvider`      | Plugin key, `__automatic__`, or `__builtin__`                                   |
+| `sidebar.threadListProvider`      | Plugin key, `__automatic__`, or `__builtin__`                                   |
+| `compose.backdrop`                | `off`, `drift`, `rain`, `life`, `waves`, `matrix`, `stars`, `flow`, or `static` |
 
 Read and write them with:
 

@@ -103,7 +103,7 @@ describe("TopLevelSidebarSection", () => {
     ).toBe(false);
   });
 
-  it("hides the section body and exposes an expand action when collapsed", () => {
+  it("hides the label body and exposes an expand action when collapsed", () => {
     render(
       <TopLevelSidebarSection
         label="Pinned"
@@ -119,7 +119,7 @@ describe("TopLevelSidebarSection", () => {
     ).not.toBeNull();
   });
 
-  it("renders the disclosure after the section label without a leading icon", () => {
+  it("renders the disclosure after the label label without a leading icon", () => {
     const result = render(
       <TopLevelSidebarSection
         label="Pinned"
@@ -228,7 +228,7 @@ describe("TopLevelSidebarSection", () => {
     expect(screen.queryByText("Pinned thread")).toBeNull();
   });
 
-  it("rolls up a hidden plugin status only while the section is collapsed", () => {
+  it("rolls up a hidden plugin status only while the label is collapsed", () => {
     const renderSection = (isCollapsed: boolean) => (
       <TopLevelSidebarSection
         label="Building"

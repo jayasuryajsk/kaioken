@@ -328,7 +328,7 @@ describe("ConnectionModeSections", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Work repo actions" }));
     fireEvent.click(
-      await screen.findByRole("menuitem", { name: /Move to section/ }),
+      await screen.findByRole("menuitem", { name: /Move to label/ }),
     );
     const current = await screen.findByRole("menuitem", { name: /No section/ });
     expect(current.getAttribute("aria-disabled")).toBe("true");
@@ -350,15 +350,15 @@ describe("ConnectionModeSections", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Work repo actions" }));
     fireEvent.click(
-      await screen.findByRole("menuitem", { name: /Move to section/ }),
+      await screen.findByRole("menuitem", { name: /Move to label/ }),
     );
     fireEvent.click(
-      await screen.findByRole("menuitem", { name: "New section…" }),
+      await screen.findByRole("menuitem", { name: "New label…" }),
     );
     expect(handlers.onRequestNewSection).toHaveBeenCalledTimes(1);
   });
 
-  it("offers section rename and removal from the section header", async () => {
+  it("offers section rename and removal from the label header", async () => {
     hostsState.hosts = [makeHost({ id: "host_book", name: "MacBook" })];
     renderConnectionMode({
       projects: [],

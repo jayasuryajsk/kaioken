@@ -204,7 +204,7 @@ export function SidebarHeaderControls({
                 onSelect={creation.onNewSection}
               >
                 <Icon name="SectionAdd" />
-                New section
+                New label
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {(

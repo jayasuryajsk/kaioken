@@ -226,6 +226,158 @@ function createLife(grid: BackdropGrid, seed: number): BackdropSimulation {
   };
 }
 
+const WAVE_RAMP = [" ", " ", "·", "-", "~", "≈", "="];
+
+function createWaves(grid: BackdropGrid, seed: number): BackdropSimulation {
+  const phase = hash2(1, 1, seed) * Math.PI * 2;
+  return {
+    step: (timeMs) => {
+      const t = timeMs / 1400;
+      const glyphs: BackdropGlyph[] = [];
+      for (let row = 0; row < grid.rows; row += 1) {
+        for (let column = 0; column < grid.columns; column += 1) {
+          const x = column / 7;
+          const y = row / 3;
+          const value =
+            (Math.sin(x + t + phase) +
+              Math.sin(y * 1.3 - t * 0.7) +
+              Math.sin((x + y) * 0.8 + t * 0.5) +
+              3) /
+            6;
+          const index = Math.min(
+            WAVE_RAMP.length - 1,
+            Math.floor(value * WAVE_RAMP.length),
+          );
+          const char = WAVE_RAMP[index] ?? " ";
+          if (char === " ") continue;
+          glyphs.push({ column, row, char, alpha: 0.3 + value * 0.7 });
+        }
+      }
+      return glyphs;
+    },
+  };
+}
+
+const MATRIX_GLYPHS = "0123456789ABCDEFabcdefxyz=+*<>:;#$%&";
+
+interface MatrixStream {
+  column: number;
+  head: number;
+  speed: number;
+  length: number;
+  salt: number;
+}
+
+function createMatrix(grid: BackdropGrid, seed: number): BackdropSimulation {
+  const streams: MatrixStream[] = [];
+  const count = Math.max(1, Math.floor(grid.columns / 2));
+  for (let index = 0; index < count; index += 1) {
+    streams.push({
+      column: Math.floor(hash2(index, 3, seed) * grid.columns),
+      head: hash2(index, 4, seed) * grid.rows * 2 - grid.rows,
+      speed: 4 + hash2(index, 5, seed) * 8,
+      length: 4 + Math.floor(hash2(index, 6, seed) * 10),
+      salt: Math.floor(hash2(index, 7, seed) * 1000),
+    });
+  }
+  let lastTime: number | null = null;
+  return {
+    step: (timeMs) => {
+      const delta = lastTime === null ? 0 : (timeMs - lastTime) / 1000;
+      lastTime = timeMs;
+      const tick = Math.floor(timeMs / 120);
+      const glyphs: BackdropGlyph[] = [];
+      streams.forEach((stream, index) => {
+        stream.head += stream.speed * delta;
+        if (stream.head - stream.length > grid.rows) {
+          stream.head = -hash2(index, tick, seed) * grid.rows;
+          stream.column = Math.floor(
+            hash2(index, tick + 13, seed) * grid.columns,
+          );
+          stream.speed = 4 + hash2(index, tick + 17, seed) * 8;
+          stream.length = 4 + Math.floor(hash2(index, tick + 19, seed) * 10);
+        }
+        const headRow = Math.floor(stream.head);
+        for (let offset = 0; offset < stream.length; offset += 1) {
+          const row = headRow - offset;
+          if (row < 0 || row >= grid.rows) continue;
+          const glyphIndex = Math.floor(
+            hash2(row, stream.salt + Math.floor(tick / 3), seed) *
+              MATRIX_GLYPHS.length,
+          );
+          glyphs.push({
+            column: stream.column,
+            row,
+            char: MATRIX_GLYPHS[glyphIndex] ?? "0",
+            alpha: offset === 0 ? 1 : 0.85 * (1 - offset / stream.length),
+          });
+        }
+      });
+      return glyphs;
+    },
+  };
+}
+
+const STAR_GLYPHS = ["·", "·", "+", "*", "✦"];
+
+function createStars(grid: BackdropGrid, seed: number): BackdropSimulation {
+  return {
+    step: (timeMs) => {
+      const glyphs: BackdropGlyph[] = [];
+      for (let row = 0; row < grid.rows; row += 1) {
+        for (let column = 0; column < grid.columns; column += 1) {
+          const presence = hash2(column, row, seed);
+          if (presence > 0.08) continue;
+          const period = 2000 + hash2(column, row, seed + 2) * 5000;
+          const offset = hash2(column, row, seed + 3) * period;
+          const twinkle =
+            (Math.sin(((timeMs + offset) / period) * Math.PI * 2) + 1) / 2;
+          const index = Math.min(
+            STAR_GLYPHS.length - 1,
+            Math.floor(twinkle * STAR_GLYPHS.length),
+          );
+          glyphs.push({
+            column,
+            row,
+            char: STAR_GLYPHS[index] ?? "·",
+            alpha: 0.2 + twinkle * 0.8,
+          });
+        }
+      }
+      return glyphs;
+    },
+  };
+}
+
+const FLOW_GLYPHS = ["→", "↗", "↑", "↖", "←", "↙", "↓", "↘"];
+
+function createFlow(grid: BackdropGrid, seed: number): BackdropSimulation {
+  return {
+    step: (timeMs) => {
+      const t = timeMs / 12000;
+      const glyphs: BackdropGlyph[] = [];
+      for (let row = 0; row < grid.rows; row += 2) {
+        for (let column = 0; column < grid.columns; column += 3) {
+          const angle =
+            valueNoise(column / 9 + t, row / 4 - t * 0.5, seed) * Math.PI * 2;
+          const strength = valueNoise(column / 5 - t, row / 3 + t, seed + 5);
+          if (strength < 0.35) continue;
+          const index =
+            Math.round((angle / (Math.PI * 2)) * FLOW_GLYPHS.length) %
+            FLOW_GLYPHS.length;
+          glyphs.push({
+            column,
+            row,
+            char: FLOW_GLYPHS[index] ?? "→",
+            alpha: 0.25 + strength * 0.75,
+          });
+        }
+      }
+      return glyphs;
+    },
+  };
+}
+
 export function createBackdropSimulation(
   pattern: Exclude<ComposeBackdropPattern, "off">,
   grid: BackdropGrid,
@@ -240,9 +392,35 @@ export function createBackdropSimulation(
       return createRain(grid, seed);
     case "life":
       return createLife(grid, seed);
+    case "waves":
+      return createWaves(grid, seed);
+    case "matrix":
+      return createMatrix(grid, seed);
+    case "stars":
+      return createStars(grid, seed);
+    case "flow":
+      return createFlow(grid, seed);
   }
 }
 
 export function isAnimatedBackdrop(pattern: ComposeBackdropPattern): boolean {
   return pattern !== "off" && pattern !== "static";
+}
+
+export const BACKDROP_PALETTE_TOKENS = [
+  "--primary",
+  "--success",
+  "--warning",
+  "--file-accent",
+] as const;
+
+export function pickBackdropColor(
+  glyph: Pick<BackdropGlyph, "column" | "row" | "alpha">,
+  palette: readonly string[],
+  base: string,
+): string {
+  if (palette.length === 0 || glyph.alpha < 0.55) return base;
+  const band = (Math.sin(glyph.column / 9 + glyph.row / 4) + 1) / 2;
+  const index = Math.min(palette.length - 1, Math.floor(band * palette.length));
+  return palette[index] ?? base;
 }

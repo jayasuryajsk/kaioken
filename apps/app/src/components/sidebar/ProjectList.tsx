@@ -492,7 +492,7 @@ function getSectionMutationErrorMessage(
     error instanceof KaiokenHttpError &&
     error.code === "section_name_conflict"
   ) {
-    return "Section name already exists.";
+    return "Label name already exists.";
   }
   return getMutationErrorMessage({ error, fallbackMessage });
 }
@@ -1760,9 +1760,9 @@ function ProjectListComponent({
     >
       {sectionDeleteDialog.target ? (
         <ConfirmDeleteDialogContent
-          title="Remove section?"
-          description="Repos and threads in this section go back to their machines and projects."
-          confirmLabel="Remove section"
+          title="Remove label?"
+          description="Repos and threads in this label go back to their machines and projects."
+          confirmLabel="Remove label"
           pending={isDeleteThreadSectionPending}
           onConfirm={handleConfirmRemoveThreadSection}
           onCancel={sectionDeleteDialog.onClose}

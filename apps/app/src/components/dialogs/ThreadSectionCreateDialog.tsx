@@ -62,7 +62,7 @@ export function ThreadSectionCreateDialog({
             initialName=""
             pending={pending}
             submitLabel="Create section"
-            title="New section"
+            title="New label"
             onSubmit={onCreate}
             inputRef={inputRef}
           />
@@ -86,12 +86,12 @@ export function ThreadSectionRenameDialog({
         {target ? (
           <ThreadSectionDialogContent
             key={target.id}
-            description="Choose a new name for this section."
+            description="Choose a new name for this label."
             errorMessage={errorMessage}
             initialName={target.name}
             pending={pending}
-            submitLabel="Rename section"
-            title="Rename section"
+            submitLabel="Rename label"
+            title="Rename label"
             onSubmit={(name) => onRename(target.id, name)}
             inputRef={inputRef}
           />
@@ -117,7 +117,7 @@ function ThreadSectionDialogContent({
     null,
   );
   const { validationMessage, validate, clearMessage } = useNameValidation({
-    emptyMessage: "Section name cannot be empty.",
+    emptyMessage: "Label name cannot be empty.",
   });
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -145,7 +145,7 @@ function ThreadSectionDialogContent({
           <Input
             ref={inputRef}
             id={inputId}
-            aria-label="Section name"
+            aria-label="Label name"
             value={name}
             autoCapitalize="sentences"
             autoCorrect="off"

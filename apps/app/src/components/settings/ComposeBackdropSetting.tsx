@@ -17,6 +17,10 @@ const LABELS: Record<ComposeBackdropPattern, string> = {
   drift: "Drift",
   rain: "Rain",
   life: "Life",
+  waves: "Waves",
+  matrix: "Matrix",
+  stars: "Stars",
+  flow: "Flow",
   static: "Still",
 };
 
@@ -28,7 +32,7 @@ export function ComposeBackdropSetting() {
   return (
     <SettingsWithControl
       label={COMPOSE_BACKDROP_SETTING_LABEL}
-      description="A faint character field behind the composer on the new thread screen. Drift and Rain move slowly, Life runs Conway's game, Still is a frozen field."
+      description="A faint character field behind the composer on the new thread screen. Drift and Rain move slowly, Life runs Conway's game, Waves ripple, Matrix streams glyphs, Stars twinkle, Flow follows a current, Still is a frozen field."
     >
       <OptionPicker
         label={COMPOSE_BACKDROP_SETTING_LABEL}

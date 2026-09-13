@@ -102,14 +102,14 @@ describe("sidebar header controls", () => {
       screen.getAllByRole("menuitem").map((item) => item.textContent),
     ).toEqual([
       "New project",
-      "New section",
+      "New label",
       "Organize",
       "Sort by",
       "Rename",
       "Remove",
     ]);
     expect(screen.getAllByRole("separator")).toHaveLength(3);
-    fireEvent.click(screen.getByRole("menuitem", { name: "New section" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New label" }));
     expect(newSection).toHaveBeenCalledOnce();
     await waitFor(() =>
       expect(
