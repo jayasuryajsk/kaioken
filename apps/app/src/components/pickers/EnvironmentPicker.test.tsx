@@ -521,8 +521,18 @@ describe("EnvironmentPickerUI multi-machine menu", () => {
   };
 
   const machineSources: readonly ProjectSource[] = [
-    { ...sources[0]!, id: "src_local", hostId: thisMachine.id, path: "~/kaioken" },
-    { ...sources[0]!, id: "src_studio", hostId: studio.id, path: "~/code/kaioken" },
+    {
+      ...sources[0]!,
+      id: "src_local",
+      hostId: thisMachine.id,
+      path: "~/kaioken",
+    },
+    {
+      ...sources[0]!,
+      id: "src_studio",
+      hostId: studio.id,
+      path: "~/code/kaioken",
+    },
   ];
 
   function renderMachineMenu(overrides?: {
@@ -572,6 +582,44 @@ describe("EnvironmentPickerUI multi-machine menu", () => {
     expect(checkoutItems).toHaveLength(3);
     fireEvent.click(checkoutItems[1]!);
     expect(onSelectProvider).toHaveBeenCalledWith(checkoutProvider, studio.id);
+  });
+
+  it("offers switching to a connected machine that lacks the project", () => {
+    const mini: Host = { ...host, id: "host_mini", name: "Mac mini" };
+    const onSwitchMachine = vi.fn();
+    const onRequestMachineSetup = vi.fn();
+    render(
+      <EnvironmentPickerUI
+        value="provider:project-checkout"
+        sources={machineSources}
+        host={thisMachine}
+        isLocal
+        machines={{
+          hosts: [thisMachine, mini, devVm],
+          localDaemonHostId: thisMachine.id,
+          primaryHostId: thisMachine.id,
+        }}
+        providers={[checkoutProvider]}
+        selectedProviderHostId={thisMachine.id}
+        onSelectProvider={vi.fn()}
+        onSwitchMachine={onSwitchMachine}
+        onRequestMachineSetup={onRequestMachineSetup}
+        modal={false}
+      />,
+    );
+    fireEvent.pointerDown(screen.getByRole("button", { name: "Environment" }), {
+      button: 0,
+    });
+
+    const switchItems = screen.getAllByRole("menuitem", { name: /Switch to/u });
+    expect(switchItems).toHaveLength(1);
+    expect(switchItems[0]!.textContent).toContain("Switch to Mac mini");
+    expect(
+      screen.getByRole("menuitem", { name: /Set up on Mac mini/u }),
+    ).toBeTruthy();
+    fireEvent.click(switchItems[0]!);
+    expect(onSwitchMachine).toHaveBeenCalledWith(mini);
+    expect(onRequestMachineSetup).not.toHaveBeenCalled();
   });
 
   it("does not show project checkout paths in machine headers", () => {

@@ -860,7 +860,7 @@ describe("resolveRootComposeEffectiveEnvironmentValue", () => {
     ).toBe("provider:project-checkout");
   });
 
-  it("does not invent a checkout for a standard project without a source on the primary host", () => {
+  it("uses the checkout on another known machine when the primary host has none", () => {
     expect(
       resolveRootComposeEffectiveEnvironmentValue({
         knownHostIds: new Set(["host_1", "host_2"]),
@@ -869,6 +869,21 @@ describe("resolveRootComposeEffectiveEnvironmentValue", () => {
         isProjectless: false,
         primaryHostId: "host_1",
         projectSources: [makeProjectSource("host_2")],
+        reuseThreadOptions: [],
+        reuseThreadOptionsLoading: false,
+      }),
+    ).toBe("provider:project-checkout");
+  });
+
+  it("does not invent a checkout when no known machine has the project", () => {
+    expect(
+      resolveRootComposeEffectiveEnvironmentValue({
+        knownHostIds: new Set(["host_1"]),
+        environmentSelectionValue: "",
+        environmentProviders: [checkoutProvider],
+        isProjectless: false,
+        primaryHostId: "host_1",
+        projectSources: [makeProjectSource("host_gone")],
         reuseThreadOptions: [],
         reuseThreadOptionsLoading: false,
       }),

@@ -1,8 +1,4 @@
-import {
-  findLocalPathProjectSourceForHost,
-  type ProjectSource,
-  type ThreadListEntry,
-} from "@kaioken/domain";
+import type { ProjectSource, ThreadListEntry } from "@kaioken/domain";
 import type {
   ProjectBranchesResponse,
   SystemEnvironmentProvider,
@@ -211,11 +207,10 @@ export function resolveRootComposeEffectiveEnvironmentValue({
         )
       : undefined;
   const fallbackValue =
-    primaryHostId !== null &&
-    knownHostIds.has(primaryHostId) &&
-    findLocalPathProjectSourceForHost(projectSources, primaryHostId) !==
-      undefined &&
-    providerRegistered(PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID)
+    projectSources.some(
+      (source) =>
+        source.type === "local_path" && knownHostIds.has(source.hostId),
+    ) && providerRegistered(PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID)
       ? encodeProviderValue(PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID)
       : "";
 

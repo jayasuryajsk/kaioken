@@ -33,7 +33,7 @@ interface QuickCreateProjectDialogState {
 interface QuickCreateProjectController {
   isAvailable: boolean;
   isCreating: boolean;
-  openCreateDialog: () => void;
+  openCreateDialog: (hostId?: string | null) => void;
   platform: HostPlatform | null;
   hostId: string | null;
   hostName: string | null;
@@ -87,9 +87,12 @@ export function useQuickCreateProject(): QuickCreateProjectController {
     submit,
   });
 
-  const openCreateDialog = useCallback(() => {
-    controller.openPathEntry({ kind: "create" });
-  }, [controller]);
+  const openCreateDialog = useCallback(
+    (hostId?: string | null) => {
+      controller.openPathEntry({ kind: "create" }, hostId);
+    },
+    [controller],
+  );
 
   return useMemo(
     () => ({

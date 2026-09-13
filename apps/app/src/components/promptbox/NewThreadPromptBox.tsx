@@ -81,6 +81,7 @@ export interface NewThreadEnvironmentConfig {
   isLocal: EnvironmentPickerUIProps["isLocal"];
   machines?: EnvironmentPickerMachines | null;
   onRequestMachineSetup?: (host: Host) => void;
+  onSwitchMachine?: (host: Host) => void;
   disabled?: boolean;
   isLoading?: boolean;
   providers?: readonly SystemEnvironmentProvider[];
@@ -445,6 +446,9 @@ export function EnvironmentSlot({
         machines={environment.machines}
         {...(!projectless && environment.onRequestMachineSetup
           ? { onRequestMachineSetup: environment.onRequestMachineSetup }
+          : {})}
+        {...(!projectless && environment.onSwitchMachine
+          ? { onSwitchMachine: environment.onSwitchMachine }
           : {})}
         disabled={environment.disabled}
         isLoading={environment.isLoading}

@@ -85,7 +85,17 @@ describe("useQuickCreateProject", () => {
 
     act(() => result.current.openCreateDialog());
 
-    expect(mocks.openPathEntry).toHaveBeenCalledWith({ kind: "create" });
+    expect(mocks.openPathEntry).toHaveBeenCalledWith(
+      { kind: "create" },
+      undefined,
+    );
+
+    act(() => result.current.openCreateDialog("host_mini"));
+
+    expect(mocks.openPathEntry).toHaveBeenLastCalledWith(
+      { kind: "create" },
+      "host_mini",
+    );
   });
 
   it("exposes the machine list for the dialog's picker", () => {

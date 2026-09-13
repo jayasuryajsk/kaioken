@@ -68,6 +68,7 @@ export interface EnvironmentPickerUIProps {
   modal?: boolean;
   machines?: EnvironmentPickerMachines | null;
   onRequestMachineSetup?: (host: Host) => void;
+  onSwitchMachine?: (host: Host) => void;
   providers?: readonly SystemEnvironmentProvider[];
   projectless?: boolean;
   providersByHostId?: ReadonlyMap<
@@ -168,6 +169,7 @@ export function EnvironmentPickerUI({
   modal,
   machines,
   onRequestMachineSetup,
+  onSwitchMachine,
   providers = [],
   projectless = false,
   providersByHostId,
@@ -353,6 +355,7 @@ export function EnvironmentPickerUI({
             sources={sources}
             value={value}
             onRequestMachineSetup={onRequestMachineSetup}
+            onSwitchMachine={onSwitchMachine}
             machineProviders={environmentProviders}
             providersByHostId={providersByHostId}
             selectedProviderHostId={selectedProviderHostId}
@@ -488,6 +491,7 @@ interface MachineGroupedEnvironmentOptionsProps {
   sources: readonly ProjectSource[];
   value: string;
   onRequestMachineSetup: ((host: Host) => void) | undefined;
+  onSwitchMachine: ((host: Host) => void) | undefined;
   machineProviders: readonly SystemEnvironmentProvider[];
   providersByHostId: EnvironmentPickerUIProps["providersByHostId"];
   selectedProviderHostId: string | null;
@@ -502,6 +506,7 @@ function MachineGroupedEnvironmentOptions({
   sources,
   value,
   onRequestMachineSetup,
+  onSwitchMachine,
   machineProviders,
   providersByHostId,
   selectedProviderHostId,
@@ -527,6 +532,7 @@ function MachineGroupedEnvironmentOptions({
           now={now}
           value={value}
           onRequestMachineSetup={onRequestMachineSetup}
+          onSwitchMachine={onSwitchMachine}
           machineProviders={scopedProviders(
             machineProviders,
             providersByHostId,
@@ -549,6 +555,7 @@ interface MachineSectionProps {
   now: number;
   value: string;
   onRequestMachineSetup: ((host: Host) => void) | undefined;
+  onSwitchMachine: ((host: Host) => void) | undefined;
   machineProviders: readonly SystemEnvironmentProvider[];
   selectedProviderHostId: string | null;
   inputsControlProviderIds: ReadonlySet<string>;
@@ -564,6 +571,7 @@ function MachineSection({
   now,
   value,
   onRequestMachineSetup,
+  onSwitchMachine,
   machineProviders,
   selectedProviderHostId,
   inputsControlProviderIds,
@@ -619,6 +627,15 @@ function MachineSection({
             );
           })
         : null}
+      {source === null && onSwitchMachine && connected ? (
+        <EnvironmentMenuItem
+          label={`Switch to ${host.name}`}
+          description="Pick one of its repos or add a new one"
+          icon="Laptop"
+          selected={false}
+          onSelect={() => onSwitchMachine(host)}
+        />
+      ) : null}
       {source === null && onRequestMachineSetup && connected ? (
         <EnvironmentMenuItem
           label={`Set up on ${host.name}…`}

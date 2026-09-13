@@ -125,6 +125,44 @@ describe("useLocalPathPicker openPathEntry", () => {
     expect(mocks.pickFolder).not.toHaveBeenCalled();
   });
 
+  it("opens the dialog on the preferred remote machine and reports it as the host", () => {
+    mocks.hosts = [atum, host("host_mini", "Mac mini")];
+    const { result } = renderHook(() =>
+      useLocalPathPicker({ isPending: false, submit: vi.fn() }),
+    );
+
+    act(() => result.current.openPathEntry({ kind: "create" }, "host_mini"));
+
+    expect(result.current.projectPathDialog.isOpen).toBe(true);
+    expect(result.current.hostId).toBe("host_mini");
+    expect(result.current.hostName).toBe("Mac mini");
+    expect(mocks.pickFolder).not.toHaveBeenCalled();
+  });
+
+  it("uses the native picker when the preferred machine is this one", () => {
+    mocks.hosts = [atum, host("host_mini", "Mac mini")];
+    const { result } = renderHook(() =>
+      useLocalPathPicker({ isPending: false, submit: vi.fn() }),
+    );
+
+    act(() => result.current.openPathEntry({ kind: "create" }, "host_atum"));
+
+    expect(mocks.pickFolder).toHaveBeenCalled();
+    expect(result.current.projectPathDialog.isOpen).toBe(false);
+  });
+
+  it("ignores a preferred machine that is offline", () => {
+    mocks.hosts = [atum, host("host_mini", "Mac mini", "disconnected")];
+    const { result } = renderHook(() =>
+      useLocalPathPicker({ isPending: false, submit: vi.fn() }),
+    );
+
+    act(() => result.current.openPathEntry({ kind: "create" }, "host_mini"));
+
+    expect(result.current.hostId).toBe("host_atum");
+    expect(mocks.pickFolder).toHaveBeenCalled();
+  });
+
   it("uses the native picker with one machine", () => {
     const { result } = renderHook(() =>
       useLocalPathPicker({ isPending: false, submit: vi.fn() }),

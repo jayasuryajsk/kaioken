@@ -342,7 +342,7 @@ export function ProjectsSettingsSection() {
             disabled={
               !quickCreateProject.isAvailable || quickCreateProject.isCreating
             }
-            onClick={quickCreateProject.openCreateDialog}
+            onClick={() => quickCreateProject.openCreateDialog()}
           >
             <Icon name="Plus" className="size-3.5" />
             Add a project

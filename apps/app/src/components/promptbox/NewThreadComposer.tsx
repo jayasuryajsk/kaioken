@@ -28,7 +28,7 @@ import type {
   SystemEnvironmentProvider,
   SystemExecutionOptionsModelLoadError,
 } from "@kaioken/server-contract";
-import type { ProjectSelectorCreateProjectConfig } from "@/components/pickers/ProjectSelector";
+import { projectAvailableOnHost } from "@/lib/projects-for-host";
 import {
   encodeReuseValue,
   encodeProviderValue,
@@ -125,9 +125,15 @@ interface NewThreadComposerPromptOptions {
   pluginComposerHost?: PluginComposerHost;
   textEffects?: NewThreadPromptBoxProps["textEffects"];
   allowNoProject?: boolean;
-  createProject?: ProjectSelectorCreateProjectConfig;
+  createProject?: NewThreadCreateProjectConfig;
   onRequestMachineSetup?: (host: Host) => void;
   locks?: NewThreadComposerLocks;
+}
+
+export interface NewThreadCreateProjectConfig {
+  onCreate: (hostId: string | null) => void;
+  disabled?: boolean;
+  isCreating?: boolean;
 }
 
 type PromptDraftController = ReturnType<typeof usePromptDraftStorage>;
@@ -398,11 +404,6 @@ export function NewThreadComposer({
     () => currentProject?.sources ?? [],
     [currentProject?.sources],
   );
-  const projectOptions = useMemo(
-    () => projects?.map(({ id, name }) => ({ id, name })) ?? [],
-    [projects],
-  );
-
   const hostsQuery = useHosts();
   const availableHosts = useMemo(
     () => selectPersistentHosts(hostsQuery.data),
@@ -539,10 +540,7 @@ export function NewThreadComposer({
           !provider.requires.projectCheckout ||
           findLocalPathProjectSourceForHost(projectSources, hostId) !==
             undefined);
-      const picked =
-        pickedProviderMachine?.selectionValue === effectiveValue
-          ? pickedProviderMachine.machine
-          : null;
+      const picked = pickedProviderMachine?.machine ?? null;
       const seeded =
         picked === null &&
         !seedOverridden &&
@@ -554,12 +552,18 @@ export function NewThreadComposer({
       if (usable(candidate?.hostId ?? null)) {
         return { provider, machine: candidate };
       }
+      const fallbackHostId =
+        primaryHostId !== null && usable(primaryHostId)
+          ? primaryHostId
+          : (projectSources.find(
+              (source) => source.type === "local_path" && usable(source.hostId),
+            )?.hostId ?? null);
       return {
         provider,
         machine:
-          primaryHostId !== null && usable(primaryHostId)
-            ? { type: "existing", hostId: primaryHostId }
-            : null,
+          fallbackHostId === null
+            ? null
+            : { type: "existing", hostId: fallbackHostId },
       };
     },
     [
@@ -786,6 +790,18 @@ export function NewThreadComposer({
   const providerMachine = providerSelection?.machine ?? null;
   const providerHostId =
     providerMachine?.type === "existing" ? providerMachine.hostId : null;
+  const machineHostId = providerHostId ?? primaryHostId;
+  const projectOptions = useMemo(
+    () =>
+      (projects ?? [])
+        .filter(
+          (project) =>
+            project.id === projectId ||
+            projectAvailableOnHost(project.sources, machineHostId),
+        )
+        .map(({ id, name }) => ({ id, name })),
+    [machineHostId, projectId, projects],
+  );
   const [environmentProviderInputsOverride, setProviderInputsOverride] =
     useState<{ scopeKey: string; value: JsonValue | null } | null>(null);
   const [environmentProviderInputsBlocked, setProviderInputsBlocked] =
@@ -1059,6 +1075,16 @@ export function NewThreadComposer({
       }
     },
     [onProjectChange, projectId, promptDraft, snapshotDraftBeforeOptionChange],
+  );
+  const handleSwitchMachine = useCallback(
+    (host: Host) => {
+      void handleProjectChange(null);
+      changeEnvironment(environmentSelectionValue, {
+        type: "existing",
+        hostId: host.id,
+      });
+    },
+    [changeEnvironment, environmentSelectionValue, handleProjectChange],
   );
 
   const reuseEnvironmentId =
@@ -1447,6 +1473,9 @@ export function NewThreadComposer({
               ...(!isProjectless && options.onRequestMachineSetup
                 ? { onRequestMachineSetup: options.onRequestMachineSetup }
                 : {}),
+              ...(!isProjectless && options.allowNoProject
+                ? { onSwitchMachine: handleSwitchMachine }
+                : {}),
             },
             worktree: {
               options: reuseThreadOptions,
@@ -1469,7 +1498,19 @@ export function NewThreadComposer({
             value: options.allowNoProject && isProjectless ? null : projectId,
             onChange: handleProjectChange,
             allowNoProject: options.allowNoProject,
-            createProject: options.createProject,
+            createProject:
+              options.createProject === undefined
+                ? undefined
+                : {
+                    onCreate: () =>
+                      options.createProject?.onCreate(machineHostId),
+                    ...(options.createProject.disabled !== undefined
+                      ? { disabled: options.createProject.disabled }
+                      : {}),
+                    ...(options.createProject.isCreating !== undefined
+                      ? { isCreating: options.createProject.isCreating }
+                      : {}),
+                  },
             isLoading: !sidebarNavigationSettled,
             disabled:
               locks.project ||
@@ -1548,6 +1589,8 @@ export function NewThreadComposer({
       permissionMode,
       permissionModeOptions,
       projectId,
+      handleSwitchMachine,
+      machineHostId,
       projectOptions,
       projectSources,
       promptActions,
