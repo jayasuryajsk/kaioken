@@ -58,6 +58,7 @@ export const UI_PREFERENCE_KEYS = [
   "sidebar.connectionSectionOrder",
   "sidebar.collapsedSections",
   "sidebar.collapsedProjects",
+  "sidebar.expandedProjects",
   "sidebar.collapsedThreads",
   "sidebar.collapsedEnvironments",
   "sidebar.collapsedThreadSections",
@@ -141,6 +142,11 @@ export const uiPreferenceDefinitions = {
     uiPreferenceStringListSchema,
     [],
     "Project ids whose sidebar rows are collapsed.",
+  ),
+  "sidebar.expandedProjects": defineUiPreference(
+    uiPreferenceStringListSchema,
+    [],
+    "Projects whose threads are expanded in the unified sidebar; every other project shows as a single row.",
   ),
   "sidebar.collapsedThreads": defineUiPreference(
     uiPreferenceStringListSchema,

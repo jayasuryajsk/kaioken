@@ -24,6 +24,7 @@ import { UnifiedSidebarList } from "./UnifiedSidebarList";
 const hostsState = vi.hoisted(() => ({
   hosts: [] as Host[],
   primaryHostId: "host_mac",
+  viewerHostId: null as string | null,
 }));
 
 vi.mock("@/hooks/queries/host-queries", () => ({
@@ -33,6 +34,10 @@ vi.mock("@/hooks/queries/host-queries", () => ({
   usePrimaryHost: () =>
     hostsState.hosts.find((host) => host.id === hostsState.primaryHostId) ??
     null,
+}));
+
+vi.mock("@/hooks/useHostDaemon", () => ({
+  useHostDaemon: () => ({ localDaemonHostId: hostsState.viewerHostId }),
 }));
 
 vi.mock("@/components/thread/ThreadTitleMentions", () => ({
@@ -133,6 +138,7 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
   hostsState.hosts = [];
+  hostsState.viewerHostId = null;
   window.localStorage.clear();
 });
 
@@ -235,23 +241,25 @@ describe("UnifiedSidebarList", () => {
     ).toEqual(["thr_loose"]);
   });
 
-  it("collapses the Projects section and individual projects", () => {
+  it("keeps projects collapsed until their chevron is used", () => {
     renderList({
       projects: [project("proj_a", "alpha"), project("proj_b", "beta")],
       threads: [thread({ id: "thr_a", projectId: "proj_a" })],
     });
     const projectsSection = screen.getByTestId("unified-projects");
     const alpha = within(projectsSection).getAllByTestId("unified-project")[0]!;
-    expect(within(alpha).getAllByTestId("timeline-row")).toHaveLength(1);
-    fireEvent.click(
-      within(alpha).getByRole("button", { name: "Collapse alpha" }),
-    );
     expect(within(alpha).queryAllByTestId("timeline-row")).toHaveLength(0);
-    expect(alpha.getAttribute("data-collapsed")).toBe("true");
+    expect(alpha.getAttribute("data-expanded")).toBeNull();
     fireEvent.click(
       within(alpha).getByRole("button", { name: "Expand alpha" }),
     );
     expect(within(alpha).getAllByTestId("timeline-row")).toHaveLength(1);
+    expect(alpha.getAttribute("data-expanded")).toBe("true");
+    expect(within(alpha).getByTestId("unified-project-threads")).toBeTruthy();
+    fireEvent.click(
+      within(alpha).getByRole("button", { name: "Collapse alpha" }),
+    );
+    expect(within(alpha).queryAllByTestId("timeline-row")).toHaveLength(0);
 
     fireEvent.click(
       within(projectsSection).getByRole("button", {
@@ -264,6 +272,57 @@ describe("UnifiedSidebarList", () => {
     expect(
       within(projectsSection).getByRole("button", { name: "New project" }),
     ).toBeTruthy();
+  });
+
+  it("auto-expands the selected project and any project that needs you", () => {
+    renderList({
+      projects: [
+        project("proj_a", "alpha"),
+        project("proj_b", "beta"),
+        project("proj_c", "gamma"),
+      ],
+      selectedProjectId: "proj_b",
+      threads: [
+        thread({ id: "thr_a", projectId: "proj_a" }),
+        thread({ id: "thr_b", projectId: "proj_b" }),
+        thread({
+          id: "thr_c",
+          projectId: "proj_c",
+          hasPendingInteraction: true,
+        }),
+      ],
+    });
+    const expandedOf = (name: string) =>
+      screen
+        .getAllByTestId("unified-project")
+        .find((node) => within(node).queryByText(name) !== null)
+        ?.getAttribute("data-expanded") ?? null;
+    expect(expandedOf("alpha")).toBeNull();
+    expect(expandedOf("beta")).toBe("true");
+    expect(expandedOf("gamma")).toBe("true");
+  });
+
+  it("shows a needs-you dot instead of a relative time", () => {
+    renderList({
+      projects: [project("proj_a", "alpha"), project("proj_b", "beta")],
+      threads: [
+        thread({ id: "thr_quiet", projectId: "proj_b" }),
+        thread({
+          id: "thr_wait",
+          projectId: "proj_a",
+          hasPendingInteraction: true,
+        }),
+      ],
+    });
+    const rows = screen.getAllByTestId("unified-project-row");
+    const alpha = rows.find((row) => row.textContent?.includes("alpha"))!;
+    const beta = rows.find((row) => row.textContent?.includes("beta"))!;
+    expect(within(alpha).getByTestId("unified-project-needs-you")).toBeTruthy();
+    expect(within(alpha).queryByTestId("unified-project-activity")).toBeNull();
+    expect(within(beta).queryByTestId("unified-project-needs-you")).toBeNull();
+    expect(
+      within(beta).getByTestId("unified-project-activity").textContent,
+    ).toBe("1m ago");
   });
 
   it("caps projects, per-project threads, and recents behind Show more", () => {
@@ -297,6 +356,9 @@ describe("UnifiedSidebarList", () => {
     ).toHaveLength(9);
 
     const first = within(projectsSection).getAllByTestId("unified-project")[0]!;
+    fireEvent.click(
+      within(first).getByRole("button", { name: "Expand project 0" }),
+    );
     expect(within(first).getAllByTestId("timeline-row")).toHaveLength(3);
     fireEvent.click(within(first).getByTestId("unified-project-more-proj_0"));
     expect(within(first).getAllByTestId("timeline-row")).toHaveLength(4);
@@ -307,7 +369,33 @@ describe("UnifiedSidebarList", () => {
     expect(within(recents).getAllByTestId("timeline-row")).toHaveLength(14);
   });
 
-  it("shows the machine name and status on projects from another machine", () => {
+  it("badges every project with its machine and names the viewer's own", () => {
+    hostsState.hosts = [
+      makeHost({ id: "host_mac", name: "MacBook" }),
+      makeHost({ id: "host_mini", name: "Mac mini", status: "connected" }),
+    ];
+    hostsState.viewerHostId = "host_mac";
+    renderList({
+      projects: [
+        project("proj_local", "local"),
+        project("proj_mini", "bounty", "host_mini"),
+      ],
+    });
+    const badgeFor = (name: string) => {
+      const row = screen
+        .getAllByTestId("unified-project-row")
+        .find(
+          (candidate) => candidate.querySelector("a")?.textContent === name,
+        );
+      return within(row!).getByTestId("unified-project-machine");
+    };
+    expect(screen.getAllByTestId("unified-project-machine")).toHaveLength(2);
+    expect(badgeFor("local").textContent).toBe("This Mac");
+    expect(badgeFor("bounty").textContent).toBe("Mac mini");
+    expect(badgeFor("bounty").querySelector(".bg-success")).not.toBeNull();
+  });
+
+  it("names every machine plainly when the local machine is unknown", () => {
     hostsState.hosts = [
       makeHost({ id: "host_mac", name: "MacBook" }),
       makeHost({ id: "host_mini", name: "Mac mini", status: "connected" }),
@@ -318,12 +406,12 @@ describe("UnifiedSidebarList", () => {
         project("proj_mini", "bounty", "host_mini"),
       ],
     });
-    const rows = screen.getAllByTestId("unified-project-row");
-    expect(rows).toHaveLength(2);
-    const badges = screen.getAllByTestId("unified-project-machine");
-    expect(badges).toHaveLength(1);
-    expect(badges[0]!.textContent).toContain("Mac mini");
-    expect(badges[0]!.querySelector(".bg-success")).not.toBeNull();
+    expect(
+      screen
+        .getAllByTestId("unified-project-machine")
+        .map((badge) => badge.textContent)
+        .sort(),
+    ).toEqual(["Mac mini", "MacBook"]);
   });
 
   it("re-sorts projects from the options menu and offers a new project", () => {
@@ -334,14 +422,22 @@ describe("UnifiedSidebarList", () => {
     const names = () =>
       screen
         .getAllByTestId("unified-project-row")
-        .map((row) => row.textContent);
+        .map((row) => row.querySelector("a")?.textContent);
     expect(names()).toEqual(["beta", "alpha"]);
+    expect(screen.getByTestId("unified-projects-sort").textContent).toBe(
+      "Recent",
+    );
     fireEvent.pointerDown(
-      screen.getByRole("button", { name: "Projects options" }),
+      screen.getByRole("button", {
+        name: "Projects options (sorted by Recent)",
+      }),
       { button: 0 },
     );
     fireEvent.click(screen.getByRole("menuitemradio", { name: "Name" }));
     expect(names()).toEqual(["alpha", "beta"]);
+    expect(screen.getByTestId("unified-projects-sort").textContent).toBe(
+      "Name",
+    );
     fireEvent.click(screen.getByRole("button", { name: "New project" }));
     expect(handlers.onNewProject).toHaveBeenCalled();
   });

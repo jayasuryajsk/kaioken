@@ -22,6 +22,7 @@ import {
   useHosts,
   usePrimaryHost,
 } from "@/hooks/queries/host-queries";
+import { useHostDaemon } from "@/hooks/useHostDaemon";
 import { getThreadRoutePath } from "@/lib/route-paths";
 import { buildTimelineSections } from "@/lib/sidebar-timeline";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
@@ -64,7 +65,13 @@ export interface TimelineRowProps {
   thread: ThreadListEntry;
   showMeta?: boolean;
   indent?: boolean;
+  muted?: boolean;
   statusText?: string;
+}
+
+export function useViewerHostId(): string | null {
+  const { localDaemonHostId } = useHostDaemon();
+  return localDaemonHostId;
 }
 
 export function useTimelineMachines(): (
@@ -72,20 +79,22 @@ export function useTimelineMachines(): (
 ) => RowMachine | null {
   const hostsQuery = useHosts();
   const primaryHost = usePrimaryHost();
+  const viewerHostId = useViewerHostId();
   const hosts = useMemo(
     () => selectPersistentHosts(hostsQuery.data),
     [hostsQuery.data],
   );
   return useMemo(() => {
     const byId = new Map(hosts.map((host) => [host.id, host]));
+    const reference = viewerHostId ?? primaryHost?.id ?? null;
     return (thread) => {
       const hostId = thread.environmentHostId;
       if (hostId === null) return null;
       const host = byId.get(hostId);
       if (host === undefined) return null;
-      return { name: host.name, remote: host.id !== primaryHost?.id };
+      return { name: host.name, remote: host.id !== reference };
     };
-  }, [hosts, primaryHost?.id]);
+  }, [hosts, primaryHost?.id, viewerHostId]);
 }
 
 export function TimelineRow({
@@ -96,6 +105,7 @@ export function TimelineRow({
   thread,
   showMeta = true,
   indent = false,
+  muted = false,
   statusText,
 }: TimelineRowProps) {
   const projectName = useSidebarProjectName(
@@ -121,10 +131,13 @@ export function TimelineRow({
         data-testid="timeline-row"
         className={cn(
           "group/timeline-row relative flex items-center gap-2 rounded-md py-1 pr-1 text-sm transition-colors",
-          indent ? "pl-7" : "pl-2",
+          indent ? "pl-4" : "pl-2",
           isActive
             ? SIDEBAR_ROW_SELECTED_STATE_CLASS
-            : "text-sidebar-foreground hover:bg-sidebar-accent",
+            : cn(
+                "hover:bg-sidebar-accent",
+                muted ? "text-muted-foreground" : "text-sidebar-foreground",
+              ),
           menuOpen && "bg-sidebar-accent",
         )}
       >

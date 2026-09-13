@@ -7,6 +7,7 @@ import {
   buildPriorityList,
   buildTimelineGroups,
   isListedThread,
+  threadNeedsYou,
   type TimelineGroup,
 } from "./sidebar-timeline";
 
@@ -16,11 +17,14 @@ export const UNIFIED_RECENTS_PREVIEW_COUNT = 12;
 
 export type UnifiedProjectsSort = "recent" | "name" | "machine";
 
+export const VIEWER_MACHINE_LABEL = "This Mac";
+
 export interface UnifiedProjectMachine {
   id: string;
   name: string;
   connected: boolean;
   remote: boolean;
+  isViewer: boolean;
 }
 
 export interface UnifiedProjectLike {
@@ -40,6 +44,7 @@ export interface UnifiedProjectGroup<P extends UnifiedProjectLike> {
   threads: ThreadListEntry[];
   machine: UnifiedProjectMachine | null;
   lastActivityAt: number;
+  needsYou: boolean;
 }
 
 export interface UnifiedCustomSection<P extends UnifiedProjectLike> {
@@ -63,6 +68,7 @@ export interface BuildUnifiedSidebarArgs<P extends UnifiedProjectLike> {
   pinnedThreadIds: readonly string[];
   hosts: readonly Host[];
   primaryHostId: string | null;
+  viewerHostId?: string | null;
   projectsSort: UnifiedProjectsSort;
   now: number;
 }
@@ -71,17 +77,24 @@ function byNewest(left: ThreadListEntry, right: ThreadListEntry): number {
   return right.updatedAt - left.updatedAt;
 }
 
+function sourceForHost(
+  sources: readonly ProjectSource[],
+  hostId: string | null | undefined,
+): ProjectSource | undefined {
+  return hostId === null || hostId === undefined
+    ? undefined
+    : findLocalPathProjectSourceForHost(sources, hostId);
+}
+
 export function projectMachine(
   sources: readonly ProjectSource[],
   hosts: readonly Host[],
   primaryHostId: string | null,
+  viewerHostId?: string | null,
 ): UnifiedProjectMachine | null {
-  const local =
-    primaryHostId === null
-      ? undefined
-      : findLocalPathProjectSourceForHost(sources, primaryHostId);
   const source =
-    local ??
+    sourceForHost(sources, viewerHostId) ??
+    sourceForHost(sources, primaryHostId) ??
     sources.find(
       (candidate) => candidate.type === "local_path" && candidate.isDefault,
     ) ??
@@ -89,11 +102,16 @@ export function projectMachine(
   if (source === undefined || source.type !== "local_path") return null;
   const host = hosts.find((candidate) => candidate.id === source.hostId);
   if (host === undefined) return null;
+  const reference = viewerHostId ?? primaryHostId;
   return {
     id: host.id,
     name: host.name,
     connected: host.status === "connected",
-    remote: host.id !== primaryHostId,
+    remote: host.id !== reference,
+    isViewer:
+      viewerHostId !== null &&
+      viewerHostId !== undefined &&
+      host.id === viewerHostId,
   };
 }
 
@@ -132,6 +150,7 @@ export function buildUnifiedSidebar<P extends UnifiedProjectLike>({
   pinnedThreadIds,
   hosts,
   primaryHostId,
+  viewerHostId,
   projectsSort,
   now,
 }: BuildUnifiedSidebarArgs<P>): UnifiedSidebar<P> {
@@ -160,8 +179,14 @@ export function buildUnifiedSidebar<P extends UnifiedProjectLike>({
     return {
       project,
       threads: projectThreads,
-      machine: projectMachine(project.sources, hosts, primaryHostId),
+      machine: projectMachine(
+        project.sources,
+        hosts,
+        primaryHostId,
+        viewerHostId,
+      ),
       lastActivityAt: projectThreads[0]?.updatedAt ?? 0,
+      needsYou: projectThreads.some(threadNeedsYou),
     };
   };
   const comparator = compareProjectGroups<P>(projectsSort);

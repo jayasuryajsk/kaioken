@@ -8,6 +8,7 @@ import {
   buildPrioritySidebar,
   buildUnifiedSidebar,
   projectMachine,
+  VIEWER_MACHINE_LABEL,
 } from "./sidebar-unified";
 
 const NOON = new Date(2026, 8, 13, 12, 0, 0).getTime();
@@ -167,6 +168,7 @@ describe("buildUnifiedSidebar", () => {
       name: "Mac mini",
       connected: false,
       remote: true,
+      isViewer: false,
     });
     expect(
       projectMachine(
@@ -257,5 +259,90 @@ describe("buildPrioritySidebar", () => {
       ["today", ["thr_pin"]],
       ["this-week", ["thr_old"]],
     ]);
+  });
+});
+
+describe("viewer-relative machines", () => {
+  it("marks the viewer's own machine and keeps others remote", () => {
+    const onMac = projectMachine(
+      project("p", "p", ["host_mac"]).sources,
+      [macbook, mini],
+      macbook.id,
+      macbook.id,
+    );
+    expect(onMac).toMatchObject({ isViewer: true, remote: false });
+    const onMini = projectMachine(
+      project("p", "p", ["host_mini"]).sources,
+      [macbook, mini],
+      macbook.id,
+      macbook.id,
+    );
+    expect(onMini).toMatchObject({ isViewer: false, remote: true });
+  });
+
+  it("flips remote around when the viewer is not the hub", () => {
+    const onMac = projectMachine(
+      project("p", "p", ["host_mac"]).sources,
+      [macbook, mini],
+      macbook.id,
+      mini.id,
+    );
+    expect(onMac).toMatchObject({
+      isViewer: false,
+      remote: true,
+      name: "MacBook",
+    });
+    const onMini = projectMachine(
+      project("p", "p", ["host_mini"]).sources,
+      [macbook, mini],
+      macbook.id,
+      mini.id,
+    );
+    expect(onMini).toMatchObject({ isViewer: true, remote: false });
+    expect(VIEWER_MACHINE_LABEL).toBe("This Mac");
+  });
+
+  it("never claims a viewer machine when the local host is unknown", () => {
+    const machine = projectMachine(
+      project("p", "p", ["host_mac"]).sources,
+      [macbook, mini],
+      macbook.id,
+      null,
+    );
+    expect(machine).toMatchObject({ isViewer: false, remote: false });
+  });
+
+  it("prefers the viewer's checkout when a project lives on both machines", () => {
+    const machine = projectMachine(
+      project("p", "p", ["host_mac", "host_mini"]).sources,
+      [macbook, mini],
+      macbook.id,
+      mini.id,
+    );
+    expect(machine).toMatchObject({ id: "host_mini", isViewer: true });
+  });
+});
+
+describe("project needsYou", () => {
+  it("flags a project holding a thread that is waiting on you", () => {
+    const model = build({
+      projects: [
+        project("proj_a", "alpha", ["host_mac"]),
+        project("proj_b", "beta", ["host_mac"]),
+      ],
+      threads: [
+        thread({ id: "thr_quiet", projectId: "proj_b" }),
+        thread({
+          id: "thr_wait",
+          projectId: "proj_a",
+          hasPendingInteraction: true,
+        }),
+      ],
+    });
+    const byId = new Map(
+      model.projects.map((group) => [group.project.id, group]),
+    );
+    expect(byId.get("proj_a")?.needsYou).toBe(true);
+    expect(byId.get("proj_b")?.needsYou).toBe(false);
   });
 });

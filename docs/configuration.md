@@ -633,6 +633,7 @@ client wrote first, so a stale window cannot silently clobber a newer value.
 | `sidebar.connectionSectionOrder`  | Section id list for **By connection**                                           |
 | `sidebar.collapsedSections`       | Collapsed built-in sections (`pinned`, `threads`)                               |
 | `sidebar.collapsedProjects`       | Collapsed project ids                                                           |
+| `sidebar.expandedProjects`        | Expanded project ids (unified sidebar; projects are single rows by default)     |
 | `sidebar.collapsedThreads`        | Thread ids whose children are collapsed                                         |
 | `sidebar.collapsedEnvironments`   | Collapsed environment ids                                                       |
 | `sidebar.collapsedThreadSections` | Collapsed thread section ids                                                    |

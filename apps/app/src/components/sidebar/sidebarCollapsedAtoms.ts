@@ -15,6 +15,10 @@ export const collapsedProjectIdsAtom = createSyncedPreferenceAtom(
   "sidebar.collapsedProjects",
 );
 
+export const expandedProjectIdsAtom = createSyncedPreferenceAtom(
+  "sidebar.expandedProjects",
+);
+
 export const collapsedThreadIdsAtom = createSyncedPreferenceAtom(
   "sidebar.collapsedThreads",
 );
