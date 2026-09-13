@@ -65,6 +65,8 @@ function getModeOrderProbeConfig(mode: SidebarOrganizationMode): {
       return { entitySectionIds: ["section:a"] };
     case "machine":
       return { entitySectionIds: [], hasThreadsSection: true };
+    case "connection":
+      return { entitySectionIds: ["section:a", "machine:a"] };
   }
 }
 

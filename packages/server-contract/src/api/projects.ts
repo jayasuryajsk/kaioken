@@ -70,6 +70,7 @@ export const threadSectionSchema = z
   .object({
     id: z.string(),
     name: z.string().min(1),
+    projectIds: z.array(z.string().min(1)),
     createdAt: z.number(),
     updatedAt: z.number(),
   })
@@ -109,6 +110,7 @@ export const threadSectionMutationResponseSchema = z
     id: z.string().min(1),
     name: z.string().min(1),
     updatedThreadCount: z.number().int().nonnegative(),
+    updatedProjectCount: z.number().int().nonnegative(),
   })
   .strict();
 export type ThreadSectionMutationResponse = z.infer<
@@ -241,10 +243,11 @@ export type ProjectAttachmentUploadForm = Record<"file", Blob>;
 export const updateProjectRequestSchema = z
   .object({
     name: z.string().min(1),
+    sectionId: z.string().min(1).nullable(),
   })
   .partial()
   .refine(
-    (value) => value.name !== undefined,
+    (value) => value.name !== undefined || value.sectionId !== undefined,
     "At least one field must be provided",
   );
 export type UpdateProjectRequest = z.infer<typeof updateProjectRequestSchema>;

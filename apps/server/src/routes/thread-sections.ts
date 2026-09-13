@@ -42,7 +42,7 @@ export function registerThreadSectionRoutes(app: Hono, deps: AppDeps): void {
     if (result.status === "duplicate") {
       throwDuplicateSectionName();
     }
-    return context.json(result.section, 201);
+    return context.json({ ...result.section, projectIds: [] }, 201);
   });
 
   patch(routes.update, (context, payload) => {

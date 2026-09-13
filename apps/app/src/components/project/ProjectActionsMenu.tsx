@@ -1,8 +1,22 @@
 import { Icon } from "@kaioken/shared-ui/icon";
+import { useState } from "react";
 import {
   ActionMenuItem,
   ActionMenuSeparator,
 } from "@/components/ui/action-menu-items";
+import {
+  ContextMenuItem,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+} from "@kaioken/shared-ui/context-menu";
+import {
+  DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from "@kaioken/shared-ui/dropdown-menu";
+import { useProjectSectionMove } from "./ProjectSectionMoveProvider";
 import { findLocalPathProjectSourceForHost } from "@kaioken/domain";
 import type { ProjectResponse } from "@kaioken/server-contract";
 import type { MouseEvent, ReactNode } from "react";
@@ -51,6 +65,88 @@ function stopProjectActionsMenuClickPropagation(event: MouseEvent) {
   event.stopPropagation();
 }
 
+function ProjectSectionMoveMenu({
+  project,
+  surface,
+}: ProjectActionsMenuItemsProps) {
+  const sectionMove = useProjectSectionMove();
+  const isCompactViewport = useIsCompactViewport();
+  const [expanded, setExpanded] = useState(false);
+  if (!sectionMove) return null;
+  const currentSectionId = sectionMove.currentSectionId(project);
+  const Item = surface === "context" ? ContextMenuItem : DropdownMenuItem;
+  const inline = isCompactViewport && surface === "dropdown";
+  const items = (
+    <>
+      {sectionMove.destinations.map((destination) => {
+        const isCurrent = destination.sectionId === currentSectionId;
+        return (
+          <Item
+            key={destination.sectionId ?? "none"}
+            aria-current={isCurrent ? "true" : undefined}
+            className="flex items-center justify-between gap-3"
+            inset={inline}
+            disabled={isCurrent}
+            onSelect={() =>
+              sectionMove.moveProject(project, destination.sectionId)
+            }
+          >
+            <span className="min-w-0 flex-1 truncate">{destination.label}</span>
+            {isCurrent ? (
+              <Icon name="Check" className="ml-auto" aria-hidden="true" />
+            ) : null}
+          </Item>
+        );
+      })}
+      {sectionMove.requestNewSection ? (
+        <Item inset={inline} onSelect={() => sectionMove.requestNewSection?.()}>
+          <Icon name="SectionAdd" aria-hidden="true" />
+          New section…
+        </Item>
+      ) : null}
+    </>
+  );
+
+  if (inline) {
+    return (
+      <>
+        <DropdownMenuItem
+          onSelect={(event) => {
+            event.preventDefault();
+            setExpanded((current) => !current);
+          }}
+        >
+          <Icon name="MoveTo" aria-hidden="true" />
+          <span className="min-w-0 flex-1 truncate">Move to section</span>
+          <Icon
+            name={expanded ? "ChevronDown" : "ChevronRight"}
+            className="ml-auto"
+            aria-hidden="true"
+          />
+        </DropdownMenuItem>
+        {expanded ? items : null}
+      </>
+    );
+  }
+
+  const Sub = surface === "context" ? ContextMenuSub : DropdownMenuSub;
+  const SubTrigger =
+    surface === "context" ? ContextMenuSubTrigger : DropdownMenuSubTrigger;
+  const SubContent =
+    surface === "context" ? ContextMenuSubContent : DropdownMenuSubContent;
+  return (
+    <Sub>
+      <SubTrigger>
+        <Icon name="MoveTo" aria-hidden="true" />
+        Move to section
+      </SubTrigger>
+      <SubContent className="max-h-[min(24rem,calc(100vh-2rem))] min-w-44 overflow-y-auto">
+        {items}
+      </SubContent>
+    </Sub>
+  );
+}
+
 export function ProjectActionsMenuItems({
   project,
   surface,
@@ -94,6 +190,7 @@ export function ProjectActionsMenuItems({
           Add local path
         </ActionMenuItem>
       ) : null}
+      <ProjectSectionMoveMenu project={project} surface={surface} />
       <ActionMenuSeparator surface={surface} />
       <ActionMenuItem
         surface={surface}

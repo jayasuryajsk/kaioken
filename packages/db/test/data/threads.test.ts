@@ -911,7 +911,12 @@ describe("threads", () => {
 
     expect(result).toEqual({
       status: "renamed",
-      result: { id: section.id, name: "Archive", updatedThreadCount: 0 },
+      result: {
+        id: section.id,
+        name: "Archive",
+        updatedThreadCount: 0,
+        updatedProjectCount: 0,
+      },
     });
     expect(getThread(db, thread.id)?.sectionId).toBe(section.id);
     expect(listThreadSections(db).map((entry) => entry.name)).toEqual([
@@ -967,6 +972,7 @@ describe("threads", () => {
       id: section.id,
       name: "Work",
       updatedThreadCount: 1,
+      updatedProjectCount: 0,
     });
     expect(getThread(db, thread.id)?.sectionId).toBeNull();
     expect(getThread(db, siblingThread.id)?.sectionId).toBe(siblingSection.id);
@@ -1004,6 +1010,7 @@ describe("threads", () => {
       id: section.id,
       name: "Work",
       updatedThreadCount: 2,
+      updatedProjectCount: 0,
     });
     expect(getThread(db, visible.id)?.sectionId).toBeNull();
     expect(getThread(db, hidden.id)?.sectionId).toBeNull();
@@ -1033,6 +1040,7 @@ describe("threads", () => {
       id: section.id,
       name: "Work",
       updatedThreadCount: 2,
+      updatedProjectCount: 0,
     });
     expect(getThread(db, projectThread.id)?.sectionId).toBeNull();
     expect(getThread(db, otherProjectThread.id)?.sectionId).toBeNull();
@@ -1312,7 +1320,8 @@ describe("threads", () => {
 
   it("lists canonical thread environments for a host", () => {
     const { db, project, host } = setup();
-    const otherHost = upsertHost(db, noopNotifier, { type: "persistent",
+    const otherHost = upsertHost(db, noopNotifier, {
+      type: "persistent",
       name: "other-host",
     });
     const environment = createEnvironment(db, noopNotifier, {
@@ -1355,7 +1364,8 @@ describe("threads", () => {
 
   it("lists host thread ids and detects pending shutdowns by environment", () => {
     const { db, project, host } = setup();
-    const otherHost = upsertHost(db, noopNotifier, { type: "persistent",
+    const otherHost = upsertHost(db, noopNotifier, {
+      type: "persistent",
       name: "other-host",
     });
     const environment = createEnvironment(db, noopNotifier, {

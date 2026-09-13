@@ -87,6 +87,7 @@ import {
   buildMachineThreadGroups,
   buildPinnedSidebarState,
   CHRONOLOGICAL_CONTAINER_ID,
+  CONNECTION_CONTAINER_ID,
   compareByCreatedAtDescending,
   compareStandardThreads,
   createSidebarProjectIdResolver,
@@ -152,6 +153,7 @@ import {
 } from "./BuiltInSidebarSection";
 import { ReorderableSidebarSectionOrderList } from "./ReorderableSidebarSectionOrderList";
 import { useSidebarModeSectionOrder } from "./useSidebarModeSectionOrder";
+import { ConnectionModeSections } from "./ConnectionModeSections";
 import { haveSameOrder } from "@/lib/stored-order";
 import {
   resolveThreadTitleDisplayText,
@@ -219,6 +221,10 @@ interface SelectedThreadSidebarExpansionArgs {
   isPinned: boolean;
   selectedThread: ThreadListEntry;
   sidebarProjectId: string;
+  connection?: {
+    projectSectionId: string | null;
+    projectDefaultHostId: string | null;
+  };
 }
 
 interface SelectedThreadSidebarExpansion {
@@ -257,9 +263,34 @@ export function getSelectedThreadSidebarExpansion({
   isPinned,
   selectedThread,
   sidebarProjectId,
+  connection,
 }: SelectedThreadSidebarExpansionArgs): SelectedThreadSidebarExpansion {
   if (isPinned) {
     return { sidebarSectionId: "pinned" };
+  }
+
+  if (organizationMode === "connection") {
+    const isPersonal = sidebarProjectId === PERSONAL_PROJECT_ID;
+    const sectionId =
+      selectedThread.sectionId ??
+      (isPersonal ? null : (connection?.projectSectionId ?? null));
+    const sectionKey = sectionKeyForThreadSection(
+      CONNECTION_CONTAINER_ID,
+      sectionId,
+    );
+    const container: SelectedThreadSidebarExpansion = sectionKey
+      ? { sectionKey }
+      : isPersonal
+        ? { sidebarSectionId: "threads" }
+        : {
+            machineKey:
+              selectedThread.environmentHostId ??
+              connection?.projectDefaultHostId ??
+              NO_MACHINE_GROUP_KEY,
+          };
+    return isPersonal
+      ? container
+      : { ...container, projectId: sidebarProjectId };
   }
 
   if (organizationMode === "machine") {
@@ -676,6 +707,7 @@ interface BuiltInSectionRenderState {
 interface ActiveSidebarModeSectionsProps {
   mode: SidebarOrganizationMode;
   renderChronological: () => ReactNode;
+  renderConnection?: () => ReactNode;
   renderMachine: () => ReactNode;
   renderProject: () => ReactNode;
 }
@@ -683,9 +715,11 @@ interface ActiveSidebarModeSectionsProps {
 export function ActiveSidebarModeSections({
   mode,
   renderChronological,
+  renderConnection,
   renderMachine,
   renderProject,
 }: ActiveSidebarModeSectionsProps) {
+  if (mode === "connection") return renderConnection?.() ?? renderProject();
   if (mode === "machine") return renderMachine();
   if (mode === "chronological") return renderChronological();
   return renderProject();
@@ -1577,11 +1611,28 @@ function ProjectListComponent({
 
     const isPinned =
       pinnedSidebarState.effectivePinnedThreadIds.has(selectedThreadId);
+    const sidebarProjectId = resolveSidebarProjectId(
+      selectedThread,
+      threadById,
+    );
+    const selectedProject = projects?.find(
+      (project) => project.id === sidebarProjectId,
+    );
     const expansion = getSelectedThreadSidebarExpansion({
       organizationMode,
       isPinned,
       selectedThread,
-      sidebarProjectId: resolveSidebarProjectId(selectedThread, threadById),
+      sidebarProjectId,
+      connection: {
+        projectSectionId:
+          sections.find((section) =>
+            section.projectIds.includes(sidebarProjectId),
+          )?.id ?? null,
+        projectDefaultHostId:
+          selectedProject?.sources.find((source) => source.isDefault)?.hostId ??
+          selectedProject?.sources[0]?.hostId ??
+          null,
+      },
     });
     if (expansion.machineKey) {
       const machineKey = expansion.machineKey;
@@ -1610,6 +1661,8 @@ function ProjectListComponent({
   }, [
     organizationMode,
     pinnedSidebarState.effectivePinnedThreadIds,
+    projects,
+    sections,
     selectedThreadId,
     setCollapsedEnvironmentIdList,
     setCollapsedSectionList,
@@ -1706,7 +1759,7 @@ function ProjectListComponent({
       {sectionDeleteDialog.target ? (
         <ConfirmDeleteDialogContent
           title="Remove section?"
-          description="Threads in this section will move back to Threads."
+          description="Repos and threads in this section go back to their machines and projects."
           confirmLabel="Remove section"
           pending={isDeleteThreadSectionPending}
           onConfirm={handleConfirmRemoveThreadSection}
@@ -1772,6 +1825,37 @@ function ProjectListComponent({
                   renderSectionDisplayOptions={renderSectionDisplayOptions}
                   isSectionDisplayOptionsOpen={isSectionDisplayOptionsOpen}
                   onProjectSelect={onProjectSelect}
+                  onToggleCollapsed={toggleSidebarSectionCollapsed}
+                  onToggleThreadCollapsed={toggleThreadCollapsed}
+                  onToggleEnvironmentCollapsed={toggleEnvironmentCollapsed}
+                />
+              )}
+              renderConnection={() => (
+                <ConnectionModeSections
+                  projects={projects ?? EMPTY_PROJECTS}
+                  sections={sections}
+                  threads={threads}
+                  draftThreadIds={draftThreadIds}
+                  effectivePinnedThreadIds={
+                    pinnedSidebarState.effectivePinnedThreadIds
+                  }
+                  status={projectsState.status}
+                  showPinnedSection={hasPinnedSection}
+                  pinnedSection={pinnedSection}
+                  threadsSection={threadsSection}
+                  selectedThreadId={selectedThreadId}
+                  collapsedSectionIds={collapsedSidebarSectionIds}
+                  collapsedThreadIds={collapsedThreadIds}
+                  collapsedEnvironmentIds={collapsedEnvironmentIds}
+                  compareThreads={sidebarThreadComparator}
+                  renderSectionDisplayOptions={renderSectionDisplayOptions}
+                  isSectionDisplayOptionsOpen={isSectionDisplayOptionsOpen}
+                  onProjectSelect={onProjectSelect}
+                  onCreateProjectThread={handleCreateProjectThread}
+                  onCreateThreadInSection={handleCreateThreadInSection}
+                  onRenameSection={handleOpenRenameThreadSection}
+                  onRemoveSection={handleRemoveThreadSection}
+                  onRequestNewSection={handleOpenCreateSectionDialog}
                   onToggleCollapsed={toggleSidebarSectionCollapsed}
                   onToggleThreadCollapsed={toggleThreadCollapsed}
                   onToggleEnvironmentCollapsed={toggleEnvironmentCollapsed}

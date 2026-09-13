@@ -39,6 +39,10 @@ export const sidebarMachineSectionOrderAtom = createSyncedPreferenceAtom(
   "sidebar.machineSectionOrder",
 );
 
+export const sidebarConnectionSectionOrderAtom = createSyncedPreferenceAtom(
+  "sidebar.connectionSectionOrder",
+);
+
 export const sidebarOrganizationModeAtom = createSyncedPreferenceAtom(
   "sidebar.organizationMode",
 );

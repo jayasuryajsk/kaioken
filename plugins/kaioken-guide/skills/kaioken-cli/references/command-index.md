@@ -50,6 +50,16 @@ This index lists every command path that the core CLI registers. Read the task-s
 - `kaioken project update`
 - `kaioken project delete`
 
+## labels
+
+- `kaioken labels`
+- `kaioken labels list`
+- `kaioken labels add`
+- `kaioken labels rename`
+- `kaioken labels remove`
+- `kaioken labels move`
+- `kaioken labels unlabel`
+
 ## provider
 
 - `kaioken provider`

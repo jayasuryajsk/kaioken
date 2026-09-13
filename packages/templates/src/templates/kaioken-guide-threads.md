@@ -183,6 +183,9 @@ Sections:
   kaioken thread section rename <id> <name>
   kaioken thread section delete <id> [--yes]
 
+  Sections also work as labels that hold repos; see `kaioken labels` in the
+  customization guide.
+
 Inspecting:
 
   kaioken thread show [id]                      Show thread details and pull request status

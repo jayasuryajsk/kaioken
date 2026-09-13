@@ -15,6 +15,8 @@ import {
   listThreadSections,
   listThreadsWithPendingInteractionStateForProjects,
   reorderProject,
+  listThreadSectionProjectIds,
+  setProjectThreadSection,
   updateProject,
   updateProjectSource,
   setProjectGitRemoteUrlIfMissing,
@@ -271,8 +273,12 @@ function buildSidebarBootstrapResponse(deps: AppDeps) {
       "Personal project response was not built",
     );
   }
+  const sectionProjectIds = listThreadSectionProjectIds(deps.db);
   return {
-    sections: listThreadSections(deps.db),
+    sections: listThreadSections(deps.db).map((section) => ({
+      ...section,
+      projectIds: sectionProjectIds.get(section.id) ?? [],
+    })),
     projects: buildProjectsWithThreadsResponseFromRows(
       deps,
       listPublicProjects(deps.db),
@@ -418,17 +424,33 @@ export function registerProjectRoutes(app: Hono, deps: AppDeps): void {
   });
 
   patch(routes.update, async (context, payload) => {
-    requirePublicStandardProject(deps.db, context.req.param("id"));
-    const project = updateProject(
-      deps.db,
-      deps.hub,
-      context.req.param("id"),
-      payload,
-    );
-    if (!project) {
-      throw new ApiError(404, "project_not_found", "Project not found");
+    const projectId = context.req.param("id");
+    requirePublicStandardProject(deps.db, projectId);
+    const { sectionId, ...projectFields } = payload;
+    if (projectFields.name !== undefined) {
+      const project = updateProject(
+        deps.db,
+        deps.hub,
+        projectId,
+        projectFields,
+      );
+      if (!project) {
+        throw new ApiError(404, "project_not_found", "Project not found");
+      }
     }
-    return context.json(buildProjectResponses(deps, project.id)[0]);
+    if (sectionId !== undefined) {
+      const result = setProjectThreadSection(deps.db, deps.hub, {
+        projectId,
+        sectionId,
+      });
+      if (result.status === "project_not_found") {
+        throw new ApiError(404, "project_not_found", "Project not found");
+      }
+      if (result.status === "section_not_found") {
+        throw new ApiError(404, "section_not_found", "Section not found");
+      }
+    }
+    return context.json(buildProjectResponses(deps, projectId)[0]);
   });
 
   patch(routes.reorder, async (context, payload) => {

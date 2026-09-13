@@ -135,6 +135,28 @@ describe("public thread data routes", () => {
       );
       expect(assignResponse.status).toBe(200);
 
+      const assignProjectResponse = await harness.app.request(
+        `/api/v1/projects/${project.id}`,
+        {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ sectionId: section.id }),
+        },
+      );
+      expect(assignProjectResponse.status).toBe(200);
+      const unknownSectionResponse = await harness.app.request(
+        `/api/v1/projects/${project.id}`,
+        {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ sectionId: "sec_missing" }),
+        },
+      );
+      expect(unknownSectionResponse.status).toBe(404);
+      await expect(readJson(unknownSectionResponse)).resolves.toMatchObject({
+        code: "section_not_found",
+      });
+
       const renameResponse = await harness.app.request(
         "/api/v1/thread-sections",
         {
@@ -152,6 +174,7 @@ describe("public thread data routes", () => {
         id: section.id,
         name: "Ship room",
         updatedThreadCount: 0,
+        updatedProjectCount: 0,
       });
 
       const bootstrapResponse = await harness.app.request(
@@ -162,7 +185,11 @@ describe("public thread data routes", () => {
         await readJson(bootstrapResponse),
       );
       expect(bootstrap.sections).toContainEqual(
-        expect.objectContaining({ id: section.id, name: "Ship room" }),
+        expect.objectContaining({
+          id: section.id,
+          name: "Ship room",
+          projectIds: [project.id],
+        }),
       );
 
       const deleteResponse = await harness.app.request(
@@ -182,8 +209,13 @@ describe("public thread data routes", () => {
         id: section.id,
         name: "Ship room",
         updatedThreadCount: 1,
+        updatedProjectCount: 1,
       });
       expect(getThread(harness.db, thread.id)?.sectionId).toBeNull();
+      const bootstrapAfterDelete = sidebarBootstrapResponseSchema.parse(
+        await readJson(await harness.app.request("/api/v1/sidebar-bootstrap")),
+      );
+      expect(bootstrapAfterDelete.sections).toEqual([]);
 
       const missingResponse = await harness.app.request(
         "/api/v1/thread-sections",
