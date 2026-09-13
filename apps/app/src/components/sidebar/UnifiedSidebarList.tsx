@@ -73,40 +73,6 @@ function toggleId(current: string[], id: string): string[] {
     : [...current, id];
 }
 
-function CollapseChevron({
-  collapsed,
-  label,
-  onToggle,
-  className,
-}: {
-  collapsed: boolean;
-  label: string;
-  onToggle: () => void;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      aria-expanded={!collapsed}
-      aria-label={`${collapsed ? "Expand" : "Collapse"} ${label}`}
-      onClick={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        onToggle();
-      }}
-      className={cn(
-        "inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-subtle-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-sidebar-ring",
-        className,
-      )}
-    >
-      <Icon
-        name="ChevronRight"
-        className={cn("size-3 transition-transform", !collapsed && "rotate-90")}
-      />
-    </button>
-  );
-}
-
 const PROJECT_SORT_OPTIONS: ReadonlyArray<{
   value: UnifiedProjectsSort;
   label: string;
@@ -165,11 +131,13 @@ function useToggleSet(): [ReadonlySet<string>, (id: string) => void] {
 function ShowMoreRow({
   count,
   expanded,
+  indent = false,
   onToggle,
   testId,
 }: {
   count: number;
   expanded: boolean;
+  indent?: boolean;
   onToggle: () => void;
   testId: string;
 }) {
@@ -177,7 +145,7 @@ function ShowMoreRow({
     <button
       type="button"
       data-testid={testId}
-      className={SHOW_MORE_CLASS}
+      className={cn(SHOW_MORE_CLASS, indent && "pl-8")}
       onClick={onToggle}
     >
       {expanded ? "Show less" : `Show more (${count})`}
@@ -236,23 +204,32 @@ function UnifiedProjectRows({
           )}
         >
           {threads.length > 0 ? (
-            <CollapseChevron
-              collapsed={!expanded}
-              label={project.name}
-              onToggle={() => onToggleExpanded(project.id)}
-            />
+            <button
+              type="button"
+              aria-expanded={expanded}
+              aria-label={`${expanded ? "Collapse" : "Expand"} ${project.name}`}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onToggleExpanded(project.id);
+              }}
+              className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm text-subtle-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-sidebar-ring"
+            >
+              <Icon
+                name={expanded ? "FolderOpen" : "Folder"}
+                className="size-3.5"
+              />
+            </button>
           ) : (
-            <span className="size-5 shrink-0" aria-hidden="true" />
+            <span className="inline-flex size-5 shrink-0 items-center justify-center text-subtle-foreground">
+              <Icon name="Folder" className="size-3.5" aria-hidden="true" />
+            </span>
           )}
           <NavLink
             to={getProjectComposeRoutePath(project.id)}
             onClick={onProjectSelect}
-            className="flex min-w-0 flex-1 items-center gap-2 outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
+            className="flex min-w-0 flex-1 items-center outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
           >
-            <Icon
-              name="Folder"
-              className="size-3.5 shrink-0 text-subtle-foreground"
-            />
             <span className="min-w-0 flex-1 truncate">{project.name}</span>
           </NavLink>
           <span
@@ -300,10 +277,7 @@ function UnifiedProjectRows({
         </div>
       </ProjectActionsContextMenu>
       {expanded && visibleThreads.length > 0 ? (
-        <div
-          data-testid="unified-project-threads"
-          className="ml-3 space-y-0.5 border-l border-sidebar-border pl-1"
-        >
+        <div data-testid="unified-project-threads" className="space-y-0.5">
           {visibleThreads.map((thread) => (
             <TimelineRow
               key={thread.id}
@@ -319,6 +293,7 @@ function UnifiedProjectRows({
           ))}
           {hiddenCount > 0 || showAllThreads ? (
             <ShowMoreRow
+              indent
               count={hiddenCount}
               expanded={showAllThreads}
               onToggle={() => onToggleShowAllThreads(project.id)}
@@ -586,7 +561,7 @@ export function UnifiedSidebarList({
       <div
         data-testid="unified-sidebar-list"
         data-sidebar-view="priority"
-        className="flex flex-col gap-3 px-2 pb-2 pt-1"
+        className="flex flex-col gap-4 px-2 pb-2 pt-1"
       >
         <section data-testid="unified-priority">
           <p className={SECTION_LABEL_CLASS}>Priority</p>
@@ -618,7 +593,7 @@ export function UnifiedSidebarList({
     <div
       data-testid="unified-sidebar-list"
       data-sidebar-view="default"
-      className="flex flex-col gap-3 px-2 pb-2 pt-1"
+      className="flex flex-col gap-4 px-2 pb-2 pt-1"
     >
       {model.pinned.length > 0 ? (
         <section data-testid="unified-pinned">

@@ -130,8 +130,9 @@ export function TimelineRow({
       <div
         data-testid="timeline-row"
         className={cn(
-          "group/timeline-row relative flex items-center gap-2 rounded-md py-1 pr-1 text-sm transition-colors",
-          indent ? "pl-4" : "pl-2",
+          "group/timeline-row relative flex items-center gap-2 rounded-md pr-1 text-sm transition-colors",
+          showMeta ? "py-1" : "h-8",
+          indent ? "pl-8" : "pl-2",
           isActive
             ? SIDEBAR_ROW_SELECTED_STATE_CLASS
             : cn(
