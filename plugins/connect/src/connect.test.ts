@@ -85,8 +85,8 @@ function createConnectFakeHost(options?: {
 
 describe("deriveConnectBaseUrl", () => {
   it("drops the handle label to reach the apex", () => {
-    expect(deriveConnectBaseUrl("https://sawyer.getbb.app")).toBe(
-      "https://getbb.app",
+    expect(deriveConnectBaseUrl("https://sawyer.kaioken.app")).toBe(
+      "https://kaioken.app",
     );
     expect(deriveConnectBaseUrl("https://my-box.vibecodethis.site/")).toBe(
       "https://vibecodethis.site",
@@ -116,7 +116,7 @@ describe("resolveDefaultConnectBaseUrl", () => {
   it("rejects non-local or non-origin development values", () => {
     for (const value of [
       "https://kaioken.localhost:42745",
-      "http://getbb.app:42745",
+      "http://kaioken.app:42745",
       "http://kaioken.localhost:42745/dashboard",
       "not a url",
     ]) {
@@ -134,8 +134,8 @@ describe("resolveDefaultConnectBaseUrl", () => {
 
 describe("serverUrlForHandle", () => {
   it("prepends the handle label to the apex", () => {
-    expect(serverUrlForHandle("https://getbb.app", "sawyer")).toBe(
-      "https://sawyer.getbb.app",
+    expect(serverUrlForHandle("https://kaioken.app", "sawyer")).toBe(
+      "https://sawyer.kaioken.app",
     );
   });
 });
@@ -145,12 +145,12 @@ describe("headersForLoopbackRequest", () => {
     expect(
       headersForLoopbackRequest(
         [
-          ["Origin", "https://sawyer.getbb.app"],
+          ["Origin", "https://sawyer.kaioken.app"],
           ["Content-Type", "application/json"],
-          ["Host", "sawyer.getbb.app"],
+          ["Host", "sawyer.kaioken.app"],
         ],
         {
-          publicOrigin: "https://sawyer.getbb.app",
+          publicOrigin: "https://sawyer.kaioken.app",
           loopbackOrigin: "http://127.0.0.1:38886",
         },
       ),
@@ -161,7 +161,7 @@ describe("headersForLoopbackRequest", () => {
 
     expect(
       headersForLoopbackRequest([["Origin", "https://evil.example"]], {
-        publicOrigin: "https://sawyer.getbb.app",
+        publicOrigin: "https://sawyer.kaioken.app",
         loopbackOrigin: "http://127.0.0.1:38886",
       }),
     ).toEqual({ Origin: "https://evil.example" });
@@ -171,12 +171,12 @@ describe("headersForLoopbackRequest", () => {
     expect(
       headersForLoopbackRequest(
         [
-          ["Origin", "https://sawyer--8000.getbb.app"],
+          ["Origin", "https://sawyer--8000.kaioken.app"],
           ["Content-Type", "text/plain"],
-          ["Host", "sawyer--8000.getbb.app"],
+          ["Host", "sawyer--8000.kaioken.app"],
         ],
         {
-          publicOrigin: "https://sawyer--8000.getbb.app",
+          publicOrigin: "https://sawyer--8000.kaioken.app",
           loopbackOrigin: "http://127.0.0.1:8000",
           host: "127.0.0.1:8000",
         },
@@ -193,22 +193,22 @@ describe("sharePublicUrl", () => {
   it("builds https://handle--port.base from the credential serverUrl", () => {
     expect(
       sharePublicUrl(
-        { serverUrl: "https://sawyer.getbb.app", handle: "sawyer" },
+        { serverUrl: "https://sawyer.kaioken.app", handle: "sawyer" },
         8000,
       ),
-    ).toBe("https://sawyer--8000.getbb.app");
+    ).toBe("https://sawyer--8000.kaioken.app");
   });
 
   it("uses a non-primary routing label when multi-server pairing stored one", () => {
     expect(
       sharePublicUrl(
         {
-          serverUrl: "https://sawyer-desktop.getbb.app",
+          serverUrl: "https://sawyer-desktop.kaioken.app",
           handle: "sawyer-desktop",
         },
         8000,
       ),
-    ).toBe("https://sawyer-desktop--8000.getbb.app");
+    ).toBe("https://sawyer-desktop--8000.kaioken.app");
   });
 
   it("uses HTTP and the local port for machine shares in local Cloud", () => {
@@ -252,7 +252,7 @@ describe("ShareRegistry", () => {
       },
     };
     const credential = {
-      serverUrl: "https://sawyer.getbb.app",
+      serverUrl: "https://sawyer.kaioken.app",
       handle: "sawyer",
       credential: "bbcred_x",
     };
@@ -286,7 +286,7 @@ describe("ShareRegistry", () => {
     await expect(registry.add(38886, serverHost)).rejects.toThrow(/own port/);
 
     const added = await registry.add(8000, serverHost);
-    expect(added.url).toBe("https://sawyer--8000.getbb.app");
+    expect(added.url).toBe("https://sawyer--8000.kaioken.app");
     expect(registry.hasServerPort(8000)).toBe(true);
     expect(kv.get(SHARES_KV_KEY)).toMatchObject({
       "host-server:8000": { hostId: "host-server", port: 8000 },
@@ -306,7 +306,7 @@ describe("ShareRegistry", () => {
         hostId: "host-server",
         hostName: "Server",
         port: 8000,
-        url: "https://sawyer--8000.getbb.app",
+        url: "https://sawyer--8000.kaioken.app",
         createdAt: expect.any(Number),
       },
     ]);
@@ -345,7 +345,7 @@ describe("ShareRegistry", () => {
       hostResolver: new ShareHostResolver(() => pluginBb.sdk),
       getLoopbackBaseUrl: () => "http://127.0.0.1:38886",
       getCredential: () => ({
-        serverUrl: "https://sawyer.getbb.app",
+        serverUrl: "https://sawyer.kaioken.app",
         handle: "sawyer",
         credential: "bbcred_x",
       }),
@@ -359,7 +359,7 @@ describe("ShareRegistry", () => {
         hostName: SERVER_HOST_NAME,
         port: 3000,
         createdAt: 123,
-        url: "https://sawyer--3000.getbb.app",
+        url: "https://sawyer--3000.kaioken.app",
       },
     ]);
     expect(kv.get(SHARES_KV_KEY)).toEqual({
@@ -447,7 +447,7 @@ describe("ShareRegistry", () => {
       hostResolver: new ShareHostResolver(() => pluginBb.sdk),
       getLoopbackBaseUrl: () => "http://127.0.0.1:38886",
       getCredential: () => ({
-        serverUrl: "https://sawyer.getbb.app",
+        serverUrl: "https://sawyer.kaioken.app",
         handle: "sawyer",
         credential: "bbcred_x",
       }),
@@ -469,7 +469,7 @@ describe("ShareRegistry", () => {
         hostName: SERVER_HOST_NAME,
         port: 3000,
         createdAt: 123,
-        url: "https://sawyer--3000.getbb.app",
+        url: "https://sawyer--3000.kaioken.app",
       },
     ]);
     await fakeHost.harness.dispose();
@@ -497,7 +497,7 @@ describe("ShareRegistry", () => {
       hostResolver: new ShareHostResolver(() => pluginBb.sdk),
       getLoopbackBaseUrl: () => "http://127.0.0.1:38886",
       getCredential: () => ({
-        serverUrl: "https://sawyer.getbb.app",
+        serverUrl: "https://sawyer.kaioken.app",
         handle: "sawyer",
         credential: "bbcred_x",
       }),
@@ -554,7 +554,7 @@ describe("ShareRegistry", () => {
       hostResolver: new ShareHostResolver(() => pluginBb.sdk),
       getLoopbackBaseUrl: () => "http://127.0.0.1:38886",
       getCredential: () => ({
-        serverUrl: "https://sawyer.getbb.app",
+        serverUrl: "https://sawyer.kaioken.app",
         handle: "sawyer",
         credential: "bbcred_x",
       }),
@@ -571,7 +571,7 @@ describe("ShareRegistry", () => {
         hostName: SERVER_HOST_NAME,
         port: 8000,
         createdAt: 1,
-        url: "https://sawyer--8000.getbb.app",
+        url: "https://sawyer--8000.kaioken.app",
       },
     ]);
     expect(fakeHost.harness.logEntries).toEqual(
@@ -631,7 +631,7 @@ describe("ShareRegistry", () => {
       hostResolver: new ShareHostResolver(() => pluginBb.sdk),
       getLoopbackBaseUrl: () => "http://127.0.0.1:38886",
       getCredential: () => ({
-        serverUrl: "https://sawyer.getbb.app",
+        serverUrl: "https://sawyer.kaioken.app",
         handle: "sawyer",
         credential: "bbcred_x",
       }),
@@ -658,7 +658,7 @@ describe("ShareRegistry", () => {
         hostName: SERVER_HOST_NAME,
         port: 8000,
         createdAt: 1,
-        url: "https://sawyer--8000.getbb.app",
+        url: "https://sawyer--8000.kaioken.app",
       },
     ]);
     expect(ensureIdentity).toHaveBeenCalledTimes(1);
@@ -939,7 +939,7 @@ describe("TunnelSession routing", () => {
             kind: "ok",
             resolved: {
               origin: primary.origin,
-              publicOrigin: "https://sawyer.getbb.app",
+              publicOrigin: "https://sawyer.kaioken.app",
             },
           };
         }
@@ -949,7 +949,7 @@ describe("TunnelSession routing", () => {
           kind: "ok",
           resolved: {
             origin: `http://127.0.0.1:${port}`,
-            publicOrigin: `https://sawyer--${port}.getbb.app`,
+            publicOrigin: `https://sawyer--${port}.kaioken.app`,
             host: `127.0.0.1:${port}`,
           },
         };
@@ -967,7 +967,7 @@ describe("TunnelSession routing", () => {
       streamId: 1,
       method: "GET",
       path: "/hello",
-      headers: [["Origin", "https://sawyer.getbb.app"]],
+      headers: [["Origin", "https://sawyer.kaioken.app"]],
       hasBody: false,
     });
     await waitFor(() =>
@@ -983,8 +983,8 @@ describe("TunnelSession routing", () => {
       method: "GET",
       path: "/app",
       headers: [
-        ["Origin", `https://sawyer--${share.port}.getbb.app`],
-        ["Host", `sawyer--${share.port}.getbb.app`],
+        ["Origin", `https://sawyer--${share.port}.kaioken.app`],
+        ["Host", `sawyer--${share.port}.kaioken.app`],
       ],
       hasBody: false,
       target: String(share.port),
@@ -1075,7 +1075,7 @@ describe("TunnelSession routing", () => {
         kind: "ok",
         resolved: {
           origin: origin.origin,
-          publicOrigin: "https://sawyer.getbb.app",
+          publicOrigin: "https://sawyer.kaioken.app",
         },
       }),
     });
@@ -1166,7 +1166,7 @@ describe("TunnelSession routing", () => {
         kind: "ok",
         resolved: {
           origin: origin.origin,
-          publicOrigin: "https://sawyer.getbb.app",
+          publicOrigin: "https://sawyer.kaioken.app",
         },
       }),
     });
@@ -1283,7 +1283,7 @@ describe("TunnelSession routing", () => {
         kind: "ok",
         resolved: {
           origin: origin.origin,
-          publicOrigin: "https://sawyer.getbb.app",
+          publicOrigin: "https://sawyer.kaioken.app",
         },
       }),
       onRemoteClientsChange: (n) => {
@@ -1361,7 +1361,7 @@ describe("connect plugin", () => {
       lastRemoteActivityAt: null,
       shares: [],
     });
-    expect(status.dashboardUrl).toBe("https://getbb.app/dashboard");
+    expect(status.dashboardUrl).toBe("https://kaioken.app/dashboard");
     expect(status.nextRetryAt).toBeNull();
     expect(harness.needsConfigurationMessages).toEqual([]);
   });
@@ -1407,11 +1407,11 @@ describe("connect plugin", () => {
     await expect(
       harness.callRpc("pair", {
         code: "ABCD",
-        server: "https://sawyer.getbb.app",
+        server: "https://sawyer.kaioken.app",
       }),
     ).rejects.toThrow("invalid_code");
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://getbb.app/api/connect/redeem",
+      "https://kaioken.app/api/connect/redeem",
       expect.objectContaining({ method: "POST" }),
     );
   });
@@ -1421,8 +1421,8 @@ describe("connect plugin", () => {
       state: "connected",
       paired: true,
       handle: "test",
-      url: "https://test.getbb.app",
-      dashboardUrl: "https://getbb.app",
+      url: "https://test.kaioken.app",
+      dashboardUrl: "https://kaioken.app",
       lastError: null,
       nextRetryAt: null,
       since: Date.now(),
@@ -1444,7 +1444,7 @@ describe("connect plugin", () => {
       await harness.behavior.setSettings({ sendRemoteInstructions: false });
       expect(instructions()).toBeNull();
       await harness.behavior.setSettings({ sendRemoteInstructions: true });
-      expect(instructions()).toContain("https://test.getbb.app");
+      expect(instructions()).toContain("https://test.kaioken.app");
       statusSpy.mockReturnValue({ ...status, remoteClients: 0 });
       expect(instructions()).toBeNull();
       statusSpy.mockReturnValue({
@@ -1483,11 +1483,11 @@ describe("connect plugin", () => {
     const status = (await harness.callRpc("pair", {
       code: "ABCD",
       server: "http://127.0.0.1:59321",
-      baseUrl: "https://getbb.app",
+      baseUrl: "https://kaioken.app",
     })) as ConnectStatus;
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://getbb.app/api/connect/redeem",
+      "https://kaioken.app/api/connect/redeem",
       expect.objectContaining({ method: "POST" }),
     );
     expect(status.paired).toBe(true);
@@ -1583,7 +1583,7 @@ describe("connect plugin", () => {
     await harness.callRpc("pair", {
       code: "ABCD",
       server: "http://127.0.0.1:59322",
-      baseUrl: "https://getbb.app",
+      baseUrl: "https://kaioken.app",
     });
 
     const after = (await harness.callRpc("disconnect")) as ConnectStatus;
@@ -1614,7 +1614,7 @@ describe("connect plugin", () => {
     await harness.callRpc("pair", {
       code: "ABCD",
       server: "http://127.0.0.1:59323",
-      baseUrl: "https://getbb.app",
+      baseUrl: "https://kaioken.app",
     });
 
     const after = (await harness.callRpc("disconnect")) as ConnectStatus;
@@ -1639,7 +1639,7 @@ describe("connect plugin", () => {
     await expect(
       harness.callRpc("pair", {
         code: "OLD",
-        server: "https://sawyer.getbb.app",
+        server: "https://sawyer.kaioken.app",
       }),
     ).rejects.toThrow("expired_code");
     expect(await bb.storage.kv.get(CREDENTIAL_KV_KEY)).toBeUndefined();
@@ -1667,7 +1667,7 @@ describe("connect plugin", () => {
       await expect(
         harness.callRpc("pair", {
           code: "X",
-          server: "https://sawyer.getbb.app",
+          server: "https://sawyer.kaioken.app",
         }),
       ).rejects.toThrow(testCase.code);
       await stopTunnel(host!);
@@ -1710,7 +1710,7 @@ describe("connect plugin", () => {
     await harness.callRpc("pair", {
       code: "ABCD",
       server: "http://sawyer.localhost:59330",
-      baseUrl: "https://getbb.app",
+      baseUrl: "https://kaioken.app",
     });
 
     const shareUrl = "http://sawyer--8000.localhost:59330";
@@ -1903,7 +1903,7 @@ describe("connect plugin", () => {
 
   it("uses machine tunnel identity and declares per-host port sets", async () => {
     host = createConnectFakeHost({
-      remoteIdentity: { label: "sawyer-air", baseDomain: "getbb.app" },
+      remoteIdentity: { label: "sawyer-air", baseDomain: "kaioken.app" },
     });
     await plugin(host.bb as unknown as Parameters<typeof plugin>[0]);
     vi.stubGlobal(
@@ -1919,7 +1919,7 @@ describe("connect plugin", () => {
     await host.harness.callRpc("pair", {
       code: "ABCD",
       server: "http://sawyer.localhost:59333",
-      baseUrl: "https://getbb.app",
+      baseUrl: "https://kaioken.app",
     });
 
     await expect(
@@ -1928,7 +1928,7 @@ describe("connect plugin", () => {
       hostId: REMOTE_HOST_ID,
       hostName: REMOTE_HOST_NAME,
       port: 3000,
-      url: "https://sawyer-air--3000.getbb.app",
+      url: "https://sawyer-air--3000.kaioken.app",
       createdAt: expect.any(Number),
     });
     expect(host.harness.sharedPortDeclarations).toEqual([
@@ -1995,7 +1995,7 @@ describe("connect plugin", () => {
     await host.harness.callRpc("pair", {
       code: "ABCD",
       server: "http://sawyer.localhost:59334",
-      baseUrl: "https://getbb.app",
+      baseUrl: "https://kaioken.app",
     });
 
     await expect(
@@ -2033,7 +2033,7 @@ describe("connect plugin", () => {
     await host.harness.callRpc("pair", {
       code: "ABCD",
       server: "http://sawyer.localhost:59335",
-      baseUrl: "https://getbb.app",
+      baseUrl: "https://kaioken.app",
     });
 
     let message = "";
@@ -2053,7 +2053,7 @@ describe("connect plugin", () => {
 
   it("empties machine declarations when the pairing is disconnected", async () => {
     host = createConnectFakeHost({
-      remoteIdentity: { label: "sawyer-air", baseDomain: "getbb.app" },
+      remoteIdentity: { label: "sawyer-air", baseDomain: "kaioken.app" },
     });
     await plugin(host.bb as unknown as Parameters<typeof plugin>[0]);
     vi.stubGlobal(
@@ -2069,7 +2069,7 @@ describe("connect plugin", () => {
     await host.harness.callRpc("pair", {
       code: "ABCD",
       server: "http://sawyer.localhost:59335",
-      baseUrl: "https://getbb.app",
+      baseUrl: "https://kaioken.app",
     });
     await host.harness.callRpc("expose", {
       hostId: REMOTE_HOST_ID,
@@ -2117,7 +2117,7 @@ describe("connect plugin", () => {
     await harness.callRpc("pair", {
       code: "ABCD",
       server: "http://sawyer.localhost:59340",
-      baseUrl: "https://getbb.app",
+      baseUrl: "https://kaioken.app",
     });
 
     const result = (await harness.callRpc("listAccountServers")) as {
@@ -2175,7 +2175,7 @@ describe("connect plugin", () => {
         return new Response(
           JSON.stringify({
             cookie: {
-              domain: ".getbb.app",
+              domain: ".kaioken.app",
               expiresAt: 2_000_000,
               name: "__Secure-kaioken-connect.desktop_session",
               value: "short-lived-signed-cookie",
@@ -2189,18 +2189,18 @@ describe("connect plugin", () => {
     const { harness } = await loadPlugin();
     await harness.callRpc("pair", {
       code: "ABCD",
-      server: "https://sawyer.getbb.app",
+      server: "https://sawyer.kaioken.app",
     });
     await expect(harness.callRpc("createDesktopSession")).resolves.toEqual({
       cookie: {
-        domain: ".getbb.app",
+        domain: ".kaioken.app",
         expiresAt: 2_000_000,
         name: "__Secure-kaioken-connect.desktop_session",
         value: "short-lived-signed-cookie",
       },
     });
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://sawyer.getbb.app/api/connect/desktop-session",
+      "https://sawyer.kaioken.app/api/connect/desktop-session",
       expect.objectContaining({
         method: "POST",
         headers: { "x-bb-connect-machine": "bbcred_durable" },
@@ -2218,12 +2218,12 @@ describe("connect plugin", () => {
             { status: 200 },
           );
         }
-        if (url === "https://getbb.app/api/connect/machine-code") {
+        if (url === "https://kaioken.app/api/connect/machine-code") {
           return new Response(
             JSON.stringify({
               code: "ABCD-EFGH",
               expiresInMs: 600_000,
-              serverUrl: "https://sawyer.getbb.app",
+              serverUrl: "https://sawyer.kaioken.app",
             }),
           );
         }
@@ -2234,17 +2234,17 @@ describe("connect plugin", () => {
     const { harness } = await loadPlugin();
     await harness.callRpc("pair", {
       code: "ABCD",
-      server: "https://sawyer.getbb.app",
+      server: "https://sawyer.kaioken.app",
     });
     const before = Date.now();
     await expect(harness.callRpc("createMachineCode")).resolves.toMatchObject({
       code: "ABCD-EFGH",
-      serverUrl: "https://sawyer.getbb.app",
+      serverUrl: "https://sawyer.kaioken.app",
       expiresAt: expect.any(Number),
     });
     const call = fetchMock.mock.calls.find(
       ([input]) =>
-        String(input) === "https://getbb.app/api/connect/machine-code",
+        String(input) === "https://kaioken.app/api/connect/machine-code",
     );
     expect(call?.[1]).toEqual({
       method: "POST",
@@ -2275,7 +2275,7 @@ describe("connect plugin", () => {
           handle: "sawyer",
         });
       }
-      if (url === "https://getbb.app/api/connect/revoke-machine") {
+      if (url === "https://kaioken.app/api/connect/revoke-machine") {
         return Response.json({ ok: true });
       }
       return new Response("not found", { status: 404 });
@@ -2284,14 +2284,14 @@ describe("connect plugin", () => {
     const { harness } = await loadPlugin();
     await harness.callRpc("pair", {
       code: "ABCD",
-      server: "https://sawyer.getbb.app",
+      server: "https://sawyer.kaioken.app",
     });
 
     await expect(
       harness.callRpc("revokeMachine", { machineId: "machine-1" }),
     ).resolves.toEqual({ ok: true });
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://getbb.app/api/connect/revoke-machine",
+      "https://kaioken.app/api/connect/revoke-machine",
       expect.objectContaining({
         body: JSON.stringify({ machineId: "machine-1" }),
         headers: {
@@ -2367,7 +2367,7 @@ describe("connect plugin", () => {
     await harness.callRpc("pair", {
       code: "ABCD",
       server: "http://sawyer.localhost:59341",
-      baseUrl: "https://getbb.app",
+      baseUrl: "https://kaioken.app",
     });
     await expect(harness.callRpc("listAccountServers")).rejects.toThrow(
       "unauthorized",
@@ -2401,7 +2401,7 @@ describe("connect CLI", () => {
     const { harness } = await loadCli();
     const result = await harness.runCli([]);
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("getbb.app");
+    expect(result.stdout).toContain("kaioken.app");
     expect(result.stdout).toContain("kaioken connect status");
     expect(result.stdout).toContain("kaioken connect expose");
   });
@@ -2461,7 +2461,7 @@ describe("connect CLI", () => {
       "--code",
       "OLD",
       "--server",
-      "https://sawyer.getbb.app",
+      "https://sawyer.kaioken.app",
     ]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("Redeem failed (410): expired");
@@ -2471,14 +2471,14 @@ describe("connect CLI", () => {
     const { harness } = await loadCli();
     const result = await harness.runCli(["expose", "8000"]);
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("not connected to getbb.app");
+    expect(result.stderr).toContain("not connected to kaioken.app");
   });
 
   it("servers when unpaired errors clearly", async () => {
     const { harness } = await loadCli();
     const result = await harness.runCli(["servers"]);
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("not connected to getbb.app");
+    expect(result.stderr).toContain("not connected to kaioken.app");
   });
 
   it("servers lists account servers as a table or json", async () => {
@@ -2553,7 +2553,7 @@ describe("connect CLI", () => {
     const { harness } = await loadCli();
     const result = await harness.runCli(["machine-code"]);
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("not connected to getbb.app");
+    expect(result.stderr).toContain("not connected to kaioken.app");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -2567,12 +2567,12 @@ describe("connect CLI", () => {
             { status: 200 },
           );
         }
-        if (url === "https://getbb.app/api/connect/machine-code") {
+        if (url === "https://kaioken.app/api/connect/machine-code") {
           return new Response(
             JSON.stringify({
               code: "K7QP-2M4X",
               expiresInMs: 600_000,
-              serverUrl: "https://sawyer.getbb.app",
+              serverUrl: "https://sawyer.kaioken.app",
             }),
           );
         }
@@ -2585,15 +2585,15 @@ describe("connect CLI", () => {
       "--code",
       "ABCD",
       "--server",
-      "https://sawyer.getbb.app",
+      "https://sawyer.kaioken.app",
     ]);
 
     const before = Date.now();
     const text = await harness.runCli(["machine-code"]);
     expect(text.exitCode).toBe(0);
     expect(text.stdout).toContain("Code:       K7QP-2M4X");
-    expect(text.stdout).toContain("Server:     https://sawyer.getbb.app");
-    expect(text.stdout).toContain("Apex:       https://getbb.app");
+    expect(text.stdout).toContain("Server:     https://sawyer.kaioken.app");
+    expect(text.stdout).toContain("Apex:       https://kaioken.app");
     expect(text.stdout).toContain("in about 10 min");
     expect(text.stdout).toContain("Add mobile device");
 
@@ -2602,14 +2602,14 @@ describe("connect CLI", () => {
     const parsed = JSON.parse(json.stdout ?? "") as Record<string, unknown>;
     expect(parsed).toEqual({
       code: "K7QP-2M4X",
-      serverUrl: "https://sawyer.getbb.app",
-      apex: "https://getbb.app",
+      serverUrl: "https://sawyer.kaioken.app",
+      apex: "https://kaioken.app",
       expiresAt: expect.any(Number),
     });
     expect(parsed.expiresAt as number).toBeGreaterThanOrEqual(before + 600_000);
     const call = fetchMock.mock.calls.find(
       ([input]) =>
-        String(input) === "https://getbb.app/api/connect/machine-code",
+        String(input) === "https://kaioken.app/api/connect/machine-code",
     );
     expect(call?.[1]).toEqual({
       method: "POST",
@@ -2641,12 +2641,12 @@ describe("connect CLI", () => {
       "--code",
       "ABCD",
       "--server",
-      "https://sawyer.getbb.app",
+      "https://sawyer.kaioken.app",
     ]);
     const result = await harness.runCli(["machine-code"]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("machine limit");
-    expect(result.stderr).toContain("https://getbb.app/dashboard");
+    expect(result.stderr).toContain("https://kaioken.app/dashboard");
     expect(result.stderr).not.toContain("machine_limit");
   });
 
@@ -2697,7 +2697,7 @@ describe("connect CLI", () => {
 
   it("resolves the thread host, honors --host, and defaults no-context calls to the server host", async () => {
     host = createConnectFakeHost({
-      remoteIdentity: { label: "sawyer-air", baseDomain: "getbb.app" },
+      remoteIdentity: { label: "sawyer-air", baseDomain: "kaioken.app" },
     });
     await plugin(host.bb as unknown as Parameters<typeof plugin>[0]);
     host.harness.sdk.stub(
@@ -2726,7 +2726,7 @@ describe("connect CLI", () => {
     });
     expect(fromThread).toMatchObject({
       exitCode: 0,
-      stdout: "https://sawyer-air--3000.getbb.app\n",
+      stdout: "https://sawyer-air--3000.kaioken.app\n",
     });
 
     const overridden = await host.harness.runCli(
@@ -2758,7 +2758,7 @@ describe("connect CLI", () => {
           hostId: REMOTE_HOST_ID,
           hostName: REMOTE_HOST_NAME,
           port: 3000,
-          url: "https://sawyer-air--3000.getbb.app",
+          url: "https://sawyer-air--3000.kaioken.app",
           createdAt: expect.any(Number),
         },
       ],
@@ -2772,7 +2772,7 @@ describe("connect CLI", () => {
     );
     const status = await host.harness.runCli(["status"]);
     expect(status.stdout).toContain(
-      `${REMOTE_HOST_NAME} (${REMOTE_HOST_ID})  3000  https://sawyer-air--3000.getbb.app`,
+      `${REMOTE_HOST_NAME} (${REMOTE_HOST_ID})  3000  https://sawyer-air--3000.kaioken.app`,
     );
 
     const removed = await host.harness.runCli(["unexpose", "3000"], {

@@ -64,19 +64,19 @@ function validateFlags(
 
 function helpText(): string {
   return [
-    "Remote access via getbb.app — this kaioken becomes reachable at https://<handle>.getbb.app.",
+    "Remote access via kaioken.app — this kaioken becomes reachable at https://<handle>.kaioken.app.",
     "Share HTTP ports from any enrolled host (owner session only).",
     "",
-    "  1. Sign in at https://getbb.app and claim a handle.",
+    "  1. Sign in at https://kaioken.app and claim a handle.",
     "  2. Copy the connect command from the dashboard and run it here:",
-    "       kaioken connect --code <code> --server https://<handle>.getbb.app",
+    "       kaioken connect --code <code> --server https://<handle>.kaioken.app",
     "",
     "  kaioken connect status              Show remote-access status",
     "  kaioken connect off                 Disconnect and forget the pairing (re-pairing needs a new code)",
     "  kaioken connect expose <port> [--host <name-or-id>]    Share a port from the thread's host",
     "  kaioken connect unexpose <port> [--host <name-or-id>]  Stop sharing a port on that host",
     "  kaioken connect shares [--host <name-or-id>]           List shares for the thread's host",
-    "  kaioken connect servers             List every kaioken on this account (from getbb.app)",
+    "  kaioken connect servers             List every kaioken on this account (from kaioken.app)",
     "  kaioken connect machine-code        Mint a one-time code that enrolls the kaioken mobile app (or another",
     "                                 device) as a connect machine for this kaioken (needs the",
     '                                 "Mobile app" experiment in Settings → Experiments)',
@@ -87,7 +87,7 @@ function helpText(): string {
 
 function formatStatus(status: ConnectStatus): string {
   if (!status.paired) {
-    return "Not paired\nPair from the getbb.app dashboard — run `kaioken connect` for a how-to.";
+    return "Not paired\nPair from the kaioken.app dashboard — run `kaioken connect` for a how-to.";
   }
   const lines = [`${status.handle}  ${status.url}  ${status.state}`];
   if (status.lastError !== null && status.state !== "connected") {
@@ -109,7 +109,7 @@ function asJson(value: unknown): string {
 }
 
 function notPairedError(): string {
-  return "this kaioken is not connected to getbb.app — run `kaioken connect` for how to pair";
+  return "this kaioken is not connected to kaioken.app — run `kaioken connect` for how to pair";
 }
 
 function machineCodeErrorText(
@@ -143,7 +143,7 @@ function formatMachineCode(payload: MobilePairingPayload): string {
     "",
     "Enter the code in the kaioken mobile app when it asks to pair over kaioken connect (or",
     "scan the QR code from Settings → Remote access → Add mobile device). The phone",
-    "enrolls as a connect machine on this account — it appears in the getbb.app",
+    "enrolls as a connect machine on this account — it appears in the kaioken.app",
     "dashboard's machine list, where you can revoke it. The code works once.",
   ].join("\n");
 }
@@ -158,7 +158,7 @@ export function registerConnectCli(args: {
   bb.cli.register({
     name: "connect",
     summary:
-      "Expose this kaioken at https://<handle>.getbb.app (pair with --code/--server from the dashboard)",
+      "Expose this kaioken at https://<handle>.kaioken.app (pair with --code/--server from the dashboard)",
     commands: [
       {
         name: "status",

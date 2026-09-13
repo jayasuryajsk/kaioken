@@ -260,7 +260,7 @@ export class ShareRegistry {
     const credential = this.options.getCredential();
     if (credential === null) {
       throw new SharePortError(
-        "this kaioken is not connected to getbb.app — run `kaioken connect` for how to pair",
+        "this kaioken is not connected to kaioken.app — run `kaioken connect` for how to pair",
       );
     }
     if (host.isServer) this.serverHostId = host.id;

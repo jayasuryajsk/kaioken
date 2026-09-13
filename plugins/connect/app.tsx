@@ -142,7 +142,7 @@ function asStatus(payload: unknown): ConnectStatus | null {
     dashboardUrl:
       typeof record.dashboardUrl === "string"
         ? record.dashboardUrl
-        : "https://getbb.app/dashboard",
+        : "https://kaioken.app/dashboard",
     lastError: typeof record.lastError === "string" ? record.lastError : null,
     nextRetryAt:
       typeof record.nextRetryAt === "number" ? record.nextRetryAt : null,
@@ -1332,7 +1332,7 @@ export default definePluginApp((app) => {
   app.slots.settingsSection({
     id: "remote-access",
     description:
-      "Use this kaioken from any device, anywhere — powered by getbb.app.",
+      "Use this kaioken from any device, anywhere — powered by kaioken.app.",
     component: ConnectSettingsSection,
   });
   app.experimental_sidebarFooter.register({

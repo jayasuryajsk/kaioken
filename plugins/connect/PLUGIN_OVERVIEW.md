@@ -1,4 +1,4 @@
-Open your kaioken from a phone or another computer. After you pair, this kaioken answers at `https://<handle>.getbb.app` for anyone signed in to your getbb.app account.
+Open your kaioken from a phone or another computer. After you pair, this kaioken answers at `https://<handle>.kaioken.app` for anyone signed in to your kaioken.app account.
 
 ## What you get
 
@@ -9,7 +9,7 @@ Open your kaioken from a phone or another computer. After you pair, this kaioken
 
 ## How it works
 
-Get a pairing code from the getbb.app dashboard and enter it in Settings. You can also run `kaioken connect --code <code> --server <url>`. The plugin keeps the tunnel open in the background and reconnects after a drop. Disable the plugin to cut all remote access at once. `kaioken connect off` also disconnects and forgets the pairing.
+Get a pairing code from the kaioken.app dashboard and enter it in Settings. You can also run `kaioken connect --code <code> --server <url>`. The plugin keeps the tunnel open in the background and reconnects after a drop. Disable the plugin to cut all remote access at once. `kaioken connect off` also disconnects and forgets the pairing.
 
 ## For agents
 
@@ -17,4 +17,4 @@ When you view kaioken remotely, agents are told to share servers with `kaioken c
 
 ## Requirements
 
-A getbb.app account. Share links open only for viewers with your getbb.app session; they are not public. Mobile pairing needs the "Mobile app" experiment.
+A kaioken.app account. Share links open only for viewers with your kaioken.app session; they are not public. Mobile pairing needs the "Mobile app" experiment.

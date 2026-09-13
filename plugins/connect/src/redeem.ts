@@ -1,4 +1,4 @@
-export const DEFAULT_CONNECT_BASE_URL = "https://getbb.app";
+export const DEFAULT_CONNECT_BASE_URL = "https://kaioken.app";
 
 export function resolveDefaultConnectBaseUrl(env: NodeJS.ProcessEnv): string {
   const configured = env.KAIOKEN_DEV_CONNECT_BASE_URL?.trim();

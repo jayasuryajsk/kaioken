@@ -53,7 +53,7 @@ function createTunnelFixture() {
   });
   const pluginBb = fakeHost.bb;
   const credential = {
-    serverUrl: "https://sawyer.getbb.app",
+    serverUrl: "https://sawyer.kaioken.app",
     handle: "sawyer",
     credential: "bbcred_x",
   };

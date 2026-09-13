@@ -191,7 +191,7 @@ export class ConnectTunnel {
     if (credential === null) {
       throw new ConnectListError(
         "not_paired",
-        "this kaioken is not connected to getbb.app — run `kaioken connect` for how to pair",
+        "this kaioken is not connected to kaioken.app — run `kaioken connect` for how to pair",
       );
     }
     return listAccountServers(credential);
@@ -344,7 +344,7 @@ export class ConnectTunnel {
   private credentialRejected(statusCode: number): void {
     this.lastError =
       `the gate rejected this kaioken's credential (HTTP ${statusCode}) — ` +
-      "pairing was revoked; get a new code from the getbb.app dashboard and re-pair";
+      "pairing was revoked; get a new code from the kaioken.app dashboard and re-pair";
     this.options.log.warn(this.lastError);
     this.credential = null;
     this.teardown();
@@ -508,7 +508,7 @@ function connectApexHost(serverUrl: string): string {
   try {
     return new URL(deriveConnectBaseUrl(serverUrl)).host;
   } catch {
-    return "getbb.app";
+    return "kaioken.app";
   }
 }
 
