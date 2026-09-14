@@ -1,5 +1,9 @@
 import { z } from "zod";
 import type { KaiokenDesktopBrowserApi } from "./browser.js";
+import type {
+  KaiokenDesktopFederatedFetchRequest,
+  KaiokenDesktopFederatedFetchResponse,
+} from "./federation.js";
 import type { AppCommandId } from "@kaioken/domain";
 
 const isoUtcDateTimeSchema = z.iso.datetime();
@@ -46,6 +50,9 @@ export type KaiokenDesktopCloseWindowRequestHandler = () => boolean;
 export interface KaiokenDesktopApi extends KaiokenDesktopInfo {
   browser: KaiokenDesktopBrowserApi;
   checkForUpdates(): Promise<KaiokenDesktopInfo>;
+  federatedFetch?(
+    request: KaiokenDesktopFederatedFetchRequest,
+  ): Promise<KaiokenDesktopFederatedFetchResponse>;
   getInfo(): Promise<KaiokenDesktopInfo>;
   getWindowState?(): Promise<KaiokenDesktopWindowState>;
   installUpdate(): Promise<void>;

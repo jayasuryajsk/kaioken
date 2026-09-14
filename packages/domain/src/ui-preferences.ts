@@ -50,6 +50,7 @@ const uiPreferenceStringListSchema = z
 export const UI_PREFERENCE_KEYS = [
   "sidebar.organizationMode",
   "sidebar.projectsSort",
+  "sidebar.mergeServers",
   "sidebar.chronologicalSort",
   "sidebar.sortDirection",
   "sidebar.sectionOrder",
@@ -100,6 +101,11 @@ export const uiPreferenceDefinitions = {
     z.enum(["recent", "name", "machine"]),
     "recent",
     "Order of the Projects section in the unified sidebar: recent activity, name, or machine.",
+  ),
+  "sidebar.mergeServers": defineUiPreference(
+    z.enum(["on", "off"]),
+    "on",
+    "Whether the unified sidebar also lists threads and projects from the other Kaioken servers on the same connect account (read-only).",
   ),
   "sidebar.chronologicalSort": defineUiPreference(
     sidebarChronologicalSortSchema,

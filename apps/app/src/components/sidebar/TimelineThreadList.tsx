@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
+  type RemoteThreadRef,
   hasActiveBackgroundAgentActivity,
   hasActiveBackgroundCommandActivity,
   hasActiveGoalActivity,
@@ -23,7 +24,11 @@ import {
   usePrimaryHost,
 } from "@/hooks/queries/host-queries";
 import { useHostDaemon } from "@/hooks/useHostDaemon";
-import { getThreadRoutePath } from "@/lib/route-paths";
+import { formatRelativeTime } from "@/lib/relative-time";
+import {
+  getRemoteThreadRoutePath,
+  getThreadRoutePath,
+} from "@/lib/route-paths";
 import { buildTimelineSections } from "@/lib/sidebar-timeline";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
 import {
@@ -67,6 +72,25 @@ export interface TimelineRowProps {
   indent?: boolean;
   muted?: boolean;
   statusText?: string;
+  remote?: RemoteThreadRef;
+  projectName?: string;
+  now?: number;
+}
+
+export const REMOTE_THREAD_READ_ONLY_HINT =
+  "Actions on it are coming in the next phase.";
+
+export function remoteThreadTooltip(serverName: string): string {
+  return `This thread lives on ${serverName}. ${REMOTE_THREAD_READ_ONLY_HINT}`;
+}
+
+export function formatOfflineMeta(
+  lastSeenAt: number | null,
+  now: number,
+): string {
+  return lastSeenAt === null
+    ? "offline"
+    : `offline · last seen ${formatRelativeTime({ timestamp: lastSeenAt, now })}`;
 }
 
 export function useViewerHostId(): string | null {
@@ -107,10 +131,14 @@ export function TimelineRow({
   indent = false,
   muted = false,
   statusText,
+  remote,
+  projectName: projectNameOverride,
+  now,
 }: TimelineRowProps) {
-  const projectName = useSidebarProjectName(
+  const contextProjectName = useSidebarProjectName(
     thread.projectId === PERSONAL_PROJECT_ID ? null : thread.projectId,
   );
+  const projectName = projectNameOverride ?? contextProjectName;
   const location = projectName ?? machine?.name ?? "Kaioken";
   const title = getThreadDisplayTitle(thread);
   const unread = isUnreadDoneThread(thread);
@@ -121,98 +149,125 @@ export function TimelineRow({
       threadId: thread.id,
       title,
     });
-  const splitAvailable = onSplitDragPointerDown !== undefined;
-  return (
-    <ThreadActionsContextMenu
-      thread={thread}
-      onOpenInSplit={splitAvailable ? openInSplit : undefined}
+  const splitAvailable =
+    remote === undefined && onSplitDragPointerDown !== undefined;
+  const offline = remote !== undefined && !remote.live;
+  const row = (
+    <div
+      data-testid="timeline-row"
+      data-remote-server={remote?.handle}
+      data-offline={offline ? "true" : undefined}
+      title={
+        remote === undefined
+          ? undefined
+          : remoteThreadTooltip(remote.serverName)
+      }
+      className={cn(
+        "group/timeline-row relative flex items-center gap-2 rounded-md pr-1 text-sm transition-colors",
+        showMeta ? "py-1" : "h-8",
+        indent ? "pl-8" : "pl-2",
+        isActive
+          ? SIDEBAR_ROW_SELECTED_STATE_CLASS
+          : cn(
+              "hover:bg-sidebar-accent",
+              muted ? "text-muted-foreground" : "text-sidebar-foreground",
+            ),
+        menuOpen && "bg-sidebar-accent",
+        offline && "opacity-60",
+      )}
     >
-      <div
-        data-testid="timeline-row"
-        className={cn(
-          "group/timeline-row relative flex items-center gap-2 rounded-md pr-1 text-sm transition-colors",
-          showMeta ? "py-1" : "h-8",
-          indent ? "pl-8" : "pl-2",
-          isActive
-            ? SIDEBAR_ROW_SELECTED_STATE_CLASS
-            : cn(
-                "hover:bg-sidebar-accent",
-                muted ? "text-muted-foreground" : "text-sidebar-foreground",
-              ),
-          menuOpen && "bg-sidebar-accent",
-        )}
+      <NavLink
+        to={
+          remote === undefined
+            ? getThreadRoutePath({
+                projectId: thread.projectId,
+                threadId: thread.id,
+              })
+            : getRemoteThreadRoutePath({
+                handle: remote.handle,
+                threadId: remote.threadId,
+              })
+        }
+        onPointerDown={splitAvailable ? onSplitDragPointerDown : undefined}
+        onClick={(event) => {
+          if (splitAvailable && (event.metaKey || event.ctrlKey)) {
+            event.preventDefault();
+            openInSplit();
+            return;
+          }
+          onProjectSelect?.();
+        }}
+        data-sidebar-thread-id={thread.id}
+        className="flex min-w-0 flex-1 flex-col outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
       >
-        <NavLink
-          to={getThreadRoutePath({
-            projectId: thread.projectId,
-            threadId: thread.id,
-          })}
-          onPointerDown={onSplitDragPointerDown}
-          onClick={(event) => {
-            if (splitAvailable && (event.metaKey || event.ctrlKey)) {
-              event.preventDefault();
-              openInSplit();
-              return;
-            }
-            onProjectSelect?.();
-          }}
-          data-sidebar-thread-id={thread.id}
-          className="flex min-w-0 flex-1 flex-col outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
+        <span
+          className={cn(
+            "min-w-0 truncate",
+            unread && !isActive && "font-medium",
+          )}
         >
+          {title}
+        </span>
+        {statusText !== undefined ? (
           <span
-            className={cn(
-              "min-w-0 truncate",
-              unread && !isActive && "font-medium",
-            )}
+            data-testid="timeline-row-status"
+            className="min-w-0 truncate text-xs text-muted-foreground"
           >
-            {title}
+            {statusText}
           </span>
-          {statusText !== undefined ? (
-            <span
-              data-testid="timeline-row-status"
-              className="min-w-0 truncate text-xs text-muted-foreground"
-            >
-              {statusText}
-            </span>
-          ) : showMeta ? (
-            <span
-              data-testid="timeline-row-meta"
-              className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground"
-            >
-              <Icon
-                name={machine?.remote ? "Laptop" : "Folder"}
-                className="size-3 shrink-0"
-              />
-              <span className="min-w-0 truncate">
-                {location}
-                {machine?.remote && projectName !== null ? (
-                  <span className="text-subtle-foreground">
-                    {" "}
-                    · {machine.name}
-                  </span>
-                ) : null}
-              </span>
-            </span>
-          ) : null}
-        </NavLink>
-        <span className="flex shrink-0 items-center">
-          <span className="inline-flex size-6 items-center justify-center group-hover/timeline-row:hidden">
-            <ThreadStatusGlyph
-              hasPendingInteraction={thread.hasPendingInteraction}
-              hasUnsubmittedDraft={hasDraft}
-              hasUnreadError={unread && thread.status === "error"}
-              hasUnreadSuccess={unread && thread.status !== "error"}
-              isBackgroundAgentActive={hasActiveBackgroundAgentActivity(thread)}
-              isBackgroundCommandActive={hasActiveBackgroundCommandActivity(
-                thread,
-              )}
-              isGoalActive={hasActiveGoalActivity(thread)}
-              isPlanModeActive={hasActivePlanModeActivity(thread)}
-              isRuntimeActive={isRuntimeBusyThread(thread)}
-              isWorkflowActive={hasActiveWorkflowActivity(thread)}
-              queuedWork={thread.queuedWork}
+        ) : showMeta ? (
+          <span
+            data-testid="timeline-row-meta"
+            className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground"
+          >
+            <Icon
+              name={
+                remote !== undefined || machine?.remote ? "Laptop" : "Folder"
+              }
+              className="size-3 shrink-0"
             />
+            <span className="min-w-0 truncate">
+              {offline ? (
+                formatOfflineMeta(remote.lastSeenAt, now ?? Date.now())
+              ) : (
+                <>
+                  {location}
+                  {remote !== undefined ? (
+                    <span className="text-subtle-foreground">
+                      {" "}
+                      · {remote.serverName}
+                    </span>
+                  ) : machine?.remote && projectName !== null ? (
+                    <span className="text-subtle-foreground">
+                      {" "}
+                      · {machine.name}
+                    </span>
+                  ) : null}
+                </>
+              )}
+            </span>
           </span>
+        ) : null}
+      </NavLink>
+      <span className="flex shrink-0 items-center">
+        <span className="inline-flex size-6 items-center justify-center group-hover/timeline-row:hidden">
+          <ThreadStatusGlyph
+            hasPendingInteraction={thread.hasPendingInteraction}
+            hasUnsubmittedDraft={hasDraft}
+            hasUnreadError={unread && thread.status === "error"}
+            hasUnreadSuccess={unread && thread.status !== "error"}
+            isBackgroundAgentActive={hasActiveBackgroundAgentActivity(thread)}
+            isBackgroundCommandActive={hasActiveBackgroundCommandActivity(
+              thread,
+            )}
+            isGoalActive={hasActiveGoalActivity(thread)}
+            isPlanModeActive={hasActivePlanModeActivity(thread)}
+            isRuntimeActive={isRuntimeBusyThread(thread)}
+            isWorkflowActive={hasActiveWorkflowActivity(thread)}
+            queuedWork={thread.queuedWork}
+          />
+        </span>
+        {remote === undefined ? (
           <span
             className={cn(
               "hidden group-hover/timeline-row:inline-flex",
@@ -226,8 +281,17 @@ export function TimelineRow({
               onOpenChange={setMenuOpen}
             />
           </span>
-        </span>
-      </div>
+        ) : null}
+      </span>
+    </div>
+  );
+  if (remote !== undefined) return row;
+  return (
+    <ThreadActionsContextMenu
+      thread={thread}
+      onOpenInSplit={splitAvailable ? openInSplit : undefined}
+    >
+      {row}
     </ThreadActionsContextMenu>
   );
 }

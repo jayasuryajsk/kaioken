@@ -44,6 +44,7 @@ import {
   SETTINGS_PLUGIN_ROUTE_PATH,
   SETTINGS_PLUGINS_ROUTE_PATH,
   SETTINGS_MACHINE_ROUTE_PATH,
+  REMOTE_THREAD_ROUTE_PATH,
   SETTINGS_PROJECT_ROUTE_PATH,
   SETTINGS_ROUTE_PATH,
   SETTINGS_SECTION_ROUTE_PATH,
@@ -85,6 +86,11 @@ const SkillsView = lazy(() =>
 const ProjectDetailSettingsView = lazy(() =>
   import("./views/ProjectDetailSettingsView").then((m) => ({
     default: m.ProjectDetailSettingsView,
+  })),
+);
+const RemoteThreadView = lazy(() =>
+  import("./views/RemoteThreadView").then((m) => ({
+    default: m.RemoteThreadView,
   })),
 );
 const MachineSettingsView = lazy(() =>
@@ -399,6 +405,10 @@ export function AppRoutes() {
           />
           <Route path={PLUGINS_ROUTE_PATH} element={<PluginsRoute />} />
           <Route path={PLUGIN_DETAIL_ROUTE_PATH} element={<PluginsRoute />} />
+          <Route
+            path={REMOTE_THREAD_ROUTE_PATH}
+            element={<RemoteThreadView />}
+          />
           <Route
             path="*"
             element={

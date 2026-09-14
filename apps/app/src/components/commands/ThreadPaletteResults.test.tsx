@@ -27,6 +27,17 @@ vi.mock("@/hooks/queries/sidebar-navigation-query", () => ({
   useSidebarNavigation: () => ({ data: undefined, isLoading: false }),
 }));
 
+const federationState = vi.hoisted(() => ({
+  remotes: [] as import("@kaioken/client-core").RemoteServerSnapshot[],
+}));
+
+vi.mock("@/hooks/queries/federation-queries", () => ({
+  useFederatedRemotes: () => ({
+    servers: [],
+    remotes: federationState.remotes,
+  }),
+}));
+
 vi.mock("@/components/thread/ThreadTitleMentions", () => ({
   useThreadTitleMentionResources: () => ({
     projectNamesById: new Map<string, string>(),
@@ -91,9 +102,57 @@ function renderResults({
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
+  federationState.remotes = [];
   vi.clearAllMocks();
   vi.restoreAllMocks();
 });
+
+function remoteSnapshot(
+  threads: ThreadListEntry[],
+): import("@kaioken/client-core").RemoteServerSnapshot {
+  return {
+    server: {
+      handle: "mini",
+      name: "Mac mini",
+      url: "https://mini.kaioken.app",
+      live: true,
+      lastSeenAt: 1000,
+      home: false,
+    },
+    bootstrap: {
+      sections: [],
+      projects: [
+        {
+          id: "proj_mini",
+          kind: "standard",
+          name: "mini repo",
+          gitRemoteUrl: null,
+          sources: [],
+          createdAt: 0,
+          updatedAt: 0,
+          threads: threads.map((thread) => ({
+            ...thread,
+            projectId: "proj_mini",
+          })),
+          defaultExecutionOptions: null,
+        },
+      ],
+      personalProject: {
+        id: "proj_personal",
+        kind: "personal",
+        name: "Personal",
+        gitRemoteUrl: null,
+        sources: [],
+        createdAt: 0,
+        updatedAt: 0,
+        threads: [],
+        defaultExecutionOptions: null,
+      },
+    },
+    fetchedAt: 1000,
+    status: "live",
+  };
+}
 
 describe("ThreadPaletteResults", () => {
   it("clears stale rows while the visible query is debouncing", () => {
@@ -190,5 +249,73 @@ describe("ThreadPaletteResults", () => {
 
     expect(screen.getByText("Archived")).not.toBeNull();
     expect(screen.getByText("1/3")).not.toBeNull();
+  });
+
+  it("lists other Kaiokens' threads and matches their titles client-side", async () => {
+    federationState.remotes = [
+      remoteSnapshot([
+        createThreadListEntry({
+          id: "thr_mini_a",
+          title: "Fix the mini build",
+        }),
+        createThreadListEntry({ id: "thr_mini_b", title: "Unrelated chat" }),
+      ]),
+    ];
+    mockThreadSearch({
+      data: {
+        active: { results: [], total: 0 },
+        archived: { results: [], total: 0 },
+      },
+      debouncedQuery: "mini",
+      hasSearchableQuery: true,
+      isDebouncing: false,
+      isError: false,
+      isFetching: false,
+      isLoading: false,
+    });
+    const onNavigationItemsChange = vi.fn();
+    renderResults({ onNavigationItemsChange, query: "mini" });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("group", { name: "Other Kaiokens" }),
+      ).toBeTruthy();
+    });
+    expect(screen.getByText("Fix the mini build")).toBeTruthy();
+    expect(screen.queryByText("Unrelated chat")).toBeNull();
+    expect(
+      screen.getByText((content) => content.includes("mini repo · Mac mini")),
+    ).toBeTruthy();
+    expect(screen.queryByText("No matching threads")).toBeNull();
+    const items = onNavigationItemsChange.mock.calls.at(
+      -1,
+    )?.[0] as ThreadPaletteNavigationItem[];
+    expect(items).toEqual([
+      expect.objectContaining({
+        threadId: "mini:thr_mini_a",
+        remote: { handle: "mini", threadId: "thr_mini_a" },
+      }),
+    ]);
+  });
+
+  it("shows other Kaiokens' recent threads before any query is typed", () => {
+    federationState.remotes = [
+      remoteSnapshot([
+        createThreadListEntry({ id: "thr_mini_a", title: "Mini recent" }),
+      ]),
+    ];
+    mockThreadSearch({
+      data: undefined,
+      debouncedQuery: "",
+      hasSearchableQuery: false,
+      isDebouncing: false,
+      isError: false,
+      isFetching: false,
+      isLoading: false,
+    });
+    renderResults({ query: "" });
+    expect(screen.getByRole("group", { name: "Other Kaiokens" })).toBeTruthy();
+    expect(screen.getByText("Mini recent")).toBeTruthy();
+    expect(screen.queryByText("Type to search threads.")).toBeNull();
   });
 });

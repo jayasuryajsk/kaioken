@@ -146,6 +146,7 @@ import {
   KAIOKEN_DESKTOP_OPEN_EXTERNAL_URL_CHANNEL,
   KAIOKEN_DESKTOP_SET_THEME_CHANNEL,
 } from "./desktop-update-ipc.js";
+import { registerDesktopFederationIpc } from "./desktop-federation-main-ipc.js";
 import {
   KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL,
   KAIOKEN_DESKTOP_CLOSE_WINDOW_REQUEST_CHANNEL,
@@ -349,6 +350,8 @@ let connectSessionRenewal: ConnectSessionRenewal | null = null;
 let serverTargetGeneration = 0;
 let connectAccountServers: ConnectAccountServer[] = [];
 let connectServerSyncSkipReason: ConnectServerSyncSkipReason | null = null;
+let federationSessionInstalledAt = 0;
+const FEDERATION_SESSION_REFRESH_MS = 60 * 60 * 1000;
 let builtinServerUrl: string = DEFAULT_KAIOKEN_SERVER_URL;
 let desktopBridgePath: string | null = null;
 let desktopUserDataPath: string | null = null;
@@ -1689,6 +1692,42 @@ function describeUpdateMenu(): {
   };
 }
 
+async function ensureFederationSession(
+  servers: readonly ConnectAccountServer[],
+): Promise<void> {
+  const target = serverTargetStore?.getTarget() ?? { kind: "builtin" as const };
+  if (target.kind !== "builtin" || currentRuntime === null) return;
+  const first = servers[0];
+  if (first === undefined) return;
+  if (
+    Date.now() - federationSessionInstalledAt <
+    FEDERATION_SESSION_REFRESH_MS
+  ) {
+    return;
+  }
+  const result = await installConnectDesktopSession({
+    cookieStore: session.defaultSession.cookies,
+    mintCookie: createLocalServerCookieSource({
+      localServerUrl: currentRuntime.serverUrl,
+    }),
+    remoteServerUrl: first.url,
+  });
+  if (result.ok) {
+    federationSessionInstalledAt = Date.now();
+    return;
+  }
+  createDesktopLogger().info(
+    `[desktop] federation session not installed: ${result.code}`,
+  );
+}
+
+function registerDesktopFederation(): void {
+  registerDesktopFederationIpc({
+    listServers: () => listMenuConnectServers(),
+    fetchImpl: (url, init) => session.defaultSession.fetch(url, init),
+  });
+}
+
 function registerDesktopUpdateIpc(): void {
   ipcMain.handle(KAIOKEN_DESKTOP_GET_INFO_CHANNEL, () => {
     return getCurrentDesktopInfo();
@@ -2216,6 +2255,7 @@ async function runDesktopApp(): Promise<void> {
     onServers(servers) {
       connectAccountServers = servers;
       connectServerSyncSkipReason = null;
+      void ensureFederationSession(servers);
       const selected = serverTargetStore?.getConnectServer() ?? null;
       const synced = servers.find(
         (server) => server.handle === selected?.handle,
@@ -2301,6 +2341,7 @@ async function runDesktopApp(): Promise<void> {
     installCurrentApplicationMenu();
   });
   registerDesktopUpdateIpc();
+  registerDesktopFederation();
   desktopBrowserViewManager = createDesktopBrowserViewManager({
     dispatchAppCommand({ command, hostWebContentsId }) {
       const browserWindow = BrowserWindow.getAllWindows().find(

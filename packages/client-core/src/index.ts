@@ -52,3 +52,4 @@ export * from "./panel/array-move.js";
 export * from "./localhost-link-rewrite.js";
 export * from "./routes/route-paths.js";
 export * from "./sidebar/connectionSidebarGroups.js";
+export * from "./federation/federated-sidebar.js";

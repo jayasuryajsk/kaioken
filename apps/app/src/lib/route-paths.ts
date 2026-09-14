@@ -57,6 +57,7 @@ export {
   LEGACY_PROJECT_SETTINGS_ROUTE_PATH,
   PROJECT_ARCHIVED_ROUTE_PATH,
   PLUGIN_PANEL_ROUTE_PATH,
+  REMOTE_THREAD_ROUTE_PATH,
   isProjectlessProjectId,
   getRootComposeRoutePath,
   getLegacyProjectComposeRoutePath,
@@ -76,8 +77,12 @@ export {
   getAutomationEditRoutePath,
   getPluginPanelRoutePath,
   getThreadRoutePath,
+  getRemoteThreadRoutePath,
 } from "@kaioken/client-core";
-export type { ThreadRoutePathArgs } from "@kaioken/client-core";
+export type {
+  RemoteThreadRoutePathArgs,
+  ThreadRoutePathArgs,
+} from "@kaioken/client-core";
 
 export function getPluginPanelRoutePluginId(pathname: string): string | null {
   return matchPath(PLUGIN_PANEL_ROUTE_PATH, pathname)?.params.pluginId ?? null;

@@ -17,6 +17,7 @@ import {
   kaiokenDesktopBrowserRevealRequestSchema,
   type KaiokenDesktopBrowserControlState,
   type KaiokenDesktopBrowserRevealRequest,
+  kaiokenDesktopFederatedFetchResponseSchema,
   kaiokenDesktopInfoSchema,
   kaiokenDesktopWindowStateSchema,
   type KaiokenDesktopApi,
@@ -47,6 +48,7 @@ import {
   KAIOKEN_DESKTOP_OPEN_EXTERNAL_URL_CHANNEL,
   KAIOKEN_DESKTOP_SET_THEME_CHANNEL,
 } from "./desktop-update-ipc.js";
+import { KAIOKEN_DESKTOP_FEDERATED_FETCH_CHANNEL } from "./desktop-federation-ipc.js";
 import {
   KAIOKEN_DESKTOP_BROWSER_ATTACH_CHANNEL,
   KAIOKEN_DESKTOP_BROWSER_TARGET_CHANNEL,
@@ -192,8 +194,10 @@ const browserOpenTabListeners = new Set<KaiokenDesktopBrowserOpenTabHandler>();
 const browserScopedOpenTabListeners =
   new Set<KaiokenDesktopBrowserScopedOpenTabHandler>();
 const browserFocusListeners = new Set<KaiokenDesktopBrowserFocusHandler>();
-const browserSnapshotListeners = new Set<KaiokenDesktopBrowserSnapshotHandler>();
-const browserFindResultListeners = new Set<KaiokenDesktopBrowserFindResultHandler>();
+const browserSnapshotListeners =
+  new Set<KaiokenDesktopBrowserSnapshotHandler>();
+const browserFindResultListeners =
+  new Set<KaiokenDesktopBrowserFindResultHandler>();
 const closeWindowRequestListeners =
   new Set<KaiokenDesktopCloseWindowRequestHandler>();
 const openNewTabListeners = new Set<KaiokenDesktopOpenNewTabHandler>();
@@ -232,7 +236,9 @@ const kaiokenBrowserApi: KaiokenDesktopBrowserApi = {
     );
   },
   releaseControl(tabId) {
-    ipcRenderer.send(KAIOKEN_DESKTOP_BROWSER_RELEASE_CONTROL_CHANNEL, { tabId });
+    ipcRenderer.send(KAIOKEN_DESKTOP_BROWSER_RELEASE_CONTROL_CHANNEL, {
+      tabId,
+    });
   },
   onControl(listener) {
     browserControlListeners.add(listener);
@@ -322,7 +328,10 @@ const kaiokenBrowserApi: KaiokenDesktopBrowserApi = {
     ipcRenderer.send(KAIOKEN_DESKTOP_BROWSER_FIND_IN_PAGE_CHANNEL, request);
   },
   stopFindInPage(request): void {
-    ipcRenderer.send(KAIOKEN_DESKTOP_BROWSER_STOP_FIND_IN_PAGE_CHANNEL, request);
+    ipcRenderer.send(
+      KAIOKEN_DESKTOP_BROWSER_STOP_FIND_IN_PAGE_CHANNEL,
+      request,
+    );
   },
   onFindResult(listener): KaiokenDesktopBrowserUnsubscribe {
     browserFindResultListeners.add(listener);
@@ -346,7 +355,9 @@ const kaiokenBrowserApi: KaiokenDesktopBrowserApi = {
     return desktopBrowserImportOutcomeSchema.parse(payload);
   },
   openFullDiskAccessSettings() {
-    ipcRenderer.send(KAIOKEN_DESKTOP_BROWSER_OPEN_FULL_DISK_ACCESS_SETTINGS_CHANNEL);
+    ipcRenderer.send(
+      KAIOKEN_DESKTOP_BROWSER_OPEN_FULL_DISK_ACCESS_SETTINGS_CHANNEL,
+    );
   },
 };
 
@@ -375,6 +386,13 @@ const kaiokenDesktopApi: KaiokenDesktopApi = {
   checkForUpdates() {
     return invokeDesktopInfo(KAIOKEN_DESKTOP_CHECK_FOR_UPDATES_CHANNEL);
   },
+  async federatedFetch(request) {
+    const payload: unknown = await ipcRenderer.invoke(
+      KAIOKEN_DESKTOP_FEDERATED_FETCH_CHANNEL,
+      request,
+    );
+    return kaiokenDesktopFederatedFetchResponseSchema.parse(payload);
+  },
   getInfo() {
     return invokeDesktopInfo(KAIOKEN_DESKTOP_GET_INFO_CHANNEL);
   },
@@ -384,7 +402,9 @@ const kaiokenDesktopApi: KaiokenDesktopApi = {
   installUpdate() {
     return invokeInstallUpdate();
   },
-  onChange(listener: KaiokenDesktopInfoChangeHandler): KaiokenDesktopInfoUnsubscribe {
+  onChange(
+    listener: KaiokenDesktopInfoChangeHandler,
+  ): KaiokenDesktopInfoUnsubscribe {
     listeners.add(listener);
     return () => {
       listeners.delete(listener);
@@ -427,9 +447,12 @@ const kaiokenDesktopApi: KaiokenDesktopApi = {
   },
 };
 
-ipcRenderer.on(KAIOKEN_DESKTOP_INFO_CHANGED_CHANNEL, (_event, payload: unknown) => {
-  applyDesktopInfoPayload(payload);
-});
+ipcRenderer.on(
+  KAIOKEN_DESKTOP_INFO_CHANGED_CHANNEL,
+  (_event, payload: unknown) => {
+    applyDesktopInfoPayload(payload);
+  },
+);
 
 ipcRenderer.on(
   KAIOKEN_DESKTOP_WINDOW_STATE_CHANGED_CHANNEL,
@@ -444,13 +467,16 @@ ipcRenderer.on(KAIOKEN_DESKTOP_OPEN_NEW_TAB_CHANNEL, () => {
   }
 });
 
-ipcRenderer.on(KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL, (_event, payload: unknown) => {
-  const parsed = appCommandIdSchema.safeParse(payload);
-  if (!parsed.success) return;
-  for (const listener of appCommandListeners) {
-    listener(parsed.data);
-  }
-});
+ipcRenderer.on(
+  KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL,
+  (_event, payload: unknown) => {
+    const parsed = appCommandIdSchema.safeParse(payload);
+    if (!parsed.success) return;
+    for (const listener of appCommandListeners) {
+      listener(parsed.data);
+    }
+  },
+);
 
 ipcRenderer.on(KAIOKEN_DESKTOP_CLOSE_WINDOW_REQUEST_CHANNEL, () => {
   let handled = false;
@@ -460,15 +486,18 @@ ipcRenderer.on(KAIOKEN_DESKTOP_CLOSE_WINDOW_REQUEST_CHANNEL, () => {
   ipcRenderer.send(KAIOKEN_DESKTOP_CLOSE_WINDOW_RESPONSE_CHANNEL, handled);
 });
 
-ipcRenderer.on(KAIOKEN_DESKTOP_BROWSER_STATE_CHANNEL, (_event, payload: unknown) => {
-  const parsed = kaiokenDesktopBrowserStateSchema.safeParse(payload);
-  if (!parsed.success) {
-    return;
-  }
-  for (const listener of browserStateListeners) {
-    listener(parsed.data);
-  }
-});
+ipcRenderer.on(
+  KAIOKEN_DESKTOP_BROWSER_STATE_CHANNEL,
+  (_event, payload: unknown) => {
+    const parsed = kaiokenDesktopBrowserStateSchema.safeParse(payload);
+    if (!parsed.success) {
+      return;
+    }
+    for (const listener of browserStateListeners) {
+      listener(parsed.data);
+    }
+  },
+);
 
 ipcRenderer.on(
   KAIOKEN_DESKTOP_BROWSER_CONTROL_CHANNEL,

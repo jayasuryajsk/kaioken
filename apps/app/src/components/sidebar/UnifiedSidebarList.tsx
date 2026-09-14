@@ -1,7 +1,13 @@
-import { useCallback, useMemo, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { NavLink, useMatch } from "react-router-dom";
 import { useAtom, useAtomValue } from "jotai";
 import { atomWithStorage } from "jotai/utils";
+import {
+  mergeFederatedSidebar,
+  remoteId,
+  type RemoteProjectMachine,
+  type RemoteThreadRef,
+} from "@kaioken/client-core";
 import type { ThreadListEntry } from "@kaioken/domain";
 import { Button } from "@kaioken/shared-ui/button";
 import { Icon } from "@kaioken/shared-ui/icon";
@@ -26,7 +32,11 @@ import {
   usePrimaryHost,
 } from "@/hooks/queries/host-queries";
 import type { ProjectResponse } from "@kaioken/server-contract";
-import { getProjectComposeRoutePath } from "@/lib/route-paths";
+import { useFederatedRemotes } from "@/hooks/queries/federation-queries";
+import {
+  REMOTE_THREAD_ROUTE_PATH,
+  getProjectComposeRoutePath,
+} from "@/lib/route-paths";
 import { sidebarPriorityViewAtom } from "@/lib/sidebar-priority-view";
 import {
   buildPrioritySidebar,
@@ -41,6 +51,7 @@ import {
 import {
   collapsedProjectIdsAtom,
   expandedProjectIdsAtom,
+  sidebarMergeServersAtom,
   sidebarProjectsSortAtom,
 } from "./sidebarCollapsedAtoms";
 import {
@@ -52,10 +63,19 @@ import { SidebarSectionMenuItems } from "./SidebarHeaderControls";
 import { SidebarControlButton, SidebarRowControls } from "./SidebarRowControls";
 import {
   TimelineRow,
+  formatOfflineMeta,
+  remoteThreadTooltip,
   useNow,
   useTimelineMachines,
   useViewerHostId,
 } from "./TimelineThreadList";
+
+interface RemoteProjectServer {
+  handle: string;
+  name: string;
+  live: boolean;
+  lastSeenAt: number | null;
+}
 
 export const UNIFIED_COLLAPSED_SECTIONS_STORAGE_KEY =
   "kaioken.sidebar.unified.collapsedSections";
@@ -157,6 +177,9 @@ interface ProjectRowsProps {
   showAllThreads: boolean;
   onToggleShowAllThreads: (projectId: string) => void;
   onProjectSelect?: () => void;
+  remoteServer?: RemoteProjectServer;
+  remoteThreadRefs?: ReadonlyMap<string, RemoteThreadRef>;
+  now?: number;
 }
 
 function UnifiedProjectRows({
@@ -169,6 +192,9 @@ function UnifiedProjectRows({
   showAllThreads,
   onToggleShowAllThreads,
   onProjectSelect,
+  remoteServer,
+  remoteThreadRefs,
+  now,
 }: ProjectRowsProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { project, machine, threads, needsYou } = group;
@@ -178,21 +204,37 @@ function UnifiedProjectRows({
   const hiddenCount = threads.length - visibleThreads.length;
   const isActive =
     selectedThreadId === undefined && selectedProjectId === project.id;
+  const offline = remoteServer !== undefined && !remoteServer.live;
+  const ProjectMenuWrapper =
+    remoteServer === undefined
+      ? ProjectActionsContextMenu
+      : PlainProjectWrapper;
   return (
     <div
       data-testid="unified-project"
       data-project-id={project.id}
       data-expanded={expanded ? "true" : undefined}
+      data-remote-server={remoteServer?.handle}
+      data-offline={offline ? "true" : undefined}
     >
-      <ProjectActionsContextMenu project={project} onOpenChange={setMenuOpen}>
+      <ProjectMenuWrapper project={project} onOpenChange={setMenuOpen}>
         <div
           data-testid="unified-project-row"
+          title={
+            remoteServer === undefined
+              ? undefined
+              : remoteThreadTooltip(remoteServer.name).replace(
+                  "This thread",
+                  "This project",
+                )
+          }
           className={cn(
             "group/project-row relative flex h-8 items-center gap-1 rounded-md px-1 text-sm transition-colors",
             isActive
               ? SIDEBAR_ROW_SELECTED_STATE_CLASS
               : "text-sidebar-foreground hover:bg-sidebar-accent",
             menuOpen && "bg-sidebar-accent",
+            offline && "opacity-60",
           )}
         >
           {threads.length > 0 ? (
@@ -217,21 +259,49 @@ function UnifiedProjectRows({
               <Icon name="Folder" className="size-3.5" aria-hidden="true" />
             </span>
           )}
-          <NavLink
-            to={getProjectComposeRoutePath(project.id)}
-            onClick={onProjectSelect}
-            className="flex min-w-0 flex-1 items-center outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
-          >
-            <span className="min-w-0 flex-1 truncate">{project.name}</span>
-          </NavLink>
+          {remoteServer === undefined ? (
+            <NavLink
+              to={getProjectComposeRoutePath(project.id)}
+              onClick={onProjectSelect}
+              className="flex min-w-0 flex-1 items-center outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
+            >
+              <span className="min-w-0 flex-1 truncate">{project.name}</span>
+            </NavLink>
+          ) : (
+            <button
+              type="button"
+              data-testid="unified-remote-project-name"
+              onClick={() => onToggleExpanded(project.id)}
+              className="flex min-w-0 flex-1 items-center text-left outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
+            >
+              <span className="min-w-0 flex-1 truncate">{project.name}</span>
+            </button>
+          )}
           <span
             className={cn(
               "flex shrink-0 items-center gap-1.5 text-xs text-subtle-foreground",
-              "group-hover/project-row:hidden",
+              remoteServer === undefined && "group-hover/project-row:hidden",
               menuOpen && "hidden",
             )}
           >
-            {machine && !machine.isViewer ? (
+            {remoteServer !== undefined ? (
+              <span
+                data-testid="unified-project-server"
+                className="flex shrink-0 items-center gap-1.5"
+              >
+                <span
+                  className={cn("truncate", offline ? "max-w-40" : "max-w-28")}
+                >
+                  {offline
+                    ? formatOfflineMeta(
+                        remoteServer.lastSeenAt,
+                        now ?? Date.now(),
+                      )
+                    : remoteServer.name}
+                </span>
+                <MachineStatusDot connected={remoteServer.live} />
+              </span>
+            ) : machine && !machine.isViewer ? (
               <span
                 data-testid="unified-project-machine"
                 className="flex shrink-0 items-center gap-1.5"
@@ -248,20 +318,22 @@ function UnifiedProjectRows({
               />
             ) : null}
           </span>
-          <span
-            className={cn(
-              "hidden shrink-0 group-hover/project-row:inline-flex",
-              menuOpen && "inline-flex",
-            )}
-          >
-            <ProjectActionsMenu
-              project={project}
-              triggerClassName={cn(SIDEBAR_CONTROL_BUTTON_CLASS, "size-6")}
-              onOpenChange={setMenuOpen}
-            />
-          </span>
+          {remoteServer === undefined ? (
+            <span
+              className={cn(
+                "hidden shrink-0 group-hover/project-row:inline-flex",
+                menuOpen && "inline-flex",
+              )}
+            >
+              <ProjectActionsMenu
+                project={project}
+                triggerClassName={cn(SIDEBAR_CONTROL_BUTTON_CLASS, "size-6")}
+                onOpenChange={setMenuOpen}
+              />
+            </span>
+          ) : null}
         </div>
-      </ProjectActionsContextMenu>
+      </ProjectMenuWrapper>
       {expanded && visibleThreads.length > 0 ? (
         <div data-testid="unified-project-threads" className="space-y-0.5">
           {visibleThreads.map((thread) => (
@@ -275,6 +347,11 @@ function UnifiedProjectRows({
               showMeta={false}
               indent
               muted
+              remote={remoteThreadRefs?.get(thread.id)}
+              projectName={
+                remoteServer === undefined ? undefined : project.name
+              }
+              now={now}
             />
           ))}
           {hiddenCount > 0 || showAllThreads ? (
@@ -290,6 +367,16 @@ function UnifiedProjectRows({
       ) : null}
     </div>
   );
+}
+
+function PlainProjectWrapper({
+  children,
+}: {
+  children: ReactNode;
+  project: ProjectResponse;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return <>{children}</>;
 }
 
 function ProjectsSortMenu({
@@ -451,33 +538,73 @@ export function UnifiedSidebarList({
   const [projectsExpanded, setProjectsExpanded] = useState(false);
   const [recentsExpanded, setRecentsExpanded] = useState(false);
   const priorityView = useAtomValue(sidebarPriorityViewAtom);
+  const mergeServers = useAtomValue(sidebarMergeServersAtom) === "on";
+  const { remotes } = useFederatedRemotes({ enabled: mergeServers });
+  const federated = useMemo(
+    () =>
+      mergeFederatedSidebar({
+        home: { threads, projects, sections },
+        remotes: mergeServers ? remotes : [],
+      }),
+    [mergeServers, projects, remotes, sections, threads],
+  );
+  const remoteServersByHandle = useMemo(() => {
+    const byHandle = new Map<string, RemoteProjectServer>();
+    for (const remote of remotes) {
+      byHandle.set(remote.server.handle, {
+        handle: remote.server.handle,
+        name: remote.server.name,
+        live: remote.status === "live",
+        lastSeenAt: remote.server.lastSeenAt ?? remote.fetchedAt,
+      });
+    }
+    return byHandle;
+  }, [remotes]);
+  const remoteProjectNames = useMemo(() => {
+    const names = new Map<string, string>();
+    for (const project of federated.projects) {
+      if (federated.remoteProjectMachines.has(project.id)) {
+        names.set(project.id, project.name);
+      }
+    }
+    return names;
+  }, [federated.projects, federated.remoteProjectMachines]);
+  const remoteRouteMatch = useMatch(REMOTE_THREAD_ROUTE_PATH);
+  const effectiveSelectedThreadId =
+    selectedThreadId ??
+    (remoteRouteMatch?.params.handle !== undefined &&
+    remoteRouteMatch.params.threadId !== undefined
+      ? remoteId(
+          remoteRouteMatch.params.handle,
+          remoteRouteMatch.params.threadId,
+        )
+      : undefined);
   const priorityModel = useMemo(
-    () => buildPrioritySidebar(threads, now ?? clock),
-    [clock, now, threads],
+    () => buildPrioritySidebar(federated.threads, now ?? clock),
+    [clock, federated.threads, now],
   );
   const model = useMemo(
     () =>
       buildUnifiedSidebar({
-        threads,
-        projects,
-        sections,
+        threads: federated.threads,
+        projects: federated.projects,
+        sections: federated.sections,
         pinnedThreadIds,
         hosts,
         primaryHostId: primaryHost?.id ?? null,
         viewerHostId,
         projectsSort,
         now: now ?? clock,
+        projectMachineOverrides: federated.remoteProjectMachines,
       }),
     [
       clock,
+      federated,
       hosts,
       now,
       pinnedThreadIds,
       primaryHost?.id,
-      projects,
       projectsSort,
-      sections,
-      threads,
       viewerHostId,
     ],
   );
@@ -531,31 +658,52 @@ export function UnifiedSidebarList({
       setExpandedProjectIdList,
     ],
   );
-  const renderThread = (thread: ThreadListEntry, showMeta: boolean) => (
-    <TimelineRow
-      key={thread.id}
-      thread={thread}
-      hasDraft={draftThreadIds.has(thread.id)}
-      isActive={thread.id === selectedThreadId}
-      machine={machineFor(thread)}
-      onProjectSelect={onProjectSelect}
-      showMeta={showMeta}
-    />
-  );
-  const renderProject = (group: UnifiedProjectGroup<ProjectResponse>) => (
-    <UnifiedProjectRows
-      key={group.project.id}
-      group={group}
-      draftThreadIds={draftThreadIds}
-      selectedThreadId={selectedThreadId}
-      selectedProjectId={selectedProjectId}
-      expanded={isProjectExpanded(group)}
-      onToggleExpanded={toggleProjectExpanded}
-      showAllThreads={showAllThreadIds.has(group.project.id)}
-      onToggleShowAllThreads={toggleShowAllThreads}
-      onProjectSelect={onProjectSelect}
-    />
-  );
+  const renderThread = (thread: ThreadListEntry, showMeta: boolean) => {
+    const remote = federated.remoteThreadRefs.get(thread.id);
+    return (
+      <TimelineRow
+        key={thread.id}
+        thread={thread}
+        hasDraft={draftThreadIds.has(thread.id)}
+        isActive={thread.id === effectiveSelectedThreadId}
+        machine={remote === undefined ? machineFor(thread) : null}
+        onProjectSelect={onProjectSelect}
+        showMeta={showMeta}
+        remote={remote}
+        projectName={
+          remote === undefined
+            ? undefined
+            : (remoteProjectNames.get(thread.projectId) ?? "Personal")
+        }
+        now={now ?? clock}
+      />
+    );
+  };
+  const renderProject = (group: UnifiedProjectGroup<ProjectResponse>) => {
+    const remoteMachine: RemoteProjectMachine | undefined =
+      federated.remoteProjectMachines.get(group.project.id);
+    return (
+      <UnifiedProjectRows
+        key={group.project.id}
+        group={group}
+        draftThreadIds={draftThreadIds}
+        selectedThreadId={effectiveSelectedThreadId}
+        selectedProjectId={selectedProjectId}
+        expanded={isProjectExpanded(group)}
+        onToggleExpanded={toggleProjectExpanded}
+        showAllThreads={showAllThreadIds.has(group.project.id)}
+        onToggleShowAllThreads={toggleShowAllThreads}
+        onProjectSelect={onProjectSelect}
+        remoteServer={
+          remoteMachine === undefined
+            ? undefined
+            : remoteServersByHandle.get(remoteMachine.id)
+        }
+        remoteThreadRefs={federated.remoteThreadRefs}
+        now={now ?? clock}
+      />
+    );
+  };
   const visibleProjects = projectsExpanded
     ? model.projects
     : model.projects.slice(0, UNIFIED_PROJECTS_PREVIEW_COUNT);

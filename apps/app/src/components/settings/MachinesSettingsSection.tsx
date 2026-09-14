@@ -29,6 +29,7 @@ import {
   TooltipTrigger,
 } from "@kaioken/shared-ui/tooltip";
 import { AddMachineDialog } from "@/components/dialogs/AddMachineDialog";
+import { AccountServersSettingsSection } from "@/components/settings/AccountServersSettingsSection";
 import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
 import { appToast } from "@/components/ui/app-toast";
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
@@ -67,7 +68,8 @@ const PERMISSION_MODE_PRESENTATION: Record<
 const MACHINES_SECTION_DESCRIPTION =
   "Computers that can run your tasks. Pair a machine to run projects and threads on it.";
 
-const PRIMARY_REMOVE_DISABLED_REASON = "kaioken's primary machine can't be removed.";
+const PRIMARY_REMOVE_DISABLED_REASON =
+  "kaioken's primary machine can't be removed.";
 
 const MACHINE_MENU_ITEM_CLASS = "min-h-9 px-2.5 py-2";
 
@@ -341,6 +343,8 @@ export function MachinesSettingsSection() {
           </SettingsRowList>
         )}
       </SettingsSection>
+
+      <AccountServersSettingsSection />
 
       <AddMachineDialog
         open={addDialogOpen}

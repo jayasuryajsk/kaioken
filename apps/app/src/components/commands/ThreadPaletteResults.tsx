@@ -6,10 +6,13 @@ import {
   type MouseEventHandler,
   type ReactNode,
 } from "react";
+import { useAtomValue } from "jotai";
 import type { ThreadListEntry } from "@kaioken/domain";
 import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import type { ThreadSearchMatch } from "@kaioken/server-contract";
 import {
+  mergeFederatedSidebar,
+  type RemoteThreadRef,
   hasActiveBackgroundAgentActivity,
   hasActiveBackgroundCommandActivity,
   hasActiveGoalActivity,
@@ -34,6 +37,8 @@ import {
   useThreadSearch,
 } from "@/hooks/queries/thread-queries";
 import { useSidebarNavigation } from "@/hooks/queries/sidebar-navigation-query";
+import { useFederatedRemotes } from "@/hooks/queries/federation-queries";
+import { sidebarMergeServersAtom } from "@/components/sidebar/sidebarCollapsedAtoms";
 import { usePromptDraftHasInput } from "@/hooks/usePromptDraftStorage";
 import { formatRelativeTime } from "@/lib/relative-time";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
@@ -44,6 +49,7 @@ export interface ThreadPaletteNavigationItem {
   projectId: string;
   threadId: string;
   messageSeq: number | null;
+  remote?: { handle: string; threadId: string };
 }
 
 interface ThreadPaletteResultsProps {
@@ -61,16 +67,21 @@ interface ThreadSearchRenderableRow {
   id: string;
   matches: readonly ThreadSearchMatch[];
   thread: ThreadListEntry;
+  remote?: RemoteThreadRef;
+  remoteLabel?: string;
 }
 
 interface ThreadSearchSection {
-  id: "active" | "archived";
+  id: "active" | "archived" | "remote";
   label: string;
   rows: readonly ThreadSearchRenderableRow[];
   total: number;
 }
 
 const RECENT_THREAD_LIMIT = 20;
+const REMOTE_RECENT_THREAD_LIMIT = 10;
+const REMOTE_SEARCH_LIMIT = 20;
+const REMOTE_SECTION_LABEL = "Other Kaiokens";
 const EMPTY_MATCHES: readonly ThreadSearchMatch[] = [];
 
 function isThreadTitleMatch(match: ThreadSearchMatch): boolean {
@@ -98,7 +109,65 @@ function toNavigationItem(
     projectId: row.thread.projectId,
     threadId: row.thread.id,
     messageSeq: getMessageMatchSeq(row.matches),
+    ...(row.remote === undefined
+      ? {}
+      : {
+          remote: { handle: row.remote.handle, threadId: row.remote.threadId },
+        }),
   };
+}
+
+interface RemoteThreadRow {
+  thread: ThreadListEntry;
+  remote: RemoteThreadRef;
+  projectName: string | undefined;
+}
+
+export function matchRemoteThreads(
+  rows: readonly RemoteThreadRow[],
+  query: string,
+): RemoteThreadRow[] {
+  const needle = query.trim().toLowerCase();
+  if (needle.length === 0) return [];
+  return rows.filter((row) =>
+    getThreadDisplayTitle(row.thread).toLowerCase().includes(needle),
+  );
+}
+
+function useRemoteThreadRows(): RemoteThreadRow[] {
+  const mergeServers = useAtomValue(sidebarMergeServersAtom) === "on";
+  const { remotes } = useFederatedRemotes({ enabled: mergeServers });
+  return useMemo(() => {
+    if (!mergeServers) return [];
+    const merged = mergeFederatedSidebar({
+      home: { threads: [], projects: [], sections: [] },
+      remotes,
+    });
+    const projectNames = new Map(
+      merged.projects.map((project) => [project.id, project.name]),
+    );
+    return merged.threads
+      .filter((thread) => thread.parentThreadId === null)
+      .sort((left, right) => right.updatedAt - left.updatedAt)
+      .flatMap((thread) => {
+        const remote = merged.remoteThreadRefs.get(thread.id);
+        return remote === undefined
+          ? []
+          : [
+              {
+                thread,
+                remote,
+                projectName: projectNames.get(thread.projectId),
+              },
+            ];
+      });
+  }, [mergeServers, remotes]);
+}
+
+function remoteRowLabel(row: RemoteThreadRow): string {
+  return row.projectName === undefined
+    ? row.remote.serverName
+    : `${row.projectName} · ${row.remote.serverName}`;
 }
 
 function ThreadSearchMessage({
@@ -153,12 +222,33 @@ export function ThreadPaletteResults({
     [navigationQuery.data],
   );
   const { projectNamesById } = useThreadTitleMentionResources();
+  const remoteThreadRows = useRemoteThreadRows();
   const trimmedQuery = query.trim();
   const liveQueryIsSearchable = hasThreadSearchableQuery(trimmedQuery);
   const threadSearch = useThreadSearch({ active: true, query });
   const searchResultsAreCurrent =
     !liveQueryIsSearchable || threadSearch.debouncedQuery === trimmedQuery;
   const sections = useMemo<ThreadSearchSection[]>(() => {
+    const remoteSection = (
+      rows: readonly RemoteThreadRow[],
+      limit: number,
+    ): ThreadSearchSection[] =>
+      rows.length === 0
+        ? []
+        : [
+            {
+              id: "remote",
+              label: REMOTE_SECTION_LABEL,
+              rows: rows.slice(0, limit).map((row) => ({
+                id: `remote:${row.thread.id}`,
+                matches: EMPTY_MATCHES,
+                thread: row.thread,
+                remote: row.remote,
+                remoteLabel: remoteRowLabel(row),
+              })),
+              total: rows.length,
+            },
+          ];
     if (!liveQueryIsSearchable) {
       const rows = recentThreads
         .slice(0, RECENT_THREAD_LIMIT)
@@ -167,13 +257,21 @@ export function ThreadPaletteResults({
           matches: EMPTY_MATCHES,
           thread,
         }));
-      return [{ id: "active", label: "Recent", rows, total: rows.length }];
+      return [
+        { id: "active", label: "Recent", rows, total: rows.length },
+        ...remoteSection(remoteThreadRows, REMOTE_RECENT_THREAD_LIMIT),
+      ];
     }
 
+    const remoteMatches = remoteSection(
+      matchRemoteThreads(remoteThreadRows, trimmedQuery),
+      REMOTE_SEARCH_LIMIT,
+    );
     if (!searchResultsAreCurrent) {
       return [
         { id: "active", label: "Threads", rows: [], total: 0 },
         { id: "archived", label: "Archived", rows: [], total: 0 },
+        ...remoteMatches,
       ];
     }
 
@@ -202,12 +300,15 @@ export function ThreadPaletteResults({
         rows: archivedRows,
         total: threadSearch.data?.archived.total ?? 0,
       },
+      ...remoteMatches,
     ];
   }, [
     liveQueryIsSearchable,
     recentThreads,
+    remoteThreadRows,
     searchResultsAreCurrent,
     threadSearch.data,
+    trimmedQuery,
   ]);
   const rows = useMemo(
     () => sections.flatMap((section) => section.rows),
@@ -234,7 +335,10 @@ export function ThreadPaletteResults({
   const showNoSearchResults =
     liveQueryIsSearchable && !isLoading && !showError && !hasRows;
   const showTypeToSearch =
-    !liveQueryIsSearchable && !showRecentLoading && recentThreads.length === 0;
+    !liveQueryIsSearchable &&
+    !showRecentLoading &&
+    recentThreads.length === 0 &&
+    remoteThreadRows.length === 0;
   let startIndex = 0;
 
   return (
@@ -300,7 +404,10 @@ export function ThreadPaletteResults({
                     id={item.optionId}
                     isActive={activeIndex === index}
                     matches={row.matches}
-                    projectName={projectNamesById.get(row.thread.projectId)}
+                    projectName={
+                      row.remoteLabel ??
+                      projectNamesById.get(row.thread.projectId)
+                    }
                     thread={row.thread}
                     onActive={() => onActiveIndexChange(index)}
                     onSelect={() => onSelect(item)}

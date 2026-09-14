@@ -39,7 +39,10 @@ import { buildSettingsPaletteActions } from "@/lib/command-palette/palette-setti
 import { buildPluginPagePaletteActions } from "@/lib/command-palette/palette-plugin-page-actions";
 import { usePluginSlots } from "@/lib/plugin-slots";
 import { getActiveThreadPanelOpener } from "@/components/plugin/plugin-thread-panel-navigation";
-import { getThreadRoutePath } from "@/lib/route-paths";
+import {
+  getRemoteThreadRoutePath,
+  getThreadRoutePath,
+} from "@/lib/route-paths";
 import { pluginListQueryOptions } from "@/hooks/queries/plugin-settings-queries";
 import {
   buildPluginSettingsEntries,
@@ -236,6 +239,10 @@ export function CommandPalette({ threadId, projectId }: CommandPaletteProps) {
   const chooseThread = useCallback(
     (item: ThreadPaletteNavigationItem) => {
       pendingRunRef.current = () => {
+        if (item.remote !== undefined) {
+          void navigate(getRemoteThreadRoutePath(item.remote));
+          return;
+        }
         void navigate(
           getThreadRoutePath({
             projectId: item.projectId,

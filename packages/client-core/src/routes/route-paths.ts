@@ -58,6 +58,7 @@ export const LEGACY_PROJECT_SETTINGS_ROUTE_PATH =
   "/projects/:projectId/settings";
 export const PROJECT_ARCHIVED_ROUTE_PATH = "/projects/:projectId/archived";
 const THREAD_DETAIL_ROUTE_PATH = "/projects/:projectId/threads/:threadId";
+export const REMOTE_THREAD_ROUTE_PATH = "/servers/:handle/threads/:threadId";
 export const PLUGIN_PANEL_ROUTE_PATH = "/plugins/:pluginId/:panelPath/*";
 
 export interface ThreadRoutePathArgs {
@@ -199,6 +200,18 @@ export function getPluginPanelRoutePath({
   return encoded.length > 0 ? `${root}/${encoded}` : root;
 }
 
+export interface RemoteThreadRoutePathArgs {
+  handle: string;
+  threadId: string;
+}
+
+export function getRemoteThreadRoutePath({
+  handle,
+  threadId,
+}: RemoteThreadRoutePathArgs): string {
+  return `/servers/${encodeURIComponent(handle)}/threads/${encodeURIComponent(threadId)}`;
+}
+
 export function getThreadRoutePath(args: ThreadRoutePathArgs): string {
   return isProjectlessProjectId(args.projectId)
     ? `/threads/${args.threadId}`
@@ -247,6 +260,7 @@ const baseRoutePatterns: readonly string[] = [
   PROJECT_ARCHIVED_ROUTE_PATH,
   PROJECTLESS_THREAD_DETAIL_ROUTE_PATH,
   THREAD_DETAIL_ROUTE_PATH,
+  REMOTE_THREAD_ROUTE_PATH,
   PLUGIN_PANEL_ROUTE_PATH,
 ];
 

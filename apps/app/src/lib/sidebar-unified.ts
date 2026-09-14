@@ -71,6 +71,7 @@ export interface BuildUnifiedSidebarArgs<P extends UnifiedProjectLike> {
   viewerHostId?: string | null;
   projectsSort: UnifiedProjectsSort;
   now: number;
+  projectMachineOverrides?: ReadonlyMap<string, UnifiedProjectMachine>;
 }
 
 function byNewest(left: ThreadListEntry, right: ThreadListEntry): number {
@@ -153,6 +154,7 @@ export function buildUnifiedSidebar<P extends UnifiedProjectLike>({
   viewerHostId,
   projectsSort,
   now,
+  projectMachineOverrides,
 }: BuildUnifiedSidebarArgs<P>): UnifiedSidebar<P> {
   const listed = threads.filter(isListedThread);
   const shown = new Set<string>();
@@ -179,12 +181,9 @@ export function buildUnifiedSidebar<P extends UnifiedProjectLike>({
     return {
       project,
       threads: projectThreads,
-      machine: projectMachine(
-        project.sources,
-        hosts,
-        primaryHostId,
-        viewerHostId,
-      ),
+      machine:
+        projectMachineOverrides?.get(project.id) ??
+        projectMachine(project.sources, hosts, primaryHostId, viewerHostId),
       lastActivityAt: projectThreads[0]?.updatedAt ?? 0,
       needsYou: projectThreads.some(threadNeedsYou),
     };

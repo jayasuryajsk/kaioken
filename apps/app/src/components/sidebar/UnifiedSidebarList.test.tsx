@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createStore, Provider as JotaiProvider } from "jotai";
 import { MemoryRouter } from "react-router-dom";
 import { TooltipProvider } from "@kaioken/shared-ui/tooltip";
+import type { RemoteServerSnapshot } from "@kaioken/client-core";
 import type { Host, ThreadListEntry } from "@kaioken/domain";
 import type { ProjectResponse } from "@kaioken/server-contract";
 import {
@@ -18,13 +19,28 @@ import {
   makeThreadListEntry,
 } from "@kaioken/test-helpers/domain-fixtures";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { makeProjectResponse } from "@/test/fixtures/projects";
+import {
+  makeProjectResponse,
+  makeProjectWithThreadsResponse,
+  makeSidebarBootstrapResponse,
+} from "@/test/fixtures/projects";
 import { UnifiedSidebarList } from "./UnifiedSidebarList";
 
 const hostsState = vi.hoisted(() => ({
   hosts: [] as Host[],
   primaryHostId: "host_mac",
   viewerHostId: null as string | null,
+}));
+
+const federationState = vi.hoisted(() => ({
+  remotes: [] as RemoteServerSnapshot[],
+}));
+
+vi.mock("@/hooks/queries/federation-queries", () => ({
+  useFederatedRemotes: () => ({
+    servers: [],
+    remotes: federationState.remotes,
+  }),
 }));
 
 vi.mock("@/hooks/queries/host-queries", () => ({
@@ -140,8 +156,48 @@ afterEach(() => {
   vi.clearAllMocks();
   hostsState.hosts = [];
   hostsState.viewerHostId = null;
+  federationState.remotes = [];
   window.localStorage.clear();
 });
+
+function remoteSnapshot(
+  overrides: Partial<RemoteServerSnapshot> & {
+    handle: string;
+    name: string;
+  },
+): RemoteServerSnapshot {
+  const { handle, name, ...rest } = overrides;
+  return {
+    server: {
+      handle,
+      name,
+      url: `https://${handle}.kaioken.app`,
+      live: true,
+      lastSeenAt: NOW - 3 * 60 * 60 * 1000,
+      home: false,
+    },
+    bootstrap: makeSidebarBootstrapResponse({
+      projects: [
+        makeProjectWithThreadsResponse({
+          id: "proj_remote",
+          name: `${name} repo`,
+          threads: [thread({ id: "thr_remote", projectId: "proj_remote" })],
+        }),
+      ],
+      personalProject: makeProjectWithThreadsResponse({
+        id: "proj_personal",
+        kind: "personal",
+        name: "Personal",
+        threads: [
+          thread({ id: "thr_remote_chat", projectId: "proj_personal" }),
+        ],
+      }),
+    }),
+    fetchedAt: NOW,
+    status: "live",
+    ...rest,
+  };
+}
 
 describe("UnifiedSidebarList", () => {
   it("renders the default view sections in order without a priority tier", () => {
@@ -486,5 +542,132 @@ describe("UnifiedSidebarList", () => {
       within(section).getByRole("button", { name: "New thread in work" }),
     );
     expect(handlers.onCreateThreadInSection).toHaveBeenCalledWith("sec_work");
+  });
+
+  it("lists another Kaioken's projects and threads read-only with a server badge", () => {
+    federationState.remotes = [
+      remoteSnapshot({ handle: "mini", name: "Mac mini" }),
+    ];
+    renderList({
+      projects: [project("proj_a", "alpha")],
+      threads: [thread({ id: "thr_home" })],
+    });
+    const remoteProject = screen
+      .getAllByTestId("unified-project")
+      .find(
+        (node) => node.getAttribute("data-project-id") === "mini:proj_remote",
+      );
+    expect(remoteProject).toBeDefined();
+    expect(remoteProject!.getAttribute("data-remote-server")).toBe("mini");
+    expect(remoteProject!.getAttribute("data-offline")).toBeNull();
+    expect(
+      within(remoteProject!).getByTestId("unified-project-server").textContent,
+    ).toContain("Mac mini");
+    expect(
+      within(
+        within(remoteProject!).getByTestId("unified-project-row"),
+      ).queryByRole("link"),
+    ).toBeNull();
+    expect(
+      within(remoteProject!).getByTestId("unified-remote-project-name")
+        .textContent,
+    ).toBe("Mac mini repo");
+    const remoteRow = within(remoteProject!)
+      .getAllByTestId("timeline-row")
+      .find((row) => row.getAttribute("data-remote-server") === "mini");
+    expect(remoteRow).toBeDefined();
+    expect(remoteRow!.getAttribute("title")).toBe(
+      "This thread lives on Mac mini. Actions on it are coming in the next phase.",
+    );
+    expect(within(remoteRow!).getByRole("link").getAttribute("href")).toBe(
+      "/servers/mini/threads/thr_remote",
+    );
+    const recents = screen.getByTestId("unified-recents");
+    const remoteChat = within(recents)
+      .getAllByTestId("timeline-row")
+      .find((row) => row.getAttribute("data-remote-server") === "mini");
+    expect(remoteChat).toBeDefined();
+    expect(
+      within(remoteChat!).getByTestId("timeline-row-meta").textContent,
+    ).toBe("Personal · Mac mini");
+    const homeProject = screen
+      .getAllByTestId("unified-project")
+      .find((node) => node.getAttribute("data-project-id") === "proj_a");
+    expect(homeProject!.getAttribute("data-remote-server")).toBeNull();
+    expect(
+      within(within(homeProject!).getByTestId("unified-project-row")).getByRole(
+        "link",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("greys out an offline Kaioken and says when it was last seen", () => {
+    federationState.remotes = [
+      remoteSnapshot({
+        handle: "work",
+        name: "Mac Studio",
+        status: "offline",
+        server: {
+          handle: "work",
+          name: "Mac Studio",
+          url: "https://work.kaioken.app",
+          live: false,
+          lastSeenAt: NOW - 3 * 60 * 60 * 1000,
+          home: false,
+        },
+      }),
+    ];
+    renderList({ projects: [], threads: [] });
+    const remoteProject = screen
+      .getAllByTestId("unified-project")
+      .find(
+        (node) => node.getAttribute("data-project-id") === "work:proj_remote",
+      );
+    expect(remoteProject!.getAttribute("data-offline")).toBe("true");
+    expect(remoteProject!.className).not.toContain("opacity-60");
+    expect(
+      within(remoteProject!).getByTestId("unified-project-row").className,
+    ).toContain("opacity-60");
+    expect(
+      within(remoteProject!).getByTestId("unified-project-server").textContent,
+    ).toMatch(/^offline · last seen /);
+    const remoteChat = within(screen.getByTestId("unified-recents"))
+      .getAllByTestId("timeline-row")
+      .find((row) => row.getAttribute("data-remote-server") === "work");
+    expect(remoteChat!.getAttribute("data-offline")).toBe("true");
+    expect(
+      within(remoteChat!).getByTestId("timeline-row-meta").textContent,
+    ).toMatch(/^offline · last seen /);
+  });
+
+  it("highlights the remote thread that is open", () => {
+    federationState.remotes = [
+      remoteSnapshot({ handle: "mini", name: "Mac mini" }),
+    ];
+    render(
+      <JotaiProvider store={createStore()}>
+        <TooltipProvider>
+          <QueryClientProvider client={new QueryClient()}>
+            <MemoryRouter
+              initialEntries={["/servers/mini/threads/thr_remote_chat"]}
+            >
+              <UnifiedSidebarList
+                threads={[]}
+                projects={[]}
+                sections={[]}
+                pinnedThreadIds={[]}
+                draftThreadIds={new Set()}
+                now={NOW}
+                {...handlers}
+              />
+            </MemoryRouter>
+          </QueryClientProvider>
+        </TooltipProvider>
+      </JotaiProvider>,
+    );
+    const remoteChat = screen
+      .getAllByTestId("timeline-row")
+      .find((row) => row.getAttribute("data-remote-server") === "mini");
+    expect(remoteChat!.className).toContain("bg-sidebar-accent");
   });
 });
