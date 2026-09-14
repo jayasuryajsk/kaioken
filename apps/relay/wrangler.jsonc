@@ -1,12 +1,13 @@
-// Kaioken relay — a single-user "connect" gate + TunnelDO for one Kaioken server.
+// Kaioken relay — a single-account "connect" gate with one TunnelDO per paired Kaioken (handle).
 //
 // Deploy:  pnpm --filter @kaioken/relay exec wrangler deploy
 // Secrets: wrangler secret put PAIR_CODE        (the code you type into Settings → Connect)
 //          wrangler secret put SESSION_SECRET   (any long random string; signs visitor cookies)
 // State:   one KV namespace bound as STATE (create with `wrangler kv namespace create STATE`)
-// Hosts:   BASE_DOMAIN serves the pairing API (and a landing page); HANDLE.BASE_DOMAIN is
-//          the Kaioken app. Drop both vars (and set workers_dev: true) for a single-host
-//          relay on a *.workers.dev name.
+// Hosts:   BASE_DOMAIN serves the pairing API (and a landing page); every <handle>.BASE_DOMAIN
+//          is one paired Kaioken (HANDLE is only the default for legacy pairings). The wildcard
+//          route needs a proxied wildcard DNS record (*.BASE_DOMAIN) in the zone. Drop the vars
+//          (and set workers_dev: true) for a single-host relay on a *.workers.dev name.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "kaioken-relay",
@@ -19,6 +20,7 @@
   "routes": [
     { "pattern": "kaioken.app", "custom_domain": true },
     { "pattern": "studio.kaioken.app", "custom_domain": true },
+    { "pattern": "*.kaioken.app/*", "zone_name": "kaioken.app" },
   ],
   "vars": { "BASE_DOMAIN": "kaioken.app", "HANDLE": "studio" },
   "migrations": [

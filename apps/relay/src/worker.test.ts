@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { Miniflare } from "miniflare";
 import { build } from "esbuild";
 import { join } from "node:path";
-import { createSessionCookie, verifySessionCookie } from "./auth";
+import { createSessionCookie, sha256Hex, verifySessionCookie } from "./auth";
 import { relativeTime } from "./worker";
 
 const PAIR_CODE = "pair-me-please";
@@ -172,8 +172,8 @@ describe("Kaioken relay", () => {
     const servers = await request("/api/connect/servers", {
       headers: { "x-bb-connect-machine": machine.credential },
     });
-    expect(await servers.json()).toEqual({
-      servers: [{ handle: "kaioken", name: "Kaioken", live: false }],
+    expect(await servers.json()).toMatchObject({
+      servers: [{ handle: "kaioken", name: "kaioken", live: false }],
     });
 
     const revoked = await request("/api/connect/revoke-machine", {
@@ -314,10 +314,14 @@ describe("Kaioken relay in domain mode", () => {
     );
 
   it("serves pairing on the apex and the app on the handle host", async () => {
-    const wrongHost = await domainMf.dispatchFetch(
+    const reservedHost = await domainMf.dispatchFetch(
+      "https://www.kaioken.app/",
+    );
+    expect(reservedHost.status).toBe(404);
+    const otherHandle = await domainMf.dispatchFetch(
       "https://other.kaioken.app/",
     );
-    expect(wrongHost.status).toBe(404);
+    expect(otherHandle.status).toBe(401);
 
     const paired = await apex("/api/connect/redeem", {
       method: "POST",
@@ -392,6 +396,223 @@ describe("Kaioken relay in domain mode", () => {
       },
     );
     expect(share.status).toBe(503);
+  });
+});
+
+describe("Kaioken relay with many servers", () => {
+  const apex = (path: string, init?: DispatchInit) =>
+    domainMf.dispatchFetch(`https://kaioken.app${path}`, withTestAddress(init));
+  const host = (handle: string, path: string, init?: DispatchInit) =>
+    domainMf.dispatchFetch(
+      `https://${handle}.kaioken.app${path}`,
+      withTestAddress(init),
+    );
+  const pairHandle = async (handle: string, name?: string) => {
+    const response = await apex("/api/connect/redeem", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ code: PAIR_CODE, handle, name }),
+    });
+    expect(response.status).toBe(200);
+    return (await response.json()) as {
+      credential: string;
+      handle: string;
+      serverUrl: string;
+      tunnelUrl: string;
+    };
+  };
+
+  it("pairs several handles that each dial only their own tunnel", async () => {
+    const mini = await pairHandle("mini", "Mac mini");
+    const studio = await pairHandle("studio");
+    expect(mini.serverUrl).toBe("https://mini.kaioken.app");
+    expect(mini.tunnelUrl).toBe("https://mini.kaioken.app/__tunnel");
+    expect(studio.serverUrl).toBe("https://studio.kaioken.app");
+
+    const ownDial = await host("mini", "/__tunnel?v=1", {
+      headers: { authorization: `Bearer ${mini.credential}` },
+    });
+    expect(ownDial.status).toBe(426);
+    const crossDial = await host("studio", "/__tunnel?v=1", {
+      headers: { authorization: `Bearer ${mini.credential}` },
+    });
+    expect(crossDial.status).toBe(401);
+    const unpaired = await host("laptop", "/__tunnel?v=1", {
+      headers: { authorization: `Bearer ${mini.credential}` },
+    });
+    expect(unpaired.status).toBe(403);
+
+    const invalid = await apex("/api/connect/redeem", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ code: PAIR_CODE, handle: "Not_Valid" }),
+    });
+    expect(invalid.status).toBe(400);
+    const reserved = await apex("/api/connect/redeem", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ code: PAIR_CODE, handle: "www" }),
+    });
+    expect(reserved.status).toBe(400);
+  });
+
+  it("lists every paired server with its own liveness for any account credential", async () => {
+    const mini = await pairHandle("mini", "Mac mini");
+    const studio = await pairHandle("studio", "MacBook");
+    const listed = await apex("/api/connect/servers", {
+      headers: { "x-bb-connect-machine": mini.credential },
+    });
+    expect(listed.status).toBe(200);
+    const body = (await listed.json()) as {
+      servers: { handle: string; name: string; live: boolean; url: string }[];
+    };
+    expect(
+      body.servers.map((s) => [s.handle, s.name, s.live, s.url]).sort(),
+    ).toEqual([
+      ["mini", "Mac mini", false, "https://mini.kaioken.app"],
+      ["studio", "MacBook", false, "https://studio.kaioken.app"],
+    ]);
+
+    const issued = await apex("/api/connect/machine-code", {
+      method: "POST",
+      headers: { "x-bb-connect-machine": studio.credential },
+    });
+    const { code } = (await issued.json()) as { code: string };
+    const redeemed = await apex("/api/connect/redeem-machine", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const machine = (await redeemed.json()) as { credential: string };
+    const onMini = await host("mini", "/api/v1/threads", {
+      headers: { "x-bb-connect-machine": machine.credential },
+    });
+    expect(onMini.status).toBe(503);
+    const onStudio = await host("studio", "/api/v1/threads", {
+      headers: { "x-bb-connect-machine": machine.credential },
+    });
+    expect(onStudio.status).toBe(503);
+    const value = await createSessionCookie(
+      "server",
+      SESSION_SECRET,
+      Date.now() + 60_000,
+    );
+    const cookieOnMini = await host("mini", "/", {
+      headers: {
+        accept: "text/html",
+        cookie: `__Secure-kaioken-connect.desktop_session=${value}`,
+      },
+    });
+    expect(cookieOnMini.status).toBe(503);
+    const health = (await (await host("mini", "/__health")).json()) as {
+      handle: string;
+      live: boolean;
+    };
+    expect(health.handle).toBe("mini");
+    expect(health.live).toBe(false);
+  });
+
+  it("answers CORS for sibling handles and refuses foreign origins", async () => {
+    await pairHandle("mini");
+    const preflight = await host("mini", "/api/v1/threads", {
+      method: "OPTIONS",
+      headers: {
+        origin: "https://studio.kaioken.app",
+        "access-control-request-method": "POST",
+        "access-control-request-headers": "content-type, x-custom",
+      },
+    });
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get("access-control-allow-origin")).toBe(
+      "https://studio.kaioken.app",
+    );
+    expect(preflight.headers.get("access-control-allow-credentials")).toBe(
+      "true",
+    );
+    expect(preflight.headers.get("access-control-allow-methods")).toContain(
+      "DELETE",
+    );
+    expect(preflight.headers.get("access-control-allow-headers")).toContain(
+      "x-custom",
+    );
+    expect(preflight.headers.get("vary")).toBe("Origin");
+
+    const actual = await host("mini", "/api/v1/threads", {
+      headers: { origin: "https://kaioken.app" },
+    });
+    expect(actual.status).toBe(401);
+    expect(actual.headers.get("access-control-allow-origin")).toBe(
+      "https://kaioken.app",
+    );
+
+    const foreign = await host("mini", "/api/v1/threads", {
+      method: "OPTIONS",
+      headers: {
+        origin: "https://evil.example",
+        "access-control-request-method": "GET",
+      },
+    });
+    expect(foreign.headers.get("access-control-allow-origin")).toBeNull();
+    const insecure = await host("mini", "/api/v1/threads", {
+      headers: { origin: "http://studio.kaioken.app" },
+    });
+    expect(insecure.headers.get("access-control-allow-origin")).toBeNull();
+  });
+
+  it("migrates the legacy single-server record and keeps its credential dialling", async () => {
+    const kv = await domainMf.getKVNamespace("STATE");
+    const credential = "bbcred_legacy_secret";
+    const hash = await sha256Hex(credential);
+    await kv.put(
+      "server",
+      JSON.stringify({
+        credentialHash: hash,
+        handle: "legacyhost",
+        pairedAt: 5,
+      }),
+    );
+    await kv.put(`token:${hash}`, JSON.stringify({ kind: "server" }));
+
+    const dial = await host("legacyhost", "/__tunnel?v=1", {
+      headers: { authorization: `Bearer ${credential}` },
+    });
+    expect(dial.status).toBe(426);
+    expect(await kv.get("server", "text")).toBeNull();
+    expect(
+      JSON.parse((await kv.get("server:legacyhost", "text")) ?? "null") as {
+        handle: string;
+      },
+    ).toMatchObject({
+      credentialHash: hash,
+      handle: "legacyhost",
+      pairedAt: 5,
+    });
+    const listed = await apex("/api/connect/servers", {
+      headers: { "x-bb-connect-machine": credential },
+    });
+    expect(
+      ((await listed.json()) as { servers: { handle: string }[] }).servers.map(
+        (s) => s.handle,
+      ),
+    ).toContain("legacyhost");
+  });
+
+  it("disconnect unpairs only the calling handle", async () => {
+    const mini = await pairHandle("mini");
+    const studio = await pairHandle("studio");
+    const response = await apex("/api/connect/disconnect", {
+      method: "POST",
+      headers: { "x-bb-connect-machine": mini.credential },
+    });
+    expect(await response.json()).toEqual({ ok: true });
+    const miniDial = await host("mini", "/__tunnel?v=1", {
+      headers: { authorization: `Bearer ${mini.credential}` },
+    });
+    expect(miniDial.status).toBe(403);
+    const studioDial = await host("studio", "/__tunnel?v=1", {
+      headers: { authorization: `Bearer ${studio.credential}` },
+    });
+    expect(studioDial.status).toBe(426);
   });
 });
 

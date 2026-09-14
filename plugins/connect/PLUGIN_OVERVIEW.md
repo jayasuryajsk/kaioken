@@ -1,4 +1,4 @@
-Open your kaioken from a phone or another computer. After you pair, this kaioken answers at `https://<handle>.kaioken.app` for anyone signed in to your kaioken.app account.
+Open your kaioken from a phone or another computer. After you pair, this kaioken answers at `https://<handle>.kaioken.app` for anyone signed in to your kaioken.app account. One account holds many Kaiokens: every Mac pairs under its own handle, and a paired phone or browser can reach all of them.
 
 ## What you get
 
@@ -9,7 +9,7 @@ Open your kaioken from a phone or another computer. After you pair, this kaioken
 
 ## How it works
 
-Get a pairing code from the kaioken.app dashboard and enter it in Settings. You can also run `kaioken connect --code <code> --server <url>`. The plugin keeps the tunnel open in the background and reconnects after a drop. Disable the plugin to cut all remote access at once. `kaioken connect off` also disconnects and forgets the pairing.
+Enter the relay's pairing code in Settings, or run `kaioken connect --code <PAIR_CODE> --base-url https://kaioken.app --handle <name>` on each Mac. The handle is the name that Mac answers to (`https://<name>.kaioken.app`); the Handle setting fixes it, and an empty setting uses the machine's hostname. `--server <url>` still overrides the derived URL. The plugin keeps the tunnel open in the background and reconnects after a drop. Disable the plugin to cut all remote access at once. `kaioken connect off` also disconnects and forgets the pairing.
 
 ## For agents
 

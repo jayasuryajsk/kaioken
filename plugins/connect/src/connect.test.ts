@@ -12,7 +12,10 @@ import {
   isBareBbRealtimeWs,
   TunnelSession,
 } from "@kaioken/tunnel-client";
-import { deriveConnectBaseUrl, serverUrlForHandle } from "@kaioken/connect-client";
+import {
+  deriveConnectBaseUrl,
+  serverUrlForHandle,
+} from "@kaioken/connect-client";
 import {
   parseSharePort,
   machineSharePublicUrl,
@@ -1368,7 +1371,10 @@ describe("connect plugin", () => {
 
   it("uses the worktree-local Cloud for unpaired development", async () => {
     vi.stubEnv("NODE_ENV", "development");
-    vi.stubEnv("KAIOKEN_DEV_CONNECT_BASE_URL", "http://kaioken.localhost:59329");
+    vi.stubEnv(
+      "KAIOKEN_DEV_CONNECT_BASE_URL",
+      "http://kaioken.localhost:59329",
+    );
     const fetchMock = vi.fn(
       async () =>
         new Response(
@@ -1380,7 +1386,9 @@ describe("connect plugin", () => {
     const { harness } = await loadPlugin();
 
     const before = (await harness.callRpc("status")) as ConnectStatus;
-    expect(before.dashboardUrl).toBe("http://kaioken.localhost:59329/dashboard");
+    expect(before.dashboardUrl).toBe(
+      "http://kaioken.localhost:59329/dashboard",
+    );
 
     const after = (await harness.callRpc("pair", {
       code: "ABCD",
@@ -1394,7 +1402,10 @@ describe("connect plugin", () => {
 
   it("lets an explicit production server override the development default", async () => {
     vi.stubEnv("NODE_ENV", "development");
-    vi.stubEnv("KAIOKEN_DEV_CONNECT_BASE_URL", "http://kaioken.localhost:59329");
+    vi.stubEnv(
+      "KAIOKEN_DEV_CONNECT_BASE_URL",
+      "http://kaioken.localhost:59329",
+    );
     const fetchMock = vi.fn(
       async () =>
         new Response(JSON.stringify({ error: "invalid-code" }), {
@@ -2430,6 +2441,89 @@ describe("connect CLI", () => {
     );
   });
 
+  it("`kaioken connect --code --base-url --handle` pairs under that handle", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({ credential: "bbcred_mini", handle: "mini" }),
+          { status: 200 },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { harness } = await loadCli();
+    const result = await harness.runCli([
+      "--code",
+      "ABCD",
+      "--base-url",
+      "https://kaioken.app",
+      "--handle",
+      "mini",
+      "--name",
+      "Mac mini",
+    ]);
+    expect(result.exitCode).toBe(0);
+    const [, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(JSON.parse(String(init.body))).toEqual({
+      code: "ABCD",
+      handle: "mini",
+      name: "Mac mini",
+    });
+    expect(result.stdout).toContain(
+      "Paired as mini — reachable at https://mini.kaioken.app",
+    );
+  });
+
+  it("`kaioken connect --code --base-url` without --handle sends this machine's slug", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({ credential: "bbcred_auto", handle: "auto" }),
+          { status: 200 },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { harness } = await loadCli();
+    const result = await harness.runCli([
+      "--code",
+      "ABCD",
+      "--base-url",
+      "https://kaioken.app",
+    ]);
+    expect(result.exitCode).toBe(0);
+    const [, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(String(init.body)) as { handle?: string };
+    expect(body.handle).toMatch(/^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/u);
+  });
+
+  it("`kaioken connect --code --server` sends no handle so the relay keeps its default", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({ credential: "bbcred_live", handle: "studio" }),
+          { status: 200 },
+        ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const { harness } = await loadCli();
+    await harness.runCli([
+      "--code",
+      "ABCD",
+      "--server",
+      "https://studio.kaioken.app",
+    ]);
+    const [, init] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(JSON.parse(String(init.body))).toEqual({ code: "ABCD" });
+  });
+
   it("`kaioken connect status` and `kaioken connect off` round-trip", async () => {
     const { harness } = await loadCli();
     const before = await harness.runCli(["status"]);
@@ -2543,7 +2637,9 @@ describe("connect CLI", () => {
     const result = await harness.runCli(["machine-code"]);
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain('"Mobile app" experiment');
-    expect(result.stderr).toContain("kaioken settings experiment mobileApp true");
+    expect(result.stderr).toContain(
+      "kaioken settings experiment mobileApp true",
+    );
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

@@ -674,8 +674,9 @@ function AddMobileDeviceSectionContent({
         />
       ) : (
         <p className="text-xs text-subtle-foreground/75">
-          Pair the kaioken mobile app with this kaioken. It gets a one-time code to scan
-          or type; the phone then reaches this kaioken through {dashboardHost}.
+          Pair the kaioken mobile app with this kaioken. It gets a one-time code
+          to scan or type; the phone then reaches this kaioken through{" "}
+          {dashboardHost}.
         </p>
       )}
 
@@ -999,11 +1000,13 @@ function NotPairedContent({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Pairing gives this kaioken a private URL like{" "}
+        Each Mac pairs with its own name and gets a private URL like{" "}
         <span className="rounded bg-surface-recessed px-1.5 py-0.5 font-mono text-xs text-foreground">
-          you.{dashboardHost}
+          this-mac.{dashboardHost}
         </span>
-        . Your code and data stay on this machine.
+        . One account holds every Mac, so a paired phone or browser sees all of
+        them. Set the name under Handle below, or leave it empty to use this
+        machine&apos;s hostname. Your code and data stay on this machine.
       </p>
 
       <div className="flex gap-3">
@@ -1103,8 +1106,8 @@ function ConnectedContent({
       {repairOpen ? (
         <div className="space-y-2 rounded-md border border-border bg-surface-recessed/50 px-3 py-3">
           <p className="text-xs text-muted-foreground">
-            Re-pairing replaces this kaioken&apos;s credential. Paste a fresh code
-            from your dashboard.
+            Re-pairing replaces this kaioken&apos;s credential. Paste a fresh
+            code from your dashboard.
           </p>
           <PairForm dashboardUrl={status.dashboardUrl} onPaired={onChanged} />
         </div>
@@ -1207,8 +1210,8 @@ function ReconnectingContent({
 
       <div className="-mx-4 mt-4 flex items-center gap-3 border-t border-border-seam px-4 pt-3">
         <span className="min-w-0 text-xs text-muted-foreground">
-          Remote devices can&apos;t reach this kaioken right now. Local access is
-          unaffected.
+          Remote devices can&apos;t reach this kaioken right now. Local access
+          is unaffected.
         </span>
         <span className="flex-1" />
         <Button

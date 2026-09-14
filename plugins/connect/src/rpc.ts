@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { defineRpcContract, type PluginRpcHandlers } from "@get-kaioken/plugin-sdk";
+import {
+  defineRpcContract,
+  type PluginRpcHandlers,
+} from "@get-kaioken/plugin-sdk";
 import {
   ConnectListError,
   type DesktopSession,
@@ -16,6 +19,8 @@ const pairInputSchema = z.object({
   code: z.string().min(1),
   server: z.string().url().optional(),
   baseUrl: z.string().url().optional(),
+  handle: z.string().min(1).optional(),
+  name: z.string().min(1).optional(),
 });
 
 const portInputSchema = z
@@ -155,6 +160,8 @@ export function createRpcHandlers(
           code: args.code,
           ...(args.server !== undefined ? { serverUrl: args.server } : {}),
           ...(args.baseUrl !== undefined ? { baseUrl: args.baseUrl } : {}),
+          ...(args.handle !== undefined ? { handle: args.handle } : {}),
+          ...(args.name !== undefined ? { name: args.name } : {}),
         });
       } catch (error) {
         if (error instanceof ConnectPairError) {

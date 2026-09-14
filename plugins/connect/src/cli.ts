@@ -1,4 +1,7 @@
-import type { KaiokenPluginApi, PluginCliResult } from "@get-kaioken/plugin-sdk";
+import type {
+  KaiokenPluginApi,
+  PluginCliResult,
+} from "@get-kaioken/plugin-sdk";
 import {
   mobilePairingPayload,
   type MobilePairingPayload,
@@ -65,11 +68,13 @@ function validateFlags(
 function helpText(): string {
   return [
     "Remote access via kaioken.app — this kaioken becomes reachable at https://<handle>.kaioken.app.",
+    "Every Mac pairs with its own handle; one account holds all of them and any paired device sees every Mac.",
     "Share HTTP ports from any enrolled host (owner session only).",
     "",
-    "  1. Sign in at https://kaioken.app and claim a handle.",
-    "  2. Copy the connect command from the dashboard and run it here:",
-    "       kaioken connect --code <code> --server https://<handle>.kaioken.app",
+    "  1. Get the pairing code from your relay (wrangler secret PAIR_CODE).",
+    "  2. Pair this Mac under a name of your choosing:",
+    "       kaioken connect --code <PAIR_CODE> --base-url https://kaioken.app --handle <name>",
+    "     Omit --handle to use this machine's hostname; --server <url> overrides the derived URL.",
     "",
     "  kaioken connect status              Show remote-access status",
     "  kaioken connect off                 Disconnect and forget the pairing (re-pairing needs a new code)",
@@ -376,7 +381,7 @@ export function registerConnectCli(args: {
         const parsed = parseFlags(argv);
         validateFlags(parsed, {
           boolean: ["json"],
-          value: ["code", "server", "base-url"],
+          value: ["code", "server", "base-url", "handle", "name"],
         });
         const code = stringFlag(parsed, "code");
         if (code === undefined) {
@@ -384,10 +389,14 @@ export function registerConnectCli(args: {
         }
         const server = stringFlag(parsed, "server");
         const baseUrl = stringFlag(parsed, "base-url");
+        const handle = stringFlag(parsed, "handle");
+        const name = stringFlag(parsed, "name");
         const status = await tunnel.pair({
           code,
           ...(server !== undefined ? { serverUrl: server } : {}),
           ...(baseUrl !== undefined ? { baseUrl } : {}),
+          ...(handle !== undefined ? { handle } : {}),
+          ...(name !== undefined ? { name } : {}),
         });
         if (parsed.flags.has("json")) {
           return { exitCode: 0, stdout: asJson(status) };

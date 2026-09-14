@@ -1,3 +1,4 @@
+import { hostname } from "node:os";
 import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { registerConnectCli } from "./cli.js";
@@ -11,7 +12,11 @@ import { ShareRegistry } from "./shares.js";
 import { ConnectTunnel } from "./tunnel.js";
 import { ShareHostResolver } from "./hosts.js";
 import { resolveLocalCloudLoopbackUrl } from "./local-loopback.js";
-import { resolveDefaultConnectBaseUrl } from "./redeem.js";
+import {
+  CONNECT_HANDLE_PATTERN,
+  resolveDefaultConnectBaseUrl,
+  slugifyConnectHandle,
+} from "./redeem.js";
 import {
   CONNECT_REALTIME_CHANNEL,
   REMOTE_ACTIVITY_INSTRUCTIONS_MS,
@@ -45,6 +50,24 @@ export default async function plugin(bb: KaiokenPluginApi) {
               "Use an origin such as https://kaioken-relay.you.workers.dev",
           });
         }
+      }),
+    },
+    handle: {
+      type: "string",
+      label: "Handle",
+      description:
+        "The name this Mac pairs under, giving it https://<handle>.kaioken.app. Each Mac needs its own. Leave empty to use this machine's hostname.",
+      default: "",
+      experimental_schema: z.string().superRefine((value, context) => {
+        const trimmed = value.trim().toLowerCase();
+        if (trimmed.length === 0 || CONNECT_HANDLE_PATTERN.test(trimmed)) {
+          return;
+        }
+        context.addIssue({
+          code: "custom",
+          message:
+            "Use lowercase letters, digits and hyphens, up to 32 characters",
+        });
       }),
     },
     sendRemoteInstructions: {
@@ -88,6 +111,12 @@ export default async function plugin(bb: KaiokenPluginApi) {
       return configured.length > 0
         ? new URL(configured).origin
         : resolveDefaultConnectBaseUrl(process.env);
+    },
+    defaultHandle: () => {
+      const configured = currentSettings.handle.trim().toLowerCase();
+      return configured.length > 0
+        ? configured
+        : slugifyConnectHandle(hostname());
     },
     getLoopbackBaseUrl,
     log: bb.log,

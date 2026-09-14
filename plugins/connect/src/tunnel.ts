@@ -58,6 +58,7 @@ interface ConnectTunnelOptions {
   store: CredentialStore;
   shares: ShareRegistry;
   defaultBaseUrl: string | (() => string);
+  defaultHandle?: () => string;
   getLoopbackBaseUrl: () => string;
   log: PluginLogger;
   onStatusChange?: (status: ConnectStatus) => void;
@@ -106,7 +107,14 @@ export class ConnectTunnel {
     code: string;
     serverUrl?: string;
     baseUrl?: string;
+    handle?: string;
+    name?: string;
   }): Promise<ConnectStatus> {
+    const handle =
+      args.handle ??
+      (args.serverUrl === undefined
+        ? this.options.defaultHandle?.()
+        : undefined);
     const baseUrl =
       args.baseUrl ??
       (args.serverUrl !== undefined
@@ -117,7 +125,12 @@ export class ConnectTunnel {
     try {
       let redeemed;
       try {
-        redeemed = await redeemConnectCode({ code: args.code, baseUrl });
+        redeemed = await redeemConnectCode({
+          code: args.code,
+          baseUrl,
+          ...(handle !== undefined ? { handle } : {}),
+          ...(args.name !== undefined ? { name: args.name } : {}),
+        });
       } catch (error) {
         const pairError = asConnectPairError(error);
         this.options.log.warn(

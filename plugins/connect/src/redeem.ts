@@ -36,6 +36,19 @@ interface RedeemedCredential {
   handle: string;
 }
 
+export const CONNECT_HANDLE_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/u;
+
+export function slugifyConnectHandle(value: string): string {
+  const slug = value
+    .toLowerCase()
+    .replace(/\.local$/u, "")
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-+|-+$/gu, "")
+    .slice(0, 32)
+    .replace(/-+$/u, "");
+  return CONNECT_HANDLE_PATTERN.test(slug) ? slug : "kaioken";
+}
+
 type ConnectPairErrorCode =
   | "invalid_code"
   | "expired_code"
@@ -79,11 +92,17 @@ export function asConnectPairError(error: unknown): ConnectPairError {
 export async function redeemConnectCode(args: {
   code: string;
   baseUrl: string;
+  handle?: string;
+  name?: string;
 }): Promise<RedeemedCredential> {
   const res = await fetch(`${args.baseUrl}/api/connect/redeem`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ code: args.code }),
+    body: JSON.stringify({
+      code: args.code,
+      ...(args.handle !== undefined ? { handle: args.handle } : {}),
+      ...(args.name !== undefined ? { name: args.name } : {}),
+    }),
   });
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string };

@@ -14,11 +14,13 @@ import {
   sha256Hex,
   verifySessionCookie,
 } from "./auth.js";
-import { MACHINE_CODE_TTL_MS, RelayStore } from "./store.js";
+import { MACHINE_CODE_TTL_MS, RelayStore, isValidHandle } from "./store.js";
 import {
   acceptsAccountApi,
   acceptsTunnel,
   acceptsVisitors,
+  corsOriginFor,
+  defaultHandle,
   resolveTopology,
   type RelayTopology,
 } from "./topology.js";
@@ -33,8 +35,45 @@ import {
 
 export { TunnelDO, PairingLimiter };
 
-const ROUTING_KEY = "server";
 const SERVER_OFFLINE_AFTER_MS = 90_000;
+const CORS_METHODS = "GET, POST, PATCH, PUT, DELETE, OPTIONS";
+const CORS_HEADERS = `content-type, authorization, ${MACHINE_CREDENTIAL_HEADER}, x-requested-with, accept, cache-control, if-none-match`;
+
+function corsHeadersFor(
+  request: Request,
+  topology: RelayTopology,
+): Record<string, string> | null {
+  const origin = corsOriginFor(request.headers.get("origin"), topology);
+  if (origin === null) return null;
+  const requested = request.headers.get("access-control-request-headers");
+  return {
+    "access-control-allow-origin": origin,
+    "access-control-allow-credentials": "true",
+    "access-control-allow-methods": CORS_METHODS,
+    "access-control-allow-headers":
+      requested !== null && requested.length > 0
+        ? `${CORS_HEADERS}, ${requested}`
+        : CORS_HEADERS,
+    "access-control-expose-headers": "etag, content-type",
+    vary: "Origin",
+  };
+}
+
+function withCors(
+  response: Response,
+  cors: Record<string, string> | null,
+): Response {
+  if (cors === null || response.status === 101 || response.webSocket) {
+    return response;
+  }
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(cors)) headers.set(name, value);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
 
 function text(body: string, status: number): Response {
   return new Response(body, {
@@ -202,19 +241,36 @@ export function requestForTunnelDo(
   return new Request(request, { headers });
 }
 
-function tunnelStub(env: Env): DurableObjectStub {
-  return env.TUNNEL_DO.get(env.TUNNEL_DO.idFromName(ROUTING_KEY));
+function tunnelStub(env: Env, handle: string): DurableObjectStub {
+  return env.TUNNEL_DO.get(env.TUNNEL_DO.idFromName(handle));
 }
 
-async function readTunnelStatus(env: Env): Promise<TunnelStatus> {
+async function readTunnelStatus(
+  env: Env,
+  handle: string,
+): Promise<TunnelStatus> {
   try {
-    const response = await tunnelStub(env).fetch(
+    const response = await tunnelStub(env, handle).fetch(
       "https://tunnel/__control/status",
     );
     return (await response.json()) as TunnelStatus;
   } catch {
     return { live: false, lastSeenAt: null };
   }
+}
+
+function isLive(status: TunnelStatus): boolean {
+  return (
+    status.live ||
+    (status.lastSeenAt !== null &&
+      Date.now() - status.lastSeenAt < SERVER_OFFLINE_AFTER_MS)
+  );
+}
+
+async function closeTunnel(env: Env, handle: string): Promise<void> {
+  try {
+    await tunnelStub(env, handle).fetch("https://tunnel/__control/close");
+  } catch {}
 }
 
 async function readJsonBody(
@@ -265,17 +321,33 @@ async function handleRedeem(
   ) {
     return json({ error: "invalid code" }, 400);
   }
+  const requestedHandle =
+    typeof body.handle === "string" ? body.handle.trim().toLowerCase() : "";
+  const handle =
+    requestedHandle.length > 0
+      ? requestedHandle
+      : topology.role === "server" || topology.role === "single"
+        ? topology.handle
+        : defaultHandle(env);
+  if (!isValidHandle(handle)) {
+    return json({ error: "invalid handle" }, 400);
+  }
+  const requestedName = typeof body.name === "string" ? body.name.trim() : "";
+  const name = requestedName.length > 0 ? requestedName.slice(0, 80) : handle;
   const credential = randomToken("bbcred_");
-  const handle = topology.handle;
-  await store.pairServer(handle, credential);
-  try {
-    await tunnelStub(env).fetch("https://tunnel/__control/close");
-  } catch {}
+  await store.pairServer(handle, name, credential);
+  await closeTunnel(env, handle);
+  const serverOrigin =
+    topology.baseDomain === null
+      ? topology.serverOrigin
+      : `https://${handle}.${topology.baseDomain}`;
   return json({
     credential,
     handle,
-    serverId: ROUTING_KEY,
-    tunnelUrl: `${topology.serverOrigin}/__tunnel`,
+    name,
+    serverId: handle,
+    serverUrl: serverOrigin,
+    tunnelUrl: `${serverOrigin}/__tunnel`,
   });
 }
 
@@ -381,14 +453,22 @@ async function handleListServers(
   if (request.method !== "GET") return methodNotAllowed("GET");
   const subject = await presentedCredential(request, store);
   if (subject === null) return json({ error: "unauthorized" }, 401);
-  const status = await readTunnelStatus(env);
-  const live =
-    status.live ||
-    (status.lastSeenAt !== null &&
-      Date.now() - status.lastSeenAt < SERVER_OFFLINE_AFTER_MS);
-  return json({
-    servers: [{ handle: topology.handle, name: "Kaioken", live }],
-  });
+  const servers = await Promise.all(
+    (await store.listServers()).map(async (server) => {
+      const status = await readTunnelStatus(env, server.handle);
+      return {
+        handle: server.handle,
+        name: server.name,
+        live: isLive(status),
+        lastSeenAt: status.lastSeenAt,
+        url:
+          topology.baseDomain === null
+            ? topology.serverOrigin
+            : `https://${server.handle}.${topology.baseDomain}`,
+      };
+    }),
+  );
+  return json({ servers });
 }
 
 async function handleDisconnect(
@@ -399,10 +479,8 @@ async function handleDisconnect(
   if (request.method !== "POST") return methodNotAllowed("POST");
   const subject = await presentedCredential(request, store);
   if (subject?.kind !== "server") return json({ error: "unauthorized" }, 401);
-  await store.unpairServer();
-  try {
-    await tunnelStub(env).fetch("https://tunnel/__control/close");
-  } catch {}
+  await store.unpairServer(subject.handle);
+  await closeTunnel(env, subject.handle);
   return json({ ok: true });
 }
 
@@ -444,12 +522,13 @@ async function handleBrowserLogin(
 
 async function handleTunnelDial(
   request: Request,
+  topology: RelayTopology,
   env: Env,
   store: RelayStore,
 ): Promise<Response> {
   const auth = request.headers.get("authorization") ?? "";
   const credential = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  const server = await store.getServer();
+  const server = await store.getServer(topology.handle);
   if (server === null) return text("Kaioken relay: server not paired\n", 403);
   if ((await sha256Hex(credential)) !== server.credentialHash) {
     return text("Kaioken relay: invalid credential\n", 401);
@@ -457,15 +536,27 @@ async function handleTunnelDial(
   const forward = new URL(request.url);
   forward.searchParams.delete("serverId");
   forward.searchParams.delete("machineId");
-  forward.searchParams.set("serverId", ROUTING_KEY);
-  return tunnelStub(env).fetch(new Request(forward, request));
+  forward.searchParams.set("serverId", topology.handle);
+  return tunnelStub(env, topology.handle).fetch(new Request(forward, request));
 }
 
-function apexPage(topology: RelayTopology): Response {
+function apexPage(
+  topology: RelayTopology,
+  servers: readonly { handle: string; name: string }[],
+): Response {
+  const links =
+    servers.length === 0
+      ? `<a href="${escapeHtml(topology.serverOrigin)}">${escapeHtml(new URL(topology.serverOrigin).host)}</a>`
+      : servers
+          .map((server) => {
+            const origin = `https://${server.handle}.${topology.baseDomain ?? ""}`;
+            return `<a href="${escapeHtml(origin)}">${escapeHtml(new URL(origin).host)}</a>`;
+          })
+          .join(", ");
   return gatePage(
     `<h1>Kaioken</h1>
-     <p>This is the relay for a personal Kaioken. The app lives at
-     <a href="${escapeHtml(topology.serverOrigin)}">${escapeHtml(new URL(topology.serverOrigin).host)}</a>.</p>`,
+     <p>This is the relay for a personal Kaioken. Each Mac pairs with its own name:
+     ${links}.</p>`,
     200,
   );
 }
@@ -528,6 +619,143 @@ async function handleAccountApi(
   }
 }
 
+async function routeRequest(
+  request: Request,
+  url: URL,
+  topology: RelayTopology,
+  env: Env,
+  ctx: ExecutionContext,
+  store: RelayStore,
+): Promise<Response> {
+  if (
+    PAIRING_PATHS.has(url.pathname) &&
+    (await pairingAttemptsExhausted(request, env))
+  ) {
+    return tooManyAttempts(request);
+  }
+
+  if (url.pathname.startsWith("/api/connect/")) {
+    if (!acceptsAccountApi(topology)) {
+      return text("Kaioken relay: not found\n", 404);
+    }
+    const handled = await handleAccountApi(request, topology, env, store);
+    if (handled !== null) return handled;
+  }
+  if (url.pathname === "/__health") {
+    return json({
+      ok: true,
+      role: topology.role,
+      handle: topology.handle,
+      ...(await readTunnelStatus(env, topology.handle)),
+    });
+  }
+  if (topology.role === "apex") {
+    return url.pathname === "/"
+      ? apexPage(topology, await store.listServers())
+      : text("Kaioken relay: not found\n", 404);
+  }
+  if (url.pathname === "/__login" && acceptsVisitors(topology)) {
+    return handleBrowserLogin(request, topology, env, store);
+  }
+  if (url.pathname === "/__tunnel") {
+    if (!acceptsTunnel(topology)) {
+      return text("Kaioken relay: not found\n", 404);
+    }
+    return handleTunnelDial(request, topology, env, store);
+  }
+  if (url.pathname.startsWith("/__") || !acceptsVisitors(topology)) {
+    return text("Kaioken relay: not found\n", 404);
+  }
+
+  const stub = tunnelStub(env, topology.handle);
+  if (
+    request.method === "GET" &&
+    topology.target === null &&
+    PUBLIC_INSTALL_PATHS.has(url.pathname)
+  ) {
+    return stub.fetch(requestForTunnelDo(request, null));
+  }
+
+  const presentedCredential = request.headers.get(MACHINE_CREDENTIAL_HEADER);
+  if (isMachinePath(url.pathname) && presentedCredential !== null) {
+    if (topology.target !== null) {
+      return text("Kaioken relay: not found\n", 404);
+    }
+    const subject = await store.resolveCredential(presentedCredential);
+    if (subject === null) {
+      return text("Kaioken relay: machine not authorized\n", 403);
+    }
+    if (
+      subject.kind === "machine" &&
+      isHostManagementMutation(request, url.pathname)
+    ) {
+      return text("Kaioken relay: machine cannot manage hosts\n", 403);
+    }
+    return stub.fetch(
+      requestForTunnelDo(
+        request,
+        null,
+        subject.kind === "machine" ? subject.machineId : undefined,
+        "machine",
+      ),
+    );
+  }
+  if (url.pathname.startsWith("/internal")) {
+    return text("Kaioken relay: machine not authorized\n", 403);
+  }
+
+  const cookie = parseCookie(
+    request.headers.get("cookie"),
+    SESSION_COOKIE_NAME,
+  );
+  const subject = cookie
+    ? await verifySessionCookie(cookie, env.SESSION_SECRET)
+    : null;
+  if (subject === null) {
+    return wantsHtml(request)
+      ? signInPage(null)
+      : json({ error: "unauthorized" }, 401);
+  }
+  if (subject !== "server") {
+    const machineId = subject.slice("machine:".length);
+    if (!(await store.machineExists(machineId))) {
+      return wantsHtml(request)
+        ? signInPage("This device was removed. Pair it again.")
+        : json({ error: "unauthorized" }, 401);
+    }
+  }
+
+  const doRequest = requestForTunnelDo(
+    request,
+    topology.target,
+    subject === "server" ? undefined : subject.slice("machine:".length),
+  );
+  if (request.headers.get("upgrade")?.toLowerCase() === "websocket") {
+    return stub.fetch(doRequest);
+  }
+  const cacheNamespace =
+    topology.target === null
+      ? topology.handle
+      : `${topology.handle}--${topology.target}`;
+  const cached = await serveWithCache(request, cacheNamespace, ctx, (init) => {
+    if (init === undefined) return stub.fetch(doRequest);
+    const headers = new Headers(doRequest.headers);
+    headers.set("if-none-match", init.ifNoneMatch);
+    return stub.fetch(new Request(doRequest, { headers }));
+  });
+  const response = cached.response;
+  if (
+    response.status === 503 &&
+    response.headers.get(TUNNEL_OFFLINE_HEADER) === "1" &&
+    wantsHtml(request)
+  ) {
+    return offlinePage(
+      (await readTunnelStatus(env, topology.handle)).lastSeenAt,
+    );
+  }
+  return response;
+}
+
 export default {
   async fetch(
     request: Request,
@@ -539,136 +767,15 @@ export default {
     if (topology.role === "unknown") {
       return text("Kaioken relay: unknown host\n", 404);
     }
-    const store = new RelayStore(env.STATE);
-
-    if (
-      PAIRING_PATHS.has(url.pathname) &&
-      (await pairingAttemptsExhausted(request, env))
-    ) {
-      return tooManyAttempts(request);
+    const cors =
+      topology.role === "apex" ? null : corsHeadersFor(request, topology);
+    if (request.method === "OPTIONS" && cors !== null) {
+      return new Response(null, { status: 204, headers: cors });
     }
-
-    if (url.pathname.startsWith("/api/connect/")) {
-      if (!acceptsAccountApi(topology)) {
-        return text("Kaioken relay: not found\n", 404);
-      }
-      const handled = await handleAccountApi(request, topology, env, store);
-      if (handled !== null) return handled;
-    }
-    if (url.pathname === "/__health") {
-      return json({
-        ok: true,
-        role: topology.role,
-        ...(await readTunnelStatus(env)),
-      });
-    }
-    if (topology.role === "apex") {
-      return url.pathname === "/"
-        ? apexPage(topology)
-        : text("Kaioken relay: not found\n", 404);
-    }
-    if (url.pathname === "/__login" && acceptsVisitors(topology)) {
-      return handleBrowserLogin(request, topology, env, store);
-    }
-    if (url.pathname === "/__tunnel") {
-      if (!acceptsTunnel(topology)) {
-        return text("Kaioken relay: not found\n", 404);
-      }
-      return handleTunnelDial(request, env, store);
-    }
-    if (url.pathname.startsWith("/__") || !acceptsVisitors(topology)) {
-      return text("Kaioken relay: not found\n", 404);
-    }
-
-    const stub = tunnelStub(env);
-    if (
-      request.method === "GET" &&
-      topology.target === null &&
-      PUBLIC_INSTALL_PATHS.has(url.pathname)
-    ) {
-      return stub.fetch(requestForTunnelDo(request, null));
-    }
-
-    const presentedCredential = request.headers.get(MACHINE_CREDENTIAL_HEADER);
-    if (isMachinePath(url.pathname) && presentedCredential !== null) {
-      if (topology.target !== null) {
-        return text("Kaioken relay: not found\n", 404);
-      }
-      const subject = await store.resolveCredential(presentedCredential);
-      if (subject === null) {
-        return text("Kaioken relay: machine not authorized\n", 403);
-      }
-      if (
-        subject.kind === "machine" &&
-        isHostManagementMutation(request, url.pathname)
-      ) {
-        return text("Kaioken relay: machine cannot manage hosts\n", 403);
-      }
-      return stub.fetch(
-        requestForTunnelDo(
-          request,
-          null,
-          subject.kind === "machine" ? subject.machineId : undefined,
-          "machine",
-        ),
-      );
-    }
-    if (url.pathname.startsWith("/internal")) {
-      return text("Kaioken relay: machine not authorized\n", 403);
-    }
-
-    const cookie = parseCookie(
-      request.headers.get("cookie"),
-      SESSION_COOKIE_NAME,
+    const store = new RelayStore(env.STATE, defaultHandle(env));
+    return withCors(
+      await routeRequest(request, url, topology, env, ctx, store),
+      cors,
     );
-    const subject = cookie
-      ? await verifySessionCookie(cookie, env.SESSION_SECRET)
-      : null;
-    if (subject === null) {
-      return wantsHtml(request)
-        ? signInPage(null)
-        : json({ error: "unauthorized" }, 401);
-    }
-    if (subject !== "server") {
-      const machineId = subject.slice("machine:".length);
-      if (!(await store.machineExists(machineId))) {
-        return wantsHtml(request)
-          ? signInPage("This device was removed. Pair it again.")
-          : json({ error: "unauthorized" }, 401);
-      }
-    }
-
-    const doRequest = requestForTunnelDo(
-      request,
-      topology.target,
-      subject === "server" ? undefined : subject.slice("machine:".length),
-    );
-    if (request.headers.get("upgrade")?.toLowerCase() === "websocket") {
-      return stub.fetch(doRequest);
-    }
-    const cacheNamespace =
-      topology.target === null
-        ? ROUTING_KEY
-        : `${ROUTING_KEY}--${topology.target}`;
-    const cached = await serveWithCache(
-      request,
-      cacheNamespace,
-      ctx,
-      (init) => {
-        if (init === undefined) return stub.fetch(doRequest);
-        const headers = new Headers(doRequest.headers);
-        headers.set("if-none-match", init.ifNoneMatch);
-        return stub.fetch(new Request(doRequest, { headers }));
-      },
-    );
-    const response = cached.response;
-    if (
-      response.status === 503 &&
-      response.headers.get(TUNNEL_OFFLINE_HEADER) === "1" &&
-      wantsHtml(request)
-    ) {
-      return offlinePage((await readTunnelStatus(env)).lastSeenAt);
-    }
-    return response;
   },
 } satisfies ExportedHandler<Env>;
