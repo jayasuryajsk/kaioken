@@ -70,12 +70,14 @@ export function sanitizeFederatedHeaders(
 export interface CreateFederatedFetchHandlerArgs {
   listServers: () => readonly FederatedFetchServer[];
   fetchImpl: FederatedFetchImpl;
+  prepare?: () => Promise<void>;
   maxBodyBytes?: number;
 }
 
 export function createFederatedFetchHandler({
   listServers,
   fetchImpl,
+  prepare,
   maxBodyBytes = KAIOKEN_DESKTOP_FEDERATED_FETCH_MAX_BODY_BYTES,
 }: CreateFederatedFetchHandlerArgs): (
   payload: unknown,
@@ -84,6 +86,13 @@ export function createFederatedFetchHandler({
     const parsed = kaiokenDesktopFederatedFetchRequestSchema.safeParse(payload);
     if (!parsed.success) {
       throw new Error("federated fetch request is malformed");
+    }
+    if (prepare !== undefined) {
+      try {
+        await prepare();
+      } catch {
+        return { status: 0, headers: [], body: "" };
+      }
     }
     const url = new URL(parsed.data.url);
     if (!isAllowedFederatedUrl(url, listServers())) {

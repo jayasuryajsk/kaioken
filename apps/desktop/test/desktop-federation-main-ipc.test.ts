@@ -167,3 +167,50 @@ describe("createFederatedFetchHandler", () => {
     });
   });
 });
+
+describe("federated fetch preparation", () => {
+  it("runs prepare before deciding whether the origin is allowed", async () => {
+    const servers: { url: string }[] = [];
+    const order: string[] = [];
+    const handler = createFederatedFetchHandler({
+      listServers: () => servers,
+      prepare: async () => {
+        order.push("prepare");
+        servers.push({ url: "https://studio.kaioken.app" });
+      },
+      fetchImpl: async () => {
+        order.push("fetch");
+        return {
+          status: 200,
+          headers: { forEach: () => undefined },
+          text: async () => "{}",
+        };
+      },
+    });
+    const result = await handler({
+      url: "https://studio.kaioken.app/api/v1/threads",
+      method: "GET",
+      headers: {},
+    });
+    expect(result.status).toBe(200);
+    expect(order).toEqual(["prepare", "fetch"]);
+  });
+
+  it("reports an unreachable session instead of throwing when prepare fails", async () => {
+    const handler = createFederatedFetchHandler({
+      listServers: () => [{ url: "https://studio.kaioken.app" }],
+      prepare: async () => {
+        throw new Error("local server down");
+      },
+      fetchImpl: async () => {
+        throw new Error("should not fetch");
+      },
+    });
+    const result = await handler({
+      url: "https://studio.kaioken.app/api/v1/threads",
+      method: "GET",
+      headers: {},
+    });
+    expect(result.status).toBe(0);
+  });
+});

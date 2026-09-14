@@ -81,6 +81,7 @@ import {
 import { openServerUrlDialog } from "./server-url-dialog.js";
 import {
   createConnectServerSync,
+  fetchConnectAccountServers,
   type ConnectAccountServer,
   type ConnectServerSync,
   type ConnectServerSyncSkipReason,
@@ -1721,10 +1722,25 @@ async function ensureFederationSession(
   );
 }
 
+async function prepareFederation(): Promise<void> {
+  const target = serverTargetStore?.getTarget() ?? { kind: "builtin" as const };
+  if (target.kind !== "builtin" || currentRuntime === null) return;
+  if (connectAccountServers.length === 0) {
+    const listed = await fetchConnectAccountServers({
+      serverUrl: currentRuntime.serverUrl,
+    });
+    if (!listed.ok) return;
+    connectAccountServers = listed.result.servers;
+    refreshApplicationMenu();
+  }
+  await ensureFederationSession(connectAccountServers);
+}
+
 function registerDesktopFederation(): void {
   registerDesktopFederationIpc({
     listServers: () => listMenuConnectServers(),
     fetchImpl: (url, init) => session.defaultSession.fetch(url, init),
+    prepare: prepareFederation,
   });
 }
 
