@@ -78,7 +78,7 @@ describe("connect settings section", () => {
     slot.getByText(/your kaioken\.localhost:42745 dashboard/);
   });
 
-  it("auto-submits a normalized 4-4 code and applies live paired status", async () => {
+  it("auto-submits a normalized 4-4-4 code and applies live paired status", async () => {
     let currentStatus = status();
     const slot = renderSlot(
       app.settingsSections[0]!,
@@ -93,13 +93,13 @@ describe("connect settings section", () => {
 
     await slot.findByText("Get a connect code");
     fireEvent.change(slot.getByLabelText("Connect code"), {
-      target: { value: "  k7qp-2m4x  " },
+      target: { value: "  k7qp-2m4x-9zzz  " },
     });
 
     await waitFor(() =>
       expect(slot.rpcCalls).toContainEqual({
         method: "pair",
-        input: { code: "K7QP-2M4X" },
+        input: { code: "K7QP-2M4X-9ZZZ" },
       }),
     );
     expect(slot.queryByText("https://workstation.kaioken.app")).toBeNull();
@@ -145,7 +145,7 @@ describe("connect settings section", () => {
 
     await slot.findByText("Get a connect code");
     fireEvent.change(slot.getByLabelText("Connect code"), {
-      target: { value: "K7QP-2M4X" },
+      target: { value: "K7QP-2M4X-9ZZZ" },
     });
 
     await slot.findByText(/That code has expired\./);

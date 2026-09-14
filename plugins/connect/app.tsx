@@ -183,18 +183,22 @@ function hostOf(url: string): string {
   }
 }
 
+const CONNECT_CODE_MAX_LENGTH = 12;
+
 function formatConnectCode(raw: string): string {
   const cleaned = raw
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 8);
-  return cleaned.length > 4
-    ? `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`
-    : cleaned;
+    .slice(0, CONNECT_CODE_MAX_LENGTH);
+  return cleaned.match(/.{1,4}/g)?.join("-") ?? "";
 }
 
 function isCompleteCode(formatted: string): boolean {
-  return /^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(formatted);
+  return /^[A-Z0-9]{4}-[A-Z0-9]{4}(?:-[A-Z0-9]{4})?$/.test(formatted);
+}
+
+function isFullLengthCode(formatted: string): boolean {
+  return /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(formatted);
 }
 
 function StatusDot({ tone }: { tone: "ok" | "warn" | "muted" }) {
@@ -412,7 +416,7 @@ function PairForm({
       const formatted = formatConnectCode(raw);
       setCode(formatted);
       if (errorCode !== null) setErrorCode(null);
-      if (isCompleteCode(formatted) && formatted !== submittedRef.current) {
+      if (isFullLengthCode(formatted) && formatted !== submittedRef.current) {
         submit(formatted);
       }
     },
@@ -434,7 +438,7 @@ function PairForm({
         <Input
           value={code}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="XXXX–XXXX"
+          placeholder="XXXX-XXXX-XXXX"
           autoComplete="off"
           spellCheck={false}
           aria-label="Connect code"
