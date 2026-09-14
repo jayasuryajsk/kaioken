@@ -163,10 +163,17 @@ export const BUILTIN_PLUGINS = [
     pluginId: "thread-namer",
     defaultEnabled: true,
   },
-].map((plugin): BundledPluginDefinition => ({
-  ...plugin,
-  autoInstall: true,
-}));
+  {
+    name: "model-routing",
+    pluginId: "model-routing",
+    defaultEnabled: false,
+  },
+].map(
+  (plugin): BundledPluginDefinition => ({
+    ...plugin,
+    autoInstall: true,
+  }),
+);
 
 export const OFFICIAL_PLUGINS = [
   {
@@ -199,10 +206,12 @@ export const OFFICIAL_PLUGINS = [
     pluginId: "theme-preview",
     defaultEnabled: true,
   },
-].map((plugin): BundledPluginDefinition => ({
-  ...plugin,
-  autoInstall: false,
-}));
+].map(
+  (plugin): BundledPluginDefinition => ({
+    ...plugin,
+    autoInstall: false,
+  }),
+);
 
 export const BUNDLED_PLUGINS: readonly BundledPluginDefinition[] = [
   ...BUILTIN_PLUGINS,

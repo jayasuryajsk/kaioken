@@ -252,6 +252,7 @@ describe("builtin plugin reconciliation", () => {
       ["side-chat", "SideChat"],
       ["workflows", "Workflow"],
       ["environment-git-worktree", "FolderGit"],
+      ["model-routing", "ArrowDataTransferHorizontal"],
     ]);
 
     expect(BUILTIN_PLUGINS).toHaveLength(expectedIcons.size);
