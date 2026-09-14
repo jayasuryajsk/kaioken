@@ -1274,6 +1274,33 @@ async function loadRemoteServerTarget(
   return true;
 }
 
+function describeServerTarget(target: {
+  kind: string;
+  server?: { name: string };
+}): string {
+  return target.kind === "connect" && target.server
+    ? target.server.name
+    : BUILTIN_SERVER_NAME;
+}
+
+async function confirmServerSwitch(nextName: string): Promise<boolean> {
+  const current = serverTargetStore?.getTarget() ?? {
+    kind: "builtin" as const,
+  };
+  const currentName = describeServerTarget(current);
+  if (currentName === nextName) return true;
+  const { response } = await dialog.showMessageBox({
+    type: "warning",
+    buttons: ["Cancel", `Switch to ${nextName}`],
+    defaultId: 0,
+    cancelId: 0,
+    message: `Switch from ${currentName} to ${nextName}?`,
+    detail:
+      "Each Kaioken keeps its own threads and projects, so switching replaces everything you see. Machines connected to the Kaioken you are leaving keep running, and you can switch back from the same menu.",
+  });
+  return response === 1;
+}
+
 async function setActiveServerTarget(serverId: string): Promise<void> {
   if (serverTargetStore === null) {
     return;
@@ -1287,11 +1314,22 @@ async function setActiveServerTarget(serverId: string): Promise<void> {
       refreshApplicationMenu();
       return;
     }
+    if (!(await confirmServerSwitch(server.name))) {
+      refreshApplicationMenu();
+      return;
+    }
     await serverTargetStore.setConnectServer(server);
     await applyServerTarget();
     return;
   }
   if (serverId !== "builtin" && serverId !== "custom") {
+    return;
+  }
+  if (
+    serverId === "builtin" &&
+    !(await confirmServerSwitch(BUILTIN_SERVER_NAME))
+  ) {
+    refreshApplicationMenu();
     return;
   }
   const switched = await serverTargetStore.setTarget(serverId);
