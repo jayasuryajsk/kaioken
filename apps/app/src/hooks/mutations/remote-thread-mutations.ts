@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { FederatedServer } from "@kaioken/client-core";
-import type { SendMessageRequest } from "@kaioken/server-contract";
+import type {
+  CreateThreadRequest,
+  SendMessageRequest,
+} from "@kaioken/server-contract";
 import { appToast } from "@/components/ui/app-toast";
 import { getRemoteSdk } from "@/lib/federation/remote-sdk";
 import { KaiokenHttpError } from "@/lib/sdk";
@@ -73,6 +76,33 @@ export function useStopRemoteThread(server: FederatedServer) {
         queryClient,
         handle: server.handle,
         threadId,
+      });
+    },
+  });
+}
+
+export type RemoteCreateThreadRequest = Omit<
+  CreateThreadRequest,
+  "origin" | "startedOnBehalfOf" | "originKind"
+>;
+
+export function useCreateRemoteThread(server: FederatedServer) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    meta: { showErrorToast: false },
+    mutationFn: (request: RemoteCreateThreadRequest) =>
+      getRemoteSdk(server.url).threads.spawn({
+        ...request,
+        origin: "app",
+        originKind: null,
+        startedOnBehalfOf: null,
+      }),
+    onError: (error) => {
+      reportRemoteWriteFailure(server, "new thread", error);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: remoteServerSnapshotQueryKey(server.handle),
       });
     },
   });

@@ -563,15 +563,13 @@ describe("UnifiedSidebarList", () => {
     expect(
       within(remoteProject!).getByTestId("unified-project-server").textContent,
     ).toContain("Mac mini");
-    expect(
-      within(
-        within(remoteProject!).getByTestId("unified-project-row"),
-      ).queryByRole("link"),
-    ).toBeNull();
-    expect(
-      within(remoteProject!).getByTestId("unified-remote-project-name")
-        .textContent,
-    ).toBe("Mac mini repo");
+    const remoteName = within(remoteProject!).getByTestId(
+      "unified-remote-project-name",
+    );
+    expect(remoteName.textContent).toBe("Mac mini repo");
+    expect(remoteName.getAttribute("href")).toBe(
+      "/servers/mini/projects/proj_remote",
+    );
     const remoteRow = within(remoteProject!)
       .getAllByTestId("timeline-row")
       .find((row) => row.getAttribute("data-remote-server") === "mini");

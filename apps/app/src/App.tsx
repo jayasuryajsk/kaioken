@@ -45,6 +45,7 @@ import {
   SETTINGS_PLUGINS_ROUTE_PATH,
   SETTINGS_MACHINE_ROUTE_PATH,
   REMOTE_THREAD_ROUTE_PATH,
+  REMOTE_PROJECT_COMPOSE_ROUTE_PATH,
   SETTINGS_PROJECT_ROUTE_PATH,
   SETTINGS_ROUTE_PATH,
   SETTINGS_SECTION_ROUTE_PATH,
@@ -91,6 +92,11 @@ const ProjectDetailSettingsView = lazy(() =>
 const RemoteThreadView = lazy(() =>
   import("./views/RemoteThreadView").then((m) => ({
     default: m.RemoteThreadView,
+  })),
+);
+const RemoteComposeView = lazy(() =>
+  import("./views/RemoteComposeView").then((m) => ({
+    default: m.RemoteComposeView,
   })),
 );
 const MachineSettingsView = lazy(() =>
@@ -408,6 +414,10 @@ export function AppRoutes() {
           <Route
             path={REMOTE_THREAD_ROUTE_PATH}
             element={<RemoteThreadView />}
+          />
+          <Route
+            path={REMOTE_PROJECT_COMPOSE_ROUTE_PATH}
+            element={<RemoteComposeView />}
           />
           <Route
             path="*"

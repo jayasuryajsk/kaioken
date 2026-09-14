@@ -58,6 +58,7 @@ export {
   PROJECT_ARCHIVED_ROUTE_PATH,
   PLUGIN_PANEL_ROUTE_PATH,
   REMOTE_THREAD_ROUTE_PATH,
+  REMOTE_PROJECT_COMPOSE_ROUTE_PATH,
   isProjectlessProjectId,
   getRootComposeRoutePath,
   getLegacyProjectComposeRoutePath,
@@ -78,8 +79,10 @@ export {
   getPluginPanelRoutePath,
   getThreadRoutePath,
   getRemoteThreadRoutePath,
+  getRemoteProjectComposeRoutePath,
 } from "@kaioken/client-core";
 export type {
+  RemoteProjectComposeRoutePathArgs,
   RemoteThreadRoutePathArgs,
   ThreadRoutePathArgs,
 } from "@kaioken/client-core";

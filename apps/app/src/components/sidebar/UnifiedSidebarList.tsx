@@ -4,6 +4,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import {
   mergeFederatedSidebar,
+  parseRemoteId,
   remoteId,
   type RemoteProjectMachine,
   type RemoteThreadRef,
@@ -36,6 +37,7 @@ import { useFederatedRemotes } from "@/hooks/queries/federation-queries";
 import {
   REMOTE_THREAD_ROUTE_PATH,
   getProjectComposeRoutePath,
+  getRemoteProjectComposeRoutePath,
 } from "@/lib/route-paths";
 import { sidebarPriorityViewAtom } from "@/lib/sidebar-priority-view";
 import {
@@ -268,14 +270,16 @@ function UnifiedProjectRows({
               <span className="min-w-0 flex-1 truncate">{project.name}</span>
             </NavLink>
           ) : (
-            <button
-              type="button"
+            <NavLink
+              to={getRemoteProjectComposeRoutePath({
+                handle: remoteServer.handle,
+                projectId: parseRemoteId(project.id)?.id ?? project.id,
+              })}
               data-testid="unified-remote-project-name"
-              onClick={() => onToggleExpanded(project.id)}
-              className="flex min-w-0 flex-1 items-center text-left outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
+              className="flex min-w-0 flex-1 items-center outline-none focus-visible:ring-1 focus-visible:ring-sidebar-ring"
             >
               <span className="min-w-0 flex-1 truncate">{project.name}</span>
-            </button>
+            </NavLink>
           )}
           <span
             className={cn(

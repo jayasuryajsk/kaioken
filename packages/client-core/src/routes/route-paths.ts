@@ -59,6 +59,8 @@ export const LEGACY_PROJECT_SETTINGS_ROUTE_PATH =
 export const PROJECT_ARCHIVED_ROUTE_PATH = "/projects/:projectId/archived";
 const THREAD_DETAIL_ROUTE_PATH = "/projects/:projectId/threads/:threadId";
 export const REMOTE_THREAD_ROUTE_PATH = "/servers/:handle/threads/:threadId";
+export const REMOTE_PROJECT_COMPOSE_ROUTE_PATH =
+  "/servers/:handle/projects/:projectId";
 export const PLUGIN_PANEL_ROUTE_PATH = "/plugins/:pluginId/:panelPath/*";
 
 export interface ThreadRoutePathArgs {
@@ -210,6 +212,18 @@ export function getRemoteThreadRoutePath({
   threadId,
 }: RemoteThreadRoutePathArgs): string {
   return `/servers/${encodeURIComponent(handle)}/threads/${encodeURIComponent(threadId)}`;
+}
+
+export interface RemoteProjectComposeRoutePathArgs {
+  handle: string;
+  projectId: string;
+}
+
+export function getRemoteProjectComposeRoutePath({
+  handle,
+  projectId,
+}: RemoteProjectComposeRoutePathArgs): string {
+  return `/servers/${encodeURIComponent(handle)}/projects/${encodeURIComponent(projectId)}`;
 }
 
 export function getThreadRoutePath(args: ThreadRoutePathArgs): string {
