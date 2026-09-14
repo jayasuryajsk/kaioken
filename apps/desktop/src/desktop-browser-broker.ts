@@ -62,8 +62,31 @@ export function createDesktopBrowserBroker(args: {
   const snapshots = new Map<string, string>();
   let hostId: string | null = null;
 
+  function isInstanceLive(entry: InstanceEntry): boolean {
+    return (
+      !entry.window.isDestroyed() && !entry.window.webContents.isDestroyed()
+    );
+  }
+
+  function liveInstances(): InstanceEntry[] {
+    let removed = false;
+    for (const entry of [...instances.values()]) {
+      if (isInstanceLive(entry)) continue;
+      for (const lease of [...leases.values()]) {
+        if (lease.instance !== entry) continue;
+        leases.delete(lease.metadata.leaseId);
+        clearTimeout(lease.timer);
+        void lease.bridge?.close().catch(() => undefined);
+      }
+      instances.delete(entry.descriptor.instanceId);
+      removed = true;
+    }
+    if (removed) for (const listener of registryListeners) listener();
+    return [...instances.values()];
+  }
+
   function instanceForWindow(webContentsId: number): InstanceEntry | undefined {
-    return [...instances.values()].find(
+    return liveInstances().find(
       (entry) => entry.window.webContents.id === webContentsId,
     );
   }
@@ -81,6 +104,7 @@ export function createDesktopBrowserBroker(args: {
     instance: InstanceEntry,
     threadId: string,
   ): DesktopBrowserNativeTab[] {
+    if (!isInstanceLive(instance)) return [];
     return args.manager.listTabs({
       hostWebContentsId: instance.window.webContents.id,
       threadId,
@@ -125,11 +149,14 @@ export function createDesktopBrowserBroker(args: {
     )
       return;
     for (const tab of tabs) {
-      instance.window.webContents.send(KAIOKEN_DESKTOP_BROWSER_CONTROL_CHANNEL, {
-        tabId: tab.tabId,
-        threadId,
-        control: tab.control,
-      });
+      instance.window.webContents.send(
+        KAIOKEN_DESKTOP_BROWSER_CONTROL_CHANNEL,
+        {
+          tabId: tab.tabId,
+          threadId,
+          control: tab.control,
+        },
+      );
     }
   }
 
@@ -141,6 +168,7 @@ export function createDesktopBrowserBroker(args: {
   }
 
   function changed(): void {
+    const live = liveInstances();
     for (const lease of [...leases.values()]) {
       const tabs = tabsFor(lease.instance, lease.threadId);
       if (
@@ -153,7 +181,8 @@ export function createDesktopBrowserBroker(args: {
       )
         revoke(lease);
     }
-    for (const instance of instances.values()) {
+    for (const instance of live) {
+      if (!isInstanceLive(instance)) continue;
       for (const tab of args.manager.listTabs({
         hostWebContentsId: instance.window.webContents.id,
         threadId: null,
@@ -320,14 +349,14 @@ export function createDesktopBrowserBroker(args: {
       for (const listener of registryListeners) listener();
     },
     listInstances(): DesktopBrowserInstance[] {
-      return [...instances.values()].map((entry) => ({ ...entry.descriptor }));
+      return liveInstances().map((entry) => ({ ...entry.descriptor }));
     },
     setHostId(value: string | null) {
       hostId = value;
       snapshots.clear();
       if (value === null) {
         for (const lease of [...leases.values()]) revoke(lease);
-        for (const instance of instances.values())
+        for (const instance of liveInstances())
           instance.descriptor.generation = randomUUID();
       } else changed();
     },
@@ -335,7 +364,7 @@ export function createDesktopBrowserBroker(args: {
       hostId = null;
       for (const lease of [...leases.values()]) revoke(lease);
       args.manager.destroyAll();
-      for (const instance of instances.values()) {
+      for (const instance of liveInstances()) {
         instance.threads.clear();
         instance.descriptor.generation = randomUUID();
       }
