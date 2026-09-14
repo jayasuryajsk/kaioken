@@ -15,6 +15,7 @@ import { useUpdateInventory } from "@/hooks/useUpdateInventory";
 import { ProviderIconMark } from "@/components/settings/ProviderIconMark";
 import { getProviderIconInfo } from "@/lib/provider-icon";
 import { getBbDesktopInfo } from "@/lib/kaioken-desktop";
+import { KaiokenLogo } from "@/components/ui/kaioken-logo";
 import { getSettingsRoutePath } from "@/lib/route-paths";
 import { appToast } from "@/components/ui/app-toast";
 import { checkErrorDescription } from "@/components/settings/app-update-check-store";
@@ -117,7 +118,7 @@ export function SidebarUpdatesBadge({ onNavigate }: SidebarUpdatesBadgeProps) {
               className={CHIP_CLASS}
             >
               <Icon name="RotateCcw" className="size-3 text-muted-foreground" />
-              Restart to update
+              <KaiokenLogo className="size-3 shrink-0" />
             </button>
           </TooltipTrigger>
           <TooltipContent side="top">{restartLabel}</TooltipContent>
@@ -133,7 +134,7 @@ export function SidebarUpdatesBadge({ onNavigate }: SidebarUpdatesBadgeProps) {
               className={CHIP_CLASS}
             >
               <Icon name="Download" className="size-3 text-muted-foreground" />
-              kaioken
+              <KaiokenLogo className="size-3 shrink-0" />
             </Link>
           </TooltipTrigger>
           <TooltipContent side="top">{kaiokenLabel}</TooltipContent>
