@@ -26,7 +26,6 @@ import {
   usePrimaryHost,
 } from "@/hooks/queries/host-queries";
 import type { ProjectResponse } from "@kaioken/server-contract";
-import { formatRelativeTime } from "@/lib/relative-time";
 import { getProjectComposeRoutePath } from "@/lib/route-paths";
 import { sidebarPriorityViewAtom } from "@/lib/sidebar-priority-view";
 import {
@@ -35,12 +34,12 @@ import {
   UNIFIED_PROJECT_THREADS_PREVIEW_COUNT,
   UNIFIED_PROJECTS_PREVIEW_COUNT,
   UNIFIED_RECENTS_PREVIEW_COUNT,
-  VIEWER_MACHINE_LABEL,
   type UnifiedProjectGroup,
   type UnifiedProjectsSort,
   type UnifiedSectionLike,
 } from "@/lib/sidebar-unified";
 import {
+  collapsedProjectIdsAtom,
   expandedProjectIdsAtom,
   sidebarProjectsSortAtom,
 } from "./sidebarCollapsedAtoms";
@@ -66,12 +65,7 @@ const collapsedUnifiedSectionsAtom = atomWithStorage<string[]>(
   [],
 );
 export const UNIFIED_PROJECTS_SECTION_ID = "projects";
-
-function toggleId(current: string[], id: string): string[] {
-  return current.includes(id)
-    ? current.filter((entry) => entry !== id)
-    : [...current, id];
-}
+const RECENT_ACTIVITY_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 const PROJECT_SORT_OPTIONS: ReadonlyArray<{
   value: UnifiedProjectsSort;
@@ -163,7 +157,6 @@ interface ProjectRowsProps {
   showAllThreads: boolean;
   onToggleShowAllThreads: (projectId: string) => void;
   onProjectSelect?: () => void;
-  now: number;
 }
 
 function UnifiedProjectRows({
@@ -176,7 +169,6 @@ function UnifiedProjectRows({
   showAllThreads,
   onToggleShowAllThreads,
   onProjectSelect,
-  now,
 }: ProjectRowsProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { project, machine, threads, needsYou } = group;
@@ -239,14 +231,12 @@ function UnifiedProjectRows({
               menuOpen && "hidden",
             )}
           >
-            {machine ? (
+            {machine && !machine.isViewer ? (
               <span
                 data-testid="unified-project-machine"
                 className="flex shrink-0 items-center gap-1.5"
               >
-                <span className="max-w-24 truncate">
-                  {machine.isViewer ? VIEWER_MACHINE_LABEL : machine.name}
-                </span>
+                <span className="max-w-28 truncate">{machine.name}</span>
                 <MachineStatusDot connected={machine.connected} />
               </span>
             ) : null}
@@ -256,10 +246,6 @@ function UnifiedProjectRows({
                 aria-label={`${project.name} needs you`}
                 className="size-1.5 shrink-0 rounded-full bg-warning"
               />
-            ) : group.lastActivityAt > 0 ? (
-              <span data-testid="unified-project-activity">
-                {formatRelativeTime({ timestamp: group.lastActivityAt, now })}
-              </span>
             ) : null}
           </span>
           <span
@@ -461,12 +447,6 @@ export function UnifiedSidebarList({
     () => new Set(expandedProjectIdList),
     [expandedProjectIdList],
   );
-  const toggleProjectExpanded = useCallback(
-    (projectId: string) => {
-      setExpandedProjectIdList((current) => toggleId(current, projectId));
-    },
-    [setExpandedProjectIdList],
-  );
   const projectsCollapsed = collapsedSections.has(UNIFIED_PROJECTS_SECTION_ID);
   const [projectsExpanded, setProjectsExpanded] = useState(false);
   const [recentsExpanded, setRecentsExpanded] = useState(false);
@@ -501,6 +481,56 @@ export function UnifiedSidebarList({
       viewerHostId,
     ],
   );
+  const [collapsedProjectIdList, setCollapsedProjectIdList] = useAtom(
+    collapsedProjectIdsAtom,
+  );
+  const collapsedProjectIds = useMemo(
+    () => new Set(collapsedProjectIdList),
+    [collapsedProjectIdList],
+  );
+  const isProjectExpanded = useCallback(
+    (group: UnifiedProjectGroup<ProjectResponse>) => {
+      if (group.project.id === selectedProjectId || group.needsYou) return true;
+      if (collapsedProjectIds.has(group.project.id)) return false;
+      return (
+        expandedProjectIds.has(group.project.id) ||
+        group.lastActivityAt > (now ?? clock) - RECENT_ACTIVITY_WINDOW_MS
+      );
+    },
+    [clock, collapsedProjectIds, expandedProjectIds, now, selectedProjectId],
+  );
+  const toggleProjectExpanded = useCallback(
+    (projectId: string) => {
+      const group =
+        model.projects.find((entry) => entry.project.id === projectId) ??
+        model.sections
+          .flatMap((section) => section.projects)
+          .find((entry) => entry.project.id === projectId);
+      const currentlyExpanded = group !== undefined && isProjectExpanded(group);
+      if (currentlyExpanded) {
+        setExpandedProjectIdList((current) =>
+          current.filter((id) => id !== projectId),
+        );
+        setCollapsedProjectIdList((current) =>
+          current.includes(projectId) ? current : [...current, projectId],
+        );
+      } else {
+        setCollapsedProjectIdList((current) =>
+          current.filter((id) => id !== projectId),
+        );
+        setExpandedProjectIdList((current) =>
+          current.includes(projectId) ? current : [...current, projectId],
+        );
+      }
+    },
+    [
+      isProjectExpanded,
+      model.projects,
+      model.sections,
+      setCollapsedProjectIdList,
+      setExpandedProjectIdList,
+    ],
+  );
   const renderThread = (thread: ThreadListEntry, showMeta: boolean) => (
     <TimelineRow
       key={thread.id}
@@ -519,16 +549,11 @@ export function UnifiedSidebarList({
       draftThreadIds={draftThreadIds}
       selectedThreadId={selectedThreadId}
       selectedProjectId={selectedProjectId}
-      expanded={
-        expandedProjectIds.has(group.project.id) ||
-        group.project.id === selectedProjectId ||
-        group.needsYou
-      }
+      expanded={isProjectExpanded(group)}
       onToggleExpanded={toggleProjectExpanded}
       showAllThreads={showAllThreadIds.has(group.project.id)}
       onToggleShowAllThreads={toggleShowAllThreads}
       onProjectSelect={onProjectSelect}
-      now={now ?? clock}
     />
   );
   const visibleProjects = projectsExpanded

@@ -65,6 +65,7 @@ vi.mock("@/components/project/ProjectActionsMenu", () => ({
 }));
 
 const NOW = Date.now();
+const DAY = 24 * 60 * 60 * 1000;
 
 function thread(overrides: Partial<ThreadListEntry> & { id: string }) {
   return makeThreadListEntry({
@@ -241,10 +242,12 @@ describe("UnifiedSidebarList", () => {
     ).toEqual(["thr_loose"]);
   });
 
-  it("keeps projects collapsed until their chevron is used", () => {
+  it("keeps quiet projects collapsed until their folder is used", () => {
     renderList({
       projects: [project("proj_a", "alpha"), project("proj_b", "beta")],
-      threads: [thread({ id: "thr_a", projectId: "proj_a" })],
+      threads: [
+        thread({ id: "thr_a", projectId: "proj_a", updatedAt: NOW - 3 * DAY }),
+      ],
     });
     const projectsSection = screen.getByTestId("unified-projects");
     const alpha = within(projectsSection).getAllByTestId("unified-project")[0]!;
@@ -283,12 +286,13 @@ describe("UnifiedSidebarList", () => {
       ],
       selectedProjectId: "proj_b",
       threads: [
-        thread({ id: "thr_a", projectId: "proj_a" }),
-        thread({ id: "thr_b", projectId: "proj_b" }),
+        thread({ id: "thr_a", projectId: "proj_a", updatedAt: NOW - 3 * DAY }),
+        thread({ id: "thr_b", projectId: "proj_b", updatedAt: NOW - 3 * DAY }),
         thread({
           id: "thr_c",
           projectId: "proj_c",
           hasPendingInteraction: true,
+          updatedAt: NOW - 3 * DAY,
         }),
       ],
     });
@@ -302,7 +306,27 @@ describe("UnifiedSidebarList", () => {
     expect(expandedOf("gamma")).toBe("true");
   });
 
-  it("shows a needs-you dot instead of a relative time", () => {
+  it("opens projects with activity today and lets the user fold them", () => {
+    renderList({
+      projects: [project("proj_a", "alpha"), project("proj_b", "beta")],
+      threads: [
+        thread({ id: "thr_a", projectId: "proj_a", updatedAt: NOW - 60_000 }),
+        thread({ id: "thr_b", projectId: "proj_b", updatedAt: NOW - 3 * DAY }),
+      ],
+    });
+    const rowOf = (name: string) =>
+      screen
+        .getAllByTestId("unified-project")
+        .find((node) => within(node).queryByText(name) !== null)!;
+    expect(rowOf("alpha").getAttribute("data-expanded")).toBe("true");
+    expect(rowOf("beta").getAttribute("data-expanded")).toBeNull();
+    fireEvent.click(
+      within(rowOf("alpha")).getByRole("button", { name: "Collapse alpha" }),
+    );
+    expect(rowOf("alpha").getAttribute("data-expanded")).toBeNull();
+  });
+
+  it("shows a needs-you dot and never a timestamp", () => {
     renderList({
       projects: [project("proj_a", "alpha"), project("proj_b", "beta")],
       threads: [
@@ -320,9 +344,7 @@ describe("UnifiedSidebarList", () => {
     expect(within(alpha).getByTestId("unified-project-needs-you")).toBeTruthy();
     expect(within(alpha).queryByTestId("unified-project-activity")).toBeNull();
     expect(within(beta).queryByTestId("unified-project-needs-you")).toBeNull();
-    expect(
-      within(beta).getByTestId("unified-project-activity").textContent,
-    ).toBe("1m ago");
+    expect(within(beta).queryByTestId("unified-project-activity")).toBeNull();
   });
 
   it("caps projects, per-project threads, and recents behind Show more", () => {
@@ -356,9 +378,7 @@ describe("UnifiedSidebarList", () => {
     ).toHaveLength(9);
 
     const first = within(projectsSection).getAllByTestId("unified-project")[0]!;
-    fireEvent.click(
-      within(first).getByRole("button", { name: "Expand project 0" }),
-    );
+    expect(first.getAttribute("data-expanded")).toBe("true");
     expect(within(first).getAllByTestId("timeline-row")).toHaveLength(3);
     fireEvent.click(within(first).getByTestId("unified-project-more-proj_0"));
     expect(within(first).getAllByTestId("timeline-row")).toHaveLength(4);
@@ -369,7 +389,7 @@ describe("UnifiedSidebarList", () => {
     expect(within(recents).getAllByTestId("timeline-row")).toHaveLength(14);
   });
 
-  it("badges every project with its machine and names the viewer's own", () => {
+  it("badges only projects on other machines, never the viewer's own", () => {
     hostsState.hosts = [
       makeHost({ id: "host_mac", name: "MacBook" }),
       makeHost({ id: "host_mini", name: "Mac mini", status: "connected" }),
@@ -389,8 +409,14 @@ describe("UnifiedSidebarList", () => {
         );
       return within(row!).getByTestId("unified-project-machine");
     };
-    expect(screen.getAllByTestId("unified-project-machine")).toHaveLength(2);
-    expect(badgeFor("local").textContent).toBe("This Mac");
+    expect(screen.getAllByTestId("unified-project-machine")).toHaveLength(1);
+    expect(
+      within(
+        screen
+          .getAllByTestId("unified-project-row")
+          .find((row) => row.querySelector("a")?.textContent === "local")!,
+      ).queryByTestId("unified-project-machine"),
+    ).toBeNull();
     expect(badgeFor("bounty").textContent).toBe("Mac mini");
     expect(badgeFor("bounty").querySelector(".bg-success")).not.toBeNull();
   });
