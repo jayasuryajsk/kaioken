@@ -41,7 +41,17 @@ import {
 import { ArchivedThreadToastDescription } from "@/components/thread/ArchivedThreadToastDescription";
 import { destroyPersistedBrowserViewsForThread } from "@/components/secondary-panel/browserViewVisibilityCoordinator";
 import { getThreadReadToggleAction } from "@kaioken/client-core";
-import { getRootComposeRoutePath, getThreadRoutePath } from "@/lib/route-paths";
+import {
+  getRemoteThreadRoutePath,
+  getRootComposeRoutePath,
+  getThreadRoutePath,
+} from "@/lib/route-paths";
+import { useAccountServers } from "@/hooks/queries/federation-queries";
+import { useRemoteRowActions } from "@/hooks/mutations/remote-row-actions";
+import {
+  resolveRemoteTarget,
+  type RemoteTarget,
+} from "@/lib/federation/remote-target";
 import { getDesktopBrowserApi } from "@/lib/kaioken-desktop";
 import { useRouteNavigate } from "@/components/ui/app-route-anchor";
 
@@ -89,6 +99,29 @@ export function ThreadActionsProvider({
   children,
 }: ThreadActionsProviderProps) {
   const navigate = useRouteNavigate();
+  const accountServers = useAccountServers();
+  const accountServersRef = useRef(accountServers.data);
+  useEffect(() => {
+    accountServersRef.current = accountServers.data;
+  }, [accountServers.data]);
+  const remoteActions = useRemoteRowActions();
+  const remoteTargetFor = useCallback(
+    (id: string): RemoteTarget | null =>
+      resolveRemoteTarget(accountServersRef.current, id),
+    [],
+  );
+  const leaveRemoteThreadIfViewing = useCallback(
+    (target: RemoteTarget) => {
+      const route = getRemoteThreadRoutePath({
+        handle: target.server.handle,
+        threadId: target.id,
+      });
+      if (window.location.pathname === route) {
+        navigate(getRootComposeRoutePath());
+      }
+    },
+    [navigate],
+  );
   const { threadId: viewedThreadId } = useRouteState();
   const viewedThreadIdRef = useRef(viewedThreadId);
   useEffect(() => {
@@ -161,13 +194,25 @@ export function ThreadActionsProvider({
 
   const renameThread = useCallback(
     (threadId: string, title: string) => {
+      const target = remoteTargetFor(threadId);
+      if (target !== null) {
+        void remoteActions.renameThread(target, title);
+        return;
+      }
       updateMutate({ id: threadId, title });
     },
-    [updateMutate],
+    [remoteActions, remoteTargetFor, updateMutate],
   );
 
   const submitRename = useCallback(
     (threadId: string, payload: ThreadRenameDialogPayload) => {
+      const target = remoteTargetFor(threadId);
+      if (target !== null) {
+        void remoteActions.renameThread(target, payload.title).then((ok) => {
+          if (ok) closeRenameDialog();
+        });
+        return;
+      }
       updateMutate(
         { id: threadId, ...payload },
         {
@@ -177,7 +222,7 @@ export function ThreadActionsProvider({
         },
       );
     },
-    [closeRenameDialog, updateMutate],
+    [closeRenameDialog, remoteActions, remoteTargetFor, updateMutate],
   );
 
   const loadThreadActionContext = useCallback(
@@ -185,6 +230,12 @@ export function ThreadActionsProvider({
       thread: Thread,
       signal: AbortSignal,
     ): Promise<ThreadActionContext | null> => {
+      const target = remoteTargetFor(thread.id);
+      if (target !== null) {
+        const count = await remoteActions.childThreadCount(target);
+        if (count === null || signal.aborted) return null;
+        return { childThreadCount: count };
+      }
       try {
         const childSummary = await sdk.threads.childSummary({
           signal,
@@ -204,7 +255,7 @@ export function ThreadActionsProvider({
         return null;
       }
     },
-    [],
+    [remoteActions, remoteTargetFor],
   );
 
   const claimThreadActionContextAbortController =
@@ -233,6 +284,17 @@ export function ThreadActionsProvider({
       closeDialog,
       thread,
     }: DeleteThreadActionRequest) => {
+      const target = remoteTargetFor(thread.id);
+      if (target !== null) {
+        void remoteActions
+          .deleteThread(target, childThreadsConfirmed)
+          .then((ok) => {
+            if (!ok) return;
+            closeDialog();
+            leaveRemoteThreadIfViewing(target);
+          });
+        return;
+      }
       deleteMutate(
         { id: thread.id, childThreadsConfirmed },
         {
@@ -252,7 +314,10 @@ export function ThreadActionsProvider({
     [
       closePanesForThreads,
       deleteMutate,
+      leaveRemoteThreadIfViewing,
       navigateAwayIfViewing,
+      remoteActions,
+      remoteTargetFor,
       syncNavigationAfterClose,
     ],
   );
@@ -287,13 +352,25 @@ export function ThreadActionsProvider({
 
   const unarchiveThreadAction = useCallback(
     (thread: Thread) => {
+      const target = remoteTargetFor(thread.id);
+      if (target !== null) {
+        void remoteActions.unarchiveThread(target);
+        return;
+      }
       unarchiveMutate({ id: thread.id });
     },
-    [unarchiveMutate],
+    [remoteActions, remoteTargetFor, unarchiveMutate],
   );
 
   const archiveThreadAndChildrenAction = useCallback(
     (thread: Thread) => {
+      const remoteTarget = remoteTargetFor(thread.id);
+      if (remoteTarget !== null) {
+        void remoteActions.archiveThread(remoteTarget).then((ok) => {
+          if (ok) leaveRemoteThreadIfViewing(remoteTarget);
+        });
+        return;
+      }
       archiveThreadAndChildrenMutateAsync({ id: thread.id }).then(
         (response) => {
           const navigateAwayIfArchived = () => {
@@ -347,7 +424,10 @@ export function ThreadActionsProvider({
     [
       archiveThreadAndChildrenMutateAsync,
       closePanesForThreads,
+      leaveRemoteThreadIfViewing,
       navigate,
+      remoteActions,
+      remoteTargetFor,
       syncNavigationAfterClose,
       unarchiveMutate,
     ],
@@ -355,6 +435,14 @@ export function ThreadActionsProvider({
 
   const toggleRead = useCallback(
     (thread: Thread) => {
+      const target = remoteTargetFor(thread.id);
+      if (target !== null) {
+        void remoteActions.setThreadRead(
+          target,
+          getThreadReadToggleAction(thread) !== "mark_unread",
+        );
+        return;
+      }
       if (getThreadReadToggleAction(thread) === "mark_unread") {
         markUnreadMutate(thread.id, {
           onError: (error) => {
@@ -375,18 +463,23 @@ export function ThreadActionsProvider({
         },
       });
     },
-    [markReadMutate, markUnreadMutate],
+    [markReadMutate, markUnreadMutate, remoteActions, remoteTargetFor],
   );
 
   const togglePin = useCallback(
     (thread: Thread) => {
+      const target = remoteTargetFor(thread.id);
+      if (target !== null) {
+        void remoteActions.setThreadPinned(target, thread.pinnedAt === null);
+        return;
+      }
       if (thread.pinnedAt !== null) {
         unpinMutate({ id: thread.id });
         return;
       }
       pinMutate({ id: thread.id });
     },
-    [pinMutate, unpinMutate],
+    [pinMutate, remoteActions, remoteTargetFor, unpinMutate],
   );
 
   const value = useMemo<ThreadActionsContextValue>(

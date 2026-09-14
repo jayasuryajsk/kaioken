@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FederatedServer } from "@kaioken/client-core";
 import { getRemoteSdk } from "@/lib/federation/remote-sdk";
+import { invalidateRemoteThreadQueries } from "../cache-owners/federation-cache-owner";
 import { REMOTE_SNAPSHOT_REFETCH_MS } from "./federation-queries";
 
 export function remoteThreadQueryKey(handle: string, threadId: string) {
@@ -24,20 +25,6 @@ export function remoteExecutionOptionsQueryKey(
   threadId: string,
 ) {
   return ["federation", "execution-options", handle, threadId] as const;
-}
-
-export function invalidateRemoteThreadQueries(args: {
-  queryClient: QueryClient;
-  handle: string;
-  threadId: string;
-}): void {
-  for (const queryKey of [
-    remoteThreadQueryKey(args.handle, args.threadId),
-    remoteTimelineQueryKey(args.handle, args.threadId),
-    remotePendingInteractionsQueryKey(args.handle, args.threadId),
-  ]) {
-    void args.queryClient.invalidateQueries({ queryKey });
-  }
 }
 
 export type RemoteRealtimeState = "connected" | "disconnected";

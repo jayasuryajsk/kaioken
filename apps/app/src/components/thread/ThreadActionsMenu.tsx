@@ -3,7 +3,7 @@ import {
   ActionMenuSeparator,
 } from "@/components/ui/action-menu-items";
 import type { Thread } from "@kaioken/domain";
-import { useCallback, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -31,9 +31,15 @@ import { COARSE_POINTER_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointe
 import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import { cn } from "@kaioken/shared-ui/lib/utils";
 import { CompactLongPressMenu } from "@/components/ui/compact-long-press-menu";
-import { isThreadRead } from "@kaioken/client-core";
+import { isThreadRead, parseRemoteId } from "@kaioken/client-core";
 import { copyToClipboardWithToast } from "@/lib/clipboard";
-import { getThreadRoutePath } from "@/lib/route-paths";
+import {
+  getRemoteThreadRoutePath,
+  getThreadRoutePath,
+} from "@/lib/route-paths";
+import { useRemoteRowActions } from "@/hooks/mutations/remote-row-actions";
+import { useRemoteLabels } from "@/lib/federation/remote-labels";
+import { isRemoteId, useRemoteTarget } from "@/lib/federation/remote-target";
 import { useThreadActions } from "./ThreadActionsProvider";
 import { ThreadCodexActions } from "./ThreadCodexActions";
 import { useThreadSectionMove } from "./ThreadSectionMoveProvider";
@@ -70,22 +76,63 @@ interface ThreadActionsMenuItemsProps extends ThreadActionsMenuBaseProps {
   surface: ThreadActionsMenuSurface;
 }
 
-function ThreadSectionMoveMenu({
-  drawerStep = false,
-  isDrawer,
-  onBack,
-  onOpenDrawerStep,
-  surface,
-  thread,
-}: {
+interface ThreadSectionMoveMenuProps {
   drawerStep?: boolean;
   isDrawer: boolean;
   onBack?: () => void;
   onOpenDrawerStep?: () => void;
   surface: ThreadActionsMenuSurface;
   thread: Thread;
-}) {
+}
+
+interface ThreadSectionMoveModel {
+  destinations: readonly { label: string; sectionId: string | null }[];
+  moveThread: (thread: Thread, sectionId: string | null) => void;
+}
+
+function ThreadSectionMoveMenu(props: ThreadSectionMoveMenuProps) {
+  return isRemoteId(props.thread.id) ? (
+    <RemoteThreadSectionMoveMenu {...props} />
+  ) : (
+    <HomeThreadSectionMoveMenu {...props} />
+  );
+}
+
+function HomeThreadSectionMoveMenu(props: ThreadSectionMoveMenuProps) {
   const sectionMove = useThreadSectionMove();
+  return <ThreadSectionMoveMenuBody {...props} sectionMove={sectionMove} />;
+}
+
+function RemoteThreadSectionMoveMenu(props: ThreadSectionMoveMenuProps) {
+  const remoteTarget = useRemoteTarget(props.thread.id);
+  const remoteLabels = useRemoteLabels(remoteTarget);
+  const remoteActions = useRemoteRowActions();
+  const sectionMove = useMemo<ThreadSectionMoveModel | null>(
+    () =>
+      remoteTarget === null
+        ? null
+        : {
+            destinations: remoteLabels.destinations,
+            moveThread: (moved, sectionId) => {
+              void remoteActions.moveThread(remoteTarget, moved, sectionId);
+            },
+          },
+    [remoteActions, remoteLabels.destinations, remoteTarget],
+  );
+  return <ThreadSectionMoveMenuBody {...props} sectionMove={sectionMove} />;
+}
+
+function ThreadSectionMoveMenuBody({
+  drawerStep = false,
+  isDrawer,
+  onBack,
+  onOpenDrawerStep,
+  surface,
+  thread,
+  sectionMove,
+}: ThreadSectionMoveMenuProps & {
+  sectionMove: ThreadSectionMoveModel | null;
+}) {
   if (
     !sectionMove ||
     thread.parentThreadId !== null ||
@@ -194,8 +241,14 @@ function ThreadActionsMenuItems({
   const isRead = isThreadRead(thread);
   const isArchived = thread.archivedAt != null;
   const isPinned = thread.pinnedAt !== null;
+  const remoteRef = parseRemoteId(thread.id);
   const threadUrl = new URL(
-    getThreadRoutePath({ projectId: thread.projectId, threadId: thread.id }),
+    remoteRef === null
+      ? getThreadRoutePath({ projectId: thread.projectId, threadId: thread.id })
+      : getRemoteThreadRoutePath({
+          handle: remoteRef.handle,
+          threadId: remoteRef.id,
+        }),
     window.location.origin,
   ).toString();
 
@@ -244,11 +297,13 @@ function ThreadActionsMenuItems({
           {showSeparators ? <ActionMenuSeparator surface={surface} /> : null}
         </>
       ) : null}
-      <ThreadCodexActions
-        thread={thread}
-        surface={surface}
-        showSeparator={showSeparators}
-      />
+      {remoteRef === null ? (
+        <ThreadCodexActions
+          thread={thread}
+          surface={surface}
+          showSeparator={showSeparators}
+        />
+      ) : null}
       <ActionMenuItem
         surface={surface}
         icon="Copy"

@@ -1,5 +1,5 @@
 import { Icon } from "@kaioken/shared-ui/icon";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActionMenuItem,
   ActionMenuSeparator,
@@ -40,6 +40,9 @@ import { usePathPickerHost } from "@/hooks/useLocalPathPicker";
 import { getSettingsProjectRoutePath } from "@/lib/route-paths";
 import { cn } from "@kaioken/shared-ui/lib/utils";
 import { useProjectActions } from "./ProjectActionsProvider";
+import { useRemoteRowActions } from "@/hooks/mutations/remote-row-actions";
+import { useRemoteLabels } from "@/lib/federation/remote-labels";
+import { isRemoteId, useRemoteTarget } from "@/lib/federation/remote-target";
 
 interface ProjectActionsMenuBaseProps {
   project: ProjectResponse;
@@ -65,11 +68,60 @@ function stopProjectActionsMenuClickPropagation(event: MouseEvent) {
   event.stopPropagation();
 }
 
-function ProjectSectionMoveMenu({
+interface ProjectSectionMoveModel {
+  destinations: readonly { label: string; sectionId: string | null }[];
+  currentSectionId: (project: ProjectResponse) => string | null;
+  moveProject: (project: ProjectResponse, sectionId: string | null) => void;
+  requestNewSection?: () => void;
+}
+
+function ProjectSectionMoveMenu(props: ProjectActionsMenuItemsProps) {
+  return isRemoteId(props.project.id) ? (
+    <RemoteProjectSectionMoveMenu {...props} />
+  ) : (
+    <HomeProjectSectionMoveMenu {...props} />
+  );
+}
+
+function HomeProjectSectionMoveMenu(props: ProjectActionsMenuItemsProps) {
+  const sectionMove = useProjectSectionMove();
+  return <ProjectSectionMoveMenuBody {...props} sectionMove={sectionMove} />;
+}
+
+function RemoteProjectSectionMoveMenu(props: ProjectActionsMenuItemsProps) {
+  const remoteTarget = useRemoteTarget(props.project.id);
+  const remoteLabels = useRemoteLabels(remoteTarget);
+  const remoteActions = useRemoteRowActions();
+  const sectionMove = useMemo<ProjectSectionMoveModel | null>(
+    () =>
+      remoteTarget === null
+        ? null
+        : {
+            destinations: remoteLabels.destinations,
+            currentSectionId: (candidate) =>
+              remoteLabels.sectionIdByProjectId.get(candidate.id) ?? null,
+            moveProject: (candidate, sectionId) => {
+              if (
+                (remoteLabels.sectionIdByProjectId.get(candidate.id) ??
+                  null) === sectionId
+              ) {
+                return;
+              }
+              void remoteActions.moveProject(remoteTarget, sectionId);
+            },
+          },
+    [remoteActions, remoteLabels, remoteTarget],
+  );
+  return <ProjectSectionMoveMenuBody {...props} sectionMove={sectionMove} />;
+}
+
+function ProjectSectionMoveMenuBody({
   project,
   surface,
-}: ProjectActionsMenuItemsProps) {
-  const sectionMove = useProjectSectionMove();
+  sectionMove,
+}: ProjectActionsMenuItemsProps & {
+  sectionMove: ProjectSectionMoveModel | null;
+}) {
   const isCompactViewport = useIsCompactViewport();
   const [expanded, setExpanded] = useState(false);
   if (!sectionMove) return null;
@@ -155,21 +207,25 @@ export function ProjectActionsMenuItems({
   const { hostId: pickerHostId } = usePathPickerHost();
   const { requestRename, requestDelete, requestAddLocalPath } =
     useProjectActions();
+  const isRemoteProject = isRemoteId(project.id);
   const showAddLocalPath =
+    !isRemoteProject &&
     pickerHostId != null &&
     !findLocalPathProjectSourceForHost(project.sources, pickerHostId);
 
   return (
     <>
-      <ActionMenuItem
-        surface={surface}
-        icon="Settings"
-        onSelect={() => {
-          navigate(getSettingsProjectRoutePath(project.id));
-        }}
-      >
-        Project settings
-      </ActionMenuItem>
+      {!isRemoteProject ? (
+        <ActionMenuItem
+          surface={surface}
+          icon="Settings"
+          onSelect={() => {
+            navigate(getSettingsProjectRoutePath(project.id));
+          }}
+        >
+          Project settings
+        </ActionMenuItem>
+      ) : null}
       <ActionMenuItem
         surface={surface}
         icon="Edit"

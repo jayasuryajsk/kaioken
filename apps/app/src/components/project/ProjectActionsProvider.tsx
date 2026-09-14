@@ -2,7 +2,9 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import { useSetAtom } from "jotai";
@@ -30,6 +32,9 @@ import {
 } from "@/components/dialogs/ProjectRenameDialog";
 import { collapsedProjectIdsAtom } from "@/components/sidebar/sidebarCollapsedAtoms";
 import { getRootComposeRoutePath } from "@/lib/route-paths";
+import { useAccountServers } from "@/hooks/queries/federation-queries";
+import { useRemoteRowActions } from "@/hooks/mutations/remote-row-actions";
+import { resolveRemoteTarget } from "@/lib/federation/remote-target";
 
 interface ProjectActionsContextValue {
   requestRename: (project: ProjectResponse) => void;
@@ -66,6 +71,12 @@ export function ProjectActionsProvider({
   const addLocalSource = useAddLocalProjectSource();
   const { mutate: updateProjectMutate } = updateProject;
   const { mutate: deleteProjectMutate } = deleteProject;
+  const accountServers = useAccountServers();
+  const accountServersRef = useRef(accountServers.data);
+  useEffect(() => {
+    accountServersRef.current = accountServers.data;
+  }, [accountServers.data]);
+  const remoteActions = useRemoteRowActions();
   const { mutate: addLocalSourceMutate } = addLocalSource;
 
   const renameDialog = useDialogState<ProjectRenameDialogTarget>();
@@ -98,12 +109,19 @@ export function ProjectActionsProvider({
 
   const submitRename = useCallback(
     (projectId: string, name: string) => {
+      const target = resolveRemoteTarget(accountServersRef.current, projectId);
+      if (target !== null) {
+        void remoteActions.renameProject(target, name).then((ok) => {
+          if (ok) closeRenameDialog();
+        });
+        return;
+      }
       updateProjectMutate(
         { id: projectId, name },
         { onSuccess: () => closeRenameDialog() },
       );
     },
-    [closeRenameDialog, updateProjectMutate],
+    [closeRenameDialog, remoteActions, updateProjectMutate],
   );
 
   const requestDelete = useCallback(
@@ -115,6 +133,13 @@ export function ProjectActionsProvider({
 
   const confirmDelete = useCallback(
     (projectId: string) => {
+      const target = resolveRemoteTarget(accountServersRef.current, projectId);
+      if (target !== null) {
+        void remoteActions.deleteProject(target).then((ok) => {
+          if (ok) closeDeleteDialog();
+        });
+        return;
+      }
       deleteProjectMutate(projectId, {
         onSuccess: () => {
           closeDeleteDialog();
@@ -131,6 +156,7 @@ export function ProjectActionsProvider({
       closeDeleteDialog,
       deleteProjectMutate,
       navigate,
+      remoteActions,
       routeProjectId,
       setCollapsedProjectIdList,
     ],

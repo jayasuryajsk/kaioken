@@ -264,25 +264,22 @@ export function TimelineRow({
             queuedWork={thread.queuedWork}
           />
         </span>
-        {remote === undefined ? (
-          <span
-            className={cn(
-              "hidden group-hover/timeline-row:inline-flex",
-              menuOpen && "inline-flex",
-            )}
-          >
-            <ThreadActionsMenu
-              thread={thread}
-              onOpenInSplit={splitAvailable ? openInSplit : undefined}
-              triggerClassName={cn(SIDEBAR_CONTROL_BUTTON_CLASS, "size-6")}
-              onOpenChange={setMenuOpen}
-            />
-          </span>
-        ) : null}
+        <span
+          className={cn(
+            "hidden group-hover/timeline-row:inline-flex",
+            menuOpen && "inline-flex",
+          )}
+        >
+          <ThreadActionsMenu
+            thread={thread}
+            onOpenInSplit={splitAvailable ? openInSplit : undefined}
+            triggerClassName={cn(SIDEBAR_CONTROL_BUTTON_CLASS, "size-6")}
+            onOpenChange={setMenuOpen}
+          />
+        </span>
       </span>
     </div>
   );
-  if (remote !== undefined) return row;
   return (
     <ThreadActionsContextMenu
       thread={thread}

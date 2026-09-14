@@ -71,13 +71,13 @@ vi.mock("./useThreadRowSplitDrag", () => ({
 vi.mock("@/components/thread/ThreadActionsMenu", () => ({
   ThreadActionsContextMenu: ({ children }: { children: React.ReactNode }) =>
     children,
-  ThreadActionsMenu: () => null,
+  ThreadActionsMenu: () => <span data-testid="thread-actions-menu" />,
 }));
 
 vi.mock("@/components/project/ProjectActionsMenu", () => ({
   ProjectActionsContextMenu: ({ children }: { children: React.ReactNode }) =>
     children,
-  ProjectActionsMenu: () => null,
+  ProjectActionsMenu: () => <span data-testid="project-actions-menu" />,
 }));
 
 const NOW = Date.now();
@@ -574,6 +574,14 @@ describe("UnifiedSidebarList", () => {
       .getAllByTestId("timeline-row")
       .find((row) => row.getAttribute("data-remote-server") === "mini");
     expect(remoteRow).toBeDefined();
+    expect(
+      within(remoteRow!).getByTestId("thread-actions-menu"),
+    ).toBeDefined();
+    expect(
+      within(
+        within(remoteProject!).getByTestId("unified-project-row"),
+      ).getByTestId("project-actions-menu"),
+    ).toBeDefined();
     expect(remoteRow!.getAttribute("title")).toBe(
       "This thread lives on Mac mini.",
     );

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { NavLink, useMatch } from "react-router-dom";
 import { useAtom, useAtomValue } from "jotai";
 import { atomWithStorage } from "jotai/utils";
@@ -207,10 +207,7 @@ function UnifiedProjectRows({
   const isActive =
     selectedThreadId === undefined && selectedProjectId === project.id;
   const offline = remoteServer !== undefined && !remoteServer.live;
-  const ProjectMenuWrapper =
-    remoteServer === undefined
-      ? ProjectActionsContextMenu
-      : PlainProjectWrapper;
+  const ProjectMenuWrapper = ProjectActionsContextMenu;
   return (
     <div
       data-testid="unified-project"
@@ -284,7 +281,7 @@ function UnifiedProjectRows({
           <span
             className={cn(
               "flex shrink-0 items-center gap-1.5 text-xs text-subtle-foreground",
-              remoteServer === undefined && "group-hover/project-row:hidden",
+              "group-hover/project-row:hidden",
               menuOpen && "hidden",
             )}
           >
@@ -322,20 +319,18 @@ function UnifiedProjectRows({
               />
             ) : null}
           </span>
-          {remoteServer === undefined ? (
-            <span
-              className={cn(
-                "hidden shrink-0 group-hover/project-row:inline-flex",
-                menuOpen && "inline-flex",
-              )}
-            >
-              <ProjectActionsMenu
-                project={project}
-                triggerClassName={cn(SIDEBAR_CONTROL_BUTTON_CLASS, "size-6")}
-                onOpenChange={setMenuOpen}
-              />
-            </span>
-          ) : null}
+          <span
+            className={cn(
+              "hidden shrink-0 group-hover/project-row:inline-flex",
+              menuOpen && "inline-flex",
+            )}
+          >
+            <ProjectActionsMenu
+              project={project}
+              triggerClassName={cn(SIDEBAR_CONTROL_BUTTON_CLASS, "size-6")}
+              onOpenChange={setMenuOpen}
+            />
+          </span>
         </div>
       </ProjectMenuWrapper>
       {expanded && visibleThreads.length > 0 ? (
@@ -371,16 +366,6 @@ function UnifiedProjectRows({
       ) : null}
     </div>
   );
-}
-
-function PlainProjectWrapper({
-  children,
-}: {
-  children: ReactNode;
-  project: ProjectResponse;
-  onOpenChange: (open: boolean) => void;
-}) {
-  return <>{children}</>;
 }
 
 function ProjectsSortMenu({

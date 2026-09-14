@@ -7,8 +7,10 @@ import type {
 import { appToast } from "@/components/ui/app-toast";
 import { getRemoteSdk } from "@/lib/federation/remote-sdk";
 import { KaiokenHttpError } from "@/lib/sdk";
-import { invalidateRemoteThreadQueries } from "../queries/remote-thread-queries";
-import { remoteServerSnapshotQueryKey } from "../queries/federation-queries";
+import {
+  invalidateRemoteServerSnapshot,
+  invalidateRemoteThreadQueries,
+} from "../cache-owners/federation-cache-owner";
 
 export function describeRemoteWriteFailure(
   serverName: string,
@@ -55,9 +57,7 @@ export function useSendRemoteThreadMessage(server: FederatedServer) {
         handle: server.handle,
         threadId: variables.threadId,
       });
-      void queryClient.invalidateQueries({
-        queryKey: remoteServerSnapshotQueryKey(server.handle),
-      });
+      invalidateRemoteServerSnapshot({ queryClient, handle: server.handle });
     },
   });
 }
@@ -101,9 +101,7 @@ export function useCreateRemoteThread(server: FederatedServer) {
       reportRemoteWriteFailure(server, "new thread", error);
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: remoteServerSnapshotQueryKey(server.handle),
-      });
+      invalidateRemoteServerSnapshot({ queryClient, handle: server.handle });
     },
   });
 }

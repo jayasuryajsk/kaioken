@@ -57,7 +57,7 @@ import {
   invalidateThreadBannerQueries,
   invalidateThreadHistoryRewriteQueries,
 } from "../cache-owners/mutation-cache-effects";
-import { invalidateRemoteThreadQueries } from "../queries/remote-thread-queries";
+import { invalidateRemoteThreadQueries } from "../cache-owners/federation-cache-owner";
 
 interface CreateThreadQueuedMessageMutationRequest extends CreateQueuedMessageRequest {
   id: string;
