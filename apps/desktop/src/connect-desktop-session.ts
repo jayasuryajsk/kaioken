@@ -38,7 +38,7 @@ export interface DesktopCookieStore {
     httpOnly: boolean;
     name: string;
     path: string;
-    sameSite: "lax";
+    sameSite: "no_restriction";
     secure: boolean;
     url: string;
     value: string;
@@ -158,7 +158,7 @@ export async function installConnectDesktopSession(args: {
       httpOnly: true,
       name: cookie.name,
       path: "/",
-      sameSite: "lax",
+      sameSite: "no_restriction",
       secure: remoteOrigin.startsWith("https://"),
       url: remoteOrigin,
       value: cookie.value,

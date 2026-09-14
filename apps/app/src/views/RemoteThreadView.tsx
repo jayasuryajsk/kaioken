@@ -1,123 +1,255 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import type { PendingInteraction, PromptTextMention } from "@kaioken/domain";
 import type { FederatedServer } from "@kaioken/client-core";
+import { EMPTY_ORDERED_MENTION_SUGGESTIONS } from "@kaioken/client-core";
+import type { FollowUpSubmitMode } from "@kaioken/client-core";
 import { Icon } from "@kaioken/shared-ui/icon";
-import { cn } from "@kaioken/shared-ui/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@kaioken/shared-ui/tooltip";
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
 import {
-  REMOTE_THREAD_READ_ONLY_HINT,
   formatOfflineMeta,
   useNow,
 } from "@/components/sidebar/TimelineThreadList";
+import { ThreadPendingInteractionBanner } from "@/components/thread/pending-interactions/ThreadPendingInteractionBanner";
 import { ThreadTimelineSurface } from "@/components/thread/timeline/ThreadTimelineSurface";
-import { PageShell } from "@/components/ui/page-shell.js";
 import {
-  REMOTE_SNAPSHOT_REFETCH_MS,
-  useAccountServers,
-} from "@/hooks/queries/federation-queries";
-import { getRemoteSdk } from "@/lib/federation/remote-sdk";
+  FollowUpPromptBox,
+  type FollowUpComposerProps,
+} from "@/components/promptbox/FollowUpPromptBox";
+import type { ExecutionControlsProps } from "@/components/promptbox/ExecutionControls";
+import {
+  INERT_TYPEAHEAD_COMMAND_CONFIG,
+  type TypeaheadConfig,
+} from "@/components/promptbox/PromptBoxInternal";
+import {
+  getCompactFollowUpPromptPlaceholder,
+  getFollowUpPromptPlaceholder,
+} from "@/components/promptbox/follow-up-placeholder";
+import { PageShell } from "@/components/ui/page-shell.js";
+import { useAccountServers } from "@/hooks/queries/federation-queries";
+import {
+  useRemoteThread,
+  type RemoteRealtimeState,
+} from "@/hooks/queries/remote-thread-queries";
+import {
+  useSendRemoteThreadMessage,
+  useStopRemoteThread,
+} from "@/hooks/mutations/remote-thread-mutations";
+import { getLatestPendingInteraction } from "@/hooks/queries/thread-queries";
+import { RemoteServerProvider } from "@/lib/federation/remote-server-context";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
 
-export function remoteThreadBanner(serverName: string): string {
-  return `This thread lives on ${serverName}. ${REMOTE_THREAD_READ_ONLY_HINT}`;
+const REMOTE_TYPEAHEAD: TypeaheadConfig = {
+  mention: {
+    results: EMPTY_ORDERED_MENTION_SUGGESTIONS,
+    isLoading: false,
+    isError: false,
+    onQueryChange: () => {},
+  },
+  command: INERT_TYPEAHEAD_COMMAND_CONFIG,
+};
+
+export function remoteThreadMarker(serverName: string): string {
+  return `On ${serverName}`;
 }
 
-export function remoteWriteDisabledReason(serverName: string): string {
-  return `Read-only: this thread lives on ${serverName}.`;
-}
-
-function remoteThreadQueryKey(handle: string, threadId: string) {
-  return ["federation", "thread", handle, threadId] as const;
-}
-
-function remoteTimelineQueryKey(handle: string, threadId: string) {
-  return ["federation", "timeline", handle, threadId] as const;
-}
-
-function useRemoteThread(
-  server: FederatedServer | undefined,
-  threadId: string,
-) {
-  const enabled = server !== undefined && server.live && threadId.length > 0;
-  const url = server?.url ?? "";
-  const handle = server?.handle ?? "";
-  const thread = useQuery({
-    queryKey: remoteThreadQueryKey(handle, threadId),
-    queryFn: () => getRemoteSdk(url).threads.get({ threadId }),
-    enabled,
-    refetchInterval: REMOTE_SNAPSHOT_REFETCH_MS,
-    retry: false,
-  });
-  const timeline = useQuery({
-    queryKey: remoteTimelineQueryKey(handle, threadId),
-    queryFn: () => getRemoteSdk(url).threads.timeline({ threadId }),
-    enabled,
-    refetchInterval: REMOTE_SNAPSHOT_REFETCH_MS,
-    retry: false,
-  });
-  return { thread, timeline };
-}
-
-function ReadOnlyComposer({ serverName }: { serverName: string }) {
+function RemoteThreadHeader({
+  server,
+  title,
+  now,
+  realtime,
+}: {
+  server: FederatedServer;
+  title: string;
+  now: number;
+  realtime: RemoteRealtimeState;
+}) {
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div
-            data-testid="remote-thread-composer"
-            className="mx-auto flex w-full max-w-[760px] items-center gap-2 rounded-lg border border-border bg-surface-recessed px-3 py-2 text-sm text-muted-foreground"
-          >
-            <Icon name="Lock" className="size-4 shrink-0" />
-            <span className="min-w-0 flex-1 truncate">
-              Reply on {serverName} to continue this thread.
-            </span>
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              data-testid="remote-thread-send"
-              className="rounded-md border border-border px-2 py-1 text-xs opacity-60"
-            >
-              Send
-            </button>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>{remoteWriteDisabledReason(serverName)}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <div className="mb-3 flex min-w-0 items-center gap-2 px-2">
+      <h1
+        data-testid="remote-thread-title"
+        className="min-w-0 flex-1 truncate text-base font-semibold text-foreground"
+      >
+        {title}
+      </h1>
+      <span
+        data-testid="remote-thread-marker"
+        data-realtime={realtime}
+        title={
+          server.live
+            ? realtime === "connected"
+              ? `Live updates from ${server.name}`
+              : `Polling ${server.name} for updates`
+            : formatOfflineMeta(server.lastSeenAt, now)
+        }
+        className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface-recessed px-2 py-0.5 text-xs text-muted-foreground"
+      >
+        <MachineStatusDot connected={server.live} />
+        <Icon name="ComputerTerminal01" className="size-3" />
+        {remoteThreadMarker(server.name)}
+      </span>
+    </div>
   );
 }
 
-function RemoteThreadBanner({
-  server,
-  now,
-}: {
+interface RemoteComposerProps {
   server: FederatedServer;
-  now: number;
-}) {
+  threadId: string;
+  runtimeDisplayStatus: FollowUpComposerProps["threadRuntimeDisplayStatus"];
+  pendingInteraction: PendingInteraction | null;
+  pendingInteractionsLoading: boolean;
+  execution: ExecutionControlsProps;
+  permissionMode: FollowUpPromptBoxPermission["value"];
+}
+
+type FollowUpPromptBoxPermission = Parameters<
+  typeof FollowUpPromptBox
+>[0]["permission"];
+
+function RemoteComposer({
+  server,
+  threadId,
+  runtimeDisplayStatus,
+  pendingInteraction,
+  pendingInteractionsLoading,
+  execution,
+  permissionMode,
+}: RemoteComposerProps) {
+  const [message, setMessage] = useState("");
+  const [mentionRanges, setMentionRanges] = useState<PromptTextMention[]>([]);
+  const send = useSendRemoteThreadMessage(server);
+  const stop = useStopRemoteThread(server);
+  const isBusy =
+    runtimeDisplayStatus === "active" ||
+    runtimeDisplayStatus === "starting" ||
+    runtimeDisplayStatus === "provisioning";
+  const isStopping = runtimeDisplayStatus === "stopping" || stop.isPending;
+  const handleStop = useCallback(() => {
+    stop.mutate(threadId);
+  }, [stop, threadId]);
+  const submitWith = useCallback(
+    (mode: "queue-if-active" | "steer-if-active") => {
+      const text = message.trim();
+      if (text.length === 0 || send.isPending) return;
+      send.mutate(
+        {
+          threadId,
+          input: [{ type: "text", text: message, mentions: mentionRanges }],
+          mode,
+        },
+        {
+          onSuccess: () => {
+            setMessage("");
+            setMentionRanges([]);
+          },
+        },
+      );
+    },
+    [mentionRanges, message, send, threadId],
+  );
+  const submitMode = useMemo<FollowUpSubmitMode>(() => {
+    if (!server.live) return { kind: "blocked", reason: "unavailable" };
+    if (pendingInteractionsLoading) {
+      return { kind: "blocked", reason: "loading-pending-interactions" };
+    }
+    if (pendingInteraction !== null) {
+      return { kind: "blocked", reason: "pending-interaction" };
+    }
+    if (isStopping) return { kind: "blocked", reason: "stopping" };
+    if (isBusy) return { kind: "queue", onStop: handleStop };
+    return { kind: "ready" };
+  }, [
+    handleStop,
+    isBusy,
+    isStopping,
+    pendingInteraction,
+    pendingInteractionsLoading,
+    server.live,
+  ]);
+  const composer = useMemo<FollowUpComposerProps>(
+    () => ({
+      history: {
+        currentDraft: { text: message, mentions: mentionRanges, attachments: [] },
+        entries: [],
+        onSelectEntry: () => {},
+      },
+      isFollowUpSubmitting: send.isPending,
+      message,
+      mentionRanges,
+      onChangeMessage: (value, ranges) => {
+        setMessage(value);
+        setMentionRanges(ranges);
+      },
+      onSubmit: () => submitWith("queue-if-active"),
+      onModifierSubmit: () => submitWith("steer-if-active"),
+      compactPromptPlaceholder:
+        getCompactFollowUpPromptPlaceholder(runtimeDisplayStatus),
+      promptPlaceholder: `${getFollowUpPromptPlaceholder(runtimeDisplayStatus)} (runs on ${server.name})`,
+      canModifierSubmit: isBusy,
+      steerActiveThreadOnEnter: false,
+      submitMode,
+      threadRuntimeDisplayStatus: runtimeDisplayStatus,
+    }),
+    [
+      isBusy,
+      mentionRanges,
+      message,
+      runtimeDisplayStatus,
+      send.isPending,
+      server.name,
+      submitMode,
+      submitWith,
+    ],
+  );
+  const pendingInteractionNode =
+    pendingInteraction === null ? null : (
+      <ThreadPendingInteractionBanner
+        interaction={pendingInteraction}
+        threadId={threadId}
+      />
+    );
+  const permission = useMemo<FollowUpPromptBoxPermission>(
+    () => ({
+      value: permissionMode,
+      options: [],
+      onChange: () => {},
+      supported: permissionMode !== undefined,
+    }),
+    [permissionMode],
+  );
+
+  return (
+    <div data-testid="remote-thread-composer" data-server={server.handle}>
+      <FollowUpPromptBox
+        attachments={{ items: [] }}
+        stack={null}
+        pendingInteraction={pendingInteractionNode}
+        composer={composer}
+        environmentSummary={null}
+        contextWindowUsage={null}
+        execution={execution}
+        executionReadOnly
+        permission={permission}
+        permissionReadOnly
+        typeahead={REMOTE_TYPEAHEAD}
+        suppressPluginComposerCustomizations
+        collapseResetKey={`${server.handle}:${threadId}`}
+        isPrimaryComposer
+      />
+    </div>
+  );
+}
+
+function OfflineComposer({ server, now }: { server: FederatedServer; now: number }) {
   return (
     <div
-      data-testid="remote-thread-banner"
-      className={cn(
-        "mb-3 flex items-center gap-2 rounded-lg border border-border bg-surface-recessed px-3 py-2 text-xs text-muted-foreground",
-      )}
+      data-testid="remote-thread-offline"
+      className="mx-auto flex w-full max-w-[760px] items-center gap-2 rounded-lg border border-border bg-surface-recessed px-3 py-2 text-sm text-muted-foreground"
     >
-      <MachineStatusDot connected={server.live} />
-      <span className="min-w-0 flex-1">
-        {remoteThreadBanner(server.name)}
-        {server.live ? null : (
-          <span className="text-subtle-foreground">
-            {" "}
-            · {formatOfflineMeta(server.lastSeenAt, now)}
-          </span>
-        )}
+      <MachineStatusDot connected={false} />
+      <span className="min-w-0 flex-1 truncate">
+        {server.name} is offline · {formatOfflineMeta(server.lastSeenAt, now)}.
+        Replies will work when it is back.
       </span>
     </div>
   );
@@ -133,9 +265,43 @@ export function RemoteThreadView() {
     () => serversQuery.data?.find((candidate) => candidate.handle === handle),
     [handle, serversQuery.data],
   );
-  const { thread, timeline } = useRemoteThread(server, threadId);
+  const { thread, timeline, pendingInteractions, executionOptions, realtime } =
+    useRemoteThread(server, threadId);
   const title =
     thread.data === undefined ? threadId : getThreadDisplayTitle(thread.data);
+  const runtimeDisplayStatus = thread.data?.runtime.displayStatus ?? "idle";
+  const latestPendingInteraction = useMemo(
+    () => getLatestPendingInteraction(pendingInteractions.data),
+    [pendingInteractions.data],
+  );
+  const execution = useMemo<ExecutionControlsProps>(() => {
+    const resolved = executionOptions.data ?? null;
+    return {
+      provider: {
+        selectedId: thread.data?.providerId,
+        hasMultiple: false,
+      },
+      model: {
+        active: resolved === null ? null : { model: resolved.model },
+        selected: resolved?.model ?? "",
+        options: [],
+        moreOptions: [],
+        isLoading: executionOptions.isPending,
+        loadFailed: executionOptions.isError,
+        onChange: () => {},
+      },
+      reasoning: {
+        value: resolved?.reasoningLevel ?? "medium",
+        options: [],
+        onChange: () => {},
+      },
+    };
+  }, [
+    executionOptions.data,
+    executionOptions.isError,
+    executionOptions.isPending,
+    thread.data?.providerId,
+  ]);
 
   if (server === undefined) {
     return (
@@ -153,32 +319,50 @@ export function RemoteThreadView() {
   }
 
   return (
-    <PageShell footer={<ReadOnlyComposer serverName={server.name} />}>
-      <RemoteThreadBanner server={server} now={now} />
-      <h1
-        data-testid="remote-thread-title"
-        className="mb-3 truncate px-2 text-base font-semibold text-foreground"
+    <RemoteServerProvider server={server}>
+      <PageShell
+        footer={
+          server.live ? (
+            <RemoteComposer
+              server={server}
+              threadId={threadId}
+              runtimeDisplayStatus={runtimeDisplayStatus}
+              pendingInteraction={latestPendingInteraction}
+              pendingInteractionsLoading={
+                pendingInteractions.data === undefined &&
+                pendingInteractions.isFetching
+              }
+              execution={execution}
+              permissionMode={executionOptions.data?.permissionMode}
+            />
+          ) : (
+            <OfflineComposer server={server} now={now} />
+          )
+        }
       >
-        {title}
-      </h1>
-      {server.live ? (
-        <ThreadTimelineSurface
-          activeThinking={null}
-          isThreadTimelinePending={timeline.isPending}
-          timelineError={timeline.isError}
-          showOngoingIndicator={false}
-          timelineRows={timeline.data?.rows ?? []}
-          threadId={threadId}
-          threadRuntimeDisplayStatus={
-            thread.data?.runtime.displayStatus ?? "idle"
-          }
-          workspaceRootPath={undefined}
+        <RemoteThreadHeader
+          server={server}
+          title={title}
+          now={now}
+          realtime={realtime}
         />
-      ) : (
-        <p className="px-2 py-4 text-sm text-muted-foreground">
-          {server.name} is offline. This thread will load when it comes back.
-        </p>
-      )}
-    </PageShell>
+        {server.live ? (
+          <ThreadTimelineSurface
+            activeThinking={null}
+            isThreadTimelinePending={timeline.isPending}
+            timelineError={timeline.isError}
+            showOngoingIndicator={runtimeDisplayStatus === "active"}
+            timelineRows={timeline.data?.rows ?? []}
+            threadId={threadId}
+            threadRuntimeDisplayStatus={runtimeDisplayStatus}
+            workspaceRootPath={undefined}
+          />
+        ) : (
+          <p className="px-2 py-4 text-sm text-muted-foreground">
+            {server.name} is offline. This thread will load when it comes back.
+          </p>
+        )}
+      </PageShell>
+    </RemoteServerProvider>
   );
 }

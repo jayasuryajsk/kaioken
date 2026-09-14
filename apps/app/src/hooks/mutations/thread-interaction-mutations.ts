@@ -1,8 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { PendingInteraction } from "@kaioken/domain";
 import type { ResolvePendingInteractionRequest } from "@kaioken/server-contract";
-import { sdk } from "@/lib/sdk";
+import {
+  useRemoteServer,
+  useScopedSdk,
+} from "@/lib/federation/remote-server-context";
 import { invalidateThreadPendingInteractionResolutionQueries } from "../cache-owners/mutation-cache-effects";
+import { invalidateRemoteThreadQueries } from "../queries/remote-thread-queries";
 
 interface ResolveThreadPendingInteractionMutationRequest {
   threadId: string;
@@ -12,6 +16,8 @@ interface ResolveThreadPendingInteractionMutationRequest {
 
 export function useResolveThreadPendingInteraction() {
   const queryClient = useQueryClient();
+  const remoteServer = useRemoteServer();
+  const sdk = useScopedSdk();
 
   return useMutation({
     meta: {
@@ -29,6 +35,14 @@ export function useResolveThreadPendingInteraction() {
         threadId,
       }),
     onSuccess: (interaction, variables) => {
+      if (remoteServer !== null) {
+        invalidateRemoteThreadQueries({
+          queryClient,
+          handle: remoteServer.handle,
+          threadId: variables.threadId,
+        });
+        return interaction;
+      }
       invalidateThreadPendingInteractionResolutionQueries({
         queryClient,
         threadId: variables.threadId,

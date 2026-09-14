@@ -1,7 +1,9 @@
 import { ipcMain } from "electron";
 import {
   KAIOKEN_DESKTOP_FEDERATED_FETCH_MAX_BODY_BYTES,
+  KAIOKEN_DESKTOP_FEDERATED_FETCH_MAX_REQUEST_BODY_BYTES,
   kaiokenDesktopFederatedFetchRequestSchema,
+  type KaiokenDesktopFederatedFetchMethod,
   type KaiokenDesktopFederatedFetchResponse,
 } from "@kaioken/desktop-contract";
 import { KAIOKEN_DESKTOP_FEDERATED_FETCH_CHANNEL } from "./desktop-federation-ipc.js";
@@ -20,9 +22,10 @@ export interface FederatedFetchServer {
 export type FederatedFetchImpl = (
   url: string,
   init: {
-    method: "GET" | "HEAD";
+    method: KaiokenDesktopFederatedFetchMethod;
     headers: Record<string, string>;
     credentials: "include";
+    body?: string;
   },
 ) => Promise<{
   status: number;
@@ -72,6 +75,7 @@ export interface CreateFederatedFetchHandlerArgs {
   fetchImpl: FederatedFetchImpl;
   prepare?: () => Promise<void>;
   maxBodyBytes?: number;
+  maxRequestBodyBytes?: number;
 }
 
 export function createFederatedFetchHandler({
@@ -79,6 +83,7 @@ export function createFederatedFetchHandler({
   fetchImpl,
   prepare,
   maxBodyBytes = KAIOKEN_DESKTOP_FEDERATED_FETCH_MAX_BODY_BYTES,
+  maxRequestBodyBytes = KAIOKEN_DESKTOP_FEDERATED_FETCH_MAX_REQUEST_BODY_BYTES,
 }: CreateFederatedFetchHandlerArgs): (
   payload: unknown,
 ) => Promise<KaiokenDesktopFederatedFetchResponse> {
@@ -86,6 +91,13 @@ export function createFederatedFetchHandler({
     const parsed = kaiokenDesktopFederatedFetchRequestSchema.safeParse(payload);
     if (!parsed.success) {
       throw new Error("federated fetch request is malformed");
+    }
+    const requestBody = parsed.data.body;
+    if (
+      requestBody !== undefined &&
+      Buffer.byteLength(requestBody, "utf8") > maxRequestBodyBytes
+    ) {
+      throw new Error("federated fetch request body exceeds the size limit");
     }
     if (prepare !== undefined) {
       try {
@@ -98,21 +110,26 @@ export function createFederatedFetchHandler({
     if (!isAllowedFederatedUrl(url, listServers())) {
       throw new Error(`federated fetch refused for ${url.origin}`);
     }
+    const headers = sanitizeFederatedHeaders(parsed.data.headers);
+    if (requestBody !== undefined && headers["content-type"] === undefined) {
+      headers["content-type"] = "application/json";
+    }
     const response = await fetchImpl(url.toString(), {
       method: parsed.data.method,
-      headers: sanitizeFederatedHeaders(parsed.data.headers),
+      headers,
       credentials: "include",
+      ...(requestBody === undefined ? {} : { body: requestBody }),
     });
     const body = parsed.data.method === "HEAD" ? "" : await response.text();
     if (Buffer.byteLength(body, "utf8") > maxBodyBytes) {
       throw new Error("federated fetch response exceeds the size limit");
     }
-    const headers: Array<[string, string]> = [];
+    const responseHeaders: Array<[string, string]> = [];
     response.headers.forEach((value, key) => {
       if (key.toLowerCase() === "set-cookie") return;
-      headers.push([key, value]);
+      responseHeaders.push([key, value]);
     });
-    return { status: response.status, headers, body };
+    return { status: response.status, headers: responseHeaders, body };
   };
 }
 

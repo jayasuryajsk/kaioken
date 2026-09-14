@@ -77,11 +77,8 @@ export interface TimelineRowProps {
   now?: number;
 }
 
-export const REMOTE_THREAD_READ_ONLY_HINT =
-  "Actions on it are coming in the next phase.";
-
 export function remoteThreadTooltip(serverName: string): string {
-  return `This thread lives on ${serverName}. ${REMOTE_THREAD_READ_ONLY_HINT}`;
+  return `This thread lives on ${serverName}.`;
 }
 
 export function formatOfflineMeta(

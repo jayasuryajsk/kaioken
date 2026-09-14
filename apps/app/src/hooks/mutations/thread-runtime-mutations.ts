@@ -9,6 +9,10 @@ import type {
 } from "@kaioken/server-contract";
 import type { AppCreateThreadRequest } from "@kaioken/client-core";
 import { KaiokenHttpError, sdk } from "@/lib/sdk";
+import {
+  useRemoteServer,
+  useScopedSdk,
+} from "@/lib/federation/remote-server-context";
 import { wsManager } from "@/lib/ws";
 import type { QueuedMessageReorderRequest } from "@/lib/queued-message-reorder";
 import type {
@@ -53,6 +57,7 @@ import {
   invalidateThreadBannerQueries,
   invalidateThreadHistoryRewriteQueries,
 } from "../cache-owners/mutation-cache-effects";
+import { invalidateRemoteThreadQueries } from "../queries/remote-thread-queries";
 
 interface CreateThreadQueuedMessageMutationRequest extends CreateQueuedMessageRequest {
   id: string;
@@ -493,6 +498,8 @@ export function useDeleteThreadQueuedMessage() {
 
 export function useStopThread() {
   const queryClient = useQueryClient();
+  const remoteServer = useRemoteServer();
+  const scopedSdk = useScopedSdk();
 
   return useMutation({
     meta: {
@@ -500,22 +507,33 @@ export function useStopThread() {
       lifecycleOperation: "stop_thread",
     },
     mutationFn: async (threadId: string) => {
-      await sdk.threads.stop({ threadId });
+      await scopedSdk.threads.stop({ threadId });
     },
-    onMutate: async (threadId): Promise<StopThreadTransaction> =>
-      beginStopThreadTransaction({
-        queryClient,
-        requestedAt: Date.now(),
-        threadId,
-      }),
+    onMutate: async (threadId): Promise<StopThreadTransaction | null> =>
+      remoteServer === null
+        ? beginStopThreadTransaction({
+            queryClient,
+            requestedAt: Date.now(),
+            threadId,
+          })
+        : null,
     onError: (_error, threadId, context) => {
+      if (remoteServer !== null) return;
       rollbackStopThreadTransaction({
         queryClient,
         threadId,
-        transaction: context,
+        transaction: context ?? undefined,
       });
     },
     onSettled: (_data, _error, threadId) => {
+      if (remoteServer !== null) {
+        invalidateRemoteThreadQueries({
+          queryClient,
+          handle: remoteServer.handle,
+          threadId,
+        });
+        return;
+      }
       settleStopThreadTransaction({ queryClient, threadId });
     },
   });

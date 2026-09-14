@@ -119,7 +119,7 @@ describe("createFederatedFetchHandler", () => {
     ).resolves.toEqual({ status: 204, headers: [["etag", "abc"]], body: "" });
   });
 
-  it("refuses unknown origins, non-read methods, malformed payloads, and oversized bodies", async () => {
+  it("refuses unknown origins, unknown methods, malformed payloads, and oversized bodies", async () => {
     const { impl, calls } = fakeFetch(200, "x".repeat(32));
     const handler = createFederatedFetchHandler({
       listServers: () => SERVERS,
@@ -130,7 +130,14 @@ describe("createFederatedFetchHandler", () => {
       handler({ url: "https://evil.example/api/v1/x" }),
     ).rejects.toThrow(/refused/);
     await expect(
-      handler({ url: "https://mini.kaioken.app/api/v1/x", method: "POST" }),
+      handler({ url: "https://mini.kaioken.app/api/v1/x", method: "TRACE" }),
+    ).rejects.toThrow(/malformed/);
+    await expect(
+      handler({
+        url: "https://mini.kaioken.app/api/v1/x",
+        method: "GET",
+        body: "{}",
+      }),
     ).rejects.toThrow(/malformed/);
     await expect(handler("https://mini.kaioken.app/api/v1/x")).rejects.toThrow(
       /malformed/,
@@ -139,6 +146,61 @@ describe("createFederatedFetchHandler", () => {
     await expect(
       handler({ url: "https://mini.kaioken.app/api/v1/x" }),
     ).rejects.toThrow(/size limit/);
+  });
+
+  it("forwards write methods with a JSON body and a default content type", async () => {
+    const { impl, calls } = fakeFetch(200, '{"ok":true,"delivery":"sent"}');
+    const handler = createFederatedFetchHandler({
+      listServers: () => SERVERS,
+      fetchImpl: impl,
+    });
+    const body = JSON.stringify({ input: [{ type: "text", text: "hi" }] });
+    const response = await handler({
+      url: "https://mini.kaioken.app/api/v1/threads/thr_1/send",
+      method: "POST",
+      headers: { Cookie: "stolen=1" },
+      body,
+    });
+    expect(response.status).toBe(200);
+    expect(calls).toHaveLength(1);
+    const [, init] = calls[0]!;
+    expect(init.method).toBe("POST");
+    expect(init.body).toBe(body);
+    expect(init.headers).toEqual({ "content-type": "application/json" });
+    expect(init.credentials).toBe("include");
+
+    await handler({
+      url: "https://mini.kaioken.app/api/v1/threads/thr_1",
+      method: "DELETE",
+      headers: { "Content-Type": "text/plain" },
+      body: "x",
+    });
+    expect(calls[1]![1].method).toBe("DELETE");
+    expect(calls[1]![1].headers).toEqual({ "content-type": "text/plain" });
+
+    await handler({
+      url: "https://mini.kaioken.app/api/v1/threads/thr_1/stop",
+      method: "POST",
+    });
+    expect(calls[2]![1].body).toBeUndefined();
+    expect(calls[2]![1].headers).toEqual({});
+  });
+
+  it("caps the request body before touching the network", async () => {
+    const { impl, calls } = fakeFetch();
+    const handler = createFederatedFetchHandler({
+      listServers: () => SERVERS,
+      fetchImpl: impl,
+      maxRequestBodyBytes: 8,
+    });
+    await expect(
+      handler({
+        url: "https://mini.kaioken.app/api/v1/threads/thr_1/send",
+        method: "POST",
+        body: "ééééé",
+      }),
+    ).rejects.toThrow(/request body exceeds/);
+    expect(calls).toHaveLength(0);
   });
 
   it("returns the upstream status for an offline server instead of throwing", async () => {

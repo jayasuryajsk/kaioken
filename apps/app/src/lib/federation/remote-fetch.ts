@@ -1,7 +1,27 @@
-import type { KaiokenDesktopFederatedFetchRequest } from "@kaioken/desktop-contract";
+import {
+  kaiokenDesktopFederatedFetchMethods,
+  type KaiokenDesktopFederatedFetchMethod,
+  type KaiokenDesktopFederatedFetchRequest,
+} from "@kaioken/desktop-contract";
 import { getBbDesktopInfo } from "@/lib/kaioken-desktop";
 
-const READ_METHODS = new Set(["GET", "HEAD"]);
+const BRIDGE_METHODS: ReadonlySet<string> = new Set(
+  kaiokenDesktopFederatedFetchMethods,
+);
+
+function isBridgeMethod(
+  method: string,
+): method is KaiokenDesktopFederatedFetchMethod {
+  return BRIDGE_METHODS.has(method);
+}
+
+function bridgeBody(body: BodyInit | null | undefined): string | undefined {
+  if (body === undefined || body === null) return undefined;
+  if (typeof body === "string") return body;
+  throw new Error(
+    "Remote Kaioken requests through the desktop bridge must carry a text body",
+  );
+}
 
 function headersToRecord(
   headers: HeadersInit | undefined,
@@ -35,9 +55,12 @@ export function createRemoteFetch(
       return fetch(input, { ...init, credentials: "include", mode: "cors" });
     }
     const method = (init?.method ?? "GET").toUpperCase();
-    if (!READ_METHODS.has(method)) {
-      throw new Error(`Remote Kaioken servers are read-only (${method})`);
+    if (!isBridgeMethod(method)) {
+      throw new Error(
+        `Remote Kaioken requests through the desktop bridge cannot use ${method}`,
+      );
     }
+    const body = bridgeBody(init?.body);
     const request: KaiokenDesktopFederatedFetchRequest = {
       url:
         typeof input === "string"
@@ -45,8 +68,9 @@ export function createRemoteFetch(
           : input instanceof URL
             ? input.toString()
             : input.url,
-      method: method === "HEAD" ? "HEAD" : "GET",
+      method,
       headers: headersToRecord(init?.headers),
+      ...(body === undefined ? {} : { body }),
     };
     const response = await bridge(request);
     return new Response(response.body, {

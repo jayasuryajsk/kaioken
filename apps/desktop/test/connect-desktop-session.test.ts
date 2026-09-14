@@ -62,7 +62,7 @@ describe("installConnectDesktopSession", () => {
       httpOnly: true,
       name: "__Secure-kaioken-connect.desktop_session",
       path: "/",
-      sameSite: "lax",
+      sameSite: "no_restriction",
       secure: true,
       url: "https://laptop.getbb.app",
       value: "signed-session",

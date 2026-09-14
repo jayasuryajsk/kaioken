@@ -9,7 +9,7 @@ import { PluginSlotMount } from "./PluginSlotMount";
 import { resolvePendingInteraction } from "@/lib/plugin-slot-resolvers";
 import { usePluginSlots } from "@/lib/plugin-slots";
 import { useStopThread } from "@/hooks/mutations/thread-runtime-mutations";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 
 export interface PluginPendingInteractionRequest {
   pluginId: string;
@@ -35,6 +35,7 @@ export function PluginPendingInteractionComposer({
   sourceThread,
 }: PluginPendingInteractionComposerProps) {
   const { pendingInteractions } = usePluginSlots();
+  const sdk = useScopedSdk();
   const stopThread = useStopThread();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -64,7 +65,7 @@ export function PluginPendingInteractionComposer({
         setSubmitting(false);
       }
     },
-    [interaction.id, interaction.threadId],
+    [interaction.id, interaction.threadId, sdk],
   );
 
   const cancel = useCallback(async () => {
@@ -85,7 +86,7 @@ export function PluginPendingInteractionComposer({
     } finally {
       setSubmitting(false);
     }
-  }, [dismissal, interaction.id, interaction.threadId, stopThread]);
+  }, [dismissal, interaction.id, interaction.threadId, sdk, stopThread]);
   const dismissLabel = dismissal === "cancel" ? "Cancel" : "Stop turn";
 
   return (

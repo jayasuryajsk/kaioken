@@ -577,7 +577,7 @@ describe("UnifiedSidebarList", () => {
       .find((row) => row.getAttribute("data-remote-server") === "mini");
     expect(remoteRow).toBeDefined();
     expect(remoteRow!.getAttribute("title")).toBe(
-      "This thread lives on Mac mini. Actions on it are coming in the next phase.",
+      "This thread lives on Mac mini.",
     );
     expect(within(remoteRow!).getByRole("link").getAttribute("href")).toBe(
       "/servers/mini/threads/thr_remote",
