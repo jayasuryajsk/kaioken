@@ -5,6 +5,7 @@ import { Input } from "@kaioken/shared-ui/input";
 import type { rpcContract } from "../server";
 
 type EndpointId = "openrouter" | "deepseek" | "custom";
+type HarnessId = "claude-code" | "codex";
 
 interface CatalogModel {
   id: string;
@@ -12,13 +13,18 @@ interface CatalogModel {
   contextLength: number | null;
 }
 
-interface StatusView {
+interface HarnessStatus {
+  id: HarnessId;
+  label: string;
   route: string;
   model: string;
   summary: string;
   ready: boolean;
+}
+
+interface StatusView {
+  harnesses: HarnessStatus[];
   configuredEndpoints: string[];
-  codexLimitation: string;
 }
 
 const ENDPOINT_LABELS: Readonly<Record<EndpointId, string>> = {
@@ -45,6 +51,7 @@ export function RoutingPanel() {
   const [status, setStatus] = useState<StatusView | null>(null);
   const [models, setModels] = useState<CatalogModel[]>([]);
   const [query, setQuery] = useState("");
+  const [target, setTarget] = useState<HarnessId>("claude-code");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const mounted = useRef(true);
@@ -93,26 +100,31 @@ export function RoutingPanel() {
 
   async function choose(model: string) {
     try {
-      const next = await rpc.call("selectModel", { model });
-      if (!mounted.current) return;
-      setStatus((current) =>
-        current === null
-          ? current
-          : { ...current, model: next.model, summary: next.summary },
-      );
+      await rpc.call("selectModel", { harness: target, model });
+      await refreshStatus();
     } catch (cause) {
       if (mounted.current) setError(errorMessage(cause));
     }
   }
 
   const visible = models.filter((model) => matches(model, query)).slice(0, 40);
+  const current = status?.harnesses.find((harness) => harness.id === target);
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <p className="text-sm text-foreground">
-          {status?.summary ?? "Reading the current route…"}
-        </p>
+        {status === null ? (
+          <p className="text-sm text-muted-foreground">
+            Reading the current routes…
+          </p>
+        ) : (
+          status.harnesses.map((harness) => (
+            <p key={harness.id} className="text-sm text-foreground">
+              <span className="text-muted-foreground">{harness.label}: </span>
+              {harness.summary}
+            </p>
+          ))
+        )}
         <p className="text-xs text-muted-foreground">
           {status === null
             ? ""
@@ -120,11 +132,20 @@ export function RoutingPanel() {
               ? `Keys stored for ${status.configuredEndpoints.join(", ")}.`
               : "No API keys stored yet. Add one in the settings above."}
         </p>
-        {status !== null ? (
-          <p className="text-xs text-muted-foreground">
-            {status.codexLimitation}
-          </p>
-        ) : null}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {status?.harnesses.map((harness) => (
+          <Button
+            key={harness.id}
+            type="button"
+            variant={target === harness.id ? "default" : "outline"}
+            size="sm"
+            onClick={() => setTarget(harness.id)}
+          >
+            {`Choose for ${harness.label}`}
+          </Button>
+        ))}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -150,13 +171,13 @@ export function RoutingPanel() {
         <div className="flex flex-col gap-2">
           <Input
             aria-label="Search models"
-            placeholder="Search models"
+            placeholder={`Search models for ${current?.label ?? "this harness"}`}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
           <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto">
             {visible.map((model) => {
-              const selected = status?.model === model.id;
+              const selected = current?.model === model.id;
               return (
                 <li key={model.id}>
                   <button

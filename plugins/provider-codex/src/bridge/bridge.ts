@@ -277,6 +277,17 @@ const CODEX_APP_SERVER_COMMAND_ENV = "KAIOKEN_CODEX_BRIDGE_APP_SERVER_COMMAND";
 const CODEX_APP_SERVER_ARGS_ENV = "KAIOKEN_CODEX_BRIDGE_APP_SERVER_ARGS";
 const CODEX_POOL_BASE_URL_ENV = "CODEX_OPENAI_BASE_URL";
 const CODEX_POOL_AUTH_TOKEN_ENV = "CODEX_POOL_AUTH_TOKEN";
+const CODEX_CUSTOM_BASE_URL_ENV = "CODEX_CUSTOM_BASE_URL";
+const CODEX_CUSTOM_AUTH_TOKEN_ENV = "CODEX_CUSTOM_AUTH_TOKEN";
+const CODEX_CUSTOM_MODEL_ENV = "CODEX_CUSTOM_MODEL";
+const CODEX_CUSTOM_NAME_ENV = "CODEX_CUSTOM_NAME";
+const CODEX_CUSTOM_PROVIDER_ID = "kaioken-custom";
+const CODEX_CUSTOM_FORWARDED_ENV = [
+  CODEX_CUSTOM_BASE_URL_ENV,
+  CODEX_CUSTOM_AUTH_TOKEN_ENV,
+  CODEX_CUSTOM_MODEL_ENV,
+  CODEX_CUSTOM_NAME_ENV,
+] as const;
 
 const CODEX_INITIALIZE_PARAMS = {
   clientInfo: { name: "kaioken", version: "1.0.0", title: null },
@@ -337,6 +348,36 @@ async function delay(ms: number): Promise<void> {
 const MISSING_CODEX_CLI_GUIDANCE =
   "kaioken could not find the Codex CLI on this machine. Install Codex (https://developers.openai.com/codex/cli) or put `codex` on PATH, then retry.";
 
+function resolveCustomAppServerLaunch(
+  env: NodeJS.ProcessEnv,
+  command: string,
+  args: string[],
+): { command: string; args: string[] } {
+  const baseUrl = env[CODEX_CUSTOM_BASE_URL_ENV];
+  const authToken = env[CODEX_CUSTOM_AUTH_TOKEN_ENV];
+  if (!baseUrl || !authToken) return { command, args };
+  const name = env[CODEX_CUSTOM_NAME_ENV] || "Custom";
+  const model = env[CODEX_CUSTOM_MODEL_ENV];
+  const provider = `model_providers.${CODEX_CUSTOM_PROVIDER_ID}`;
+  return {
+    command,
+    args: [
+      ...args,
+      "-c",
+      `model_provider=${JSON.stringify(CODEX_CUSTOM_PROVIDER_ID)}`,
+      "-c",
+      `${provider}.name=${JSON.stringify(name)}`,
+      "-c",
+      `${provider}.base_url=${JSON.stringify(baseUrl)}`,
+      "-c",
+      `${provider}.wire_api="responses"`,
+      "-c",
+      `${provider}.env_key=${JSON.stringify(CODEX_CUSTOM_AUTH_TOKEN_ENV)}`,
+      ...(model ? ["-c", `model=${JSON.stringify(model)}`] : []),
+    ],
+  };
+}
+
 export function resolveAppServerLaunch(env: NodeJS.ProcessEnv = process.env): {
   command: string;
   args: string[];
@@ -350,7 +391,9 @@ export function resolveAppServerLaunch(env: NodeJS.ProcessEnv = process.env): {
     : ["app-server"];
   const poolBaseUrl = env[CODEX_POOL_BASE_URL_ENV];
   const poolToken = env[CODEX_POOL_AUTH_TOKEN_ENV];
-  if (!poolBaseUrl || !poolToken) return { command: command ?? "codex", args };
+  if (!poolBaseUrl || !poolToken) {
+    return resolveCustomAppServerLaunch(env, command ?? "codex", args);
+  }
   return {
     command: command ?? "codex",
     args: [
@@ -380,6 +423,11 @@ function appServerLaunchEnv(
 ): NodeJS.ProcessEnv {
   const poolBaseUrl = envVars?.[CODEX_POOL_BASE_URL_ENV];
   const poolAuthToken = envVars?.[CODEX_POOL_AUTH_TOKEN_ENV];
+  const forwarded: NodeJS.ProcessEnv = {};
+  for (const name of CODEX_CUSTOM_FORWARDED_ENV) {
+    const value = envVars?.[name];
+    if (value !== undefined) forwarded[name] = value;
+  }
   return {
     ...process.env,
     ...(poolBaseUrl === undefined
@@ -388,6 +436,7 @@ function appServerLaunchEnv(
     ...(poolAuthToken === undefined
       ? {}
       : { [CODEX_POOL_AUTH_TOKEN_ENV]: poolAuthToken }),
+    ...forwarded,
   };
 }
 

@@ -5,21 +5,21 @@ import {
 import { z } from "zod";
 import { fetchCatalog, isStale, type CatalogSnapshot } from "./lib/catalog";
 import {
-  claudeCodeEnv,
   describeRoute,
   ENDPOINTS,
+  HARNESS_IDS,
+  HARNESS_LABELS,
+  harnessEnv,
   resolveRoute,
   ROUTE_IDS,
   ROUTE_OPTION_LABELS,
   routeIdFromLabel,
   type EndpointId,
+  type HarnessId,
   type RoutingConfig,
 } from "./lib/routing";
 
 const CATALOG_PREFIX = "catalog:";
-
-const CODEX_LIMITATION =
-  "Codex cannot be routed yet: its bridge hardcodes an OpenAI-responses model provider, and OpenRouter and DeepSeek speak chat-completions.";
 
 const catalogModelSchema = z.object({
   id: z.string(),
@@ -31,12 +31,17 @@ export const rpcContract = defineRpcContract({
   status: {
     input: z.object({}).strict(),
     output: z.object({
-      route: z.enum(ROUTE_IDS),
-      model: z.string(),
-      summary: z.string(),
-      ready: z.boolean(),
+      harnesses: z.array(
+        z.object({
+          id: z.enum(HARNESS_IDS),
+          label: z.string(),
+          route: z.enum(ROUTE_IDS),
+          model: z.string(),
+          summary: z.string(),
+          ready: z.boolean(),
+        }),
+      ),
       configuredEndpoints: z.array(z.string()),
-      codexLimitation: z.string(),
     }),
   },
   models: {
@@ -53,7 +58,9 @@ export const rpcContract = defineRpcContract({
     ]),
   },
   selectModel: {
-    input: z.object({ model: z.string() }).strict(),
+    input: z
+      .object({ harness: z.enum(HARNESS_IDS), model: z.string() })
+      .strict(),
     output: z.object({ model: z.string(), summary: z.string() }),
   },
 });
@@ -73,6 +80,21 @@ export default function plugin(bb: KaiokenPluginApi) {
       label: "Claude Code model",
       description:
         "Model id sent as ANTHROPIC_MODEL, for example anthropic/claude-sonnet-4.5 or deepseek-flash. Leave empty for the endpoint default.",
+      default: "",
+    },
+    codexRoute: {
+      type: "select",
+      label: "Codex endpoint",
+      description:
+        "Where Codex sends its requests. The endpoint must speak the OpenAI Responses API, which OpenRouter and DeepSeek both do.",
+      options: ROUTE_IDS.map((id) => ROUTE_OPTION_LABELS[id]),
+      default: ROUTE_OPTION_LABELS.default,
+    },
+    codexModel: {
+      type: "string",
+      label: "Codex model",
+      description:
+        "Model id Codex asks for, for example anthropic/claude-sonnet-4.5 or deepseek-flash. Leave empty for the endpoint default.",
       default: "",
     },
     openrouterKey: {
@@ -96,9 +118,16 @@ export default function plugin(bb: KaiokenPluginApi) {
     },
     customBaseUrl: {
       type: "string",
-      label: "Custom base URL",
+      label: "Custom base URL (Claude Code)",
       description:
         "Must speak the Anthropic Messages API. Claude Code cannot talk to an OpenAI-shaped endpoint directly.",
+      default: "",
+    },
+    customResponsesBaseUrl: {
+      type: "string",
+      label: "Custom base URL (Codex)",
+      description:
+        "Must speak the OpenAI Responses API, which is the only wire format the Codex CLI supports.",
       default: "",
     },
     customKey: {
@@ -112,14 +141,27 @@ export default function plugin(bb: KaiokenPluginApi) {
   async function config(): Promise<RoutingConfig> {
     const values = await settings.get();
     return {
-      route: routeIdFromLabel(values.claudeCodeRoute),
-      model: values.claudeCodeModel ?? "",
+      harnesses: {
+        "claude-code": {
+          route: routeIdFromLabel(values.claudeCodeRoute),
+          model: values.claudeCodeModel ?? "",
+        },
+        codex: {
+          route: routeIdFromLabel(values.codexRoute),
+          model: values.codexModel ?? "",
+        },
+      },
       openrouterKey: values.openrouterKey ?? "",
       deepseekKey: values.deepseekKey ?? "",
       customLabel: values.customLabel ?? "",
       customBaseUrl: values.customBaseUrl ?? "",
+      customResponsesBaseUrl: values.customResponsesBaseUrl ?? "",
       customKey: values.customKey ?? "",
     };
+  }
+
+  function isHarnessId(value: string | undefined): value is HarnessId {
+    return HARNESS_IDS.some((harness) => harness === value);
   }
 
   function keyFor(current: RoutingConfig, endpoint: EndpointId): string {
@@ -156,9 +198,12 @@ export default function plugin(bb: KaiokenPluginApi) {
 
   async function announceStatus(): Promise<void> {
     const current = await config();
-    const resolution = resolveRoute(current);
-    if (resolution.status === "incomplete") {
-      bb.status.needsConfiguration(resolution.reason);
+    for (const harness of HARNESS_IDS) {
+      const resolution = resolveRoute(current, harness);
+      if (resolution.status === "incomplete") {
+        bb.status.needsConfiguration(resolution.reason);
+        return;
+      }
     }
   }
 
@@ -167,37 +212,41 @@ export default function plugin(bb: KaiokenPluginApi) {
     void announceStatus();
   });
 
-  bb.providers.experimental_contributeEnv("claude-code", async () => {
-    try {
-      return claudeCodeEnv(await config());
-    } catch (error) {
-      bb.log.warn(
-        `Model Routing contributed nothing: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      return [];
-    }
-  });
+  for (const harness of HARNESS_IDS) {
+    bb.providers.experimental_contributeEnv(harness, async () => {
+      try {
+        return harnessEnv(await config(), harness);
+      } catch (error) {
+        bb.log.warn(
+          `Model Routing contributed nothing for ${harness}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return [];
+      }
+    });
 
-  bb.providers.experimental_contributeEnvHealth("claude-code", async () => {
-    const resolution = resolveRoute(await config());
-    if (resolution.status !== "ready") return null;
-    return {
-      label: resolution.route.label,
-      statusMessage: `Requests go to ${resolution.route.baseUrl} with your ${resolution.route.label} key.`,
-    };
-  });
+    bb.providers.experimental_contributeEnvHealth(harness, async () => {
+      const resolution = resolveRoute(await config(), harness);
+      if (resolution.status !== "ready") return null;
+      return {
+        label: resolution.route.label,
+        statusMessage: `Requests go to ${resolution.route.baseUrl} with your ${resolution.route.label} key.`,
+      };
+    });
+  }
 
   bb.rpc.register(rpcContract, {
     async status() {
       const current = await config();
-      const resolution = resolveRoute(current);
       return {
-        route: current.route,
-        model: current.model,
-        summary: describeRoute(current),
-        ready: resolution.status === "ready",
+        harnesses: HARNESS_IDS.map((harness) => ({
+          id: harness,
+          label: HARNESS_LABELS[harness],
+          route: current.harnesses[harness].route,
+          model: current.harnesses[harness].model,
+          summary: describeRoute(current, harness),
+          ready: resolveRoute(current, harness).status === "ready",
+        })),
         configuredEndpoints: configuredEndpoints(current),
-        codexLimitation: CODEX_LIMITATION,
       };
     },
     async models({ endpoint }) {
@@ -215,10 +264,17 @@ export default function plugin(bb: KaiokenPluginApi) {
         };
       }
     },
-    async selectModel({ model }) {
-      await settings.experimental_set({ claudeCodeModel: model.trim() });
+    async selectModel({ harness, model }) {
+      await settings.experimental_set(
+        harness === "claude-code"
+          ? { claudeCodeModel: model.trim() }
+          : { codexModel: model.trim() },
+      );
       const current = await config();
-      return { model: current.model, summary: describeRoute(current) };
+      return {
+        model: current.harnesses[harness].model,
+        summary: describeRoute(current, harness),
+      };
     },
   });
 
@@ -238,8 +294,8 @@ export default function plugin(bb: KaiokenPluginApi) {
       },
       {
         name: "use",
-        summary: "Set the model Claude Code asks for.",
-        usage: "kaioken model-routing use <model-id>",
+        summary: "Set the model a harness asks for.",
+        usage: "kaioken model-routing use <claude-code|codex> <model-id>",
       },
     ],
     async run(argv) {
@@ -250,9 +306,11 @@ export default function plugin(bb: KaiokenPluginApi) {
         return {
           exitCode: 0,
           stdout: [
-            `Claude Code: ${describeRoute(current)}`,
-            `Codex:       ${CODEX_LIMITATION}`,
-            `Keys:        ${configured.length > 0 ? configured.join(", ") : "none configured"}`,
+            ...HARNESS_IDS.map(
+              (harness) =>
+                `${HARNESS_LABELS[harness].padEnd(12)} ${describeRoute(current, harness)}`,
+            ),
+            `${"Keys".padEnd(12)} ${configured.length > 0 ? configured.join(", ") : "none configured"}`,
             "",
           ].join("\n"),
         };
@@ -289,15 +347,24 @@ export default function plugin(bb: KaiokenPluginApi) {
       }
 
       if (command === "use") {
-        const model = rest[0];
-        if (model === undefined) {
+        const harness = rest[0];
+        const model = rest[1];
+        if (!isHarnessId(harness) || model === undefined) {
           return {
             exitCode: 2,
-            stderr: "Pass a model id: kaioken model-routing use <model-id>\n",
+            stderr:
+              "Pass a harness and a model id: kaioken model-routing use <claude-code|codex> <model-id>\n",
           };
         }
-        await settings.experimental_set({ claudeCodeModel: model.trim() });
-        return { exitCode: 0, stdout: `${describeRoute(await config())}\n` };
+        await settings.experimental_set(
+          harness === "claude-code"
+            ? { claudeCodeModel: model.trim() }
+            : { codexModel: model.trim() },
+        );
+        return {
+          exitCode: 0,
+          stdout: `${describeRoute(await config(), harness)}\n`,
+        };
       }
 
       return {

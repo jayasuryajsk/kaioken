@@ -6,7 +6,7 @@ export default definePluginApp((app) => {
     id: "routing",
     title: "Model catalogue",
     description:
-      "Load the models your endpoint publishes and pick the one Claude Code should ask for. Keys and the endpoint itself are set in the settings above.",
+      "Load the models your endpoint publishes, choose which harness you are picking for, then pick the model. Keys and endpoints are set in the settings above.",
     component: RoutingPanel,
   });
 });
