@@ -48,7 +48,6 @@ import {
   SETTINGS_ROUTE_PATH,
   SETTINGS_SECTION_ROUTE_PATH,
   SKILL_DETAIL_ROUTE_PATH,
-  BOARD_ROUTE_PATH,
   SKILLS_ROUTE_PATH,
   TOOLS_PLUGIN_BROWSE_ROUTE_PATH,
   TOOLS_PLUGIN_DETAIL_ROUTE_PATH,
@@ -81,11 +80,6 @@ const PluginsView = lazy(() =>
 const SkillsView = lazy(() =>
   import("./views/ToolsView").then((m) => ({
     default: m.SkillsView,
-  })),
-);
-const BoardView = lazy(() =>
-  import("./views/BoardView").then((m) => ({
-    default: m.BoardView,
   })),
 );
 const ProjectDetailSettingsView = lazy(() =>
@@ -397,7 +391,6 @@ export function AppRoutes() {
             element={<LegacyToolsPathRedirect />}
           />
           <Route path={SKILLS_ROUTE_PATH} element={<SkillsView />} />
-          <Route path={BOARD_ROUTE_PATH} element={<BoardView />} />
           <Route path={SKILL_DETAIL_ROUTE_PATH} element={<SkillsView />} />
           <Route path={REGISTRY_SKILLS_ROUTE_PATH} element={<SkillsView />} />
           <Route
