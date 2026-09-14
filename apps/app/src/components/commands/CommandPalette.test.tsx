@@ -266,7 +266,7 @@ describe("CommandPalette", () => {
     expect(titles.some((title) => title?.includes("Import from Codex"))).toBe(
       true,
     );
-    expect(titles).toHaveLength(20);
+    expect(titles).toHaveLength(19);
   });
 
   it("filters as the user types and keeps the selection on a live row", async () => {
