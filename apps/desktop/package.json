@@ -1,6 +1,6 @@
 {
   "name": "@kaioken/desktop",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "private": true,
   "description": "macOS and Linux Electron shell for kaioken",
   "main": "dist/main.js",
