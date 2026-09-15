@@ -294,6 +294,7 @@ async function runDispatchAttempt(
   reattempted: boolean,
 ): Promise<DispatchAttemptOutcome> {
   const { payload, thread } = args;
+  assertThreadHasNoConnectionHandoff(deps.db, thread.id);
   ensureThreadIsWritable(thread);
   if (args.trigger === "user" && args.source.kind === "inline") {
     // Reject what can never deliver while the sender is still listening; a
@@ -404,6 +405,7 @@ async function runDispatchAttempt(
   if (currentThread === null) {
     throw new ApiError(404, "thread_not_found", "Thread not found");
   }
+  assertThreadHasNoConnectionHandoff(deps.db, thread.id);
   if (
     currentThread.status !== thread.status ||
     currentThread.archivedAt !== thread.archivedAt ||
@@ -811,3 +813,4 @@ function resolveExecutionIntoPayload(
     },
   };
 }
+import { assertThreadHasNoConnectionHandoff } from "../connections/handoff-store.js";

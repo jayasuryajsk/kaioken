@@ -4,6 +4,10 @@ import {
 } from "./areas/desktop-browsers.js";
 import type { KaiokenSdkContext, KaiokenSdkTransport } from "./transport.js";
 import {
+  createConnectionsArea,
+  type ExperimentalConnectionsArea,
+} from "./areas/connections.js";
+import {
   createEnvironmentsArea,
   type EnvironmentsArea,
 } from "./areas/environments.js";
@@ -40,6 +44,7 @@ export interface CreateBbSdkWithGuideArgs extends CreateBbSdkArgs {
 }
 
 export interface KaiokenSdkAreas extends KaiokenRealtime {
+  experimental_connections: ExperimentalConnectionsArea;
   codex: CodexArea;
   experimental_desktopBrowsers: ExperimentalDesktopBrowsersArea;
   environments: EnvironmentsArea;
@@ -71,6 +76,7 @@ export function createBbSdk(
     transport: args.transport,
   });
   const areas: KaiokenSdkAreas = {
+    experimental_connections: createConnectionsArea(sdkContext),
     codex: createCodexArea(sdkContext),
     experimental_desktopBrowsers: createDesktopBrowsersArea(sdkContext),
     environments: createEnvironmentsArea(sdkContext),

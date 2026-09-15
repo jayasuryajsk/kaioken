@@ -45,7 +45,9 @@ function toMentionProviderContribution(
 async function fetchPluginContributions(
   signal: AbortSignal,
 ): Promise<PluginContributions> {
-  const response = await fetch("/api/v1/plugins/contributions", { signal });
+  const response = await fetchWithAppSurface("/api/v1/plugins/contributions", {
+    signal,
+  });
   if (!response.ok) return EMPTY_CONTRIBUTIONS;
   const body = (await response.json()) as {
     mentionProviders?: unknown;
@@ -125,7 +127,7 @@ async function fetchPluginMentionSearch(
   });
   if (args.projectId !== null) params.set("projectId", args.projectId);
   if (args.threadId !== null) params.set("threadId", args.threadId);
-  const response = await fetch(
+  const response = await fetchWithAppSurface(
     `/api/v1/plugins/mentions/search?${params.toString()}`,
     { signal },
   );
@@ -155,3 +157,4 @@ export function usePluginMentionSearch(
       previousQuery?.queryKey[1] === args.trigger ? previous : undefined,
   });
 }
+import { fetchWithAppSurface } from "@/lib/app-surface";

@@ -1,4 +1,11 @@
 import {
+  inspectTransferWorkspace,
+  exportTransferWorkspace,
+  readTransferChunk,
+  writeTransferChunk,
+  restoreTransferWorkspace,
+} from "./command-handlers/workspace-transfer.js";
+import {
   runEnvironmentHook,
   cancelEnvironmentHook,
 } from "./command-handlers/environment-hook.js";
@@ -534,6 +541,39 @@ const commandHandlers: CommandHandlerMap = {
 };
 
 const onlineRpcHandlers: OnlineRpcHandlerMap = {
+  "host.ssh.request": async (command, options) => {
+    if (!options.sshConnections)
+      throw new ExpectedCommandDispatchError(
+        "unavailable",
+        "SSH connections are unavailable on this host",
+      );
+    return options.sshConnections.request(command);
+  },
+  "host.ssh.list": async (_command, options) => {
+    if (!options.sshConnections)
+      throw new ExpectedCommandDispatchError(
+        "unavailable",
+        "SSH connections are unavailable on this host",
+      );
+    return options.sshConnections.list();
+  },
+  "host.ssh.connect": async (command, options) => {
+    if (!options.sshConnections)
+      throw new ExpectedCommandDispatchError(
+        "unavailable",
+        "SSH connections are unavailable on this host",
+      );
+    return options.sshConnections.connect(command);
+  },
+  "host.ssh.disconnect": async (command, options) => {
+    if (!options.sshConnections)
+      throw new ExpectedCommandDispatchError(
+        "unavailable",
+        "SSH connections are unavailable on this host",
+      );
+    return options.sshConnections.disconnect(command.alias);
+  },
+
   "environment.hook.run": runEnvironmentHook,
   "environment.hook.cancel": cancelEnvironmentHook,
   "desktop.browser.list_instances": async (command, options) => {
@@ -613,6 +653,11 @@ const onlineRpcHandlers: OnlineRpcHandlerMap = {
     path: resolveProjectCloneDefaultPath(options.dataDir, command.projectSlug),
   }),
   "host.pick_folder": pickHostFolder,
+  "workspace.transfer.inspect": inspectTransferWorkspace,
+  "workspace.transfer.export": exportTransferWorkspace,
+  "workspace.transfer.read": readTransferChunk,
+  "workspace.transfer.write": writeTransferChunk,
+  "workspace.transfer.restore": restoreTransferWorkspace,
   "codex.rollouts.locate": (command) => locateCodexRollouts(command),
   "codex.rollouts.copy": (command) => copyCodexRollouts(command),
   "codex.rollouts.read": (command) => readCodexRollouts(command),

@@ -39,6 +39,31 @@ import type {
 } from "@kaioken/domain";
 import type { RetainedEventOutputPath } from "./retained-event-output.js";
 
+export const connectionHandoffs = sqliteTable(
+  "connection_handoffs",
+  {
+    id: text("id").notNull(),
+    role: text("role", {
+      enum: ["controller", "source", "destination"],
+    }).notNull(),
+    phase: text("phase").notNull(),
+    sourceThreadId: text("source_thread_id"),
+    targetThreadId: text("target_thread_id"),
+    payload: text("payload").notNull(),
+    error: text("error"),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.id, table.role] }),
+    index("connection_handoffs_source_idx").on(
+      table.sourceThreadId,
+      table.role,
+      table.phase,
+    ),
+  ],
+);
+
 export const authUsers = sqliteTable(
   "user",
   {

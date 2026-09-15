@@ -1,18 +1,95 @@
 # Using kaioken on multiple devices
 
-There are two separate ways to use more than one device with kaioken:
+Kaioken distinguishes control devices, connected computers and execution workers:
 
 - A browser device is a control surface for one kaioken server. It can view projects,
   send prompts, and manage threads, but it does not execute them.
+- A connected computer is another Kaioken installation. Settings → Connections
+  lists its projects and tasks, and opens the full workspace supplied by that
+  computer. Its data, providers, plugins and execution stay there.
 - An execution machine runs a host daemon. One kaioken server can dispatch project
   sources and thread environments across several enrolled machines.
 
-You can use either story independently or combine them.
+A browser or desktop app can control multiple installations. Use Connections
+for ordinary computer access and its Advanced: execution workers section when
+one server should manage a separate host daemon.
+
+## Move a task between computers
+
+Choose **Move to computer** from a Codex task's menu. Select a connected computer
+and a matching saved project. Kaioken stops the current turn, transfers native
+Codex context, conversation attachments, and Git changes, then resumes an idle
+task in a new destination worktree. Staged and unstaged changes remain separate;
+non-ignored untracked files transfer too. Ignored files stay on the source.
+The source task is archived only after the destination is ready. Its checkout is
+retained. Closing the progress panel does not stop the transfer.
+Task edits, queue changes, archival and deletion are blocked until the move
+finishes or is cancelled. A move waits for an earlier task mutation to finish
+before it can take its snapshot; retry if it reports that the task is busy.
+
+Both computers need a current Kaioken runtime and a usable Codex installation.
+The destination project must use the same Git remote and repository subdirectory.
+Credentials and provider configuration belong to each computer and are not copied.
+The first handoff implementation supports native Codex tasks. Submodules and Git
+LFS are rejected before transfer. Conversation history is subject to the server's
+8 MiB event-response limit; oversized histories fail without truncation.
+Transferred worktrees are retained as attached environments and skip environment
+setup/teardown hooks. Transfer files are retained for retry and recovery.
+
+```sh
+kaioken connection handoff <task-id> --to ssh.work --preview --json
+kaioken connection handoff <task-id> --to ssh.work --project <project-id> --wait
+kaioken connection handoff <task-id> --from <account-handle> --to local --wait
+kaioken connection handoff-status <operation-id> --json
+kaioken connection handoff-retry <operation-id>
+kaioken connection handoff-cancel <operation-id>
+```
+
+Use `--id <uuid>` to retry an uncertain start with the same identity. `--from`
+defaults to `local`; `--to` accepts `local`, an account handle, or `ssh.<alias>`.
+If exactly one project matches, `--project` is optional. Failures preserve the
+source task. Retry reconnects to the same operation; cancellation waits for the
+destination before releasing the source. Once the destination has completed,
+finish the operation with retry instead of cancelling.
+
+## Connect with SSH
+
+Open Settings → Connections → SSH connections on the controller computer. Select
+an alias from its OpenSSH configuration and choose Connect. Kaioken checks for an
+existing server and starts the installed `kaioken-app` from the remote login
+shell when needed. Provider sign-in stays on the remote computer.
+
+```bash
+kaioken connection ssh list --json
+kaioken connection ssh connect work --port 38886
+kaioken connection ssh list --json
+kaioken --url <reported-tunnel-url> project list --json
+kaioken connection ssh disconnect work
+```
+
+The private tunnel binds to loopback on the controller. Existing SSH keys,
+agent forwarding configuration and known-host checks remain OpenSSH's
+responsibility. A sign-in or host-key error includes a recovery action; network
+failures reconnect with backoff. Saved connections are restored when the
+controller uses its connection manager after restart. Disconnect forgets the
+connection and closes the tunnel; tasks continue on the remote computer.
+
+Each server has a persistent installation UUID, available through
+`kaioken connection inspect [url]`. If a saved URL changes identity, the workspace
+asks you to connect again. Connected workspaces remain mounted while switching
+computers, keeping their loaded history and drafts. Opening an unavailable
+workspace reports its connection state.
+
+In the desktop app, browser panes opened in a connected workspace use the
+controller's native browser through a frame-scoped bridge. Tabs are isolated by
+installation and workspace, and hidden when switching computers. Agent-owned
+browser tabs remain bound to the desktop target that created them; the bridge
+does not transfer their automation sessions or browser credentials.
 
 ## Open kaioken from another browser
 
 The simplest managed route is **kaioken connect**. Pair the server from Settings →
-Connect (or `kaioken connect --code ... --server
+Connections (or `kaioken connect --code ... --server
 ...`), then open its getbb.app URL. The server owns the tunnel and reconnects
 after restart.
 
@@ -31,7 +108,7 @@ internet. kaioken connect URLs require the paired account owner's session.
 Existing remote host daemons that target a direct tailnet IP or
 `http://<machine>.<tailnet>.ts.net:38886` must migrate before restarting an
 upgraded server. Prefer pairing kaioken connect and re-adding the machine from
-Settings → Machines so its installer records the account-gated route. The
+Settings → Connections → Advanced: execution workers so its installer records the account-gated route. The
 private alternative is to open kaioken through the Tailscale Serve URL and re-run
 the Add machine installer from there.
 
@@ -144,26 +221,25 @@ kaioken plugin config push-notifications set expoPushUrl <url>
 
 The Expo request supports `HTTPS_PROXY` and `NO_PROXY`.
 
-## Point the desktop app at another kaioken
+## Open connected computers in the desktop app
 
-The desktop app's Server menu lists "This Mac", every kaioken connect server on the
-account, and a custom URL. When you select a remote server, the app stops
-starting a kaioken server on this Mac. It starts one again only when you select
-"This Mac".
+The Server menu opens account computers inside the same local workspace shell.
+The local Kaioken runtime remains attached, and switching back uses normal
+navigation. Previously opened connected workspaces remain mounted, preserving
+loaded history and drafts. The sidebar and project chooser can open the same
+computers. This Mac returns to the local workspace without a switch confirmation.
 
-To reach kaioken connect without a local server, the app enrolls itself once as a
-connect machine. That step needs the local server, so the first switch to a
-remote server still starts it. The app keeps its own credential, encrypted with
-the OS keychain, and never holds the server's pairing secret. The app appears in
-the getbb.app dashboard machine list, where you can revoke it. After a revoke,
-the app drops the credential and asks the local server again.
+The desktop app uses its existing Connect session, stored with OS keychain
+protection, for authenticated HTTP and realtime requests. It never copies the
+remote computer's provider credentials. If authentication expires or the computer
+is offline, the workspace shows a recovery action.
 
-A remote server has no realtime link for keybindings and theme. The app re-reads
-them when it starts, when it becomes active, and every five minutes.
+A custom server URL remains a standalone server view. Its theme and keybindings
+are refreshed on activation and periodically while it is selected.
 
 ## Add an execution machine
 
-Open Settings → Machines and choose Add machine. Run the generated one-line
+Open Settings → Connections → Advanced: execution workers and choose Add machine. Run the generated one-line
 installer on the computer that should
 execute work. It installs and enrolls a host daemon; when kaioken connect is paired,
 the installer also configures the machine credential used to reach the server
@@ -205,7 +281,7 @@ service manager restarts it. If the identical artifact is already installed,
 the server returns `304` and the daemon restarts without downloading or running
 npm again.
 Failed attempts fall back to normal reconnect behavior with a persisted
-exponential retry backoff from 5 seconds to 5 minutes. Settings → Machines and
+exponential retry backoff from 5 seconds to 5 minutes. Settings → Connections → Advanced: execution workers and
 `kaioken machine retry-update <id-or-name>` can bypass the current backoff. A daemon
 never downgrades itself to an older server protocol. To opt out, remove
 `--auto-update` from

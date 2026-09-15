@@ -353,6 +353,7 @@ function appendAndQueueSendThreadMessageInTransaction({
   let activeThread: Thread | null = null;
   const request = db.transaction(
     (tx) => {
+      assertThreadHasNoConnectionHandoff(tx, thread.id);
       beforeAppendInTransaction?.({ tx });
       const appended =
         appendPreparedClientTurnRequestedEventWithNotificationInTransaction(
@@ -731,3 +732,4 @@ async function sendThreadMessageWithoutContextClear(
     captureUserMessageSentTelemetry(deps, thread);
   }
 }
+import { assertThreadHasNoConnectionHandoff } from "../connections/handoff-store.js";

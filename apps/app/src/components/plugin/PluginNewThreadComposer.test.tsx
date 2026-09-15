@@ -55,6 +55,11 @@ const mocks = vi.hoisted(() => ({
   extraProjects: [] as Array<Record<string, unknown>>,
   promptHistoryQueryOptions: [] as Array<{ enabled?: boolean } | undefined>,
   environmentProviders: [] as unknown[],
+  federation: { servers: [], remotes: [] },
+}));
+
+vi.mock("@/hooks/queries/federation-queries", () => ({
+  useFederatedRemotes: () => mocks.federation,
 }));
 
 vi.mock("@/components/promptbox/NewThreadPromptBox", () => ({

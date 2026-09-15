@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { parseRemoteId, type FederatedServer } from "@kaioken/client-core";
-import { useAccountServers } from "@/hooks/queries/federation-queries";
+import { useConnectedComputers } from "@/hooks/queries/federation-queries";
 
 export interface RemoteTarget {
   server: FederatedServer;
@@ -27,9 +27,6 @@ export function resolveRemoteTarget(
 export function useRemoteTarget(
   id: string | null | undefined,
 ): RemoteTarget | null {
-  const servers = useAccountServers({ enabled: isRemoteId(id) });
-  return useMemo(
-    () => resolveRemoteTarget(servers.data, id),
-    [id, servers.data],
-  );
+  const servers = useConnectedComputers(isRemoteId(id));
+  return useMemo(() => resolveRemoteTarget(servers, id), [id, servers]);
 }

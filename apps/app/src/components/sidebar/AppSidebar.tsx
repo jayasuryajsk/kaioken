@@ -73,7 +73,7 @@ const NEW_THREAD_PANE_CONTENT = { kind: "new-thread" } as const;
 
 const SIDEBAR_TITLE_BUTTON_CLASS = cn(
   SIDEBAR_CONTROL_BUTTON_CLASS,
-  "size-7 text-muted-foreground hover:text-sidebar-foreground",
+  "inline-flex size-8 items-center justify-center p-2 text-muted-foreground hover:text-sidebar-foreground",
 );
 
 export function SidebarTitleRow({

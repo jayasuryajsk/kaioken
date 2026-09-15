@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { appToast } from "@/components/ui/app-toast";
+import { fetchWithAppSurface } from "./app-surface";
 
 interface CopyToClipboardOptions {
   successMessage?: string | null;
@@ -42,7 +43,7 @@ async function convertImageBlobToPng(blob: Blob): Promise<Blob> {
 }
 
 async function fetchClipboardImage(imageUrl: string): Promise<Blob> {
-  const response = await fetch(imageUrl);
+  const response = await fetchWithAppSurface(imageUrl);
   if (!response.ok) {
     throw new Error(
       `The clipboard image request failed with ${response.status}`,

@@ -222,6 +222,7 @@ interface NodeSurface {
 
 type ExpectedBbSdkKey =
   | "codex"
+  | "experimental_connections"
   | "experimental_desktopBrowsers"
   | "environments"
   | "files"

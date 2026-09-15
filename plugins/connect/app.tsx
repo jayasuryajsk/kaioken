@@ -1009,8 +1009,7 @@ function NotPairedContent({
           this-mac.{dashboardHost}
         </span>
         . One account holds every Mac, so a paired phone or browser sees all of
-        them. Set the name under Handle below, or leave it empty to use this
-        machine&apos;s hostname. Your code and data stay on this machine.
+        them. Your projects, tasks and provider logins stay on this computer.
       </p>
 
       <div className="flex gap-3">

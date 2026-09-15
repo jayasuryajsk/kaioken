@@ -105,7 +105,7 @@ export const uiPreferenceDefinitions = {
   "sidebar.mergeServers": defineUiPreference(
     z.enum(["on", "off"]),
     "on",
-    "Whether the unified sidebar also lists threads and projects from the other Kaioken servers on the same connect account (read-only).",
+    "Whether the unified sidebar also lists threads and projects from connected Kaioken computers. Opening one uses that computer's workspace.",
   ),
   "sidebar.chronologicalSort": defineUiPreference(
     sidebarChronologicalSortSchema,

@@ -1,4 +1,32 @@
 import {
+  handoffStartRequestSchema,
+  handoffPreviewRequestSchema,
+  handoffActionRequestSchema,
+  handoffInspectRequestSchema,
+  handoffMatchRequestSchema,
+  handoffSourceRequestSchema,
+  handoffReceiveRequestSchema,
+  handoffReadRequestSchema,
+  handoffWriteRequestSchema,
+  handoffFinalizeRequestSchema,
+  type HandoffPreview,
+  type HandoffStatus,
+  type HandoffExport,
+} from "./api/connection-handoffs.js";
+import {
+  sshConnectRequestSchema,
+  connectionResolveRequestSchema,
+  sshDisconnectRequestSchema,
+  type ConnectionSelf,
+  type ConnectionList,
+  type SshConnectionsResponse,
+} from "./api/connections.js";
+import {
+  sshHttpRequestSchema,
+  type SshHttpResponse,
+  type SshConnection,
+} from "@kaioken/host-daemon-contract";
+import {
   desktopBrowserHostRequestSchema,
   desktopBrowserScopeSchema,
   desktopBrowserCreateRequestSchema,
@@ -375,6 +403,120 @@ type PathThreadInteractionId = {
 };
 
 export const publicApiRoutes = {
+  connections: {
+    resolve: defineRoute({
+      path: "/connections/resolve",
+      method: "post",
+      request: jsonRequest(connectionResolveRequestSchema),
+      response: jsonResponse<ConnectionSelf>(),
+    }),
+    handoffPreview: defineRoute({
+      path: "/connections/handoffs/preview",
+      method: "post",
+      request: jsonRequest(handoffPreviewRequestSchema),
+      response: jsonResponse<HandoffPreview>(),
+    }),
+    handoffStart: defineRoute({
+      path: "/connections/handoffs",
+      method: "post",
+      request: jsonRequest(handoffStartRequestSchema),
+      response: jsonResponse<HandoffStatus>(),
+    }),
+    handoffAction: defineRoute({
+      path: "/connections/handoffs/action",
+      method: "post",
+      request: jsonRequest(handoffActionRequestSchema),
+      response: jsonResponse<HandoffStatus>(),
+    }),
+    handoffInspect: defineRoute({
+      path: "/connections/handoffs/inspect",
+      method: "post",
+      request: jsonRequest(handoffInspectRequestSchema),
+      response: jsonResponse<{ remotes: string[]; subdirectory: string }>(),
+    }),
+    handoffMatch: defineRoute({
+      path: "/connections/handoffs/match",
+      method: "post",
+      request: jsonRequest(handoffMatchRequestSchema),
+      response: jsonResponse<HandoffPreview["projects"]>(),
+    }),
+    handoffExport: defineRoute({
+      path: "/connections/handoffs/export",
+      method: "post",
+      request: jsonRequest(handoffSourceRequestSchema),
+      response: jsonResponse<HandoffExport>(),
+    }),
+    handoffReceive: defineRoute({
+      path: "/connections/handoffs/receive",
+      method: "post",
+      request: jsonRequest(handoffReceiveRequestSchema),
+      response: jsonResponse<{ threadId: string; ready: boolean }>(),
+    }),
+    handoffRead: defineRoute({
+      path: "/connections/handoffs/read",
+      method: "post",
+      request: jsonRequest(handoffReadRequestSchema),
+      response: jsonResponse<{
+        data: string;
+        nextOffset: number;
+        done: boolean;
+      }>(),
+    }),
+    handoffWrite: defineRoute({
+      path: "/connections/handoffs/write",
+      method: "post",
+      request: jsonRequest(handoffWriteRequestSchema),
+      response: jsonResponse<{ nextOffset: number }>(),
+    }),
+    handoffFinalize: defineRoute({
+      path: "/connections/handoffs/finalize",
+      method: "post",
+      request: jsonRequest(handoffFinalizeRequestSchema),
+      response: jsonResponse<{ ok: true }>(),
+    }),
+    handoffGet: defineRoute({
+      path: "/connections/handoffs/:id",
+      method: "get",
+      request: noRequest<PathId>(),
+      response: jsonResponse<HandoffStatus>(),
+    }),
+    sshRequest: defineRoute({
+      path: "/connections/ssh/request",
+      method: "post",
+      request: jsonRequest(sshHttpRequestSchema),
+      response: jsonResponse<SshHttpResponse>(),
+    }),
+    sshList: defineRoute({
+      path: "/connections/ssh",
+      method: "get",
+      request: noRequest(),
+      response: jsonResponse<SshConnectionsResponse>(),
+    }),
+    sshConnect: defineRoute({
+      path: "/connections/ssh/connect",
+      method: "post",
+      request: jsonRequest(sshConnectRequestSchema),
+      response: jsonResponse<SshConnection>(),
+    }),
+    sshDisconnect: defineRoute({
+      path: "/connections/ssh/disconnect",
+      method: "post",
+      request: jsonRequest(sshDisconnectRequestSchema),
+      response: jsonResponse<{ ok: true }>(),
+    }),
+    self: defineRoute({
+      path: "/connections/self",
+      method: "get",
+      request: noRequest(),
+      response: jsonResponse<ConnectionSelf>(),
+    }),
+    list: defineRoute({
+      path: "/connections",
+      method: "get",
+      request: noRequest(),
+      response: jsonResponse<ConnectionList>(),
+    }),
+  },
   projects: {
     list: defineRoute({
       path: "/projects",

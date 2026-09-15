@@ -214,7 +214,7 @@ function parseAcceptedClientRequestId(row: StoredEventRow): string {
   return event.clientRequestId;
 }
 
-function selectInheritedForkEventRows(
+export function selectInheritedForkEventRows(
   deps: Pick<AppDeps, "db">,
   args: { historyEndSequence: number; sourceThreadId: string },
 ): StoredEventRow[] {

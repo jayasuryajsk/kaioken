@@ -18,6 +18,7 @@ export type {
 } from "@kaioken/server-contract";
 
 export type * from "./realtime.js";
+export type * from "./areas/connections.js";
 export type * from "./areas/environments.js";
 export type * from "./areas/files.js";
 export type * from "./areas/guide.js";
@@ -33,3 +34,10 @@ export type * from "./areas/thread-sections.js";
 export type * from "./areas/threads.js";
 export type * from "./areas/codex.js";
 export type * from "./areas/desktop-browsers.js";
+export type {
+  HandoffConnection,
+  HandoffPreview,
+  HandoffPreviewRequest,
+  HandoffStartRequest,
+  HandoffStatus,
+} from "@kaioken/server-contract";

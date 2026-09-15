@@ -9,6 +9,10 @@ import type { QueryOptions } from "./query-helpers";
 
 export const CODEX_PROVIDER_ID = "codex";
 
+export function isCodexProvider(providerId: string): boolean {
+  return providerId === CODEX_PROVIDER_ID;
+}
+
 export function useCodexSessions(
   args: { includeArchived: boolean } & QueryOptions,
 ) {
@@ -29,8 +33,7 @@ export function useCodexThreadLink(args: {
   providerId: string;
   enabled?: boolean;
 }) {
-  const enabled =
-    (args.enabled ?? true) && args.providerId === CODEX_PROVIDER_ID;
+  const enabled = (args.enabled ?? true) && isCodexProvider(args.providerId);
   return useQuery<CodexThreadLinkResponse>({
     queryKey: codexThreadLinkQueryKey(args.threadId),
     queryFn: ({ signal }) =>

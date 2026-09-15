@@ -462,7 +462,7 @@ function SettingsStoryContent({ route }: { route: SettingsStoryRoute }) {
       return <FilePreferencesStory />;
     case "projects":
       return <ProjectsSettingsSection />;
-    case "machines":
+    case "connections":
       return <MachinesSettingsSection />;
     case "updates":
       return <SettingsUpdatesStory />;

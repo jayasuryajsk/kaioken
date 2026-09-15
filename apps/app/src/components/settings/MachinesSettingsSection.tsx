@@ -29,7 +29,6 @@ import {
   TooltipTrigger,
 } from "@kaioken/shared-ui/tooltip";
 import { AddMachineDialog } from "@/components/dialogs/AddMachineDialog";
-import { AccountServersSettingsSection } from "@/components/settings/AccountServersSettingsSection";
 import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
 import { appToast } from "@/components/ui/app-toast";
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
@@ -343,8 +342,6 @@ export function MachinesSettingsSection() {
           </SettingsRowList>
         )}
       </SettingsSection>
-
-      <AccountServersSettingsSection />
 
       <AddMachineDialog
         open={addDialogOpen}

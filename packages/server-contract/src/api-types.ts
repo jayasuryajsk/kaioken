@@ -1,4 +1,5 @@
 export * from "./api/shared.js";
+export * from "./api/connections.js";
 export * from "./api/projects.js";
 export * from "./api/skills.js";
 export * from "./api/environments.js";
@@ -11,3 +12,4 @@ export * from "./api/terminals.js";
 export * from "./api/threads.js";
 export * from "./api/codex.js";
 export * from "./api/desktop-browsers.js";
+export * from "./api/connection-handoffs.js";

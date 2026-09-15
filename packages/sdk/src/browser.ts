@@ -50,6 +50,15 @@ export const bb = createBrowserBbSdk();
 export { KaiokenHttpError, KaiokenRequestTimeoutError } from "./response.js";
 export type { KaiokenHttpErrorArgs } from "./response.js";
 export { createBbSdk, createBuiltinPlanCommandTextInput, createHttpTransport };
-export type { KaiokenSdk, KaiokenSdkAreas, KaiokenSdkContext, KaiokenSdkTransport };
+export type {
+  KaiokenSdk,
+  KaiokenSdkAreas,
+  KaiokenSdkContext,
+  KaiokenSdkTransport,
+};
+export type {
+  KaiokenRealtimeSocket,
+  KaiokenRealtimeSocketFactory,
+} from "./transport.js";
 export type * from "./areas/skills.js";
 export type * from "./public-types.js";

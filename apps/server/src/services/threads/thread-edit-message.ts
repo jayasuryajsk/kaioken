@@ -398,6 +398,15 @@ export async function editThreadMessage(
     thread: Thread;
   },
 ): Promise<EditMessageResponse> {
+  return withThreadHandoffMutationGuard(deps.db, args.thread.id, () =>
+    editThreadMessageGuarded(deps, args),
+  );
+}
+
+async function editThreadMessageGuarded(
+  deps: LoggedPendingInteractionWorkSessionDeps,
+  args: Parameters<typeof editThreadMessage>[1],
+): Promise<EditMessageResponse> {
   if (!deps.providerRegistry.supportsSessionRewind(args.thread.providerId)) {
     conflict(`Editing messages is not supported for ${args.thread.providerId}`);
   }
@@ -606,3 +615,4 @@ export async function editThreadMessage(
     requestSequence,
   };
 }
+import { withThreadHandoffMutationGuard } from "../connections/handoff-store.js";

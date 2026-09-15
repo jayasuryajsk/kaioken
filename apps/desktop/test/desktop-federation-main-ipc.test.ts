@@ -26,13 +26,14 @@ function fakeFetch(
         },
       },
       text: async () => body,
+      arrayBuffer: async () => new TextEncoder().encode(body).buffer,
     };
   };
   return { impl, calls };
 }
 
 describe("isAllowedFederatedUrl", () => {
-  it("allows known origins and sibling handles under the same account domain only over https", () => {
+  it("allows exact known origins and rejects unlisted sibling handles", () => {
     expect(
       isAllowedFederatedUrl(
         new URL("https://mini.kaioken.app/api/v1/x"),
@@ -44,7 +45,7 @@ describe("isAllowedFederatedUrl", () => {
         new URL("https://work.kaioken.app/api/v1/x"),
         SERVERS,
       ),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       isAllowedFederatedUrl(
         new URL("http://mini.kaioken.app/api/v1/x"),
@@ -246,6 +247,7 @@ describe("federated fetch preparation", () => {
           status: 200,
           headers: { forEach: () => undefined },
           text: async () => "{}",
+          arrayBuffer: async () => new TextEncoder().encode("{}").buffer,
         };
       },
     });
@@ -273,6 +275,6 @@ describe("federated fetch preparation", () => {
       method: "GET",
       headers: {},
     });
-    expect(result.status).toBe(0);
+    expect(result.status).toBe(401);
   });
 });

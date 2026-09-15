@@ -1,4 +1,6 @@
+export * from "./workspace-transfer.js";
 export * from "./commands.js";
+export * from "./ssh-connections.js";
 export * from "./local-state.js";
 export * from "./local.js";
 export * from "./session.js";

@@ -8,6 +8,8 @@ import {
   useParams,
 } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
+import { DesktopWorkspaceNavigation } from "./lib/federation/DesktopWorkspaceNavigation";
+import { workspaceEmbedding } from "./lib/federation/workspace-protocol";
 import { AuthCallbackView } from "./views/AuthCallbackView";
 import { QuickCreateProjectProvider } from "./hooks/useQuickCreateProject";
 import { RouteNavigationProvider } from "./components/ui/app-route-anchor";
@@ -44,8 +46,6 @@ import {
   SETTINGS_PLUGIN_ROUTE_PATH,
   SETTINGS_PLUGINS_ROUTE_PATH,
   SETTINGS_MACHINE_ROUTE_PATH,
-  REMOTE_THREAD_ROUTE_PATH,
-  REMOTE_PROJECT_COMPOSE_ROUTE_PATH,
   SETTINGS_PROJECT_ROUTE_PATH,
   SETTINGS_ROUTE_PATH,
   SETTINGS_SECTION_ROUTE_PATH,
@@ -69,6 +69,16 @@ import { AppCommandProvider } from "./components/commands/AppCommandProvider";
 import { ProviderCliInstallLogDialogHost } from "./components/provider-cli/provider-cli-install";
 import { RouteLoadingSkeleton } from "./components/ui/route-loading-skeleton";
 
+const EmbeddedWorkspaceBridge = lazy(() =>
+  import("./lib/federation/EmbeddedWorkspaceBridge").then((module) => ({
+    default: module.EmbeddedWorkspaceBridge,
+  })),
+);
+const ConnectionHandoffDialogHost = lazy(() =>
+  import("./components/dialogs/ConnectionHandoffDialog").then((module) => ({
+    default: module.ConnectionHandoffDialogHost,
+  })),
+);
 const SettingsView = lazy(() =>
   import("./views/SettingsView").then((m) => ({
     default: m.SettingsView,
@@ -89,14 +99,9 @@ const ProjectDetailSettingsView = lazy(() =>
     default: m.ProjectDetailSettingsView,
   })),
 );
-const RemoteThreadView = lazy(() =>
-  import("./views/RemoteThreadView").then((m) => ({
-    default: m.RemoteThreadView,
-  })),
-);
-const RemoteComposeView = lazy(() =>
-  import("./views/RemoteComposeView").then((m) => ({
-    default: m.RemoteComposeView,
+const RemoteWorkspaceDeck = lazy(() =>
+  import("./views/RemoteWorkspaceDeck").then((m) => ({
+    default: m.RemoteWorkspaceDeck,
   })),
 );
 const MachineSettingsView = lazy(() =>
@@ -305,133 +310,143 @@ export function HashNavigationScroll() {
 export function AppRoutes() {
   return (
     <AppLayout>
-      <Suspense fallback={null}>
-        <Routes>
-          <Route path={SETTINGS_ROUTE_PATH} element={<SettingsView />} />
-          <Route
-            path={SETTINGS_SECTION_ROUTE_PATH}
-            element={<SettingsView />}
-          />
-          <Route
-            path={SETTINGS_PLUGINS_ROUTE_PATH}
-            element={<SettingsView />}
-          />
-          <Route path={SETTINGS_PLUGIN_ROUTE_PATH} element={<SettingsView />} />
-          <Route
-            path={SETTINGS_MACHINE_ROUTE_PATH}
-            element={<MachineSettingsView />}
-          />
-          <Route
-            path={SETTINGS_PROJECT_ROUTE_PATH}
-            element={<ProjectDetailSettingsView />}
-          />
-          <Route
-            path={LEGACY_PROJECT_SETTINGS_ROUTE_PATH}
-            element={<LegacyProjectSettingsRedirect />}
-          />
-          <Route
-            path={PROJECT_ARCHIVED_ROUTE_PATH}
-            element={<Navigate to={getSettingsRoutePath("archived")} replace />}
-          />
-          <Route
-            path={PROJECTLESS_ARCHIVED_ROUTE_PATH}
-            element={<Navigate to={getSettingsRoutePath("archived")} replace />}
-          />
-          <Route
-            path={LEGACY_TOOLS_AUTOMATIONS_ROUTE_PATH}
-            element={<LegacyAutomationCollectionRedirect />}
-          />
-          <Route
-            path={LEGACY_TOOLS_AUTOMATION_BROWSE_ROUTE_PATH}
-            element={<LegacyAutomationCollectionRedirect />}
-          />
-          <Route
-            path={LEGACY_TOOLS_AUTOMATION_DETAIL_ROUTE_PATH}
-            element={<LegacyAutomationDetailRedirect />}
-          />
-          <Route
-            path={LEGACY_TOOLS_AUTOMATION_EDIT_ROUTE_PATH}
-            element={<LegacyAutomationDetailRedirect />}
-          />
-          <Route
-            path={LEGACY_AUTOMATIONS_ROUTE_PATH}
-            element={<LegacyAutomationCollectionRedirect />}
-          />
-          <Route
-            path={LEGACY_AUTOMATION_DETAIL_ROUTE_PATH}
-            element={<LegacyAutomationDetailRedirect />}
-          />
-          <Route path={TOOLS_ROUTE_PATH} element={<PluginsLandingRedirect />} />
-          <Route
-            path={TOOLS_PLUGINS_ROUTE_PATH}
-            element={<LegacyPluginsPathRedirect />}
-          />
-          <Route
-            path={TOOLS_PLUGIN_BROWSE_ROUTE_PATH}
-            element={<LegacyPluginsPathRedirect />}
-          />
-          <Route
-            path={TOOLS_PLUGIN_DETAIL_ROUTE_PATH}
-            element={<LegacyPluginsPathRedirect />}
-          />
-          <Route
-            path={TOOLS_SKILLS_ROUTE_PATH}
-            element={<LegacySkillsPathRedirect />}
-          />
-          <Route
-            path={TOOLS_SKILL_DETAIL_ROUTE_PATH}
-            element={<LegacySkillsPathRedirect />}
-          />
-          <Route
-            path={LEGACY_TOOLS_SKILL_DETAIL_ROUTE_PATH}
-            element={<LegacySkillsPathRedirect />}
-          />
-          <Route
-            path={TOOLS_REGISTRY_SKILLS_ROUTE_PATH}
-            element={<LegacySkillsPathRedirect />}
-          />
-          <Route
-            path={TOOLS_REGISTRY_SKILL_DETAIL_ROUTE_PATH}
-            element={<LegacySkillsPathRedirect />}
-          />
-          <Route
-            path={LEGACY_TOOLS_PREFIX_ROUTE_PATH}
-            element={<LegacyToolsPathRedirect />}
-          />
-          <Route
-            path={LEGACY_TOOLS_SPLAT_ROUTE_PATH}
-            element={<LegacyToolsPathRedirect />}
-          />
-          <Route path={SKILLS_ROUTE_PATH} element={<SkillsView />} />
-          <Route path={SKILL_DETAIL_ROUTE_PATH} element={<SkillsView />} />
-          <Route path={REGISTRY_SKILLS_ROUTE_PATH} element={<SkillsView />} />
-          <Route
-            path={REGISTRY_SKILL_DETAIL_ROUTE_PATH}
-            element={<SkillsView />}
-          />
-          <Route path={PLUGINS_ROUTE_PATH} element={<PluginsRoute />} />
-          <Route path={PLUGIN_DETAIL_ROUTE_PATH} element={<PluginsRoute />} />
-          <Route
-            path={REMOTE_THREAD_ROUTE_PATH}
-            element={<RemoteThreadView />}
-          />
-          <Route
-            path={REMOTE_PROJECT_COMPOSE_ROUTE_PATH}
-            element={<RemoteComposeView />}
-          />
-          <Route
-            path="*"
-            element={
-              <Suspense
-                fallback={<RouteLoadingSkeleton isBoundedPane={false} />}
-              >
-                <SplitWorkspaceRoute />
-              </Suspense>
-            }
-          />
-        </Routes>
-        <RouteContentPaintSignal />
-      </Suspense>
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <Suspense fallback={null}>
+          <Routes>
+            <Route
+              path="/settings/machines"
+              element={<Navigate to="/settings/connections" replace />}
+            />
+            <Route path={SETTINGS_ROUTE_PATH} element={<SettingsView />} />
+            <Route
+              path={SETTINGS_SECTION_ROUTE_PATH}
+              element={<SettingsView />}
+            />
+            <Route
+              path={SETTINGS_PLUGINS_ROUTE_PATH}
+              element={<SettingsView />}
+            />
+            <Route
+              path={SETTINGS_PLUGIN_ROUTE_PATH}
+              element={<SettingsView />}
+            />
+            <Route
+              path={SETTINGS_MACHINE_ROUTE_PATH}
+              element={<MachineSettingsView />}
+            />
+            <Route
+              path={SETTINGS_PROJECT_ROUTE_PATH}
+              element={<ProjectDetailSettingsView />}
+            />
+            <Route
+              path={LEGACY_PROJECT_SETTINGS_ROUTE_PATH}
+              element={<LegacyProjectSettingsRedirect />}
+            />
+            <Route
+              path={PROJECT_ARCHIVED_ROUTE_PATH}
+              element={
+                <Navigate to={getSettingsRoutePath("archived")} replace />
+              }
+            />
+            <Route
+              path={PROJECTLESS_ARCHIVED_ROUTE_PATH}
+              element={
+                <Navigate to={getSettingsRoutePath("archived")} replace />
+              }
+            />
+            <Route
+              path={LEGACY_TOOLS_AUTOMATIONS_ROUTE_PATH}
+              element={<LegacyAutomationCollectionRedirect />}
+            />
+            <Route
+              path={LEGACY_TOOLS_AUTOMATION_BROWSE_ROUTE_PATH}
+              element={<LegacyAutomationCollectionRedirect />}
+            />
+            <Route
+              path={LEGACY_TOOLS_AUTOMATION_DETAIL_ROUTE_PATH}
+              element={<LegacyAutomationDetailRedirect />}
+            />
+            <Route
+              path={LEGACY_TOOLS_AUTOMATION_EDIT_ROUTE_PATH}
+              element={<LegacyAutomationDetailRedirect />}
+            />
+            <Route
+              path={LEGACY_AUTOMATIONS_ROUTE_PATH}
+              element={<LegacyAutomationCollectionRedirect />}
+            />
+            <Route
+              path={LEGACY_AUTOMATION_DETAIL_ROUTE_PATH}
+              element={<LegacyAutomationDetailRedirect />}
+            />
+            <Route
+              path={TOOLS_ROUTE_PATH}
+              element={<PluginsLandingRedirect />}
+            />
+            <Route
+              path={TOOLS_PLUGINS_ROUTE_PATH}
+              element={<LegacyPluginsPathRedirect />}
+            />
+            <Route
+              path={TOOLS_PLUGIN_BROWSE_ROUTE_PATH}
+              element={<LegacyPluginsPathRedirect />}
+            />
+            <Route
+              path={TOOLS_PLUGIN_DETAIL_ROUTE_PATH}
+              element={<LegacyPluginsPathRedirect />}
+            />
+            <Route
+              path={TOOLS_SKILLS_ROUTE_PATH}
+              element={<LegacySkillsPathRedirect />}
+            />
+            <Route
+              path={TOOLS_SKILL_DETAIL_ROUTE_PATH}
+              element={<LegacySkillsPathRedirect />}
+            />
+            <Route
+              path={LEGACY_TOOLS_SKILL_DETAIL_ROUTE_PATH}
+              element={<LegacySkillsPathRedirect />}
+            />
+            <Route
+              path={TOOLS_REGISTRY_SKILLS_ROUTE_PATH}
+              element={<LegacySkillsPathRedirect />}
+            />
+            <Route
+              path={TOOLS_REGISTRY_SKILL_DETAIL_ROUTE_PATH}
+              element={<LegacySkillsPathRedirect />}
+            />
+            <Route
+              path={LEGACY_TOOLS_PREFIX_ROUTE_PATH}
+              element={<LegacyToolsPathRedirect />}
+            />
+            <Route
+              path={LEGACY_TOOLS_SPLAT_ROUTE_PATH}
+              element={<LegacyToolsPathRedirect />}
+            />
+            <Route path={SKILLS_ROUTE_PATH} element={<SkillsView />} />
+            <Route path={SKILL_DETAIL_ROUTE_PATH} element={<SkillsView />} />
+            <Route path={REGISTRY_SKILLS_ROUTE_PATH} element={<SkillsView />} />
+            <Route
+              path={REGISTRY_SKILL_DETAIL_ROUTE_PATH}
+              element={<SkillsView />}
+            />
+            <Route path={PLUGINS_ROUTE_PATH} element={<PluginsRoute />} />
+            <Route path={PLUGIN_DETAIL_ROUTE_PATH} element={<PluginsRoute />} />
+            <Route path="/servers/:handle/*" element={null} />
+            <Route
+              path="*"
+              element={
+                <Suspense
+                  fallback={<RouteLoadingSkeleton isBoundedPane={false} />}
+                >
+                  <SplitWorkspaceRoute />
+                </Suspense>
+              }
+            />
+          </Routes>
+          {workspaceEmbedding === null ? <RemoteWorkspaceDeck /> : null}
+          <RouteContentPaintSignal />
+        </Suspense>
+      </div>
     </AppLayout>
   );
 }
@@ -465,15 +480,35 @@ export function App() {
             <AppFileExternalNavigationHost>
               <HashNavigationScroll />
               <NativeShellReporter />
+              {workspaceEmbedding === null ? (
+                <DesktopWorkspaceNavigation />
+              ) : null}
               <UiPreferencesSync />
+              {workspaceEmbedding === null ? (
+                <Suspense fallback={null}>
+                  <ConnectionHandoffDialogHost />
+                </Suspense>
+              ) : null}
               <Routes>
                 <Route
                   path={AUTH_CALLBACK_ROUTE_PATH}
                   element={<AuthCallbackView />}
                 />
-                <Route path="*" element={<AppRoutes />} />
+                <Route
+                  path="*"
+                  element={
+                    workspaceEmbedding === null ? (
+                      <AppRoutes />
+                    ) : (
+                      <Suspense fallback={null}>
+                        <EmbeddedWorkspaceBridge>
+                          <AppRoutes />
+                        </EmbeddedWorkspaceBridge>
+                      </Suspense>
+                    )
+                  }
+                />
               </Routes>
-              {}
               <ProviderCliInstallLogDialogHost />
             </AppFileExternalNavigationHost>
           </AppNavigationUrlHost>

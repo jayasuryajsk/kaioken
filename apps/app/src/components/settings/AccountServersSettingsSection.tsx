@@ -1,4 +1,7 @@
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
+import { Link } from "react-router-dom";
+import { Button } from "@kaioken/shared-ui/button";
+import { getRemoteWorkspaceRoutePath } from "@/lib/route-paths";
 import { useNow } from "@/components/sidebar/TimelineThreadList";
 import {
   SettingsBadge,
@@ -25,8 +28,8 @@ export function AccountServersSettingsSection() {
   const servers = serversQuery.data ?? [];
   return (
     <SettingsSection
-      title="Kaiokens on this account"
-      description="Every Kaioken paired to your connect account. Their threads and projects show in the sidebar read-only; actions on them arrive in the next phase."
+      title="Connect to another computer"
+      description="Open the full workspace of another Kaioken on your account, including its existing projects, tasks and tools."
     >
       {servers.length === 0 ? (
         <p
@@ -35,7 +38,7 @@ export function AccountServersSettingsSection() {
         >
           {serversQuery.isPending
             ? "Checking your connect account…"
-            : "Pair this Kaioken with `kaioken connect` to see the others here."}
+            : "Set up remote access on both computers with the same account to see them here."}
         </p>
       ) : (
         <SettingsRowList>
@@ -53,13 +56,20 @@ export function AccountServersSettingsSection() {
                   </span>
                   <SettingsBadge>{server.handle}</SettingsBadge>
                   {server.home ? (
-                    <SettingsBadge>This Kaioken</SettingsBadge>
+                    <SettingsBadge>This computer</SettingsBadge>
                   ) : null}
                 </div>
                 <p className="truncate text-xs text-muted-foreground">
                   {server.url} · {accountServerStatusText(server, now)}
                 </p>
               </div>
+              {!server.home ? (
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={getRemoteWorkspaceRoutePath(server.handle)}>
+                    Connect
+                  </Link>
+                </Button>
+              ) : null}
             </SettingsRow>
           ))}
         </SettingsRowList>

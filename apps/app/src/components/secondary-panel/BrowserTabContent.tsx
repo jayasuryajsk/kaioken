@@ -439,7 +439,9 @@ export function BrowserTabContent({
   } = useBrowserHistory(threadId);
 
   const [state, setState] = useState<KaiokenDesktopBrowserState | null>(null);
-  const [control, setControl] = useState<KaiokenDesktopBrowserControl | null>(null);
+  const [control, setControl] = useState<KaiokenDesktopBrowserControl | null>(
+    null,
+  );
   useEffect(() => {
     let current = true;
     let receivedEvent = false;
@@ -503,7 +505,9 @@ export function BrowserTabContent({
   const pageLoadErrorText = state?.errorText ?? null;
   const hasPageLoadError = pageLoadErrorText !== null && hasPage;
   const isBrowserDimmingModalOpen = useIsBrowserDimmingModalOpen();
-  const lastSentBoundsRef = useRef<KaiokenDesktopBrowserViewBounds | null>(null);
+  const lastSentBoundsRef = useRef<KaiokenDesktopBrowserViewBounds | null>(
+    null,
+  );
 
   const readBounds = useCallback(() => {
     const element = contentRef.current;
@@ -818,7 +822,10 @@ export function BrowserTabContent({
 
   const handleFindQueryChange = useCallback(
     (rawQuery: string) => {
-      const query = rawQuery.slice(0, KAIOKEN_DESKTOP_BROWSER_MAX_FIND_TEXT_LENGTH);
+      const query = rawQuery.slice(
+        0,
+        KAIOKEN_DESKTOP_BROWSER_MAX_FIND_TEXT_LENGTH,
+      );
       setFindQuery(query);
       if (query.length === 0) {
         clearFind();
@@ -875,7 +882,9 @@ export function BrowserTabContent({
   );
 
   const handleOpenExternal = useCallback(() => {
-    getBbDesktopInfo()?.openExternalUrl(currentUrl);
+    const desktop = getBbDesktopInfo();
+    if (desktop) desktop.openExternalUrl(currentUrl);
+    else window.open(currentUrl, "_blank", "noopener,noreferrer");
   }, [currentUrl]);
 
   if (desktopBrowser === null) {

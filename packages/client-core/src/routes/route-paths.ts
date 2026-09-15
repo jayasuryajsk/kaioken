@@ -61,6 +61,14 @@ const THREAD_DETAIL_ROUTE_PATH = "/projects/:projectId/threads/:threadId";
 export const REMOTE_THREAD_ROUTE_PATH = "/servers/:handle/threads/:threadId";
 export const REMOTE_PROJECT_COMPOSE_ROUTE_PATH =
   "/servers/:handle/projects/:projectId";
+export const REMOTE_WORKSPACE_ROUTE_PATH = "/servers/:handle/workspace/*";
+
+export function getRemoteWorkspaceRoutePath(
+  handle: string,
+  path = "/",
+): string {
+  return `/servers/${encodeURIComponent(handle)}/workspace${path.startsWith("/") ? path : `/${path}`}`;
+}
 export const PLUGIN_PANEL_ROUTE_PATH = "/plugins/:pluginId/:panelPath/*";
 
 export interface ThreadRoutePathArgs {

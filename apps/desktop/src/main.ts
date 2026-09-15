@@ -1,3 +1,4 @@
+import { sshConnectionsResponseSchema } from "@kaioken/server-contract";
 import { randomUUID } from "node:crypto";
 import { accessSync, constants as fsConstants } from "node:fs";
 import { arch, homedir, release, type as osType } from "node:os";
@@ -148,8 +149,10 @@ import {
   KAIOKEN_DESKTOP_SET_THEME_CHANNEL,
 } from "./desktop-update-ipc.js";
 import { registerDesktopFederationIpc } from "./desktop-federation-main-ipc.js";
+import { registerFederatedSocketsIpc } from "./federated-sockets-ipc.js";
 import {
   KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL,
+  KAIOKEN_DESKTOP_WORKSPACE_NAVIGATE_CHANNEL,
   KAIOKEN_DESKTOP_CLOSE_WINDOW_REQUEST_CHANNEL,
   KAIOKEN_DESKTOP_CLOSE_WINDOW_RESPONSE_CHANNEL,
   KAIOKEN_DESKTOP_GET_WINDOW_STATE_CHANNEL,
@@ -352,6 +355,7 @@ let serverTargetGeneration = 0;
 let connectAccountServers: ConnectAccountServer[] = [];
 let connectServerSyncSkipReason: ConnectServerSyncSkipReason | null = null;
 let federationSessionInstalledAt = 0;
+let sshFederationServers: Array<{ url: string }> = [];
 const FEDERATION_SESSION_REFRESH_MS = 60 * 60 * 1000;
 let builtinServerUrl: string = DEFAULT_KAIOKEN_SERVER_URL;
 let desktopBridgePath: string | null = null;
@@ -703,17 +707,25 @@ function buildMenuServerItems(connectServers: ConnectServerRef[]): Array<{
   name: string;
 }> {
   const target = serverTargetStore?.getTarget() ?? { kind: "builtin" as const };
+  const windowUrl = getFocusedApplicationWindow()?.webContents.getURL();
+  let activeHandle: string | null =
+    target.kind === "connect" ? target.server.handle : null;
+  if (windowUrl && target.kind !== "custom") {
+    try {
+      activeHandle =
+        /^\/servers\/([^/]+)\//u.exec(new URL(windowUrl).pathname)?.[1] ?? null;
+    } catch {}
+  }
   const items = [
     {
-      checked: target.kind === "builtin",
+      checked: target.kind !== "custom" && activeHandle === null,
       id: "builtin",
       name: BUILTIN_SERVER_NAME,
     },
   ];
   for (const server of connectServers) {
     items.push({
-      checked:
-        target.kind === "connect" && target.server.handle === server.handle,
+      checked: activeHandle === encodeURIComponent(server.handle),
       id: connectServerMenuId(server.handle),
       name: server.name,
     });
@@ -1192,7 +1204,7 @@ async function applyServerTarget(): Promise<void> {
   const generation = serverTargetGeneration;
   const isCurrent = (): boolean => serverTargetGeneration === generation;
 
-  if (target.kind === "builtin") {
+  if (target.kind !== "custom") {
     const attached = await ensureBuiltinRuntimeAttached();
     if (!isCurrent()) {
       return;
@@ -1209,44 +1221,44 @@ async function applyServerTarget(): Promise<void> {
     }
     const localServerUrl = currentRuntime?.serverUrl ?? builtinServerUrl;
     startSystemConfigSync(localServerUrl);
-    await loadBbApp(
-      resolveDesktopWindowUrl({
-        env: process.env,
-        serverUrl: localServerUrl,
-      }),
-    );
-  } else if (target.kind === "connect") {
-    const result = await authenticateConnectTarget(
-      target.server.url,
-      isCurrent,
-    );
-    if (!isCurrent()) {
-      return;
-    }
-    if (!result.ok) {
-      createDesktopLogger().warn(
-        `[desktop] Connect authentication failed (${result.code}): ${result.detail}`,
+    if (target.kind === "connect") {
+      const result = await authenticateConnectTarget(
+        target.server.url,
+        isCurrent,
       );
-      await loadStartupError({
-        details:
-          "The desktop app could not establish a session for this Connect server. " +
-          `Try switching servers again. (${result.code}: ${result.detail})`,
-        logs: "",
-        title: "Could not authenticate with kaioken Connect",
-      });
-      refreshApplicationMenu();
-      return;
+      if (!isCurrent()) return;
+      if (!result.ok) {
+        createDesktopLogger().warn(
+          `[desktop] Could not sign in to ${target.server.name}: ${result.detail}`,
+        );
+      } else {
+        connectSessionRenewal?.start({
+          expiresAt: result.expiresAt,
+          remoteServerUrl: target.server.url,
+        });
+      }
     }
-    connectSessionRenewal?.start({
-      expiresAt: result.expiresAt,
-      remoteServerUrl: target.server.url,
-    });
-    const loaded = await loadRemoteServerTarget(target.server.url, isCurrent);
-    if (!isCurrent()) {
-      return;
-    }
-    if (!loaded) {
-      connectSessionRenewal?.stop();
+    const path =
+      target.kind === "connect"
+        ? `/servers/${encodeURIComponent(target.server.handle)}/workspace/`
+        : "/";
+    const url = new URL(
+      path,
+      resolveDesktopWindowUrl({ env: process.env, serverUrl: localServerUrl }),
+    );
+    const focused = getFocusedApplicationWindow();
+    if (
+      kaiokenAppLoaded &&
+      focused &&
+      new URL(focused.webContents.getURL()).origin === url.origin
+    ) {
+      currentWindowUrl = url.toString();
+      focused.webContents.send(
+        KAIOKEN_DESKTOP_WORKSPACE_NAVIGATE_CHANNEL,
+        path,
+      );
+    } else {
+      await loadBbApp(url.toString());
     }
   } else {
     await loadRemoteServerTarget(target.url, isCurrent);
@@ -1278,33 +1290,6 @@ async function loadRemoteServerTarget(
   return true;
 }
 
-function describeServerTarget(target: {
-  kind: string;
-  server?: { name: string };
-}): string {
-  return target.kind === "connect" && target.server
-    ? target.server.name
-    : BUILTIN_SERVER_NAME;
-}
-
-async function confirmServerSwitch(nextName: string): Promise<boolean> {
-  const current = serverTargetStore?.getTarget() ?? {
-    kind: "builtin" as const,
-  };
-  const currentName = describeServerTarget(current);
-  if (currentName === nextName) return true;
-  const { response } = await dialog.showMessageBox({
-    type: "warning",
-    buttons: ["Cancel", `Switch to ${nextName}`],
-    defaultId: 0,
-    cancelId: 0,
-    message: `Switch from ${currentName} to ${nextName}?`,
-    detail:
-      "Each Kaioken keeps its own threads and projects, so switching replaces everything you see. Machines connected to the Kaioken you are leaving keep running, and you can switch back from the same menu.",
-  });
-  return response === 1;
-}
-
 async function setActiveServerTarget(serverId: string): Promise<void> {
   if (serverTargetStore === null) {
     return;
@@ -1318,22 +1303,11 @@ async function setActiveServerTarget(serverId: string): Promise<void> {
       refreshApplicationMenu();
       return;
     }
-    if (!(await confirmServerSwitch(server.name))) {
-      refreshApplicationMenu();
-      return;
-    }
     await serverTargetStore.setConnectServer(server);
     await applyServerTarget();
     return;
   }
   if (serverId !== "builtin" && serverId !== "custom") {
-    return;
-  }
-  if (
-    serverId === "builtin" &&
-    !(await confirmServerSwitch(BUILTIN_SERVER_NAME))
-  ) {
-    refreshApplicationMenu();
     return;
   }
   const switched = await serverTargetStore.setTarget(serverId);
@@ -1697,7 +1671,7 @@ async function ensureFederationSession(
   servers: readonly ConnectAccountServer[],
 ): Promise<void> {
   const target = serverTargetStore?.getTarget() ?? { kind: "builtin" as const };
-  if (target.kind !== "builtin" || currentRuntime === null) return;
+  if (target.kind === "custom" || currentRuntime === null) return;
   const first = servers[0];
   if (first === undefined) return;
   if (
@@ -1724,7 +1698,21 @@ async function ensureFederationSession(
 
 async function prepareFederation(): Promise<void> {
   const target = serverTargetStore?.getTarget() ?? { kind: "builtin" as const };
-  if (target.kind !== "builtin" || currentRuntime === null) return;
+  if (target.kind === "custom" || currentRuntime === null) return;
+  try {
+    const response = await fetch(
+      `${currentRuntime.serverUrl}/api/v1/connections/ssh`,
+    );
+    if (response.ok) {
+      const parsed = sshConnectionsResponseSchema.safeParse(
+        await response.json(),
+      );
+      if (parsed.success)
+        sshFederationServers = parsed.data.connections.flatMap((connection) =>
+          connection.url === null ? [] : [{ url: connection.url }],
+        );
+    }
+  } catch {}
   if (connectAccountServers.length === 0) {
     const listed = await fetchConnectAccountServers({
       serverUrl: currentRuntime.serverUrl,
@@ -1737,8 +1725,18 @@ async function prepareFederation(): Promise<void> {
 }
 
 function registerDesktopFederation(): void {
+  registerFederatedSocketsIpc({
+    listServers: () => [...listMenuConnectServers(), ...sshFederationServers],
+    prepare: prepareFederation,
+    cookieHeader: async (url) => {
+      const cookies = await session.defaultSession.cookies.get({ url });
+      return cookies
+        .map((cookie) => `${cookie.name}=${cookie.value}`)
+        .join("; ");
+    },
+  });
   registerDesktopFederationIpc({
-    listServers: () => listMenuConnectServers(),
+    listServers: () => [...listMenuConnectServers(), ...sshFederationServers],
     fetchImpl: (url, init) => session.defaultSession.fetch(url, init),
     prepare: prepareFederation,
   });
@@ -2479,7 +2477,6 @@ async function runDesktopApp(): Promise<void> {
     homeDir: homedir(),
     getServerUrl() {
       const target = serverTargetStore?.getTarget();
-      if (target?.kind === "connect") return target.server.url;
       if (target?.kind === "custom") return target.url;
       return currentRuntime?.serverUrl ?? builtinServerUrl;
     },

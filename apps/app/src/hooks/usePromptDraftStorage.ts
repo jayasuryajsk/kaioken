@@ -1,6 +1,9 @@
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 import type { PromptTextMention } from "@kaioken/domain";
-import type { PromptDraftAttachment, PromptDraftState } from "@kaioken/client-core";
+import type {
+  PromptDraftAttachment,
+  PromptDraftState,
+} from "@kaioken/client-core";
 import {
   appendQuoteAndAttachmentsToDraft,
   arePromptDraftStatesEqual,
@@ -17,6 +20,7 @@ const PROMPT_DRAFT_PERSIST_DEBOUNCE_MS = 250;
 export type PromptDraftScope =
   | { kind: "automation-edit"; automationId: string }
   | { kind: "new-thread" }
+  | { kind: "connection-new-thread"; transferId: string }
   | { kind: "plugin-new-thread"; key: string }
   | { kind: "thread"; projectId: string; threadId: string };
 
@@ -249,6 +253,9 @@ function getPromptDraftStorageKey(scope: PromptDraftScope): string {
   }
   if (scope.kind === "new-thread") {
     return `${PROMPT_DRAFT_STORAGE_PREFIX}-draft-${PROMPT_DRAFT_STORAGE_VERSION}`;
+  }
+  if (scope.kind === "connection-new-thread") {
+    return `${PROMPT_DRAFT_STORAGE_PREFIX}-connection-${normalizeStorageSegment(scope.transferId)}-${PROMPT_DRAFT_STORAGE_VERSION}`;
   }
   if (scope.kind === "plugin-new-thread") {
     const normalizedKey = normalizeStorageSegment(scope.key);

@@ -3,6 +3,7 @@ import {
   type BuildTerminalWebSocketPathArgs,
 } from "@kaioken/client-core";
 import { buildDevWebSocketUrl } from "@/lib/dev-websocket-url";
+import { withWorkspaceIdentity } from "@/lib/federation/workspace-protocol";
 
 type BuildTerminalWebSocketUrlArgs = BuildTerminalWebSocketPathArgs;
 
@@ -19,5 +20,7 @@ function buildWebSocketUrl(path: string): string {
 export function buildTerminalWebSocketUrl(
   args: BuildTerminalWebSocketUrlArgs,
 ): string {
-  return buildWebSocketUrl(buildTerminalWebSocketPath(args));
+  return withWorkspaceIdentity(
+    buildWebSocketUrl(buildTerminalWebSocketPath(args)),
+  );
 }

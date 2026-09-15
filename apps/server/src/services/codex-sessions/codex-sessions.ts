@@ -545,18 +545,22 @@ function importExecutionFor(
   };
 }
 
-function requireCodexThread(
+export function requireCodexProviderId(providerId: string): string {
+  if (providerId !== CODEX_PROVIDER_ID)
+    throw new ApiError(
+      400,
+      "codex_thread_required",
+      "This action requires a native Codex session",
+    );
+  return providerId;
+}
+
+export function requireCodexThread(
   deps: Pick<CodexSessionsDeps, "db">,
   threadId: string,
 ): Thread {
   const thread = requirePublicThread(deps.db, threadId);
-  if (thread.providerId !== CODEX_PROVIDER_ID) {
-    throw new ApiError(
-      400,
-      "codex_thread_required",
-      `Thread ${thread.id} runs on ${thread.providerId}, not Codex`,
-    );
-  }
+  requireCodexProviderId(thread.providerId);
   return thread;
 }
 

@@ -1,5 +1,9 @@
-export const KAIOKEN_DESKTOP_OPEN_NEW_TAB_CHANNEL = "kaioken-desktop:open-new-tab";
-export const KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL = "kaioken-desktop:app-command";
+export const KAIOKEN_DESKTOP_OPEN_NEW_TAB_CHANNEL =
+  "kaioken-desktop:open-new-tab";
+export const KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL =
+  "kaioken-desktop:app-command";
+export const KAIOKEN_DESKTOP_WORKSPACE_NAVIGATE_CHANNEL =
+  "kaioken-desktop:workspace-navigate";
 export const KAIOKEN_DESKTOP_OPEN_SERVER_DAEMON_LOGS_CHANNEL =
   "kaioken-desktop:open-server-daemon-logs";
 export const KAIOKEN_DESKTOP_GET_WINDOW_STATE_CHANNEL =

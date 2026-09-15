@@ -1,4 +1,7 @@
 import type { ComponentProps } from "react";
+import { useSetAtom } from "jotai";
+import { Button } from "@kaioken/shared-ui/button";
+import { codexImportDialogOpenAtom } from "@/lib/codex-import/atoms";
 import { useNavigate } from "react-router-dom";
 import {
   type BuiltInSidebarNavEntry,
@@ -12,6 +15,7 @@ import { usePluginNavPanelChrome } from "@/lib/plugin-nav-panel-chrome";
 import {
   ProjectListNewThreadAction,
   ProjectListSearchThreadsAction,
+  PROJECT_LIST_ACTION_BUTTON_CLASS,
 } from "./ProjectList";
 import { DEFAULT_BUILT_IN_SIDEBAR_NAVIGATION_ORDER } from "@/components/plugin/pluginNavSidebarOrder";
 import { getPluginsRoutePath, getSkillsRoutePath } from "@/lib/route-paths";
@@ -35,6 +39,11 @@ export function BuiltInSidebarNavigation({
   toolsRoutePath,
 }: BuiltInSidebarNavigationProps) {
   const navigate = useNavigate();
+  const setCodexImportOpen = useSetAtom(codexImportDialogOpenAtom);
+  const openCodexImport = () => {
+    onNavigate?.();
+    setCodexImportOpen(true);
+  };
   const commandRunner = useAppCommandRunner();
   const pluginNavPanels = usePluginNavPanelChrome();
   const pluginsRoutePath = getPluginsRoutePath();
@@ -119,6 +128,25 @@ export function BuiltInSidebarNavigation({
           },
         ]
       : []),
+    {
+      kind: "built-in",
+      pluginId: "__bb__",
+      id: "import-codex",
+      title: "Import from Codex",
+      icon: <Icon name="Terminal" aria-hidden="true" />,
+      content: (
+        <Button
+          variant="ghost"
+          size="sm"
+          className={PROJECT_LIST_ACTION_BUTTON_CLASS}
+          onClick={openCodexImport}
+        >
+          <Icon name="Terminal" aria-hidden="true" />
+          <span>Import from Codex</span>
+        </Button>
+      ),
+      onActivate: openCodexImport,
+    },
   ];
 
   return (

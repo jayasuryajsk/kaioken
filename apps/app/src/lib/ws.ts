@@ -17,6 +17,7 @@ import type {
   ThreadPaneActionSignal,
 } from "@kaioken/server-contract";
 import { buildDevWebSocketUrl } from "./dev-websocket-url";
+import { withWorkspaceIdentity } from "./federation/workspace-protocol";
 import {
   isDocumentVisible,
   subscribeToDocumentVisibility,
@@ -99,13 +100,17 @@ export class WebSocketManager {
       buildDevWebSocketUrl({ path: "/ws" }) ??
       `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`;
 
-    const socket = new ReconnectingWebSocket(url, undefined, {
-      minReconnectionDelay: 1000,
-      maxReconnectionDelay: 30000,
-      reconnectionDelayGrowFactor: 1.5,
-      connectionTimeout: 10000,
-      maxRetries: Infinity,
-    });
+    const socket = new ReconnectingWebSocket(
+      withWorkspaceIdentity(url),
+      undefined,
+      {
+        minReconnectionDelay: 1000,
+        maxReconnectionDelay: 30000,
+        reconnectionDelayGrowFactor: 1.5,
+        connectionTimeout: 10000,
+        maxRetries: Infinity,
+      },
+    );
     this.socket = socket;
 
     socket.onopen = () => {

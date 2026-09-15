@@ -24,3 +24,13 @@ export {
   runGit,
 } from "./git.js";
 export type { GitProcessOptions } from "./git.js";
+export {
+  inspectGitTransferRepository,
+  snapshotGitWorkspace,
+  restoreGitWorkspace,
+  hashGitTransferBundle,
+} from "./git-transfer.js";
+export type {
+  GitTransferRepository,
+  GitTransferSnapshot,
+} from "./git-transfer.js";

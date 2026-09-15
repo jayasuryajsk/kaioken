@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { accountConnectionHandleSchema } from "@kaioken/server-contract";
 import type { FederatedServer } from "@kaioken/client-core";
 
 export const FEDERATION_SERVERS_STORAGE_KEY = "kaioken.federation.servers";
@@ -7,7 +8,7 @@ export const FEDERATION_MOCK_SERVERS_STORAGE_KEY =
 
 const accountServerSchema = z
   .object({
-    handle: z.string().min(1),
+    handle: accountConnectionHandleSchema,
     name: z.string().min(1),
     live: z.boolean(),
     url: z.string().min(1),
@@ -18,7 +19,7 @@ const accountServerSchema = z
 export const listAccountServersResultSchema = z
   .object({
     servers: z.array(accountServerSchema),
-    selfHandle: z.string().min(1),
+    selfHandle: accountConnectionHandleSchema,
   })
   .passthrough();
 
@@ -28,7 +29,7 @@ export type ListAccountServersResult = z.infer<
 
 const storedServersSchema = z.array(
   z.object({
-    handle: z.string().min(1),
+    handle: accountConnectionHandleSchema,
     name: z.string().min(1),
     url: z.string().min(1),
     live: z.boolean(),

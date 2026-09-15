@@ -190,6 +190,7 @@ export async function createQueuedMessageForThread(
   args: CreateQueuedMessageForThreadArgs,
 ): Promise<ThreadQueuedMessage> {
   const { payload, thread } = args;
+  assertThreadHasNoConnectionHandoff(deps.db, thread.id);
   ensureThreadIsWritable(thread);
   await validatePromptAttachmentReferences({
     dataDir: deps.config.dataDir,
@@ -211,6 +212,7 @@ export async function createQueuedMessageForThread(
           throw new ApiError(404, "thread_not_found", "Thread not found");
         }
         const { providerThreadId } = admitQueuedMessage(tx, currentThread);
+        assertThreadHasNoConnectionHandoff(tx, thread.id);
         const queuedMessage = createQueuedThreadMessageInTransaction(tx, {
           threadId: thread.id,
           content: payload.input,
@@ -891,3 +893,4 @@ export function releaseStaleQueuedMessageDispatchClaims(
     protectedClaimTokens: [...activeQueuedMessageClaimTokens],
   });
 }
+import { assertThreadHasNoConnectionHandoff } from "../connections/handoff-store.js";

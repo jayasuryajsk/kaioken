@@ -1146,6 +1146,7 @@ async function constructThreadSession(
         method = "thread/fork";
         const forkParams: KaiokenThreadForkParams = {
           threadId: args.request.sourceProviderThreadId,
+          deferGoalContinuation: true,
           ...(args.request.sourceProviderCheckpointId !== undefined
             ? {
                 lastTurnId: stripLegacyBridgeIdPrefix(

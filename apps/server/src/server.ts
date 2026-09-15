@@ -7,7 +7,11 @@ import { performance } from "node:perf_hooks";
 import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Hono } from "hono";
-import { terminalWebSocketQuerySchema } from "@kaioken/server-contract";
+import {
+  terminalWebSocketQuerySchema,
+  CONNECTION_IDENTITY_HEADER,
+} from "@kaioken/server-contract";
+import { getServerIdentity } from "./services/connections/server-identity.js";
 import { compress } from "hono/compress";
 import { cors } from "hono/cors";
 import type { ServerAppDeps } from "./types.js";
@@ -26,6 +30,7 @@ import { registerPluginRoutes } from "./routes/plugins.js";
 import { registerPluginCatalogRoutes } from "./routes/plugin-catalog.js";
 import { registerSkillsRegistryRoutes } from "./routes/skills-registry.js";
 import { registerCodexSessionRoutes } from "./routes/codex-sessions.js";
+import { registerConnectionRoutes } from "./routes/connections.js";
 import {
   createPluginService,
   type PluginService,
@@ -439,6 +444,22 @@ export function createApp(
   });
   app.use("*", async (context, next) => {
     const path = context.req.path;
+    if (
+      path.startsWith("/api/v1/") ||
+      path === "/ws" ||
+      path.startsWith("/ws/")
+    ) {
+      const expectedIdentity =
+        context.req.header(CONNECTION_IDENTITY_HEADER) ??
+        context.req.query("connectionServerId");
+      if (expectedIdentity && expectedIdentity !== getServerIdentity(deps.db)) {
+        throw new ApiError(
+          409,
+          "connection_identity_changed",
+          "This address belongs to a different Kaioken installation. Reconnect before using its workspace.",
+        );
+      }
+    }
     if (!path.startsWith("/api/v1/") && !path.startsWith("/internal/")) {
       return next();
     }
@@ -654,6 +675,7 @@ export function createApp(
   registerThreadRoutes(publicApi, deps);
   registerQueueRoutes(publicApi, deps);
   registerSystemRoutes(publicApi, deps, pluginService);
+  registerConnectionRoutes(publicApi, deps, pluginService);
   registerUiPreferenceRoutes(publicApi, deps);
   registerPluginCatalogRoutes(publicApi, pluginCatalogService);
   registerPluginRoutes(publicApi, deps, pluginService, upgradeWebSocket);

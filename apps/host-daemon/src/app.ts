@@ -1,6 +1,7 @@
 import { startDesktopBrowserBroker } from "./desktop-browser-broker.js";
 import { CommandRouter } from "./command-router.js";
 import { createDaemon, type HostDaemon } from "./daemon.js";
+import { SshConnections } from "./ssh-connections.js";
 import {
   createEventSink,
   EventSinkDisposedError,
@@ -736,7 +737,9 @@ export async function createHostDaemonApp(
     onChanged: (event) => sendServerMessage(event),
   });
 
+  const sshConnections = new SshConnections(options.dataDir);
   const router = new CommandRouter({
+    sshConnections,
     emitEnvironmentHookProgress: (message) => sendServerMessage(message),
     desktopBrowserBroker,
     dataDir: options.dataDir,
@@ -932,6 +935,7 @@ export async function createHostDaemonApp(
       await eventSink.flush();
     },
     shutdownRuntimes: async () => {
+      sshConnections.close();
       await desktopBrowserBroker.close();
       idleProviderSessionReaper.stop();
       eventLoopStallMonitor.stop();
