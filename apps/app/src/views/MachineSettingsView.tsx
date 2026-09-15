@@ -3,7 +3,11 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import type { Host, PermissionMode } from "@kaioken/domain";
 import type { HostPlatform } from "@kaioken/host-daemon-contract";
 import { Button } from "@kaioken/shared-ui/button";
-import { DialogFooter, DialogHeader, DialogTitle } from "@kaioken/shared-ui/dialog";
+import {
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@kaioken/shared-ui/dialog";
 import { DialogDescription } from "@kaioken/shared-ui/dialog";
 import { Icon } from "@kaioken/shared-ui/icon";
 import { cn } from "@kaioken/shared-ui/lib/utils";
@@ -52,7 +56,8 @@ import {
   getSettingsRoutePath,
 } from "@/lib/route-paths";
 
-const PRIMARY_REMOVE_DISABLED_REASON = "kaioken's primary machine can't be removed.";
+const PRIMARY_REMOVE_DISABLED_REASON =
+  "kaioken's primary machine can't be removed.";
 
 const PERMISSION_LIMIT_DESCRIPTION =
   "Highest permission mode any thread on the selected machine may run with. Threads that ask for more resolve down to it, and a provider that supports nothing this low can't run here.";
@@ -250,7 +255,7 @@ export function MachineSettingsView() {
       <PageShell contentClassName="pt-4 md:pt-5">
         <div className="mx-auto w-full max-w-3xl space-y-3">
           <Link
-            to={getSettingsRoutePath("machines")}
+            to={getSettingsRoutePath("connections")}
             className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
             <Icon name="ChevronLeft" className="size-3.5" />
@@ -271,7 +276,7 @@ export function MachineSettingsView() {
       <div className="mx-auto w-full max-w-3xl space-y-6 pb-10">
         <div className="space-y-3">
           <Link
-            to={getSettingsRoutePath("machines")}
+            to={getSettingsRoutePath("connections")}
             className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
             <Icon name="ChevronLeft" className="size-3.5" />
@@ -528,7 +533,7 @@ export function MachineSettingsView() {
               removeHost.mutate(host.id, {
                 onSuccess: () => {
                   setRemoveOpen(false);
-                  navigate(getSettingsRoutePath("machines"));
+                  navigate(getSettingsRoutePath("connections"));
                 },
               })
             }

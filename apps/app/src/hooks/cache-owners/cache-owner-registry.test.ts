@@ -73,6 +73,19 @@ const CACHE_OWNER_QUERY_KEY_IMPORTS: CacheOwnerQueryKeyImportRegistry = {
     "threadTimelineTurnSummaryDetailsQueryKeyPrefix",
     "threadsQueryKey",
   ],
+  "hooks/cache-owners/codex-cache-owner.ts": [
+    "allCodexSessionsQueryKeyPrefix",
+    "codexThreadLinkQueryKey",
+    "sidebarNavigationQueryKey",
+    "threadQueryKey",
+    "threadTimelineQueryKey",
+    "threadsQueryKey",
+  ],
+  "hooks/cache-owners/connection-cache-owner.ts": [
+    "connectionHandoffQueryKey",
+    "federationQueryKeyPrefix",
+    "sshConnectionsQueryKey",
+  ],
   "hooks/cache-owners/environment-cache-effects.ts": [
     "environmentDiffFilesQueryKeyPrefix",
     "environmentFilePreviewQueryKeyPrefix",

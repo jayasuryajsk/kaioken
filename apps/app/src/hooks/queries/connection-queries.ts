@@ -1,15 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
 import { updateSshTargets } from "@/lib/federation/ssh-targets";
+import { invalidateSshConnections } from "../cache-owners/connection-cache-owner";
+import { sshConnectionsQueryKey } from "./query-keys";
 
-export const sshConnectionsQueryKey = ["connections", "ssh"] as const;
 export const canControlLocalSsh =
   typeof window !== "undefined" &&
   ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
 
 export function useSshConnections(enabled = true) {
   return useQuery({
-    queryKey: sshConnectionsQueryKey,
+    queryKey: sshConnectionsQueryKey(),
     queryFn: async ({ signal }) => {
       const result = await sdk.experimental_connections.ssh.list({ signal });
       updateSshTargets(result.connections);
@@ -29,8 +30,7 @@ export function useSshConnections(enabled = true) {
 
 export function useSshConnectionActions() {
   const client = useQueryClient();
-  const refresh = () =>
-    client.invalidateQueries({ queryKey: sshConnectionsQueryKey });
+  const refresh = () => invalidateSshConnections(client);
   const connect = useMutation({
     mutationFn: (alias: string) =>
       sdk.experimental_connections.ssh.connect({ alias }),

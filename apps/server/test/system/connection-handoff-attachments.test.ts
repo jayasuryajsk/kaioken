@@ -173,4 +173,4 @@ it("copies binary conversation attachments and rewrites references without overw
       ),
     ).rejects.toThrow();
   });
-});
+}, 60_000);

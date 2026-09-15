@@ -71,7 +71,7 @@ describe("settings/Settings/Full Page story chrome", () => {
     ).toBeNull();
   });
 
-  it("keeps Machines selected on a machine detail route", () => {
+  it("keeps Connections selected on a machine detail route", () => {
     render(
       <MemoryRouter initialEntries={["/settings/machines/host_local"]}>
         <TooltipProvider>
@@ -83,7 +83,7 @@ describe("settings/Settings/Full Page story chrome", () => {
     expect(screen.getByRole("heading", { name: "host_local" })).toBeDefined();
     expect(
       screen
-        .getByRole("link", { name: "Machines" })
+        .getByRole("link", { name: "Connections" })
         .getAttribute("aria-current"),
     ).toBe("page");
   });
@@ -92,7 +92,7 @@ describe("settings/Settings/Full Page story chrome", () => {
     window.history.replaceState(
       null,
       "",
-      "/?settingsPath=%2Fsettings%2Fmachines",
+      "/?settingsPath=%2Fsettings%2Fconnections",
     );
     render(
       <MemoryRouter initialEntries={["/"]}>

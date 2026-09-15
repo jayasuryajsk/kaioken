@@ -34,6 +34,11 @@ import {
   readConnectionIdentity,
   rememberConnectionIdentity,
 } from "@/lib/federation/connection-identities";
+import {
+  invalidateFederationQueries,
+  setConnectionHandoffStatus,
+} from "@/hooks/cache-owners/connection-cache-owner";
+import { connectionHandoffQueryKey } from "@/hooks/queries/query-keys";
 
 const activeHandoffIdAtom = atomWithStorage<string | null>(
   "kaioken.connections.handoff",
@@ -140,7 +145,7 @@ function ConnectionHandoffDialog({
     retry: false,
   });
   const status = useQuery({
-    queryKey: ["connection-handoff", activeId],
+    queryKey: connectionHandoffQueryKey(activeId),
     enabled: activeId !== null,
     queryFn: ({ signal }) =>
       sdk.experimental_connections.handoffs.get({ id: activeId!, signal }),
@@ -199,7 +204,7 @@ function ConnectionHandoffDialog({
       onStarted(input.id);
     },
     onSuccess: (value) => {
-      client.setQueryData(["connection-handoff", value.id], value);
+      setConnectionHandoffStatus(client, value);
       onPendingStart(null);
     },
   });
@@ -210,7 +215,7 @@ function ConnectionHandoffDialog({
     mutationFn: (value: "retry" | "cancel") =>
       sdk.experimental_connections.handoffs[value]({ id: activeId! }),
     onSuccess: (value) => {
-      client.setQueryData(["connection-handoff", value.id], value);
+      setConnectionHandoffStatus(client, value);
       void status.refetch();
     },
   });
@@ -244,7 +249,7 @@ function ConnectionHandoffDialog({
             threadId: current.destinationThreadId,
           }),
     );
-    void client.invalidateQueries({ queryKey: ["federation"] });
+    void invalidateFederationQueries(client);
     onDismiss();
   };
   return (

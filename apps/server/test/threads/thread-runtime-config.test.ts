@@ -870,6 +870,7 @@ describe("thread runtime config", () => {
 
       const codex = await build("codex");
       expect(codex.options.providerOptions).toEqual({
+        isolateCodexHome: true,
         memoryEnabled: true,
         providerSubagentsEnabled: true,
       });

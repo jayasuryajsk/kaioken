@@ -8,29 +8,16 @@ import { sdk } from "@/lib/sdk";
 import { appToast } from "@/components/ui/app-toast";
 import { copyToClipboardWithToast } from "@/lib/clipboard";
 import {
-  allCodexSessionsQueryKeyPrefix,
-  codexThreadLinkQueryKey,
-  sidebarNavigationQueryKey,
-  threadQueryKey,
-  threadTimelineQueryKey,
-  threadsQueryKey,
-} from "@/hooks/queries/query-keys";
+  invalidateAfterCodexImport,
+  invalidateAfterCodexSync,
+  invalidateCodexThreadLink,
+} from "../cache-owners/codex-cache-owner";
 
 export function useImportCodexSession() {
   const queryClient = useQueryClient();
   return useMutation<ThreadResponse, Error, { id: string }>({
     mutationFn: ({ id }) => sdk.codex.sessions.import({ id, origin: "app" }),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: allCodexSessionsQueryKeyPrefix(),
-        }),
-        queryClient.invalidateQueries({ queryKey: threadsQueryKey() }),
-        queryClient.invalidateQueries({
-          queryKey: sidebarNavigationQueryKey(),
-        }),
-      ]);
-    },
+    onSuccess: () => invalidateAfterCodexImport(queryClient),
   });
 }
 
@@ -59,9 +46,7 @@ export function useCodexHandoff() {
           },
         },
       );
-      await queryClient.invalidateQueries({
-        queryKey: codexThreadLinkQueryKey(threadId),
-      });
+      await invalidateCodexThreadLink(queryClient, threadId);
     },
   });
 }
@@ -78,16 +63,7 @@ export function useCodexSync() {
               result.appendedTurns === 1 ? "turn" : "turns"
             } from Codex`,
       );
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: codexThreadLinkQueryKey(threadId),
-        }),
-        queryClient.invalidateQueries({ queryKey: threadQueryKey(threadId) }),
-        queryClient.invalidateQueries({
-          queryKey: threadTimelineQueryKey(threadId),
-        }),
-        queryClient.invalidateQueries({ queryKey: threadsQueryKey() }),
-      ]);
+      await invalidateAfterCodexSync(queryClient, threadId);
     },
   });
 }

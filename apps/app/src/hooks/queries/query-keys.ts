@@ -1266,3 +1266,15 @@ export function pluginCatalogInstallPlanQueryKey(args: {
 export function pluginMarketplacesQueryKey() {
   return [PLUGIN_MARKETPLACES_QUERY_KEY] as const;
 }
+
+export function sshConnectionsQueryKey() {
+  return ["connections", "ssh"] as const;
+}
+
+export function connectionHandoffQueryKey(handoffId: string | null) {
+  return ["connections", "handoff", handoffId] as const;
+}
+
+export function federationQueryKeyPrefix() {
+  return ["federation"] as const;
+}

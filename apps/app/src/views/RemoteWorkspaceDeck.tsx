@@ -109,15 +109,16 @@ function ConnectedWorkspace({
     active && !dimmed && !identityChanged && state === "ready";
   const browserVisibleRef = useRef(browserVisible);
   browserVisibleRef.current = browserVisible;
+  const serverId = identity.data?.serverId ?? null;
   useEffect(() => {
     const api = window.kaiokenDesktop?.browser;
-    if (!api || !identity.data || identityChanged || !frame.current) return;
+    if (!api || serverId === null || identityChanged || !frame.current) return;
     const host = createWorkspaceBrowserHost({
       api,
       frame: frame.current,
       origin,
       nonce,
-      serverId: identity.data.serverId,
+      serverId,
       active: browserVisibleRef.current,
     });
     browserHost.current = host;
@@ -125,7 +126,7 @@ function ConnectedWorkspace({
       host.dispose();
       browserHost.current = null;
     };
-  }, [identity.data?.serverId, identityChanged, frameVersion, origin, nonce]);
+  }, [serverId, identityChanged, frameVersion, origin, nonce]);
   useEffect(() => {
     browserHost.current?.setActive(browserVisible);
   }, [browserVisible]);

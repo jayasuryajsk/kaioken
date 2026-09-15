@@ -54,7 +54,8 @@ export type BBSdkThread = ThreadGetResult;
 export type BBSdkThreadsArea = KaiokenSdk["threads"];
 export type ThreadIdArgs = ThreadStatusArgs;
 export type KaiokenHttpErrorConstructor = typeof KaiokenHttpError;
-export type KaiokenRequestTimeoutErrorConstructor = typeof KaiokenRequestTimeoutError;
+export type KaiokenRequestTimeoutErrorConstructor =
+  typeof KaiokenRequestTimeoutError;
 export type ThreadWaitTimeoutErrorConstructor = typeof ThreadWaitTimeoutError;
 export type ThreadWaitUnreachableErrorConstructor =
   typeof ThreadWaitUnreachableError;
@@ -62,6 +63,7 @@ export type ThreadWaitUnreachableErrorConstructor =
 export class BBSdk implements KaiokenSdk {
   readonly codex: KaiokenSdk["codex"];
   readonly environments: KaiokenSdk["environments"];
+  readonly experimental_connections: KaiokenSdk["experimental_connections"];
   readonly experimental_desktopBrowsers: KaiokenSdk["experimental_desktopBrowsers"];
   readonly files: KaiokenSdk["files"];
   readonly guide: KaiokenSdk["guide"];
@@ -90,6 +92,7 @@ export class BBSdk implements KaiokenSdk {
     this.providers = sdk.providers;
     this.skills = sdk.skills;
     this.codex = sdk.codex;
+    this.experimental_connections = sdk.experimental_connections;
     this.status = sdk.status;
     this.system = sdk.system;
     this.terminals = sdk.terminals;

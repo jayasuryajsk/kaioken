@@ -1504,6 +1504,7 @@ describe("@kaioken/sdk", () => {
         body: {
           id: "sec_123",
           name: "Review",
+          projectIds: [],
           createdAt: 1,
           updatedAt: 1,
         },

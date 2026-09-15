@@ -36,11 +36,13 @@ function json(body: unknown, status = 200): Response {
 beforeEach(() => {
   calls.length = 0;
   fetchMock.mockImplementation(async (input, init) => {
-    const url = new URL(String(input instanceof Request ? input.url : input));
+    const request = new Request(input, init);
+    const url = new URL(request.url);
+    const bodyText = request.body === null ? "" : await request.text();
     calls.push({
-      method: (init?.method ?? "GET").toUpperCase(),
+      method: request.method.toUpperCase(),
       path: url.pathname,
-      body: typeof init?.body === "string" ? JSON.parse(init.body) : undefined,
+      body: bodyText.length > 0 ? JSON.parse(bodyText) : undefined,
     });
     if (url.pathname.endsWith("/child-summary")) {
       return json({ nonDeletedChildCount: 2 });
