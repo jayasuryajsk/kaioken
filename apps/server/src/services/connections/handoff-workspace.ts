@@ -47,6 +47,7 @@ import { resolveExistingThreadPermissionMode } from "../threads/thread-execution
 import { createThreadFromRequest } from "../threads/thread-create.js";
 import {
   assertThreadHasNoConnectionHandoff,
+  assertNoThreadMutationInFlight,
   getHandoff,
   insertHandoff,
   runHandoffOnce,
@@ -183,6 +184,7 @@ export async function exportHandoff(
         "Restore the archived task before moving it",
       );
     if (!row) {
+      assertNoThreadMutationInFlight(deps.db, threadId);
       deps.db.transaction(
         (tx) => {
           assertThreadHasNoConnectionHandoff(tx, threadId);

@@ -8,7 +8,10 @@ import {
 } from "@kaioken/server-contract";
 import { WORKSPACE_TRANSFER_CHUNK_BYTES } from "@kaioken/host-daemon-contract";
 import type { AppDeps } from "../../types.js";
-import { readAttachment } from "../projects/attachments.js";
+import {
+  readAttachment,
+  readAttachmentRange,
+} from "../projects/attachments.js";
 import { getHandoff, runHandoffOnce } from "./handoff-store.js";
 import { z } from "zod";
 
@@ -80,26 +83,19 @@ export async function readHandoffAttachmentChunk(
     (item) => `attachment.${item.sha256}` === file,
   );
   if (!attachment) throw new Error("This file is not part of the handoff");
-  const { content } = await readAttachment(
+  const content = await readAttachmentRange(
     deps.config.dataDir,
     state.projectId,
     attachment.path,
+    offset,
+    WORKSPACE_TRANSFER_CHUNK_BYTES,
+    attachment.sizeBytes,
   );
-  if (
-    content.byteLength !== attachment.sizeBytes ||
-    createHash("sha256").update(content).digest("hex") !== attachment.sha256
-  )
-    throw new Error("A source attachment changed during the handoff");
-  if (offset > content.byteLength)
-    throw new Error("The attachment offset is outside the file");
-  const end = Math.min(
-    offset + WORKSPACE_TRANSFER_CHUNK_BYTES,
-    content.byteLength,
-  );
+  const end = offset + content.byteLength;
   return {
-    data: content.subarray(offset, end).toString("base64"),
+    data: content.toString("base64"),
     nextOffset: end,
-    done: end === content.byteLength,
+    done: end === attachment.sizeBytes,
   };
 }
 function incomingAttachmentPath(deps: AppDeps, id: string, file: string) {

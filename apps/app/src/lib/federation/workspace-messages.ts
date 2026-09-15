@@ -34,4 +34,5 @@ export const workspaceControllerMessageSchema = z.object({
   type: z.literal("kaioken:workspace-navigate"),
   path: z.string(),
   draft: workspaceDraftSchema.nullable().default(null),
+  desktopBrowser: z.boolean().default(false),
 });

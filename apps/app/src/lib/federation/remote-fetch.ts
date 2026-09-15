@@ -8,6 +8,7 @@ import { sshHttpResponseSchema } from "@kaioken/host-daemon-contract";
 import { sshAliasForOrigin } from "./ssh-targets";
 import { readConnectionIdentity } from "./connection-identities";
 import { CONNECTION_IDENTITY_HEADER } from "@kaioken/server-contract";
+import { fetchWithAppSurface } from "../app-surface";
 
 const BRIDGE_METHODS: ReadonlySet<string> = new Set(
   kaiokenDesktopFederatedFetchMethods,
@@ -77,18 +78,21 @@ export function createRemoteFetch(
       request.body === null
         ? null
         : encodeBytes(new Uint8Array(await request.arrayBuffer()));
-    const response = await fetch("/api/v1/connections/ssh/request", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      signal: request.signal,
-      body: JSON.stringify({
-        alias,
-        path: `${url.pathname}${url.search}`,
-        method: request.method,
-        headers: headersToRecord(request.headers),
-        body,
-      }),
-    });
+    const response = await fetchWithAppSurface(
+      "/api/v1/connections/ssh/request",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        signal: request.signal,
+        body: JSON.stringify({
+          alias,
+          path: `${url.pathname}${url.search}`,
+          method: request.method,
+          headers: headersToRecord(request.headers),
+          body,
+        }),
+      },
+    );
     if (!response.ok) return response;
     const remote = sshHttpResponseSchema.parse(await response.json());
     return new Response(

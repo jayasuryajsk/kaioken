@@ -35,5 +35,18 @@ export function fetchWithAppSurface(
   input: Parameters<typeof fetch>[0],
   init?: RequestInit,
 ): ReturnType<typeof fetch> {
-  return fetch(input, appSurfaceRequestInit(init));
+  const url = new URL(
+    input instanceof Request ? input.url : input,
+    typeof window === "undefined" ? "http://localhost" : window.location.href,
+  );
+  if (typeof window !== "undefined" && url.origin !== window.location.origin)
+    return fetch(input, init);
+  return fetch(
+    input,
+    appSurfaceRequestInit({
+      ...init,
+      headers:
+        init?.headers ?? (input instanceof Request ? input.headers : undefined),
+    }),
+  );
 }

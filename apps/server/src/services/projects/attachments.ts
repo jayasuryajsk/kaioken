@@ -1,5 +1,5 @@
 // oxlint-disable-next-line no-restricted-imports
-import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, open, readFile, rm, stat, writeFile } from "node:fs/promises";
 import {
   basename,
   dirname,
@@ -190,6 +190,52 @@ interface StoredAttachmentContent {
   content: Buffer;
   etag: string;
   mimeType?: string;
+}
+
+export async function readAttachmentRange(
+  dataDir: string,
+  projectId: string,
+  relativePath: string,
+  offset: number,
+  length: number,
+  expectedSize: number,
+): Promise<Buffer> {
+  const resolved = resolveAttachmentPath(
+    projectAttachmentDir(dataDir, projectId),
+    relativePath,
+  );
+  const handle = await open(resolved, "r");
+  try {
+    const info = await handle.stat();
+    if (!info.isFile() || info.size !== expectedSize)
+      throw new Error("A source attachment changed during the handoff");
+    if (
+      !Number.isSafeInteger(offset) ||
+      offset < 0 ||
+      offset > info.size ||
+      !Number.isSafeInteger(length) ||
+      length < 0
+    )
+      throw new Error("The attachment range is outside the file");
+    const content = Buffer.alloc(Math.min(length, info.size - offset));
+    let read = 0;
+    while (read < content.length) {
+      const { bytesRead } = await handle.read(
+        content,
+        read,
+        content.length - read,
+        offset + read,
+      );
+      if (bytesRead === 0)
+        throw new Error(
+          "The source attachment was truncated during the handoff",
+        );
+      read += bytesRead;
+    }
+    return content;
+  } finally {
+    await handle.close();
+  }
 }
 
 export async function readAttachment(

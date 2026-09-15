@@ -5,6 +5,7 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
 import { EmbeddedWorkspaceBridge } from "./EmbeddedWorkspaceBridge";
+import { getDesktopBrowserApi } from "../kaioken-desktop";
 
 const fixtures = vi.hoisted(() => ({
   serverId: "74bcf65a-a849-4577-9a6f-c9b540940afb",
@@ -51,7 +52,9 @@ it("keeps one controller handshake across route changes and ignores untrusted na
   const { wrapper } = createQueryClientTestHarness();
   render(
     <MemoryRouter>
-      <EmbeddedWorkspaceBridge />
+      <EmbeddedWorkspaceBridge>
+        <span>Workspace ready</span>
+      </EmbeddedWorkspaceBridge>
       <Location />
     </MemoryRouter>,
     { wrapper },
@@ -61,6 +64,8 @@ it("keeps one controller handshake across route changes and ignores untrusted na
       ([message]) => message.type === "kaioken:workspace-ready",
     );
   await waitFor(() => expect(readyMessages()).toHaveLength(1));
+  expect(screen.queryByText("Workspace ready")).toBeNull();
+  expect(getDesktopBrowserApi()).toBeNull();
   const navigate = (origin: string, nonce: string, path: string) =>
     window.dispatchEvent(
       new MessageEvent("message", {
@@ -71,6 +76,7 @@ it("keeps one controller handshake across route changes and ignores untrusted na
           nonce,
           navigationId: "navigation",
           path,
+          desktopBrowser: true,
         },
       }),
     );
@@ -85,4 +91,6 @@ it("keeps one controller handshake across route changes and ignores untrusted na
     ),
   );
   expect(readyMessages()).toHaveLength(1);
+  expect(screen.getByText("Workspace ready")).toBeTruthy();
+  expect(getDesktopBrowserApi()).not.toBeNull();
 });

@@ -1,5 +1,7 @@
 import { workspaceHostMessageSchema } from "@/lib/federation/workspace-messages";
 import { useEffect, useRef, useState } from "react";
+import { useIsBrowserDimmingModalOpen } from "@/hooks/useBrowserDimmingModal";
+import { createWorkspaceBrowserHost } from "@/lib/federation/workspace-browser-host";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import type { FederatedServer } from "@kaioken/client-core";
@@ -73,6 +75,10 @@ function ConnectedWorkspace({
 }) {
   const navigate = useNavigate();
   const frame = useRef<HTMLIFrameElement>(null);
+  const browserHost = useRef<ReturnType<
+    typeof createWorkspaceBrowserHost
+  > | null>(null);
+  const dimmed = useIsBrowserDimmingModalOpen();
   const [nonce] = useState(() => crypto.randomUUID());
   const [initialPath] = useState(entry.path);
   const [frameVersion, setFrameVersion] = useState(0);
@@ -99,6 +105,30 @@ function ConnectedWorkspace({
     identity.data !== undefined &&
     pinnedIdentity !== identity.data.serverId;
   const displayState = identityChanged ? "identity-changed" : state;
+  const browserVisible =
+    active && !dimmed && !identityChanged && state === "ready";
+  const browserVisibleRef = useRef(browserVisible);
+  browserVisibleRef.current = browserVisible;
+  useEffect(() => {
+    const api = window.kaiokenDesktop?.browser;
+    if (!api || !identity.data || identityChanged || !frame.current) return;
+    const host = createWorkspaceBrowserHost({
+      api,
+      frame: frame.current,
+      origin,
+      nonce,
+      serverId: identity.data.serverId,
+      active: browserVisibleRef.current,
+    });
+    browserHost.current = host;
+    return () => {
+      host.dispose();
+      browserHost.current = null;
+    };
+  }, [identity.data?.serverId, identityChanged, frameVersion, origin, nonce]);
+  useEffect(() => {
+    browserHost.current?.setActive(browserVisible);
+  }, [browserVisible]);
   useEffect(() => {
     if (identity.data && pinnedIdentity === null) {
       rememberConnectionIdentity(
@@ -149,6 +179,7 @@ function ConnectedWorkspace({
           setState("update-required");
           return;
         }
+        browserHost.current?.reset();
         setReady(true);
         setState("ready");
         const desired = currentEntry.current;
@@ -158,6 +189,7 @@ function ConnectedWorkspace({
             nonce,
             navigationId: desired.navigationId,
             path: desired.path,
+            desktopBrowser: window.kaiokenDesktop?.browser !== undefined,
             draft: pendingWorkspaceDraft(
               desired.server.handle,
               message.serverId,
@@ -210,6 +242,7 @@ function ConnectedWorkspace({
         nonce,
         navigationId: entry.navigationId,
         path: entry.path,
+        desktopBrowser: window.kaiokenDesktop?.browser !== undefined,
         draft: pendingWorkspaceDraft(
           entry.server.handle,
           identity.data.serverId,

@@ -1,5 +1,5 @@
 import { workspaceControllerMessageSchema } from "@/lib/federation/workspace-messages";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { sdk } from "@/lib/sdk";
@@ -8,13 +8,20 @@ import { useServerConnectionState } from "@/hooks/useServerConnectionState";
 import { receiveWorkspaceDraft, workspaceDraftId } from "./workspace-drafts";
 import { HANDOFF_REQUEST_EVENT, handoffRequestSchema } from "./handoff-request";
 import { localWorkspacePath, workspaceEmbedding } from "./workspace-protocol";
+import { installWorkspaceBrowserApi } from "./workspace-browser-client";
 
-export function EmbeddedWorkspaceBridge() {
+export function EmbeddedWorkspaceBridge({
+  children,
+}: {
+  children?: ReactNode;
+}) {
   const location = useLocation();
   const navigate = useNavigate();
   const navigateRef = useRef(navigate);
   navigateRef.current = navigate;
   const navigationId = useRef("");
+  const [ready, setReady] = useState(false);
+  const browserCleanup = useRef<(() => void) | null>(null);
   const self = useQuery({
     queryKey: ["connection-self"],
     queryFn: () => sdk.experimental_connections.self(),
@@ -35,7 +42,8 @@ export function EmbeddedWorkspaceBridge() {
 
   useEffect(() => {
     const embedding = workspaceEmbedding;
-    if (!embedding || !trusted || !self.data) return;
+    if (!embedding || !trusted || self.data?.serverId !== embedding.serverId)
+      return;
     const listener = (event: MessageEvent) => {
       if (event.source !== window.parent || event.origin !== embedding.origin)
         return;
@@ -43,6 +51,8 @@ export function EmbeddedWorkspaceBridge() {
       if (!parsed.success || parsed.data.nonce !== embedding.nonce) return;
       const path = localWorkspacePath(parsed.data.path);
       if (path === null) return;
+      if (parsed.data.desktopBrowser && browserCleanup.current === null)
+        browserCleanup.current = installWorkspaceBrowserApi(embedding);
       const draft = parsed.data.draft;
       if (draft !== null) {
         if (
@@ -63,6 +73,7 @@ export function EmbeddedWorkspaceBridge() {
       }
       navigationId.current = parsed.data.navigationId;
       navigateRef.current(path, { replace: true });
+      setReady(true);
     };
     window.addEventListener("message", listener);
     const handoff = (event: Event) => {
@@ -92,8 +103,10 @@ export function EmbeddedWorkspaceBridge() {
     return () => {
       window.removeEventListener("message", listener);
       window.removeEventListener(HANDOFF_REQUEST_EVENT, handoff);
+      browserCleanup.current?.();
+      browserCleanup.current = null;
     };
-  }, [self.data, trusted]);
+  }, [self.data?.serverId, trusted]);
 
   useEffect(() => {
     const embedding = workspaceEmbedding;
@@ -126,5 +139,9 @@ export function EmbeddedWorkspaceBridge() {
       embedding.origin,
     );
   }, [self.data, state, trusted]);
-  return null;
+  return ready &&
+    trusted &&
+    self.data?.serverId === workspaceEmbedding?.serverId
+    ? children
+    : null;
 }

@@ -18,7 +18,10 @@ it("copies binary conversation attachments and rewrites references without overw
     const projectId = "source-project",
       destinationProjectId = "destination-project",
       id = randomUUID();
-    const data = Buffer.from([0, 255, 128, 123, 65]);
+    const data = Buffer.concat([
+      Buffer.alloc(2 * 1024 * 1024, 128),
+      Buffer.from([0, 255, 128, 123, 65]),
+    ]);
     const sourceDirectory = path.join(
       harness.config.dataDir,
       "attachments",
@@ -86,8 +89,33 @@ it("copies binary conversation attachments and rewrites references without overw
     });
     const file = `attachment.${attachments[0]!.sha256}`;
     const chunk = await readHandoffAttachmentChunk(harness.deps, id, file, 0);
-    expect(Buffer.from(chunk.data, "base64")).toEqual(data);
+    expect(Buffer.from(chunk.data, "base64")).toEqual(
+      data.subarray(0, chunk.nextOffset),
+    );
+    expect(chunk.nextOffset).toBe(1024 * 1024);
+    expect(chunk.done).toBe(false);
     await writeHandoffAttachmentChunk(harness.deps, id, file, 0, chunk.data);
+    let offset = chunk.nextOffset;
+    while (offset < data.length) {
+      const next = await readHandoffAttachmentChunk(
+        harness.deps,
+        id,
+        file,
+        offset,
+      );
+      expect(Buffer.from(next.data, "base64")).toEqual(
+        data.subarray(offset, next.nextOffset),
+      );
+      await writeHandoffAttachmentChunk(
+        harness.deps,
+        id,
+        file,
+        offset,
+        next.data,
+      );
+      offset = next.nextOffset;
+      expect(next.done).toBe(offset === data.length);
+    }
     await writeHandoffAttachmentChunk(harness.deps, id, file, 0, chunk.data);
     const destinationDirectory = path.join(
       harness.config.dataDir,

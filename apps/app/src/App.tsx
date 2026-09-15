@@ -480,13 +480,9 @@ export function App() {
             <AppFileExternalNavigationHost>
               <HashNavigationScroll />
               <NativeShellReporter />
-              {workspaceEmbedding !== null ? (
-                <Suspense fallback={null}>
-                  <EmbeddedWorkspaceBridge />
-                </Suspense>
-              ) : (
+              {workspaceEmbedding === null ? (
                 <DesktopWorkspaceNavigation />
-              )}
+              ) : null}
               <UiPreferencesSync />
               {workspaceEmbedding === null ? (
                 <Suspense fallback={null}>
@@ -498,7 +494,20 @@ export function App() {
                   path={AUTH_CALLBACK_ROUTE_PATH}
                   element={<AuthCallbackView />}
                 />
-                <Route path="*" element={<AppRoutes />} />
+                <Route
+                  path="*"
+                  element={
+                    workspaceEmbedding === null ? (
+                      <AppRoutes />
+                    ) : (
+                      <Suspense fallback={null}>
+                        <EmbeddedWorkspaceBridge>
+                          <AppRoutes />
+                        </EmbeddedWorkspaceBridge>
+                      </Suspense>
+                    )
+                  }
+                />
               </Routes>
               <ProviderCliInstallLogDialogHost />
             </AppFileExternalNavigationHost>

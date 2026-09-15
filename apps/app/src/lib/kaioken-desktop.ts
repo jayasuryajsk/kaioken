@@ -3,6 +3,7 @@ import type {
   KaiokenDesktopBrowserApi,
   KaiokenDesktopWindowState,
 } from "@kaioken/desktop-contract";
+import { getWorkspaceBrowserApi } from "./federation/workspace-browser-store";
 
 export const MACOS_TRAFFIC_LIGHT_RESERVE_OFFSET_CLASS = "left-[84px]";
 export const MACOS_COLLAPSED_TOP_LEFT_RESERVE_CLASS = "pl-[104px]";
@@ -54,7 +55,7 @@ export function shouldReserveMacosTrafficLights({
 }
 
 export function getDesktopBrowserApi(): KaiokenDesktopBrowserApi | null {
-  return getBbDesktopInfo()?.browser ?? null;
+  return getBbDesktopInfo()?.browser ?? getWorkspaceBrowserApi();
 }
 
 export function isDesktopBrowserAvailable(): boolean {

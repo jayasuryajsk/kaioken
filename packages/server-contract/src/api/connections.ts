@@ -5,6 +5,9 @@ import {
 } from "@kaioken/host-daemon-contract";
 
 export const CONNECTION_IDENTITY_HEADER = "x-kaioken-server-id";
+export const accountConnectionHandleSchema = z
+  .string()
+  .regex(/^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/u);
 export const connectionResolveRequestSchema = z
   .object({ handle: z.string().min(1).nullable() })
   .strict();
@@ -37,13 +40,13 @@ export type ConnectionSelf = z.infer<typeof connectionSelfSchema>;
 export const connectionDiscoverySchema = z.object({
   servers: z.array(
     z.object({
-      handle: z.string().min(1),
+      handle: accountConnectionHandleSchema,
       name: z.string().min(1),
       live: z.boolean(),
       url: z.string().url(),
     }),
   ),
-  selfHandle: z.string(),
+  selfHandle: accountConnectionHandleSchema,
 });
 
 export const connectionListSchema = z.object({

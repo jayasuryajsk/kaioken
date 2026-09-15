@@ -23,6 +23,9 @@ task in a new destination worktree. Staged and unstaged changes remain separate;
 non-ignored untracked files transfer too. Ignored files stay on the source.
 The source task is archived only after the destination is ready. Its checkout is
 retained. Closing the progress panel does not stop the transfer.
+Task edits, queue changes, archival and deletion are blocked until the move
+finishes or is cancelled. A move waits for an earlier task mutation to finish
+before it can take its snapshot; retry if it reports that the task is busy.
 
 Both computers need a current Kaioken runtime and a usable Codex installation.
 The destination project must use the same Git remote and repository subdirectory.
@@ -76,6 +79,12 @@ Each server has a persistent installation UUID, available through
 asks you to connect again. Connected workspaces remain mounted while switching
 computers, keeping their loaded history and drafts. Opening an unavailable
 workspace reports its connection state.
+
+In the desktop app, browser panes opened in a connected workspace use the
+controller's native browser through a frame-scoped bridge. Tabs are isolated by
+installation and workspace, and hidden when switching computers. Agent-owned
+browser tabs remain bound to the desktop target that created them; the bridge
+does not transfer their automation sessions or browser credentials.
 
 ## Open kaioken from another browser
 

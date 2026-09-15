@@ -77,7 +77,34 @@ Restored worktrees are attached environments and skip lifecycle setup/teardown
 hooks. Transfer files and cancelled worktrees are retained for recovery.
 SSH needs Kaioken installed and existing host trust; it does not install software.
 
-## Local state
+## September 16 pre-push review corrections
+
+Daybreak Blue at high reviewed `1d18c1a67b..8519fe2df` and returned five findings.
+The review is retained at `/private/tmp/kaioken-daybreak-push-review.md`.
+
+- Source mutations now reject throughout public task routes; asynchronous edits
+  and context clearing hold a mutation guard so a snapshot cannot start midway.
+  Queue creation and cascading archive paths also enforce the handoff guard.
+- Remote frames obtain a scoped native browser API after the verified handshake.
+  The parent validates origin/source/nonce/server UUID, namespaces tab IDs,
+  clips/translates bounds, filters events, and hides inactive workspace views.
+  Agent-owned browser targets remain bound to their original desktop; browser
+  credentials and automation sessions are not transferred.
+- Account registration already uses DNS-safe handles; account discovery now
+  validates that same character set and cannot collide with `ssh.<alias>`.
+- Plugin contribution/search, clipboard images, and SSH proxy requests use the
+  identity-aware fetch path. External image requests do not receive identity.
+- Attachment reads use bounded ranges. Destination restore verifies the full
+  checksum before making transferred attachments available.
+
+Verification: 50 targeted server tests, 17 UI tests, eight remote-fetch tests,
+seven Turbo typecheck tasks and six build tasks passed. Test compatibility fixes
+and final bridge changes received focused reruns. Logs use the prefix
+`/private/tmp/kaioken-push-fixes-`. Independent physical-computer native QA
+remains outstanding. The corrected committed range must pass the final Daybreak
+gate before the requested push.
+
+## Development runtime
 
 Development UI: `http://localhost:16606/settings/connections`.
 Server: `http://localhost:24606`; daemon: `http://127.0.0.1:32606`.

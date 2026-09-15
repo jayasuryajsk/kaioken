@@ -27,6 +27,7 @@ import { archiveThreadAndReleaseChildren } from "./thread-ownership.js";
 import { requireThreadHostCommandEnvironment } from "./thread-command-environment.js";
 import { getActiveThreadProvisionContext } from "./thread-provisioning-active-context.js";
 import { isPreStartThreadStatus } from "./thread-status.js";
+import { assertThreadHasNoConnectionHandoff } from "../connections/handoff-store.js";
 
 interface ArchiveThreadEnvironment {
   hostId: string;
@@ -76,6 +77,7 @@ function archiveThreadWithLifecycleEffects(
   deps: AppDeps,
   args: ArchiveThreadWithLifecycleEffectsArgs,
 ): Thread | null {
+  assertThreadHasNoConnectionHandoff(deps.db, args.thread.id);
   const archivedThread = archiveThreadAndReleaseChildren(deps, {
     threadId: args.thread.id,
   });
@@ -141,6 +143,9 @@ export function archiveEnvironmentThreads(
   });
   const archivedThreadIds: string[] = [];
 
+  for (const thread of threads)
+    assertThreadHasNoConnectionHandoff(deps.db, thread.id);
+
   for (const thread of threads) {
     const result = archiveThreadWithLifecycleEffects(deps, {
       environment: args.environment,
@@ -199,6 +204,9 @@ export function archiveThreadAndChildren(
     }
   }
   const archivedThreadIds: string[] = [];
+
+  for (const thread of threads)
+    assertThreadHasNoConnectionHandoff(deps.db, thread.id);
 
   for (const thread of threads) {
     const environment = resolveArchiveThreadEnvironment(deps, { thread });

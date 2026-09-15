@@ -71,6 +71,41 @@ export function assertThreadHasNoConnectionHandoff(
     );
 }
 const running = new Map<string, Promise<unknown>>();
+const mutations = new WeakMap<DbConnection, Map<string, number>>();
+
+export function assertNoThreadMutationInFlight(
+  db: DbConnection,
+  threadId: string,
+): void {
+  if ((mutations.get(db)?.get(threadId) ?? 0) > 0)
+    throw new ApiError(
+      409,
+      "handoff_source_busy",
+      "The task is processing another change. Retry the move once it finishes.",
+    );
+}
+
+export async function withThreadHandoffMutationGuard<T>(
+  db: DbConnection,
+  threadId: string,
+  action: () => Promise<T>,
+): Promise<T> {
+  assertThreadHasNoConnectionHandoff(db, threadId);
+  let counts = mutations.get(db);
+  if (!counts) {
+    counts = new Map();
+    mutations.set(db, counts);
+  }
+  counts.set(threadId, (counts.get(threadId) ?? 0) + 1);
+  try {
+    return await action();
+  } finally {
+    const remaining = (counts.get(threadId) ?? 1) - 1;
+    if (remaining === 0) counts.delete(threadId);
+    else counts.set(threadId, remaining);
+  }
+}
+
 export async function runHandoffOnce<T>(
   key: string,
   action: () => Promise<T>,
