@@ -1,3 +1,4 @@
+import { isCodexProvider } from "@/hooks/queries/codex-queries";
 import {
   ActionMenuItem,
   ActionMenuSeparator,
@@ -26,7 +27,11 @@ import {
 } from "@kaioken/shared-ui/dropdown-menu";
 import { Icon, type IconName } from "@kaioken/shared-ui/icon";
 import { Button } from "@kaioken/shared-ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@kaioken/shared-ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@kaioken/shared-ui/tooltip";
 import { COARSE_POINTER_ICON_SIZE_CLASS } from "@kaioken/shared-ui/coarse-pointer-sizing";
 import { useIsCompactViewport } from "@kaioken/shared-ui/hooks/use-compact-viewport";
 import { cn } from "@kaioken/shared-ui/lib/utils";
@@ -340,6 +345,24 @@ function ThreadActionsMenuItems({
         surface={surface}
         thread={thread}
       />
+      {!isArchived && isCodexProvider(thread.providerId) ? (
+        <ActionMenuItem
+          surface={surface}
+          icon="Laptop"
+          onSelect={() => {
+            window.setTimeout(
+              () =>
+                requestConnectionHandoff({
+                  threadId: remoteRef?.id ?? thread.id,
+                  handle: remoteRef?.handle ?? null,
+                }),
+              0,
+            );
+          }}
+        >
+          Move to computer
+        </ActionMenuItem>
+      ) : null}
       <ActionMenuItem
         surface={surface}
         icon="Edit"
@@ -539,3 +562,4 @@ function ThreadActionsDesktopContextMenu({
     </ContextMenu>
   );
 }
+import { requestConnectionHandoff } from "@/lib/federation/handoff-request";

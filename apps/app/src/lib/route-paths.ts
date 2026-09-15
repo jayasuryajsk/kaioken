@@ -59,6 +59,8 @@ export {
   PLUGIN_PANEL_ROUTE_PATH,
   REMOTE_THREAD_ROUTE_PATH,
   REMOTE_PROJECT_COMPOSE_ROUTE_PATH,
+  REMOTE_WORKSPACE_ROUTE_PATH,
+  getRemoteWorkspaceRoutePath,
   isProjectlessProjectId,
   getRootComposeRoutePath,
   getLegacyProjectComposeRoutePath,

@@ -14,11 +14,13 @@ import {
   writeStoredServers,
 } from "@/lib/federation/account-servers";
 import { getRemoteSdk } from "@/lib/federation/remote-sdk";
+import { bindConnectionIdentity } from "@/lib/federation/connection-identities";
 import {
   readStoredSnapshot,
   writeStoredSnapshot,
 } from "@/lib/federation/remote-snapshots";
 import { sdk } from "@/lib/sdk";
+import { useSshConnections, sshConnectionHandle } from "./connection-queries";
 
 export const ACCOUNT_SERVERS_REFETCH_MS = 30_000;
 export const REMOTE_SNAPSHOT_REFETCH_MS = 15_000;
@@ -59,6 +61,9 @@ export async function fetchAccountServers(
         outputSchema: listAccountServersResultSchema,
       }));
     const servers = toFederatedServers(result, Date.now(), previous);
+    for (const server of servers) {
+      bindConnectionIdentity(new URL(server.url).origin, server.handle);
+    }
     writeStoredServers(servers);
     return servers;
   } catch {
@@ -167,10 +172,33 @@ export function useFederatedRemotes(options?: {
   enabled?: boolean;
 }): FederatedRemotes {
   const enabled = options?.enabled ?? true;
-  const serversQuery = useAccountServers({ enabled });
-  const servers = enabled
-    ? (serversQuery.data ?? EMPTY_SERVERS)
-    : EMPTY_SERVERS;
+  const computers = useConnectedComputers(enabled);
+  const servers = enabled ? computers : EMPTY_SERVERS;
   const remotes = useRemoteServerSnapshots(servers, enabled);
   return { servers, remotes };
+}
+
+export function useConnectedComputers(enabled = true): FederatedServer[] {
+  const account = useAccountServers({ enabled });
+  const ssh = useSshConnections(enabled);
+  return useMemo(
+    () => [
+      ...(account.data ?? []),
+      ...(ssh.data?.connections.flatMap((connection): FederatedServer[] =>
+        connection.url === null
+          ? []
+          : [
+              {
+                handle: sshConnectionHandle(connection.alias),
+                name: connection.alias,
+                url: connection.url,
+                live: connection.state === "ready" && !ssh.isError,
+                lastSeenAt: ssh.dataUpdatedAt,
+                home: false,
+              },
+            ],
+      ) ?? []),
+    ],
+    [account.data, ssh.data, ssh.dataUpdatedAt, ssh.isError],
+  );
 }

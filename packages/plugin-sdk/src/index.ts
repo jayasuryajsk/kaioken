@@ -13,6 +13,7 @@ export * from "./host-contract.js";
 export type * from "./json-value.js";
 export * from "./rpc-contract.js";
 export type {
+  ExperimentalConnectionsArea,
   ExperimentalDesktopBrowsersArea,
   ExperimentalDesktopBrowserScope,
   ExperimentalDesktopBrowserLease,

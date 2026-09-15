@@ -100,6 +100,12 @@ describe("AddMachineDialog", () => {
       </MemoryRouter>,
       { wrapper },
     );
+    expect(sdk.hosts.createJoinCode).not.toHaveBeenCalled();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Generate installation command",
+      }),
+    );
 
     const command = await screen.findByText(/--join-code jc_test123/);
     expect(sdk.plugins.callRpc).toHaveBeenCalledWith(
@@ -186,6 +192,12 @@ describe("AddMachineDialog", () => {
       </MemoryRouter>,
       { wrapper },
     );
+    expect(sdk.hosts.createJoinCode).not.toHaveBeenCalled();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Generate installation command",
+      }),
+    );
 
     const command = await screen.findByText(/--join-code jc_test123/);
     expect(command.textContent).toContain(
@@ -243,6 +255,12 @@ describe("AddMachineDialog", () => {
       </MemoryRouter>,
       { wrapper },
     );
+    expect(sdk.hosts.createJoinCode).not.toHaveBeenCalled();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Generate installation command",
+      }),
+    );
 
     const notice = await screen.findByRole("status");
     expect(notice.textContent).toContain(
@@ -282,6 +300,12 @@ describe("AddMachineDialog", () => {
       </MemoryRouter>,
       { wrapper },
     );
+    expect(sdk.hosts.createJoinCode).not.toHaveBeenCalled();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Generate installation command",
+      }),
+    );
 
     expect(
       await screen.findByText("Remote access isn't ready yet."),
@@ -315,6 +339,12 @@ describe("AddMachineDialog", () => {
         />
       </MemoryRouter>,
       { wrapper },
+    );
+    expect(sdk.hosts.createJoinCode).not.toHaveBeenCalled();
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Generate installation command",
+      }),
     );
 
     const notice = await screen.findByRole("status");

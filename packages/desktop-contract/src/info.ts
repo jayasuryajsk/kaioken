@@ -3,6 +3,7 @@ import type { KaiokenDesktopBrowserApi } from "./browser.js";
 import type {
   KaiokenDesktopFederatedFetchRequest,
   KaiokenDesktopFederatedFetchResponse,
+  KaiokenDesktopFederatedSocketApi,
 } from "./federation.js";
 import type { AppCommandId } from "@kaioken/domain";
 
@@ -33,12 +34,16 @@ export const kaiokenDesktopWindowStateSchema = z
     isFullScreen: z.boolean(),
   })
   .strict();
-export type KaiokenDesktopWindowState = z.infer<typeof kaiokenDesktopWindowStateSchema>;
+export type KaiokenDesktopWindowState = z.infer<
+  typeof kaiokenDesktopWindowStateSchema
+>;
 
 export const kaiokenDesktopThemeSchema = z.enum(["system", "light", "dark"]);
 export type KaiokenDesktopTheme = z.infer<typeof kaiokenDesktopThemeSchema>;
 
-export type KaiokenDesktopInfoChangeHandler = (info: KaiokenDesktopInfo) => void;
+export type KaiokenDesktopInfoChangeHandler = (
+  info: KaiokenDesktopInfo,
+) => void;
 export type KaiokenDesktopInfoUnsubscribe = () => void;
 export type KaiokenDesktopWindowStateChangeHandler = (
   state: KaiokenDesktopWindowState,
@@ -49,6 +54,8 @@ export type KaiokenDesktopCloseWindowRequestHandler = () => boolean;
 
 export interface KaiokenDesktopApi extends KaiokenDesktopInfo {
   browser: KaiokenDesktopBrowserApi;
+  federatedTransportVersion?: 2;
+  federatedSocket?: KaiokenDesktopFederatedSocketApi;
   checkForUpdates(): Promise<KaiokenDesktopInfo>;
   federatedFetch?(
     request: KaiokenDesktopFederatedFetchRequest,
@@ -56,12 +63,21 @@ export interface KaiokenDesktopApi extends KaiokenDesktopInfo {
   getInfo(): Promise<KaiokenDesktopInfo>;
   getWindowState?(): Promise<KaiokenDesktopWindowState>;
   installUpdate(): Promise<void>;
-  onChange(listener: KaiokenDesktopInfoChangeHandler): KaiokenDesktopInfoUnsubscribe;
+  onChange(
+    listener: KaiokenDesktopInfoChangeHandler,
+  ): KaiokenDesktopInfoUnsubscribe;
   onWindowStateChange?(
     listener: KaiokenDesktopWindowStateChangeHandler,
   ): KaiokenDesktopInfoUnsubscribe;
-  onOpenNewTab?(listener: KaiokenDesktopOpenNewTabHandler): KaiokenDesktopInfoUnsubscribe;
-  onAppCommand?(listener: KaiokenDesktopAppCommandHandler): KaiokenDesktopInfoUnsubscribe;
+  onOpenNewTab?(
+    listener: KaiokenDesktopOpenNewTabHandler,
+  ): KaiokenDesktopInfoUnsubscribe;
+  onAppCommand?(
+    listener: KaiokenDesktopAppCommandHandler,
+  ): KaiokenDesktopInfoUnsubscribe;
+  onWorkspaceNavigate?(
+    listener: (path: string) => void,
+  ): KaiokenDesktopInfoUnsubscribe;
   onCloseWindowRequest?(
     listener: KaiokenDesktopCloseWindowRequestHandler,
   ): KaiokenDesktopInfoUnsubscribe;

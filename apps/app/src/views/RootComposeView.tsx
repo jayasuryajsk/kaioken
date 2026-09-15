@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { workspaceDraftId } from "@/lib/federation/workspace-drafts";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   findCachedProviderInfo,
@@ -148,7 +149,6 @@ import {
 } from "./RootComposeSecondaryContent";
 import { RootComposeMobileRecents } from "./RootComposeMobileRecents";
 import { RootComposeEmptyWelcome } from "./RootComposeEmptyWelcome";
-import { RootComposeCodexImportLink } from "./RootComposeCodexImportLink";
 import { useSetAtom } from "jotai";
 import { codexImportDialogOpenAtom } from "@/lib/codex-import/atoms";
 import {
@@ -494,11 +494,17 @@ export function LegacyProjectComposeRedirect({
 
   useEffect(() => {
     setRootComposeProjectId(projectId);
-    navigate(getRootComposeRoutePath(), {
+    navigate(`${getRootComposeRoutePath()}${location.search}`, {
       replace: true,
       state: location.state,
     });
-  }, [location.state, navigate, projectId, setRootComposeProjectId]);
+  }, [
+    location.search,
+    location.state,
+    navigate,
+    projectId,
+    setRootComposeProjectId,
+  ]);
 
   return <RouteLoadingSkeleton isBoundedPane={false} />;
 }
@@ -507,6 +513,7 @@ export function RootComposeView() {
   const [rootComposeProjectId, setRootComposeProjectId] =
     useRootComposeProjectId();
   const location = useLocation();
+  const transferredDraftId = workspaceDraftId(location.search);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const createThread = useCreateThread();
@@ -605,7 +612,11 @@ export function RootComposeView() {
     <NewThreadComposer
       projectId={rootComposeProjectId}
       onProjectChange={handleProjectChange}
-      draftStorage={{ kind: "new-thread" }}
+      draftStorage={
+        transferredDraftId === null
+          ? { kind: "new-thread" }
+          : { kind: "connection-new-thread", transferId: transferredDraftId }
+      }
       selectionScope="new-thread"
       seed={composerSeed}
       resetKey={forkSeed?.sourceThreadId ?? null}
@@ -2053,12 +2064,7 @@ function RootComposeSurface({
                   }
                 />
               ) : (
-                <>
-                  {promptBox}
-                  {isForkDraft ? null : (
-                    <RootComposeCodexImportLink onOpen={openCodexImport} />
-                  )}
-                </>
+                promptBox
               )}
             </RootComposeSecondaryContent>
           </AppNavigationHostProvider>

@@ -1,4 +1,5 @@
 import type { DesktopBrowserBroker } from "./desktop-browser-broker.js";
+import type { SshConnections } from "./ssh-connections.js";
 import type { AgentRuntimeBridgeLaunch } from "@kaioken/agent-runtime";
 import type { AvailableModel } from "@kaioken/domain";
 import type { EventSinkInput } from "./event-sink.js";
@@ -52,6 +53,7 @@ export interface CommandDispatchOptions {
     message: EnvironmentHookProgressMessage,
   ) => void;
   desktopBrowserBroker?: DesktopBrowserBroker;
+  sshConnections?: SshConnections;
   dataDir: string;
   logger: Pick<HostDaemonLogger, "debug" | "warn">;
   fetchProjectAttachment: FetchProjectAttachment;

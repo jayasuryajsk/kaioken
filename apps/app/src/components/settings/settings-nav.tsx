@@ -80,7 +80,7 @@ export function useSettingsNavState(): SettingsNavState {
     isInstalledDetail && pluginMatch !== null
       ? "plugins"
       : activeMachineId !== null
-        ? "machines"
+        ? "connections"
         : activeProjectId !== null
           ? "projects"
           : activePluginId !== null
@@ -93,7 +93,7 @@ export function useSettingsNavState(): SettingsNavState {
   const pluginEntries = buildPluginSettingsEntries({
     installedPlugins,
     settingsSections,
-  });
+  }).filter((entry) => entry.id !== "connect" && entry.id !== "keep-awake");
 
   return {
     activePluginId,

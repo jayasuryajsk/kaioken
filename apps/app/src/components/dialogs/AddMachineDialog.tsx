@@ -208,10 +208,6 @@ function AddMachineDialogContent({
       return { join, machine };
     },
   });
-  const mint = mintJoinCode.mutate;
-  useEffect(() => {
-    mint();
-  }, [mint]);
 
   const baselineHostIds = useRef<Set<string> | null>(null);
   if (baselineHostIds.current === null && hostsQuery.data !== undefined) {
@@ -345,13 +341,17 @@ function AddMachineDialogContent({
               </Button>
             </div>
           </div>
+        ) : mintJoinCode.isIdle ? (
+          <Button variant="outline" onClick={() => mintJoinCode.mutate()}>
+            Generate installation command
+          </Button>
         ) : (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <Icon name="Spinner" className="size-4 shrink-0 animate-spin" />
             Creating a join code…
           </p>
         )}
-        {unreachable !== null ? null : (
+        {unreachable !== null || mintJoinCode.isIdle ? null : (
           <div className="flex items-center gap-2.5 rounded-md bg-muted/40 px-3 py-2.5">
             {connectedNewHost !== null ? (
               <>

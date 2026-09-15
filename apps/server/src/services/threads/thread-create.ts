@@ -57,7 +57,10 @@ import {
   type ThreadCreateServiceRequest,
 } from "./thread-create-request.js";
 import { deriveTitleFallback } from "./title-generation.js";
-import type { ThreadProvisionEnvironmentIntent } from "./thread-provisioning-context.js";
+import type {
+  ThreadProvisionEnvironmentIntent,
+  ThreadForkDescriptor,
+} from "./thread-provisioning-context.js";
 import { resolveSystemProviderModels } from "../system/execution-options.js";
 import { getEnvironmentProvider } from "../plugins/plugin-environment-provider-registry.js";
 
@@ -73,6 +76,7 @@ interface CreateProvisioningThreadArgs {
   providerInput?: ThreadCreateServiceRequestInput["input"];
   seedWithoutRun?: boolean;
   onCreated?: (thread: Thread) => void;
+  importedFork?: ThreadForkDescriptor;
 }
 
 interface ResolveForkPointArgs {
@@ -385,7 +389,7 @@ async function createPendingThreadAndAttemptFirstDispatch(
 
     const startContext: PendingThreadStartContext = {
       environmentIntent: args.environmentIntent,
-      fork: args.fork?.descriptor ?? null,
+      fork: args.importedFork ?? args.fork?.descriptor ?? null,
       ...(args.providerInput !== undefined
         ? { providerInput: args.providerInput }
         : {}),
@@ -463,6 +467,7 @@ export async function createThreadFromRequest(
     forkSourceEnvironmentId?: string;
     seedWithoutRun?: boolean;
     onCreated?: (thread: Thread) => void;
+    importedFork?: ThreadForkDescriptor;
   } = {},
 ) {
   const project = requirePublicProjectForThreadCreate(
@@ -702,6 +707,9 @@ export async function createThreadFromRequest(
     environmentIntent,
     executionDefaults: resolvedExecutionDefaults,
     fork,
+    ...(options.importedFork === undefined
+      ? {}
+      : { importedFork: options.importedFork }),
     ...(options.providerInput !== undefined
       ? { providerInput: options.providerInput }
       : {}),

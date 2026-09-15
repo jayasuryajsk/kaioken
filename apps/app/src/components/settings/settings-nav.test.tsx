@@ -61,13 +61,13 @@ describe("useSettingsNavState", () => {
     expect(result.current.hasUnknownSection).toBe(false);
   });
 
-  it("shows the Machines section", () => {
+  it("shows the Connections section", () => {
     const { result } = renderHook(() => useSettingsNavState(), {
-      wrapper: wrapperFor("/settings/machines"),
+      wrapper: wrapperFor("/settings/connections"),
     });
 
     expect(result.current.sections.map((section) => section.id)).toContain(
-      "machines",
+      "connections",
     );
   });
 

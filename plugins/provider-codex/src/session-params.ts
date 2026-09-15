@@ -51,6 +51,7 @@ export type KaiokenThreadStartParams = ThreadStartParams & {
 
 export type KaiokenThreadForkParams = {
   threadId: string;
+  deferGoalContinuation?: boolean;
   lastTurnId?: string | null;
   model?: string | null;
   serviceTier?: string | null;

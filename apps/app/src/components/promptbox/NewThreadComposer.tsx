@@ -1,3 +1,17 @@
+import { useFederatedRemotes } from "@/hooks/queries/federation-queries";
+import { remoteId, parseRemoteId } from "@kaioken/client-core";
+import { workspaceEmbedding } from "@/lib/federation/workspace-protocol";
+import {
+  copyWorkspaceDraft,
+  queueWorkspaceDraft,
+  WORKSPACE_DRAFT_PARAM,
+} from "@/lib/federation/workspace-drafts";
+import { getRemoteSdk } from "@/lib/federation/remote-sdk";
+import {
+  readConnectionIdentity,
+  rememberConnectionIdentity,
+} from "@/lib/federation/connection-identities";
+import { getRemoteProjectComposeRoutePath } from "@/lib/route-paths";
 import {
   useCallback,
   useEffect,
@@ -791,6 +805,24 @@ export function NewThreadComposer({
   const providerHostId =
     providerMachine?.type === "existing" ? providerMachine.hostId : null;
   const machineHostId = providerHostId ?? primaryHostId;
+  const connectionNavigate = useNavigate();
+  const federation = useFederatedRemotes({
+    enabled: workspaceEmbedding === null,
+  });
+  const remoteProjectOptions = useMemo(
+    () =>
+      federation.remotes.flatMap((snapshot) => [
+        {
+          id: remoteId(snapshot.server.handle, PERSONAL_PROJECT_ID),
+          name: `New task on ${snapshot.server.name}`,
+        },
+        ...(snapshot.bootstrap?.projects ?? []).map((project) => ({
+          id: remoteId(snapshot.server.handle, project.id),
+          name: `${project.name} · ${snapshot.server.name}`,
+        })),
+      ]),
+    [federation.remotes],
+  );
   const projectOptions = useMemo(
     () =>
       (projects ?? [])
@@ -799,8 +831,9 @@ export function NewThreadComposer({
             project.id === projectId ||
             projectAvailableOnHost(project.sources, machineHostId),
         )
-        .map(({ id, name }) => ({ id, name })),
-    [machineHostId, projectId, projects],
+        .map(({ id, name }) => ({ id, name }))
+        .concat(remoteProjectOptions),
+    [machineHostId, projectId, projects, remoteProjectOptions],
   );
   const [environmentProviderInputsOverride, setProviderInputsOverride] =
     useState<{ scopeKey: string; value: JsonValue | null } | null>(null);
@@ -1042,6 +1075,62 @@ export function NewThreadComposer({
       ) {
         return;
       }
+      const remoteProject = parseRemoteId(nextValue);
+      if (remoteProject !== null) {
+        const server = federation.servers.find(
+          (candidate) => candidate.handle === remoteProject.handle,
+        );
+        if (!server) return;
+        const currentDraft = promptDraft.getCurrent();
+        let path = getRemoteProjectComposeRoutePath({
+          handle: remoteProject.handle,
+          projectId: remoteProject.id,
+        });
+        isCopyingAttachmentsRef.current = true;
+        setIsCopyingAttachments(true);
+        setAttachmentError(null);
+        try {
+          if (!isPromptDraftEmpty(currentDraft)) {
+            const remote = getRemoteSdk(server.url);
+            const origin = new URL(server.url).origin;
+            const expected = readConnectionIdentity(origin, server.handle);
+            const identity = await remote.experimental_connections.self();
+            if (expected !== null && expected !== identity.serverId)
+              throw new Error(
+                "This computer's identity changed. Open it from the sidebar and connect again before moving your draft.",
+              );
+            rememberConnectionIdentity(
+              origin,
+              identity.serverId,
+              server.handle,
+            );
+            const draft = await copyWorkspaceDraft({
+              source: sdk,
+              destination: remote,
+              sourceProjectId: projectId,
+              destinationProjectId: remoteProject.id,
+              draft: currentDraft,
+            });
+            queueWorkspaceDraft(server.handle, identity.serverId, draft, () =>
+              promptDraft.clearIfCurrentMatches(currentDraft),
+            );
+            path += `?${WORKSPACE_DRAFT_PARAM}=${draft.id}`;
+          }
+          connectionNavigate(path);
+        } catch (error) {
+          setAttachmentError(
+            getMutationErrorMessage({
+              error,
+              fallbackMessage:
+                "Your draft could not be moved to this computer. It is still here.",
+            }),
+          );
+        } finally {
+          isCopyingAttachmentsRef.current = false;
+          setIsCopyingAttachments(false);
+        }
+        return;
+      }
       const attachmentPaths = getProjectStoredPromptAttachmentPaths(
         promptDraft.getCurrent().attachments,
       );
@@ -1074,7 +1163,14 @@ export function NewThreadComposer({
         setIsCopyingAttachments(false);
       }
     },
-    [onProjectChange, projectId, promptDraft, snapshotDraftBeforeOptionChange],
+    [
+      connectionNavigate,
+      federation.servers,
+      onProjectChange,
+      projectId,
+      promptDraft,
+      snapshotDraftBeforeOptionChange,
+    ],
   );
   const handleSwitchMachine = useCallback(
     (host: Host) => {

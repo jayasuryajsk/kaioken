@@ -64,7 +64,7 @@ import { VoiceInputSettingsSection } from "@/components/settings/VoiceInputSetti
 import { UpdatesSettingsSection } from "@/components/settings/UpdatesSettingsSection";
 import { KeyboardSettingsSection } from "@/components/settings/KeyboardSettingsSection";
 import { BrowserSettingsSection } from "@/components/settings/BrowserSettingsSection";
-import { MachinesSettingsSection } from "@/components/settings/MachinesSettingsSection";
+import { ConnectionsSettingsSection } from "@/components/settings/ConnectionsSettingsSection";
 import { ProjectsSettingsSection } from "@/components/settings/ProjectsSettingsSection";
 import { ArchivedThreadsSettingsSection } from "@/components/settings/ArchivedThreadsSettingsSection";
 import { CliSkillsSettingsSection } from "@/components/settings/CliSkillsSettingsSection";
@@ -1207,8 +1207,8 @@ export function SettingsView() {
     );
   } else if (activeSection === "projects") {
     content = <ProjectsSettingsSection />;
-  } else if (activeSection === "machines") {
-    content = <MachinesSettingsSection />;
+  } else if (activeSection === "connections") {
+    content = <ConnectionsSettingsSection />;
   } else if (activeSection === "updates") {
     content = (
       <UpdatesSettingsSection

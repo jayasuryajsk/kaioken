@@ -1,5 +1,6 @@
 import { createBrowserBbSdk, type BrowserBbSdk } from "@kaioken/sdk/browser";
 import { createRemoteFetch } from "./remote-fetch";
+import { createRemoteWebsocket } from "./remote-websocket";
 
 const clients = new Map<string, BrowserBbSdk>();
 
@@ -10,6 +11,7 @@ export function getRemoteSdk(serverUrl: string): BrowserBbSdk {
   const created = createBrowserBbSdk({
     baseUrl: key,
     fetch: createRemoteFetch(),
+    websocket: createRemoteWebsocket,
   });
   clients.set(key, created);
   return created;

@@ -18,6 +18,7 @@ import {
   type KaiokenDesktopBrowserControlState,
   type KaiokenDesktopBrowserRevealRequest,
   kaiokenDesktopFederatedFetchResponseSchema,
+  federatedSocketEventSchema,
   kaiokenDesktopInfoSchema,
   kaiokenDesktopWindowStateSchema,
   type KaiokenDesktopApi,
@@ -48,7 +49,13 @@ import {
   KAIOKEN_DESKTOP_OPEN_EXTERNAL_URL_CHANNEL,
   KAIOKEN_DESKTOP_SET_THEME_CHANNEL,
 } from "./desktop-update-ipc.js";
-import { KAIOKEN_DESKTOP_FEDERATED_FETCH_CHANNEL } from "./desktop-federation-ipc.js";
+import {
+  KAIOKEN_DESKTOP_FEDERATED_FETCH_CHANNEL,
+  FEDERATED_SOCKET_OPEN_CHANNEL,
+  FEDERATED_SOCKET_SEND_CHANNEL,
+  FEDERATED_SOCKET_CLOSE_CHANNEL,
+  FEDERATED_SOCKET_EVENT_CHANNEL,
+} from "./desktop-federation-ipc.js";
 import {
   KAIOKEN_DESKTOP_BROWSER_ATTACH_CHANNEL,
   KAIOKEN_DESKTOP_BROWSER_TARGET_CHANNEL,
@@ -80,6 +87,7 @@ import {
 } from "./desktop-browser-ipc.js";
 import {
   KAIOKEN_DESKTOP_APP_COMMAND_CHANNEL,
+  KAIOKEN_DESKTOP_WORKSPACE_NAVIGATE_CHANNEL,
   KAIOKEN_DESKTOP_CLOSE_WINDOW_REQUEST_CHANNEL,
   KAIOKEN_DESKTOP_CLOSE_WINDOW_RESPONSE_CHANNEL,
   KAIOKEN_DESKTOP_GET_WINDOW_STATE_CHANNEL,
@@ -392,6 +400,44 @@ const kaiokenDesktopApi: KaiokenDesktopApi = {
       request,
     );
     return kaiokenDesktopFederatedFetchResponseSchema.parse(payload);
+  },
+  federatedTransportVersion: 2,
+  onWorkspaceNavigate(listener) {
+    const handler = (_event: Electron.IpcRendererEvent, path: unknown) => {
+      if (
+        typeof path === "string" &&
+        path.startsWith("/") &&
+        !path.startsWith("//") &&
+        !path.includes("\\")
+      )
+        listener(path);
+    };
+    ipcRenderer.on(KAIOKEN_DESKTOP_WORKSPACE_NAVIGATE_CHANNEL, handler);
+    return () =>
+      ipcRenderer.removeListener(
+        KAIOKEN_DESKTOP_WORKSPACE_NAVIGATE_CHANNEL,
+        handler,
+      );
+  },
+  federatedSocket: {
+    async open(request) {
+      await ipcRenderer.invoke(FEDERATED_SOCKET_OPEN_CHANNEL, request);
+    },
+    send(request) {
+      ipcRenderer.send(FEDERATED_SOCKET_SEND_CHANNEL, request);
+    },
+    close(request) {
+      ipcRenderer.send(FEDERATED_SOCKET_CLOSE_CHANNEL, request);
+    },
+    subscribe(listener) {
+      const handler = (_event: Electron.IpcRendererEvent, payload: unknown) => {
+        const parsed = federatedSocketEventSchema.safeParse(payload);
+        if (parsed.success) listener(parsed.data);
+      };
+      ipcRenderer.on(FEDERATED_SOCKET_EVENT_CHANNEL, handler);
+      return () =>
+        ipcRenderer.removeListener(FEDERATED_SOCKET_EVENT_CHANNEL, handler);
+    },
   },
   getInfo() {
     return invokeDesktopInfo(KAIOKEN_DESKTOP_GET_INFO_CHANNEL);

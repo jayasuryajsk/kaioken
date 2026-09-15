@@ -25,37 +25,32 @@ export type FederatedFetchImpl = (
     method: KaiokenDesktopFederatedFetchMethod;
     headers: Record<string, string>;
     credentials: "include";
-    body?: string;
+    body?: string | Uint8Array<ArrayBuffer>;
+    redirect: "error";
   },
 ) => Promise<{
   status: number;
   headers: { forEach(callback: (value: string, key: string) => void): void };
   text(): Promise<string>;
+  arrayBuffer(): Promise<ArrayBuffer>;
 }>;
-
-function parentDomain(hostname: string): string | null {
-  const labels = hostname.split(".");
-  return labels.length >= 3 ? labels.slice(1).join(".") : null;
-}
 
 export function isAllowedFederatedUrl(
   url: URL,
   servers: readonly FederatedFetchServer[],
 ): boolean {
-  if (url.protocol !== "https:") return false;
-  for (const server of servers) {
-    let known: URL;
+  const loopback =
+    url.protocol === "http:" &&
+    ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname);
+  if ((url.protocol !== "https:" && !loopback) || url.username || url.password)
+    return false;
+  return servers.some((server) => {
     try {
-      known = new URL(server.url);
+      return new URL(server.url).origin === url.origin;
     } catch {
-      continue;
+      return false;
     }
-    if (known.protocol !== "https:") continue;
-    if (known.origin === url.origin) return true;
-    const domain = parentDomain(known.hostname);
-    if (domain !== null && url.hostname.endsWith(`.${domain}`)) return true;
-  }
-  return false;
+  });
 }
 
 export function sanitizeFederatedHeaders(
@@ -92,7 +87,10 @@ export function createFederatedFetchHandler({
     if (!parsed.success) {
       throw new Error("federated fetch request is malformed");
     }
-    const requestBody = parsed.data.body;
+    const requestBody =
+      parsed.data.body !== undefined && parsed.data.bodyEncoding === "base64"
+        ? Buffer.from(parsed.data.body, "base64")
+        : parsed.data.body;
     if (
       requestBody !== undefined &&
       Buffer.byteLength(requestBody, "utf8") > maxRequestBodyBytes
@@ -103,7 +101,11 @@ export function createFederatedFetchHandler({
       try {
         await prepare();
       } catch {
-        return { status: 0, headers: [], body: "" };
+        return {
+          status: 401,
+          headers: [],
+          body: "Connection sign-in required",
+        };
       }
     }
     const url = new URL(parsed.data.url);
@@ -118,10 +120,14 @@ export function createFederatedFetchHandler({
       method: parsed.data.method,
       headers,
       credentials: "include",
+      redirect: "error",
       ...(requestBody === undefined ? {} : { body: requestBody }),
     });
-    const body = parsed.data.method === "HEAD" ? "" : await response.text();
-    if (Buffer.byteLength(body, "utf8") > maxBodyBytes) {
+    const bytes =
+      parsed.data.method === "HEAD"
+        ? Buffer.alloc(0)
+        : Buffer.from(await response.arrayBuffer());
+    if (bytes.byteLength > maxBodyBytes) {
       throw new Error("federated fetch response exceeds the size limit");
     }
     const responseHeaders: Array<[string, string]> = [];
@@ -129,7 +135,18 @@ export function createFederatedFetchHandler({
       if (key.toLowerCase() === "set-cookie") return;
       responseHeaders.push([key, value]);
     });
-    return { status: response.status, headers: responseHeaders, body };
+    return parsed.data.responseEncoding === "base64"
+      ? {
+          status: response.status,
+          headers: responseHeaders,
+          body: bytes.toString("base64"),
+          bodyEncoding: "base64",
+        }
+      : {
+          status: response.status,
+          headers: responseHeaders,
+          body: bytes.toString("utf8"),
+        };
   };
 }
 

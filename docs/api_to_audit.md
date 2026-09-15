@@ -2554,3 +2554,36 @@ describing it as merely too large.
    boolean indicating whether a detail read can succeed.
 3. Verify old persisted previews and mixed-version clients still receive a
    deterministic state before making the field stable.
+
+# Computer connections
+
+`bb.sdk.experimental_connections` and `ExperimentalConnectionsArea` expose stable
+installation identity, Connect-account discovery, and the primary host's SSH
+connection lifecycle. `self()` returns the server UUID, primary host ID and
+workspace protocol; `list()` returns identity and nullable account discovery.
+`ssh.list()` returns concrete OpenSSH aliases and saved/live connections;
+`ssh.connect({ alias, remotePort })` starts or attaches to an installed remote
+Kaioken runtime and returns before connection setup finishes. `ssh.disconnect`
+forgets the saved connection and closes the tunnel; it does not stop remote tasks.
+The matching CLI is `kaioken connection`.
+
+`resolve({ handle })` reads an installation identity through its authenticated
+account connection or SSH tunnel; `null` identifies this server. Handoff requests
+pin both source and destination UUIDs. `handoffs.preview` returns saved projects
+with a matching Git remote and subdirectory. `handoffs.start` accepts a caller
+UUID and transfers native Codex context, conversation attachments, and Git state
+into a new destination worktree. It returns durable progress immediately.
+`handoffs.get`, `retry`, and `cancel` inspect or recover the same operation. The
+source pauses before snapshotting and remains locked until completion or confirmed
+cancellation. The destination resumes without submitting a new prompt; successful
+completion reveals it and archives the source. Source checkout files are retained.
+Cancellation after destination completion is refused. Retry never silently starts
+a fresh provider conversation. Other providers are currently rejected.
+
+Stabilization requires transport compatibility, identity replacement, reconnect,
+host-key/authentication recovery, disconnected-write and cross-computer isolation
+coverage, plus validation of desktop and browser workspace parity. Audit the
+remote workspace and transfer contracts together before removing the prefix.
+Handoff stabilization also requires interrupted chunk/receipt recovery, native
+resume compatibility, attachment preservation, and independent-server integration
+coverage. The raw transfer endpoints are implementation support for this area.

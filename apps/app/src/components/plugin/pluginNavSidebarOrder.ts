@@ -12,10 +12,12 @@ export const BUILT_IN_SIDEBAR_NAVIGATION_KEYS = {
   extensions: "__bb__/extensions",
   skills: "__bb__/skills",
   automations: "__bb__/automations",
+  importCodex: "__bb__/import-codex",
 } as const;
 
 export const DEFAULT_HIDDEN_SIDEBAR_NAVIGATION_KEYS = [
   BUILT_IN_SIDEBAR_NAVIGATION_KEYS.searchThreads,
+  BUILT_IN_SIDEBAR_NAVIGATION_KEYS.importCodex,
 ] as const;
 
 export const DEFAULT_BUILT_IN_SIDEBAR_NAVIGATION_ORDER = [
@@ -25,6 +27,7 @@ export const DEFAULT_BUILT_IN_SIDEBAR_NAVIGATION_ORDER = [
   BUILT_IN_SIDEBAR_NAVIGATION_KEYS.extensions,
   BUILT_IN_SIDEBAR_NAVIGATION_KEYS.skills,
   BUILT_IN_SIDEBAR_NAVIGATION_KEYS.automations,
+  BUILT_IN_SIDEBAR_NAVIGATION_KEYS.importCodex,
 ] as const;
 
 export function seedSkillsNavigationPreference(

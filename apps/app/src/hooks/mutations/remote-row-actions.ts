@@ -8,7 +8,7 @@ import {
   invalidateRemoteServerSnapshot,
   invalidateRemoteThreadQueries,
 } from "../cache-owners/federation-cache-owner";
-import { reportRemoteWriteFailure } from "./remote-thread-mutations";
+import { reportRemoteWriteFailure } from "@/lib/federation/remote-write-errors";
 
 function rawSectionId(sectionId: string | null): string | null {
   if (sectionId === null) return null;
@@ -68,7 +68,10 @@ export interface RemoteRowActions {
   ) => Promise<boolean>;
   renameProject: (target: RemoteTarget, name: string) => Promise<boolean>;
   deleteProject: (target: RemoteTarget) => Promise<boolean>;
-  moveProject: (target: RemoteTarget, sectionId: string | null) => Promise<boolean>;
+  moveProject: (
+    target: RemoteTarget,
+    sectionId: string | null,
+  ) => Promise<boolean>;
 }
 
 export function useRemoteRowActions(): RemoteRowActions {

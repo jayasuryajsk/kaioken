@@ -58,7 +58,7 @@ export function SettingsStoryChrome({
       ? route.id
       : route.kind === "project"
         ? "projects"
-        : "machines");
+        : "connections");
 
   return (
     <SidebarProvider

@@ -173,6 +173,20 @@ const WORKSPACE_DIFF_AVAILABLE_RESULT: JsonObject = {
 };
 
 const ONLINE_RPC_RESPONSE_RESULT_FIXTURES: OnlineRpcResponseResultFixtures = {
+  "host.ssh.list": { aliases: ["work"], connections: [] },
+  "host.ssh.connect": {
+    alias: "work",
+    remotePort: 38886,
+    url: null,
+    state: "connecting",
+    error: null,
+  },
+  "host.ssh.disconnect": { ok: true },
+  "host.ssh.request": {
+    status: 200,
+    headers: { "content-type": "application/json" },
+    body: "e30=",
+  },
   "environment.hook.run": {},
   "environment.hook.cancel": { status: "terminated" },
   "desktop.browser.list_instances": { instances: [] },
@@ -296,6 +310,30 @@ const ONLINE_RPC_RESPONSE_RESULT_FIXTURES: OnlineRpcResponseResultFixtures = {
       paths: ["/home/me/.codex/sessions/2026/09/13/rollout.jsonl"],
       lastOrdinal: 12,
     },
+  },
+  "workspace.transfer.inspect": {
+    remotes: ["example.test/org/repo"],
+    subdirectory: "app",
+  },
+  "workspace.transfer.export": {
+    git: {
+      remotes: ["example.test/org/repo"],
+      subdirectory: "app",
+      headSha: "a".repeat(40),
+      indexSha: "b".repeat(40),
+      workingSha: "c".repeat(40),
+      bundleRef: "refs/kaioken/transfers/ab2d59e2-2f77-4272-9242-a3351d2ef44b",
+      sha256: "d".repeat(64),
+      sizeBytes: 100,
+    },
+    providerThreadId: "ab2d59e2-2f77-4272-9242-a3351d2ef44b",
+    session: { sha256: "e".repeat(64), sizeBytes: 20 },
+  },
+  "workspace.transfer.read": { data: "YWJj", nextOffset: 3, done: true },
+  "workspace.transfer.write": { nextOffset: 3 },
+  "workspace.transfer.restore": {
+    workspacePath: "/tmp/transferred/app",
+    providerThreadId: "ab2d59e2-2f77-4272-9242-a3351d2ef44b",
   },
   "codex.rollouts.read": {
     rollouts: {
@@ -1020,7 +1058,7 @@ const CONTRIBUTED_ENV = [
 
 describe("host-daemon command schemas", () => {
   it("uses the current host-daemon protocol version", () => {
-    expect(HOST_DAEMON_PROTOCOL_VERSION).toBe(200);
+    expect(HOST_DAEMON_PROTOCOL_VERSION).toBe(201);
     expect(HOST_ARTIFACT_MAX_BYTES).toBe(256 * 1024 * 1024);
   });
 

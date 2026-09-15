@@ -102,6 +102,57 @@ describe("thread creation telemetry", () => {
 });
 
 describe("thread creation with startedOnBehalfOf (seed-without-run)", () => {
+  it("forks an imported native session on its destination without requiring a local source task", async () => {
+    await withTestHarness(async (harness) => {
+      const { host } = seedHostSession(harness.deps);
+      const { project } = seedProjectWithSource(harness.deps, {
+        hostId: host.id,
+        path: "/tmp/imported-native-worktree",
+      });
+      const environment = seedEnvironment(harness.deps, {
+        hostId: host.id,
+        projectId: project.id,
+        path: "/tmp/imported-native-worktree",
+      });
+      const thread = await createThreadFromRequest(
+        harness.deps,
+        {
+          projectId: project.id,
+          providerId: "codex",
+          environment: { type: "reuse", environmentId: environment.id },
+          input: [],
+          model: "gpt-5.5",
+          visibility: "hidden",
+          origin: null,
+          startedOnBehalfOf: null,
+        },
+        {
+          importedFork: {
+            sourceProviderThreadId: "a0000000-0000-4000-8000-000000000001",
+          },
+          seedWithoutRun: true,
+        },
+      );
+      const queued = await waitForQueuedCommand(
+        harness,
+        ({ command }) =>
+          command.type === "thread.start" && command.threadId === thread.id,
+      );
+      if (queued.command.type !== "thread.start")
+        throw new Error("Expected native thread start");
+      expect(queued.command.fork).toEqual({
+        sourceProviderThreadId: "a0000000-0000-4000-8000-000000000001",
+      });
+      expect(queued.command.input).toEqual([]);
+      expect(queued.command.workspaceContext.workspacePath).toBe(
+        environment.path,
+      );
+      expect(getThread(harness.db, thread.id)).toMatchObject({
+        sourceThreadId: null,
+        visibility: "hidden",
+      });
+    });
+  });
   it("persists an agent fork start while cloning the source provider session", async () => {
     await withTestHarness(async (harness) => {
       const capture = installTelemetryCaptureSpy(harness);

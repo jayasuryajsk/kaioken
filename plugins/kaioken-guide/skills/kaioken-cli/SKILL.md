@@ -64,7 +64,7 @@ KAIOKEN_HOST_DAEMON_PORT only for an intentional non-default target.
   through `kaioken settings show` and `kaioken settings general <key> <value>`.
 - The server keeps a registry of sidebar layout preferences (organization
   mode, section order, collapsed rows, navigation entries): `kaioken settings ui
-  list`, `get`, `set`, and `reset`. `sidebar.organizationMode connection`
+list`, `get`, `set`, and `reset`. `sidebar.organizationMode connection`
   groups repos under their machines.
 - Sections double as labels holding repos and threads from any machine:
   `kaioken labels list|add|rename|remove|move|unlabel`; `move` takes a label id
@@ -80,6 +80,15 @@ KAIOKEN_HOST_DAEMON_PORT only for an intentional non-default target.
   append across restarts; `kaioken-app`, `kaioken-server`, and `kaioken-host-daemon` capture
   service output there instead of forwarding it to their terminal.
 - Keep file paths on the machine that owns the selected workspace.
+- `kaioken connection list` discovers separate Kaioken installations;
+  `connection inspect [url]` reads their stable identity. `connection ssh
+list|connect|disconnect` manages connections through the controller's OpenSSH
+  configuration. Connect returns the initial state; follow with `connection ssh
+list --json`, then use the reported URL with `--url` for normal commands.
+  Opening or disconnecting a workspace never moves or stops its tasks.
+- Worker enrollment is separate: `kaioken machine` manages execution daemons
+  enrolled in one server. Settings → Connections keeps this under Advanced:
+  execution workers. Installation commands are generated only on request.
 
 ## Common checks
 
@@ -116,3 +125,12 @@ plugins; do not add plugin command manuals here.
 ## Built-in browser control
 
 Use `kaioken browser instances --host <host-id> --json` to discover a desktop. Commands `tabs`, `create`, `acquire`, `connection`, `release`, `reveal`, `capture`, `close`, and `watch` require explicit `--host`, `--instance`, `--generation`, and `--thread`. See `kaioken guide browser` and `kaioken browser --help` for flags. New tabs use separate automation profiles; personal-tab control needs an explicit handoff. Revealing tabs or acquiring control opens the side panel and selects the tab only in the already focused thread, without switching threads or activating the desktop window. Connection credentials are written with `connection --output <new-file>` and work only on the browser host; keep them out of chat and public port shares. `import-sources` and `import-cookies --from <source> --profile <dir> [--into personal|automation:<id>]` copy signed-in cookies from an installed browser into a Kaioken browser profile; they need `--host`, `--instance`, and `--generation` only, and the source browser must be quit first.
+
+- `kaioken connection handoff <task-id> --to <computer> --preview --json` lists
+  matching destination projects. Remove `--preview` and optionally pass
+  `--project <id>` and `--wait` to move native Codex context, attachments, and Git
+  state into a new worktree. `--from` defaults to `local`; targets accept `local`,
+  account handles, or `ssh.<alias>`. `--id <uuid>` makes start retries idempotent.
+  `connection handoff-status|handoff-retry|handoff-cancel <operation-id>` supports
+  `--json`. Failed moves preserve the source; confirm destination cancellation
+  before releasing it. This implementation supports native Codex sessions.

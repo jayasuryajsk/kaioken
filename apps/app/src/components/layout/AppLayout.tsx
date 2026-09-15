@@ -1,3 +1,4 @@
+import { workspaceEmbedding } from "@/lib/federation/workspace-protocol";
 import { type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import {
   useCallback,
@@ -742,23 +743,25 @@ export function AppLayout({ children }: AppLayoutProps) {
             {backToAppRoutePath !== null && !isSidebarResizing ? (
               <BackToAppCommandHandler routePath={backToAppRoutePath} />
             ) : null}
-            <AppLayoutSidebar
-              mode={
-                isGlobalSettingsView
-                  ? "settings"
-                  : isPluginsWorkspace
-                    ? "plugins"
-                    : isSkillsWorkspace
-                      ? "skills"
-                      : "app"
-              }
-              onResizeMouseDown={handleResizeMouseDown}
-              isResizing={isSidebarResizing}
-              appRoutePath={appRoutePath}
-              settingsRoutePath={settingsRoutePath}
-              toolsBackRoutePath={toolsBackRoutePath}
-              toolsRoutePath={toolsRoutePath}
-            />
+            {workspaceEmbedding === null ? (
+              <AppLayoutSidebar
+                mode={
+                  isGlobalSettingsView
+                    ? "settings"
+                    : isPluginsWorkspace
+                      ? "plugins"
+                      : isSkillsWorkspace
+                        ? "skills"
+                        : "app"
+                }
+                onResizeMouseDown={handleResizeMouseDown}
+                isResizing={isSidebarResizing}
+                appRoutePath={appRoutePath}
+                settingsRoutePath={settingsRoutePath}
+                toolsBackRoutePath={toolsBackRoutePath}
+                toolsRoutePath={toolsRoutePath}
+              />
+            ) : null}
             <SidebarInset>
               <div
                 ref={contentShellRef}
@@ -782,10 +785,12 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </main>
               </div>
             </SidebarInset>
-            <SidebarTriggerOverlay
-              reserveMacosTrafficLights={reserveMacosTrafficLights}
-              usesDesktopChrome={usesDesktopChrome}
-            />
+            {workspaceEmbedding === null ? (
+              <SidebarTriggerOverlay
+                reserveMacosTrafficLights={reserveMacosTrafficLights}
+                usesDesktopChrome={usesDesktopChrome}
+              />
+            ) : null}
           </SidebarStateBridge>
           <PluginAppOverlays />
           <IframeDragGuardOverlay
