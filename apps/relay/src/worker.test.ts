@@ -290,6 +290,28 @@ describe("Kaioken relay", () => {
     expect(forbidden.status).toBe(403);
   });
 
+  it("refuses cookie-authenticated websocket upgrades from foreign origins", async () => {
+    await pairServer();
+    const value = await createSessionCookie(
+      "server",
+      SESSION_SECRET,
+      Date.now() + 60_000,
+    );
+    const cookie = `__Secure-kaioken-connect.desktop_session=${value}`;
+    const upgrade = (origin: string | null) =>
+      request("/api/v1/events", {
+        headers: {
+          cookie,
+          upgrade: "websocket",
+          connection: "Upgrade",
+          ...(origin === null ? {} : { origin }),
+        },
+      });
+    expect((await upgrade("https://evil.example")).status).toBe(403);
+    expect((await upgrade("http://127.0.0.1:38886")).status).not.toBe(403);
+    expect((await upgrade(null)).status).not.toBe(403);
+  });
+
   it("disconnect unpairs the server", async () => {
     const credential = await pairServer();
     const response = await request("/api/connect/disconnect", {

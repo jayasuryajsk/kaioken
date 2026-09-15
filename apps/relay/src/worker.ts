@@ -59,6 +59,28 @@ function corsHeadersFor(
   };
 }
 
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+export function isTrustedUpgradeOrigin(
+  origin: string | null,
+  topology: RelayTopology,
+): boolean {
+  if (origin === null || origin.length === 0) return true;
+  let parsed: URL;
+  try {
+    parsed = new URL(origin);
+  } catch {
+    return false;
+  }
+  if (
+    LOOPBACK_HOSTS.has(parsed.hostname) ||
+    parsed.hostname.endsWith(".localhost")
+  ) {
+    return true;
+  }
+  return corsOriginFor(origin, topology) !== null;
+}
+
 function withCors(
   response: Response,
   cors: Record<string, string> | null,
@@ -731,6 +753,9 @@ async function routeRequest(
     subject === "server" ? undefined : subject.slice("machine:".length),
   );
   if (request.headers.get("upgrade")?.toLowerCase() === "websocket") {
+    if (!isTrustedUpgradeOrigin(request.headers.get("origin"), topology)) {
+      return text("Kaioken relay: origin not allowed\n", 403);
+    }
     return stub.fetch(doRequest);
   }
   const cacheNamespace =
