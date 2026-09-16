@@ -287,6 +287,20 @@ export function resolveClaudeCodeExecutable(
   return null;
 }
 
+export function routedSessionModel(
+  env: NodeJS.ProcessEnv | undefined,
+): string | undefined {
+  const routed = env?.ANTHROPIC_MODEL?.trim();
+  return routed !== undefined && routed.length > 0 ? routed : undefined;
+}
+
+export function resolveSessionModel(
+  env: NodeJS.ProcessEnv | undefined,
+  requested: string | undefined,
+): string | undefined {
+  return routedSessionModel(env) ?? requested;
+}
+
 export function buildSessionOptions(
   params: BuildSessionOptionsArgs,
   env: NodeJS.ProcessEnv,
@@ -301,7 +315,7 @@ export function buildSessionOptions(
             ? { append: params.baseInstructions }
             : {}),
         };
-  const model = params.model;
+  const model = resolveSessionModel(env, params.model);
   const sandbox = buildWorkspaceWriteSandbox(params);
   const hooks = buildReadonlyHooks(params);
   const additionalDirectories = usesWorkspaceSandbox(params)

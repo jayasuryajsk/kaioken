@@ -88,6 +88,8 @@ const EXPECTED_BACKEND_ROOT_TYPE_EXPORTS = [
   "ExperimentalPluginProviderEnvEntry",
   "ExperimentalPluginProviderEnvHealth",
   "ExperimentalPluginProviderEnvHealthContext",
+  "ExperimentalPluginProviderModel",
+  "ExperimentalPluginProviderModelsContext",
   "PluginProviderExtensionKindDeclaration",
   "PluginProviderFallbackModel",
   "PluginProviderMaintenance",
@@ -185,7 +187,9 @@ function rootExportNames(
 
 describe("backend plugin SDK public surface", () => {
   it("snapshots every KaiokenPluginApi root member", () => {
-    expectTypeOf<keyof KaiokenPluginApi>().toEqualTypeOf<ExpectedBbPluginApiKey>();
+    expectTypeOf<
+      keyof KaiokenPluginApi
+    >().toEqualTypeOf<ExpectedBbPluginApiKey>();
   });
 
   it("keeps every backend contract export in the root declaration bundle", async () => {

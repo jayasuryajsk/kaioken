@@ -3,100 +3,93 @@ import {
   type KaiokenPluginApi,
 } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
-import { fetchCatalog, isStale, type CatalogSnapshot } from "./lib/catalog";
 import {
-  describeRoute,
+  fetchCatalog,
+  isStale,
+  type CatalogModel,
+  type CatalogSnapshot,
+} from "./lib/catalog";
+import {
+  describeEndpoint,
+  ENDPOINT_IDS,
   ENDPOINTS,
+  endpointLabel,
   HARNESS_IDS,
   HARNESS_LABELS,
   harnessEnv,
-  resolveRoute,
-  ROUTE_IDS,
-  ROUTE_OPTION_LABELS,
-  routeIdFromLabel,
+  isEndpointId,
+  keyFor,
+  resolveEndpoint,
+  routedModelId,
   type EndpointId,
   type HarnessId,
   type RoutingConfig,
 } from "./lib/routing";
 
 const CATALOG_PREFIX = "catalog:";
+const PICKER_PREFIX = "picker:";
 
-const catalogModelSchema = z.object({
+const pickerModelSchema = z.object({
   id: z.string(),
   label: z.string(),
   contextLength: z.number().nullable(),
+  enabled: z.boolean(),
+});
+
+const endpointStatusSchema = z.object({
+  id: z.enum(ENDPOINT_IDS),
+  label: z.string(),
+  configured: z.boolean(),
+  hasCatalog: z.boolean(),
+  ready: z.object({ claudeCode: z.boolean(), codex: z.boolean() }),
+  summary: z.string(),
+  enabled: z.array(z.string()),
 });
 
 export const rpcContract = defineRpcContract({
   status: {
     input: z.object({}).strict(),
-    output: z.object({
-      harnesses: z.array(
-        z.object({
-          id: z.enum(HARNESS_IDS),
-          label: z.string(),
-          route: z.enum(ROUTE_IDS),
-          model: z.string(),
-          summary: z.string(),
-          ready: z.boolean(),
-        }),
-      ),
-      configuredEndpoints: z.array(z.string()),
-    }),
+    output: z.object({ endpoints: z.array(endpointStatusSchema) }),
   },
   models: {
     input: z
-      .object({ endpoint: z.enum(["openrouter", "deepseek", "custom"]) })
+      .object({ endpoint: z.enum(ENDPOINT_IDS), refresh: z.boolean() })
       .strict(),
     output: z.union([
       z.object({
         ok: z.literal(true),
-        models: z.array(catalogModelSchema),
+        models: z.array(pickerModelSchema),
         fetchedAt: z.number(),
       }),
       z.object({ ok: z.literal(false), error: z.string() }),
     ]),
   },
-  selectModel: {
+  setEnabled: {
     input: z
-      .object({ harness: z.enum(HARNESS_IDS), model: z.string() })
+      .object({
+        endpoint: z.enum(ENDPOINT_IDS),
+        model: z.string().min(1),
+        enabled: z.boolean(),
+      })
       .strict(),
-    output: z.object({ model: z.string(), summary: z.string() }),
+    output: z.object({ enabled: z.array(z.string()) }),
   },
 });
 
+function splitModelIds(value: string): string[] {
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  for (const part of value.split(/[\n,]/u)) {
+    const id = part.trim();
+    if (id.length === 0 || seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+  }
+  return ids;
+}
+
 export default function plugin(bb: KaiokenPluginApi) {
   const settings = bb.settings.define({
-    claudeCodeRoute: {
-      type: "select",
-      label: "Claude Code endpoint",
-      description:
-        "Where Claude Code sends its requests. Default leaves your existing sign-in alone.",
-      options: ROUTE_IDS.map((id) => ROUTE_OPTION_LABELS[id]),
-      default: ROUTE_OPTION_LABELS.default,
-    },
-    claudeCodeModel: {
-      type: "string",
-      label: "Claude Code model",
-      description:
-        "Model id sent as ANTHROPIC_MODEL, for example anthropic/claude-sonnet-4.5 or deepseek-flash. Leave empty for the endpoint default.",
-      default: "",
-    },
-    codexRoute: {
-      type: "select",
-      label: "Codex endpoint",
-      description:
-        "Where Codex sends its requests. The endpoint must speak the OpenAI Responses API, which OpenRouter and DeepSeek both do.",
-      options: ROUTE_IDS.map((id) => ROUTE_OPTION_LABELS[id]),
-      default: ROUTE_OPTION_LABELS.default,
-    },
-    codexModel: {
-      type: "string",
-      label: "Codex model",
-      description:
-        "Model id Codex asks for, for example anthropic/claude-sonnet-4.5 or deepseek-flash. Leave empty for the endpoint default.",
-      default: "",
-    },
     openrouterKey: {
       type: "string",
       label: "OpenRouter API key",
@@ -113,7 +106,7 @@ export default function plugin(bb: KaiokenPluginApi) {
     customLabel: {
       type: "string",
       label: "Custom endpoint name",
-      description: "Shown wherever this route is described.",
+      description: "Shown beside custom models in the picker.",
       default: "",
     },
     customBaseUrl: {
@@ -136,21 +129,18 @@ export default function plugin(bb: KaiokenPluginApi) {
       description: "Sent as a bearer token to the custom base URL.",
       secret: true,
     },
+    customModels: {
+      type: "string",
+      label: "Custom endpoint models",
+      description:
+        "Model ids the custom endpoint serves, comma separated. Each one appears in the picker.",
+      default: "",
+    },
   });
 
   async function config(): Promise<RoutingConfig> {
     const values = await settings.get();
     return {
-      harnesses: {
-        "claude-code": {
-          route: routeIdFromLabel(values.claudeCodeRoute),
-          model: values.claudeCodeModel ?? "",
-        },
-        codex: {
-          route: routeIdFromLabel(values.codexRoute),
-          model: values.codexModel ?? "",
-        },
-      },
       openrouterKey: values.openrouterKey ?? "",
       deepseekKey: values.deepseekKey ?? "",
       customLabel: values.customLabel ?? "",
@@ -160,28 +150,36 @@ export default function plugin(bb: KaiokenPluginApi) {
     };
   }
 
-  function isHarnessId(value: string | undefined): value is HarnessId {
-    return HARNESS_IDS.some((harness) => harness === value);
+  async function enabledModels(endpoint: EndpointId): Promise<string[]> {
+    if (endpoint === "custom") {
+      return splitModelIds((await settings.get()).customModels ?? "");
+    }
+    const stored = await bb.storage.kv.get<string[]>(
+      `${PICKER_PREFIX}${endpoint}`,
+    );
+    return Array.isArray(stored)
+      ? stored.filter((id): id is string => typeof id === "string")
+      : [];
   }
 
-  function keyFor(current: RoutingConfig, endpoint: EndpointId): string {
-    if (endpoint === "openrouter") return current.openrouterKey;
-    if (endpoint === "deepseek") return current.deepseekKey;
-    return current.customKey;
+  async function setEnabledModels(
+    endpoint: EndpointId,
+    ids: string[],
+  ): Promise<void> {
+    await bb.storage.kv.set(`${PICKER_PREFIX}${endpoint}`, ids);
   }
 
-  function configuredEndpoints(current: RoutingConfig): string[] {
-    return (Object.keys(ENDPOINTS) as EndpointId[])
-      .filter((id) => keyFor(current, id).trim().length > 0)
-      .map((id) => ENDPOINTS[id].label);
+  async function cachedCatalog(
+    endpoint: EndpointId,
+  ): Promise<CatalogSnapshot | undefined> {
+    return bb.storage.kv.get<CatalogSnapshot>(`${CATALOG_PREFIX}${endpoint}`);
   }
 
   async function catalogFor(
     endpoint: EndpointId,
     refresh: boolean,
   ): Promise<CatalogSnapshot> {
-    const key = `${CATALOG_PREFIX}${endpoint}`;
-    const cached = await bb.storage.kv.get<CatalogSnapshot>(key);
+    const cached = await cachedCatalog(endpoint);
     const now = Date.now();
     if (cached !== undefined && !refresh && !isStale(cached, now)) {
       return cached;
@@ -192,16 +190,44 @@ export default function plugin(bb: KaiokenPluginApi) {
       fetchImpl: fetch,
       now,
     });
-    await bb.storage.kv.set(key, snapshot);
+    await bb.storage.kv.set(`${CATALOG_PREFIX}${endpoint}`, snapshot);
     return snapshot;
+  }
+
+  function catalogLookup(
+    snapshot: CatalogSnapshot | undefined,
+  ): Map<string, CatalogModel> {
+    return new Map((snapshot?.models ?? []).map((model) => [model.id, model]));
+  }
+
+  function describeModel(
+    endpointLabelText: string,
+    id: string,
+    known: CatalogModel | undefined,
+  ): string {
+    const context =
+      known?.contextLength === undefined || known.contextLength === null
+        ? ""
+        : ` · ${known.contextLength.toLocaleString()} context`;
+    return `${id} via ${endpointLabelText}${context}`;
   }
 
   async function announceStatus(): Promise<void> {
     const current = await config();
-    for (const harness of HARNESS_IDS) {
-      const resolution = resolveRoute(current, harness);
-      if (resolution.status === "incomplete") {
-        bb.status.needsConfiguration(resolution.reason);
+    const configured = ENDPOINT_IDS.filter(
+      (endpoint) => keyFor(current, endpoint).length > 0,
+    );
+    if (configured.length === 0) {
+      bb.status.needsConfiguration(
+        "Add an OpenRouter, DeepSeek, or custom endpoint API key.",
+      );
+      return;
+    }
+    for (const endpoint of configured) {
+      if ((await enabledModels(endpoint)).length === 0) {
+        bb.status.needsConfiguration(
+          `Choose which ${endpointLabel(current, endpoint)} models to show in the picker.`,
+        );
         return;
       }
     }
@@ -213,9 +239,38 @@ export default function plugin(bb: KaiokenPluginApi) {
   });
 
   for (const harness of HARNESS_IDS) {
-    bb.providers.experimental_contributeEnv(harness, async () => {
+    bb.providers.experimental_contributeModels(harness, async () => {
+      const current = await config();
+      const models: {
+        id: string;
+        displayName: string;
+        description: string;
+        qualifier: string;
+      }[] = [];
+      for (const endpoint of ENDPOINT_IDS) {
+        if (resolveEndpoint(current, endpoint, harness).status !== "ready") {
+          continue;
+        }
+        const enabled = await enabledModels(endpoint);
+        if (enabled.length === 0) continue;
+        const label = endpointLabel(current, endpoint);
+        const known = catalogLookup(await cachedCatalog(endpoint));
+        for (const id of enabled) {
+          const entry = known.get(id);
+          models.push({
+            id: routedModelId(endpoint, id),
+            displayName: entry?.label ?? id,
+            description: describeModel(label, id, entry),
+            qualifier: label,
+          });
+        }
+      }
+      return models;
+    });
+
+    bb.providers.experimental_contributeEnv(harness, async (context) => {
       try {
-        return harnessEnv(await config(), harness);
+        return harnessEnv(await config(), harness, context.model);
       } catch (error) {
         bb.log.warn(
           `Model Routing contributed nothing for ${harness}: ${error instanceof Error ? error.message : String(error)}`,
@@ -225,118 +280,217 @@ export default function plugin(bb: KaiokenPluginApi) {
     });
 
     bb.providers.experimental_contributeEnvHealth(harness, async () => {
-      const resolution = resolveRoute(await config(), harness);
-      if (resolution.status !== "ready") return null;
+      const current = await config();
+      const ready = ENDPOINT_IDS.filter(
+        (endpoint) =>
+          resolveEndpoint(current, endpoint, harness).status === "ready",
+      ).map((endpoint) => endpointLabel(current, endpoint));
+      if (ready.length === 0) return null;
       return {
-        label: resolution.route.label,
-        statusMessage: `Requests go to ${resolution.route.baseUrl} with your ${resolution.route.label} key.`,
+        label: "Model Routing",
+        statusMessage: `${ready.join(", ")} models are available in the ${HARNESS_LABELS[harness]} picker.`,
       };
     });
+  }
+
+  async function endpointStatus(
+    current: RoutingConfig,
+    endpoint: EndpointId,
+  ): Promise<z.infer<typeof endpointStatusSchema>> {
+    return {
+      id: endpoint,
+      label: endpointLabel(current, endpoint),
+      configured: keyFor(current, endpoint).length > 0,
+      hasCatalog: ENDPOINTS[endpoint].modelsUrl !== null,
+      ready: {
+        claudeCode:
+          resolveEndpoint(current, endpoint, "claude-code").status === "ready",
+        codex: resolveEndpoint(current, endpoint, "codex").status === "ready",
+      },
+      summary: describeEndpoint(current, endpoint),
+      enabled: await enabledModels(endpoint),
+    };
+  }
+
+  async function listPickerModels(
+    endpoint: EndpointId,
+    refresh: boolean,
+  ): Promise<
+    | {
+        ok: true;
+        models: z.infer<typeof pickerModelSchema>[];
+        fetchedAt: number;
+      }
+    | { ok: false; error: string }
+  > {
+    const enabled = new Set(await enabledModels(endpoint));
+    if (endpoint === "custom") {
+      return {
+        ok: true,
+        models: [...enabled].map((id) => ({
+          id,
+          label: id,
+          contextLength: null,
+          enabled: true,
+        })),
+        fetchedAt: Date.now(),
+      };
+    }
+    try {
+      const snapshot = await catalogFor(endpoint, refresh);
+      return {
+        ok: true,
+        models: snapshot.models.map((model) => ({
+          ...model,
+          enabled: enabled.has(model.id),
+        })),
+        fetchedAt: snapshot.fetchedAt,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  async function toggleModel(
+    endpoint: EndpointId,
+    model: string,
+    enabled: boolean,
+  ): Promise<string[]> {
+    if (endpoint === "custom") {
+      throw new Error(
+        "Custom endpoint models are listed in the Custom endpoint models setting.",
+      );
+    }
+    const id = model.trim();
+    const current = await enabledModels(endpoint);
+    const next = enabled
+      ? current.includes(id)
+        ? current
+        : [...current, id]
+      : current.filter((entry) => entry !== id);
+    await setEnabledModels(endpoint, next);
+    void announceStatus();
+    return next;
   }
 
   bb.rpc.register(rpcContract, {
     async status() {
       const current = await config();
       return {
-        harnesses: HARNESS_IDS.map((harness) => ({
-          id: harness,
-          label: HARNESS_LABELS[harness],
-          route: current.harnesses[harness].route,
-          model: current.harnesses[harness].model,
-          summary: describeRoute(current, harness),
-          ready: resolveRoute(current, harness).status === "ready",
-        })),
-        configuredEndpoints: configuredEndpoints(current),
+        endpoints: await Promise.all(
+          ENDPOINT_IDS.map((endpoint) => endpointStatus(current, endpoint)),
+        ),
       };
     },
-    async models({ endpoint }) {
-      try {
-        const snapshot = await catalogFor(endpoint, false);
-        return {
-          ok: true as const,
-          models: snapshot.models,
-          fetchedAt: snapshot.fetchedAt,
-        };
-      } catch (error) {
-        return {
-          ok: false as const,
-          error: error instanceof Error ? error.message : String(error),
-        };
-      }
+    models({ endpoint, refresh }) {
+      return listPickerModels(endpoint, refresh);
     },
-    async selectModel({ harness, model }) {
-      await settings.experimental_set(
-        harness === "claude-code"
-          ? { claudeCodeModel: model.trim() }
-          : { codexModel: model.trim() },
-      );
-      const current = await config();
-      return {
-        model: current.harnesses[harness].model,
-        summary: describeRoute(current, harness),
-      };
+    async setEnabled({ endpoint, model, enabled }) {
+      return { enabled: await toggleModel(endpoint, model, enabled) };
     },
   });
 
   bb.cli.register({
     name: "model-routing",
-    summary: "Route a coding agent at your own model endpoint",
+    summary:
+      "Show OpenRouter, DeepSeek, or custom endpoint models in the picker",
     commands: [
       {
         name: "status",
-        summary: "Show where each harness sends its requests.",
+        summary:
+          "Show which endpoints have keys and which models are in the picker.",
         usage: "kaioken model-routing status",
       },
       {
         name: "models",
-        summary: "List the models an endpoint publishes.",
-        usage: "kaioken model-routing models <openrouter|deepseek|custom>",
+        summary:
+          "List the models an endpoint publishes; picker models are marked with *.",
+        usage:
+          "kaioken model-routing models <openrouter|deepseek|custom> [--refresh]",
       },
       {
-        name: "use",
-        summary: "Set the model a harness asks for.",
-        usage: "kaioken model-routing use <claude-code|codex> <model-id>",
+        name: "enable",
+        summary:
+          "Show a model in the Claude Code and Codex pickers as <endpoint>/<model-id>.",
+        usage: "kaioken model-routing enable <openrouter|deepseek> <model-id>",
+      },
+      {
+        name: "disable",
+        summary: "Remove a model from the pickers.",
+        usage: "kaioken model-routing disable <openrouter|deepseek> <model-id>",
       },
     ],
     async run(argv) {
       const [command, ...rest] = argv;
       if (command === "status" || command === undefined) {
         const current = await config();
-        const configured = configuredEndpoints(current);
-        return {
-          exitCode: 0,
-          stdout: [
-            ...HARNESS_IDS.map(
-              (harness) =>
-                `${HARNESS_LABELS[harness].padEnd(12)} ${describeRoute(current, harness)}`,
-            ),
-            `${"Keys".padEnd(12)} ${configured.length > 0 ? configured.join(", ") : "none configured"}`,
-            "",
-          ].join("\n"),
-        };
+        const lines: string[] = [];
+        for (const endpoint of ENDPOINT_IDS) {
+          const status = await endpointStatus(current, endpoint);
+          lines.push(
+            `${status.label.padEnd(12)} ${status.configured ? status.summary : "no API key"}`,
+          );
+          for (const id of status.enabled) {
+            lines.push(`  ${routedModelId(endpoint, id)}`);
+          }
+        }
+        lines.push(
+          "",
+          `Pick a harness in the composer, then choose one of the ${HARNESS_IDS.map((harness) => HARNESS_LABELS[harness]).join(" or ")} models listed above.`,
+          "",
+        );
+        return { exitCode: 0, stdout: lines.join("\n") };
       }
 
       if (command === "models") {
         const endpoint = rest[0];
-        if (
-          endpoint !== "openrouter" &&
-          endpoint !== "deepseek" &&
-          endpoint !== "custom"
-        ) {
+        if (!isEndpointId(endpoint)) {
           return {
             exitCode: 2,
             stderr:
-              "Pass an endpoint: kaioken model-routing models <openrouter|deepseek|custom>\n",
+              "Pass an endpoint: kaioken model-routing models <openrouter|deepseek|custom> [--refresh]\n",
+          };
+        }
+        const result = await listPickerModels(
+          endpoint,
+          rest.includes("--refresh"),
+        );
+        if (!result.ok) return { exitCode: 1, stderr: `${result.error}\n` };
+        if (result.models.length === 0) {
+          return { exitCode: 0, stdout: "No models published.\n" };
+        }
+        return {
+          exitCode: 0,
+          stdout: `${result.models
+            .map((model) => `${model.enabled ? "* " : "  "}${model.id}`)
+            .join("\n")}\n`,
+        };
+      }
+
+      if (command === "enable" || command === "disable") {
+        const endpoint = rest[0];
+        const model = rest[1];
+        if (!isEndpointId(endpoint) || model === undefined) {
+          return {
+            exitCode: 2,
+            stderr: `Pass an endpoint and a model id: kaioken model-routing ${command} <openrouter|deepseek> <model-id>\n`,
           };
         }
         try {
-          const snapshot = await catalogFor(endpoint, false);
-          if (snapshot.models.length === 0) {
-            return { exitCode: 0, stdout: "No models published.\n" };
-          }
+          const enabled = await toggleModel(
+            endpoint,
+            model,
+            command === "enable",
+          );
           return {
             exitCode: 0,
-            stdout: `${snapshot.models.map((model) => model.id).join("\n")}\n`,
+            stdout:
+              enabled.length === 0
+                ? `No ${ENDPOINTS[endpoint].label} models in the picker.\n`
+                : `${enabled.map((id) => routedModelId(endpoint, id)).join("\n")}\n`,
           };
         } catch (error) {
           return {
@@ -344,27 +498,6 @@ export default function plugin(bb: KaiokenPluginApi) {
             stderr: `${error instanceof Error ? error.message : String(error)}\n`,
           };
         }
-      }
-
-      if (command === "use") {
-        const harness = rest[0];
-        const model = rest[1];
-        if (!isHarnessId(harness) || model === undefined) {
-          return {
-            exitCode: 2,
-            stderr:
-              "Pass a harness and a model id: kaioken model-routing use <claude-code|codex> <model-id>\n",
-          };
-        }
-        await settings.experimental_set(
-          harness === "claude-code"
-            ? { claudeCodeModel: model.trim() }
-            : { codexModel: model.trim() },
-        );
-        return {
-          exitCode: 0,
-          stdout: `${describeRoute(await config(), harness)}\n`,
-        };
       }
 
       return {

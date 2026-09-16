@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Route a coding agent at OpenRouter, DeepSeek, or any Anthropic-compatible endpoint with your own API key.",
+  "description": "Put OpenRouter, DeepSeek, or custom endpoint models in the Claude Code and Codex pickers with your own API key.",
   "license": "MIT",
   "engines": {
     "bb": ">=0.0"
   },
   "bb": {
     "name": "Model Routing",
-    "description": "Bring your own key: point Claude Code at OpenRouter, DeepSeek, or a custom endpoint, and choose the model.",
+    "description": "Bring your own key: pick OpenRouter, DeepSeek, or custom endpoint models straight from the composer for Claude Code or Codex.",
     "branding": {
       "icon": "ArrowDataTransferHorizontal"
     },

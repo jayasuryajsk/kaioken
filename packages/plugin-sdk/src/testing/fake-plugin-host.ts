@@ -45,6 +45,7 @@ import {
   validatePluginAiServiceDeclaration,
   validatePluginProviderDeclaration,
   validatePluginProviderEnvEntries,
+  validatePluginProviderModels,
   validateSettingsUpdate,
   zodSchemaToJsonSchema,
   type NormalizedPluginProviderDeclaration,
@@ -87,6 +88,8 @@ import type {
   ExperimentalPluginProviderEnvEntry,
   ExperimentalPluginProviderEnvHealth,
   ExperimentalPluginProviderEnvHealthContext,
+  ExperimentalPluginProviderModel,
+  ExperimentalPluginProviderModelsContext,
   ExperimentalPluginWebSocket,
   ExperimentalPluginWebSocketHandler,
   ExperimentalPluginWebSocketHandlers,
@@ -309,6 +312,14 @@ export interface FakePluginRegistrations {
       | null
       | Promise<ExperimentalPluginProviderEnvHealth | null>
   >;
+  providerModelsResolvers: ReadonlyMap<
+    string,
+    (
+      context: ExperimentalPluginProviderModelsContext,
+    ) =>
+      | readonly ExperimentalPluginProviderModel[]
+      | Promise<readonly ExperimentalPluginProviderModel[]>
+  >;
   /** Live AI-service registrations from `experimental_aiServices.register`
    * (normalized declarations, registration order; dispose removes). */
   aiServiceRegistrations: PluginAiServiceDeclaration[];
@@ -438,6 +449,12 @@ export interface FakePluginBehaviorDrivers {
     providerId: string,
     context: ExperimentalPluginProviderEnvContext,
   ): Promise<ExperimentalPluginProviderEnvEntry[]>;
+  /** Evaluate `bb.providers.experimental_contributeModels` for one provider
+   * with production validation; failures are logged and yield no models. */
+  resolveProviderModels(
+    providerId: string,
+    context: ExperimentalPluginProviderModelsContext,
+  ): Promise<ExperimentalPluginProviderModel[]>;
   resolveProviderEnvHealth(
     providerId: string,
     context: ExperimentalPluginProviderEnvHealthContext,
@@ -1074,9 +1091,10 @@ function createFakePluginHostInternal(
         );
       }
       const rows = database
-        .prepare<[], { id: number; statement_hash: string | null }>(
-          "SELECT id, statement_hash FROM _bb_migrations ORDER BY id",
-        )
+        .prepare<
+          [],
+          { id: number; statement_hash: string | null }
+        >("SELECT id, statement_hash FROM _bb_migrations ORDER BY id")
         .all();
       const applied = new Map<number, string | null>();
       for (const row of rows) applied.set(row.id, row.statement_hash);
@@ -1465,6 +1483,14 @@ function createFakePluginHostInternal(
       | ExperimentalPluginProviderEnvHealth
       | null
       | Promise<ExperimentalPluginProviderEnvHealth | null>
+  >();
+  const providerModelsResolvers = new Map<
+    string,
+    (
+      context: ExperimentalPluginProviderModelsContext,
+    ) =>
+      | readonly ExperimentalPluginProviderModel[]
+      | Promise<readonly ExperimentalPluginProviderModel[]>
   >();
   let agentConfigurationProvider:
     | ((context: PluginAgentConfigurationContext) => PluginAgentConfiguration)
@@ -2092,6 +2118,23 @@ function createFakePluginHostInternal(
       }
       providerEnvHealthResolvers.set(providerId, resolve);
     },
+    experimental_contributeModels(providerId, resolve) {
+      assertLive();
+      if (typeof providerId !== "string" || providerId.trim().length === 0) {
+        throw new Error("provider model contribution requires a provider id");
+      }
+      if (providerModelsResolvers.has(providerId)) {
+        throw new Error(
+          `provider model contribution for "${providerId}" is already registered`,
+        );
+      }
+      if (typeof resolve !== "function") {
+        throw new Error(
+          "provider model contribution requires a resolver function",
+        );
+      }
+      providerModelsResolvers.set(providerId, resolve);
+    },
   };
 
   const experimental_hooks: PluginHooks = {
@@ -2263,6 +2306,7 @@ function createFakePluginHostInternal(
       providerRegistrations,
       providerEnvResolvers,
       providerEnvHealthResolvers,
+      providerModelsResolvers,
       aiServiceRegistrations,
     },
     get pendingInteractions() {
@@ -2290,6 +2334,20 @@ function createFakePluginHostInternal(
         emitLog(
           "warn",
           `provider environment contribution failed: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return [];
+      }
+    },
+    async resolveProviderModels(providerId, context) {
+      assertLive();
+      const resolve = providerModelsResolvers.get(providerId);
+      if (resolve === undefined) return [];
+      try {
+        return validatePluginProviderModels(await resolve(context));
+      } catch (error) {
+        emitLog(
+          "warn",
+          `provider model contribution failed: ${error instanceof Error ? error.message : String(error)}`,
         );
         return [];
       }

@@ -1,6 +1,9 @@
 import type { ToolCallResponse } from "@kaioken/domain";
 import type { HostDaemonContributedEnvEntry } from "@kaioken/host-daemon-contract";
-import type { ExperimentalPluginProviderEnvContext } from "@get-kaioken/plugin-sdk";
+import type {
+  ExperimentalPluginProviderEnvContext,
+  ExperimentalPluginProviderModel,
+} from "@get-kaioken/plugin-sdk";
 import type {
   PluginAgentConfigurationContext,
   PluginAgentToolContext,
@@ -28,6 +31,7 @@ type PluginAgentContributions = Pick<
       | "resolveAgentConfiguration"
       | "resolveProviderEnv"
       | "resolveProviderEnvHealth"
+      | "resolveProviderModels"
     >
   >;
 
@@ -88,6 +92,20 @@ export async function resolvePluginProviderEnvHealth(args: {
     providerId: args.providerId,
     context: { hostId: args.hostId },
   });
+}
+
+export async function resolvePluginProviderModels(args: {
+  providerId: string;
+  hostId: string;
+}): Promise<ExperimentalPluginProviderModel[]> {
+  const active = contributions;
+  if (!active?.resolveProviderModels) return [];
+  return (
+    await active.resolveProviderModels({
+      providerId: args.providerId,
+      context: { hostId: args.hostId },
+    })
+  ).models;
 }
 
 export function findPluginAgentTool(

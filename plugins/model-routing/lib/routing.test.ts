@@ -2,44 +2,23 @@ import { describe, expect, it } from "vitest";
 import {
   claudeCodeEnv,
   codexEnv,
-  describeRoute,
-  resolveRoute,
-  ROUTE_OPTION_LABELS,
-  routeIdFromLabel,
+  describeEndpoint,
+  parseRoutedModelId,
+  resolveEndpoint,
+  routedModelId,
   type EnvEntry,
-  type RouteId,
   type RoutingConfig,
 } from "./routing";
 
-interface ConfigOverrides {
-  claudeCode?: { route?: RouteId; model?: string };
-  codex?: { route?: RouteId; model?: string };
-  openrouterKey?: string;
-  deepseekKey?: string;
-  customLabel?: string;
-  customBaseUrl?: string;
-  customResponsesBaseUrl?: string;
-  customKey?: string;
-}
-
-function config(overrides: ConfigOverrides = {}): RoutingConfig {
+function config(overrides: Partial<RoutingConfig> = {}): RoutingConfig {
   return {
-    harnesses: {
-      "claude-code": {
-        route: overrides.claudeCode?.route ?? "default",
-        model: overrides.claudeCode?.model ?? "",
-      },
-      codex: {
-        route: overrides.codex?.route ?? "default",
-        model: overrides.codex?.model ?? "",
-      },
-    },
-    openrouterKey: overrides.openrouterKey ?? "",
-    deepseekKey: overrides.deepseekKey ?? "",
-    customLabel: overrides.customLabel ?? "",
-    customBaseUrl: overrides.customBaseUrl ?? "",
-    customResponsesBaseUrl: overrides.customResponsesBaseUrl ?? "",
-    customKey: overrides.customKey ?? "",
+    openrouterKey: "",
+    deepseekKey: "",
+    customLabel: "",
+    customBaseUrl: "",
+    customResponsesBaseUrl: "",
+    customKey: "",
+    ...overrides,
   };
 }
 
@@ -47,236 +26,167 @@ function byName(entries: EnvEntry[]) {
   return new Map(entries.map((entry) => [entry.name, entry]));
 }
 
-describe("routeIdFromLabel", () => {
-  it("maps every option label back to its id and falls back to default", () => {
-    expect(routeIdFromLabel(ROUTE_OPTION_LABELS.openrouter)).toBe("openrouter");
-    expect(routeIdFromLabel(ROUTE_OPTION_LABELS.deepseek)).toBe("deepseek");
-    expect(routeIdFromLabel(ROUTE_OPTION_LABELS.custom)).toBe("custom");
-    expect(routeIdFromLabel("something else")).toBe("default");
+const MUSE = "openrouter/meta/muse-spark-1.3-contributor";
+
+describe("routed model ids", () => {
+  it("round-trips an endpoint prefix and keeps slashes inside the model", () => {
+    expect(routedModelId("openrouter", "meta/muse-spark-1.3-contributor")).toBe(
+      MUSE,
+    );
+    expect(parseRoutedModelId(MUSE)).toEqual({
+      endpoint: "openrouter",
+      model: "meta/muse-spark-1.3-contributor",
+    });
+    expect(parseRoutedModelId("deepseek/deepseek-chat")).toEqual({
+      endpoint: "deepseek",
+      model: "deepseek-chat",
+    });
+  });
+
+  it("rejects native model ids and empty models", () => {
+    expect(parseRoutedModelId("claude-fable-5-1")).toBeNull();
+    expect(parseRoutedModelId("gpt-5-codex")).toBeNull();
+    expect(parseRoutedModelId("anthropic/claude-sonnet-4.5")).toBeNull();
+    expect(parseRoutedModelId("openrouter/")).toBeNull();
+    expect(parseRoutedModelId("/x")).toBeNull();
   });
 });
 
 describe("claudeCodeEnv", () => {
-  it("contributes nothing on the default route", () => {
-    expect(claudeCodeEnv(config({ openrouterKey: "sk-or-123" }))).toEqual([]);
-  });
-
-  it("contributes nothing when the chosen endpoint has no key", () => {
+  it("contributes nothing for a native model id", () => {
     expect(
-      claudeCodeEnv(config({ claudeCode: { route: "openrouter" } })),
-    ).toEqual([]);
-    expect(
-      claudeCodeEnv(
-        config({ claudeCode: { route: "openrouter" }, openrouterKey: "   " }),
-      ),
+      claudeCodeEnv(config({ openrouterKey: "key" }), "claude-fable-5-1"),
     ).toEqual([]);
   });
 
-  it("sends a bearer token and blanks the api key for OpenRouter", () => {
+  it("contributes nothing when the routed endpoint has no key", () => {
+    expect(claudeCodeEnv(config(), MUSE)).toEqual([]);
+  });
+
+  it("sends the picked model on every Claude Code model variable with a bearer token", () => {
     const entries = byName(
-      claudeCodeEnv(
-        config({
-          claudeCode: {
-            route: "openrouter",
-            model: "anthropic/claude-sonnet-4.5",
-          },
-          openrouterKey: "sk-or-123",
-        }),
-      ),
+      claudeCodeEnv(config({ openrouterKey: "or-key" }), MUSE),
     );
     expect(entries.get("ANTHROPIC_BASE_URL")?.value).toBe(
       "https://openrouter.ai/api",
     );
-    expect(entries.get("ANTHROPIC_AUTH_TOKEN")).toMatchObject({
-      value: "sk-or-123",
-      secret: true,
-    });
-    expect(entries.get("ANTHROPIC_API_KEY")).toMatchObject({
-      value: "",
-      secret: false,
-    });
-    expect(entries.get("ANTHROPIC_MODEL")?.value).toBe(
-      "anthropic/claude-sonnet-4.5",
-    );
+    expect(entries.get("ANTHROPIC_AUTH_TOKEN")?.value).toBe("or-key");
+    expect(entries.get("ANTHROPIC_API_KEY")?.value).toBe("");
+    for (const name of [
+      "ANTHROPIC_MODEL",
+      "ANTHROPIC_DEFAULT_OPUS_MODEL",
+      "ANTHROPIC_DEFAULT_SONNET_MODEL",
+      "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+      "ANTHROPIC_SMALL_FAST_MODEL",
+      "CLAUDE_CODE_SUBAGENT_MODEL",
+    ]) {
+      expect(entries.get(name)?.value).toBe("meta/muse-spark-1.3-contributor");
+    }
+    expect(
+      [...entries.values()].filter((entry) => entry.secret).map((e) => e.name),
+    ).toEqual(["ANTHROPIC_AUTH_TOKEN"]);
   });
 
   it("sends an api key and blanks the bearer token for DeepSeek", () => {
     const entries = byName(
       claudeCodeEnv(
-        config({
-          claudeCode: { route: "deepseek", model: "deepseek-flash" },
-          deepseekKey: "sk-ds-456",
-        }),
+        config({ deepseekKey: "ds-key" }),
+        "deepseek/deepseek-chat",
       ),
     );
     expect(entries.get("ANTHROPIC_BASE_URL")?.value).toBe(
       "https://api.deepseek.com/anthropic",
     );
-    expect(entries.get("ANTHROPIC_API_KEY")).toMatchObject({
-      value: "sk-ds-456",
-      secret: true,
-    });
+    expect(entries.get("ANTHROPIC_API_KEY")?.value).toBe("ds-key");
     expect(entries.get("ANTHROPIC_AUTH_TOKEN")?.value).toBe("");
-  });
-
-  it("omits the model when none is chosen", () => {
-    const names = claudeCodeEnv(
-      config({ claudeCode: { route: "deepseek" }, deepseekKey: "sk-ds-456" }),
-    ).map((entry) => entry.name);
-    expect(names).not.toContain("ANTHROPIC_MODEL");
-  });
-
-  it("marks exactly the credential as secret", () => {
-    for (const entry of claudeCodeEnv(
-      config({ claudeCode: { route: "openrouter" }, openrouterKey: "sk-or" }),
-    )) {
-      expect(entry.secret).toBe(entry.name === "ANTHROPIC_AUTH_TOKEN");
-      expect(entry.reason.length).toBeGreaterThan(0);
-      expect(entry.name).toMatch(/^[A-Z_][A-Z0-9_]*$/u);
-    }
+    expect(entries.get("ANTHROPIC_MODEL")?.value).toBe("deepseek-chat");
   });
 
   it("uses the custom anthropic base url and label, and rejects a malformed one", () => {
-    const entries = byName(
+    const ready = byName(
       claudeCodeEnv(
         config({
-          claudeCode: { route: "custom" },
-          customKey: "sk-x",
-          customLabel: "Home rig",
-          customBaseUrl: "https://rig.example.com/anthropic/",
+          customKey: "c-key",
+          customLabel: "Lab proxy",
+          customBaseUrl: "https://proxy.example/anthropic/",
         }),
+        "custom/lab-model",
       ),
     );
-    expect(entries.get("ANTHROPIC_BASE_URL")?.value).toBe(
-      "https://rig.example.com/anthropic",
+    expect(ready.get("ANTHROPIC_BASE_URL")?.value).toBe(
+      "https://proxy.example/anthropic",
     );
-    expect(entries.get("ANTHROPIC_AUTH_TOKEN")?.reason).toContain("Home rig");
+    expect(ready.get("ANTHROPIC_BASE_URL")?.reason).toContain("Lab proxy");
     expect(
       claudeCodeEnv(
-        config({
-          claudeCode: { route: "custom" },
-          customKey: "sk-x",
-          customBaseUrl: "nope",
-        }),
+        config({ customKey: "c-key", customBaseUrl: "not a url" }),
+        "custom/lab-model",
       ),
     ).toEqual([]);
   });
 });
 
 describe("codexEnv", () => {
-  it("contributes nothing on the default route or without a key", () => {
-    expect(codexEnv(config({ openrouterKey: "sk-or-123" }))).toEqual([]);
-    expect(codexEnv(config({ codex: { route: "openrouter" } }))).toEqual([]);
+  it("contributes nothing for native ids or without a key", () => {
+    expect(codexEnv(config({ openrouterKey: "k" }), "gpt-5-codex")).toEqual([]);
+    expect(codexEnv(config(), MUSE)).toEqual([]);
   });
 
-  it("points Codex at the responses base url and names the env var for env_key", () => {
-    const entries = byName(
-      codexEnv(
-        config({
-          codex: { route: "openrouter", model: "anthropic/claude-sonnet-4.5" },
-          openrouterKey: "sk-or-123",
-        }),
-      ),
-    );
+  it("points Codex at the responses base url with the picked model", () => {
+    const entries = byName(codexEnv(config({ openrouterKey: "or-key" }), MUSE));
     expect(entries.get("CODEX_CUSTOM_BASE_URL")?.value).toBe(
       "https://openrouter.ai/api/v1",
     );
     expect(entries.get("CODEX_CUSTOM_AUTH_TOKEN")).toMatchObject({
-      value: "sk-or-123",
+      value: "or-key",
       secret: true,
     });
     expect(entries.get("CODEX_CUSTOM_NAME")?.value).toBe("OpenRouter");
     expect(entries.get("CODEX_CUSTOM_MODEL")?.value).toBe(
-      "anthropic/claude-sonnet-4.5",
+      "meta/muse-spark-1.3-contributor",
     );
-  });
-
-  it("uses DeepSeek's responses root rather than its anthropic path", () => {
-    const entries = byName(
-      codexEnv(
-        config({ codex: { route: "deepseek" }, deepseekKey: "sk-ds-456" }),
-      ),
-    );
-    expect(entries.get("CODEX_CUSTOM_BASE_URL")?.value).toBe(
-      "https://api.deepseek.com",
-    );
-    expect(entries.get("CODEX_CUSTOM_AUTH_TOKEN")).toMatchObject({
-      value: "sk-ds-456",
-      secret: true,
-    });
-    expect(entries.has("CODEX_CUSTOM_MODEL")).toBe(false);
-  });
-
-  it("marks exactly the credential as secret", () => {
-    for (const entry of codexEnv(
-      config({
-        codex: { route: "openrouter", model: "x/y" },
-        openrouterKey: "sk-or",
-      }),
-    )) {
-      expect(entry.secret).toBe(entry.name === "CODEX_CUSTOM_AUTH_TOKEN");
-      expect(entry.reason.length).toBeGreaterThan(0);
-      expect(entry.name).toMatch(/^[A-Z_][A-Z0-9_]*$/u);
-    }
   });
 
   it("needs its own custom base url, separate from the Claude Code one", () => {
-    const anthropicOnly = config({
-      codex: { route: "custom" },
-      customKey: "sk-x",
-      customBaseUrl: "https://rig.example.com/anthropic",
-    });
-    expect(codexEnv(anthropicOnly)).toEqual([]);
-    expect(describeRoute(anthropicOnly, "codex")).toContain("Responses");
     expect(
-      byName(
-        codexEnv(
-          config({
-            codex: { route: "custom" },
-            customKey: "sk-x",
-            customResponsesBaseUrl: "https://rig.example.com/v1/",
-          }),
-        ),
-      ).get("CODEX_CUSTOM_BASE_URL")?.value,
-    ).toBe("https://rig.example.com/v1");
+      codexEnv(
+        config({ customKey: "c", customBaseUrl: "https://proxy.example/a" }),
+        "custom/lab-model",
+      ),
+    ).toEqual([]);
+    const entries = byName(
+      codexEnv(
+        config({
+          customKey: "c",
+          customResponsesBaseUrl: "https://proxy.example/v1",
+        }),
+        "custom/lab-model",
+      ),
+    );
+    expect(entries.get("CODEX_CUSTOM_BASE_URL")?.value).toBe(
+      "https://proxy.example/v1",
+    );
   });
 });
 
-describe("resolveRoute and describeRoute", () => {
-  it("keeps the two harnesses independent", () => {
-    const mixed = config({
-      claudeCode: { route: "openrouter" },
-      codex: { route: "default" },
-      openrouterKey: "sk-or-123",
-    });
-    expect(resolveRoute(mixed, "claude-code").status).toBe("ready");
-    expect(resolveRoute(mixed, "codex").status).toBe("default");
-    expect(codexEnv(mixed)).toEqual([]);
-    expect(claudeCodeEnv(mixed).length).toBeGreaterThan(0);
-  });
-
+describe("resolveEndpoint and describeEndpoint", () => {
   it("names the harness in a missing-key message", () => {
-    expect(
-      describeRoute(config({ codex: { route: "deepseek" } }), "codex"),
-    ).toBe("Add the DeepSeek API key before routing Codex.");
-    expect(
-      describeRoute(
-        config({ claudeCode: { route: "deepseek" } }),
-        "claude-code",
-      ),
-    ).toContain("Claude Code");
+    const resolution = resolveEndpoint(config(), "openrouter", "codex");
+    expect(resolution.status).toBe("incomplete");
+    if (resolution.status === "incomplete") {
+      expect(resolution.reason).toContain("Codex");
+    }
   });
 
-  it("summarises a ready route and the default route", () => {
-    expect(describeRoute(config(), "claude-code")).toContain("Default");
+  it("summarises readiness per harness", () => {
+    expect(describeEndpoint(config({ openrouterKey: "k" }), "openrouter")).toBe(
+      "OpenRouter — Claude Code ready; Codex ready",
+    );
     expect(
-      describeRoute(
-        config({
-          claudeCode: { route: "openrouter", model: "x/y" },
-          openrouterKey: "sk-or-123",
-        }),
-        "claude-code",
+      describeEndpoint(
+        config({ customKey: "k", customBaseUrl: "https://p.example/a" }),
+        "custom",
       ),
-    ).toBe("Routed to OpenRouter at https://openrouter.ai/api, using x/y.");
+    ).toContain("Codex: Set a custom Responses base URL");
   });
 });

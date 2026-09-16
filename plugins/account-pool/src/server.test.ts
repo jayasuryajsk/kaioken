@@ -84,7 +84,7 @@ async function resolveToken(
 ): Promise<string> {
   const entries = await host.harness.behavior.resolveProviderEnv(
     "claude-code",
-    { threadId, projectId: "project-one", hostId },
+    { threadId, projectId: "project-one", hostId, model: "claude-sonnet-5" },
   );
   const token = entries.find((entry) => entry.name === "ANTHROPIC_AUTH_TOKEN");
   if (token === undefined || typeof token.value !== "string") {
@@ -101,6 +101,7 @@ async function resolveCodexToken(
     threadId: "thread-codex",
     projectId: "project-one",
     hostId,
+    model: "gpt-5",
   });
   const token = entries.find((entry) => entry.name === "CODEX_POOL_AUTH_TOKEN");
   const baseUrl = entries.find(
@@ -1032,6 +1033,7 @@ describe("Account Pool plugin", () => {
         threadId: "thread-empty",
         projectId: "project-one",
         hostId: "host-one",
+        model: "claude-sonnet-5",
       }),
     ).toEqual([]);
     await expect(
@@ -1205,7 +1207,9 @@ describe("Account Pool plugin", () => {
       response.end();
     });
     cleanups.push(oauth.close);
-    const dataDir = await mkdtemp(path.join(tmpdir(), "kaioken-pool-login-rpc-"));
+    const dataDir = await mkdtemp(
+      path.join(tmpdir(), "kaioken-pool-login-rpc-"),
+    );
     const host = createFakePluginHost({
       pluginId: "account-pool",
       dataDir,
@@ -1367,7 +1371,9 @@ describe("Account Pool plugin", () => {
       response.end("{}");
     });
     cleanups.push(auth.close);
-    const dataDir = await mkdtemp(path.join(tmpdir(), "kaioken-pool-codex-login-"));
+    const dataDir = await mkdtemp(
+      path.join(tmpdir(), "kaioken-pool-codex-login-"),
+    );
     const host = createFakePluginHost({
       pluginId: "account-pool",
       dataDir,
@@ -1492,6 +1498,7 @@ describe("Account Pool plugin", () => {
         threadId: "thread-one",
         projectId: "project-one",
         hostId: "host-one",
+        model: "claude-sonnet-5",
       },
     );
     expect(first).toEqual([
@@ -1540,6 +1547,7 @@ describe("Account Pool plugin", () => {
         threadId: "thread-one",
         projectId: "project-one",
         hostId: "host-one",
+        model: "claude-sonnet-5",
       }),
     ).toEqual([]);
     const off = await fixture.host.harness.behavior.runCli([
@@ -1573,6 +1581,7 @@ describe("Account Pool plugin", () => {
         threadId: "thread-without-secret",
         projectId: "project-one",
         hostId: "host-one",
+        model: "claude-sonnet-5",
       }),
     ).resolves.toEqual([]);
     await expect(
@@ -5268,6 +5277,7 @@ describe("Account Pool plugin", () => {
         threadId: "thread-off",
         projectId: "project-one",
         hostId: "host-one",
+        model: "claude-sonnet-5",
       }),
     ).resolves.toEqual([]);
     await expect(

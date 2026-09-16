@@ -418,6 +418,25 @@ export function resolveAppServerLaunch(env: NodeJS.ProcessEnv = process.env): {
   };
 }
 
+export function resolveRequestedCodexModel(
+  sessionOptions: Pick<CodexSessionOptions, "envVars" | "model">,
+): string | undefined {
+  const envVars = sessionOptions.envVars;
+  const poolRouted =
+    envVars?.[CODEX_POOL_BASE_URL_ENV] !== undefined &&
+    envVars?.[CODEX_POOL_AUTH_TOKEN_ENV] !== undefined;
+  const customRouted =
+    !poolRouted &&
+    envVars?.[CODEX_CUSTOM_BASE_URL_ENV] !== undefined &&
+    envVars?.[CODEX_CUSTOM_AUTH_TOKEN_ENV] !== undefined;
+  const routedModel = customRouted
+    ? envVars?.[CODEX_CUSTOM_MODEL_ENV]?.trim()
+    : undefined;
+  return routedModel !== undefined && routedModel.length > 0
+    ? routedModel
+    : (sessionOptions.model ?? undefined);
+}
+
 function appServerLaunchEnv(
   envVars: Readonly<Record<string, string>> | undefined,
 ): NodeJS.ProcessEnv {
@@ -612,6 +631,13 @@ function constructionSignature(
         : {
             baseUrl: poolBaseUrl,
             tokenHash: createHash("sha256").update(poolToken).digest("hex"),
+          },
+    customRoute:
+      sessionOptions.envVars?.[CODEX_CUSTOM_BASE_URL_ENV] === undefined
+        ? null
+        : {
+            baseUrl: sessionOptions.envVars[CODEX_CUSTOM_BASE_URL_ENV],
+            name: sessionOptions.envVars[CODEX_CUSTOM_NAME_ENV] ?? null,
           },
   });
 }
@@ -1110,7 +1136,7 @@ async function constructThreadSession(
       sandbox: preparedGitRoots.permissionSettings.sandbox,
       cwd: args.cwd,
       ...instructionOverrides,
-      model: decoded.sessionOptions.model ?? undefined,
+      model: resolveRequestedCodexModel(decoded.sessionOptions),
       serviceTier: toCodexServiceTier(decoded.sessionOptions.serviceTier),
       config: preparedGitRoots.config ?? undefined,
       ...(dynamicTools && dynamicTools.length > 0 ? { dynamicTools } : {}),
@@ -1574,7 +1600,7 @@ async function handleTurnStart(
           approvalPolicy: permissionSettings.approvalPolicy,
           approvalsReviewer: permissionSettings.approvalsReviewer,
           sandboxPolicy: permissionSettings.sandboxPolicy,
-          model: decoded.sessionOptions.model ?? undefined,
+          model: resolveRequestedCodexModel(decoded.sessionOptions),
           serviceTier: toCodexServiceTier(decoded.sessionOptions.serviceTier),
         },
         resultSchema: ignoredChildResultSchema,

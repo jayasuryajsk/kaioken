@@ -4,9 +4,9 @@ import { RoutingPanel } from "./components/RoutingPanel";
 export default definePluginApp((app) => {
   app.slots.settingsSection({
     id: "routing",
-    title: "Model catalogue",
+    title: "Models in the picker",
     description:
-      "Load the models your endpoint publishes, choose which harness you are picking for, then pick the model. Keys and endpoints are set in the settings above.",
+      "Choose which endpoint models appear in the composer's model menu. Pick the harness there as usual, then the model; the thread is routed through that endpoint with your key.",
     component: RoutingPanel,
   });
 });

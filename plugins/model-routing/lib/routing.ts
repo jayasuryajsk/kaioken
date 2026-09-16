@@ -1,13 +1,6 @@
-export const ROUTE_IDS = [
-  "default",
-  "openrouter",
-  "deepseek",
-  "custom",
-] as const;
+export const ENDPOINT_IDS = ["openrouter", "deepseek", "custom"] as const;
 
-export type RouteId = (typeof ROUTE_IDS)[number];
-
-export type EndpointId = Exclude<RouteId, "default">;
+export type EndpointId = (typeof ENDPOINT_IDS)[number];
 
 export type AuthStyle = "bearer" | "apiKey";
 
@@ -60,25 +53,15 @@ export const ENDPOINTS: Readonly<Record<EndpointId, EndpointDefinition>> = {
   },
 };
 
-export const ROUTE_OPTION_LABELS: Readonly<Record<RouteId, string>> = {
-  default: "Default — this harness signs in on its own",
-  openrouter: "OpenRouter",
-  deepseek: "DeepSeek",
-  custom: "Custom endpoint",
-};
-
-export function routeIdFromLabel(label: string): RouteId {
-  const match = ROUTE_IDS.find((id) => ROUTE_OPTION_LABELS[id] === label);
-  return match ?? "default";
+export function isEndpointId(value: string | undefined): value is EndpointId {
+  return ENDPOINT_IDS.some((id) => id === value);
 }
 
-export interface HarnessRouting {
-  route: RouteId;
-  model: string;
+export function isHarnessId(value: string | undefined): value is HarnessId {
+  return HARNESS_IDS.some((id) => id === value);
 }
 
 export interface RoutingConfig {
-  harnesses: Readonly<Record<HarnessId, HarnessRouting>>;
   openrouterKey: string;
   deepseekKey: string;
   customLabel: string;
@@ -87,23 +70,49 @@ export interface RoutingConfig {
   customKey: string;
 }
 
-export interface ResolvedRoute {
+export interface RoutedModel {
+  endpoint: EndpointId;
+  model: string;
+}
+
+export function routedModelId(endpoint: EndpointId, model: string): string {
+  return `${endpoint}/${model}`;
+}
+
+export function parseRoutedModelId(id: string): RoutedModel | null {
+  const separator = id.indexOf("/");
+  if (separator <= 0) return null;
+  const endpoint = id.slice(0, separator);
+  const model = id.slice(separator + 1).trim();
+  if (!isEndpointId(endpoint) || model.length === 0) return null;
+  return { endpoint, model };
+}
+
+export interface ResolvedEndpoint {
   endpoint: EndpointDefinition;
   label: string;
   baseUrl: string;
   key: string;
-  model: string;
 }
 
-export type RouteResolution =
-  | { status: "default" }
+export type EndpointResolution =
   | { status: "incomplete"; endpoint: EndpointDefinition; reason: string }
-  | { status: "ready"; route: ResolvedRoute };
+  | { status: "ready"; route: ResolvedEndpoint };
 
-function keyFor(config: RoutingConfig, endpoint: EndpointId): string {
+export function keyFor(config: RoutingConfig, endpoint: EndpointId): string {
   if (endpoint === "openrouter") return config.openrouterKey.trim();
   if (endpoint === "deepseek") return config.deepseekKey.trim();
   return config.customKey.trim();
+}
+
+export function endpointLabel(
+  config: RoutingConfig,
+  endpoint: EndpointId,
+): string {
+  if (endpoint === "custom" && config.customLabel.trim().length > 0) {
+    return config.customLabel.trim();
+  }
+  return ENDPOINTS[endpoint].label;
 }
 
 function normalizeBaseUrl(value: string): string | null {
@@ -137,19 +146,18 @@ function missingBaseUrlReason(harness: HarnessId): string {
     : "Set a custom Responses base URL for Codex, for example https://example.com/v1.";
 }
 
-export function resolveRoute(
+export function resolveEndpoint(
   config: RoutingConfig,
+  endpointId: EndpointId,
   harness: HarnessId,
-): RouteResolution {
-  const selection = config.harnesses[harness];
-  if (selection.route === "default") return { status: "default" };
-  const endpoint = ENDPOINTS[selection.route];
-  const key = keyFor(config, endpoint.id);
+): EndpointResolution {
+  const endpoint = ENDPOINTS[endpointId];
+  const key = keyFor(config, endpointId);
   if (key.length === 0) {
     return {
       status: "incomplete",
       endpoint,
-      reason: `Add the ${endpoint.label} API key before routing ${HARNESS_LABELS[harness]}.`,
+      reason: `Add the ${endpoint.label} API key before using it with ${HARNESS_LABELS[harness]}.`,
     };
   }
   const baseUrl = normalizeBaseUrl(baseUrlFor(config, endpoint, harness));
@@ -160,13 +168,14 @@ export function resolveRoute(
       reason: missingBaseUrlReason(harness),
     };
   }
-  const label =
-    endpoint.id === "custom" && config.customLabel.trim().length > 0
-      ? config.customLabel.trim()
-      : endpoint.label;
   return {
     status: "ready",
-    route: { endpoint, label, baseUrl, key, model: selection.model.trim() },
+    route: {
+      endpoint,
+      label: endpointLabel(config, endpointId),
+      baseUrl,
+      key,
+    },
   };
 }
 
@@ -177,8 +186,22 @@ export interface EnvEntry {
   secret: boolean;
 }
 
-export function claudeCodeEnv(config: RoutingConfig): EnvEntry[] {
-  const resolution = resolveRoute(config, "claude-code");
+const CLAUDE_CODE_MODEL_ALIASES = [
+  "ANTHROPIC_MODEL",
+  "ANTHROPIC_DEFAULT_OPUS_MODEL",
+  "ANTHROPIC_DEFAULT_SONNET_MODEL",
+  "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+  "ANTHROPIC_SMALL_FAST_MODEL",
+  "CLAUDE_CODE_SUBAGENT_MODEL",
+] as const;
+
+export function claudeCodeEnv(
+  config: RoutingConfig,
+  modelId: string,
+): EnvEntry[] {
+  const routed = parseRoutedModelId(modelId);
+  if (routed === null) return [];
+  const resolution = resolveEndpoint(config, routed.endpoint, "claude-code");
   if (resolution.status !== "ready") return [];
   const { route } = resolution;
   const entries: EnvEntry[] = [
@@ -220,22 +243,27 @@ export function claudeCodeEnv(config: RoutingConfig): EnvEntry[] {
       },
     );
   }
-  if (route.model.length > 0) {
+  for (const name of CLAUDE_CODE_MODEL_ALIASES) {
     entries.push({
-      name: "ANTHROPIC_MODEL",
-      value: route.model,
-      reason: `Model chosen for ${route.label}`,
+      name,
+      value: routed.model,
+      reason:
+        name === "ANTHROPIC_MODEL"
+          ? `Model chosen in the picker for ${route.label}`
+          : `Keep every Claude Code request on the ${route.label} model, including background ones`,
       secret: false,
     });
   }
   return entries;
 }
 
-export function codexEnv(config: RoutingConfig): EnvEntry[] {
-  const resolution = resolveRoute(config, "codex");
+export function codexEnv(config: RoutingConfig, modelId: string): EnvEntry[] {
+  const routed = parseRoutedModelId(modelId);
+  if (routed === null) return [];
+  const resolution = resolveEndpoint(config, routed.endpoint, "codex");
   if (resolution.status !== "ready") return [];
   const { route } = resolution;
-  const entries: EnvEntry[] = [
+  return [
     {
       name: "CODEX_CUSTOM_BASE_URL",
       value: route.baseUrl,
@@ -254,35 +282,35 @@ export function codexEnv(config: RoutingConfig): EnvEntry[] {
       reason: `Display name for the ${route.label} model provider`,
       secret: false,
     },
-  ];
-  if (route.model.length > 0) {
-    entries.push({
+    {
       name: "CODEX_CUSTOM_MODEL",
-      value: route.model,
-      reason: `Model chosen for ${route.label}`,
+      value: routed.model,
+      reason: `Model chosen in the picker for ${route.label}`,
       secret: false,
-    });
-  }
-  return entries;
+    },
+  ];
 }
 
 export function harnessEnv(
   config: RoutingConfig,
   harness: HarnessId,
+  modelId: string,
 ): EnvEntry[] {
-  return harness === "claude-code" ? claudeCodeEnv(config) : codexEnv(config);
+  return harness === "claude-code"
+    ? claudeCodeEnv(config, modelId)
+    : codexEnv(config, modelId);
 }
 
-export function describeRoute(
+export function describeEndpoint(
   config: RoutingConfig,
-  harness: HarnessId,
+  endpointId: EndpointId,
 ): string {
-  const resolution = resolveRoute(config, harness);
-  if (resolution.status === "default") {
-    return "Default — this harness signs in on its own.";
-  }
-  if (resolution.status === "incomplete") return resolution.reason;
-  const { route } = resolution;
-  const model = route.model.length > 0 ? route.model : "the endpoint default";
-  return `Routed to ${route.label} at ${route.baseUrl}, using ${model}.`;
+  const label = endpointLabel(config, endpointId);
+  const parts = HARNESS_IDS.map((harness) => {
+    const resolution = resolveEndpoint(config, endpointId, harness);
+    return resolution.status === "ready"
+      ? `${HARNESS_LABELS[harness]} ready`
+      : `${HARNESS_LABELS[harness]}: ${resolution.reason}`;
+  });
+  return `${label} — ${parts.join("; ")}`;
 }

@@ -33,6 +33,8 @@ import {
   resolveBridgeLaunchForProviderId,
 } from "./provider-bridge-launch.js";
 import { mapProviderMaintenanceRequests } from "./provider-maintenance-concurrency.js";
+import { resolvePluginProviderModels } from "../plugins/plugin-agent-contributions.js";
+import type { ExperimentalPluginProviderModel } from "@get-kaioken/plugin-sdk";
 
 type SystemExecutionOptionsRequest = SystemExecutionOptionsQuery;
 
@@ -201,9 +203,7 @@ async function listInstalledPluginProviderInfos(
                 bridgeLaunch,
               },
             });
-            return (
-              result.supported && result.health.status !== "not_installed"
-            );
+            return result.supported && result.health.status !== "not_installed";
           })();
         if (cached === undefined) {
           deps.providerRegistry.rememberInstalled(cacheKey, installed);
@@ -315,7 +315,11 @@ export async function resolveSystemProviderModels(
     },
   );
   return {
-    models,
+    models: await appendPluginModelsForHost(deps, {
+      hostId: args.hostId,
+      models,
+      providerId: provider.id,
+    }),
     selectedOnlyModels,
     modelLoadError: result.modelLoadError,
   };
@@ -345,6 +349,52 @@ function buildCustomModel(
     defaultReasoningEffort: "medium",
     isDefault: false,
   };
+}
+
+export function appendPluginModels(
+  registry: ProviderRegistryService,
+  args: {
+    models: AvailableModel[];
+    pluginModels: readonly ExperimentalPluginProviderModel[];
+    providerId: string;
+  },
+): AvailableModel[] {
+  if (args.pluginModels.length === 0) return args.models;
+  const seen = new Set(args.models.map((model) => model.model));
+  const appended: AvailableModel[] = [];
+  for (const pluginModel of args.pluginModels) {
+    if (seen.has(pluginModel.id)) continue;
+    seen.add(pluginModel.id);
+    appended.push({
+      id: pluginModel.id,
+      model: pluginModel.id,
+      displayName: pluginModel.displayName,
+      ...(pluginModel.qualifier !== undefined
+        ? { routeProviderId: pluginModel.qualifier }
+        : {}),
+      description: pluginModel.description ?? "Added by a plugin",
+      supportedReasoningEfforts: reasoningEffortsForLevels(
+        getSupportedReasoningLevelsForProvider(registry, args.providerId),
+      ),
+      defaultReasoningEffort: "medium",
+      isDefault: false,
+    });
+  }
+  return appended.length === 0 ? args.models : [...args.models, ...appended];
+}
+
+async function appendPluginModelsForHost(
+  deps: LoggedWorkSessionDeps,
+  args: { hostId: string; models: AvailableModel[]; providerId: string },
+): Promise<AvailableModel[]> {
+  return appendPluginModels(deps.providerRegistry, {
+    models: args.models,
+    pluginModels: await resolvePluginProviderModels({
+      providerId: args.providerId,
+      hostId: args.hostId,
+    }),
+    providerId: args.providerId,
+  });
 }
 
 export function appendCustomModels(
@@ -511,7 +561,11 @@ export async function resolveSystemExecutionOptions(
   return {
     providers,
     permissionCeiling,
-    models,
+    models: await appendPluginModelsForHost(deps, {
+      hostId,
+      models,
+      providerId: modelsProvider.id,
+    }),
     selectedOnlyModels,
     modelLoadError: modelResult.modelLoadError,
   };

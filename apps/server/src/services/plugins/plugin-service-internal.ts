@@ -1,3 +1,4 @@
+import type { ExperimentalPluginProviderModel } from "@get-kaioken/plugin-sdk";
 import type { AiServiceRegistry } from "../ai/ai-service-registry.js";
 import type { DbConnection } from "@kaioken/db";
 import type {
@@ -178,6 +179,10 @@ export interface PluginResolvedProviderEnv {
 export interface PluginResolvedProviderEnvHealth {
   label: string;
   statusMessage: string;
+}
+
+export interface PluginResolvedProviderModels {
+  models: ExperimentalPluginProviderModel[];
 }
 
 export interface PluginMentionProviderContribution {

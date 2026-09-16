@@ -49,6 +49,8 @@ import type {
   ExperimentalPluginProviderEnvEntry,
   ExperimentalPluginProviderEnvHealth,
   ExperimentalPluginProviderEnvHealthContext,
+  ExperimentalPluginProviderModel,
+  ExperimentalPluginProviderModelsContext,
   ExperimentalPluginWebSocket,
   ExperimentalPluginWebSocketHandler,
   PluginProviders,
@@ -266,6 +268,7 @@ export interface PluginApiHandle {
     string,
     PluginProviderEnvHealthResolver
   >;
+  providerModelsResolvers: ReadonlyMap<string, PluginProviderModelsResolver>;
   agentConfigurationProvider: PluginAgentConfigurationProvider | null;
   instructionProvider: PluginInstructionProvider | null;
   mentionProviders: PluginMentionProviderRecord[];
@@ -308,6 +311,12 @@ export type PluginProviderEnvHealthResolver = (
   | ExperimentalPluginProviderEnvHealth
   | null
   | Promise<ExperimentalPluginProviderEnvHealth | null>;
+
+export type PluginProviderModelsResolver = (
+  context: ExperimentalPluginProviderModelsContext,
+) =>
+  | readonly ExperimentalPluginProviderModel[]
+  | Promise<readonly ExperimentalPluginProviderModel[]>;
 
 function wrapSdkForPlugin(sdk: KaiokenSdk, pluginId: string): KaiokenSdk {
   return {
@@ -706,9 +715,10 @@ export function createPluginApi(options: {
         );
       }
       const rows = database
-        .prepare<[], { id: number; statement_hash: string | null }>(
-          "SELECT id, statement_hash FROM _bb_migrations ORDER BY id",
-        )
+        .prepare<
+          [],
+          { id: number; statement_hash: string | null }
+        >("SELECT id, statement_hash FROM _bb_migrations ORDER BY id")
         .all();
       const applied = new Map<number, string | null>();
       for (const row of rows) applied.set(row.id, row.statement_hash);
@@ -1033,6 +1043,10 @@ export function createPluginApi(options: {
   const providerEnvHealthResolvers = new Map<
     string,
     PluginProviderEnvHealthResolver
+  >();
+  const providerModelsResolvers = new Map<
+    string,
+    PluginProviderModelsResolver
   >();
   let agentConfigurationProvider: PluginAgentConfigurationProvider | null =
     null;
@@ -1512,6 +1526,23 @@ export function createPluginApi(options: {
       }
       providerEnvHealthResolvers.set(providerId, resolve);
     },
+    experimental_contributeModels(providerId, resolve) {
+      assertLive();
+      if (typeof providerId !== "string" || providerId.trim().length === 0) {
+        throw new Error("provider model contribution requires a provider id");
+      }
+      if (providerModelsResolvers.has(providerId)) {
+        throw new Error(
+          `provider model contribution for "${providerId}" is already registered`,
+        );
+      }
+      if (typeof resolve !== "function") {
+        throw new Error(
+          "provider model contribution requires a resolver function",
+        );
+      }
+      providerModelsResolvers.set(providerId, resolve);
+    },
   };
 
   const experimental_environments: PluginEnvironments = {
@@ -1611,6 +1642,7 @@ export function createPluginApi(options: {
     listProviderDeclarations: providerRegistrations.values,
     providerEnvResolvers,
     providerEnvHealthResolvers,
+    providerModelsResolvers,
     get agentConfigurationProvider() {
       return agentConfigurationProvider;
     },

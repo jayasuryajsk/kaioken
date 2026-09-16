@@ -1512,12 +1512,43 @@ export interface PluginProviders {
       | null
       | Promise<ExperimentalPluginProviderEnvHealth | null>,
   ): void;
+  /**
+   * Add models to another provider's picker (see docs/api_to_audit.md before
+   * relying on it). The resolver runs whenever the server lists that
+   * provider's models for a host and its entries are appended after the
+   * provider's own catalog. Each `id` is the wire model id the thread stores
+   * and the bridge receives; pair this with `experimental_contributeEnv`,
+   * whose context carries the thread's model, to route such ids.
+   */
+  experimental_contributeModels(
+    providerId: string,
+    resolve: (
+      context: ExperimentalPluginProviderModelsContext,
+    ) =>
+      | readonly ExperimentalPluginProviderModel[]
+      | Promise<readonly ExperimentalPluginProviderModel[]>,
+  ): void;
 }
 
 export interface ExperimentalPluginProviderEnvContext {
   threadId: string;
   projectId: string;
   hostId: string;
+  /** The model id the command runs with, as stored on the thread. */
+  model: string;
+}
+
+export interface ExperimentalPluginProviderModelsContext {
+  hostId: string;
+}
+
+export interface ExperimentalPluginProviderModel {
+  /** Wire model id; must not collide with the provider's own ids. */
+  id: string;
+  displayName: string;
+  description?: string;
+  /** Short tag shown beside the name in the picker, such as "OpenRouter". */
+  qualifier?: string;
 }
 
 export interface ExperimentalPluginProviderEnvEntry {

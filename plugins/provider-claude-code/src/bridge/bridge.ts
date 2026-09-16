@@ -84,6 +84,8 @@ import {
   toSdkEffort,
   type BuildSessionOptionsArgs,
   type PermissionEscalationWorkContext,
+  resolveSessionModel,
+  routedSessionModel,
 } from "./session-options.js";
 import {
   createClaudeSkillPluginsRoot,
@@ -622,7 +624,11 @@ async function applyLiveSessionSettings(
   next: ClaudeLiveSessionSettings,
 ): Promise<void> {
   const current = threadSession.attachment.liveSettings;
-  if (current.model !== next.model) {
+  if (
+    current.model !== next.model &&
+    routedSessionModel(threadSession.attachment.sessionOptions.env) ===
+      undefined
+  ) {
     await threadSession.session.setModel(next.model);
     seedModelContextWindowHint(threadSession, threadId, next.model);
   }
@@ -1351,13 +1357,13 @@ async function getWritableThreadSession(
     return undefined;
   }
   const replacement: ClaudeSessionRestart | null = threadSession.streamEnded
-      ? {
-          reason: "Thread session replaced after Claude SDK stream ended",
-          showRuntimeNote: false,
-        }
-      : intent === "new-turn"
-        ? threadSession.restartBeforeNextTurn
-        : null;
+    ? {
+        reason: "Thread session replaced after Claude SDK stream ended",
+        showRuntimeNote: false,
+      }
+    : intent === "new-turn"
+      ? threadSession.restartBeforeNextTurn
+      : null;
   if (replacement === null) {
     return threadSession;
   }
@@ -1555,6 +1561,10 @@ function applyTurnEnvironment(
     config,
   };
   attachment.sessionOptions.env = buildSessionEnv(envOverrides);
+  attachment.sessionOptions.model = resolveSessionModel(
+    attachment.sessionOptions.env,
+    attachment.liveSettings.model,
+  );
   if (attachment.residentSession) {
     attachment.residentSession.restartBeforeNextTurn = {
       reason:

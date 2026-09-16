@@ -28,6 +28,7 @@ import type {
   PluginProviderComposerAction,
   PluginProviderDeclaration,
   ExperimentalPluginProviderEnvEntry,
+  ExperimentalPluginProviderModel,
   PluginProviderExtensionKindDeclaration,
   PluginProviderFallbackModel,
   PluginProviderModelCatalogScope,
@@ -139,6 +140,49 @@ export function validatePluginProviderEnvEntries(
     const path = issue?.path.length ? `[${issue.path.join(".")}] ` : "";
     throw new Error(
       `provider environment contribution ${path}${issue?.message ?? "is invalid"}`,
+    );
+  }
+  return parsed.data;
+}
+
+export const PLUGIN_PROVIDER_MODELS_MAX_ENTRIES = 256;
+
+const pluginProviderModelSchema = z
+  .object({
+    id: z.string().min(1).max(200),
+    displayName: z.string().min(1).max(200),
+    description: z.string().max(500).optional(),
+    qualifier: z.string().min(1).max(40).optional(),
+  })
+  .strict();
+
+const pluginProviderModelsSchema = z
+  .array(pluginProviderModelSchema)
+  .max(PLUGIN_PROVIDER_MODELS_MAX_ENTRIES)
+  .superRefine((models, context) => {
+    const ids = new Set<string>();
+    for (let index = 0; index < models.length; index += 1) {
+      const id = models[index]?.id;
+      if (id !== undefined && ids.has(id)) {
+        context.addIssue({
+          code: "custom",
+          path: [index, "id"],
+          message: "must be unique within one resolver",
+        });
+      }
+      if (id !== undefined) ids.add(id);
+    }
+  });
+
+export function validatePluginProviderModels(
+  value: unknown,
+): ExperimentalPluginProviderModel[] {
+  const parsed = pluginProviderModelsSchema.safeParse(value);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    const path = issue?.path.length ? `[${issue.path.join(".")}] ` : "";
+    throw new Error(
+      `provider model contribution ${path}${issue?.message ?? "is invalid"}`,
     );
   }
   return parsed.data;

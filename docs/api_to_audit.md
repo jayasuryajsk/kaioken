@@ -47,11 +47,36 @@ environment variables to that provider. The resolver receives an
 4. Confirm a five-second timeout is appropriate for host-scoped credential
    availability checks.
 
+## `bb.providers.experimental_contributeModels`
+
+**What it does.** Registers one resolver per provider per plugin that adds
+models to that provider's picker. The server calls it whenever it lists the
+provider's models for a host, validates at most 256 entries (`id`,
+`displayName`, optional `description` and `qualifier`), keeps the first plugin
+in load order when two contribute the same id, and appends the entries after
+the provider's own catalog and `config.json` custom models. The wire id is
+stored on the thread and reaches the bridge unchanged; the picker shows
+`qualifier` beside the name. `ExperimentalPluginProviderEnvContext` carries the
+thread's `model` so a plugin can route the ids it contributed. The resolver
+receives `ExperimentalPluginProviderModelsContext` and returns
+`ExperimentalPluginProviderModel` values.
+
+**Audit before stabilizing.**
+
+1. Confirm plugins should not be able to mark a contributed model as the
+   provider default or attach reasoning ladders.
+2. Decide whether contributed ids need a namespace the host enforces instead
+   of a documented convention.
+3. Confirm the five-second timeout and 256-entry cap fit catalog-backed
+   plugins.
+4. Decide whether the picker should group contributed models under their
+   qualifier instead of tagging each row.
+
 ## `bb.providers.experimental_contributeEnv`
 
 **What it does.** Registers one resolver per provider per plugin. The server
 calls it for each matching session and turn with the thread, project, and host
-ids, validates at most 32 environment entries, resolves registration conflicts
+ids plus the thread's model, validates at most 32 environment entries, resolves registration conflicts
 in plugin load order, and sends the winning values to the host. A value may be
 a literal string or a server-relative path that the host expands against its
 authenticated `KAIOKEN_SERVER_URL`. Contributions override the shell environment;

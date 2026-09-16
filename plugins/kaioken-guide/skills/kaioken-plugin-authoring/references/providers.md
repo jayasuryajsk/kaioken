@@ -162,7 +162,8 @@ bb.providers.experimental_contributeEnv("claude-code", async (context) => [
 
 The server calls the resolver for every matching start, resume, fork, and turn
 command. Its `ExperimentalPluginProviderEnvContext` has `threadId`, `projectId`,
-and `hostId`; return at most 32 `ExperimentalPluginProviderEnvEntry` values.
+`hostId`, and `model` (the id stored on the thread); return at most 32
+`ExperimentalPluginProviderEnvEntry` values.
 Names must match `[A-Z_][A-Z0-9_]*`; `reason` and `secret` are required. A
 literal `value` is forwarded as-is. `{ serverPath: "/..." }` is expanded by
 the selected host against its authenticated `KAIOKEN_SERVER_URL`, which is the
@@ -184,6 +185,34 @@ while the proxy is usable, or `null` otherwise. Kaioken uses it only when the
 provider bridge reports `unauthenticated` or `expired`, and only when the same
 plugin registered an env resolver for that provider. Installation and unknown
 failures are preserved.
+
+### `bb.providers.experimental_contributeModels` — extra picker models
+
+A plugin can add models to another provider's picker, for example models an
+external endpoint serves through that provider's harness:
+
+```ts
+bb.providers.experimental_contributeModels("claude-code", async () => [
+  {
+    id: "openrouter/meta/muse-spark-1.3-contributor",
+    displayName: "Muse Spark 1.3",
+    description: "meta/muse-spark-1.3-contributor via OpenRouter",
+    qualifier: "OpenRouter",
+  },
+]);
+```
+
+The server calls the resolver whenever it lists that provider's models for a
+host; its `ExperimentalPluginProviderModelsContext` has `hostId`. Return at
+most 256 `ExperimentalPluginProviderModel` values with unique ids. Entries are
+appended after the provider's own catalog; an id the catalog or an earlier
+plugin already lists is dropped. `id` is the wire model id the thread stores
+and the bridge receives, so give it a prefix the harness cannot mistake for a
+native model and pair the resolver with `experimental_contributeEnv`, whose
+context carries the thread's `model`, to turn that id into the endpoint and
+model the harness should use. `qualifier` is shown beside the name in the
+picker. A resolver that throws, times out after five seconds, or returns
+invalid entries contributes nothing.
 
 Use `extensionKinds` to declare provider-specific item or state payloads. Each
 kind needs an item schema, a state schema, or both. The server validates each

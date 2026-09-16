@@ -4,6 +4,8 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createConnection, migrate, type DbConnection } from "@kaioken/db";
 import { encodeClientTurnRequestIdNumber } from "@kaioken/domain";
+import { appendPluginModels } from "../../../src/services/system/execution-options.js";
+import { availableModelFixture } from "../../helpers/available-models.js";
 import type { Logger } from "@kaioken/logger";
 import { createAiServiceRegistry } from "../../../src/services/ai/ai-service-registry.js";
 import {
@@ -261,6 +263,7 @@ describe("plugin agent contributions reach thread runtime config", () => {
         threadId: "thread-timeout",
         projectId: "project-timeout",
         hostId: "host-timeout",
+        model: "gpt-5",
       };
 
       await expect(
@@ -349,7 +352,7 @@ describe("plugin agent contributions reach thread runtime config", () => {
           bb.providers.experimental_contributeEnv("codex", (context) => [
             {
               name: "PLUGIN_CONTEXT",
-              value: context.threadId + ":" + context.projectId + ":" + context.hostId,
+              value: context.threadId + ":" + context.projectId + ":" + context.hostId + ":" + context.model,
               reason: "Expose resolution context",
               secret: false,
             },
@@ -423,7 +426,7 @@ describe("plugin agent contributions reach thread runtime config", () => {
     expect(command.contributedEnv).toEqual([
       {
         name: "PLUGIN_CONTEXT",
-        value: `${thread.id}:${project.id}:${host.id}`,
+        value: `${thread.id}:${project.id}:${host.id}:gpt-5`,
         reason: "Expose resolution context",
         secret: false,
         source: { plugin: "env-first" },
@@ -443,5 +446,94 @@ describe("plugin agent contributions reach thread runtime config", () => {
         source: { plugin: "env-second" },
       },
     ]);
+  });
+
+  it("appends plugin-contributed models after the provider catalog and keeps the first plugin on id conflicts", async () => {
+    const firstRoot = await writePlugin(pluginsDir, {
+      name: "kaioken-plugin-models-first",
+      serverSource: `
+        export default function plugin(bb) {
+          bb.providers.experimental_contributeModels("codex", (context) => [
+            {
+              id: "openrouter/meta/muse-spark-1.3-contributor",
+              displayName: "Muse Spark 1.3 (" + context.hostId + ")",
+              description: "meta/muse-spark-1.3-contributor via OpenRouter",
+              qualifier: "OpenRouter",
+            },
+            { id: "gpt-5", displayName: "Duplicate of the catalog" },
+          ]);
+        }
+      `,
+    });
+    const secondRoot = await writePlugin(pluginsDir, {
+      name: "kaioken-plugin-models-second",
+      serverSource: `
+        export default function plugin(bb) {
+          bb.providers.experimental_contributeModels("codex", () => [
+            {
+              id: "openrouter/meta/muse-spark-1.3-contributor",
+              displayName: "Conflicting registration",
+            },
+            { id: "deepseek/deepseek-chat", displayName: "DeepSeek Chat" },
+          ]);
+          bb.providers.experimental_contributeModels("claude-code", () => [
+            { id: "", displayName: "invalid" },
+          ]);
+        }
+      `,
+    });
+    await harness.pluginService.installPath(firstRoot);
+    await harness.pluginService.installPath(secondRoot);
+
+    await expect(
+      harness.pluginService.resolveProviderModels({
+        providerId: "codex",
+        context: { hostId: "host-models" },
+      }),
+    ).resolves.toEqual({
+      models: [
+        {
+          id: "openrouter/meta/muse-spark-1.3-contributor",
+          displayName: "Muse Spark 1.3 (host-models)",
+          description: "meta/muse-spark-1.3-contributor via OpenRouter",
+          qualifier: "OpenRouter",
+        },
+        { id: "gpt-5", displayName: "Duplicate of the catalog" },
+        { id: "deepseek/deepseek-chat", displayName: "DeepSeek Chat" },
+      ],
+    });
+    await expect(
+      harness.pluginService.resolveProviderModels({
+        providerId: "claude-code",
+        context: { hostId: "host-models" },
+      }),
+    ).resolves.toEqual({ models: [] });
+
+    const models = appendPluginModels(harness.deps.providerRegistry, {
+      models: [availableModelFixture({ model: "gpt-5", isDefault: true })],
+      pluginModels: (
+        await harness.pluginService.resolveProviderModels({
+          providerId: "codex",
+          context: { hostId: "host-models" },
+        })
+      ).models,
+      providerId: "codex",
+    });
+    expect(models.map((model) => model.model)).toEqual([
+      "gpt-5",
+      "openrouter/meta/muse-spark-1.3-contributor",
+      "deepseek/deepseek-chat",
+    ]);
+    expect(models[1]).toMatchObject({
+      id: "openrouter/meta/muse-spark-1.3-contributor",
+      displayName: "Muse Spark 1.3 (host-models)",
+      routeProviderId: "OpenRouter",
+      description: "meta/muse-spark-1.3-contributor via OpenRouter",
+      isDefault: false,
+    });
+    expect(models[2]).toMatchObject({
+      description: "Added by a plugin",
+    });
+    expect(models[2]).not.toHaveProperty("routeProviderId");
   });
 });

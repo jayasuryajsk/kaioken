@@ -24,6 +24,7 @@ import {
   type PluginCliExecutionResult,
   type ExperimentalPluginProviderEnvContext,
   type ExperimentalPluginProviderEnvHealthContext,
+  type ExperimentalPluginProviderModelsContext,
   type PluginRpcError,
   type PluginRpcErrorCode,
   type PluginRpcValidationIssue,
@@ -40,6 +41,7 @@ import {
   RESERVED_AGENT_TOOL_NAMES,
   adoptHttpRouteResponse,
   validatePluginProviderEnvEntries,
+  validatePluginProviderModels,
 } from "@get-kaioken/plugin-sdk/internal/host-policy";
 import {
   buildPluginApp,
@@ -52,7 +54,10 @@ import {
   pluginPublisherLabel,
 } from "../plugin-catalog/marketplace-publishers.js";
 import { legacyMarketplaceCategory } from "../plugin-catalog/legacy-marketplace-category.js";
-import { deleteSecretFile, readOrCreateSecretFile } from "@kaioken/secret-storage";
+import {
+  deleteSecretFile,
+  readOrCreateSecretFile,
+} from "@kaioken/secret-storage";
 import {
   ROOT_PLUGIN_SOURCE_SELECTION,
   type PluginCapabilitySummary,
@@ -154,6 +159,7 @@ import type {
   PluginWireLookup,
   PluginResolvedAgentConfiguration,
   PluginResolvedProviderEnv,
+  PluginResolvedProviderModels,
   PluginResolvedProviderEnvHealth,
 } from "./plugin-service-internal.js";
 export type {
@@ -343,6 +349,10 @@ export interface PluginService {
     providerId: string;
     context: ExperimentalPluginProviderEnvHealthContext;
   }): Promise<PluginResolvedProviderEnvHealth | null>;
+  resolveProviderModels(args: {
+    providerId: string;
+    context: ExperimentalPluginProviderModelsContext;
+  }): Promise<PluginResolvedProviderModels>;
   listInstructionContributions(): PluginInstructionContribution[];
   findAgentTool(
     name: string,
@@ -2378,6 +2388,62 @@ export function createPluginService(deps: PluginServiceDeps): PluginService {
         }
       }
       return { entries };
+    },
+
+    async resolveProviderModels({ providerId, context }) {
+      const models: PluginResolvedProviderModels["models"] = [];
+      const ownerById = new Map<string, string>();
+      for (const [pluginId, plugin] of loaded) {
+        const resolve = plugin.handle.providerModelsResolvers.get(providerId);
+        if (resolve === undefined) continue;
+        const outcome = await invokeWrapped(
+          pluginId,
+          `provider models for ${providerId}`,
+          async () => {
+            let timer: NodeJS.Timeout | undefined;
+            try {
+              return await Promise.race([
+                Promise.resolve(resolve(context)).then((value) =>
+                  validatePluginProviderModels(value),
+                ),
+                new Promise<never>((_resolve, reject) => {
+                  timer = setTimeout(
+                    () =>
+                      reject(
+                        new Error(
+                          `timed out after ${providerEnvResolveTimeoutMs}ms`,
+                        ),
+                      ),
+                    providerEnvResolveTimeoutMs,
+                  );
+                  timer.unref?.();
+                }),
+              ]);
+            } finally {
+              if (timer !== undefined) clearTimeout(timer);
+            }
+          },
+        );
+        if (!outcome.ok) continue;
+        for (const model of outcome.value) {
+          const earlierPluginId = ownerById.get(model.id);
+          if (earlierPluginId !== undefined) {
+            logger.error(
+              {
+                providerId,
+                modelId: model.id,
+                winnerPluginId: earlierPluginId,
+                loserPluginId: pluginId,
+              },
+              "Plugin provider model conflict; later contribution dropped",
+            );
+            continue;
+          }
+          ownerById.set(model.id, pluginId);
+          models.push(model);
+        }
+      }
+      return { models };
     },
 
     async resolveProviderEnvHealth({ providerId, context }) {

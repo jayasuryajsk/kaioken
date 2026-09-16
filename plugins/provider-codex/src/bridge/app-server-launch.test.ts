@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { resolveAppServerLaunch } from "./bridge.js";
+import {
+  resolveAppServerLaunch,
+  resolveRequestedCodexModel,
+} from "./bridge.js";
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -88,5 +91,47 @@ describe("Codex custom endpoint launch", () => {
     const launch = resolveAppServerLaunch();
     expect(launch.args).toContain('model_provider="kaioken-account-pool"');
     expect(JSON.stringify(launch.args)).not.toContain("kaioken-custom");
+  });
+});
+
+describe("resolveRequestedCodexModel", () => {
+  it("sends the custom endpoint's model instead of the thread's picker id", () => {
+    expect(
+      resolveRequestedCodexModel({
+        model: "openrouter/meta/muse-spark-1.3-contributor",
+        envVars: {
+          CODEX_CUSTOM_BASE_URL: "https://openrouter.ai/api/v1",
+          CODEX_CUSTOM_AUTH_TOKEN: "key",
+          CODEX_CUSTOM_MODEL: "meta/muse-spark-1.3-contributor",
+        },
+      }),
+    ).toBe("meta/muse-spark-1.3-contributor");
+  });
+
+  it("keeps the thread model without a custom route or when the pool wins", () => {
+    expect(
+      resolveRequestedCodexModel({ model: "gpt-5-codex", envVars: {} }),
+    ).toBe("gpt-5-codex");
+    expect(
+      resolveRequestedCodexModel({
+        model: "gpt-5-codex",
+        envVars: {
+          CODEX_CUSTOM_BASE_URL: "https://openrouter.ai/api/v1",
+          CODEX_CUSTOM_AUTH_TOKEN: "key",
+          CODEX_CUSTOM_MODEL: "meta/muse-spark-1.3-contributor",
+          CODEX_OPENAI_BASE_URL: "https://kaioken.example/pool/v1",
+          CODEX_POOL_AUTH_TOKEN: "pool",
+        },
+      }),
+    ).toBe("gpt-5-codex");
+    expect(
+      resolveRequestedCodexModel({
+        model: undefined,
+        envVars: {
+          CODEX_CUSTOM_BASE_URL: "https://openrouter.ai/api/v1",
+          CODEX_CUSTOM_AUTH_TOKEN: "key",
+        },
+      }),
+    ).toBeUndefined();
   });
 });

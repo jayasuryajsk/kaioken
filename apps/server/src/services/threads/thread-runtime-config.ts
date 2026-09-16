@@ -229,6 +229,7 @@ export async function resolveThreadRuntimeCommandConfig(
       threadId: args.thread.id,
       projectId: project.id,
       hostId: host.id,
+      model: args.model,
     },
   });
   const injectedSkillSources = resolveSkillCatalog(deps, {

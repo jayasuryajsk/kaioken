@@ -635,8 +635,7 @@ async function startBridgeThread(args: StartBridgeThreadArgs): Promise<void> {
   args.bridge.sendRequest(1, "thread/start", {
     cwd: "/tmp/worktree",
     instructionMode: "append",
-    options: canonicalOptions({
-    }),
+    options: canonicalOptions({}),
     threadId: args.threadId,
   });
   await args.bridge.waitForResponse(1);
@@ -814,6 +813,32 @@ describe("bridge", () => {
       });
       bridge.restore();
     }
+  });
+
+  it("lets a routed ANTHROPIC_MODEL in the session env replace the picker model", () => {
+    const base = {
+      chromeEnabled: false,
+      workflowsEnabled: false,
+      baseInstructions: "You are a coder.",
+      cwd: "/tmp/worktree",
+      instructionMode: "append" as const,
+      getPermissionEscalation: () => "ask" as const,
+      permissionMode: "default" as const,
+      permissionScope: "workspace" as const,
+      model: "openrouter/meta/muse-spark-1.3-contributor",
+    };
+    expect(
+      buildSessionOptions(base, {
+        ANTHROPIC_BASE_URL: "https://openrouter.ai/api",
+        ANTHROPIC_MODEL: "meta/muse-spark-1.3-contributor",
+      }).model,
+    ).toBe("meta/muse-spark-1.3-contributor");
+    expect(buildSessionOptions(base, { ANTHROPIC_MODEL: "  " }).model).toBe(
+      "openrouter/meta/muse-spark-1.3-contributor",
+    );
+    expect(buildSessionOptions(base, {}).model).toBe(
+      "openrouter/meta/muse-spark-1.3-contributor",
+    );
   });
 
   it("keeps manager sessions on a plain string system prompt", () => {
@@ -4631,7 +4656,9 @@ describe("canonical skills/configure", () => {
       queries.push(query);
       return query;
     });
-    const stagedRoot = mkdtempSync(join(tmpdir(), "kaioken-claude-skill-roots-"));
+    const stagedRoot = mkdtempSync(
+      join(tmpdir(), "kaioken-claude-skill-roots-"),
+    );
     const rootA = join(stagedRoot, "a", "skills");
     const rootB = join(stagedRoot, "b", "skills");
     for (const root of [rootA, rootB]) {
