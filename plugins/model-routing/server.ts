@@ -136,6 +136,13 @@ export default function plugin(bb: KaiokenPluginApi) {
         "Model ids the custom endpoint serves, comma separated. Each one appears in the picker.",
       default: "",
     },
+    keepCodexMcpServers: {
+      type: "boolean",
+      label: "Keep Codex MCP servers on routed threads",
+      description:
+        "Off by default: MCP servers from ~/.codex/config.toml are disabled for Codex threads on an endpoint model, because many endpoints reject tool names longer than 64 characters. Turn on if your endpoint accepts them.",
+      default: false,
+    },
   });
 
   async function config(): Promise<RoutingConfig> {
@@ -147,6 +154,7 @@ export default function plugin(bb: KaiokenPluginApi) {
       customBaseUrl: values.customBaseUrl ?? "",
       customResponsesBaseUrl: values.customResponsesBaseUrl ?? "",
       customKey: values.customKey ?? "",
+      keepCodexMcpServers: values.keepCodexMcpServers === true,
     };
   }
 

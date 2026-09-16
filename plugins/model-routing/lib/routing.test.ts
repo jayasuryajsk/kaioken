@@ -18,6 +18,7 @@ function config(overrides: Partial<RoutingConfig> = {}): RoutingConfig {
     customBaseUrl: "",
     customResponsesBaseUrl: "",
     customKey: "",
+    keepCodexMcpServers: false,
     ...overrides,
   };
 }
@@ -145,6 +146,15 @@ describe("codexEnv", () => {
     expect(entries.get("CODEX_CUSTOM_MODEL")?.value).toBe(
       "meta/muse-spark-1.3-contributor",
     );
+    expect(entries.get("CODEX_CUSTOM_MCP_SERVERS")?.value).toBe("off");
+    expect(
+      byName(
+        codexEnv(
+          config({ openrouterKey: "or-key", keepCodexMcpServers: true }),
+          MUSE,
+        ),
+      ).get("CODEX_CUSTOM_MCP_SERVERS")?.value,
+    ).toBe("keep");
   });
 
   it("needs its own custom base url, separate from the Claude Code one", () => {

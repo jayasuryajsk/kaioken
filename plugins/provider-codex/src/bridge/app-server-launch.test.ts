@@ -83,6 +83,33 @@ describe("Codex custom endpoint launch", () => {
     });
   });
 
+  it("disables every configured MCP server when the route asks for it", () => {
+    vi.stubEnv("CODEX_CUSTOM_BASE_URL", "https://openrouter.ai/api/v1");
+    vi.stubEnv("CODEX_CUSTOM_AUTH_TOKEN", "sk-or-secret");
+    vi.stubEnv("CODEX_CUSTOM_MCP_SERVERS", "off");
+    const launch = resolveAppServerLaunch(process.env, () => [
+      "playwright",
+      "computer-use",
+    ]);
+    expect(launch.args).toContain('mcp_servers."playwright".enabled=false');
+    expect(launch.args).toContain('mcp_servers."computer-use".enabled=false');
+    expect(launch.args).toContain('model_provider="kaioken-custom"');
+  });
+
+  it("keeps MCP servers unless the route turns them off", () => {
+    vi.stubEnv("CODEX_CUSTOM_BASE_URL", "https://openrouter.ai/api/v1");
+    vi.stubEnv("CODEX_CUSTOM_AUTH_TOKEN", "sk-or-secret");
+    vi.stubEnv("CODEX_CUSTOM_MCP_SERVERS", "keep");
+    const launch = resolveAppServerLaunch(process.env, () => ["playwright"]);
+    expect(JSON.stringify(launch.args)).not.toContain("enabled=false");
+    expect(
+      JSON.stringify(
+        resolveAppServerLaunch({ CODEX_OPENAI_BASE_URL: "x" }, () => ["p"])
+          .args,
+      ),
+    ).not.toContain("enabled=false");
+  });
+
   it("leaves the account pool in charge when both are configured", () => {
     vi.stubEnv("CODEX_OPENAI_BASE_URL", "https://kaioken.example/pool/v1");
     vi.stubEnv("CODEX_POOL_AUTH_TOKEN", "secret-machine-token");

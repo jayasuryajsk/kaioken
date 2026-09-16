@@ -68,6 +68,7 @@ export interface RoutingConfig {
   customBaseUrl: string;
   customResponsesBaseUrl: string;
   customKey: string;
+  keepCodexMcpServers: boolean;
 }
 
 export interface RoutedModel {
@@ -286,6 +287,14 @@ export function codexEnv(config: RoutingConfig, modelId: string): EnvEntry[] {
       name: "CODEX_CUSTOM_MODEL",
       value: routed.model,
       reason: `Model chosen in the picker for ${route.label}`,
+      secret: false,
+    },
+    {
+      name: "CODEX_CUSTOM_MCP_SERVERS",
+      value: config.keepCodexMcpServers ? "keep" : "off",
+      reason: config.keepCodexMcpServers
+        ? "MCP servers from the Codex config stay on for routed threads"
+        : "MCP servers from the Codex config are turned off for routed threads because many endpoints reject tool names longer than 64 characters",
       secret: false,
     },
   ];

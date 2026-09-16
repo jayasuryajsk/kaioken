@@ -12,7 +12,7 @@ Put models from your own endpoints into the composer's model picker. Store an Op
 
 **Claude Code** goes through the endpoint's Anthropic Messages API. The plugin sets `ANTHROPIC_BASE_URL`, sends your key the way that endpoint expects, and pins every Claude Code model variable to the model you picked.
 
-**Codex** goes through the endpoint's OpenAI Responses API, the only wire format the Codex CLI speaks. The plugin declares a `kaioken-custom` model provider and lets the CLI read the key itself, so the key never appears in a command line.
+**Codex** goes through the endpoint's OpenAI Responses API, the only wire format the Codex CLI speaks. The plugin declares a `kaioken-custom` model provider and lets the CLI read the key itself, so the key never appears in a command line. MCP servers from your Codex config are switched off for routed threads unless you opt in, because their long tool names are rejected by many endpoints.
 
 ## Requirements
 

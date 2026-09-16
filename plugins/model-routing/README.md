@@ -15,6 +15,7 @@ one is routed to that endpoint with your key.
 | Custom base URL (Codex)       | Must speak the OpenAI Responses API                                        |
 | Custom API key                | Secret                                                                     |
 | Custom endpoint models        | Comma-separated model ids the custom endpoint serves; all go in the picker |
+| Keep Codex MCP servers        | Off by default; see Codex below                                            |
 
 Keys are stored by the host as plugin secrets, outside the database and outside
 anything the frontend can read. Which OpenRouter and DeepSeek models are in the
@@ -62,7 +63,12 @@ speak the OpenAI Responses API. Both OpenRouter and DeepSeek do.
 | Custom     | your Responses base URL        |
 
 The plugin contributes `CODEX_CUSTOM_BASE_URL`, `CODEX_CUSTOM_AUTH_TOKEN`
-(secret), `CODEX_CUSTOM_NAME`, and `CODEX_CUSTOM_MODEL`. The Codex provider's
+(secret), `CODEX_CUSTOM_NAME`, `CODEX_CUSTOM_MODEL`, and
+`CODEX_CUSTOM_MCP_SERVERS` (`off` unless "Keep Codex MCP servers" is on).
+With `off`, the Codex bridge reads the server names from the Codex
+`config.toml` and passes `-c mcp_servers.<name>.enabled=false` for each,
+because Codex names MCP tools `mcp__<server>__<tool>` and endpoints such as
+Meta via OpenRouter reject tool names longer than 64 characters. The Codex provider's
 bridge turns those into config overrides and sends `CODEX_CUSTOM_MODEL` as the
 turn model instead of the picker id:
 

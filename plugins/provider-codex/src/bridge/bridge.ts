@@ -61,6 +61,10 @@ import {
 } from "../interactive-requests.js";
 import { resolveCodexHome } from "../codex-home.js";
 import {
+  mcpServerDisableOverrides,
+  readConfiguredMcpServerNames,
+} from "../mcp-servers.js";
+import {
   preparePrivateCodexHome,
   resolvePrivateCodexHome,
 } from "../private-codex-home.js";
@@ -281,12 +285,14 @@ const CODEX_CUSTOM_BASE_URL_ENV = "CODEX_CUSTOM_BASE_URL";
 const CODEX_CUSTOM_AUTH_TOKEN_ENV = "CODEX_CUSTOM_AUTH_TOKEN";
 const CODEX_CUSTOM_MODEL_ENV = "CODEX_CUSTOM_MODEL";
 const CODEX_CUSTOM_NAME_ENV = "CODEX_CUSTOM_NAME";
+const CODEX_CUSTOM_MCP_SERVERS_ENV = "CODEX_CUSTOM_MCP_SERVERS";
 const CODEX_CUSTOM_PROVIDER_ID = "kaioken-custom";
 const CODEX_CUSTOM_FORWARDED_ENV = [
   CODEX_CUSTOM_BASE_URL_ENV,
   CODEX_CUSTOM_AUTH_TOKEN_ENV,
   CODEX_CUSTOM_MODEL_ENV,
   CODEX_CUSTOM_NAME_ENV,
+  CODEX_CUSTOM_MCP_SERVERS_ENV,
 ] as const;
 
 const CODEX_INITIALIZE_PARAMS = {
@@ -352,6 +358,7 @@ function resolveCustomAppServerLaunch(
   env: NodeJS.ProcessEnv,
   command: string,
   args: string[],
+  readMcpServerNames: () => readonly string[],
 ): { command: string; args: string[] } {
   const baseUrl = env[CODEX_CUSTOM_BASE_URL_ENV];
   const authToken = env[CODEX_CUSTOM_AUTH_TOKEN_ENV];
@@ -359,10 +366,15 @@ function resolveCustomAppServerLaunch(
   const name = env[CODEX_CUSTOM_NAME_ENV] || "Custom";
   const model = env[CODEX_CUSTOM_MODEL_ENV];
   const provider = `model_providers.${CODEX_CUSTOM_PROVIDER_ID}`;
+  const mcpOverrides =
+    env[CODEX_CUSTOM_MCP_SERVERS_ENV] === "off"
+      ? mcpServerDisableOverrides(readMcpServerNames())
+      : [];
   return {
     command,
     args: [
       ...args,
+      ...mcpOverrides,
       "-c",
       `model_provider=${JSON.stringify(CODEX_CUSTOM_PROVIDER_ID)}`,
       "-c",
@@ -378,7 +390,11 @@ function resolveCustomAppServerLaunch(
   };
 }
 
-export function resolveAppServerLaunch(env: NodeJS.ProcessEnv = process.env): {
+export function resolveAppServerLaunch(
+  env: NodeJS.ProcessEnv = process.env,
+  readMcpServerNames: () => readonly string[] = () =>
+    readConfiguredMcpServerNames(env),
+): {
   command: string;
   args: string[];
 } {
@@ -392,7 +408,12 @@ export function resolveAppServerLaunch(env: NodeJS.ProcessEnv = process.env): {
   const poolBaseUrl = env[CODEX_POOL_BASE_URL_ENV];
   const poolToken = env[CODEX_POOL_AUTH_TOKEN_ENV];
   if (!poolBaseUrl || !poolToken) {
-    return resolveCustomAppServerLaunch(env, command ?? "codex", args);
+    return resolveCustomAppServerLaunch(
+      env,
+      command ?? "codex",
+      args,
+      readMcpServerNames,
+    );
   }
   return {
     command: command ?? "codex",
@@ -638,6 +659,8 @@ function constructionSignature(
         : {
             baseUrl: sessionOptions.envVars[CODEX_CUSTOM_BASE_URL_ENV],
             name: sessionOptions.envVars[CODEX_CUSTOM_NAME_ENV] ?? null,
+            mcpServers:
+              sessionOptions.envVars[CODEX_CUSTOM_MCP_SERVERS_ENV] ?? null,
           },
   });
 }
