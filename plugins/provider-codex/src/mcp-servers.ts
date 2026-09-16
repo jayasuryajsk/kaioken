@@ -38,6 +38,6 @@ export function readConfiguredMcpServerNames(
 export function mcpServerDisableOverrides(names: readonly string[]): string[] {
   return names.flatMap((name) => [
     "-c",
-    `mcp_servers.${JSON.stringify(name)}.enabled=false`,
+    `mcp_servers.${name}.enabled=false`,
   ]);
 }

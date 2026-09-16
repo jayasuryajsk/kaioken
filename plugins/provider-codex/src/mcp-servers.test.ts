@@ -44,12 +44,12 @@ trust_level = "trusted"
 });
 
 describe("mcpServerDisableOverrides", () => {
-  it("emits one quoted config override per server", () => {
-    expect(mcpServerDisableOverrides(["playwright", "computer-use"])).toEqual([
+  it("uses unquoted CLI key segments so Codex disables existing servers", () => {
+    expect(mcpServerDisableOverrides(["node_repl", "computer-use"])).toEqual([
       "-c",
-      'mcp_servers."playwright".enabled=false',
+      "mcp_servers.node_repl.enabled=false",
       "-c",
-      'mcp_servers."computer-use".enabled=false',
+      "mcp_servers.computer-use.enabled=false",
     ]);
   });
 });

@@ -4,6 +4,10 @@ type ReleaseMeta = {
 };
 
 export const RELEASE_META: Record<string, ReleaseMeta> = {
+  "1.0.20": {
+    date: "September 16, 2026",
+    headline: "Fix Codex startup with OpenRouter models",
+  },
   "0.42.0": {
     date: "September 5, 2026",
     headline: "Account Pooler, push notifications, and a new plugin catalog",

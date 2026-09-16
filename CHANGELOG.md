@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.20
+
+### Fixes
+
+- Fix Codex startup with OpenRouter and other custom endpoints when configured MCP tools are disabled. Codex now receives valid tool configuration overrides instead of failing with an `invalid transport` error before the first request.
+
 ## 0.42.0
 
 This release adds Account Pooler for Claude and Codex, push notifications across devices, and a new plugin catalog.

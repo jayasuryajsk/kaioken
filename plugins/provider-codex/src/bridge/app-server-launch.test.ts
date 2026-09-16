@@ -91,8 +91,8 @@ describe("Codex custom endpoint launch", () => {
       "playwright",
       "computer-use",
     ]);
-    expect(launch.args).toContain('mcp_servers."playwright".enabled=false');
-    expect(launch.args).toContain('mcp_servers."computer-use".enabled=false');
+    expect(launch.args).toContain("mcp_servers.playwright.enabled=false");
+    expect(launch.args).toContain("mcp_servers.computer-use.enabled=false");
     expect(launch.args).toContain('model_provider="kaioken-custom"');
   });
 
