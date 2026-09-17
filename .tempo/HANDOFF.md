@@ -1,4 +1,24 @@
-# Current update — live GitHub setup and sign-in, 2026-09-17
+# Current update — desktop 1.0.21 published, 2026-09-17
+
+User authorized push and desktop release. Main and desktop-v1.0.21 were pushed
+at 3400707be; desktop-latest now serves 1.0.21. Release:
+https://github.com/jayasuryajsk/kaioken/releases/tag/desktop-v1.0.21.
+
+Used the established local macOS Apple Silicon release script. The production
+build and packaged startup/desktop-bridge smoke passed. Public release assets
+are uploaded; the downloaded update feed's version, archive URL, size and
+SHA-512 match the local 147477708-byte zip. No Apple signing identity was
+available, so this is the existing unsigned macOS release format. No Linux or
+npm publication was requested or performed. The installed app was not replaced.
+
+Logs: /tmp/kaioken-desktop-1.0.21-release.log and
+/tmp/kaioken-desktop-1.0.21-smoke.log. Physical two-Mac login/remote-workspace
+testing remains pending while MacBook is unavailable. The prior hold on a
+desktop release was superseded by this explicit request.
+
+---
+
+# Previous update — live GitHub setup and sign-in, 2026-09-17
 
 User authorized GitHub OAuth configuration, Cloudflare deployment and live
 verification. The MacBook is unavailable, so physical two-Mac testing remains
