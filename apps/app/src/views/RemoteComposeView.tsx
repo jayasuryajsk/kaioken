@@ -373,7 +373,6 @@ function RemoteComposer({ server, project }: RemoteComposerProps) {
     catalog.reasoningLevel,
     create,
     hostId,
-    mentionRanges,
     message,
     model,
     navigate,
