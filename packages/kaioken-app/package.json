@@ -79,6 +79,10 @@
     "pino-roll": "^4.0.0",
     "zod": "4.3.6"
   },
+  "optionalDependencies": {
+    "@parcel/watcher-darwin-arm64": "2.5.6",
+    "@parcel/watcher-darwin-x64": "2.5.6"
+  },
   "devDependencies": {
     "@kaioken/config": "workspace:*",
     "@kaioken/sdk": "workspace:*",

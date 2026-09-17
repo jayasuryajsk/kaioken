@@ -335,7 +335,7 @@ function RemoteComposer({ server, project }: RemoteComposerProps) {
               ? PERSONAL_WORKSPACE_ENVIRONMENT_PROVIDER_ID
               : PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID,
           machine: { type: "existing", hostId },
-          inputs: {},
+          inputs: null,
         },
       },
       {
