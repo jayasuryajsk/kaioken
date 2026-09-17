@@ -1,3 +1,30 @@
+# Current update — relay KV usage, 2026-09-17
+
+Main was clean and synchronized with origin at `bd24ae0af` before this change.
+The user wants personal, seamless account sign-in across MacBook and Mac Studio;
+that account-service work remains pending.
+
+Cloudflare's STATE metrics showed 566 list operations, 5.6k reads, 6 writes, and
+2 deletes over the last 24 hours. The 50% free-tier alert is consistent with the
+1,000/day list quota. The app polls account servers every 30 seconds and each
+request previously scanned KV. The desktop also refreshes every 10 minutes.
+
+The relay now caches only directory handles/names for five minutes, scoped to
+the KV binding and legacy handle within each Worker isolate. Concurrent scans
+are shared; pairing/disconnect invalidates the local cache. Online status and
+credential checks remain uncached by this change. Other isolates may show
+directory changes up to five minutes later; cold starts still scan KV.
+
+Verification: Turbo relay test + typecheck passed, including 21 tests using
+real Miniflare KV. The polling regression verifies 120 refreshes require 12
+scans, plus invalidation, namespace isolation, and rejection of removed
+credentials despite stale directory entries. Log: `/tmp/kaioken-relay-kv-check.log`.
+
+Not deployed or pushed. Next: deploy the relay change, then check list-operation
+usage over a comparable active period. No paid plan or account settings changed.
+
+---
+
 # Remote connections — implementation handoff
 
 Date: 2026-09-15

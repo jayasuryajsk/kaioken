@@ -476,7 +476,7 @@ async function handleListServers(
   const subject = await presentedCredential(request, store);
   if (subject === null) return json({ error: "unauthorized" }, 401);
   const servers = await Promise.all(
-    (await store.listServers()).map(async (server) => {
+    (await store.listServerDirectory()).map(async (server) => {
       const status = await readTunnelStatus(env, server.handle);
       return {
         handle: server.handle,
@@ -673,7 +673,7 @@ async function routeRequest(
   }
   if (topology.role === "apex") {
     return url.pathname === "/"
-      ? apexPage(topology, await store.listServers())
+      ? apexPage(topology, await store.listServerDirectory())
       : text("Kaioken relay: not found\n", 404);
   }
   if (url.pathname === "/__login" && acceptsVisitors(topology)) {

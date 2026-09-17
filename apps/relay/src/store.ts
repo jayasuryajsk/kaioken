@@ -2,6 +2,7 @@ import { sha256Hex } from "./auth.js";
 
 export const MACHINE_CODE_TTL_MS = 10 * 60 * 1000;
 const EXISTENCE_CACHE_MS = 60 * 1000;
+const SERVER_DIRECTORY_CACHE_MS = 5 * 60 * 1000;
 const LEGACY_SERVER_KEY = "server";
 const SERVER_PREFIX = "server:";
 const MACHINE_PREFIX = "machine:";
@@ -29,6 +30,18 @@ export interface ServerRecord {
   name: string;
   pairedAt: number;
 }
+
+type ServerDirectoryEntry = Pick<ServerRecord, "handle" | "name">;
+
+interface ServerDirectoryCache {
+  expiresAt: number;
+  entries: Promise<readonly ServerDirectoryEntry[]>;
+}
+
+const serverDirectories = new WeakMap<
+  KVNamespace,
+  Map<string, ServerDirectoryCache>
+>();
 
 interface LegacyServerRecord {
   credentialHash: string;
@@ -65,7 +78,39 @@ export class RelayStore {
   constructor(
     private readonly kv: KVNamespace,
     private readonly legacyHandle: string,
+    private readonly now: () => number = Date.now,
   ) {}
+
+  private invalidateServerDirectory(): void {
+    serverDirectories.get(this.kv)?.delete(this.legacyHandle);
+  }
+
+  async listServerDirectory(): Promise<readonly ServerDirectoryEntry[]> {
+    let directories = serverDirectories.get(this.kv);
+    if (directories === undefined) {
+      directories = new Map();
+      serverDirectories.set(this.kv, directories);
+    }
+    const cached = directories.get(this.legacyHandle);
+    if (cached !== undefined && this.now() < cached.expiresAt) {
+      return cached.entries;
+    }
+    const entry: ServerDirectoryCache = {
+      expiresAt: this.now() + SERVER_DIRECTORY_CACHE_MS,
+      entries: this.listServers().then((servers) =>
+        servers.map(({ handle, name }) => ({ handle, name })),
+      ),
+    };
+    directories.set(this.legacyHandle, entry);
+    try {
+      return await entry.entries;
+    } catch (error) {
+      if (directories.get(this.legacyHandle) === entry) {
+        directories.delete(this.legacyHandle);
+      }
+      throw error;
+    }
+  }
 
   private migrate(): Promise<void> {
     this.migrated ??= this.migrateLegacyServer();
@@ -138,6 +183,7 @@ export class RelayStore {
       `${TOKEN_PREFIX}${record.credentialHash}`,
       JSON.stringify({ kind: "server", handle } satisfies CredentialSubject),
     );
+    this.invalidateServerDirectory();
     return record;
   }
 
@@ -146,6 +192,7 @@ export class RelayStore {
     if (previous === null) return false;
     await this.kv.delete(`${TOKEN_PREFIX}${previous.credentialHash}`);
     await this.kv.delete(`${SERVER_PREFIX}${handle}`);
+    this.invalidateServerDirectory();
     return true;
   }
 

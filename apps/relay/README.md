@@ -20,8 +20,17 @@ State lives in one KV namespace: one `server:<handle>` record per paired Mac
 (credential hash, handle, display name), paired devices ("machines"), and
 short-lived pairing codes. A legacy single `server` record is migrated to
 `server:<HANDLE>` on first use. Visitor sessions are HMAC-signed cookies scoped
-to the whole domain, so one sign-in covers every handle and no database lookups
-happen per request.
+to the whole domain, so one sign-in covers every handle. Requests still check
+the target server and, where applicable, the visiting device's credentials.
+
+The device directory caches handles and display names for five minutes per
+Worker isolate and KV namespace. Repeated directory requests share the cached
+listing, while online status is read live from each tunnel. Pairing or
+disconnecting a server invalidates the local directory cache; other isolates
+refresh within five minutes. Credential resolution and revocation checks do
+not use this directory cache. Cold starts and separate isolates each need
+their own KV scan, so the cache reduces usage without guaranteeing a daily
+operation ceiling.
 
 Browsers loading the app from one handle may call another handle's API:
 server hosts answer CORS for `https://kaioken.app` and any
@@ -31,12 +40,12 @@ else.
 ## API
 
 - `POST /api/connect/redeem` `{ code, handle?, name? }` → `{ credential, handle,
-  name, serverId, serverUrl, tunnelUrl }`. `code` is `PAIR_CODE`. `handle` is
+name, serverId, serverUrl, tunnelUrl }`. `code` is `PAIR_CODE`. `handle` is
   `[a-z0-9]` with hyphens, 1–32 chars, not `www`/`api`/`mail`/`admin`; omitted,
   it defaults to the request host's handle or `HANDLE`. Re-pairing a handle
   replaces its credential.
 - `GET /api/connect/servers` (any account credential) → `{ servers: [{ handle,
-  name, live, lastSeenAt, url }] }`.
+name, live, lastSeenAt, url }] }`.
 - `POST /api/connect/disconnect` (server credential) unpairs only that handle.
 - `machine-code`, `redeem-machine`, `revoke-machine`, `desktop-session` are
   unchanged and account-wide.
