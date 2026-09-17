@@ -9,7 +9,7 @@ const accountServerSchema = z.object({
   live: z.boolean(),
 });
 
-const accountServersResponseSchema = z.object({
+export const accountServersResponseSchema = z.object({
   servers: z.array(accountServerSchema),
 });
 
@@ -24,7 +24,7 @@ export type ListAccountServersResult = {
   selfHandle: string;
 };
 
-function withAccountServerUrls(
+export function withAccountServerUrls(
   servers: AccountServer[],
   credential: ConnectCredential,
 ): AccountServerWithUrl[] {

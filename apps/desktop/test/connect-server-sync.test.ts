@@ -139,6 +139,95 @@ describe("selectTargetableConnectServers", () => {
 });
 
 describe("createConnectServerSync", () => {
+  it("does not replace a pushed snapshot with an older HTTP result", async () => {
+    let resolveResponse!: (response: Response) => void;
+    const pending = new Promise<Response>((resolve) => {
+      resolveResponse = resolve;
+    });
+    const onServers = vi.fn();
+    const sync = createConnectServerSync({
+      getCredential: () => null,
+      getLocalServerUrl: () => "http://127.0.0.1:38886",
+      onServers,
+      onSkipped: vi.fn(),
+      onUnauthorized: vi.fn(),
+      fetchImpl: () => pending,
+    });
+    const request = sync.syncNow();
+    const servers = [
+      {
+        handle: "book",
+        name: "MacBook",
+        live: true,
+        url: "https://book.kaioken.app",
+      },
+    ];
+    sync.onSnapshot({ selfHandle: "studio", servers });
+    resolveResponse(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          result: { selfHandle: "studio", servers: [] },
+        }),
+      ),
+    );
+    await request;
+    expect(onServers).toHaveBeenCalledExactlyOnceWith(servers);
+  });
+
+  it("shares one remote subscription and stops it when the local runtime takes over", async () => {
+    const credential = {
+      credential: "bbcm_test",
+      handle: "studio",
+      serverUrl: "https://studio.kaioken.app",
+    };
+    const servers = [
+      {
+        handle: "book",
+        name: "MacBook",
+        live: true,
+        url: "https://book.kaioken.app",
+      },
+    ];
+    let local: string | null = null;
+    let disconnected = () => undefined;
+    const stop = vi.fn();
+    const subscribeRemote = vi.fn((_credential, onSnapshot, onDisconnected) => {
+      disconnected = onDisconnected;
+      onSnapshot({ selfHandle: "studio", servers });
+      return stop;
+    });
+    const onServers = vi.fn();
+    const sync = createConnectServerSync({
+      getCredential: () => credential,
+      getLocalServerUrl: () => local,
+      subscribeRemote,
+      onServers,
+      onSkipped: vi.fn(),
+      onUnauthorized: vi.fn(),
+      gateFetchImpl: async () => new Response(JSON.stringify({ servers })),
+      fetchImpl: async () =>
+        new Response(
+          JSON.stringify({
+            ok: true,
+            result: { selfHandle: "studio", servers },
+          }),
+        ),
+    });
+    await sync.syncNow();
+    await sync.syncNow();
+    expect(subscribeRemote).toHaveBeenCalledOnce();
+    disconnected();
+    expect(onServers).toHaveBeenLastCalledWith([
+      { ...servers[0], live: false },
+    ]);
+    local = "http://127.0.0.1:38886";
+    await sync.syncNow();
+    expect(stop).toHaveBeenCalledOnce();
+    sync.stop();
+    expect(stop).toHaveBeenCalledOnce();
+  });
+
   it("hands fresh servers to onServers and skips list trigger within the min interval", async () => {
     let now = 1_000_000;
     let received: ConnectAccountServer[] | null = null;

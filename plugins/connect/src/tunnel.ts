@@ -15,6 +15,7 @@ import {
   deriveConnectBaseUrl,
   fetchDesktopSession,
   listAccountServers,
+  subscribeAccountServers,
   serverUrlForHandle,
   type ConnectCredential,
   type DesktopSession,
@@ -62,10 +63,18 @@ interface ConnectTunnelOptions {
   getLoopbackBaseUrl: () => string;
   log: PluginLogger;
   onStatusChange?: (status: ConnectStatus) => void;
+  onServersChange?: (result: ListAccountServersResult) => void;
 }
 
 export class ConnectTunnel {
   private credential: ConnectCredential | null = null;
+  private stopDiscovery: (() => void) | null = null;
+  private accountServers: ListAccountServersResult | null = null;
+  private accountServersFetchedAt = 0;
+  private accountServersInFlight: Promise<ListAccountServersResult> | null =
+    null;
+  private discoveryLive = false;
+  private discoveryRevision = 0;
   private tunnel: NodeWebSocket | undefined;
   private session: TunnelSession | undefined;
   private connected = false;
@@ -98,6 +107,7 @@ export class ConnectTunnel {
       this.credential = stored;
       this.stopped = false;
       this.openTunnel();
+      this.startDiscovery();
     }
     this.startShareActivation();
     this.publish();
@@ -150,6 +160,7 @@ export class ConnectTunnel {
       this.credential = credential;
       this.lastError = null;
       this.reconnect();
+      this.startDiscovery();
       this.startShareActivation();
     } finally {
       this.pairing = false;
@@ -207,7 +218,37 @@ export class ConnectTunnel {
         "this kaioken is not connected to kaioken.app — run `kaioken connect` for how to pair",
       );
     }
-    return listAccountServers(credential);
+    if (
+      this.accountServers !== null &&
+      (this.discoveryLive || Date.now() - this.accountServersFetchedAt < 60_000)
+    )
+      return this.accountServers;
+    if (this.accountServersInFlight !== null)
+      return this.accountServersInFlight;
+    const revision = this.discoveryRevision;
+    const pending = listAccountServers(credential)
+      .then((result) => {
+        if (this.credential !== credential)
+          throw new ConnectListError(
+            "not_paired",
+            "connection changed while loading devices",
+          );
+        if (
+          this.credential === credential &&
+          !this.discoveryLive &&
+          revision === this.discoveryRevision
+        ) {
+          this.accountServers = result;
+          this.accountServersFetchedAt = Date.now();
+        }
+        return this.accountServers ?? result;
+      })
+      .finally(() => {
+        if (this.accountServersInFlight === pending)
+          this.accountServersInFlight = null;
+      });
+    this.accountServersInFlight = pending;
+    return pending;
   }
 
   async createDesktopSession(): Promise<DesktopSession> {
@@ -288,7 +329,64 @@ export class ConnectTunnel {
     this.options.onStatusChange?.(this.status());
   }
 
+  private startDiscovery(): void {
+    this.discoveryRevision += 1;
+    this.stopDiscovery?.();
+    this.accountServers = null;
+    this.accountServersInFlight = null;
+    this.discoveryLive = false;
+    const credential = this.credential;
+    if (!credential) return;
+    this.stopDiscovery = subscribeAccountServers({
+      credential,
+      createSocket: (url, headers, onRejected) => {
+        const socket = new NodeWebSocket(url, { headers });
+        socket.on("unexpected-response", (_request, response) => {
+          response.resume();
+          onRejected(response.statusCode ?? 502);
+        });
+        return socket;
+      },
+      onSnapshot: (result) => {
+        if (this.credential !== credential) return;
+        this.discoveryRevision += 1;
+        this.discoveryLive = true;
+        this.accountServers = result;
+        this.accountServersFetchedAt = Date.now();
+        this.options.onServersChange?.(result);
+      },
+      onDisconnected: () => {
+        if (this.credential !== credential) return;
+        this.discoveryRevision += 1;
+        this.discoveryLive = false;
+        if (this.accountServers) {
+          this.accountServers = {
+            ...this.accountServers,
+            servers: this.accountServers.servers.map((server) => ({
+              ...server,
+              live: false,
+            })),
+          };
+          this.options.onServersChange?.(this.accountServers);
+        }
+      },
+      onRevoked: () => {
+        if (this.credential === credential) void this.disconnect();
+      },
+    });
+  }
+
   private teardown(): void {
+    this.discoveryRevision += 1;
+    this.stopDiscovery?.();
+    this.stopDiscovery = null;
+    this.discoveryLive = false;
+    this.accountServers = null;
+    this.accountServersInFlight = null;
+    this.options.onServersChange?.({
+      servers: [],
+      selfHandle: this.credential?.handle ?? "",
+    });
     this.shareActivationEpoch += 1;
     this.stopped = true;
     if (this.reconnectTimer) {

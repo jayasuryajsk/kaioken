@@ -1,5 +1,14 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { Miniflare } from "miniflare";
+import NodeWebSocket from "ws";
 import { build } from "esbuild";
 import { join } from "node:path";
 import { createSessionCookie, sha256Hex, verifySessionCookie } from "./auth";
@@ -26,6 +35,7 @@ function createRelay(bindings: Record<string, string>): Miniflare {
     durableObjects: {
       TUNNEL_DO: "TunnelDO",
       PAIRING_LIMITER: "PairingLimiter",
+      ACCOUNT_DO: "AccountDO",
     },
     kvNamespaces: ["STATE"],
     bindings: { PAIR_CODE, SESSION_SECRET, ...bindings },
@@ -582,7 +592,11 @@ describe("Kaioken relay with many servers", () => {
   });
 
   it("migrates the legacy single-server record and keeps its credential dialling", async () => {
-    const kv = await domainMf.getKVNamespace("STATE");
+    const legacyMf = createRelay({
+      BASE_DOMAIN: "kaioken.app",
+      HANDLE: "studio",
+    });
+    const kv = await legacyMf.getKVNamespace("STATE");
     const credential = "bbcred_legacy_secret";
     const hash = await sha256Hex(credential);
     await kv.put(
@@ -595,28 +609,25 @@ describe("Kaioken relay with many servers", () => {
     );
     await kv.put(`token:${hash}`, JSON.stringify({ kind: "server" }));
 
-    const dial = await host("legacyhost", "/__tunnel?v=1", {
-      headers: { authorization: `Bearer ${credential}` },
-    });
-    expect(dial.status).toBe(426);
-    expect(await kv.get("server", "text")).toBeNull();
-    expect(
-      JSON.parse((await kv.get("server:legacyhost", "text")) ?? "null") as {
-        handle: string;
+    const dial = await legacyMf.dispatchFetch(
+      "https://legacyhost.kaioken.app/__tunnel?v=1",
+      {
+        headers: { authorization: `Bearer ${credential}` },
       },
-    ).toMatchObject({
-      credentialHash: hash,
-      handle: "legacyhost",
-      pairedAt: 5,
-    });
-    const listed = await apex("/api/connect/servers", {
-      headers: { "x-bb-connect-machine": credential },
-    });
+    );
+    expect(dial.status).toBe(426);
+    const listed = await legacyMf.dispatchFetch(
+      "https://kaioken.app/api/connect/servers",
+      {
+        headers: { "x-bb-connect-machine": credential },
+      },
+    );
     expect(
       ((await listed.json()) as { servers: { handle: string }[] }).servers.map(
         (s) => s.handle,
       ),
     ).toContain("legacyhost");
+    await legacyMf.dispose();
   });
 
   it("disconnect unpairs only the calling handle", async () => {
@@ -635,6 +646,197 @@ describe("Kaioken relay with many servers", () => {
       headers: { authorization: `Bearer ${studio.credential}` },
     });
     expect(studioDial.status).toBe(426);
+  });
+});
+
+describe("live account discovery", () => {
+  async function pair(relay: Miniflare, handle: string) {
+    const response = await relay.dispatchFetch(
+      "https://kaioken.app/api/connect/redeem",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ code: PAIR_CODE, handle }),
+      },
+    );
+    expect(response.status).toBe(200);
+    return (await response.json()) as { credential: string };
+  }
+
+  function collectSnapshots(
+    socket: NonNullable<DispatchResponse["webSocket"]>,
+  ) {
+    const snapshots: { servers: { handle: string; live: boolean }[] }[] = [];
+    socket.addEventListener("message", (event) => {
+      if (typeof event.data !== "string" || event.data === "kaioken:pong")
+        return;
+      snapshots.push(JSON.parse(event.data));
+    });
+    socket.accept();
+    return snapshots;
+  }
+
+  it("pushes new devices and tunnel presence immediately, then resynchronizes on reconnect", async () => {
+    const relay = createRelay({ BASE_DOMAIN: "kaioken.app", HANDLE: "studio" });
+    try {
+      const studio = await pair(relay, "studio");
+      const subscribe = () =>
+        relay.dispatchFetch("https://studio.kaioken.app/api/connect/events", {
+          headers: {
+            upgrade: "websocket",
+            "x-bb-connect-machine": studio.credential,
+          },
+        });
+      const response = await subscribe();
+      expect(response.status).toBe(101);
+      const socket = response.webSocket!;
+      const snapshots = collectSnapshots(socket);
+      await vi.waitFor(() =>
+        expect(snapshots.at(-1)?.servers).toEqual([
+          expect.objectContaining({ handle: "studio" }),
+        ]),
+      );
+      const book = await pair(relay, "book");
+      await vi.waitFor(() =>
+        expect(snapshots.at(-1)?.servers).toContainEqual(
+          expect.objectContaining({ handle: "book", live: false }),
+        ),
+      );
+      const tunnel = await relay.dispatchFetch(
+        "https://book.kaioken.app/__tunnel?v=1",
+        {
+          headers: {
+            upgrade: "websocket",
+            authorization: `Bearer ${book.credential}`,
+          },
+        },
+      );
+      expect(tunnel.status).toBe(101);
+      tunnel.webSocket!.accept();
+      await vi.waitFor(() =>
+        expect(snapshots.at(-1)?.servers).toContainEqual(
+          expect.objectContaining({ handle: "book", live: true }),
+        ),
+      );
+      tunnel.webSocket!.close(1000);
+      await vi.waitFor(() =>
+        expect(snapshots.at(-1)?.servers).toContainEqual(
+          expect.objectContaining({ handle: "book", live: false }),
+        ),
+      );
+      socket.close(1000);
+      await pair(relay, "mini");
+      const reconnected = await subscribe();
+      const fresh = collectSnapshots(reconnected.webSocket!);
+      await vi.waitFor(() =>
+        expect(fresh.at(-1)?.servers.map((server) => server.handle)).toContain(
+          "mini",
+        ),
+      );
+      reconnected.webSocket!.close(1000);
+    } finally {
+      await relay.dispose();
+    }
+  });
+
+  it("notifies revoked subscriptions and immediately refuses their credentials", async () => {
+    const relay = createRelay({ BASE_DOMAIN: "kaioken.app", HANDLE: "studio" });
+    let socket: NodeWebSocket | null = null;
+    try {
+      const studio = await pair(relay, "studio");
+      const headers = { "x-bb-connect-machine": studio.credential };
+      const issued = await relay.dispatchFetch(
+        "https://kaioken.app/api/connect/machine-code",
+        { method: "POST", headers },
+      );
+      const { code } = (await issued.json()) as { code: string };
+      const redeemed = await relay.dispatchFetch(
+        "https://kaioken.app/api/connect/redeem-machine",
+        { method: "POST", body: JSON.stringify({ code }) },
+      );
+      const machine = (await redeemed.json()) as {
+        credential: string;
+        machineId: string;
+      };
+      const socketUrl = new URL("/api/connect/events", await relay.ready);
+      socketUrl.protocol = "ws:";
+      const subscription = new NodeWebSocket(socketUrl, {
+        headers: {
+          host: "kaioken.app",
+          "x-bb-connect-machine": machine.credential,
+        },
+      });
+      socket = subscription;
+      const revoked = new Promise<void>((resolve) =>
+        subscription.on("message", (data) => {
+          if (data.toString() === JSON.stringify({ type: "revoked" }))
+            resolve();
+        }),
+      );
+      await new Promise<void>((resolve, reject) => {
+        subscription.once("open", resolve);
+        subscription.once("error", reject);
+      });
+      const revoke = await relay.dispatchFetch(
+        "https://kaioken.app/api/connect/revoke-machine",
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ machineId: machine.machineId }),
+        },
+      );
+      expect(revoke.status).toBe(200);
+      await revoked;
+      const refused = await relay.dispatchFetch(
+        "https://kaioken.app/api/connect/events",
+        {
+          headers: {
+            upgrade: "websocket",
+            "x-bb-connect-machine": machine.credential,
+          },
+        },
+      );
+      expect(refused.status).toBe(401);
+    } finally {
+      socket?.terminate();
+      await relay.dispose();
+    }
+  });
+
+  it("consumes pairing codes atomically and uses durable account state after importing KV", async () => {
+    const relay = createRelay({ BASE_DOMAIN: "kaioken.app", HANDLE: "studio" });
+    try {
+      const studio = await pair(relay, "studio");
+      const headers = { "x-bb-connect-machine": studio.credential };
+      const issued = await relay.dispatchFetch(
+        "https://kaioken.app/api/connect/machine-code",
+        { method: "POST", headers },
+      );
+      const { code } = (await issued.json()) as { code: string };
+      const redeemed = await Promise.all(
+        [1, 2].map(() =>
+          relay.dispatchFetch(
+            "https://kaioken.app/api/connect/redeem-machine",
+            { method: "POST", body: JSON.stringify({ code }) },
+          ),
+        ),
+      );
+      expect(redeemed.map((result) => result.status).sort()).toEqual([
+        200, 400,
+      ]);
+      const kv = await relay.getKVNamespace("STATE");
+      expect((await kv.list()).keys).toHaveLength(0);
+      const listed = await relay.dispatchFetch(
+        "https://kaioken.app/api/connect/servers",
+        { headers },
+      );
+      expect(listed.status).toBe(200);
+      expect(
+        ((await listed.json()) as { servers: unknown[] }).servers,
+      ).toHaveLength(1);
+    } finally {
+      await relay.dispose();
+    }
   });
 });
 

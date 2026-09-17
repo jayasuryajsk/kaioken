@@ -15,6 +15,7 @@ interface FakeTunnelSocket {
 
 const fakeWebSockets = vi.hoisted(() => ({
   instances: [] as FakeTunnelSocket[],
+  discovery: [] as FakeTunnelSocket[],
   options: [] as FakeWebSocketOptions[],
 }));
 
@@ -25,10 +26,24 @@ vi.mock("ws", async (importOriginal) => {
   class FakeWebSocket extends EventEmitter {
     readyState = 0;
 
-    constructor(_url: unknown, options: FakeWebSocketOptions) {
+    constructor(url: string, options: FakeWebSocketOptions) {
       super();
-      fakeWebSockets.instances.push(this);
-      fakeWebSockets.options.push(options);
+      if (!url.includes("/api/connect/events")) {
+        fakeWebSockets.instances.push(this);
+        fakeWebSockets.options.push(options);
+      } else fakeWebSockets.discovery.push(this);
+    }
+
+    addEventListener(
+      event: string,
+      listener: (...args: unknown[]) => void,
+    ): void {
+      this.on(event, listener);
+    }
+
+    close(): void {
+      this.readyState = 3;
+      this.emit("close", { code: 1000 });
     }
 
     terminate(): void {
@@ -96,6 +111,41 @@ describe("ConnectTunnel socket lifecycle", () => {
   afterEach(() => {
     fakeWebSockets.instances.length = 0;
     fakeWebSockets.options.length = 0;
+    fakeWebSockets.discovery.length = 0;
+  });
+
+  it("serves pushed devices without polling and prevents a pending HTTP fallback from replacing them", async () => {
+    const { fakeHost, tunnel } = createTunnelFixture();
+    let resolveResponse!: (response: Response) => void;
+    const pending = new Promise<Response>((resolve) => {
+      resolveResponse = resolve;
+    });
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockReturnValue(pending);
+    try {
+      await tunnel.start();
+      const first = tunnel.listAccountServers();
+      const second = tunnel.listAccountServers();
+      expect(fetchSpy).toHaveBeenCalledOnce();
+      const socket = fakeWebSockets.discovery[0]!;
+      socket.emit("message", {
+        data: JSON.stringify({
+          type: "snapshot",
+          servers: [{ handle: "book", name: "MacBook", live: true }],
+        }),
+      });
+      socket.emit("close", { code: 1006 });
+      resolveResponse(new Response(JSON.stringify({ servers: [] })));
+      const [a, b] = await Promise.all([first, second]);
+      expect(a.servers.map((server) => server.handle)).toEqual(["book"]);
+      expect(a.servers[0]?.live).toBe(false);
+      expect(b).toEqual(a);
+      await expect(tunnel.listAccountServers()).resolves.toEqual(a);
+      expect(fetchSpy).toHaveBeenCalledOnce();
+    } finally {
+      tunnel.stop();
+      fetchSpy.mockRestore();
+      await fakeHost.harness.dispose();
+    }
   });
 
   it("ignores events from a socket after the tunnel stops", async () => {

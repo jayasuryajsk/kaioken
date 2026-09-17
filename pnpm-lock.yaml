@@ -1026,6 +1026,9 @@ importers:
       '@kaioken/tunnel-contract':
         specifier: workspace:*
         version: link:../../packages/tunnel-contract
+      zod:
+        specifier: 4.3.6
+        version: 4.3.6
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260610.0
@@ -1036,6 +1039,9 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.10
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
       esbuild:
         specifier: ^0.28.1
         version: 0.28.1
@@ -1051,6 +1057,9 @@ importers:
       wrangler:
         specifier: ^4.100.0
         version: 4.107.0(@cloudflare/workers-types@4.20260702.1)
+      ws:
+        specifier: ^8.19.0
+        version: 8.21.0
 
   apps/server:
     dependencies:

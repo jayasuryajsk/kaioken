@@ -1,13 +1,3 @@
-// Kaioken relay — a single-account "connect" gate with one TunnelDO per paired Kaioken (handle).
-//
-// Deploy:  pnpm --filter @kaioken/relay exec wrangler deploy
-// Secrets: wrangler secret put PAIR_CODE        (the code you type into Settings → Connect)
-//          wrangler secret put SESSION_SECRET   (any long random string; signs visitor cookies)
-// State:   one KV namespace bound as STATE (create with `wrangler kv namespace create STATE`)
-// Hosts:   BASE_DOMAIN serves the pairing API (and a landing page); every <handle>.BASE_DOMAIN
-//          is one paired Kaioken (HANDLE is only the default for legacy pairings). The wildcard
-//          route needs a proxied wildcard DNS record (*.BASE_DOMAIN) in the zone. Drop the vars
-//          (and set workers_dev: true) for a single-host relay on a *.workers.dev name.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "kaioken-relay",
@@ -26,11 +16,13 @@
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["TunnelDO"] },
     { "tag": "v2", "new_sqlite_classes": ["PairingLimiter"] },
+    { "tag": "v3", "new_sqlite_classes": ["AccountDO"] },
   ],
   "durable_objects": {
     "bindings": [
       { "name": "TUNNEL_DO", "class_name": "TunnelDO" },
       { "name": "PAIRING_LIMITER", "class_name": "PairingLimiter" },
+      { "name": "ACCOUNT_DO", "class_name": "AccountDO" },
     ],
   },
   "kv_namespaces": [

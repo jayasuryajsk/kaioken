@@ -10,6 +10,11 @@ export {
 } from "./urls.js";
 export { ConnectListError } from "./errors.js";
 export {
+  ACCOUNT_SERVERS_CHANNEL,
+  subscribeAccountServers,
+  type AccountEventSocket,
+} from "./account-events.js";
+export {
   listAccountServers,
   type AccountServerWithUrl,
   type ListAccountServersResult,

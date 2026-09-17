@@ -24,7 +24,11 @@ import {
   APP_SURFACE_DESKTOP,
   APP_SURFACE_ENV_NAME,
 } from "@kaioken/config/app-surface";
-import type { ConnectCredential } from "@kaioken/connect-client";
+import {
+  subscribeAccountServers,
+  type ConnectCredential,
+} from "@kaioken/connect-client";
+import { WebSocket as DiscoveryWebSocket } from "ws";
 import type { AppKeybindings } from "@kaioken/domain";
 import {
   kaiokenDesktopBrowserImportCookiesRequestSchema,
@@ -34,6 +38,7 @@ import {
 } from "@kaioken/desktop-contract";
 import {
   serverMessageLenientSchema,
+  pluginSignalLenientSchema,
   type ClientMessage,
 } from "@kaioken/server-contract";
 import { z } from "zod";
@@ -924,6 +929,17 @@ function createSystemConfigSync(serverUrl: string): SystemConfigSync {
       return;
     }
     try {
+      const signal = pluginSignalLenientSchema.safeParse(
+        JSON.parse(event.data),
+      );
+      if (
+        signal.success &&
+        signal.data.pluginId === "connect" &&
+        signal.data.channel === "account-servers"
+      ) {
+        connectServerSync?.onSnapshot(signal.data.payload);
+        return;
+      }
       const parsed = serverMessageLenientSchema.safeParse(
         JSON.parse(event.data),
       );
@@ -2257,6 +2273,21 @@ async function runDesktopApp(): Promise<void> {
   cachedConnectCredential = await connectCredentialCache.read();
   const logger = createDesktopLogger();
   connectServerSync = createConnectServerSync({
+    subscribeRemote: (credential, onSnapshot, onDisconnected, onRevoked) =>
+      subscribeAccountServers({
+        credential,
+        onSnapshot,
+        onDisconnected,
+        onRevoked,
+        createSocket: (url, headers, onRejected) => {
+          const socket = new DiscoveryWebSocket(url, { headers });
+          socket.on("unexpected-response", (_request, response) => {
+            response.resume();
+            onRejected(response.statusCode ?? 502);
+          });
+          return socket;
+        },
+      }),
     getCredential: () => cachedConnectCredential,
     getLocalServerUrl: () => currentRuntime?.serverUrl ?? null,
     onUnauthorized() {

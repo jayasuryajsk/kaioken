@@ -16,21 +16,53 @@ Hosts (domain mode, the default config):
 The wildcard route in `wrangler.jsonc` needs a proxied wildcard DNS record
 (`*.kaioken.app`) in the zone; the two custom domains manage their own records.
 
-State lives in one KV namespace: one `server:<handle>` record per paired Mac
-(credential hash, handle, display name), paired devices ("machines"), and
-short-lived pairing codes. A legacy single `server` record is migrated to
-`server:<HANDLE>` on first use. Visitor sessions are HMAC-signed cookies scoped
-to the whole domain, so one sign-in covers every handle. Requests still check
-the target server and, where applicable, the visiting device's credentials.
+## Live device discovery
 
-The device directory caches handles and display names for five minutes per
-Worker isolate and KV namespace. Repeated directory requests share the cached
-listing, while online status is read live from each tunnel. Pairing or
-disconnecting a server invalidates the local directory cache; other isolates
-refresh within five minutes. Credential resolution and revocation checks do
-not use this directory cache. Cold starts and separate isolates each need
-their own KV scan, so the cache reduces usage without guaranteeing a daily
-operation ceiling.
+The personal account's `AccountDO` owns paired servers, device credentials, and
+short-lived pairing codes in durable SQLite-backed storage. All Worker instances
+route account operations to this coordinator. Pairing codes are consumed serially,
+and credential revocation takes effect without a cache expiry window.
+
+The Connect plugin maintains one authenticated discovery WebSocket. The relay
+sends a complete directory snapshot on connection and when a server is paired,
+unpaired, connects, or disconnects. The plugin shares these updates through the
+local Kaioken realtime connection with browser views and the desktop app. The
+CLI's `kaioken connect servers` and SDK's existing Connect `listAccountServers`
+RPC read the same snapshot. A desktop without a local runtime subscribes directly.
+
+Discovery uses Cloudflare's hibernating WebSocket API and automatic text
+ping/pong replies. Heartbeats do not rescan KV or write a last-seen record.
+Reconnects use exponential backoff with jitter and receive a fresh snapshot.
+Failed presence broadcasts are retained for retry. A clean disconnect updates
+presence immediately; silent network loss is detected by heartbeat timeout.
+The tunnel checks for missing heartbeats every 50 seconds with a 90-second limit.
+
+The UI's five-minute refresh is a fallback against the local plugin; it returns
+its live snapshot while discovery is connected. While disconnected, fallback
+HTTP directory reads are coalesced and cached for 60 seconds. These reads use
+the coordinator, not KV. Remote project/task snapshot refreshes are separate and
+unchanged. This removes recurring KV directory scans, not all Cloudflare usage.
+
+Visitor sessions remain HMAC-signed cookies scoped to the whole domain, so one
+pairing covers every handle. This is still a **single personal account** selected
+by the relay, not a public sign-in service. Future multi-account authentication
+must select the coordinator from verified identity, never a caller-supplied ID.
+
+## State migration and rollout
+
+Wrangler migration `v3` adds `AccountDO`. On its first request, the coordinator
+imports known records from `STATE` once, including legacy single-server records
+and unexpired pairing codes. It retains the original KV data as a migration
+backup. All subsequent reads and writes use durable account storage.
+
+Deploy the relay before updating clients: existing clients can continue using
+`GET /api/connect/servers`; updated clients use `/api/connect/events`. Updated
+clients retain HTTP fallback when used with an older relay.
+
+Do not roll back to a KV-only worker after accepting new pairings or revocations:
+the retained KV copy is then stale. A rollback must keep the coordinator-backed
+state path or explicitly reconcile current state first. No deployment is part of
+local tests, and no desktop release is required to review this implementation.
 
 Browsers loading the app from one handle may call another handle's API:
 server hosts answer CORS for `https://kaioken.app` and any
@@ -46,6 +78,12 @@ name, serverId, serverUrl, tunnelUrl }`. `code` is `PAIR_CODE`. `handle` is
   replaces its credential.
 - `GET /api/connect/servers` (any account credential) → `{ servers: [{ handle,
 name, live, lastSeenAt, url }] }`.
+- `GET /api/connect/events` upgrades to a WebSocket using the
+  `x-bb-connect-machine` header (server or paired-device credential). It sends
+  `{ type: "snapshot", servers: [...] }` using the same server fields as `/servers`.
+  Send `kaioken:ping` for an automatic `kaioken:pong`. A revoked subscription
+  receives `{ type: "revoked" }` and closes with code `4001`; rejected handshakes
+  return `401`. Browser origins must match the trusted account domain.
 - `POST /api/connect/disconnect` (server credential) unpairs only that handle.
 - `machine-code`, `redeem-machine`, `revoke-machine`, `desktop-session` are
   unchanged and account-wide.
@@ -72,4 +110,5 @@ Pair a phone or browser once: Settings → Connect → phone pairing code (needs
 the "Mobile app" experiment), then scan the QR in the app or type the code at
 `https://<handle>.kaioken.app/__login`. The session covers every handle.
 
-Redeploy after changes with `wrangler deploy`; secrets and KV state persist.
+Redeploy after changes with `wrangler deploy`; secrets and durable account state persist.
+Follow the migration and rollback constraints above.

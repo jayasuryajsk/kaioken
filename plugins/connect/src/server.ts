@@ -1,4 +1,5 @@
 import { hostname } from "node:os";
+import { ACCOUNT_SERVERS_CHANNEL } from "@kaioken/connect-client";
 import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { registerConnectCli } from "./cli.js";
@@ -120,6 +121,8 @@ export default async function plugin(bb: KaiokenPluginApi) {
     },
     getLoopbackBaseUrl,
     log: bb.log,
+    onServersChange: (result) =>
+      bb.realtime.publish(ACCOUNT_SERVERS_CHANNEL, result),
     onStatusChange: (status) =>
       bb.realtime.publish(CONNECT_REALTIME_CHANNEL, status),
   });

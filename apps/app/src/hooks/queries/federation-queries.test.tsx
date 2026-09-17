@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, renderHook, waitFor } from "@testing-library/react";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeThreadListEntry } from "@kaioken/test-helpers/domain-fixtures";
 import {
@@ -17,7 +17,8 @@ import {
   makeProjectWithThreadsResponse,
   makeSidebarBootstrapResponse,
 } from "@/test/fixtures/projects";
-import { useFederatedRemotes } from "./federation-queries";
+import { useAccountServers, useFederatedRemotes } from "./federation-queries";
+import { wsManager } from "@/lib/ws";
 
 const MINI_BOOTSTRAP = makeSidebarBootstrapResponse({
   projects: [
@@ -96,6 +97,72 @@ afterEach(() => {
 });
 
 describe("useFederatedRemotes", () => {
+  it("applies pushed devices immediately and retains them when an older RPC finishes", async () => {
+    let resolveResponse!: (response: Response) => void;
+    const pending = new Promise<Response>((resolve) => {
+      resolveResponse = resolve;
+    });
+    fetchMock.mockReturnValue(pending);
+    const { wrapper } = createQueryClientTestHarness();
+    const { result } = renderHook(() => useAccountServers(), { wrapper });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+    act(() =>
+      wsManager.handleIncomingMessage(
+        JSON.stringify({
+          type: "plugin-signal",
+          pluginId: "connect",
+          channel: "account-servers",
+          payload: SERVERS_RPC_RESULT.result,
+        }),
+      ),
+    );
+    await waitFor(() => expect(result.current.data).toHaveLength(3));
+    resolveResponse(
+      json({ ok: true, result: { selfHandle: "studio", servers: [] } }),
+    );
+    await waitFor(() => expect(result.current.isFetching).toBe(false));
+    expect(result.current.data?.map((server) => server.handle)).toEqual([
+      "studio",
+      "mini",
+      "work",
+    ]);
+    expect(
+      JSON.parse(window.localStorage.getItem(FEDERATION_SERVERS_STORAGE_KEY)!),
+    ).toHaveLength(3);
+  });
+
+  it("ignores malformed signals and removes the subscription when disabled", async () => {
+    respondByHost({ localhost: () => json(SERVERS_RPC_RESULT) });
+    const { wrapper } = createQueryClientTestHarness();
+    const { result, rerender } = renderHook(
+      ({ enabled }) => useAccountServers({ enabled }),
+      { wrapper, initialProps: { enabled: true } },
+    );
+    await waitFor(() => expect(result.current.data).toHaveLength(3));
+    act(() =>
+      wsManager.handleIncomingMessage(
+        JSON.stringify({
+          type: "plugin-signal",
+          pluginId: "connect",
+          channel: "account-servers",
+          payload: { servers: "invalid" },
+        }),
+      ),
+    );
+    expect(result.current.data).toHaveLength(3);
+    rerender({ enabled: false });
+    act(() =>
+      wsManager.handleIncomingMessage(
+        JSON.stringify({
+          type: "plugin-signal",
+          pluginId: "connect",
+          channel: "account-servers",
+          payload: { selfHandle: "studio", servers: [] },
+        }),
+      ),
+    );
+    expect(result.current.data).toHaveLength(3);
+  });
   it("marks one server live and a 503 server offline without throwing", async () => {
     respondByHost({
       localhost: () => json(SERVERS_RPC_RESULT),

@@ -234,6 +234,15 @@ protection, for authenticated HTTP and realtime requests. It never copies the
 remote computer's provider credentials. If authentication expires or the computer
 is offline, the workspace shows a recovery action.
 
+Account computers update through one Connect discovery subscription per local
+runtime. The desktop and browser views reuse its local realtime connection, so
+opening extra views does not create extra cloud discovery connections. Newly
+paired computers and clean online/offline transitions appear immediately; after
+a dropped connection, the next connection receives a fresh directory snapshot.
+`kaioken connect servers` and the Connect `listAccountServers` SDK RPC read the
+same list. The personal Cloudflare relay retains code-based pairing; this change
+does not add a public account login service.
+
 A custom server URL remains a standalone server view. Its theme and keybindings
 are refreshed on activation and periodically while it is selected.
 

@@ -135,6 +135,12 @@ interface CreateConnectServerSyncArgs {
   minIntervalMs?: number;
   setIntervalFn?: (handler: () => void, timeout: number) => unknown;
   clearIntervalFn?: (handle: unknown) => void;
+  subscribeRemote?: (
+    credential: ConnectCredential,
+    onSnapshot: (payload: unknown) => void,
+    onDisconnected: () => void,
+    onRevoked: () => void,
+  ) => () => void;
 }
 
 export interface ConnectServerSync {
@@ -143,6 +149,7 @@ export interface ConnectServerSync {
   onRuntimeReady(): void;
   onListRequested(): void;
   syncNow(): Promise<void>;
+  onSnapshot(payload: unknown): void;
 }
 
 export function createConnectServerSync(
@@ -166,6 +173,48 @@ export function createConnectServerSync(
   let lastSyncAttemptAt = 0;
   let inFlight: Promise<void> | null = null;
   let loggedSkipReason: ConnectServerSyncSkipReason | null = null;
+  let snapshotRevision = 0;
+  let remoteCredential: ConnectCredential | null = null;
+  let stopRemote: (() => void) | null = null;
+  let lastServers: ConnectAccountServer[] = [];
+
+  function ensureRemoteSubscription(): void {
+    const credential =
+      args.getLocalServerUrl() === null ? args.getCredential() : null;
+    if (credential === remoteCredential) return;
+    snapshotRevision += 1;
+    stopRemote?.();
+    stopRemote = null;
+    remoteCredential = credential;
+    if (credential && args.subscribeRemote)
+      stopRemote = args.subscribeRemote(
+        credential,
+        (payload) => {
+          if (remoteCredential === credential) onSnapshot(payload);
+        },
+        () => {
+          if (remoteCredential !== credential) return;
+          snapshotRevision += 1;
+          lastServers = lastServers.map((server) => ({
+            ...server,
+            live: false,
+          }));
+          args.onServers(lastServers);
+        },
+        () => {
+          if (remoteCredential === credential) args.onUnauthorized();
+        },
+      );
+  }
+
+  function onSnapshot(payload: unknown): void {
+    const result = connectListAccountServersResultSchema.safeParse(payload);
+    if (!result.success) return;
+    snapshotRevision += 1;
+    loggedSkipReason = null;
+    lastServers = selectTargetableConnectServers(result.data);
+    args.onServers(lastServers);
+  }
 
   async function fetchServers(): Promise<FetchConnectAccountServersResult> {
     const serverUrl = args.getLocalServerUrl();
@@ -183,7 +232,11 @@ export function createConnectServerSync(
       const result = await listAccountServers(credential, args.gateFetchImpl);
       return { ok: true, result };
     } catch (error) {
-      if (error instanceof ConnectListError && error.code === "unauthorized") {
+      if (
+        error instanceof ConnectListError &&
+        error.code === "unauthorized" &&
+        credential === args.getCredential()
+      ) {
         args.onUnauthorized();
         return { ok: false, reason: "unauthorized" };
       }
@@ -192,8 +245,11 @@ export function createConnectServerSync(
   }
 
   async function runSync(): Promise<void> {
+    ensureRemoteSubscription();
+    const revision = snapshotRevision;
     lastSyncAttemptAt = now();
     const outcome = await fetchServers();
+    if (revision !== snapshotRevision) return;
     if (!outcome.ok) {
       if (loggedSkipReason !== outcome.reason) {
         loggedSkipReason = outcome.reason;
@@ -204,7 +260,8 @@ export function createConnectServerSync(
     }
 
     loggedSkipReason = null;
-    args.onServers(selectTargetableConnectServers(outcome.result));
+    lastServers = selectTargetableConnectServers(outcome.result);
+    args.onServers(lastServers);
   }
 
   function syncNow(): Promise<void> {
@@ -247,6 +304,10 @@ export function createConnectServerSync(
   }
 
   function stop(): void {
+    snapshotRevision += 1;
+    stopRemote?.();
+    stopRemote = null;
+    remoteCredential = null;
     if (timer === null) {
       return;
     }
@@ -260,5 +321,6 @@ export function createConnectServerSync(
     onRuntimeReady,
     onListRequested,
     syncNow,
+    onSnapshot,
   };
 }

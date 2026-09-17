@@ -11,6 +11,12 @@ Open your kaioken from a phone or another computer. After you pair, this kaioken
 
 Enter the relay's pairing code in Settings, or run `kaioken connect --code <PAIR_CODE> --base-url https://kaioken.app --handle <name>` on each Mac. The handle is the name that Mac answers to (`https://<name>.kaioken.app`); the Handle setting fixes it, and an empty setting uses the machine's hostname. `--server <url>` still overrides the derived URL. The plugin keeps the tunnel open in the background and reconnects after a drop. Disable the plugin to cut all remote access at once. `kaioken connect off` also disconnects and forgets the pairing.
 
+Device discovery is live: the plugin subscribes once to the relay and shares
+updates with all local views. Newly paired computers and connection changes
+appear without waiting for a polling interval. After a network interruption,
+it reconnects with backoff and requests a fresh snapshot. `kaioken connect
+servers` and the Connect `listAccountServers` RPC use that same device list.
+
 ## For agents
 
 When you view kaioken remotely, agents are told to share servers with `kaioken connect expose <port>`. A localhost link would not open. The `share-server-links` skill explains the flow. Other commands: `kaioken connect status`, `kaioken connect unexpose <port>`, `kaioken connect shares`, `kaioken connect servers`, and `kaioken connect machine-code`.

@@ -1,8 +1,6 @@
 import { sha256Hex } from "./auth.js";
 
 export const MACHINE_CODE_TTL_MS = 10 * 60 * 1000;
-const EXISTENCE_CACHE_MS = 60 * 1000;
-const SERVER_DIRECTORY_CACHE_MS = 5 * 60 * 1000;
 const LEGACY_SERVER_KEY = "server";
 const SERVER_PREFIX = "server:";
 const MACHINE_PREFIX = "machine:";
@@ -31,18 +29,6 @@ export interface ServerRecord {
   pairedAt: number;
 }
 
-type ServerDirectoryEntry = Pick<ServerRecord, "handle" | "name">;
-
-interface ServerDirectoryCache {
-  expiresAt: number;
-  entries: Promise<readonly ServerDirectoryEntry[]>;
-}
-
-const serverDirectories = new WeakMap<
-  KVNamespace,
-  Map<string, ServerDirectoryCache>
->();
-
 interface LegacyServerRecord {
   credentialHash: string;
   handle?: string;
@@ -67,50 +53,25 @@ type StoredSubject =
   | { kind: "server"; handle?: string }
   | { kind: "machine"; machineId: string };
 
-const existenceCache = new Map<
-  string,
-  { exists: boolean; checkedAt: number }
->();
+export interface RelayStorage {
+  get<T>(key: string, type: "json"): Promise<T | null>;
+  get(key: string): Promise<string | null>;
+  put(
+    key: string,
+    value: string,
+    options?: { expirationTtl: number },
+  ): Promise<void>;
+  delete(key: string): Promise<void>;
+  list(options: { prefix: string }): Promise<{ keys: { name: string }[] }>;
+}
 
 export class RelayStore {
   private migrated: Promise<void> | null = null;
 
   constructor(
-    private readonly kv: KVNamespace,
+    private readonly kv: RelayStorage,
     private readonly legacyHandle: string,
-    private readonly now: () => number = Date.now,
   ) {}
-
-  private invalidateServerDirectory(): void {
-    serverDirectories.get(this.kv)?.delete(this.legacyHandle);
-  }
-
-  async listServerDirectory(): Promise<readonly ServerDirectoryEntry[]> {
-    let directories = serverDirectories.get(this.kv);
-    if (directories === undefined) {
-      directories = new Map();
-      serverDirectories.set(this.kv, directories);
-    }
-    const cached = directories.get(this.legacyHandle);
-    if (cached !== undefined && this.now() < cached.expiresAt) {
-      return cached.entries;
-    }
-    const entry: ServerDirectoryCache = {
-      expiresAt: this.now() + SERVER_DIRECTORY_CACHE_MS,
-      entries: this.listServers().then((servers) =>
-        servers.map(({ handle, name }) => ({ handle, name })),
-      ),
-    };
-    directories.set(this.legacyHandle, entry);
-    try {
-      return await entry.entries;
-    } catch (error) {
-      if (directories.get(this.legacyHandle) === entry) {
-        directories.delete(this.legacyHandle);
-      }
-      throw error;
-    }
-  }
 
   private migrate(): Promise<void> {
     this.migrated ??= this.migrateLegacyServer();
@@ -183,7 +144,6 @@ export class RelayStore {
       `${TOKEN_PREFIX}${record.credentialHash}`,
       JSON.stringify({ kind: "server", handle } satisfies CredentialSubject),
     );
-    this.invalidateServerDirectory();
     return record;
   }
 
@@ -192,7 +152,6 @@ export class RelayStore {
     if (previous === null) return false;
     await this.kv.delete(`${TOKEN_PREFIX}${previous.credentialHash}`);
     await this.kv.delete(`${SERVER_PREFIX}${handle}`);
-    this.invalidateServerDirectory();
     return true;
   }
 
@@ -230,7 +189,6 @@ export class RelayStore {
         machineId,
       } satisfies CredentialSubject),
     );
-    existenceCache.set(machineId, { exists: true, checkedAt: Date.now() });
     return record;
   }
 
@@ -240,7 +198,6 @@ export class RelayStore {
     if (record === null) return false;
     await this.kv.delete(key);
     await this.kv.delete(`${TOKEN_PREFIX}${record.credentialHash}`);
-    existenceCache.set(machineId, { exists: false, checkedAt: Date.now() });
     return true;
   }
 
@@ -257,15 +214,7 @@ export class RelayStore {
   }
 
   async machineExists(machineId: string): Promise<boolean> {
-    const cached = existenceCache.get(machineId);
-    const now = Date.now();
-    if (cached !== undefined && now - cached.checkedAt < EXISTENCE_CACHE_MS) {
-      return cached.exists;
-    }
-    const exists =
-      (await this.kv.get(`${MACHINE_PREFIX}${machineId}`)) !== null;
-    existenceCache.set(machineId, { exists, checkedAt: now });
-    return exists;
+    return (await this.kv.get(`${MACHINE_PREFIX}${machineId}`)) !== null;
   }
 
   async resolveCredential(

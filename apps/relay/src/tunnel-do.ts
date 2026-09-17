@@ -8,11 +8,16 @@ import {
   type HeaderPair,
 } from "@kaioken/tunnel-contract";
 import { relayedResponse } from "./response-encoding.js";
-import { TUNNEL_TARGET_HEADER } from "./protocol-headers.js";
+import { accountStub } from "./account-store.js";
+import {
+  GATE_MACHINE_ID_HEADER,
+  TUNNEL_TARGET_HEADER,
+} from "./protocol-headers.js";
 
 export interface Env {
   TUNNEL_DO: DurableObjectNamespace;
   STATE: KVNamespace;
+  ACCOUNT_DO: DurableObjectNamespace;
   PAIR_CODE: string;
   SESSION_SECRET: string;
   BASE_DOMAIN?: string;
@@ -81,7 +86,10 @@ export class TunnelDO {
   private nextStreamId: number;
   private clientProtocolVersion = 0;
 
-  constructor(private readonly state: DurableObjectState) {
+  constructor(
+    private readonly state: DurableObjectState,
+    private readonly env: Env,
+  ) {
     let maxSeen = 0;
     for (const ws of this.state.getWebSockets()) {
       const attachment = ws.deserializeAttachment() as {
@@ -126,10 +134,18 @@ export class TunnelDO {
         ),
       );
     }
+    if (url.pathname === "/__control/revoke-machine") {
+      const machineId = url.searchParams.get("machineId");
+      if (machineId)
+        for (const socket of this.state.getWebSockets(`machine:${machineId}`)) {
+          this.webSocketClose(socket, 4001, "revoked");
+        }
+      return new Response(null, { status: 204 });
+    }
     if (url.pathname === "/__control/close") {
       for (const ws of this.state.getWebSockets(TUNNEL_TAG))
         ws.close(1000, "revoked by owner");
-      void this.state.storage.delete("serverId");
+      this.state.waitUntil(this.notifyPresence());
       void this.state.storage.delete("machineId");
       void this.state.storage.delete("protocolVersion");
       this.clientProtocolVersion = 0;
@@ -188,28 +204,77 @@ export class TunnelDO {
     );
   }
 
+  private async notifyPresence(): Promise<void> {
+    const handle = await this.state.storage.get<string>("serverId");
+    if (!handle) return;
+    try {
+      const response = await accountStub(this.env).fetch(
+        "https://account/presence",
+        { method: "POST", body: JSON.stringify({ handle }) },
+      );
+      if (!response.ok) throw new Error("Could not publish tunnel presence");
+      await this.state.storage.delete("presencePending");
+    } catch {
+      await this.state.storage.put("presencePending", true);
+      await this.scheduleAlarm(5_000);
+    }
+  }
+
+  private async scheduleAlarm(delay: number): Promise<void> {
+    const scheduled = await this.state.storage.getAlarm();
+    const next = Date.now() + delay;
+    if (scheduled === null || scheduled > next)
+      await this.state.storage.setAlarm(next);
+  }
+
   private async markPresence(): Promise<void> {
     await this.state.storage.put("lastSeenAt", Date.now());
   }
 
   private async status(): Promise<TunnelStatus> {
     const lastSeenAt = await this.state.storage.get<number>("lastSeenAt");
+    const tunnel = this.tunnelSocket();
+    const heartbeat = tunnel
+      ? this.state.getWebSocketAutoResponseTimestamp(tunnel)?.getTime()
+      : undefined;
     return {
-      live: this.tunnelSocket() !== null,
-      lastSeenAt: typeof lastSeenAt === "number" ? lastSeenAt : null,
+      live: tunnel !== null,
+      lastSeenAt:
+        heartbeat ?? (typeof lastSeenAt === "number" ? lastSeenAt : null),
     };
   }
 
   async alarm(): Promise<void> {
-    if (!this.tunnelSocket()) {
-      await this.state.storage.delete("serverId");
+    if (await this.state.storage.get("presencePending"))
+      await this.notifyPresence();
+    const tunnel = this.tunnelSocket();
+    if (!tunnel) {
+      if (!(await this.state.storage.get("presencePending")))
+        await this.state.storage.delete("serverId");
       await this.state.storage.delete("machineId");
       await this.state.storage.delete("protocolVersion");
       this.clientProtocolVersion = 0;
       return;
     }
-    await this.markPresence();
-    await this.state.storage.setAlarm(Date.now() + PRESENCE_INTERVAL_MS);
+    const heartbeat = this.state
+      .getWebSocketAutoResponseTimestamp(tunnel)
+      ?.getTime();
+    const attachment = tunnel.deserializeAttachment() as {
+      connectedAt: number;
+    } | null;
+    const lastSeen =
+      heartbeat ??
+      attachment?.connectedAt ??
+      (await this.state.storage.get<number>("lastSeenAt")) ??
+      Date.now();
+    if (Date.now() - lastSeen > 90_000) {
+      tunnel.close(4000, "heartbeat timed out");
+      this.abandonStreams("tunnel timed out", "tunnel timed out");
+      await this.state.storage.put("lastSeenAt", lastSeen);
+      await this.notifyPresence();
+      return;
+    }
+    await this.scheduleAlarm(PRESENCE_INTERVAL_MS);
   }
 
   private acceptTunnel(
@@ -242,6 +307,8 @@ export class TunnelDO {
     }
     const pair = new WebSocketPair();
     this.state.acceptWebSocket(pair[1], [TUNNEL_TAG]);
+    pair[1].serializeAttachment({ connectedAt: Date.now() });
+    this.state.waitUntil(this.notifyPresence());
     return new Response(null, { status: 101, webSocket: pair[0] });
   }
 
@@ -274,7 +341,12 @@ export class TunnelDO {
 
     const pair = new WebSocketPair();
     pair[1].serializeAttachment({ streamId });
-    this.state.acceptWebSocket(pair[1], [`visitor:${streamId}`]);
+    this.state.acceptWebSocket(pair[1], [
+      `visitor:${streamId}`,
+      ...(request.headers.get(GATE_MACHINE_ID_HEADER)
+        ? [`machine:${request.headers.get(GATE_MACHINE_ID_HEADER)}`]
+        : []),
+    ]);
 
     const responseHeaders = new Headers();
     if (protocols.length > 0) {
@@ -565,6 +637,14 @@ export class TunnelDO {
     const tags = this.state.getTags(ws);
     if (tags.includes(TUNNEL_TAG)) {
       if (this.tunnelSocket() !== null) return;
+      const lastSeen =
+        this.state.getWebSocketAutoResponseTimestamp(ws)?.getTime() ??
+        Date.now();
+      this.state.waitUntil(
+        this.state.storage
+          .put("lastSeenAt", lastSeen)
+          .then(() => this.notifyPresence()),
+      );
       this.abandonStreams(
         "tunnel disconnected mid-request",
         "tunnel disconnected",

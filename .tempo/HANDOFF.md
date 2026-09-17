@@ -1,27 +1,56 @@
-# Current update — relay KV usage, 2026-09-17
+# Current update — live device discovery, 2026-09-17
 
-Main was clean and synchronized with origin at `bd24ae0af` before this change.
-The user wants personal, seamless account sign-in across MacBook and Mac Studio;
-that account-service work remains pending.
+Implemented the user's approved replacement for five-minute KV directory caching.
+No push, Cloudflare deployment, desktop release, or paid plan change is authorized
+by this work. Full account sign-in remains a separate pending feature; personal
+relay pairing continues to use the existing codes.
 
-Cloudflare's STATE metrics showed 566 list operations, 5.6k reads, 6 writes, and
-2 deletes over the last 24 hours. The 50% free-tier alert is consistent with the
-1,000/day list quota. The app polls account servers every 30 seconds and each
-request previously scanned KV. The desktop also refreshes every 10 minutes.
+## Delivered
 
-The relay now caches only directory handles/names for five minutes, scoped to
-the KV binding and legacy handle within each Worker isolate. Concurrent scans
-are shared; pairing/disconnect invalidates the local cache. Online status and
-credential checks remain uncached by this change. Other isolates may show
-directory changes up to five minutes later; cold starts still scan KV.
+- One personal AccountDO owns device metadata, credential lookup/revocation and
+  one-time pairing codes. Wrangler migration v3 imports existing STATE KV records
+  once, retaining the source as backup. All subsequent account operations use
+  durable account storage; the old per-isolate cache is removed.
+- Authenticated discovery WebSockets send complete snapshots on connect and on
+  pairing, removal, and tunnel presence changes. Automatic ping/pong preserves
+  hibernation. Failed broadcasts/presence/revocation notifications retry through
+  durable alarms. No heartbeat scans KV or periodically writes last-seen state.
+- Connect shares one subscription with local browser/desktop views through the
+  existing realtime channel. Desktop-only operation can subscribe directly.
+  CLI `kaioken connect servers` and the existing SDK RPC use that same cached
+  snapshot. The UI's five-minute local refresh is only a fallback.
+- Reconnect deadlines, jittered exponential backoff, silent disconnect detection,
+  revocation messages/handshake rejection, disposal, and late-response guards
+  protect recovery. The host daemon protocol is unchanged.
 
-Verification: Turbo relay test + typecheck passed, including 21 tests using
-real Miniflare KV. The polling regression verifies 120 refreshes require 12
-scans, plus invalidation, namespace isolation, and rejection of removed
-credentials despite stale directory entries. Log: `/tmp/kaioken-relay-kv-check.log`.
+## Evidence and limits
 
-Not deployed or pushed. Next: deploy the relay change, then check list-operation
-usage over a comparable active period. No paid plan or account settings changed.
+152 relevant tests passed: relay 20 (real Miniflare KV/DO and Node WebSockets),
+Connect client 20, Connect plugin 95, federation UI 6, desktop device sync 11.
+All five affected package typechecks passed through Turbo. Tests cover live
+pairing/presence/reconnect, atomic pairing-code consumption, legacy migration,
+revocation, idle heartbeats, cache sharing, and late HTTP results.
+
+Logs: `/tmp/kaioken-discovery-tests.log`,
+`/tmp/kaioken-plugin-discovery-final.log`, `/tmp/kaioken-federation-tests.log`,
+`/tmp/kaioken-desktop-discovery-tests.log`, `/tmp/kaioken-discovery-ui-types.log`,
+and `/tmp/kaioken-desktop-discovery-types-final.log`.
+
+The installed Miniflare version delays the client close event even after the
+Durable Object reports CLOSED. A standalone minimal DO reproduced this without
+Kaioken (`/tmp/kaioken-ws-close-probe.cjs`). Relay tests assert immediate revocation
+notification and rejected credentials; client tests verify disposal and no retry
+on that notification. Production close timing and two-Mac operation are not
+claimed as verified. No service deployment was used for verification.
+
+## Next action
+
+Review the local implementation. When the user authorizes rollout, deploy the
+relay migration before updated clients and verify MacBook/Mac Studio behavior
+and Cloudflare usage. Older clients retain the HTTP directory route. See
+`apps/relay/README.md` for migration/rollback details: after accepting mutations,
+the retained KV copy is stale, so do not roll back to a KV-only worker without
+reconciling current durable state. Remote project/task polling remains unchanged.
 
 ---
 

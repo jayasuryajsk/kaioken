@@ -14,7 +14,7 @@ import {
   sha256Hex,
   verifySessionCookie,
 } from "./auth.js";
-import { MACHINE_CODE_TTL_MS, RelayStore, isValidHandle } from "./store.js";
+import { MACHINE_CODE_TTL_MS, isValidHandle } from "./store.js";
 import {
   acceptsAccountApi,
   acceptsTunnel,
@@ -34,8 +34,9 @@ import {
 } from "./protocol-headers.js";
 
 export { TunnelDO, PairingLimiter };
+export { AccountDO } from "./account-do.js";
+import { AccountStore, accountStub } from "./account-store.js";
 
-const SERVER_OFFLINE_AFTER_MS = 90_000;
 const CORS_METHODS = "GET, POST, PATCH, PUT, DELETE, OPTIONS";
 const CORS_HEADERS = `content-type, authorization, ${MACHINE_CREDENTIAL_HEADER}, x-requested-with, accept, cache-control, if-none-match`;
 
@@ -281,14 +282,6 @@ async function readTunnelStatus(
   }
 }
 
-function isLive(status: TunnelStatus): boolean {
-  return (
-    status.live ||
-    (status.lastSeenAt !== null &&
-      Date.now() - status.lastSeenAt < SERVER_OFFLINE_AFTER_MS)
-  );
-}
-
 async function closeTunnel(env: Env, handle: string): Promise<void> {
   try {
     await tunnelStub(env, handle).fetch("https://tunnel/__control/close");
@@ -320,8 +313,8 @@ function cookieHeader(
 
 async function presentedCredential(
   request: Request,
-  store: RelayStore,
-): Promise<Awaited<ReturnType<RelayStore["resolveCredential"]>>> {
+  store: AccountStore,
+): Promise<Awaited<ReturnType<AccountStore["resolveCredential"]>>> {
   return store.resolveCredential(
     request.headers.get(MACHINE_CREDENTIAL_HEADER) ?? "",
   );
@@ -331,7 +324,7 @@ async function handleRedeem(
   request: Request,
   topology: RelayTopology,
   env: Env,
-  store: RelayStore,
+  store: AccountStore,
 ): Promise<Response> {
   if (request.method !== "POST") return methodNotAllowed("POST");
   const body = await readJsonBody(request);
@@ -376,7 +369,7 @@ async function handleRedeem(
 async function handleMachineCode(
   request: Request,
   topology: RelayTopology,
-  store: RelayStore,
+  store: AccountStore,
 ): Promise<Response> {
   if (request.method !== "POST") return methodNotAllowed("POST");
   const subject = await presentedCredential(request, store);
@@ -392,7 +385,7 @@ async function handleMachineCode(
 
 async function redeemMachine(
   rawCode: string,
-  store: RelayStore,
+  store: AccountStore,
   label: string,
 ): Promise<{ credential: string; machineId: string } | null> {
   const code = normalizePairingCode(rawCode);
@@ -408,7 +401,7 @@ async function redeemMachine(
 async function handleRedeemMachine(
   request: Request,
   topology: RelayTopology,
-  store: RelayStore,
+  store: AccountStore,
 ): Promise<Response> {
   if (request.method !== "POST") return methodNotAllowed("POST");
   const body = await readJsonBody(request);
@@ -428,7 +421,7 @@ async function handleRedeemMachine(
 
 async function handleRevokeMachine(
   request: Request,
-  store: RelayStore,
+  store: AccountStore,
 ): Promise<Response> {
   if (request.method !== "POST") return methodNotAllowed("POST");
   const subject = await presentedCredential(request, store);
@@ -445,7 +438,7 @@ async function handleDesktopSession(
   request: Request,
   topology: RelayTopology,
   env: Env,
-  store: RelayStore,
+  store: AccountStore,
 ): Promise<Response> {
   if (request.method !== "POST") return methodNotAllowed("POST");
   const subject = await presentedCredential(request, store);
@@ -466,37 +459,10 @@ async function handleDesktopSession(
   });
 }
 
-async function handleListServers(
-  request: Request,
-  topology: RelayTopology,
-  env: Env,
-  store: RelayStore,
-): Promise<Response> {
-  if (request.method !== "GET") return methodNotAllowed("GET");
-  const subject = await presentedCredential(request, store);
-  if (subject === null) return json({ error: "unauthorized" }, 401);
-  const servers = await Promise.all(
-    (await store.listServerDirectory()).map(async (server) => {
-      const status = await readTunnelStatus(env, server.handle);
-      return {
-        handle: server.handle,
-        name: server.name,
-        live: isLive(status),
-        lastSeenAt: status.lastSeenAt,
-        url:
-          topology.baseDomain === null
-            ? topology.serverOrigin
-            : `https://${server.handle}.${topology.baseDomain}`,
-      };
-    }),
-  );
-  return json({ servers });
-}
-
 async function handleDisconnect(
   request: Request,
   env: Env,
-  store: RelayStore,
+  store: AccountStore,
 ): Promise<Response> {
   if (request.method !== "POST") return methodNotAllowed("POST");
   const subject = await presentedCredential(request, store);
@@ -510,7 +476,7 @@ async function handleBrowserLogin(
   request: Request,
   topology: RelayTopology,
   env: Env,
-  store: RelayStore,
+  store: AccountStore,
 ): Promise<Response> {
   if (request.method === "GET") return signInPage(null);
   if (request.method !== "POST") return methodNotAllowed("GET, POST");
@@ -546,7 +512,7 @@ async function handleTunnelDial(
   request: Request,
   topology: RelayTopology,
   env: Env,
-  store: RelayStore,
+  store: AccountStore,
 ): Promise<Response> {
   const auth = request.headers.get("authorization") ?? "";
   const credential = auth.startsWith("Bearer ") ? auth.slice(7) : "";
@@ -619,7 +585,7 @@ async function handleAccountApi(
   request: Request,
   topology: RelayTopology,
   env: Env,
-  store: RelayStore,
+  store: AccountStore,
 ): Promise<Response | null> {
   switch (new URL(request.url).pathname) {
     case "/api/connect/redeem":
@@ -633,7 +599,11 @@ async function handleAccountApi(
     case "/api/connect/desktop-session":
       return handleDesktopSession(request, topology, env, store);
     case "/api/connect/servers":
-      return handleListServers(request, topology, env, store);
+      return accountStub(env).fetch(request);
+    case "/api/connect/events":
+      if (!isTrustedUpgradeOrigin(request.headers.get("origin"), topology))
+        return text("forbidden", 403);
+      return accountStub(env).fetch(request);
     case "/api/connect/disconnect":
       return handleDisconnect(request, env, store);
     default:
@@ -647,7 +617,7 @@ async function routeRequest(
   topology: RelayTopology,
   env: Env,
   ctx: ExecutionContext,
-  store: RelayStore,
+  store: AccountStore,
 ): Promise<Response> {
   if (
     PAIRING_PATHS.has(url.pathname) &&
@@ -673,7 +643,7 @@ async function routeRequest(
   }
   if (topology.role === "apex") {
     return url.pathname === "/"
-      ? apexPage(topology, await store.listServerDirectory())
+      ? apexPage(topology, await store.listServers())
       : text("Kaioken relay: not found\n", 404);
   }
   if (url.pathname === "/__login" && acceptsVisitors(topology)) {
@@ -797,7 +767,7 @@ export default {
     if (request.method === "OPTIONS" && cors !== null) {
       return new Response(null, { status: 204, headers: cors });
     }
-    const store = new RelayStore(env.STATE, defaultHandle(env));
+    const store = new AccountStore(env);
     return withCors(
       await routeRequest(request, url, topology, env, ctx, store),
       cors,

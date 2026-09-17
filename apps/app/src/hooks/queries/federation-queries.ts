@@ -1,5 +1,6 @@
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { wsManager } from "@/lib/ws";
 import {
   selectRemoteServers,
   type FederatedServer,
@@ -22,7 +23,7 @@ import {
 import { sdk } from "@/lib/sdk";
 import { useSshConnections, sshConnectionHandle } from "./connection-queries";
 
-export const ACCOUNT_SERVERS_REFETCH_MS = 30_000;
+export const ACCOUNT_SERVERS_REFETCH_MS = 5 * 60_000;
 export const REMOTE_SNAPSHOT_REFETCH_MS = 15_000;
 const CONNECT_PLUGIN_ID = "connect";
 const LIST_ACCOUNT_SERVERS_RPC = "listAccountServers";
@@ -94,13 +95,51 @@ export async function fetchRemoteSnapshot(
 export function useAccountServers(options?: { enabled?: boolean }) {
   const enabled = options?.enabled ?? true;
   const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!enabled) return;
+    const unsubscribe = wsManager.onPluginSignal((message) => {
+      if (
+        message.pluginId !== CONNECT_PLUGIN_ID ||
+        message.channel !== "account-servers"
+      )
+        return;
+      const result = listAccountServersResultSchema.safeParse(message.payload);
+      if (!result.success) return;
+      const previous =
+        queryClient.getQueryData<FederatedServer[]>(accountServersQueryKey()) ??
+        readStoredServers();
+      const servers = toFederatedServers(result.data, Date.now(), previous);
+      for (const server of servers)
+        bindConnectionIdentity(new URL(server.url).origin, server.handle);
+      writeStoredServers(servers);
+      queryClient.setQueryData(accountServersQueryKey(), servers);
+    });
+    const onConnected = wsManager.onConnected(() => {
+      void queryClient.invalidateQueries({
+        queryKey: accountServersQueryKey(),
+      });
+    });
+    return () => {
+      unsubscribe();
+      onConnected();
+    };
+  }, [enabled, queryClient]);
   return useQuery<FederatedServer[]>({
     queryKey: accountServersQueryKey(),
-    queryFn: () =>
-      fetchAccountServers(
-        queryClient.getQueryData<FederatedServer[]>(accountServersQueryKey()) ??
-          readStoredServers(),
-      ),
+    queryFn: async () => {
+      const before = queryClient.getQueryData<FederatedServer[]>(
+        accountServersQueryKey(),
+      );
+      const result = await fetchAccountServers(before ?? readStoredServers());
+      const current = queryClient.getQueryData<FederatedServer[]>(
+        accountServersQueryKey(),
+      );
+      if (current && current !== before) {
+        writeStoredServers(current);
+        return current;
+      }
+      return result;
+    },
     enabled,
     placeholderData: () => readStoredServers(),
     refetchInterval: ACCOUNT_SERVERS_REFETCH_MS,
