@@ -4,6 +4,10 @@ type ReleaseMeta = {
 };
 
 export const RELEASE_META: Record<string, ReleaseMeta> = {
+  "1.0.21": {
+    date: "September 17, 2026",
+    headline: "GitHub sign-in and live computer discovery",
+  },
   "1.0.20": {
     date: "September 16, 2026",
     headline: "Fix Codex startup with OpenRouter models",

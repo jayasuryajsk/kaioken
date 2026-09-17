@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.21
+
+### New features
+
+- Sign in with GitHub to register each computer with your personal Kaioken service. Connections shows your account and lets you rename or revoke computers.
+- Discover connected computers through live updates, with automatic reconnect and sign-in recovery after restart.
+
+### Fixes
+
+- Reduce Cloudflare storage requests during device discovery and remove the five-minute directory cache.
+- Allow the browser sign-in flow to redirect to GitHub after computer consent.
+
 ## 1.0.20
 
 ### Fixes
