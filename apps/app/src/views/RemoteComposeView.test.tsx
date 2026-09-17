@@ -21,6 +21,7 @@ import {
   makeSidebarBootstrapResponse,
 } from "@/test/fixtures/projects";
 import { makeThreadResponse } from "@/test/fixtures/thread-responses";
+import { makeProjectResponse } from "@/test/fixtures/projects";
 import { RemoteComposeView } from "./RemoteComposeView";
 
 const toast = vi.hoisted(() => ({ error: vi.fn() }));
@@ -281,6 +282,16 @@ function serveMini(state: RemoteState) {
         return state.createStatus === 200
           ? json(makeThreadResponse({ id: "thr_new", projectId: "proj_mini" }))
           : json({ error: "offline" }, state.createStatus);
+      case "GET /api/v1/hosts/host_mini/directory":
+        return json({
+          directory: "/Users/jsk/code",
+          parent: "/Users/jsk",
+          entries: [
+            { kind: "directory", name: "repo", path: "/Users/jsk/code/repo" },
+          ],
+        });
+      case "POST /api/v1/projects":
+        return json(makeProjectResponse({ id: "proj_new", name: "code" }), 201);
       default:
         return json({ error: `unhandled ${method} ${url.pathname}` }, 404);
     }
@@ -419,5 +430,45 @@ describe("RemoteComposeView", () => {
       ).toContain('"proj_missing"'),
     );
     expect(screen.queryByTestId("remote-compose")).toBeNull();
+  });
+
+  it("creates a project on the remote server from its folder browser and opens it", async () => {
+    const state: RemoteState = { createStatus: 200, requests: [] };
+    serveMini(state);
+    renderView();
+    await screen.findByTestId("remote-compose");
+
+    fireEvent.click(screen.getByTestId("remote-new-project"));
+    const submit = await screen.findByRole("button", { name: "Add project" });
+    await waitFor(() => expect(submit.hasAttribute("disabled")).toBe(false));
+    fireEvent.click(submit);
+
+    await waitFor(() =>
+      expect(
+        state.requests.find(
+          (request) =>
+            request.method === "POST" && request.path === "/api/v1/projects",
+        )?.body,
+      ).toEqual({
+        name: "code",
+        source: {
+          type: "local_path",
+          hostId: "host_mini",
+          path: "/Users/jsk/code",
+        },
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByTestId("remote-compose-unknown-project").textContent,
+      ).toContain('"proj_new"'),
+    );
+    expect(
+      state.requests.some(
+        (request) =>
+          request.host === "mini.kaioken.app" &&
+          request.path === "/api/v1/hosts/host_mini/directory",
+      ),
+    ).toBe(true);
   });
 });

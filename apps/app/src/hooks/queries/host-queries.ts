@@ -68,11 +68,25 @@ export function useHostCloneDefaultPath(
   });
 }
 
-export function useHostDirectory(hostId: string | null, path: string | null) {
+export interface HostDirectoryQueryOptions {
+  sdk?: Pick<typeof sdk, "hosts">;
+  cacheScope?: string;
+}
+
+export function useHostDirectory(
+  hostId: string | null,
+  path: string | null,
+  options?: HostDirectoryQueryOptions,
+) {
+  const client = options?.sdk ?? sdk;
+  const baseKey = hostDirectoryQueryKey(hostId, path);
   return useQuery<HostDirectoryListing>({
-    queryKey: hostDirectoryQueryKey(hostId, path),
+    queryKey:
+      options?.cacheScope === undefined
+        ? baseKey
+        : [...baseKey, options.cacheScope],
     queryFn: ({ signal }) =>
-      sdk.hosts.directory({
+      client.hosts.directory({
         hostId: hostId as string,
         ...(path ? { path } : {}),
         signal,

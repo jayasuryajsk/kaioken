@@ -52,7 +52,24 @@ import {
 } from "@/hooks/thread-creation-options/selection-state";
 import { PERMISSION_MODE_OPTIONS } from "@/lib/permission-mode-options";
 import { getProviderIconInfo } from "@/lib/provider-icon";
-import { getRemoteThreadRoutePath } from "@/lib/route-paths";
+import {
+  getRemoteProjectComposeRoutePath,
+  getRemoteThreadRoutePath,
+} from "@/lib/route-paths";
+import { Button } from "@kaioken/shared-ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@kaioken/shared-ui/dropdown-menu";
+import { deriveProjectNameFromPath } from "@kaioken/domain";
+import {
+  ProjectPathDialog,
+  type ProjectPathDialogTarget,
+} from "@/components/dialogs/ProjectPathDialog";
+import { useCreateRemoteProject } from "@/hooks/mutations/remote-project-mutations";
+import { getRemoteSdk } from "@/lib/federation/remote-sdk";
 
 const REMOTE_TYPEAHEAD: TypeaheadConfig = {
   mention: {
@@ -449,6 +466,117 @@ function RemoteComposer({ server, project }: RemoteComposerProps) {
   );
 }
 
+interface RemoteProjectSwitcherProps {
+  server: FederatedServer;
+  projects: readonly ProjectWithThreadsResponse[];
+  personalProject: ProjectWithThreadsResponse | null;
+  currentProject: ProjectWithThreadsResponse | null;
+}
+
+function RemoteProjectSwitcher({
+  server,
+  projects,
+  personalProject,
+  currentProject,
+}: RemoteProjectSwitcherProps) {
+  const navigate = useNavigate();
+  const hostsQuery = useRemoteHosts(server);
+  const hosts = useMemo(
+    () => selectPersistentHosts(hostsQuery.data ?? []),
+    [hostsQuery.data],
+  );
+  const [target, setTarget] = useState<ProjectPathDialogTarget | null>(null);
+  const create = useCreateRemoteProject(server);
+  const remoteSdk = useMemo(() => getRemoteSdk(server.url), [server.url]);
+  const defaultHostId =
+    (currentProject === null ? null : projectHostId(currentProject)) ??
+    hosts[0]?.id ??
+    null;
+  const options = [
+    ...(personalProject === null ? [] : [personalProject]),
+    ...projects.filter((project) => project.id !== personalProject?.id),
+  ];
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-2 px-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            data-testid="remote-project-switcher"
+            className="gap-1"
+          >
+            <Icon name="Folder" className="size-3.5" />
+            {currentProject?.name ?? "Choose a project"}
+            <Icon name="ChevronDown" className="size-3.5 opacity-70" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="max-h-80 overflow-y-auto">
+          {options.map((project) => (
+            <DropdownMenuItem
+              key={project.id}
+              onSelect={() =>
+                navigate(
+                  getRemoteProjectComposeRoutePath({
+                    handle: server.handle,
+                    projectId: project.id,
+                  }),
+                )
+              }
+            >
+              {project.name}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        data-testid="remote-new-project"
+        disabled={!server.live || create.isPending}
+        onClick={() => setTarget({ kind: "create" })}
+      >
+        <Icon name="Plus" className="size-3.5" />
+        New project on {server.name}
+      </Button>
+      <ProjectPathDialog
+        target={target}
+        pending={create.isPending}
+        platform={null}
+        hostId={defaultHostId}
+        hostName={hosts.find((host) => host.id === defaultHostId)?.name ?? null}
+        hosts={hosts}
+        sdk={remoteSdk}
+        cacheScope={server.handle}
+        onOpenChange={(open) => {
+          if (!open) setTarget(null);
+        }}
+        onSubmit={(submitted, path, hostId) => {
+          if (submitted.kind !== "create" || hostId === null) return;
+          const name = deriveProjectNameFromPath(path).trim();
+          if (name.length === 0) return;
+          create.mutate(
+            { name, source: { type: "local_path", hostId, path } },
+            {
+              onSuccess: (project) => {
+                setTarget(null);
+                navigate(
+                  getRemoteProjectComposeRoutePath({
+                    handle: server.handle,
+                    projectId: project.id,
+                  }),
+                );
+              },
+            },
+          );
+        }}
+      />
+    </div>
+  );
+}
+
 export function RemoteComposeView() {
   const params = useParams<{ handle: string; projectId: string }>();
   const handle = params.handle ?? "";
@@ -484,6 +612,15 @@ export function RemoteComposeView() {
     );
   }
 
+  const switcher =
+    snapshot?.bootstrap === null || snapshot === undefined ? null : (
+      <RemoteProjectSwitcher
+        server={server}
+        projects={snapshot.bootstrap.projects}
+        personalProject={snapshot.bootstrap.personalProject}
+        currentProject={project}
+      />
+    );
   const header = (
     <div className="mb-3 flex min-w-0 items-center gap-2 px-2">
       <h1
@@ -524,6 +661,7 @@ export function RemoteComposeView() {
     return (
       <PageShell>
         {header}
+        {switcher}
         <p
           data-testid="remote-compose-unknown-project"
           className="px-2 py-4 text-sm text-muted-foreground"
@@ -547,6 +685,7 @@ export function RemoteComposeView() {
       }
     >
       {header}
+      {switcher}
       <p className="px-2 text-sm text-muted-foreground">
         The thread is created and runs on {server.name}. You can follow and
         reply to it from here.

@@ -16,7 +16,7 @@ import { usePointerCoarse } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 import { Input } from "@kaioken/shared-ui/input";
 import { invalidateHostDirectoryListing } from "@/hooks/cache-owners/host-directory-cache-owner";
 import { useHostDirectory } from "@/hooks/queries/host-queries";
-import { sdk } from "@/lib/sdk";
+import { sdk as localSdk } from "@/lib/sdk";
 import { getMutationErrorMessage } from "@/lib/mutation-errors";
 import { cn } from "@kaioken/shared-ui/lib/utils";
 
@@ -67,12 +67,16 @@ const DIRECTORY_ENTRY_OVERSCAN_ROWS = 10;
 
 const NO_ENTRIES: HostDirectoryListing["entries"] = [];
 
+export type PathBrowserSdk = Pick<typeof localSdk, "hosts" | "files">;
+
 interface RemotePathBrowserProps {
   hostId: string;
   initialPath?: string | null;
   allowCreateFolder: boolean;
   onDirectoryChange: (directory: string | null) => void;
   disabled?: boolean;
+  sdk?: PathBrowserSdk;
+  cacheScope?: string;
 }
 
 export function RemotePathBrowser({
@@ -81,6 +85,8 @@ export function RemotePathBrowser({
   allowCreateFolder,
   onDirectoryChange,
   disabled = false,
+  sdk = localSdk,
+  cacheScope,
 }: RemotePathBrowserProps) {
   const [currentPath, setCurrentPath] = useState<string | null>(initialPath);
   const [isEditing, setIsEditing] = useState(false);
@@ -95,6 +101,7 @@ export function RemotePathBrowser({
   const { data, isError, error, isPlaceholderData } = useHostDirectory(
     hostId,
     currentPath,
+    { sdk, ...(cacheScope === undefined ? {} : { cacheScope }) },
   );
 
   const directory = data?.directory ?? null;

@@ -25,7 +25,10 @@ import {
 } from "@kaioken/shared-ui/dialog";
 import { Input } from "@kaioken/shared-ui/input";
 import { cn } from "@kaioken/shared-ui/lib/utils";
-import { RemotePathBrowser } from "@/components/dialogs/RemotePathBrowser";
+import {
+  RemotePathBrowser,
+  type PathBrowserSdk,
+} from "@/components/dialogs/RemotePathBrowser";
 import { usePointerCoarse } from "@kaioken/shared-ui/hooks/use-pointer-coarse";
 import { selectPersistentHosts } from "@/hooks/queries/host-queries";
 
@@ -58,6 +61,8 @@ interface ProjectPathDialogProps {
   hostId: string | null;
   hostName: string | null;
   hosts?: readonly Host[];
+  sdk?: PathBrowserSdk;
+  cacheScope?: string;
   onOpenChange: (open: boolean) => void;
   onSubmit: ProjectPathDialogSubmitHandler;
 }
@@ -69,6 +74,8 @@ export function ProjectPathDialog({
   hostId,
   hostName,
   hosts,
+  sdk,
+  cacheScope,
   onOpenChange,
   onSubmit,
 }: ProjectPathDialogProps) {
@@ -84,6 +91,8 @@ export function ProjectPathDialog({
             hostId={hostId}
             hostName={hostName}
             hosts={hosts}
+            sdk={sdk}
+            cacheScope={cacheScope}
             onSubmit={onSubmit}
           />
         ) : null}
@@ -99,6 +108,8 @@ interface ProjectPathDialogContentProps {
   hostId: string | null;
   hostName: string | null;
   hosts?: readonly Host[];
+  sdk?: PathBrowserSdk;
+  cacheScope?: string;
   onSubmit: ProjectPathDialogSubmitHandler;
 }
 
@@ -154,6 +165,8 @@ export function ProjectPathDialogContent({
   hostId,
   hostName,
   hosts,
+  sdk,
+  cacheScope,
   onSubmit,
 }: ProjectPathDialogContentProps) {
   const inputId = useId();
@@ -323,6 +336,8 @@ export function ProjectPathDialogContent({
             allowCreateFolder={target.kind === "create"}
             onDirectoryChange={setBrowserDirectory}
             disabled={pending || !selectedHostConnected}
+            {...(sdk === undefined ? {} : { sdk })}
+            {...(cacheScope === undefined ? {} : { cacheScope })}
           />
         ) : noMachineAvailable ? (
           <p className="rounded-md border px-3 py-6 text-center text-sm text-muted-foreground">

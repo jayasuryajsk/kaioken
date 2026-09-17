@@ -1,6 +1,10 @@
 import { subscribeRemoteSnapshot } from "@/lib/federation/snapshot-subscription";
 import { workspaceEmbedding } from "@/lib/federation/workspace-protocol";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  invalidateAccountServers,
+  setAccountServers,
+} from "../cache-owners/federation-cache-owner";
 import { useEffect, useMemo } from "react";
 import { wsManager } from "@/lib/ws";
 import {
@@ -114,12 +118,10 @@ export function useAccountServers(options?: { enabled?: boolean }) {
       for (const server of servers)
         bindConnectionIdentity(new URL(server.url).origin, server.handle);
       writeStoredServers(servers);
-      queryClient.setQueryData(accountServersQueryKey(), servers);
+      setAccountServers(queryClient, servers);
     });
     const onConnected = wsManager.onConnected(() => {
-      void queryClient.invalidateQueries({
-        queryKey: accountServersQueryKey(),
-      });
+      invalidateAccountServers(queryClient);
     });
     return () => {
       unsubscribe();

@@ -1,4 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
+import { invalidateRemoteServerSnapshot } from "@/hooks/cache-owners/federation-cache-owner";
 import { getRemoteSdk } from "./remote-sdk";
 
 const subscriptions = new WeakMap<
@@ -24,10 +25,11 @@ export function subscribeRemoteSnapshot(
       if (timer !== undefined) return;
       timer = setTimeout(() => {
         timer = undefined;
-        void client.invalidateQueries(
-          { queryKey: ["federation", "snapshot", handle] },
-          { cancelRefetch: false },
-        );
+        invalidateRemoteServerSnapshot({
+          queryClient: client,
+          handle,
+          cancelRefetch: false,
+        });
       }, 300);
     };
     const sdk = getRemoteSdk(url);
