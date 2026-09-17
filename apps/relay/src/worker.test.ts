@@ -944,6 +944,9 @@ describe("GitHub account sign-in", () => {
     expect(response.status).toBe(200);
     const login = connectLoginStartSchema.parse(await response.json());
     const browser = await relay.dispatchFetch(login.browserUrl);
+    expect(browser.headers.get("content-security-policy")).toContain(
+      "form-action 'self' https://github.com/login/oauth/authorize;",
+    );
     const cookie = browser.headers.get("set-cookie")!.split(";")[0]!;
     const html = await browser.text();
     expect(html).toContain("Connect My Mac");

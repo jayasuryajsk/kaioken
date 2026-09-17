@@ -1,4 +1,60 @@
-# Current update — personal GitHub sign-in, 2026-09-17
+# Current update — live GitHub setup and sign-in, 2026-09-17
+
+User authorized GitHub OAuth configuration, Cloudflare deployment and live
+verification. The MacBook is unavailable, so physical two-Mac testing remains
+pending. No Git push or desktop release was performed; the installed app was
+not changed.
+
+## Live configuration
+
+- GitHub OAuth app Kaioken: https://github.com/settings/applications/3863677.
+  Homepage https://kaioken.app; callback
+  https://kaioken.app/auth/github/callback. Wildcard callback and device flow
+  are disabled. Sign-in requested public-profile access only.
+- Cloudflare kaioken-relay has GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET and
+  GITHUB_ALLOWED_USER_ID configured as secrets. Owner is jayasuryajsk, numeric
+  ID 13784001. Existing PAIR_CODE and SESSION_SECRET were retained. No secret
+  values were written to source or this handoff.
+- Relay migrations v3 AccountDO and v4 LoginDO deployed. Current live version:
+  24bffd21-4a7d-4651-8957-6b1580fe510e. Existing wildcard/custom-domain routes,
+  STATE KV and legacy devices were retained; no paid-plan change.
+- Wrangler login uses encrypted local credential storage with a macOS Keychain
+  key. Deployment logs: /tmp/kaioken-relay-live-deploy.log and
+  /tmp/kaioken-relay-redirect-deploy.log.
+
+## Fix and evidence
+
+The real Chrome consent POST exposed a CSP issue: form-action 'self' blocked its
+redirect to GitHub. Added only https://github.com/login/oauth/authorize to the
+allowed form destinations, with a response-header regression assertion. Relay
+tests (25) and typecheck passed through Turbo; log:
+/tmp/kaioken-relay-oauth-redirect-tests.log. The corrected relay was redeployed.
+
+Real GitHub authorization then completed successfully. The isolated Mac Studio
+source runtime registered as mac-studio-source-434cb033, connected, and retained
+the same authenticated connection after restart. Its Connections UI shows
+jayasuryajsk. Source app: http://localhost:16606/settings/connections; Connect
+relayUrl is https://kaioken.app. Data directory remains
+/Users/macstudio/.kaioken-dev/kaioken-660257e6d19f. No model request was sent.
+
+Live discovery returned the source runtime and legacy mac-studio/studio devices.
+The legacy studio entry is named MacBook, but that does not verify fresh login
+on the physical MacBook. Opening its workspace from the ordinary localhost
+browser returned unavailable. This browser uses cross-origin cookie auth,
+whereas the desktop uses its credential-bearing federated bridge; the browser
+failure is not evidence that the desktop bridge works or that MacBook is offline.
+
+## Remaining verification
+
+When MacBook is available, use updated clients on both Macs to test fresh login,
+opening remote repos/tasks, reconnect and revocation. Packaged deep-link
+activation and desktop bridge access were not live-tested here. The deployed
+relay and tested source runtime are ready; the installed desktop still needs an
+updated build. Do not publish a desktop release without user authorization.
+
+---
+
+# Previous update — personal GitHub sign-in, 2026-09-17
 
 Implemented the approved sign-in flow on top of live discovery. Scope is the
 user's personal single-owner service. No GitHub OAuth application was created,

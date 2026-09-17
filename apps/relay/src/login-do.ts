@@ -62,7 +62,7 @@ function page(
         "cache-control": "no-store",
         "referrer-policy": "no-referrer",
         "content-security-policy":
-          "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
+          "default-src 'none'; style-src 'unsafe-inline'; form-action 'self' https://github.com/login/oauth/authorize; frame-ancestors 'none'; base-uri 'none'",
         ...(cookie ? { "set-cookie": cookie } : {}),
       },
     },
