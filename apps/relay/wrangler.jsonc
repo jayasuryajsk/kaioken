@@ -17,12 +17,14 @@
     { "tag": "v1", "new_sqlite_classes": ["TunnelDO"] },
     { "tag": "v2", "new_sqlite_classes": ["PairingLimiter"] },
     { "tag": "v3", "new_sqlite_classes": ["AccountDO"] },
+    { "tag": "v4", "new_sqlite_classes": ["LoginDO"] },
   ],
   "durable_objects": {
     "bindings": [
       { "name": "TUNNEL_DO", "class_name": "TunnelDO" },
       { "name": "PAIRING_LIMITER", "class_name": "PairingLimiter" },
       { "name": "ACCOUNT_DO", "class_name": "AccountDO" },
+      { "name": "LOGIN_DO", "class_name": "LoginDO" },
     ],
   },
   "kv_namespaces": [

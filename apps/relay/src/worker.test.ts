@@ -7,7 +7,11 @@ import {
   it,
   vi,
 } from "vitest";
-import { Miniflare } from "miniflare";
+import { Miniflare, createFetchMock } from "miniflare";
+import {
+  connectLoginStartSchema,
+  connectLoginDeviceSchema,
+} from "@kaioken/connect-client";
 import NodeWebSocket from "ws";
 import { build } from "esbuild";
 import { join } from "node:path";
@@ -25,7 +29,10 @@ let bundleText: string;
 type DispatchInit = Parameters<Miniflare["dispatchFetch"]>[1];
 type DispatchResponse = Awaited<ReturnType<Miniflare["dispatchFetch"]>>;
 
-function createRelay(bindings: Record<string, string>): Miniflare {
+function createRelay(
+  bindings: Record<string, string>,
+  fetchMock?: ReturnType<typeof createFetchMock>,
+): Miniflare {
   return new Miniflare({
     modules: [{ type: "ESModule", path: "/worker.mjs", contents: bundleText }],
     modulesRoot: "/",
@@ -36,8 +43,10 @@ function createRelay(bindings: Record<string, string>): Miniflare {
       TUNNEL_DO: "TunnelDO",
       PAIRING_LIMITER: "PairingLimiter",
       ACCOUNT_DO: "AccountDO",
+      LOGIN_DO: "LoginDO",
     },
     kvNamespaces: ["STATE"],
+    ...(fetchMock ? { fetchMock } : {}),
     bindings: { PAIR_CODE, SESSION_SECRET, ...bindings },
   });
 }
@@ -885,5 +894,362 @@ describe("relativeTime", () => {
     expect(relativeTime(now - 10_000, now)).toBe("just now");
     expect(relativeTime(now - 3 * 60_000, now)).toBe("3 minutes ago");
     expect(relativeTime(now - 2 * 3_600_000, now)).toBe("2 hours ago");
+  });
+});
+
+describe("GitHub account sign-in", () => {
+  function fixture(githubId = 42) {
+    const outbound = createFetchMock();
+    outbound.disableNetConnect();
+    outbound
+      .get("https://github.com")
+      .intercept({ path: "/login/oauth/access_token", method: "POST" })
+      .reply(200, { access_token: "github-test-token", token_type: "bearer" })
+      .persist();
+    outbound
+      .get("https://api.github.com")
+      .intercept({
+        path: "/user",
+        method: "GET",
+        headers: { authorization: "Bearer github-test-token" },
+      })
+      .reply(200, { id: githubId, login: "owner" })
+      .persist();
+    return createRelay(
+      {
+        BASE_DOMAIN: "kaioken.app",
+        GITHUB_CLIENT_ID: "test-client",
+        GITHUB_CLIENT_SECRET: "test-secret",
+        GITHUB_ALLOWED_USER_ID: "42",
+      },
+      outbound,
+    );
+  }
+  async function begin(
+    relay: Miniflare,
+    proof: string,
+    previous: { handle: string; hash: string } | null = null,
+  ) {
+    const response = await relay.dispatchFetch(
+      "https://kaioken.app/api/connect/login",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          name: "My Mac",
+          challenge: await sha256Hex(proof),
+          previous,
+        }),
+      },
+    );
+    expect(response.status).toBe(200);
+    const login = connectLoginStartSchema.parse(await response.json());
+    const browser = await relay.dispatchFetch(login.browserUrl);
+    const cookie = browser.headers.get("set-cookie")!.split(";")[0]!;
+    const html = await browser.text();
+    expect(html).toContain("Connect My Mac");
+    expect(html).not.toContain(proof);
+    const csrf = /name="csrf" value="([^"]+)"/u.exec(html)![1]!;
+    const authorize = await relay.dispatchFetch(login.browserUrl, {
+      method: "POST",
+      headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ csrf }).toString(),
+      redirect: "manual",
+    });
+    expect(authorize.status).toBe(302);
+    const github = new URL(authorize.headers.get("location")!);
+    expect(github.origin).toBe("https://github.com");
+    expect(github.searchParams.get("code_challenge_method")).toBe("S256");
+    expect(github.searchParams.get("scope")).toBeNull();
+    const callback = new URL("https://kaioken.app/auth/github/callback");
+    callback.search = new URLSearchParams({
+      state: github.searchParams.get("state")!,
+      code: "github-code",
+    }).toString();
+    return { ...login, cookie, callback: callback.href };
+  }
+  async function complete(relay: Miniflare, id: string, proof: string) {
+    return relay.dispatchFetch(
+      `https://kaioken.app/api/connect/login/${id}/complete`,
+      {
+        method: "POST",
+        headers: { "x-kaioken-login-proof": proof },
+        body: "null",
+      },
+    );
+  }
+  const proofA = `bbcred_${"a".repeat(43)}`;
+  const proofB = `bbcred_${"b".repeat(43)}`;
+
+  it("registers two computers without pairing codes, preserves retries, and supports rename/revocation", async () => {
+    const relay = fixture();
+    try {
+      const first = await begin(relay, proofA);
+      expect((await complete(relay, first.id, proofA)).status).toBe(409);
+      expect(
+        (
+          await relay.dispatchFetch(first.callback, {
+            headers: { cookie: first.cookie },
+          })
+        ).status,
+      ).toBe(200);
+      const device = connectLoginDeviceSchema.parse(
+        await (await complete(relay, first.id, proofA)).json(),
+      );
+      expect(device.account).toEqual({ githubId: "42", login: "owner" });
+      expect(await (await complete(relay, first.id, proofA)).json()).toEqual(
+        device,
+      );
+      expect((await complete(relay, first.id, proofB)).status).toBe(401);
+      expect(
+        (
+          await relay.dispatchFetch(first.callback, {
+            headers: { cookie: first.cookie },
+          })
+        ).status,
+      ).toBe(403);
+      const second = await begin(relay, proofB);
+      await relay.dispatchFetch(second.callback, {
+        headers: { cookie: second.cookie },
+      });
+      const other = connectLoginDeviceSchema.parse(
+        await (await complete(relay, second.id, proofB)).json(),
+      );
+      expect(other.handle).not.toBe(device.handle);
+      const headers = { "x-bb-connect-machine": proofA };
+      const list = await relay.dispatchFetch(
+        "https://kaioken.app/api/connect/servers",
+        { headers },
+      );
+      expect(
+        ((await list.json()) as { servers: unknown[] }).servers,
+      ).toHaveLength(2);
+      const renamed = await relay.dispatchFetch(
+        `https://kaioken.app/api/connect/devices/${other.handle}`,
+        { method: "PATCH", headers, body: JSON.stringify({ name: "MacBook" }) },
+      );
+      expect(renamed.status).toBe(200);
+      expect(
+        await (
+          await relay.dispatchFetch("https://kaioken.app/api/connect/servers", {
+            headers,
+          })
+        ).json(),
+      ).toMatchObject({
+        servers: expect.arrayContaining([
+          expect.objectContaining({ name: "MacBook" }),
+        ]),
+      });
+      expect(
+        (
+          await relay.dispatchFetch(
+            `https://kaioken.app/api/connect/devices/${other.handle}`,
+            { method: "DELETE", headers },
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await relay.dispatchFetch("https://kaioken.app/api/connect/servers", {
+            headers: { "x-bb-connect-machine": proofB },
+          })
+        ).status,
+      ).toBe(401);
+      expect((await complete(relay, second.id, proofB)).status).toBe(410);
+    } finally {
+      await relay.dispose();
+    }
+  });
+
+  it("rotates an existing computer without duplicating it and cancels a completed registration", async () => {
+    const relay = fixture();
+    try {
+      const first = await begin(relay, proofA);
+      await relay.dispatchFetch(first.callback, {
+        headers: { cookie: first.cookie },
+      });
+      const device = connectLoginDeviceSchema.parse(
+        await (await complete(relay, first.id, proofA)).json(),
+      );
+      const second = await begin(relay, proofB, {
+        handle: device.handle,
+        hash: await sha256Hex(proofA),
+      });
+      const events = await relay.dispatchFetch(
+        `https://kaioken.app/api/connect/login/${second.id}/events`,
+        { headers: { upgrade: "websocket", "x-kaioken-login-proof": proofB } },
+      );
+      expect(events.status).toBe(101);
+      const socket = events.webSocket!;
+      socket.accept();
+      const approved = new Promise<void>((resolve) =>
+        socket.addEventListener("message", (event) => {
+          if (JSON.parse(String(event.data)).phase === "approved") resolve();
+        }),
+      );
+      await relay.dispatchFetch(second.callback, {
+        headers: { cookie: second.cookie },
+      });
+      await approved;
+      const rotated = connectLoginDeviceSchema.parse(
+        await (await complete(relay, second.id, proofB)).json(),
+      );
+      expect(rotated.handle).toBe(device.handle);
+      expect(
+        (
+          await relay.dispatchFetch("https://kaioken.app/api/connect/servers", {
+            headers: { "x-bb-connect-machine": proofA },
+          })
+        ).status,
+      ).toBe(401);
+      const directory = await relay.dispatchFetch(
+        "https://kaioken.app/api/connect/servers",
+        { headers: { "x-bb-connect-machine": proofB } },
+      );
+      expect(await directory.json()).toMatchObject({
+        servers: [expect.objectContaining({ handle: device.handle })],
+      });
+      expect(
+        (
+          await relay.dispatchFetch(
+            `https://kaioken.app/api/connect/login/${second.id}/cancel`,
+            { method: "POST", headers: { "x-kaioken-login-proof": proofB } },
+          )
+        ).status,
+      ).toBe(200);
+      expect((await complete(relay, second.id, proofB)).status).toBe(403);
+      expect(
+        (
+          await relay.dispatchFetch("https://kaioken.app/api/connect/servers", {
+            headers: { "x-bb-connect-machine": proofB },
+          })
+        ).status,
+      ).toBe(401);
+      socket.close();
+    } finally {
+      await relay.dispose();
+    }
+  });
+
+  it("deduplicates registration retries at the account boundary and never restores revoked access", async () => {
+    const relay = fixture();
+    try {
+      const namespace = await relay.getDurableObjectNamespace("ACCOUNT_DO");
+      const account = namespace.get(namespace.idFromName("personal"));
+      const hash = await sha256Hex(proofA);
+      const register = () =>
+        account.fetch("https://account/command", {
+          method: "POST",
+          body: JSON.stringify({
+            method: "registerDevice",
+            args: ["Mac Studio", hash, null],
+          }),
+        });
+      const first = await (await register()).json();
+      expect(await (await register()).json()).toEqual(first);
+      const listed = await relay.dispatchFetch(
+        "https://kaioken.app/api/connect/servers",
+        { headers: { "x-bb-connect-machine": proofA } },
+      );
+      expect(await listed.json()).toMatchObject({
+        servers: [expect.objectContaining({ name: "Mac Studio" })],
+      });
+      const cancelled = await account.fetch("https://account/command", {
+        method: "POST",
+        body: JSON.stringify({ method: "cancelRegistration", args: [hash] }),
+      });
+      expect(await cancelled.json()).toEqual(expect.any(String));
+      expect(await (await register()).json()).toBeNull();
+      expect(
+        (
+          await relay.dispatchFetch("https://kaioken.app/api/connect/servers", {
+            headers: { "x-bb-connect-machine": proofA },
+          })
+        ).status,
+      ).toBe(401);
+    } finally {
+      await relay.dispose();
+    }
+  });
+
+  it("binds callbacks to their browser and rejects an unapproved GitHub identity", async () => {
+    const relay = fixture(99);
+    try {
+      const login = await begin(relay, proofA);
+      expect((await relay.dispatchFetch(login.callback)).status).toBe(403);
+      const wrongState = new URL(login.callback);
+      wrongState.searchParams.set("state", `${login.id}.wrong`);
+      expect(
+        (
+          await relay.dispatchFetch(wrongState, {
+            headers: { cookie: login.cookie },
+          })
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await relay.dispatchFetch(login.callback, {
+            headers: { cookie: login.cookie },
+          })
+        ).status,
+      ).toBe(403);
+      expect((await complete(relay, login.id, proofA)).status).toBe(403);
+      expect(
+        (
+          await relay.dispatchFetch("https://kaioken.app/api/connect/servers", {
+            headers: { "x-bb-connect-machine": proofA },
+          })
+        ).status,
+      ).toBe(401);
+    } finally {
+      await relay.dispose();
+    }
+  });
+
+  it("blocks browser CSRF, cancels pending sign-ins, and rejects missing service configuration", async () => {
+    const unavailable = await domainMf.dispatchFetch(
+      "https://kaioken.app/api/connect/login",
+      { method: "POST", body: "{}" },
+    );
+    expect(unavailable.status).toBe(503);
+    const relay = fixture();
+    try {
+      const response = await relay.dispatchFetch(
+        "https://kaioken.app/api/connect/login",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: "My Mac",
+            challenge: await sha256Hex(proofA),
+            previous: null,
+          }),
+        },
+      );
+      const login = connectLoginStartSchema.parse(await response.json());
+      const browser = await relay.dispatchFetch(login.browserUrl);
+      const cookie = browser.headers.get("set-cookie")!.split(";")[0]!;
+      expect(
+        (
+          await relay.dispatchFetch(login.browserUrl, {
+            method: "POST",
+            headers: {
+              cookie,
+              "content-type": "application/x-www-form-urlencoded",
+            },
+            body: "csrf=wrong",
+          })
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await relay.dispatchFetch(
+            `https://kaioken.app/api/connect/login/${login.id}/cancel`,
+            { method: "POST", headers: { "x-kaioken-login-proof": proofA } },
+          )
+        ).status,
+      ).toBe(200);
+      expect((await complete(relay, login.id, proofA)).status).toBe(403);
+    } finally {
+      await relay.dispose();
+    }
   });
 });

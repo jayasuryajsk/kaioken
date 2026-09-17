@@ -12,6 +12,7 @@ import type { MobilePairingGate } from "./rpc.js";
 import { parseSharePort } from "./shares.js";
 import type { ConnectTunnel } from "./tunnel.js";
 import type { ConnectStatus } from "./types.js";
+import type { ConnectSignIn } from "./sign-in.js";
 
 interface ParsedFlags {
   flags: Map<string, string | true>;
@@ -71,6 +72,12 @@ function helpText(): string {
     "Every Mac pairs with its own handle; one account holds all of them and any paired device sees every Mac.",
     "Share HTTP ports from any enrolled host (owner session only).",
     "",
+    "  Sign in: kaioken connect login (prints a browser link; devices register automatically)",
+    "  kaioken connect logout             Sign out and revoke this computer",
+    "  kaioken connect rename <handle> --name <computer-name>",
+    "  kaioken connect revoke <handle>     Revoke another computer",
+    "",
+    "  Advanced pairing:",
     "  1. Get the pairing code from your relay (wrangler secret PAIR_CODE).",
     "  2. Pair this Mac under a name of your choosing:",
     "       kaioken connect --code <PAIR_CODE> --base-url https://kaioken.app --handle <name>",
@@ -92,7 +99,7 @@ function helpText(): string {
 
 function formatStatus(status: ConnectStatus): string {
   if (!status.paired) {
-    return "Not paired\nPair from the kaioken.app dashboard — run `kaioken connect` for a how-to.";
+    return "Not paired\nRun `kaioken connect login` to sign in with GitHub, or `kaioken connect` for pairing options.";
   }
   const lines = [`${status.handle}  ${status.url}  ${status.state}`];
   if (status.lastError !== null && status.state !== "connected") {
@@ -158,13 +165,36 @@ export function registerConnectCli(args: {
   tunnel: ConnectTunnel;
   hostResolver: ShareHostResolver;
   mobilePairing: MobilePairingGate;
+  signIn: ConnectSignIn;
 }): void {
-  const { bb, tunnel, hostResolver, mobilePairing } = args;
+  const { bb, tunnel, hostResolver, mobilePairing, signIn } = args;
   bb.cli.register({
     name: "connect",
     summary:
-      "Expose this kaioken at https://<handle>.kaioken.app (pair with --code/--server from the dashboard)",
+      "Connect your computers through kaioken.app (sign in with kaioken connect login)",
     commands: [
+      {
+        name: "login",
+        summary: "Sign in with GitHub and connect this computer",
+        usage:
+          "kaioken connect login [--name <computer-name>] [--cancel] [--json]",
+      },
+      {
+        name: "logout",
+        summary: "Sign out and revoke this computer",
+        usage: "kaioken connect logout [--json]",
+      },
+      {
+        name: "rename",
+        summary: "Rename an account computer",
+        usage:
+          "kaioken connect rename <handle> --name <computer-name> [--json]",
+      },
+      {
+        name: "revoke",
+        summary: "Revoke an account computer",
+        usage: "kaioken connect revoke <handle> [--json]",
+      },
       {
         name: "status",
         summary: "Show remote-access status",
@@ -205,6 +235,47 @@ export function registerConnectCli(args: {
     async run(argv, ctx): Promise<PluginCliResult> {
       try {
         const [first] = argv;
+        if (first === "login") {
+          const parsed = parseFlags(argv.slice(1));
+          validateFlags(parsed, {
+            boolean: ["json", "cancel"],
+            value: ["name"],
+          });
+          const result = parsed.flags.has("cancel")
+            ? await signIn.cancel()
+            : await signIn.begin(stringFlag(parsed, "name"));
+          return {
+            exitCode: 0,
+            stdout: parsed.flags.has("json")
+              ? asJson(result)
+              : result.browserUrl
+                ? `Open this link to sign in with GitHub:\n${result.browserUrl}\n\nKaioken will connect automatically. Use kaioken connect status to check.\n`
+                : "Sign-in cancelled\n",
+          };
+        }
+        if (first === "rename" || first === "revoke") {
+          const handle = argv[1];
+          if (!handle || handle.startsWith("--"))
+            throw new Error(
+              `Usage: kaioken connect ${first} <handle>${first === "rename" ? " --name <computer-name>" : ""}`,
+            );
+          const parsed = parseFlags(argv.slice(2));
+          validateFlags(parsed, {
+            boolean: ["json"],
+            value: first === "rename" ? ["name"] : [],
+          });
+          const name =
+            first === "rename" ? stringFlag(parsed, "name")?.trim() : null;
+          if (first === "rename" && (!name || name.length > 80))
+            throw new Error("Provide --name with 1–80 characters");
+          await tunnel.manageDevice(handle, name ?? null);
+          return {
+            exitCode: 0,
+            stdout: parsed.flags.has("json")
+              ? asJson({ ok: true })
+              : `${first === "rename" ? "Renamed" : "Revoked"} ${handle}\n`,
+          };
+        }
         if (first === "status") {
           const parsed = parseFlags(argv.slice(1));
           validateFlags(parsed, { boolean: ["json"] });
@@ -216,9 +287,12 @@ export function registerConnectCli(args: {
               : `${formatStatus(status)}\n`,
           };
         }
-        if (first === "off") {
+        if (first === "off" || first === "logout") {
           const parsed = parseFlags(argv.slice(1));
           validateFlags(parsed, { boolean: ["json"] });
+          await signIn.cancel();
+          if (first === "logout" && tunnel.getCredential())
+            await tunnel.manageDevice(tunnel.getCredential()!.handle, null);
           const status = await tunnel.disconnect();
           return {
             exitCode: 0,
@@ -391,6 +465,7 @@ export function registerConnectCli(args: {
         const baseUrl = stringFlag(parsed, "base-url");
         const handle = stringFlag(parsed, "handle");
         const name = stringFlag(parsed, "name");
+        await signIn.cancel();
         const status = await tunnel.pair({
           code,
           ...(server !== undefined ? { serverUrl: server } : {}),

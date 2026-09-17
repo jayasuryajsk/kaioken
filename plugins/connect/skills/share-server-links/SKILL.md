@@ -10,8 +10,8 @@ URL — not a localhost URL. Shares work from threads running on any enrolled
 host, and the command resolves the thread's host automatically.
 
 1. Check pairing: run `kaioken connect status --json`. If not paired / not
-   connected, give the localhost URL and mention that `kaioken connect` enables
-   remote URLs once paired from the kaioken.app dashboard.
+   connected, give the localhost URL and mention that `kaioken connect login` prints a GitHub sign-in link and enables
+   remote URLs after authorization.
 2. From the thread that started the HTTP server, run `kaioken connect expose
 <port>`. It prints that host's share URL. Use `--host <name-or-id>` only
    when you intentionally need another enrolled host; outside a thread,
@@ -36,3 +36,18 @@ toggle, enabled by default. Use
 remote-access message, or `true` to restore it. This controls only the message;
 sharing still works. The message otherwise requires active or recent remote
 usage. Changes apply when session instructions are next assembled.
+
+## Account and computers
+
+Use `kaioken connect login [--name <computer-name>] [--json]` and give the user its
+browser URL. The configured GitHub owner authorizes in the browser; the runtime
+finishes automatically and retains login across restarts. Do not poll for OAuth
+approval or ask the user to paste a GitHub token. `login --cancel` cancels a
+pending sign-in; `status --json` and `servers --json` inspect the connection.
+`rename <handle> --name <name>` changes its display name, `revoke <handle>` removes
+access, and `logout` confirms revocation before clearing this device. These accept
+`--json`. Settings → Connections exposes the same actions. Source checkouts can
+set `kaioken plugin config connect set relayUrl https://kaioken.app` to target a
+configured relay. Missing GitHub configuration is a service setup error; legacy
+code pairing remains available. Repositories and provider credentials stay on
+individual computers.

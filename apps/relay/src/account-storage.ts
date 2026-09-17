@@ -6,7 +6,12 @@ interface StoredValue {
 }
 
 export class AccountStorage implements RelayStorage {
-  constructor(private readonly storage: DurableObjectStorage) {}
+  constructor(
+    private readonly storage: Pick<
+      DurableObjectStorage,
+      "get" | "put" | "delete" | "list" | "getAlarm" | "setAlarm"
+    >,
+  ) {}
 
   get<T>(key: string, type: "json"): Promise<T | null>;
   get(key: string): Promise<string | null>;
@@ -56,15 +61,15 @@ export class AccountStorage implements RelayStorage {
     };
   }
 
-  async expireCodes(): Promise<void> {
-    const codes = await this.storage.list<StoredValue>({
-      prefix: "data:code:",
-    });
+  async expireEphemeralRecords(): Promise<void> {
     let next: number | null = null;
-    for (const [key, entry] of codes) {
-      if (entry.expiresAt === null || entry.expiresAt <= Date.now())
-        await this.storage.delete(key);
-      else next = Math.min(next ?? entry.expiresAt, entry.expiresAt);
+    for (const prefix of ["data:code:", "data:registration:"]) {
+      const records = await this.storage.list<StoredValue>({ prefix });
+      for (const [key, entry] of records) {
+        if (entry.expiresAt === null || entry.expiresAt <= Date.now())
+          await this.storage.delete(key);
+        else next = Math.min(next ?? entry.expiresAt, entry.expiresAt);
+      }
     }
     if (next !== null) await this.storage.setAlarm(next);
   }

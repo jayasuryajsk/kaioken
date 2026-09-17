@@ -1023,6 +1023,9 @@ importers:
 
   apps/relay:
     dependencies:
+      '@kaioken/connect-client':
+        specifier: workspace:*
+        version: link:../../packages/connect-client
       '@kaioken/tunnel-contract':
         specifier: workspace:*
         version: link:../../packages/tunnel-contract

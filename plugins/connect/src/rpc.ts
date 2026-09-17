@@ -5,6 +5,7 @@ import {
 } from "@get-kaioken/plugin-sdk";
 import {
   ConnectListError,
+  connectLoginStatusSchema,
   type DesktopSession,
   type ListAccountServersResult,
 } from "@kaioken/connect-client";
@@ -14,6 +15,7 @@ import type { ConnectStatus } from "./types.js";
 import { MachineCodeError, type MachineCode } from "./machine-code.js";
 import type { ShareHostResolver } from "./hosts.js";
 import type { ShareListing } from "./shares.js";
+import type { ConnectSignIn } from "./sign-in.js";
 
 const pairInputSchema = z.object({
   code: z.string().min(1),
@@ -113,6 +115,23 @@ const machineCodeSchema: z.ZodType<MachineCode> = z
   .strict();
 
 export const connectRpcContract = defineRpcContract({
+  beginSignIn: {
+    input: z.object({ name: z.string().trim().min(1).max(80).optional() }),
+    output: connectLoginStatusSchema,
+  },
+  signInStatus: { input: z.null(), output: connectLoginStatusSchema },
+  cancelSignIn: { input: z.null(), output: connectLoginStatusSchema },
+  renameDevice: {
+    input: z.object({
+      handle: z.string().min(1),
+      name: z.string().trim().min(1).max(80),
+    }),
+    output: z.object({ ok: z.literal(true) }),
+  },
+  revokeDevice: {
+    input: z.object({ handle: z.string().min(1) }),
+    output: z.object({ ok: z.literal(true) }),
+  },
   pair: { input: pairInputSchema, output: connectStatusSchema },
   status: { input: z.null(), output: connectStatusSchema },
   disconnect: { input: z.null(), output: connectStatusSchema },
@@ -152,9 +171,28 @@ export function createRpcHandlers(
   tunnel: ConnectTunnel,
   hostResolver: ShareHostResolver,
   mobilePairing: MobilePairingGate,
+  signIn: ConnectSignIn,
 ): ConnectRpcHandlers {
   return {
+    async beginSignIn(args) {
+      return signIn.begin(args.name);
+    },
+    async signInStatus() {
+      return signIn.status();
+    },
+    async cancelSignIn() {
+      return signIn.cancel();
+    },
+    async renameDevice(args) {
+      await tunnel.manageDevice(args.handle, args.name);
+      return { ok: true };
+    },
+    async revokeDevice(args) {
+      await tunnel.manageDevice(args.handle, null);
+      return { ok: true };
+    },
     async pair(args) {
+      await signIn.cancel();
       try {
         return await tunnel.pair({
           code: args.code,
@@ -174,6 +212,7 @@ export function createRpcHandlers(
       return tunnel.refreshStatus();
     },
     async disconnect() {
+      await signIn.cancel();
       return tunnel.disconnect();
     },
     async expose(args) {

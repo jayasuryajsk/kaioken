@@ -30,3 +30,15 @@ export {
   parseMobilePairingPayload,
   type MobilePairingPayload,
 } from "./mobile-pairing.js";
+export {
+  connectAccountSchema,
+  connectLoginStartSchema,
+  connectLoginDeviceSchema,
+  connectLoginStatusSchema,
+  connectLoginRequest,
+  CONNECT_LOGIN_CHANNEL,
+  type ConnectAccount,
+  type ConnectLoginStart,
+  type ConnectLoginDevice,
+  type ConnectLoginStatus,
+} from "./login.js";

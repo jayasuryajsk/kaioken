@@ -1,9 +1,14 @@
 import { hostname } from "node:os";
-import { ACCOUNT_SERVERS_CHANNEL } from "@kaioken/connect-client";
+import {
+  ACCOUNT_SERVERS_CHANNEL,
+  CONNECT_LOGIN_CHANNEL,
+} from "@kaioken/connect-client";
+import { join } from "node:path";
+import { ConnectSignIn } from "./sign-in.js";
 import type { KaiokenPluginApi } from "@get-kaioken/plugin-sdk";
 import { z } from "zod";
 import { registerConnectCli } from "./cli.js";
-import { createKvCredentialStore } from "./credential.js";
+import { createAccountCredentialStore } from "./credential.js";
 import {
   connectRpcContract,
   createRpcHandlers,
@@ -29,7 +34,7 @@ export default async function plugin(bb: KaiokenPluginApi) {
       type: "string",
       label: "Relay URL",
       description:
-        "Origin of the Connect relay to pair with, for example https://kaioken-relay.you.workers.dev. Leave empty to use the bb-hosted relay.",
+        "Origin of the Connect relay, for example https://kaioken.app. Leave empty to use the default relay.",
       default: "",
       experimental_schema: z.string().superRefine((value, context) => {
         const trimmed = value.trim();
@@ -83,7 +88,16 @@ export default async function plugin(bb: KaiokenPluginApi) {
   settings.onChange((next) => {
     currentSettings = next;
   });
-  const store = createKvCredentialStore(bb.storage.kv);
+  const stateDir = join(
+    bb.server.experimental_dataDir,
+    "plugins",
+    "connect",
+    "secrets",
+  );
+  const store = createAccountCredentialStore(
+    bb.storage.kv,
+    join(stateDir, "account-credential.json"),
+  );
   let tunnel!: ConnectTunnel;
   const hostResolver = new ShareHostResolver(() => bb.sdk);
   const getLoopbackBaseUrl = () =>
@@ -130,12 +144,17 @@ export default async function plugin(bb: KaiokenPluginApi) {
   const mobilePairing: MobilePairingGate = {
     enabled: async () => (await bb.sdk.system.config()).experiments.mobileApp,
   };
+  const signIn = new ConnectSignIn({
+    tunnel,
+    path: join(stateDir, "pending-login.json"),
+    onChange: (status) => bb.realtime.publish(CONNECT_LOGIN_CHANNEL, status),
+  });
 
   bb.rpc.register(
     connectRpcContract,
-    createRpcHandlers(tunnel, hostResolver, mobilePairing),
+    createRpcHandlers(tunnel, hostResolver, mobilePairing, signIn),
   );
-  registerConnectCli({ bb, tunnel, hostResolver, mobilePairing });
+  registerConnectCli({ bb, tunnel, hostResolver, mobilePairing, signIn });
 
   bb.agents.contributeInstructions(() => {
     if (!currentSettings.sendRemoteInstructions) return null;
@@ -157,6 +176,7 @@ export default async function plugin(bb: KaiokenPluginApi) {
   bb.background.service("tunnel", {
     async start(signal) {
       await tunnel.start();
+      await signIn.resume();
       await new Promise<void>((resolve) => {
         if (signal.aborted) {
           resolve();
@@ -165,6 +185,7 @@ export default async function plugin(bb: KaiokenPluginApi) {
         signal.addEventListener("abort", () => resolve(), { once: true });
       });
       tunnel.stop();
+      signIn.stop();
     },
   });
 }

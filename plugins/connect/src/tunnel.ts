@@ -101,6 +101,44 @@ export class ConnectTunnel {
     return this.credential;
   }
 
+  signInBaseUrl(): string {
+    return this.defaultBaseUrl();
+  }
+
+  async acceptAccountCredential(credential: ConnectCredential): Promise<void> {
+    await this.options.store.write(credential);
+    this.credential = credential;
+    this.lastError = null;
+    this.reconnect();
+    this.startDiscovery();
+    this.startShareActivation();
+    this.publish();
+  }
+
+  async manageDevice(handle: string, name: string | null): Promise<void> {
+    const credential = this.credential;
+    if (!credential)
+      throw new ConnectListError("not_paired", "Sign in to Kaioken first");
+    const response = await fetch(
+      new URL(
+        `/api/connect/devices/${encodeURIComponent(handle)}`,
+        deriveConnectBaseUrl(credential.serverUrl),
+      ),
+      {
+        method: name === null ? "DELETE" : "PATCH",
+        headers: {
+          "content-type": "application/json",
+          "x-bb-connect-machine": credential.credential,
+        },
+        ...(name === null ? {} : { body: JSON.stringify({ name }) }),
+        signal: AbortSignal.timeout(15_000),
+      },
+    );
+    if (!response.ok)
+      throw new Error(`Could not update device (${response.status})`);
+    if (name === null && handle === credential.handle) await this.disconnect();
+  }
+
   async start(): Promise<void> {
     const stored = await this.options.store.read();
     if (stored) {

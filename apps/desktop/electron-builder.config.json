@@ -1,6 +1,7 @@
 {
   "appId": "dev.kaioken.desktop",
   "productName": "Kaioken",
+  "protocols": [{ "name": "Kaioken", "schemes": ["kaioken"] }],
   "artifactName": "${productName}-${version}-${arch}.${ext}",
   "toolsets": {
     "appimage": "1.0.3"

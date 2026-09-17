@@ -18,6 +18,23 @@ const subjectSchema = z.discriminatedUnion("kind", [
 ]);
 
 export const accountCommandSchema = z.discriminatedUnion("method", [
+  z.object({
+    method: z.literal("cancelRegistration"),
+    args: z.tuple([z.string().regex(/^[a-f0-9]{64}$/u)]),
+  }),
+  z.object({
+    method: z.literal("registerDevice"),
+    args: z.tuple([
+      z.string().min(1).max(80),
+      z.string().regex(/^[a-f0-9]{64}$/u),
+      z
+        .object({
+          handle: z.string(),
+          hash: z.string().regex(/^[a-f0-9]{64}$/u),
+        })
+        .nullable(),
+    ]),
+  }),
   z.object({ method: z.literal("getServer"), args: z.tuple([z.string()]) }),
   z.object({ method: z.literal("listServers"), args: z.tuple([]) }),
   z.object({
@@ -81,6 +98,22 @@ export class AccountStore {
     return this.call(
       { method: "pairServer", args: [handle, name, credential] },
       serverSchema,
+    );
+  }
+  registerDevice(
+    name: string,
+    hash: string,
+    previous: { handle: string; hash: string } | null,
+  ) {
+    return this.call(
+      { method: "registerDevice", args: [name, hash, previous] },
+      serverSchema.nullable(),
+    );
+  }
+  cancelRegistration(hash: string) {
+    return this.call(
+      { method: "cancelRegistration", args: [hash] },
+      z.string().nullable(),
     );
   }
   unpairServer(handle: string) {

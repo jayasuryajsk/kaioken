@@ -1,4 +1,76 @@
-# Current update — live device discovery, 2026-09-17
+# Current update — personal GitHub sign-in, 2026-09-17
+
+Implemented the approved sign-in flow on top of live discovery. Scope is the
+user's personal single-owner service. No GitHub OAuth application was created,
+no credentials were configured, and no push, deployment or release was performed.
+
+## Delivered
+
+- Connections settings has Continue with GitHub, browser handoff, resumable
+  waiting/cancel/error states, and account identity. Legacy code pairing is
+  collapsed under an advanced option. Computers have inline rename and revoke.
+- Relay LoginDO uses ten-minute transactions, state, S256 PKCE, browser-bound
+  HttpOnly cookies, explicit computer consent and one configured numeric GitHub
+  owner ID. GitHub tokens are used only to retrieve identity, never persisted.
+  Missing configuration fails closed. Wrangler migration v4 adds LoginDO.
+- Each runtime generates its device proof locally. The relay stores its hash,
+  pushes approval through hibernating WebSockets, and registers the device under
+  the personal account. Transactional registration receipts prevent duplicate
+  devices after lost responses and preserve revocation during retries; receipts
+  expire after eleven minutes. Cancellation removes an unaccepted registration.
+- Pending sign-in survives restart; retries use bounded exponential backoff.
+  New account credentials and pending proofs are atomic 0600 files under the
+  runtime's plugins/connect/secrets directory. Desktop safeStorage and old KV
+  pairing remain compatible. No proof is exposed through UI/CLI status or URLs.
+- SDK plugin RPCs and CLI login/logout/rename/revoke cover the UI features.
+  Logout confirms cloud revocation before clearing credentials. Legacy off
+  remains best-effort. A credential-free kaioken://account/signed-in link focuses
+  the packaged app. No host-daemon wire change was needed.
+- CLI help, plugin skill, guide templates, configuration docs, multi-device guide,
+  and relay setup/protocol docs describe the actual workflow and prerequisites.
+
+## Verification
+
+195 relevant tests passed: relay 25 (real Miniflare Durable Objects/KV with only
+GitHub HTTP mocked), Connect plugin 103, Connect client 22, app interactions and
+federation 8, desktop packaging/cache/discovery 37. All five affected package
+TypeScript checks passed through Turbo. Later boundary changes were typechecked
+and tested again in their affected packages.
+
+Tests cover wrong owner, callback cookie/state/CSRF failures and replay, PKCE,
+missing configuration, pushed approval, two-device registration, same-device
+rotation, registration retries, revocation, cancellation/late completion,
+restart recovery, transient failures, private file permissions, CLI/RPC paths,
+UI actions/errors, existing pairing and discovery behavior.
+
+Browser inspected the source app at http://localhost:16606/settings/connections.
+The sign-in and advanced-pairing layout renders correctly. The actual unavailable
+development relay exposed an unhelpful fetch error, which was replaced with clear
+connection/old-relay messages and covered in client tests. The corrected
+connection error was confirmed in the browser after reloading. The dev launcher is
+running; the installed desktop was not relaunched or modified. No live GitHub,
+physical two-Mac login, or packaged deep-link activation is claimed as tested.
+
+Logs: /tmp/kaioken-login-all-types.log,
+/tmp/kaioken-login-plugin-verified.log,
+/tmp/kaioken-login-boundaries-verified.log,
+/tmp/kaioken-login-app-tests.log,
+/tmp/kaioken-login-desktop-tests.log,
+/tmp/kaioken-login-desktop-cache-tests.log.
+
+## Next action
+
+Before a separately authorized rollout, create/configure the GitHub OAuth App
+with callback https://kaioken.app/auth/github/callback and relay values
+GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_ALLOWED_USER_ID. Deploy the relay
+v3/v4 migrations before updated clients, then verify MacBook/Mac Studio login,
+discovery, reconnect and revocation. See apps/relay/README.md. The current local
+Cloud development service does not implement GitHub login; a source client needs
+its Connect relayUrl set to the configured relay for that flow.
+
+---
+
+# Previous update — live device discovery, 2026-09-17
 
 Implemented the user's approved replacement for five-minute KV directory caching.
 No push, Cloudflare deployment, desktop release, or paid plan change is authorized

@@ -2,6 +2,10 @@
 import { cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadPluginApp, renderSlot } from "@get-kaioken/plugin-sdk/testing/app";
+import {
+  CONNECT_LOGIN_CHANNEL,
+  type ConnectLoginStatus,
+} from "@kaioken/connect-client";
 import { CONNECT_REALTIME_CHANNEL, type ConnectStatus } from "@/src/types";
 
 const app = await loadPluginApp(() => import("./app"));
@@ -517,5 +521,111 @@ describe("connect settings section", () => {
 
     await slot.findByText("Get a connect code");
     await slot.findByText("Remote access disconnected");
+  });
+});
+
+describe("GitHub sign-in", () => {
+  const idle: ConnectLoginStatus = {
+    state: "idle",
+    browserUrl: null,
+    expiresAt: null,
+    error: null,
+    account: null,
+  };
+  const waiting: ConnectLoginStatus = {
+    ...idle,
+    state: "waiting",
+    browserUrl: "https://kaioken.app/auth/github?login=test",
+    expiresAt: Date.now() + 600_000,
+  };
+
+  it("opens the browser once and receives completion without approval polling", async () => {
+    const openUrl = vi.fn(() => true);
+    const slot = renderSlot(
+      app.settingsSections[0]!,
+      {},
+      {
+        openUrl,
+        rpc: {
+          status: () => status(),
+          signInStatus: () => idle,
+          beginSignIn: () => waiting,
+        },
+      },
+    );
+    fireEvent.click(
+      await slot.findByRole("button", { name: "Continue with GitHub" }),
+    );
+    await slot.findByText(/Finish signing in in your browser/);
+    expect(openUrl).toHaveBeenCalledExactlyOnceWith(waiting.browserUrl);
+    expect(
+      slot.rpcCalls.filter((call) => call.method === "beginSignIn"),
+    ).toEqual([{ method: "beginSignIn", input: {} }]);
+    await slot.emitRealtime(CONNECT_LOGIN_CHANNEL, {
+      ...idle,
+      state: "signed-in",
+      account: { githubId: "42", login: "owner" },
+    });
+    await slot.findByText("owner");
+    expect(slot.queryByText(/Finish signing in/)).toBeNull();
+    expect(
+      slot.rpcCalls.filter((call) => call.method === "signInStatus"),
+    ).toHaveLength(1);
+  });
+
+  it("resumes an existing browser link and cancels without starting another login", async () => {
+    const slot = renderSlot(
+      app.settingsSections[0]!,
+      {},
+      {
+        rpc: {
+          status: () => status(),
+          signInStatus: () => waiting,
+          cancelSignIn: () => idle,
+        },
+      },
+    );
+    expect(
+      (await slot.findByRole("link", { name: "Open sign-in" })).getAttribute(
+        "href",
+      ),
+    ).toBe(waiting.browserUrl);
+    fireEvent.click(slot.getByRole("button", { name: "Cancel" }));
+    await slot.findByRole("button", { name: "Continue with GitHub" });
+    expect(
+      slot.rpcCalls.filter((call) => call.method === "cancelSignIn"),
+    ).toHaveLength(1);
+    expect(slot.rpcCalls.some((call) => call.method === "beginSignIn")).toBe(
+      false,
+    );
+  });
+
+  it("shows a service configuration error and permits retry", async () => {
+    const slot = renderSlot(
+      app.settingsSections[0]!,
+      {},
+      {
+        rpc: {
+          status: () => status(),
+          signInStatus: () => idle,
+          beginSignIn: () => {
+            throw new Error(
+              "GitHub sign-in is not configured on this relay yet.",
+            );
+          },
+        },
+      },
+    );
+    fireEvent.click(
+      await slot.findByRole("button", { name: "Continue with GitHub" }),
+    );
+    expect((await slot.findByRole("alert")).textContent).toContain(
+      "not configured",
+    );
+    expect(
+      slot
+        .getByRole("button", { name: "Continue with GitHub" })
+        .hasAttribute("disabled"),
+    ).toBe(false);
   });
 });

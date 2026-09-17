@@ -2150,6 +2150,17 @@ async function runDesktopApp(): Promise<void> {
       stateKey: null,
     });
   });
+  app.on("open-url", (event, url) => {
+    if (url !== "kaioken://account/signed-in") return;
+    event.preventDefault();
+    if (desktopWindowFactory?.focusFirstWindow() === false) {
+      void createApplicationWindow({
+        initialUrl: currentWindowUrl,
+        stateKey: null,
+      });
+    }
+  });
+  if (app.isPackaged) app.setAsDefaultProtocolClient("kaioken");
   app.on("before-quit", handleBeforeQuit);
   app.on("window-all-closed", () => {
     if (process.platform !== "darwin") {

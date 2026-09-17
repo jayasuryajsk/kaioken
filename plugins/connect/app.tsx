@@ -4,8 +4,12 @@ import {
   UrlLink as UrlLink,
   useRealtime,
   useRpc,
+  useBbNavigate,
 } from "@get-kaioken/plugin-sdk/app";
 import {
+  connectLoginStatusSchema,
+  CONNECT_LOGIN_CHANNEL,
+  type ConnectLoginStatus,
   encodeMobilePairingPayload,
   mobilePairingPayload,
   type MobilePairingPayload,
@@ -1243,6 +1247,118 @@ function ReconnectingContent({
   );
 }
 
+function GitHubSignIn({
+  paired,
+  onChanged,
+}: {
+  paired: boolean;
+  onChanged: () => void;
+}) {
+  const rpc = useRpc<typeof connectRpcContract>();
+  const navigate = useBbNavigate();
+  const [login, setLogin] = useState<ConnectLoginStatus | null>(null);
+  const revision = useRef(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    const requestRevision = revision.current;
+    rpc.call("signInStatus").then(
+      (result) => {
+        if (active && revision.current === requestRevision) setLogin(result);
+      },
+      () => {},
+    );
+    return () => {
+      active = false;
+    };
+  }, [rpc, paired]);
+  useRealtime(CONNECT_LOGIN_CHANNEL, (payload) => {
+    const parsed = connectLoginStatusSchema.safeParse(payload);
+    if (!parsed.success) return;
+    revision.current += 1;
+    setLogin(parsed.data);
+    if (parsed.data.state === "signed-in") onChanged();
+  });
+  const begin = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      revision.current += 1;
+      const result = await rpc.call("beginSignIn", {});
+      setLogin(result);
+      if (result.browserUrl) navigate.openUrl(result.browserUrl);
+    } catch (error) {
+      setError(errorText(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const cancel = async () => {
+    setBusy(true);
+    revision.current += 1;
+    try {
+      setLogin(await rpc.call("cancelSignIn"));
+    } catch (error) {
+      setError(errorText(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (login?.state === "signed-in" && login.account)
+    return (
+      <p className="text-sm text-muted-foreground">
+        Signed in as{" "}
+        <span className="font-medium text-foreground">
+          {login.account.login}
+        </span>{" "}
+        · GitHub
+      </p>
+    );
+  return (
+    <div className="space-y-3">
+      <div>
+        <p className="text-sm font-medium">Your computers, connected</p>
+        <p className="text-sm text-muted-foreground">
+          Sign in with the same GitHub account on each computer. Your projects
+          and tasks stay on the computer where they run.
+        </p>
+      </div>
+      {login?.state === "waiting" && login.browserUrl ? (
+        <div className="space-y-2">
+          <p role="status" className="text-sm text-muted-foreground">
+            Finish signing in in your browser. This computer will connect
+            automatically.
+          </p>
+          <div className="flex gap-2">
+            <Button asChild>
+              <UrlLink href={login.browserUrl} target="_blank" rel="noreferrer">
+                Open sign-in
+              </UrlLink>
+            </Button>
+            <Button
+              variant="ghost"
+              disabled={busy}
+              onClick={() => void cancel()}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button disabled={busy} onClick={() => void begin()}>
+          {busy ? "Starting sign-in…" : "Continue with GitHub"}
+        </Button>
+      )}
+      {error || login?.error ? (
+        <p role="alert" className="text-sm text-destructive-text">
+          {error ?? login?.error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function ConnectSettingsSection() {
   const rpc = useRpc<typeof connectRpcContract>();
   const [status, setStatus] = useState<ConnectStatus | null>(null);
@@ -1303,6 +1419,7 @@ function ConnectSettingsSection() {
 
   return (
     <div className="space-y-3">
+      <GitHubSignIn paired={status.paired} onChanged={refetch} />
       {flash !== null && !status.paired ? (
         <div
           role="status"
@@ -1313,10 +1430,15 @@ function ConnectSettingsSection() {
         </div>
       ) : null}
       {!status.paired ? (
-        <NotPairedContent
-          dashboardUrl={status.dashboardUrl}
-          onPaired={refetch}
-        />
+        <details className="space-y-4">
+          <summary className="cursor-pointer text-sm text-muted-foreground">
+            Connect with a pairing code
+          </summary>
+          <NotPairedContent
+            dashboardUrl={status.dashboardUrl}
+            onPaired={refetch}
+          />
+        </details>
       ) : status.state === "reconnecting" ? (
         <ReconnectingContent
           status={status}

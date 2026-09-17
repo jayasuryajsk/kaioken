@@ -38,3 +38,23 @@ The Connect plugin publishes the same payload on `ACCOUNT_SERVERS_CHANNEL`
 (`account-servers`). Its existing `listAccountServers` RPC and
 `kaioken connect servers` command use the cached live snapshot; no CLI flags or
 configuration changes are needed.
+
+## Account login
+
+`connectLoginStatusSchema`, `connectLoginStartSchema`, `connectLoginDeviceSchema`,
+and `connectAccountSchema` validate the shared login boundaries. `CONNECT_LOGIN_CHANNEL`
+is `account-login`. A `ConnectCredential` may include `account: {githubId, login}`;
+absence identifies a compatible legacy pairing, not an anonymous GitHub account.
+
+The trusted runtime owns login proof generation, private persistence and the
+approval WebSocket. UI/SDK clients use Connect RPCs `beginSignIn` (`{name?}`),
+`signInStatus`, and `cancelSignIn`, with `connectLoginStatusSchema` as output.
+Status includes `state`, `browserUrl`, `expiresAt`, `error`, and `account`, with
+explicit nulls for absent values. Open the returned browser URL and subscribe to
+`account-login`; never expose the runtime's proof in UI state or query strings.
+`renameDevice` (`{handle,name}`) and `revokeDevice` (`{handle}`) return `{ok:true}`.
+
+`connectLoginRequest` is the runtime's bounded POST helper with response schema
+validation and an optional `x-kaioken-login-proof` header. See the
+[relay protocol](../../apps/relay/README.md) for challenge generation, approval,
+idempotent completion, cancellation and one-time personal service configuration.

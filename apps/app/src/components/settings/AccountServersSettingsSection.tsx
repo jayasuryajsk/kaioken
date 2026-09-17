@@ -11,6 +11,123 @@ import {
 } from "@/components/ui/settings-section";
 import { useAccountServers } from "@/hooks/queries/federation-queries";
 import { formatRelativeTime } from "@/lib/relative-time";
+import { useState } from "react";
+import { Input } from "@kaioken/shared-ui/input";
+import { z } from "zod";
+import { sdk } from "@/lib/sdk";
+
+function DeviceActions({
+  handle,
+  name,
+  onChanged,
+}: {
+  handle: string;
+  name: string;
+  onChanged: () => void;
+}) {
+  const [action, setAction] = useState<"rename" | "revoke" | null>(null);
+  const [draft, setDraft] = useState(name);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  async function submit() {
+    if (!action) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await sdk.plugins.callRpc({
+        pluginId: "connect",
+        method: action === "rename" ? "renameDevice" : "revokeDevice",
+        input:
+          action === "rename" ? { handle, name: draft.trim() } : { handle },
+        outputSchema: z.object({ ok: z.literal(true) }),
+      });
+      setAction(null);
+      onChanged();
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Could not update device",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {action === "rename" ? (
+        <>
+          <Input
+            aria-label={`Name for ${name}`}
+            className="w-40"
+            maxLength={80}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+          />
+          <Button
+            size="sm"
+            disabled={busy || !draft.trim()}
+            onClick={() => void submit()}
+          >
+            Save
+          </Button>
+        </>
+      ) : action === "revoke" ? (
+        <>
+          <span className="text-xs text-muted-foreground">Revoke {name}?</span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-destructive-text"
+            disabled={busy}
+            onClick={() => void submit()}
+          >
+            Revoke access
+          </Button>
+        </>
+      ) : (
+        <>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label={`Rename ${name}`}
+            onClick={() => {
+              setDraft(name);
+              setError(null);
+              setAction("rename");
+            }}
+          >
+            Rename
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label={`Revoke ${name}`}
+            onClick={() => {
+              setError(null);
+              setAction("revoke");
+            }}
+          >
+            Revoke
+          </Button>
+        </>
+      )}
+      {action ? (
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={busy}
+          onClick={() => setAction(null)}
+        >
+          Cancel
+        </Button>
+      ) : null}
+      {error ? (
+        <p role="alert" className="w-full text-xs text-destructive-text">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 export function accountServerStatusText(
   server: { live: boolean; lastSeenAt: number | null },
@@ -62,6 +179,13 @@ export function AccountServersSettingsSection() {
                 <p className="truncate text-xs text-muted-foreground">
                   {server.url} · {accountServerStatusText(server, now)}
                 </p>
+                <DeviceActions
+                  handle={server.handle}
+                  name={server.name}
+                  onChanged={() => {
+                    void serversQuery.refetch();
+                  }}
+                />
               </div>
               {!server.home ? (
                 <Button variant="outline" size="sm" asChild>

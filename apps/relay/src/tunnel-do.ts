@@ -18,6 +18,10 @@ export interface Env {
   TUNNEL_DO: DurableObjectNamespace;
   STATE: KVNamespace;
   ACCOUNT_DO: DurableObjectNamespace;
+  LOGIN_DO: DurableObjectNamespace;
+  GITHUB_CLIENT_ID?: string;
+  GITHUB_CLIENT_SECRET?: string;
+  GITHUB_ALLOWED_USER_ID?: string;
   PAIR_CODE: string;
   SESSION_SECRET: string;
   BASE_DOMAIN?: string;

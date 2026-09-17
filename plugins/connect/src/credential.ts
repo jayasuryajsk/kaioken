@@ -1,3 +1,8 @@
+import {
+  clearPrivateState,
+  readPrivateState,
+  writePrivateState,
+} from "./private-state.js";
 import { connectCredentialSchema } from "@kaioken/connect-client";
 import type { ConnectCredential } from "@kaioken/connect-client";
 import type { PluginKvStorage } from "@get-kaioken/plugin-sdk";
@@ -25,6 +30,34 @@ export function createKvCredentialStore(
     },
     async clear() {
       await kv.delete(CREDENTIAL_KV_KEY);
+    },
+  };
+}
+
+export function createAccountCredentialStore(
+  kv: Pick<PluginKvStorage, "get" | "set" | "delete">,
+  path: string,
+): CredentialStore {
+  const legacy = createKvCredentialStore(kv);
+  return {
+    async read() {
+      return (
+        (await readPrivateState(path, connectCredentialSchema)) ??
+        (await legacy.read())
+      );
+    },
+    async write(value) {
+      if (value.account) {
+        await writePrivateState(path, value);
+        await legacy.clear();
+      } else {
+        await legacy.write(value);
+        await clearPrivateState(path);
+      }
+    },
+    async clear() {
+      await clearPrivateState(path);
+      await legacy.clear();
     },
   };
 }

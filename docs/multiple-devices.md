@@ -14,6 +14,52 @@ A browser or desktop app can control multiple installations. Use Connections
 for ordinary computer access and its Advanced: execution workers section when
 one server should manage a separate host daemon.
 
+## Sign in on each computer
+
+On each Mac, open Settings → Connections → **Continue with GitHub**. The browser
+shows the computer being connected, then asks for GitHub authorization. Return
+to Kaioken after success; the app completes registration automatically. Use the
+same configured GitHub account on both computers. Other computers appear through
+live discovery, and **Connect** opens their projects and tasks. Keep the remote
+Kaioken runtime running; a sleeping or offline computer remains unavailable.
+
+The personal service's OAuth setup is documented in [relay setup](../apps/relay/README.md).
+This implementation requires that configured relay and updated clients; it does
+not add sign-in to previously installed releases. It supports one configured
+owner, not public account creation. Connecting does not copy repositories or
+provider API keys between computers.
+
+Connections settings also offers **Rename** and **Revoke** for each computer.
+Revoking removes its account access and closes its tunnel; it does not delete
+local projects or tasks. Signing in again grants a new device credential.
+
+```sh
+kaioken connect login --name "Mac Studio"
+kaioken connect login --cancel
+kaioken connect status --json
+kaioken connect servers --json
+kaioken connect rename <handle> --name "MacBook"
+kaioken connect revoke <handle>
+kaioken connect logout
+```
+
+Login prints a browser link and finishes in the runtime, so the CLI need not stay
+open. All commands above accept `--json`. `logout` confirms revocation with the
+relay; a network failure leaves credentials available for retry. The older
+`off` command clears local pairing even if cloud revocation cannot be confirmed.
+
+GitHub device credentials and pending login proofs are stored atomically in
+owner-readable files (0600) under `<dataDir>/plugins/connect/secrets/`; the daemon
+can resume without an unlocked desktop window. The desktop's separate credential
+cache uses its existing OS-backed safeStorage. Legacy code-paired credentials
+remain compatible. Do not copy these files to another installation.
+
+SDK clients can call Connect RPCs `beginSignIn` (`{name?}`), `signInStatus`,
+`cancelSignIn`, `renameDevice` (`{handle,name}`), and `revokeDevice` (`{handle}`)
+through `sdk.plugins.callRpc`. Login status uses `connectLoginStatusSchema` from
+`@kaioken/connect-client` and exposes no proof or device credential. Subscribe to
+`account-login` for login status and `account-servers` for discovery snapshots.
+
 ## Move a task between computers
 
 Choose **Move to computer** from a Codex task's menu. Select a connected computer

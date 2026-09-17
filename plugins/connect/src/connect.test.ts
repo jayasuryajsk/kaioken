@@ -28,6 +28,7 @@ import {
 import { CREDENTIAL_KV_KEY } from "./credential.js";
 import plugin from "./server.js";
 import { ConnectTunnel } from "./tunnel.js";
+import { ConnectSignIn } from "./sign-in.js";
 import {
   DEFAULT_CONNECT_BASE_URL,
   resolveDefaultConnectBaseUrl,
@@ -1349,6 +1350,65 @@ describe("connect plugin", () => {
     }
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
+  });
+
+  it("exposes the same login flow through CLI and RPC without returning credentials", async () => {
+    const waiting = {
+      state: "waiting" as const,
+      browserUrl: "https://kaioken.app/auth/github?login=test",
+      expiresAt: Date.now() + 600_000,
+      error: null,
+      account: null,
+    };
+    const begin = vi
+      .spyOn(ConnectSignIn.prototype, "begin")
+      .mockResolvedValue(waiting);
+    try {
+      const { harness } = await loadPlugin();
+      const cli = await harness.runCli([
+        "login",
+        "--name",
+        "MacBook",
+        "--json",
+      ]);
+      expect(cli.exitCode).toBe(0);
+      expect(JSON.parse(cli.stdout!)).toEqual(waiting);
+      expect(begin).toHaveBeenLastCalledWith("MacBook");
+      expect(
+        await harness.callRpc("beginSignIn", { name: "Mac Studio" }),
+      ).toEqual(waiting);
+      expect(begin).toHaveBeenLastCalledWith("Mac Studio");
+      expect((await harness.runCli(["login", "--name"])).exitCode).toBe(1);
+      expect((await harness.runCli(["rename", "macbook"])).exitCode).toBe(1);
+    } finally {
+      begin.mockRestore();
+    }
+  });
+
+  it("does not report logout success when remote revocation fails", async () => {
+    const getCredential = vi
+      .spyOn(ConnectTunnel.prototype, "getCredential")
+      .mockReturnValue({
+        handle: "studio",
+        serverUrl: "https://studio.kaioken.app",
+        credential: "test-device-credential",
+      });
+    const manage = vi
+      .spyOn(ConnectTunnel.prototype, "manageDevice")
+      .mockRejectedValue(new Error("Relay unavailable"));
+    const disconnect = vi.spyOn(ConnectTunnel.prototype, "disconnect");
+    try {
+      const { harness } = await loadPlugin();
+      const result = await harness.runCli(["logout"]);
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr).toContain("Relay unavailable");
+      expect(manage).toHaveBeenCalledExactlyOnceWith("studio", null);
+      expect(disconnect).not.toHaveBeenCalled();
+    } finally {
+      getCredential.mockRestore();
+      manage.mockRestore();
+      disconnect.mockRestore();
+    }
   });
 
   it("starts unpaired — a healthy state, not needs-configuration", async () => {

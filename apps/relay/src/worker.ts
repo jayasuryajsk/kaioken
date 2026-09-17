@@ -1,3 +1,5 @@
+import { routeLogin } from "./login-routing.js";
+export { LoginDO } from "./login-do.js";
 import { TUNNEL_OFFLINE_HEADER, TunnelDO, type Env } from "./tunnel-do.js";
 import { PairingLimiter } from "./pairing-limiter.js";
 import type { TunnelStatus } from "./tunnel-do.js";
@@ -587,6 +589,8 @@ async function handleAccountApi(
   env: Env,
   store: AccountStore,
 ): Promise<Response | null> {
+  if (new URL(request.url).pathname.startsWith("/api/connect/devices/"))
+    return accountStub(env).fetch(request);
   switch (new URL(request.url).pathname) {
     case "/api/connect/redeem":
       return handleRedeem(request, topology, env, store);
@@ -620,10 +624,21 @@ async function routeRequest(
   store: AccountStore,
 ): Promise<Response> {
   if (
-    PAIRING_PATHS.has(url.pathname) &&
+    (PAIRING_PATHS.has(url.pathname) ||
+      url.pathname === "/api/connect/login") &&
     (await pairingAttemptsExhausted(request, env))
   ) {
     return tooManyAttempts(request);
+  }
+
+  if (
+    url.pathname.startsWith("/api/connect/login") ||
+    url.pathname === "/auth/github" ||
+    url.pathname === "/auth/github/callback"
+  ) {
+    if (topology.role !== "apex" && topology.role !== "single")
+      return text("Not found", 404);
+    return routeLogin(request, env, topology.apexOrigin);
   }
 
   if (url.pathname.startsWith("/api/connect/")) {

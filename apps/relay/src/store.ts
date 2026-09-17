@@ -129,12 +129,20 @@ export class RelayStore {
     name: string,
     credential: string,
   ): Promise<ServerRecord> {
+    return this.pairServerWithHash(handle, name, await sha256Hex(credential));
+  }
+
+  async pairServerWithHash(
+    handle: string,
+    name: string,
+    credentialHash: string,
+  ): Promise<ServerRecord> {
     const previous = await this.getServer(handle);
     if (previous !== null) {
       await this.kv.delete(`${TOKEN_PREFIX}${previous.credentialHash}`);
     }
     const record: ServerRecord = {
-      credentialHash: await sha256Hex(credential),
+      credentialHash,
       handle,
       name,
       pairedAt: Date.now(),
@@ -145,6 +153,16 @@ export class RelayStore {
       JSON.stringify({ kind: "server", handle } satisfies CredentialSubject),
     );
     return record;
+  }
+
+  async renameServer(handle: string, name: string): Promise<boolean> {
+    const server = await this.getServer(handle);
+    if (!server) return false;
+    await this.kv.put(
+      `${SERVER_PREFIX}${handle}`,
+      JSON.stringify({ ...server, name }),
+    );
+    return true;
   }
 
   async unpairServer(handle: string): Promise<boolean> {

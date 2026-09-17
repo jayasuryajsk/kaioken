@@ -812,34 +812,46 @@ their defaults. Those old values are not migrated.
 
 ## kaioken connect
 
-`kaioken connect --code <code> --server https://<handle>.getbb.app` pairs this kaioken
-server for browser access at `<handle>.getbb.app` (claim a handle and copy the
-command at https://getbb.app). Remote access is owned by the builtin
-**connect plugin** (`plugins/connect/`): pairing redeems the code and stores
-the durable credential in the plugin's kv storage (in `kaioken.db`), and the
-plugin's background service holds the connect tunnel — dialing the gate,
-proxying relayed requests to the server's own loopback (which serves the SPA
+`kaioken connect login [--name <computer-name>]` signs this runtime in through
+GitHub and connects it to the personal Kaioken relay. The same owner signs in on
+each computer; device discovery updates live. UI: Settings → Connections →
+**Continue with GitHub**. The Connect `relayUrl` setting selects the relay origin;
+empty uses the default (https://kaioken.app in production, the local Cloud origin
+in development). Local Cloud does not implement the GitHub OAuth flow.
 
-- `/api` + `/ws`), and reconnecting with capped backoff. The tunnel therefore
-  lives as long as the kaioken server runs (with the plugin enabled) and
-  re-establishes on restart; there is no foreground client. Pair from a machine
-  without an installed kaioken via `npx -p kaioken-app@latest kaioken connect …`.
-  `kaioken connect status` shows the connect state and every share's host and URL;
-  `kaioken connect off` disconnects and clears the pairing. After pairing,
-  `kaioken connect expose <port>` run from a thread shares that thread environment's
-  enrolled host. Server-host URLs remain
-  `https://<server-label>--<port>.getbb.app`; other machines use
-  `https://<machine-label>--<port>.getbb.app` and proxy directly through the
-  owning daemon. Outside a thread the command defaults to the server host;
-  `--host <name-or-id>` overrides host resolution. Access requires the owner's
-  getbb.app session (not a public link). `kaioken connect unexpose <port>` and
-  `kaioken connect shares` use the same host resolution and accept the same
-  `--host` override. Their JSON rows include `hostId`, `hostName`, `port`, and
-  `url`; `shares --json` also includes the resolved `host`. A machine without
-  a live Connect enrollment fails fast with instructions to remove and re-add
-  it in Settings → Machines. Disabling the plugin
-  (`kaioken plugin disable connect`) cuts off all remote access;
-  `kaioken plugin enable connect` restores it.
+The relay requires these server-side values, configured through Cloudflare
+Wrangler secrets; they are never passed to desktop clients:
+
+| Variable | Purpose |
+| --- | --- |
+| `GITHUB_CLIENT_ID` | GitHub OAuth App client ID |
+| `GITHUB_CLIENT_SECRET` | OAuth App secret used only during callback exchange |
+| `GITHUB_ALLOWED_USER_ID` | Stable numeric ID of the single permitted GitHub owner |
+
+The OAuth callback is `https://kaioken.app/auth/github/callback`. See
+[relay setup](../apps/relay/README.md) before deployment. Pending sign-ins expire in
+ten minutes, resume after restart, and use pushed approval instead of polling.
+No GitHub repository or email scopes are requested. Account credentials and
+pending proofs use private 0600 files in `<dataDir>/plugins/connect/secrets/`.
+Legacy pairing credentials remain in plugin KV for compatibility.
+
+`kaioken connect login --cancel` cancels a pending login. `logout` confirms cloud
+revocation before removing credentials. `rename <handle> --name <name>` and
+`revoke <handle>` manage account computers. These commands accept `--json`.
+Device rename/revoke are also available in Settings → Connections.
+
+Advanced pairing remains `kaioken connect --code <code> --base-url https://kaioken.app
+--handle <name>`; `--server <url>` overrides the derived URL. The Connect plugin
+holds the outbound tunnel while the runtime runs and reconnects after restart.
+`kaioken connect off` clears local credentials even when remote revocation cannot
+be confirmed; use `logout` for confirmed revocation.
+
+`kaioken connect expose <port>` shares a thread environment's enrolled host,
+with `--host <name-or-id>` overriding selection. Outside a thread it defaults to
+the server host. Share URLs use `<server-label>--<port>.kaioken.app` or
+`<machine-label>--<port>.kaioken.app` and require an authenticated account session.
+`unexpose <port>` and `shares` accept the same host override. Disabling the Connect
+plugin stops remote access; enabling it restores the saved connection.
 
 The tunnel client lives in `plugins/connect/`; the CLI command is proxied to
 the plugin, and Settings → Connect drives the plugin's rpc (including shared

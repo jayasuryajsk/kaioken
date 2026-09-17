@@ -2,7 +2,7 @@ import { z } from "zod";
 import { AccountStorage } from "./account-storage.js";
 import { accountCommandSchema } from "./account-store.js";
 import { sha256Hex } from "./auth.js";
-import { RelayStore } from "./store.js";
+import { RelayStore, type ServerRecord } from "./store.js";
 import { defaultHandle } from "./topology.js";
 import type { Env } from "./tunnel-do.js";
 
@@ -76,7 +76,13 @@ export class AccountDO {
       const command = accountCommandSchema.parse(await request.json());
       const result = await this.command(command);
       if (
-        ["pairServer", "unpairServer", "removeMachine"].includes(command.method)
+        [
+          "pairServer",
+          "unpairServer",
+          "removeMachine",
+          "registerDevice",
+          "cancelRegistration",
+        ].includes(command.method)
       ) {
         await this.closeRevokedSubscribers();
         if (command.method !== "removeMachine") await this.publish();
@@ -90,11 +96,41 @@ export class AccountDO {
       if (await this.store.getServer(handle)) await this.publish();
       return new Response(null, { status: 204 });
     }
-    if (path !== "/events" && path !== "/servers")
+    if (
+      path !== "/events" &&
+      path !== "/servers" &&
+      !path.startsWith("/devices/")
+    )
       return new Response(null, { status: 404 });
     const credential = request.headers.get("x-bb-connect-machine") ?? "";
     const subject = await this.store.resolveCredential(credential);
     if (!subject) return new Response(null, { status: 401 });
+    if (path.startsWith("/devices/")) {
+      if (subject.kind !== "server")
+        return Response.json({ error: "unauthorized" }, { status: 403 });
+      const handle = path.slice(9);
+      if (!(await this.store.getServer(handle)))
+        return Response.json({ error: "Device not found" }, { status: 404 });
+      if (request.method === "PATCH") {
+        const parsed = z
+          .object({ name: z.string().trim().min(1).max(80) })
+          .safeParse(await request.json().catch(() => null));
+        if (!parsed.success)
+          return Response.json(
+            { error: "Enter a computer name" },
+            { status: 400 },
+          );
+        await this.store.renameServer(handle, parsed.data.name);
+      } else if (request.method === "DELETE") {
+        await this.store.unpairServer(handle);
+        await this.closeRevokedSubscribers();
+        await this.env.TUNNEL_DO.get(
+          this.env.TUNNEL_DO.idFromName(handle),
+        ).fetch("https://tunnel/__control/close");
+      } else return new Response(null, { status: 405 });
+      await this.publish();
+      return Response.json({ ok: true });
+    }
     if (request.method !== "GET") return new Response(null, { status: 405 });
     if (path === "/servers")
       return Response.json(await this.snapshot(url.origin));
@@ -215,6 +251,58 @@ export class AccountDO {
 
   private async command(command: z.infer<typeof accountCommandSchema>) {
     switch (command.method) {
+      case "registerDevice": {
+        const [name, hash, previous] = command.args;
+        return this.state.storage.transaction(async (transaction) => {
+          const storage = new AccountStorage(transaction);
+          const store = new RelayStore(storage, defaultHandle(this.env));
+          const receipt = await storage.get<ServerRecord>(
+            `registration:${hash}`,
+            "json",
+          );
+          if (receipt)
+            return (await store.getServer(receipt.handle))?.credentialHash ===
+              hash
+              ? receipt
+              : null;
+          let handle =
+            previous &&
+            (await store.getServer(previous.handle))?.credentialHash ===
+              previous.hash
+              ? previous.handle
+              : null;
+          if (!handle) {
+            const slug =
+              name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/gu, "-")
+                .replace(/^-+|-+$/gu, "")
+                .slice(0, 20) || "computer";
+            do {
+              handle = `${slug}-${crypto.randomUUID().slice(0, 8)}`;
+            } while (await store.getServer(handle));
+          }
+          const server = await store.pairServerWithHash(handle, name, hash);
+          await storage.put(`registration:${hash}`, JSON.stringify(server), {
+            expirationTtl: 660,
+          });
+          return server;
+        });
+      }
+      case "cancelRegistration": {
+        const [hash] = command.args;
+        const receipt = await this.storage.get<ServerRecord>(
+          `registration:${hash}`,
+          "json",
+        );
+        if (
+          !receipt ||
+          (await this.store.getServer(receipt.handle))?.credentialHash !== hash
+        )
+          return null;
+        await this.store.unpairServer(receipt.handle);
+        return receipt.handle;
+      }
       case "getServer":
         return this.store.getServer(...command.args);
       case "listServers":
@@ -243,7 +331,7 @@ export class AccountDO {
 
   async alarm(): Promise<void> {
     await this.state.blockConcurrencyWhile(async () => {
-      await this.storage.expireCodes();
+      await this.storage.expireEphemeralRecords();
       for (const key of (
         await this.state.storage.list({ prefix: "revocation:" })
       ).keys())

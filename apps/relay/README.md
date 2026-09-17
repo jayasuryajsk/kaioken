@@ -16,6 +16,59 @@ Hosts (domain mode, the default config):
 The wildcard route in `wrangler.jsonc` needs a proxied wildcard DNS record
 (`*.kaioken.app`) in the zone; the two custom domains manage their own records.
 
+## GitHub sign-in (personal service)
+
+Settings → Connections → **Continue with GitHub**, or `kaioken connect login`,
+starts a ten-minute sign-in. The browser confirms the computer name and goes to
+GitHub; the runtime receives approval over a hibernating WebSocket and registers
+itself. Signing in on another Mac discovers the same account's computers.
+Projects, repositories, tasks and provider credentials stay on their host.
+
+This relay admits exactly one configured numeric GitHub user ID. It is not a
+public multi-account service. GitHub supplies identity only: no repository or
+email scopes are requested, and its access token is not persisted. OAuth uses
+state, S256 PKCE, and a browser-bound HttpOnly cookie. Each runtime generates its
+own random device credential; the relay stores its hash. Callback links contain
+no device credentials. Completion is idempotent and cannot resurrect revoked
+access. Pending sign-ins resume after restart and expire after ten minutes.
+
+Before deploying this feature:
+
+1. Create a GitHub OAuth App with homepage `https://kaioken.app` and authorization
+   callback `https://kaioken.app/auth/github/callback`.
+2. Configure `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and
+   `GITHUB_ALLOWED_USER_ID` on the relay using `wrangler secret put <name>`.
+   The allowed ID is the owner's stable numeric GitHub ID (`gh api user --jq .id`
+   when logged into that account), not a username. Keep the client secret out of
+   source control and clients.
+3. Retain `SESSION_SECRET` and existing bindings. Deploy migration `v4`, which adds
+   SQLite-backed `LoginDO`, along with the existing `v3` AccountDO migration.
+4. Use clients containing the Connect login implementation on both computers.
+   In a source checkout, set the Connect `relayUrl` to the configured relay;
+   the development Cloud server does not implement this GitHub flow.
+
+No live GitHub sign-in or deployment is performed by local tests. Missing OAuth
+configuration returns a clear 503 error; it never falls back to an open account.
+Legacy pairing remains available under **Connect with a pairing code**.
+
+Login endpoints on the account origin:
+
+- `POST /api/connect/login` accepts `{name, challenge, previous}`. `challenge` is
+  SHA-256 of a client-generated `bbcred_` credential with 32 random bytes encoded
+  as base64url. `previous` is null or `{handle, hash}` to rotate an existing device
+  without duplicating it. Returns `{id, browserUrl, expiresAt}`.
+- `/auth/github` displays consent and redirects to GitHub on a CSRF-protected POST;
+  `/auth/github/callback` validates state, cookie, PKCE exchange and allowed owner.
+- `GET /api/connect/login/:id/events` upgrades to a WebSocket;
+  `POST /api/connect/login/:id/complete` and `/cancel` finish or cancel. All three
+  require `x-kaioken-login-proof`. Events contain only `{phase}`; completion returns
+  device metadata, never the secret. Cancel also removes a completed registration
+  if the client cancels before accepting it. Automatic text ping/pong keeps idle
+  WebSockets hibernating; there is no approval polling loop.
+- `PATCH /api/connect/devices/:handle` with `{name}` renames a computer;
+  `DELETE` revokes it and closes its tunnel. These require a server credential in
+  `x-bb-connect-machine`; paired browser/mobile credentials cannot manage devices.
+
 ## Live device discovery
 
 The personal account's `AccountDO` owns paired servers, device credentials, and

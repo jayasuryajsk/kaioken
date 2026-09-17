@@ -178,25 +178,28 @@ truncation markers are preserved.
 
 Remote access (kaioken connect):
 
-  Expose this kaioken server at <handle>.getbb.app so you can reach it from any
-  browser. Claim a handle at https://getbb.app, copy the connect command it
-  generates, then run it here to
-  pair:
+  Sign in with the same GitHub account on each computer:
 
-  kaioken connect --code <code> --server https://<handle>.getbb.app
-    --code <code>          One-time pairing code from the dashboard
-    --server <url>         https://<handle>.getbb.app (from the dashboard)
+  kaioken connect login [--name <computer-name>] [--json]
+  kaioken connect login --cancel
+  kaioken connect logout                      Revoke and sign out this computer
+  kaioken connect rename <handle> --name <name>
+  kaioken connect revoke <handle>
 
-  Pairing returns immediately: the kaioken SERVER redeems the code, stores the
-  credential, and holds the tunnel itself — so it stays up as long as kaioken is
-  running and reconnects on restart (no foreground process).
-  Without an installed kaioken, pair via npm:
-  `npx -p kaioken-app@latest kaioken connect --code <code> --server <url>`.
+  Login prints a browser link. Complete authorization there; the runtime registers
+  itself automatically and keeps the connection across restarts. Discovery is live.
+  Settings → Connections also provides sign-in, rename, revoke and Connect actions.
+  Repositories and tasks stay on their host. Keep Kaioken running on each computer.
+  The personal relay must have GitHub OAuth and its allowed owner configured.
+  An unconfigured relay reports an error instead of silently changing accounts.
 
-  In a source checkout, `pnpm dev` automatically points the unpaired Connect
-  settings and code-only pairing at that worktree's local Cloud origin through
-  `KAIOKEN_DEV_CONNECT_BASE_URL`. Explicit `--server` and `--base-url` targets still
-  win, so the dev kaioken can also pair with getbb.app.
+  Advanced code pairing remains available:
+  kaioken connect --code <code> --base-url https://kaioken.app --handle <name>
+  Explicit --server <url> overrides the derived server URL.
+
+  Source checkouts default to their development Cloud server through
+  KAIOKEN_DEV_CONNECT_BASE_URL. Configure the Connect relayUrl setting to use a
+  GitHub-enabled relay: kaioken plugin config connect set relayUrl https://kaioken.app
 
   kaioken connect status                       Show the server's connect status
   kaioken connect off                          Disconnect and forget the pairing
