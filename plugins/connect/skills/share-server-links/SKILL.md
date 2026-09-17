@@ -49,5 +49,6 @@ access, and `logout` confirms revocation before clearing this device. These acce
 `--json`. Settings → Connections exposes the same actions. Source checkouts can
 set `kaioken plugin config connect set relayUrl https://kaioken.app` to target a
 configured relay. Missing GitHub configuration is a service setup error; legacy
-code pairing remains available. Repositories and provider credentials stay on
+code pairing remains available through the CLI only. The desktop UI uses GitHub
+sign-in and automatically combines projects and tasks from the account. Repositories and provider credentials stay on
 individual computers.

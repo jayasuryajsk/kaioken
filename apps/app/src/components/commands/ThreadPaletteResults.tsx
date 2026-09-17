@@ -6,7 +6,6 @@ import {
   type MouseEventHandler,
   type ReactNode,
 } from "react";
-import { useAtomValue } from "jotai";
 import type { ThreadListEntry } from "@kaioken/domain";
 import { PERSONAL_PROJECT_ID } from "@kaioken/domain";
 import type { ThreadSearchMatch } from "@kaioken/server-contract";
@@ -38,7 +37,6 @@ import {
 } from "@/hooks/queries/thread-queries";
 import { useSidebarNavigation } from "@/hooks/queries/sidebar-navigation-query";
 import { useFederatedRemotes } from "@/hooks/queries/federation-queries";
-import { sidebarMergeServersAtom } from "@/components/sidebar/sidebarCollapsedAtoms";
 import { usePromptDraftHasInput } from "@/hooks/usePromptDraftStorage";
 import { formatRelativeTime } from "@/lib/relative-time";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
@@ -135,10 +133,8 @@ export function matchRemoteThreads(
 }
 
 function useRemoteThreadRows(): RemoteThreadRow[] {
-  const mergeServers = useAtomValue(sidebarMergeServersAtom) === "on";
-  const { remotes } = useFederatedRemotes({ enabled: mergeServers });
+  const { remotes } = useFederatedRemotes();
   return useMemo(() => {
-    if (!mergeServers) return [];
     const merged = mergeFederatedSidebar({
       home: { threads: [], projects: [], sections: [] },
       remotes,
@@ -161,7 +157,7 @@ function useRemoteThreadRows(): RemoteThreadRow[] {
               },
             ];
       });
-  }, [mergeServers, remotes]);
+  }, [remotes]);
 }
 
 function remoteRowLabel(row: RemoteThreadRow): string {

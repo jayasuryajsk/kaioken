@@ -7,6 +7,8 @@ import {
   useLocation,
   useParams,
 } from "react-router-dom";
+import { LegacyRemoteRoute } from "./lib/federation/LegacyRemoteRoute";
+import { RemoteRoute } from "./lib/federation/RemoteRoute";
 import { AppLayout } from "./components/layout/AppLayout";
 import { DesktopWorkspaceNavigation } from "./lib/federation/DesktopWorkspaceNavigation";
 import { workspaceEmbedding } from "./lib/federation/workspace-protocol";
@@ -27,6 +29,8 @@ import { useRememberPluginNavPanelChrome } from "@/lib/plugin-nav-panel-chrome";
 import { useWebSocket } from "./hooks/useWebSocket";
 import {
   AUTH_CALLBACK_ROUTE_PATH,
+  REMOTE_THREAD_ROUTE_PATH,
+  REMOTE_PROJECT_COMPOSE_ROUTE_PATH,
   LEGACY_AUTOMATION_DETAIL_ROUTE_PATH,
   LEGACY_AUTOMATIONS_ROUTE_PATH,
   LEGACY_TOOLS_AUTOMATION_BROWSE_ROUTE_PATH,
@@ -99,9 +103,14 @@ const ProjectDetailSettingsView = lazy(() =>
     default: m.ProjectDetailSettingsView,
   })),
 );
-const RemoteWorkspaceDeck = lazy(() =>
-  import("./views/RemoteWorkspaceDeck").then((m) => ({
-    default: m.RemoteWorkspaceDeck,
+const RemoteThreadView = lazy(() =>
+  import("./views/RemoteThreadView").then((m) => ({
+    default: m.RemoteThreadView,
+  })),
+);
+const RemoteComposeView = lazy(() =>
+  import("./views/RemoteComposeView").then((m) => ({
+    default: m.RemoteComposeView,
   })),
 );
 const MachineSettingsView = lazy(() =>
@@ -431,7 +440,23 @@ export function AppRoutes() {
             />
             <Route path={PLUGINS_ROUTE_PATH} element={<PluginsRoute />} />
             <Route path={PLUGIN_DETAIL_ROUTE_PATH} element={<PluginsRoute />} />
-            <Route path="/servers/:handle/*" element={null} />
+            <Route
+              path={REMOTE_THREAD_ROUTE_PATH}
+              element={
+                <RemoteRoute>
+                  <RemoteThreadView />
+                </RemoteRoute>
+              }
+            />
+            <Route
+              path={REMOTE_PROJECT_COMPOSE_ROUTE_PATH}
+              element={
+                <RemoteRoute>
+                  <RemoteComposeView />
+                </RemoteRoute>
+              }
+            />
+            <Route path="/servers/:handle/*" element={<LegacyRemoteRoute />} />
             <Route
               path="*"
               element={
@@ -443,7 +468,6 @@ export function AppRoutes() {
               }
             />
           </Routes>
-          {workspaceEmbedding === null ? <RemoteWorkspaceDeck /> : null}
           <RouteContentPaintSignal />
         </Suspense>
       </div>

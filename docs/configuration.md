@@ -626,7 +626,6 @@ client wrote first, so a stale window cannot silently clobber a newer value.
 | --------------------------------- | ------------------------------------------------------------------------------- |
 | `sidebar.organizationMode`        | `project`, `chronological`, `machine`, or `connection`                          |
 | `sidebar.projectsSort`            | `recent`, `name`, or `machine` (unified sidebar)                                |
-| `sidebar.mergeServers`            | `on` or `off`: list the other Kaioken servers on the account, read-only         |
 | `sidebar.chronologicalSort`       | `updated`, `created`, `alpha`, or `none`                                        |
 | `sidebar.sectionOrder`            | Section id list for **By project**                                              |
 | `sidebar.manualSectionOrder`      | Section id list for **Manually**                                                |
@@ -857,31 +856,13 @@ The tunnel client lives in `plugins/connect/`; the CLI command is proxied to
 the plugin, and Settings → Connect drives the plugin's rpc (including shared
 ports).
 
-### Pairing the kaioken mobile app
+### Legacy mobile enrollment
 
-The kaioken mobile app reaches a paired kaioken through the same connect route. It
-enrolls as a connect **machine** — its own credential on the getbb.app account,
-separate from the server's pairing secret and individually revocable — so
-pairing starts from the kaioken, not from the phone. Both pairing surfaces sit
-behind the `mobileApp` experiment (Settings → Experiments → **Mobile app**, or
-`kaioken settings experiment mobileApp true`) until the app is generally available;
-the connect plugin reads the experiment from `/system/config` on every call,
-so a toggle applies without a plugin reload:
-
-- Settings → Remote access → **Add mobile device** mints a one-time code and
-  shows it as a QR code plus copyable text with a countdown.
-- `kaioken connect machine-code` prints the same code, server URL, connect apex,
-  and expiry; `kaioken connect machine-code --json` returns
-  `{code, serverUrl, apex, expiresAt}` (the QR encodes that JSON).
-
-Scan or type the code in the mobile app. The code lasts 10 minutes and works
-once. The phone then appears in the getbb.app dashboard machine list, where you
-can revoke it; every enrollment takes one of the account's machine slots
-(desktop apps, remote execution machines, and phones all count), so a
-machine-limit error asks you to revoke an unused device first. Both surfaces
-need the experiment on, the kaioken paired (`kaioken connect --code …`), and the connect
-plugin enabled; with the experiment off the panel hides the section and
-`kaioken connect machine-code` exits 1 with a pointer to the toggle.
+Desktop Connections uses GitHub sign-in only; it has no pairing-code controls.
+Existing device credentials remain valid. For older mobile clients,
+`kaioken connect machine-code [--json]` remains available when the `mobileApp`
+experiment is enabled. This compatibility command creates a one-time code that
+expires after ten minutes; it is not required to connect desktop computers.
 
 ## Message editing
 
@@ -898,10 +879,8 @@ Experimental surfaces are changed in Settings → Experiments or with
 `kaioken settings experiment <key> <true|false>`. All experiments start off.
 The default-off `changelogPreview` experiment shows the latest release notes
 as a compact, dismissible card on Settings → Updates.
-The `mobileApp` experiment turns on pairing for the kaioken mobile app: the
-**Add mobile device** card under Settings → Remote access and the
-`kaioken connect machine-code` command (see "Pairing the kaioken mobile app" above). It
-is off by default while the app is in early access.
+The `mobileApp` experiment enables the legacy `kaioken connect machine-code`
+command. It is off by default while the mobile app is in early access.
 
 Kaioken releases restorable provider sessions after 30 idle minutes. The daemon
 checks for these sessions every five minutes. Active turns, commands, agents,

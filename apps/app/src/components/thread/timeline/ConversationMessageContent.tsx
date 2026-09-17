@@ -1,3 +1,4 @@
+import { useRemoteAttachmentImages } from "@/hooks/useRemoteAttachmentImages";
 import { useMemo, useRef, useState, type CSSProperties } from "react";
 import remend from "remend";
 import type {
@@ -659,7 +660,7 @@ export function ConversationMessageContent(
     resolveUserAttachmentImageSrc,
     text,
   } = props;
-  const attachmentItems = useMemo(
+  const rawAttachmentItems = useMemo(
     () =>
       buildAttachmentItems({
         attachments,
@@ -667,6 +668,11 @@ export function ConversationMessageContent(
         resolveUserAttachmentImageSrc,
       }),
     [attachments, projectId, resolveUserAttachmentImageSrc],
+  );
+  const imageItems = useRemoteAttachmentImages(rawAttachmentItems.imageItems);
+  const attachmentItems = useMemo(
+    () => ({ ...rawAttachmentItems, imageItems }),
+    [rawAttachmentItems, imageItems],
   );
   const addToChatAttachments = useMemo(
     () => buildAddToChatAttachments(attachments),

@@ -22,7 +22,8 @@ The relay needs its GitHub OAuth App credentials and allowed numeric owner ID
 configured first; see `apps/relay/README.md`. This is a personal single-owner
 service. Pending sign-in resumes after restart and expires after ten minutes.
 Device credentials use private runtime files; no GitHub access token is retained.
-Advanced **Connect with a pairing code** remains available for existing setups.
+The desktop UI uses GitHub sign-in only. Older code-based CLI enrollment remains
+available for compatibility; existing connections keep working.
 Disable the plugin to stop remote access or use `kaioken connect off` to forget
 local pairing even if the relay cannot be reached.
 

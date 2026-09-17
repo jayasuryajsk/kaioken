@@ -60,103 +60,6 @@ describe("connect settings section", () => {
     expect(app.settingsSections[0]?.title).toBeUndefined();
   });
 
-  it("uses the local Cloud dashboard supplied by the server as a native new-tab link", async () => {
-    const dashboardUrl = "http://kaioken.localhost:42745/dashboard";
-    const slot = renderSlot(
-      app.settingsSections[0]!,
-      {},
-      {
-        openUrl: () => true,
-        rpc: { status: () => status({ dashboardUrl }) },
-      },
-    );
-
-    const link = (await slot.findByRole("link", {
-      name: "Get a connect code",
-    })) as HTMLAnchorElement;
-    expect(link.href).toBe(dashboardUrl);
-    expect(link.target).toBe("_blank");
-    fireEvent.click(link);
-    expect(slot.navigateCalls).toEqual([]);
-    slot.getByText("this-mac.kaioken.localhost:42745");
-    slot.getByText(/your kaioken\.localhost:42745 dashboard/);
-  });
-
-  it("auto-submits a normalized 4-4-4 code and applies live paired status", async () => {
-    let currentStatus = status();
-    const slot = renderSlot(
-      app.settingsSections[0]!,
-      {},
-      {
-        rpc: {
-          status: () => currentStatus,
-          pair: () => null,
-        },
-      },
-    );
-
-    await slot.findByText("Get a connect code");
-    fireEvent.change(slot.getByLabelText("Connect code"), {
-      target: { value: "  k7qp-2m4x-9zzz  " },
-    });
-
-    await waitFor(() =>
-      expect(slot.rpcCalls).toContainEqual({
-        method: "pair",
-        input: { code: "K7QP-2M4X-9ZZZ" },
-      }),
-    );
-    expect(slot.queryByText("https://workstation.kaioken.app")).toBeNull();
-
-    currentStatus = connected();
-    await slot.emitRealtime(CONNECT_REALTIME_CHANNEL, currentStatus);
-
-    await slot.findByText("Connected");
-    slot.getByText("https://workstation.kaioken.app");
-    slot.getByRole("button", { name: "Copy URL" });
-  });
-
-  it("does not auto-submit an incomplete code", async () => {
-    const slot = renderSlot(
-      app.settingsSections[0]!,
-      {},
-      { rpc: { status: () => status(), pair: () => null } },
-    );
-    await slot.findByText("Get a connect code");
-    fireEvent.change(slot.getByLabelText("Connect code"), {
-      target: { value: "K7QP-2M4" },
-    });
-    expect(
-      (slot.getByRole("button", { name: "Connect" }) as HTMLButtonElement)
-        .disabled,
-    ).toBe(true);
-    expect(slot.rpcCalls.some((call) => call.method === "pair")).toBe(false);
-  });
-
-  it("maps a typed pair error code to human copy, never wire text", async () => {
-    const slot = renderSlot(
-      app.settingsSections[0]!,
-      {},
-      {
-        rpc: {
-          status: () => status(),
-          pair: () => {
-            throw new Error("expired_code");
-          },
-        },
-      },
-    );
-
-    await slot.findByText("Get a connect code");
-    fireEvent.change(slot.getByLabelText("Connect code"), {
-      target: { value: "K7QP-2M4X-9ZZZ" },
-    });
-
-    await slot.findByText(/That code has expired\./);
-    slot.getByRole("link", { name: "Get a new code" });
-    expect(slot.queryByText(/expired_code/)).toBeNull();
-  });
-
   it("shows a remote-viewer count on the connected status line", async () => {
     const slot = renderSlot(
       app.settingsSections[0]!,
@@ -356,140 +259,30 @@ describe("connect settings section", () => {
     await slot.findByText(/this kaioken is not connected to kaioken.app/);
   });
 
-  it("hides mobile pairing unless the mobileApp experiment is on", async () => {
+  it("keeps credentials when revoking this computer fails", async () => {
     const slot = renderSlot(
       app.settingsSections[0]!,
       {},
       {
         rpc: {
           status: () => connected(),
-          mobilePairing: () => ({ enabled: false }),
-        },
-      },
-    );
-
-    await slot.findByText("Connected");
-    await waitFor(() =>
-      expect(slot.rpcCalls).toContainEqual({
-        method: "mobilePairing",
-        input: null,
-      }),
-    );
-    expect(slot.queryByText("Mobile app")).toBeNull();
-    expect(
-      slot.queryByRole("button", { name: "Add mobile device" }),
-    ).toBeNull();
-    slot.getByRole("button", { name: "Re-pair" });
-  });
-
-  it("add mobile device mints a machine code and shows the QR payload, the code, and a countdown", async () => {
-    const expiresAt = Date.now() + 600_000;
-    const slot = renderSlot(
-      app.settingsSections[0]!,
-      {},
-      {
-        rpc: {
-          status: () => connected(),
-          mobilePairing: () => ({ enabled: true }),
-          createMachineCode: () => ({
-            code: "K7QP-2M4X",
-            expiresAt,
-            serverUrl: "https://workstation.kaioken.app",
-          }),
-        },
-      },
-    );
-
-    await slot.findByText("Connected");
-    expect(slot.queryByText("K7QP-2M4X")).toBeNull();
-    fireEvent.click(
-      await slot.findByRole("button", { name: "Add mobile device" }),
-    );
-
-    await waitFor(() =>
-      expect(slot.rpcCalls).toContainEqual({
-        method: "createMachineCode",
-        input: null,
-      }),
-    );
-    await slot.findByText("K7QP-2M4X");
-    slot.getByRole("button", { name: "Copy pairing code" });
-    slot.getByText(/Code expires in 9:5\d/);
-    const qr = (await slot.findByRole("img", {
-      name: "QR code to pair the kaioken mobile app",
-    })) as HTMLImageElement;
-    expect(qr.src.startsWith("data:image/png")).toBe(true);
-    slot.getByText(/kaioken connect machine-code/);
-  });
-
-  it("an expired mobile pairing code offers a fresh one", async () => {
-    let minted = 0;
-    const slot = renderSlot(
-      app.settingsSections[0]!,
-      {},
-      {
-        rpc: {
-          status: () => connected(),
-          mobilePairing: () => ({ enabled: true }),
-          createMachineCode: () => {
-            minted += 1;
-            return {
-              code: minted === 1 ? "AAAA-1111" : "BBBB-2222",
-              expiresAt: Date.now() + (minted === 1 ? 1_200 : 600_000),
-              serverUrl: "https://workstation.kaioken.app",
-            };
+          revokeDevice: () => {
+            throw new Error("Relay unavailable");
           },
         },
       },
     );
-
     await slot.findByText("Connected");
-    fireEvent.click(
-      await slot.findByRole("button", { name: "Add mobile device" }),
+    fireEvent.click(slot.getByRole("button", { name: "Sign out" }));
+    await slot.findByText("Sign out of this computer?");
+    fireEvent.click(slot.getByRole("button", { name: "Sign out" }));
+    await slot.findByText("Relay unavailable");
+    expect(slot.rpcCalls.some((call) => call.method === "disconnect")).toBe(
+      false,
     );
-    await slot.findByText("AAAA-1111");
-
-    await slot.findByText("Code expired", undefined, { timeout: 4_000 });
-    expect(
-      slot.queryByRole("button", { name: "Copy pairing code" }),
-    ).toBeNull();
-    fireEvent.click(slot.getByRole("button", { name: "Generate a new code" }));
-
-    await slot.findByText("BBBB-2222");
-    expect(slot.queryByText("AAAA-1111")).toBeNull();
-    slot.getByText(/Code expires in/);
   });
 
-  it("explains the account machine limit with a dashboard link", async () => {
-    const slot = renderSlot(
-      app.settingsSections[0]!,
-      {},
-      {
-        rpc: {
-          status: () => connected(),
-          mobilePairing: () => ({ enabled: true }),
-          createMachineCode: () => {
-            throw new Error("machine_limit");
-          },
-        },
-      },
-    );
-
-    await slot.findByText("Connected");
-    fireEvent.click(
-      await slot.findByRole("button", { name: "Add mobile device" }),
-    );
-
-    await slot.findByText(/reached its machine limit/);
-    const link = slot.getByRole("link", {
-      name: "Revoke a device you no longer use",
-    }) as HTMLAnchorElement;
-    expect(link.href).toBe("https://kaioken.app/dashboard");
-    expect(slot.queryByText("machine_limit")).toBeNull();
-    slot.getByRole("button", { name: "Add mobile device" });
-  });
-
-  it("disconnect confirms, then lands on the unpaired card with a receipt", async () => {
+  it("sign out revokes this computer and returns to GitHub sign-in", async () => {
     let currentStatus = connected();
     const slot = renderSlot(
       app.settingsSections[0]!,
@@ -497,6 +290,7 @@ describe("connect settings section", () => {
       {
         rpc: {
           status: () => currentStatus,
+          revokeDevice: () => ({ ok: true }),
           disconnect: () => {
             currentStatus = status();
             return currentStatus;
@@ -506,11 +300,11 @@ describe("connect settings section", () => {
     );
 
     await slot.findByText("Connected");
-    fireEvent.click(slot.getByRole("button", { name: "Disconnect" }));
+    fireEvent.click(slot.getByRole("button", { name: "Sign out" }));
 
-    await slot.findByText("Disconnect remote access?");
-    await slot.findByText(/will stop working on all devices/);
-    fireEvent.click(slot.getByRole("button", { name: "Disconnect" }));
+    await slot.findByText("Sign out of this computer?");
+    await slot.findByText(/stop being available on your other computers/);
+    fireEvent.click(slot.getByRole("button", { name: "Sign out" }));
 
     await waitFor(() =>
       expect(slot.rpcCalls.some((call) => call.method === "disconnect")).toBe(
@@ -519,8 +313,14 @@ describe("connect settings section", () => {
     );
     await slot.emitRealtime(CONNECT_REALTIME_CHANNEL, currentStatus);
 
-    await slot.findByText("Get a connect code");
-    await slot.findByText("Remote access disconnected");
+    await slot.findByRole("button", { name: "Continue with GitHub" });
+    await slot.findByText("Signed out of this computer");
+    expect(slot.rpcCalls).toContainEqual({
+      method: "revokeDevice",
+      input: { handle: "workstation" },
+    });
+    expect(slot.queryByText("Re-pair")).toBeNull();
+    expect(slot.queryByText("Connect with a pairing code")).toBeNull();
   });
 });
 

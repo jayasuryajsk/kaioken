@@ -258,9 +258,10 @@ Recent activity, Name, or Machine (`sidebar.projectsSort`) and offers New
 section; its + adds a project. The title row's bell shows how many threads
 need you and scrolls to Needs you; the footer names the server machine.
 When the connect account has other Kaioken servers, the unified sidebar also
-lists their threads and projects read-only, badged with the server name
-(`sidebar.mergeServers`, default `on`); offline servers keep their last
-snapshot greyed with a last-seen time.
+automatically lists their threads and projects, labelled with the computer name.
+Open a task to read, reply, approve or stop it in the main interface. Selecting a
+remote project creates tasks on its owning computer. Offline computers keep their
+last snapshot greyed with a last-seen time.
 
 The Timeline and Projects layouts remain selectable. In the Projects layout
 every thread-list header's actions menu offers New project, New section,

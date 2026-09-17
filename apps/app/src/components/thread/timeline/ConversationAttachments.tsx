@@ -1,3 +1,5 @@
+import { useRemoteServer } from "@/lib/federation/remote-server-context";
+import { createRemoteFetch } from "@/lib/federation/remote-fetch";
 import { useEffect, useState } from "react";
 import type { TimelineConversationAttachments } from "@kaioken/server-contract";
 import { fileNameFromPath } from "@kaioken/thread-view";
@@ -108,6 +110,35 @@ export function ConversationAttachments({
   onOpenLocalFileLink,
   projectId,
 }: ConversationAttachmentsProps) {
+  const remote = useRemoteServer();
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
+  const download = async (path: string) => {
+    if (!remote || !projectId) return;
+    setDownloading(path);
+    setDownloadError(null);
+    try {
+      const response = await createRemoteFetch()(
+        new URL(buildProjectAttachmentContentUrl(projectId, path), remote.url),
+      );
+      if (!response.ok)
+        throw new Error(`Could not download attachment (${response.status})`);
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileNameFromPath(path);
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch (error) {
+      setDownloadError(
+        error instanceof Error
+          ? error.message
+          : "Could not download attachment",
+      );
+    } finally {
+      setDownloading(null);
+    }
+  };
   const [expandedImageIndex, setExpandedImageIndex] = useState<number | null>(
     null,
   );
@@ -174,6 +205,23 @@ export function ConversationAttachments({
             );
             const attachmentHref = projectAttachmentHref({ path, projectId });
 
+            if (remote && projectId) {
+              return (
+                <button
+                  key={path}
+                  type="button"
+                  disabled={downloading !== null}
+                  className={cn(
+                    className,
+                    "cursor-pointer hover:bg-state-hover",
+                  )}
+                  onClick={() => void download(path)}
+                >
+                  {label}
+                </button>
+              );
+            }
+
             if (attachmentHref) {
               return (
                 <a
@@ -213,6 +261,11 @@ export function ConversationAttachments({
             );
           })}
         </div>
+      ) : null}
+      {downloadError ? (
+        <p className="text-xs text-destructive" role="alert">
+          {downloadError}
+        </p>
       ) : null}
       <ImageLightbox
         title="Attached image preview"

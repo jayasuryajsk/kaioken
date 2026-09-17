@@ -9,11 +9,9 @@ import {
 } from "@/components/ui/settings-section";
 import {
   canControlLocalSsh,
-  sshConnectionHandle,
   useSshConnectionActions,
   useSshConnections,
 } from "@/hooks/queries/connection-queries";
-import { getRemoteWorkspaceRoutePath } from "@/lib/route-paths";
 
 export function SshConnectionsSettingsSection() {
   const query = useSshConnections();
@@ -86,13 +84,7 @@ export function SshConnectionsSettingsSection() {
                 </div>
                 {connection.state === "ready" ? (
                   <Button size="sm" variant="outline" asChild>
-                    <Link
-                      to={getRemoteWorkspaceRoutePath(
-                        sshConnectionHandle(connection.alias),
-                      )}
-                    >
-                      Open
-                    </Link>
+                    <Link to="/">View projects</Link>
                   </Button>
                 ) : (
                   <Button

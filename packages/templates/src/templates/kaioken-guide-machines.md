@@ -8,11 +8,12 @@ editingNotes: Keep the user-facing noun machine; internal APIs and types use Hos
 
 Computer connections
 
-Use Settings → Connections to allow access to this computer, open another Kaioken
-installation, or connect with SSH. Each installation keeps its own projects,
-threads, provider credentials and plugins. Opening a remote thread leaves its
-execution on that computer. The normal workspace handles its compose, files,
-terminals, approvals and settings.
+Sign into GitHub in Settings → Connections on each computer. Projects and tasks
+appear automatically in one sidebar; no pairing code is needed. Opening a remote
+task uses the main conversation view, and replies, approvals and stop actions go
+to its owning computer. Creating a task in a remote project uses that computer's
+providers and models. Each installation keeps its files and provider credentials.
+SSH connections are also available for computers configured in OpenSSH.
 
 kaioken connection list [--json] List account computers
 kaioken connection inspect [url] [--json] Read a server's stable identity

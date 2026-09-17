@@ -1,3 +1,5 @@
+import { subscribeRemoteSnapshot } from "@/lib/federation/snapshot-subscription";
+import { workspaceEmbedding } from "@/lib/federation/workspace-protocol";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { wsManager } from "@/lib/ws";
@@ -24,7 +26,7 @@ import { sdk } from "@/lib/sdk";
 import { useSshConnections, sshConnectionHandle } from "./connection-queries";
 
 export const ACCOUNT_SERVERS_REFETCH_MS = 5 * 60_000;
-export const REMOTE_SNAPSHOT_REFETCH_MS = 15_000;
+export const REMOTE_SNAPSHOT_REFETCH_MS = 60_000;
 const CONNECT_PLUGIN_ID = "connect";
 const LIST_ACCOUNT_SERVERS_RPC = "listAccountServers";
 
@@ -182,13 +184,23 @@ export function useRemoteServerSnapshots(
   servers: readonly FederatedServer[],
   enabled = true,
 ): RemoteServerSnapshot[] {
+  const queryClient = useQueryClient();
   const remotes = useMemo(() => selectRemoteServers(servers), [servers]);
+  useEffect(() => {
+    if (!enabled) return;
+    const stop = remotes
+      .filter((server) => server.live)
+      .map((server) =>
+        subscribeRemoteSnapshot(queryClient, server.handle, server.url),
+      );
+    return () => stop.forEach((unsubscribe) => unsubscribe());
+  }, [enabled, queryClient, remotes]);
   const results = useQueries({
     queries: remotes.map((server) => ({
       queryKey: remoteServerSnapshotQueryKey(server.handle),
       queryFn: () => fetchRemoteSnapshot(server),
       enabled: enabled && server.live,
-      refetchInterval: REMOTE_SNAPSHOT_REFETCH_MS,
+      refetchInterval: 5 * 60_000,
       refetchOnWindowFocus: true,
       staleTime: REMOTE_SNAPSHOT_REFETCH_MS,
       retry: false,
@@ -210,7 +222,7 @@ const EMPTY_SERVERS: FederatedServer[] = [];
 export function useFederatedRemotes(options?: {
   enabled?: boolean;
 }): FederatedRemotes {
-  const enabled = options?.enabled ?? true;
+  const enabled = (options?.enabled ?? true) && workspaceEmbedding === null;
   const computers = useConnectedComputers(enabled);
   const servers = enabled ? computers : EMPTY_SERVERS;
   const remotes = useRemoteServerSnapshots(servers, enabled);

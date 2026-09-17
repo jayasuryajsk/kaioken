@@ -36,6 +36,7 @@ import type { ProjectResponse } from "@kaioken/server-contract";
 import { useFederatedRemotes } from "@/hooks/queries/federation-queries";
 import {
   REMOTE_THREAD_ROUTE_PATH,
+  REMOTE_PROJECT_COMPOSE_ROUTE_PATH,
   getProjectComposeRoutePath,
   getRemoteProjectComposeRoutePath,
 } from "@/lib/route-paths";
@@ -53,7 +54,6 @@ import {
 import {
   collapsedProjectIdsAtom,
   expandedProjectIdsAtom,
-  sidebarMergeServersAtom,
   sidebarProjectsSortAtom,
 } from "./sidebarCollapsedAtoms";
 import {
@@ -527,15 +527,14 @@ export function UnifiedSidebarList({
   const [projectsExpanded, setProjectsExpanded] = useState(false);
   const [recentsExpanded, setRecentsExpanded] = useState(false);
   const priorityView = useAtomValue(sidebarPriorityViewAtom);
-  const mergeServers = useAtomValue(sidebarMergeServersAtom) === "on";
-  const { remotes } = useFederatedRemotes({ enabled: mergeServers });
+  const { remotes } = useFederatedRemotes();
   const federated = useMemo(
     () =>
       mergeFederatedSidebar({
         home: { threads, projects, sections },
-        remotes: mergeServers ? remotes : [],
+        remotes,
       }),
-    [mergeServers, projects, remotes, sections, threads],
+    [projects, remotes, sections, threads],
   );
   const remoteServersByHandle = useMemo(() => {
     const byHandle = new Map<string, RemoteProjectServer>();
@@ -559,6 +558,15 @@ export function UnifiedSidebarList({
     return names;
   }, [federated.projects, federated.remoteProjectMachines]);
   const remoteRouteMatch = useMatch(REMOTE_THREAD_ROUTE_PATH);
+  const remoteProjectMatch = useMatch(REMOTE_PROJECT_COMPOSE_ROUTE_PATH);
+  const effectiveSelectedProjectId =
+    selectedProjectId ??
+    (remoteProjectMatch?.params.handle && remoteProjectMatch.params.projectId
+      ? remoteId(
+          remoteProjectMatch.params.handle,
+          remoteProjectMatch.params.projectId,
+        )
+      : undefined);
   const effectiveSelectedThreadId =
     selectedThreadId ??
     (remoteRouteMatch?.params.handle !== undefined &&
@@ -606,14 +614,21 @@ export function UnifiedSidebarList({
   );
   const isProjectExpanded = useCallback(
     (group: UnifiedProjectGroup<ProjectResponse>) => {
-      if (group.project.id === selectedProjectId || group.needsYou) return true;
+      if (group.project.id === effectiveSelectedProjectId || group.needsYou)
+        return true;
       if (collapsedProjectIds.has(group.project.id)) return false;
       return (
         expandedProjectIds.has(group.project.id) ||
         group.lastActivityAt > (now ?? clock) - RECENT_ACTIVITY_WINDOW_MS
       );
     },
-    [clock, collapsedProjectIds, expandedProjectIds, now, selectedProjectId],
+    [
+      clock,
+      collapsedProjectIds,
+      expandedProjectIds,
+      now,
+      effectiveSelectedProjectId,
+    ],
   );
   const toggleProjectExpanded = useCallback(
     (projectId: string) => {
@@ -677,7 +692,7 @@ export function UnifiedSidebarList({
         group={group}
         draftThreadIds={draftThreadIds}
         selectedThreadId={effectiveSelectedThreadId}
-        selectedProjectId={selectedProjectId}
+        selectedProjectId={effectiveSelectedProjectId}
         expanded={isProjectExpanded(group)}
         onToggleExpanded={toggleProjectExpanded}
         showAllThreads={showAllThreadIds.has(group.project.id)}
@@ -790,18 +805,20 @@ export function UnifiedSidebarList({
                   )}
                 />
               </button>
-              <span className="ml-auto hidden shrink-0 group-hover/section:inline-flex focus-within:inline-flex has-[[data-state=open]]:inline-flex">
-                <SectionMenu
-                  label={section.name}
-                  onNewThread={() => onCreateThreadInSection(section.id)}
-                  onRename={() =>
-                    onRenameSection({ id: section.id, name: section.name })
-                  }
-                  onRemove={() =>
-                    onRemoveSection({ id: section.id, name: section.name })
-                  }
-                />
-              </span>
+              {parseRemoteId(section.id) === null ? (
+                <span className="ml-auto hidden shrink-0 group-hover/section:inline-flex focus-within:inline-flex has-[[data-state=open]]:inline-flex">
+                  <SectionMenu
+                    label={section.name}
+                    onNewThread={() => onCreateThreadInSection(section.id)}
+                    onRename={() =>
+                      onRenameSection({ id: section.id, name: section.name })
+                    }
+                    onRemove={() =>
+                      onRemoveSection({ id: section.id, name: section.name })
+                    }
+                  />
+                </span>
+              ) : null}
             </div>
             {collapsed ? null : (
               <div className="space-y-0.5">

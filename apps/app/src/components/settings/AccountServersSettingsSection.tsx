@@ -1,7 +1,5 @@
 import { MachineStatusDot } from "@/components/machines/MachineStatusDot";
-import { Link } from "react-router-dom";
 import { Button } from "@kaioken/shared-ui/button";
-import { getRemoteWorkspaceRoutePath } from "@/lib/route-paths";
 import { useNow } from "@/components/sidebar/TimelineThreadList";
 import {
   SettingsBadge,
@@ -145,8 +143,8 @@ export function AccountServersSettingsSection() {
   const servers = serversQuery.data ?? [];
   return (
     <SettingsSection
-      title="Connect to another computer"
-      description="Open the full workspace of another Kaioken on your account, including its existing projects, tasks and tools."
+      title="Your computers"
+      description="Sign in with GitHub on each computer. Their projects and tasks appear together in your sidebar."
     >
       {servers.length === 0 ? (
         <p
@@ -154,8 +152,8 @@ export function AccountServersSettingsSection() {
           className="text-sm text-muted-foreground"
         >
           {serversQuery.isPending
-            ? "Checking your connect account…"
-            : "Set up remote access on both computers with the same account to see them here."}
+            ? "Checking your account…"
+            : "Sign in with the same GitHub account on your other computers to see them here."}
         </p>
       ) : (
         <SettingsRowList>
@@ -187,13 +185,6 @@ export function AccountServersSettingsSection() {
                   }}
                 />
               </div>
-              {!server.home ? (
-                <Button variant="outline" size="sm" asChild>
-                  <Link to={getRemoteWorkspaceRoutePath(server.handle)}>
-                    Connect
-                  </Link>
-                </Button>
-              ) : null}
             </SettingsRow>
           ))}
         </SettingsRowList>

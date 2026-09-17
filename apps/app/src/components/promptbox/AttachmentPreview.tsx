@@ -1,3 +1,5 @@
+import { useRemoteAttachmentImages } from "@/hooks/useRemoteAttachmentImages";
+import { useRemoteServer } from "@/lib/federation/remote-server-context";
 import { useEffect } from "react";
 import {
   getWrappedImageIndex,
@@ -14,9 +16,10 @@ import {
 function resolveAttachmentPreviewSrc(
   path: string,
   attachmentProjectId: string | undefined,
+  remote: boolean,
 ): string {
   return (
-    getLocalAttachmentPreviewSrc(path) ??
+    (remote ? undefined : getLocalAttachmentPreviewSrc(path)) ??
     toUserAttachmentImageSrc(path, attachmentProjectId)
   );
 }
@@ -43,14 +46,21 @@ export function AttachmentPreview({
   onExpandedImageIndexChange,
   onRemoveAttachment,
 }: AttachmentPreviewProps) {
+  const remote = useRemoteServer();
   const imageAttachments = attachments.filter(isImageAttachment);
   const nonImageAttachments = attachments.filter(
     (attachment) => !isImageAttachment(attachment),
   );
-  const attachmentImageItems = imageAttachments.map((attachment) => ({
-    alt: attachment.name,
-    src: resolveAttachmentPreviewSrc(attachment.path, attachmentProjectId),
-  }));
+  const attachmentImageItems = useRemoteAttachmentImages(
+    imageAttachments.map((attachment) => ({
+      alt: attachment.name,
+      src: resolveAttachmentPreviewSrc(
+        attachment.path,
+        attachmentProjectId,
+        remote !== null,
+      ),
+    })),
+  );
   const hasMultipleAttachmentImages = imageAttachments.length > 1;
   const currentAttachmentImage =
     expandedImageIndex !== null

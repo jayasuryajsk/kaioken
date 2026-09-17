@@ -10,12 +10,8 @@ import {
   connectLoginStatusSchema,
   CONNECT_LOGIN_CHANNEL,
   type ConnectLoginStatus,
-  encodeMobilePairingPayload,
-  mobilePairingPayload,
-  type MobilePairingPayload,
 } from "@kaioken/connect-client";
 import type { connectRpcContract } from "./src/rpc.js";
-import QRCode from "qrcode";
 import { Button } from "@kaioken/shared-ui/button";
 import {
   Dialog,
@@ -35,54 +31,6 @@ function errorText(error: unknown): string {
 
 const DANGER_QUIET_CLASS =
   "text-destructive-text hover:text-destructive-text hover:bg-surface-destructive";
-
-type PairErrorCode =
-  | "invalid_code"
-  | "expired_code"
-  | "already_used"
-  | "network";
-
-interface PairErrorCopy {
-  lead: string;
-  linkLabel: string;
-  tail: string;
-}
-
-const PAIR_ERROR_COPY: Record<PairErrorCode, PairErrorCopy> = {
-  invalid_code: {
-    lead: "That code is invalid or has expired.",
-    linkLabel: "Get a new code",
-    tail: " — they only last 10 minutes.",
-  },
-  expired_code: {
-    lead: "That code has expired.",
-    linkLabel: "Get a new code",
-    tail: " — they only last 10 minutes.",
-  },
-  already_used: {
-    lead: "That code was already used.",
-    linkLabel: "Get a new code",
-    tail: " — each code works once.",
-  },
-  network: {
-    lead: "Couldn't reach the Connect service.",
-    linkLabel: "Open the dashboard",
-    tail: " — check your connection, then try again.",
-  },
-};
-
-function toPairErrorCode(error: unknown): PairErrorCode {
-  const message = errorText(error);
-  if (
-    message === "invalid_code" ||
-    message === "expired_code" ||
-    message === "already_used" ||
-    message === "network"
-  ) {
-    return message;
-  }
-  return "invalid_code";
-}
 
 function asStatus(payload: unknown): ConnectStatus | null {
   if (payload === null || typeof payload !== "object") return null;
@@ -189,22 +137,6 @@ function hostOf(url: string): string {
 
 const CONNECT_CODE_MAX_LENGTH = 12;
 
-function formatConnectCode(raw: string): string {
-  const cleaned = raw
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, CONNECT_CODE_MAX_LENGTH);
-  return cleaned.match(/.{1,4}/g)?.join("-") ?? "";
-}
-
-function isCompleteCode(formatted: string): boolean {
-  return /^[A-Z0-9]{4}-[A-Z0-9]{4}(?:-[A-Z0-9]{4})?$/.test(formatted);
-}
-
-function isFullLengthCode(formatted: string): boolean {
-  return /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(formatted);
-}
-
 function StatusDot({ tone }: { tone: "ok" | "warn" | "muted" }) {
   return (
     <span
@@ -216,54 +148,6 @@ function StatusDot({ tone }: { tone: "ok" | "warn" | "muted" }) {
         tone === "warn" &&
           "animate-pulse bg-warning shadow-[0_0_0_3px_color-mix(in_oklab,var(--warning)_22%,transparent)]",
         tone === "muted" && "bg-muted-foreground/50",
-      )}
-    />
-  );
-}
-
-function StepNumber({ value }: { value: number }) {
-  return (
-    <span
-      aria-hidden="true"
-      className="flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-recessed text-xs font-medium text-muted-foreground"
-    >
-      {value}
-    </span>
-  );
-}
-
-function QrCodeImage({
-  value,
-  alt,
-  className,
-}: {
-  value: string;
-  alt?: string;
-  className?: string;
-}) {
-  const [dataUrl, setDataUrl] = useState<string | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    QRCode.toDataURL(value, { margin: 1, width: 320 }).then(
-      (url) => {
-        if (!cancelled) setDataUrl(url);
-      },
-      () => {
-        if (!cancelled) setDataUrl(null);
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [value]);
-  if (dataUrl === null) return null;
-  return (
-    <img
-      src={dataUrl}
-      alt={alt ?? `QR code for ${value}`}
-      className={cn(
-        "size-32 rounded-md border border-border bg-white p-1.5",
-        className,
       )}
     />
   );
@@ -375,340 +259,6 @@ function QuietCopyButton({ text, label }: { text: string; label: string }) {
     >
       {copied ? "Copied" : "Copy"}
     </Button>
-  );
-}
-
-function PairForm({
-  dashboardUrl,
-  onPaired,
-}: {
-  dashboardUrl: string;
-  onPaired: () => void;
-}) {
-  const rpc = useRpc<typeof connectRpcContract>();
-  const [code, setCode] = useState("");
-  const [pending, setPending] = useState(false);
-  const [errorCode, setErrorCode] = useState<PairErrorCode | null>(null);
-  const submittedRef = useRef<string | null>(null);
-
-  const submit = useCallback(
-    (value: string) => {
-      if (pending) return;
-      const canonical = formatConnectCode(value);
-      if (!isCompleteCode(canonical)) return;
-      submittedRef.current = canonical;
-      setPending(true);
-      setErrorCode(null);
-      rpc.call("pair", { code: canonical }).then(
-        () => {
-          setPending(false);
-          setCode("");
-          submittedRef.current = null;
-          onPaired();
-        },
-        (rpcError: unknown) => {
-          setPending(false);
-          setErrorCode(toPairErrorCode(rpcError));
-        },
-      );
-    },
-    [pending, rpc, onPaired],
-  );
-
-  const onChange = useCallback(
-    (raw: string) => {
-      const formatted = formatConnectCode(raw);
-      setCode(formatted);
-      if (errorCode !== null) setErrorCode(null);
-      if (isFullLengthCode(formatted) && formatted !== submittedRef.current) {
-        submit(formatted);
-      }
-    },
-    [errorCode, submit],
-  );
-
-  const complete = isCompleteCode(code);
-  const copy = errorCode !== null ? PAIR_ERROR_COPY[errorCode] : null;
-
-  return (
-    <div className="space-y-2.5">
-      <form
-        className="flex max-w-md items-center gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          submit(code);
-        }}
-      >
-        <Input
-          value={code}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder="XXXX-XXXX-XXXX"
-          autoComplete="off"
-          spellCheck={false}
-          aria-label="Connect code"
-          aria-invalid={errorCode !== null}
-          className={cn(
-            "font-mono tracking-widest",
-            errorCode !== null && "border-destructive ring-1 ring-destructive",
-          )}
-        />
-        <Button type="submit" disabled={pending || !complete}>
-          {pending ? (
-            <Icon name="Spinner" className="size-4 animate-spin" />
-          ) : null}
-          Connect
-        </Button>
-      </form>
-      {copy !== null ? (
-        <div className="max-w-md rounded-md border border-surface-destructive-border bg-surface-destructive px-3 py-2 text-xs text-destructive-text">
-          {copy.lead}{" "}
-          <UrlLink
-            href={dashboardUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="font-semibold underline underline-offset-2"
-          >
-            {copy.linkLabel}
-          </UrlLink>
-          {copy.tail}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-type MachineCodeErrorCode = "machine_limit" | "network" | "not_paired";
-
-function toMachineCodeErrorCode(error: unknown): MachineCodeErrorCode {
-  const message = errorText(error);
-  if (message === "machine_limit" || message === "not_paired") return message;
-  return "network";
-}
-
-function formatCountdown(remainingMs: number): string {
-  const totalSeconds = Math.max(0, Math.floor(remainingMs / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-}
-
-function useCountdown(expiresAt: number | null): number | null {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (expiresAt === null) return;
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, [expiresAt]);
-  return expiresAt === null ? null : expiresAt - now;
-}
-
-function MobilePairingCard({
-  payload,
-  dashboardHost,
-  minting,
-  onRenew,
-}: {
-  payload: MobilePairingPayload;
-  dashboardHost: string;
-  minting: boolean;
-  onRenew: () => void;
-}) {
-  const remainingMs = useCountdown(payload.expiresAt);
-  const expired = remainingMs !== null && remainingMs <= 0;
-  const qrText = encodeMobilePairingPayload(payload);
-  return (
-    <div className="flex flex-col gap-3 rounded-md border border-border bg-surface-recessed/50 px-3 py-3 sm:flex-row sm:items-start">
-      <div className={cn("shrink-0", expired && "opacity-40 saturate-0")}>
-        <QrCodeImage
-          value={qrText}
-          alt="QR code to pair the kaioken mobile app"
-          className="size-40"
-        />
-      </div>
-      <div className="min-w-0 flex-1 space-y-2">
-        <p className="text-sm">
-          Scan this with the kaioken mobile app, or enter the code by hand.
-        </p>
-        <div className="flex max-w-xs items-center gap-1 rounded-lg border border-border bg-surface-recessed py-1 pl-3.5 pr-1">
-          <span
-            className={cn(
-              "min-w-0 flex-1 truncate font-mono text-sm font-medium tracking-widest",
-              expired
-                ? "text-muted-foreground line-through"
-                : "text-foreground",
-            )}
-            aria-label="Mobile pairing code"
-          >
-            {payload.code}
-          </span>
-          {expired ? null : (
-            <QuietCopyButton text={payload.code} label="Copy pairing code" />
-          )}
-        </div>
-        <div className="flex items-center gap-2 text-xs text-subtle-foreground">
-          {expired ? (
-            <>
-              <span>Code expired</span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground"
-                disabled={minting}
-                onClick={onRenew}
-              >
-                {minting ? (
-                  <Icon name="Spinner" className="size-4 animate-spin" />
-                ) : null}
-                Generate a new code
-              </Button>
-            </>
-          ) : remainingMs !== null ? (
-            <span className="tabular-nums">
-              Code expires in {formatCountdown(remainingMs)}
-            </span>
-          ) : null}
-        </div>
-        <p className="text-xs text-subtle-foreground/75">
-          The code works once. Your phone gets its own credential on your{" "}
-          {dashboardHost} account — it shows up in the dashboard&apos;s machine
-          list, where you can revoke it. Same thing from a terminal:{" "}
-          <span className="font-mono">kaioken connect machine-code</span>.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function useMobilePairingEnabled(): boolean {
-  const rpc = useRpc<typeof connectRpcContract>();
-  const [enabled, setEnabled] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
-    rpc.call("mobilePairing").then(
-      (result) => {
-        if (!cancelled) setEnabled(result.enabled);
-      },
-      () => {
-        if (!cancelled) setEnabled(false);
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [rpc]);
-  return enabled;
-}
-
-function AddMobileDeviceSection({ dashboardUrl }: { dashboardUrl: string }) {
-  const enabled = useMobilePairingEnabled();
-  if (!enabled) return null;
-  return <AddMobileDeviceSectionContent dashboardUrl={dashboardUrl} />;
-}
-
-function AddMobileDeviceSectionContent({
-  dashboardUrl,
-}: {
-  dashboardUrl: string;
-}) {
-  const rpc = useRpc<typeof connectRpcContract>();
-  const [payload, setPayload] = useState<MobilePairingPayload | null>(null);
-  const [minting, setMinting] = useState(false);
-  const [errorCode, setErrorCode] = useState<MachineCodeErrorCode | null>(null);
-  const dashboardHost = hostOf(dashboardUrl);
-
-  const mint = useCallback(() => {
-    if (minting) return;
-    setMinting(true);
-    setErrorCode(null);
-    rpc.call("createMachineCode").then(
-      (result) => {
-        setMinting(false);
-        setPayload(mobilePairingPayload(result));
-      },
-      (rpcError: unknown) => {
-        setMinting(false);
-        setErrorCode(toMachineCodeErrorCode(rpcError));
-      },
-    );
-  }, [minting, rpc]);
-
-  return (
-    <div className="space-y-2.5 border-t border-border-seam pt-4">
-      <div className="flex items-center">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-subtle-foreground">
-          Mobile app
-        </h3>
-        <span className="flex-1" />
-        {payload === null ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground"
-            disabled={minting}
-            onClick={mint}
-          >
-            {minting ? (
-              <Icon name="Spinner" className="size-3.5 animate-spin" />
-            ) : (
-              <Icon name="Plus" className="size-3.5" />
-            )}
-            Add mobile device
-          </Button>
-        ) : (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground"
-            onClick={() => {
-              setPayload(null);
-              setErrorCode(null);
-            }}
-          >
-            Done
-          </Button>
-        )}
-      </div>
-
-      {payload !== null ? (
-        <MobilePairingCard
-          key={payload.code}
-          payload={payload}
-          dashboardHost={dashboardHost}
-          minting={minting}
-          onRenew={mint}
-        />
-      ) : (
-        <p className="text-xs text-subtle-foreground/75">
-          Pair the kaioken mobile app with this kaioken. It gets a one-time code
-          to scan or type; the phone then reaches this kaioken through{" "}
-          {dashboardHost}.
-        </p>
-      )}
-
-      {errorCode === "machine_limit" ? (
-        <div className="max-w-md rounded-md border border-surface-destructive-border bg-surface-destructive px-3 py-2 text-xs text-destructive-text">
-          Your {dashboardHost} account has reached its machine limit.{" "}
-          <UrlLink
-            href={dashboardUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="font-semibold underline underline-offset-2"
-          >
-            Revoke a device you no longer use
-          </UrlLink>{" "}
-          in the dashboard, then try again.
-        </div>
-      ) : errorCode !== null ? (
-        <p className="text-xs text-destructive-text">
-          {errorCode === "not_paired"
-            ? "This kaioken is no longer paired — re-pair, then try again."
-            : "Couldn't reach the Connect service to create a code — check your connection, then try again."}
-        </p>
-      ) : null}
-    </div>
   );
 }
 
@@ -945,14 +495,12 @@ function DisconnectDialog({
   open,
   onOpenChange,
   host,
-  dashboardHost,
   pending,
   onConfirm,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   host: string;
-  dashboardHost: string;
   pending: boolean;
   onConfirm: () => void;
 }) {
@@ -962,12 +510,12 @@ function DisconnectDialog({
         {open ? (
           <>
             <DialogHeader>
-              <DialogTitle>Disconnect remote access?</DialogTitle>
+              <DialogTitle>Sign out of this computer?</DialogTitle>
             </DialogHeader>
             <p className="text-sm text-muted-foreground">
               <span className="font-medium text-foreground">{host}</span> will
-              stop working on all devices. Re-pairing needs a new code from your{" "}
-              {dashboardHost} dashboard.
+              stop being available on your other computers. Sign in with GitHub
+              to reconnect.
             </p>
             <DialogFooter>
               <Button
@@ -987,67 +535,13 @@ function DisconnectDialog({
                 {pending ? (
                   <Icon name="Spinner" className="size-4 animate-spin" />
                 ) : null}
-                {pending ? "Disconnecting…" : "Disconnect"}
+                {pending ? "Signing out…" : "Sign out"}
               </Button>
             </DialogFooter>
           </>
         ) : null}
       </DialogContent>
     </Dialog>
-  );
-}
-
-function NotPairedContent({
-  dashboardUrl,
-  onPaired,
-}: {
-  dashboardUrl: string;
-  onPaired: () => void;
-}) {
-  const dashboardHost = hostOf(dashboardUrl);
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Each Mac pairs with its own name and gets a private URL like{" "}
-        <span className="rounded bg-surface-recessed px-1.5 py-0.5 font-mono text-xs text-foreground">
-          this-mac.{dashboardHost}
-        </span>
-        . One account holds every Mac, so a paired phone or browser sees all of
-        them. Your projects, tasks and provider logins stay on this computer.
-      </p>
-
-      <div className="flex gap-3">
-        <StepNumber value={1} />
-        <div className="min-w-0 flex-1 space-y-2">
-          <p className="text-sm">
-            Get a one-time connect code from your {dashboardHost} dashboard.
-          </p>
-          <Button type="button" asChild>
-            <UrlLink href={dashboardUrl} target="_blank" rel="noreferrer">
-              Get a connect code
-              <Icon name="ExternalLink" className="size-3.5" />
-            </UrlLink>
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex gap-3">
-        <StepNumber value={2} />
-        <div className="min-w-0 flex-1 space-y-2">
-          <p className="text-sm">Paste it here — it connects automatically.</p>
-          <PairForm dashboardUrl={dashboardUrl} onPaired={onPaired} />
-        </div>
-      </div>
-
-      <p className="flex items-start gap-1.5 text-xs text-subtle-foreground">
-        <Icon
-          name="AlertTriangle"
-          className="mt-px size-3.5 shrink-0 opacity-70"
-        />
-        Anyone signed in to your {dashboardHost} account gets full control of
-        this kaioken.
-      </p>
-    </div>
   );
 }
 
@@ -1064,12 +558,15 @@ function ConnectedContent({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [disconnectError, setDisconnectError] = useState<string | null>(null);
-  const [repairOpen, setRepairOpen] = useState(false);
 
   const disconnect = useCallback(() => {
     setDisconnecting(true);
     setDisconnectError(null);
-    rpc.call("disconnect").then(
+    (async () => {
+      if (status.handle)
+        await rpc.call("revokeDevice", { handle: status.handle });
+      return rpc.call("disconnect");
+    })().then(
       () => {
         setDisconnecting(false);
         setConfirmOpen(false);
@@ -1081,7 +578,7 @@ function ConnectedContent({
         setDisconnectError(errorText(error));
       },
     );
-  }, [rpc, onChanged, onDisconnected]);
+  }, [rpc, status.handle, onChanged, onDisconnected]);
 
   const host = status.url !== null ? hostOf(status.url) : "this kaioken";
 
@@ -1096,37 +593,15 @@ function ConnectedContent({
             ? ` · ${status.remoteClients} viewing remotely`
             : ""}
         </span>
-        <span className="flex-1" />
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground"
-          onClick={() => setRepairOpen((open) => !open)}
-        >
-          Re-pair
-        </Button>
       </div>
 
       {status.url !== null ? <UrlHero url={status.url} showOpen /> : null}
-
-      {repairOpen ? (
-        <div className="space-y-2 rounded-md border border-border bg-surface-recessed/50 px-3 py-3">
-          <p className="text-xs text-muted-foreground">
-            Re-pairing replaces this kaioken&apos;s credential. Paste a fresh
-            code from your dashboard.
-          </p>
-          <PairForm dashboardUrl={status.dashboardUrl} onPaired={onChanged} />
-        </div>
-      ) : null}
-
-      <AddMobileDeviceSection dashboardUrl={status.dashboardUrl} />
 
       <SharedPortsSection shares={status.shares} dimmed={false} />
 
       <div className="-mx-4 mt-4 flex items-center gap-3 border-t border-border-seam px-4 pt-3">
         <span className="min-w-0 text-xs text-muted-foreground">
-          Disconnecting forgets this kaioken&apos;s credential.
+          Sign out to remove this computer from your account.
         </span>
         <span className="flex-1" />
         <Button
@@ -1136,7 +611,7 @@ function ConnectedContent({
           className={DANGER_QUIET_CLASS}
           onClick={() => setConfirmOpen(true)}
         >
-          Disconnect
+          Sign out
         </Button>
       </div>
       {disconnectError !== null ? (
@@ -1147,7 +622,6 @@ function ConnectedContent({
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         host={host}
-        dashboardHost={hostOf(status.dashboardUrl)}
         pending={disconnecting}
         onConfirm={disconnect}
       />
@@ -1172,7 +646,11 @@ function ReconnectingContent({
   const disconnect = useCallback(() => {
     setDisconnecting(true);
     setDisconnectError(null);
-    rpc.call("disconnect").then(
+    (async () => {
+      if (status.handle)
+        await rpc.call("revokeDevice", { handle: status.handle });
+      return rpc.call("disconnect");
+    })().then(
       () => {
         setDisconnecting(false);
         setConfirmOpen(false);
@@ -1184,7 +662,7 @@ function ReconnectingContent({
         setDisconnectError(errorText(error));
       },
     );
-  }, [rpc, onChanged, onDisconnected]);
+  }, [rpc, status.handle, onChanged, onDisconnected]);
 
   const host = status.url !== null ? hostOf(status.url) : "this kaioken";
   const why = [status.lastError, retryHint(status.nextRetryAt)]
@@ -1228,7 +706,7 @@ function ReconnectingContent({
           className={DANGER_QUIET_CLASS}
           onClick={() => setConfirmOpen(true)}
         >
-          Disconnect
+          Sign out
         </Button>
       </div>
       {disconnectError !== null ? (
@@ -1239,7 +717,6 @@ function ReconnectingContent({
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         host={host}
-        dashboardHost={hostOf(status.dashboardUrl)}
         pending={disconnecting}
         onConfirm={disconnect}
       />
@@ -1394,7 +871,7 @@ function ConnectSettingsSection() {
   });
 
   const showDisconnected = useCallback(() => {
-    setFlash("Remote access disconnected");
+    setFlash("Signed out of this computer");
     if (flashTimerRef.current !== null) clearTimeout(flashTimerRef.current);
     flashTimerRef.current = setTimeout(() => setFlash(null), 4000);
   }, []);
@@ -1429,17 +906,7 @@ function ConnectSettingsSection() {
           {flash}
         </div>
       ) : null}
-      {!status.paired ? (
-        <details className="space-y-4">
-          <summary className="cursor-pointer text-sm text-muted-foreground">
-            Connect with a pairing code
-          </summary>
-          <NotPairedContent
-            dashboardUrl={status.dashboardUrl}
-            onPaired={refetch}
-          />
-        </details>
-      ) : status.state === "reconnecting" ? (
+      {!status.paired ? null : status.state === "reconnecting" ? (
         <ReconnectingContent
           status={status}
           onChanged={refetch}

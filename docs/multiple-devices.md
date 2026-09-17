@@ -5,8 +5,9 @@ Kaioken distinguishes control devices, connected computers and execution workers
 - A browser device is a control surface for one kaioken server. It can view projects,
   send prompts, and manage threads, but it does not execute them.
 - A connected computer is another Kaioken installation. Settings → Connections
-  lists its projects and tasks, and opens the full workspace supplied by that
-  computer. Its data, providers, plugins and execution stay there.
+  manages account devices. Their projects and tasks share one sidebar, and
+  remote conversations open in the main interface. Data and execution stay
+  on the owning computer.
 - An execution machine runs a host daemon. One kaioken server can dispatch project
   sources and thread environments across several enrolled machines.
 
@@ -20,7 +21,8 @@ On each Mac, open Settings → Connections → **Continue with GitHub**. The bro
 shows the computer being connected, then asks for GitHub authorization. Return
 to Kaioken after success; the app completes registration automatically. Use the
 same configured GitHub account on both computers. Other computers appear through
-live discovery, and **Connect** opens their projects and tasks. Keep the remote
+live discovery. Open projects or tasks directly from the shared sidebar; no
+connection code or separate Connect step is needed. Keep the remote
 Kaioken runtime running; a sleeping or offline computer remains unavailable.
 
 The personal service's OAuth setup is documented in [relay setup](../apps/relay/README.md).
@@ -29,7 +31,8 @@ not add sign-in to previously installed releases. It supports one configured
 owner, not public account creation. Connecting does not copy repositories or
 provider API keys between computers.
 
-Connections settings also offers **Rename** and **Revoke** for each computer.
+Connections settings offers **Rename** and **Revoke** for each computer, and
+**Sign out** revokes the current computer before removing its credential.
 Revoking removes its account access and closes its tunnel; it does not delete
 local projects or tasks. Signing in again grants a new device credential.
 
@@ -59,6 +62,22 @@ SDK clients can call Connect RPCs `beginSignIn` (`{name?}`), `signInStatus`,
 through `sdk.plugins.callRpc`. Login status uses `connectLoginStatusSchema` from
 `@kaioken/connect-client` and exposes no proof or device credential. Subscribe to
 `account-login` for login status and `account-servers` for discovery snapshots.
+
+## Work across computers
+
+Remote tasks use the same timeline and prompt components as local tasks. Replies,
+attachments, approvals and stop actions go to the owning computer. Selecting a
+remote project uses its machines, providers and model catalog for new tasks.
+Drafts are stored separately per computer and task. The device list and remote
+sidebar snapshots update from events, with a slow refresh as a recovery fallback.
+
+The existing SDK works against each discovered server URL: create a browser SDK
+with that base URL and authenticated transport, then use `projects.sidebarBootstrap`,
+`threads.get`, `threads.timeline`, `threads.send`, `threads.interactions.resolve`,
+`threads.stop`, and `threads.spawn`. CLI commands target the owning server with
+`kaioken --url <server-url> ...`; `kaioken connection list --json` discovers devices.
+Authentication is still required by that server; no credentials are copied into
+navigation links.
 
 ## Move a task between computers
 
@@ -269,28 +288,22 @@ The Expo request supports `HTTPS_PROXY` and `NO_PROXY`.
 
 ## Open connected computers in the desktop app
 
-The Server menu opens account computers inside the same local workspace shell.
-The local Kaioken runtime remains attached, and switching back uses normal
-navigation. Previously opened connected workspaces remain mounted, preserving
-loaded history and drafts. The sidebar and project chooser can open the same
-computers. This Mac returns to the local workspace without a switch confirmation.
+Sign in with the same GitHub account on each computer. Their projects and tasks
+appear in one sidebar, labeled with the computer that owns them. Opening a task
+uses the normal conversation view, and creating a task in a remote project runs
+it on that computer. Older workspace links redirect to these native routes.
 
 The desktop app uses its existing Connect session, stored with OS keychain
 protection, for authenticated HTTP and realtime requests. It never copies the
-remote computer's provider credentials. If authentication expires or the computer
-is offline, the workspace shows a recovery action.
+remote computer's provider credentials. Offline computers remain listed and
+become available again when Kaioken reconnects.
 
-Account computers update through one Connect discovery subscription per local
-runtime. The desktop and browser views reuse its local realtime connection, so
-opening extra views does not create extra cloud discovery connections. Newly
-paired computers and clean online/offline transitions appear immediately; after
-a dropped connection, the next connection receives a fresh directory snapshot.
-`kaioken connect servers` and the Connect `listAccountServers` SDK RPC read the
-same list. The personal Cloudflare relay retains code-based pairing; this change
-does not add a public account login service.
-
-A custom server URL remains a standalone server view. Its theme and keybindings
-are refreshed on activation and periodically while it is selected.
+Account discovery uses one Connect subscription per local runtime. Sidebar,
+search, and project pickers share remote event subscriptions and cached snapshots.
+Changes refresh the shared snapshot in a short batch, with a five-minute fallback
+refresh for recovery. New computers do not wait for that fallback: account events
+announce them immediately. `kaioken connect servers` and the Connect
+`listAccountServers` SDK RPC read the same directory.
 
 ## Add an execution machine
 

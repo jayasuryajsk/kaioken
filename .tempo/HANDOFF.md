@@ -1,4 +1,57 @@
-# Current update — desktop 1.0.21 published, 2026-09-17
+# Current update — unified signed-in computers, 2026-09-17
+
+User requested one shared workspace for signed-in computers and removal of pairing
+codes from the normal UI, then explicitly authorized pushing this implementation
+to GitHub. No desktop release is authorized for this change. The user's earlier
+instruction to skip Daybreak remains in force; no external reviewer was used.
+
+## Changes
+
+- Remote tasks and project composers now render native views in the local app;
+  the embedded RemoteWorkspaceDeck is removed. Legacy workspace bookmarks redirect
+  to the corresponding native task or project route.
+- Projects, tasks and search always combine connected computers, with namespaced
+  IDs and machine labels. Account settings explain automatic discovery instead
+  of requiring a separate Connect action.
+- GitHub is the normal sign-in UI. Pairing and re-pair controls are removed;
+  compatibility CLI/RPC pairing remains. Sign-out revokes this computer before
+  clearing credentials, retaining them if revocation fails.
+- Snapshot subscriptions are shared and reference-counted, with batched event
+  refreshes and a five-minute recovery fallback. Native task history, replies,
+  stop and approvals use the owning server. Older history can be loaded.
+- Remote drafts and uploads are machine-scoped. Images and file attachments use
+  the authenticated remote fetch bridge; changed installation identities block
+  native actions until explicitly trusted.
+- SDK/CLI targeting and the new workflow are documented in multiple-devices.md
+  and the bundled guides. No server/daemon wire contract changed.
+
+## Verification and remaining scope
+
+Turbo app/Connect typechecks passed after final code changes. App focused tests:
+50 native routing, compose, reply, approval, sidebar, account settings and fetch
+checks passed; the additional remote-image test and 47 shared conversation tests
+passed. Connect's full 95-test run passed, followed by 12 focused UI tests after
+adding the sign-out revocation-failure case. Formatter and git diff checks pass.
+Development desktop build passed (12 upstream build tasks plus Electron build).
+
+Logs: /tmp/kaioken-unified-push-types.log,
+/tmp/kaioken-unified-app-final.log, /tmp/kaioken-unified-attachment-tests.log,
+/tmp/kaioken-unified-shared-timeline-tests.log,
+/tmp/kaioken-unified-connect-tests.log,
+/tmp/kaioken-unified-connect-ui-final.log and
+/Users/macstudio/.kaioken-dev/launchers/kaioken/desktop.log.
+
+Live visual verification was blocked by the Mac locking; the user interrupted
+that step to request this push. Physical two-Mac verification is still pending.
+The native remote task composer currently preserves its existing model and
+permission settings; full remote plugin panels, file navigation and terminal
+parity are outside this change. New remote tasks have model/provider selection.
+Next: verify opening and replying to a task across the two Macs before a separately
+authorized desktop release. Installed 1.0.21 remains unchanged.
+
+---
+
+# Previous update — desktop 1.0.21 published, 2026-09-17
 
 User authorized push and desktop release. Main and desktop-v1.0.21 were pushed
 at 3400707be; desktop-latest now serves 1.0.21. Release:
