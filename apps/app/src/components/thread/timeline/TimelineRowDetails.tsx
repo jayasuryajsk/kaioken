@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ScopedImg } from "@/components/ui/scoped-img";
 import {
   assertNever,
   fileNameFromPath,
@@ -124,7 +125,7 @@ function ImageWorkRowBody({ resolveImageViewSrc, row }: ImageWorkRowBodyProps) {
         onClick={() => setLightboxOpen(true)}
         aria-label={`Open image preview: ${imageName}`}
       >
-        <img
+        <ScopedImg
           src={imageSrc}
           alt=""
           className="block h-auto w-full object-contain"

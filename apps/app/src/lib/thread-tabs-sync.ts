@@ -10,7 +10,8 @@ import {
   invalidateCachedThreadTabs,
   setCachedThreadTabs,
 } from "@/hooks/cache-owners/thread-tabs-cache-owner";
-import { KaiokenHttpError, sdk } from "./sdk";
+import { KaiokenHttpError } from "./sdk";
+import { sdkForQueryClient } from "./federation/query-client-sdk";
 import {
   areFixedPanelTabsEquivalent,
   type FixedPanelTab,
@@ -128,7 +129,9 @@ async function readCurrentThreadTabs({
   if (cached !== undefined) {
     return cached;
   }
-  const response = await sdk.threads.tabs.get({ threadId });
+  const response = await sdkForQueryClient(queryClient).threads.tabs.get({
+    threadId,
+  });
   setCachedThreadTabs(queryClient, threadId, response);
   return response;
 }
@@ -151,7 +154,7 @@ async function persistThreadTabs({
   if (areThreadTabListsEquivalent(current.tabs, tabsToPersist)) {
     return;
   }
-  const response = await sdk.threads.tabs.update({
+  const response = await sdkForQueryClient(queryClient).threads.tabs.update({
     expectedRevision: current.revision,
     tabs: threadTabsSchema.parse(tabsToPersist),
     threadId,
@@ -169,7 +172,7 @@ async function migrateLocalThreadTabs({
     return;
   }
   const tabsToPersist = persistedThreadTabs(tabs);
-  const response = await sdk.threads.tabs.update({
+  const response = await sdkForQueryClient(queryClient).threads.tabs.update({
     expectedRevision: 0,
     tabs: threadTabsSchema.parse(tabsToPersist),
     threadId,

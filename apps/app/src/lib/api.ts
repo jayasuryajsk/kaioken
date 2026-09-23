@@ -148,28 +148,43 @@ export async function request<T>(
   return JSON.parse(text) as T;
 }
 
+export interface ContentTransport {
+  fetch: typeof fetch;
+  resolveUrl: (relativeUrl: string) => string;
+  usesObjectUrls: boolean;
+}
+
+export const LOCAL_CONTENT_TRANSPORT: ContentTransport = {
+  fetch: (input, init) => fetch(input, appSurfaceRequestInit(init ?? {})),
+  resolveUrl: (relativeUrl) => relativeUrl,
+  usesObjectUrls: false,
+};
+
 async function loadFilePreview(
   target: FilePreviewTarget,
-  signal?: AbortSignal,
+  signal: AbortSignal | undefined,
+  transport: ContentTransport,
 ): Promise<FilePreview> {
   const response = await requestResponse(
-    fetch(
-      target.url,
-      appSurfaceRequestInit({
-        method: "GET",
-        signal,
-      }),
-    ),
+    transport.fetch(transport.resolveUrl(target.url), {
+      method: "GET",
+      ...(signal === undefined ? {} : { signal }),
+    }),
   );
   const contentBytes = new Uint8Array(await response.arrayBuffer());
+  const mimeType = normalizeFilePreviewMimeType(
+    response.headers.get("content-type"),
+  );
   return buildFilePreview({
     contentBytes,
-    mimeType: normalizeFilePreviewMimeType(
-      response.headers.get("content-type"),
-    ),
+    mimeType,
     name: target.name,
     path: target.path,
-    url: target.url,
+    url: transport.usesObjectUrls
+      ? URL.createObjectURL(
+          new Blob([contentBytes], mimeType ? { type: mimeType } : {}),
+        )
+      : target.url,
   });
 }
 
@@ -219,6 +234,7 @@ export async function getThreadStorageFilePreview(
   id: string,
   path: string,
   signal?: AbortSignal,
+  transport: ContentTransport = LOCAL_CONTENT_TRANSPORT,
 ): Promise<FilePreview> {
   return loadFilePreview(
     {
@@ -226,6 +242,7 @@ export async function getThreadStorageFilePreview(
       url: buildThreadStorageContentUrl(id, path),
     },
     signal,
+    transport,
   );
 }
 
@@ -233,6 +250,7 @@ export async function getThreadHostFilePreview(
   id: string,
   path: string,
   signal?: AbortSignal,
+  transport: ContentTransport = LOCAL_CONTENT_TRANSPORT,
 ): Promise<FilePreview> {
   return loadFilePreview(
     {
@@ -241,5 +259,6 @@ export async function getThreadHostFilePreview(
       url: buildThreadHostFileContentUrl(id, path),
     },
     signal,
+    transport,
   );
 }

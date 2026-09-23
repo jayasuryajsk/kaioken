@@ -24,7 +24,7 @@ import {
   useUnpinThread,
   useUpdateThread,
 } from "@/hooks/mutations/thread-state-mutations";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { useRouteState } from "@/hooks/useRouteState";
 import { useDialogState } from "@/hooks/useDialogState";
 import { showMutationErrorToast } from "@/lib/mutation-errors";
@@ -98,6 +98,7 @@ const ARCHIVE_UNDO_TOAST_DURATION_MS = 10_000;
 export function ThreadActionsProvider({
   children,
 }: ThreadActionsProviderProps) {
+  const sdk = useScopedSdk();
   const navigate = useRouteNavigate();
   const accountServers = useAccountServers();
   const accountServersRef = useRef(accountServers.data);
@@ -255,7 +256,7 @@ export function ThreadActionsProvider({
         return null;
       }
     },
-    [remoteActions, remoteTargetFor],
+    [remoteActions, remoteTargetFor, sdk],
   );
 
   const claimThreadActionContextAbortController =

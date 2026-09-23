@@ -1,4 +1,5 @@
 import { useRemoteServer } from "@/lib/federation/remote-server-context";
+import { ScopedImg } from "@/components/ui/scoped-img";
 import { createRemoteFetch } from "@/lib/federation/remote-fetch";
 import { useEffect, useState } from "react";
 import type { TimelineConversationAttachments } from "@kaioken/server-contract";
@@ -177,7 +178,7 @@ export function ConversationAttachments({
               onClick={() => setExpandedImageIndex(index)}
               title={imageItem.alt}
             >
-              <img
+              <ScopedImg
                 src={imageItem.src}
                 alt={imageItem.alt}
                 className={cn(

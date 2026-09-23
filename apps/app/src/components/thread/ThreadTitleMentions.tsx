@@ -22,7 +22,7 @@ import {
 import { PromptMentionPill } from "@/components/thread/timeline/ConversationMessageMentions";
 import { useThread } from "@/hooks/queries/thread-queries";
 import { threadQueryKey } from "@/hooks/queries/query-keys";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
 
 type ThreadTitleMentionThread = Pick<
@@ -203,6 +203,7 @@ function RawThreadMentionResolverProvider({
 }: {
   children: ReactNode;
 }) {
+  const sdk = useScopedSdk();
   const scheduledOrResolvedIdsRef = useRef(new Set<string>());
   const retriedIdsRef = useRef(new Set<string>());
   const pendingIdsRef = useRef(new Set<string>());

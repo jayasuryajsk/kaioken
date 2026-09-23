@@ -38,7 +38,15 @@ import {
 } from "@/components/thread/timeline/SelectableMessageProse.js";
 import { TimelineSelectionMenu } from "@/components/thread/timeline/TimelineSelectionMenu.js";
 import { buildTerminalWebSocketUrl } from "./terminal-websocket-url";
-import { TerminalWebSocketTransport } from "@kaioken/client-core";
+import { useRemoteServer } from "@/lib/federation/remote-server-context";
+import {
+  createRemoteTerminalSocket,
+  remoteTerminalSocketUrl,
+} from "@/lib/federation/remote-terminal-socket";
+import {
+  buildTerminalWebSocketPath,
+  TerminalWebSocketTransport,
+} from "@kaioken/client-core";
 import { TerminalLinkOpenDialog } from "./TerminalLinkOpenDialog";
 import {
   createTerminalOsc8LinkHandler,
@@ -620,6 +628,7 @@ export function ThreadTerminalView({
   onUserInput,
   session,
 }: ThreadTerminalViewProps) {
+  const remoteServerUrl = useRemoteServer()?.url ?? null;
   const [activeSelection, setActiveSelection] =
     useState<MessageProseSelection | null>(null);
   const [hoveredTerminalLink, setHoveredTerminalLink] =
@@ -766,8 +775,7 @@ export function ThreadTerminalView({
   const handleTerminalPointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
       pointerIsDownRef.current = true;
-      pointerStartPointRef.current =
-        anchorPointFromMouseEvent(event);
+      pointerStartPointRef.current = anchorPointFromMouseEvent(event);
     },
     [],
   );
@@ -1038,7 +1046,15 @@ export function ThreadTerminalView({
         },
         shouldReconnect: () =>
           !disposed && sessionStatusRef.current === "running",
-        url: buildTerminalWebSocketUrl({ terminalId: session.id }),
+        ...(remoteServerUrl === null
+          ? { url: buildTerminalWebSocketUrl({ terminalId: session.id }) }
+          : {
+              url: remoteTerminalSocketUrl(
+                remoteServerUrl,
+                buildTerminalWebSocketPath({ terminalId: session.id }),
+              ),
+              createSocket: createRemoteTerminalSocket,
+            }),
       });
       transport = activeTransport;
       activeTransport.sendResize(activeTerminal.cols, activeTerminal.rows);
@@ -1113,6 +1129,7 @@ export function ThreadTerminalView({
     session.id,
     session.threadId,
     updateHoveredTerminalLink,
+    remoteServerUrl,
   ]);
 
   useEffect(() => {

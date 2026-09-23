@@ -15,6 +15,7 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
+import { useScopedImageSrc } from "@/lib/federation/scoped-image-src";
 import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import {
   ContextMenu,
@@ -942,22 +943,28 @@ function MarkdownTableCell({ children }: MarkdownTableCellProps) {
   return <td className="border border-border px-2 py-1">{children}</td>;
 }
 
-function renderMarkdownImage({
+function renderMarkdownImage(args: MarkdownImageRendererArgs) {
+  const imageUrl = typeof args.src === "string" ? args.src : "";
+  if (!imageUrl) return null;
+  return <MarkdownImage {...args} imageUrl={imageUrl} />;
+}
+
+function MarkdownImage({
   alt,
   imageAttributes,
   setExpandedImageUrl,
-  src,
-}: MarkdownImageRendererArgs) {
-  const imageUrl = typeof src === "string" ? src : "";
-  if (!imageUrl) return null;
+  imageUrl,
+}: MarkdownImageRendererArgs & { imageUrl: string }) {
+  const resolvedUrl = useScopedImageSrc(imageUrl);
+  if (resolvedUrl === null) return null;
   return (
     <img
       {...imageAttributes}
-      src={imageUrl}
+      src={resolvedUrl}
       alt={typeof alt === "string" ? alt : "Image"}
       className="my-2 max-h-96 max-w-full cursor-zoom-in object-contain"
       loading="lazy"
-      onClick={() => setExpandedImageUrl(imageUrl)}
+      onClick={() => setExpandedImageUrl(resolvedUrl)}
     />
   );
 }

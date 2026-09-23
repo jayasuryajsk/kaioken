@@ -6,7 +6,6 @@ import {
   type SidebarBootstrapResponse,
 } from "@kaioken/server-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { request } from "@/lib/api";
 import {
   MAX_CACHED_SIDEBAR_THREADS_PER_PROJECT,
   SIDEBAR_BOOTSTRAP_CACHE_KEY,
@@ -20,14 +19,18 @@ import {
   makeSidebarBootstrapResponse,
 } from "@/test/fixtures/projects";
 
-vi.mock("@/lib/api", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/api")>();
-  return { ...actual, request: vi.fn() };
-});
+const request = vi.hoisted(() => vi.fn());
 
-vi.mock("@/lib/api-server", () => ({
-  apiClient: { "sidebar-bootstrap": { $get: vi.fn(() => ({})) } },
-}));
+vi.mock("@/lib/sdk", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/sdk")>();
+  return {
+    ...actual,
+    sdk: {
+      ...actual.sdk,
+      projects: { ...actual.sdk.projects, sidebarBootstrap: request },
+    },
+  };
+});
 
 vi.mock("@/hooks/useRealtimeSubscription", () => ({
   useEnvironmentListRealtimeSubscription: vi.fn(),

@@ -3,8 +3,11 @@ import { useCallback } from "react";
 import { PERSONAL_PROJECT_ID, type ThreadListEntry } from "@kaioken/domain";
 import type { SidebarBootstrapResponse } from "@kaioken/server-contract";
 import { listSidebarNavigationThreads } from "@/hooks/cache-owners/query-cache";
-import { apiClient } from "@/lib/api-server";
-import { request, requestOptions } from "@/lib/api";
+import type { BrowserBbSdk } from "@kaioken/sdk/browser";
+import {
+  useRemoteServer,
+  useScopedSdk,
+} from "@/lib/federation/remote-server-context";
 import {
   useEnvironmentListRealtimeSubscription,
   useHostListRealtimeSubscription,
@@ -20,14 +23,15 @@ import {
 } from "@/lib/sidebar-bootstrap-cache";
 
 function fetchSidebarNavigation(
+  client: BrowserBbSdk,
   signal?: AbortSignal,
 ): Promise<SidebarBootstrapResponse> {
-  return request<SidebarBootstrapResponse>(
-    apiClient["sidebar-bootstrap"].$get(undefined, requestOptions(signal)),
-  );
+  return client.projects.sidebarBootstrap({ signal });
 }
 
 export function useSidebarNavigation(options?: QueryOptions) {
+  const sdk = useScopedSdk();
+  const isLocal = useRemoteServer() === null;
   const enabled = options?.enabled ?? true;
   useEnvironmentListRealtimeSubscription({ enabled });
   useHostListRealtimeSubscription({ enabled });
@@ -37,22 +41,24 @@ export function useSidebarNavigation(options?: QueryOptions) {
   return useQuery<SidebarBootstrapResponse>({
     queryKey: sidebarNavigationQueryKey(),
     queryFn: async ({ signal }) => {
-      const response = await fetchSidebarNavigation(signal);
-      writeCachedSidebarBootstrap(response);
+      const response = await fetchSidebarNavigation(sdk, signal);
+      if (isLocal) writeCachedSidebarBootstrap(response);
       return response;
     },
     enabled,
     ...REALTIME_OWNED_STATIC_CACHE_QUERY_POLICY,
-    placeholderData: () => readCachedSidebarBootstrap() ?? undefined,
+    placeholderData: () =>
+      isLocal ? (readCachedSidebarBootstrap() ?? undefined) : undefined,
   });
 }
 
 export function useProjectDisplayName(
   projectId: string | undefined,
 ): string | undefined {
+  const sdk = useScopedSdk();
   const { data } = useQuery<SidebarBootstrapResponse>({
     queryKey: sidebarNavigationQueryKey(),
-    queryFn: ({ signal }) => fetchSidebarNavigation(signal),
+    queryFn: ({ signal }) => fetchSidebarNavigation(sdk, signal),
     ...REALTIME_OWNED_STATIC_CACHE_QUERY_POLICY,
     enabled: Boolean(projectId),
   });
@@ -73,6 +79,7 @@ interface SidebarNavigationThreadSelection<T> {
 export function useSidebarNavigationThreadSelection<T>(
   select: (threads: ThreadListEntry[]) => T,
 ): SidebarNavigationThreadSelection<T> {
+  const sdk = useScopedSdk();
   const selectFromNavigation = useCallback(
     (navigation: SidebarBootstrapResponse) =>
       select(listSidebarNavigationThreads(navigation)),
@@ -80,7 +87,7 @@ export function useSidebarNavigationThreadSelection<T>(
   );
   const result = useQuery<SidebarBootstrapResponse, Error, T>({
     queryKey: sidebarNavigationQueryKey(),
-    queryFn: ({ signal }) => fetchSidebarNavigation(signal),
+    queryFn: ({ signal }) => fetchSidebarNavigation(sdk, signal),
     ...REALTIME_OWNED_STATIC_CACHE_QUERY_POLICY,
     enabled: false,
     select: selectFromNavigation,

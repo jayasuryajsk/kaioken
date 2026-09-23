@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { FixedPanelTab } from "@/lib/fixed-panel-tabs-state";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { DEFAULT_THREAD_STORAGE_FILE_LIST_OPTIONS } from "@/lib/thread-storage-files";
 import { useThreadStorageFiles } from "../../hooks/queries/thread-queries";
 
@@ -13,6 +13,7 @@ export function useThreadStorageViewer({
   fileListEnabled = true,
   threadId,
 }: UseThreadStorageViewerParams) {
+  const sdk = useScopedSdk();
   const hasThread = Boolean(threadId);
   const {
     data: threadStorageFiles,
@@ -36,7 +37,7 @@ export function useThreadStorageViewer({
       });
       return result.files.some((file) => file.path === path);
     },
-    [threadId],
+    [threadId, sdk],
   );
 
   return {

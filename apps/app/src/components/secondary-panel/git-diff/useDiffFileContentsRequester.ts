@@ -4,7 +4,7 @@ import type { WorkspaceDiffTarget } from "@kaioken/domain";
 import type { EnvironmentDiffFileResponse } from "@kaioken/server-contract";
 import type { EnvironmentDiffFileArgs } from "@kaioken/sdk/browser";
 import { environmentDiffFileQueryKey } from "@/hooks/queries/query-keys";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import type {
   DiffFileContentsResult,
   RequestDiffFileContents,
@@ -27,6 +27,7 @@ export function useDiffFileContentsRequester({
   target,
   mergeBaseRef,
 }: UseDiffFileContentsRequesterArgs): RequestDiffFileContents | undefined {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
   const fileTarget = useMemo<DiffFileTarget | undefined>(
     () => buildDiffFileTarget(target, mergeBaseRef),
@@ -61,7 +62,7 @@ export function useDiffFileContentsRequester({
       });
       return toDiffFileContentsResult(path, result);
     };
-  }, [environmentId, fileTarget, queryClient]);
+  }, [environmentId, fileTarget, queryClient, sdk]);
 }
 
 function buildEnvironmentDiffFileArgs(

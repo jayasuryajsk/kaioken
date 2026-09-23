@@ -149,7 +149,8 @@ and permission choices then come from that computer, and the thread is created
 and runs there. The choice and each computer's last project are remembered.
 
 Threads on another computer open in the same thread screen as local ones, with
-the full composer, model and permission pickers, info and diff panels. The
+the full composer, model and permission pickers, info, diff and file panels,
+and terminals. The
 header names the computer the thread runs on. Every request and live update for
 that thread goes to the owning computer; nothing is embedded or mirrored. Each
 connected computer keeps its own cache and realtime connection, so switching

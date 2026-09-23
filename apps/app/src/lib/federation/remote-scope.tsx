@@ -6,6 +6,7 @@ import type { FederatedServer } from "@kaioken/client-core";
 import { createAppQueryClient } from "@/lib/query-client";
 import { createRealtimeCacheEffects } from "@/hooks/realtime-cache-effects";
 import { getRemoteSdk } from "./remote-sdk";
+import { registerQueryClientSdk } from "./query-client-sdk";
 
 interface RemoteScopeRuntime {
   queryClient: QueryClient;
@@ -31,6 +32,7 @@ export function getRemoteScopeRuntime(url: string): RemoteScopeRuntime {
       shouldRefetchOnWindowFocus: () => !connection.connected,
     }),
   };
+  registerQueryClientSdk(runtime.queryClient, runtime.sdk);
   runtimes.set(key, runtime);
   return runtime;
 }

@@ -18,7 +18,7 @@ import { Icon } from "@kaioken/shared-ui/icon";
 import type { SavedModelSelection } from "@/components/pickers/ModelReasoningPicker";
 import type { ProviderPickerOption } from "@/components/pickers/model-brand-prefix";
 import { getProjectComposeRoutePath } from "@/lib/route-paths";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import type { SendMessageMutationLike } from "./threadDetailMutationTypes";
 
 export const HANDOFF_SUMMARY_PROMPT =
@@ -75,6 +75,7 @@ export function useProviderHandoff({
   sendMessage,
   navigate,
 }: UseProviderHandoffArgs) {
+  const sdk = useScopedSdk();
   const [storedState, setState] = useState<ProviderHandoffState | null>(null);
   const sawBusyRef = useRef(false);
   const canStart = thread.status === "idle";
@@ -203,6 +204,7 @@ export function useProviderHandoff({
     thread.id,
     thread.projectId,
     thread.status,
+    sdk,
   ]);
 
   return { state, canStart, request, cancel, confirm };

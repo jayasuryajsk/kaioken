@@ -32,7 +32,10 @@ import type { FilePreview } from "@kaioken/client-core";
 import type { PathListOptions } from "@/lib/path-list-options";
 import type { ThreadStorageFileListOptions } from "@/lib/thread-storage-files";
 import * as api from "@/lib/api";
-import { useScopedSdk } from "@/lib/federation/remote-server-context";
+import {
+  useContentTransport,
+  useScopedSdk,
+} from "@/lib/federation/remote-server-context";
 import {
   useThreadDetailRealtimeSubscription,
   useThreadListRealtimeSubscription,
@@ -847,6 +850,7 @@ export function useThreadStorageFilePreview(
   path: string | null,
   options?: QueryOptions,
 ) {
+  const transport = useContentTransport();
   const enabled = (options?.enabled ?? true) && Boolean(id) && Boolean(path);
   useThreadDetailRealtimeSubscription(id, { enabled });
 
@@ -857,6 +861,7 @@ export function useThreadStorageFilePreview(
         requireThreadId(id, "useThreadStorageFilePreview"),
         path ?? "",
         signal,
+        transport,
       ),
     enabled,
     ...REALTIME_OWNED_MOUNT_BASELINE_QUERY_POLICY,
@@ -870,6 +875,7 @@ export function useThreadHostFilePreview(
   path: string | null,
   options?: QueryOptions,
 ) {
+  const transport = useContentTransport();
   const enabled =
     (options?.enabled ?? true) &&
     Boolean(id) &&
@@ -884,6 +890,7 @@ export function useThreadHostFilePreview(
         requireThreadId(id, "useThreadHostFilePreview"),
         path ?? "",
         signal,
+        transport,
       ),
     enabled,
     ...RESUME_REFETCH_QUERY_POLICY,
