@@ -10,7 +10,7 @@ import type {
   EnvironmentActionResponse,
   UpdateEnvironmentRequest,
 } from "@kaioken/server-contract";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import type { RequestEnvironmentActionMutationRequest } from "./mutation-request-types";
 import { invalidateEnvironmentActionQueries } from "../cache-owners/environment-cache-effects";
 import { applyEnvironmentUpdateResult } from "../cache-owners/environment-workspace-cache-owner";
@@ -24,6 +24,7 @@ interface ArchiveEnvironmentThreadsMutationRequest {
 }
 
 export function useRequestEnvironmentAction() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -59,6 +60,7 @@ export function useRequestEnvironmentAction() {
 }
 
 export function useArchiveEnvironmentThreads() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -95,6 +97,7 @@ export function useArchiveEnvironmentThreads() {
 }
 
 export function useUpdateEnvironment() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({

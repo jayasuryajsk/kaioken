@@ -1,3 +1,4 @@
+import type { BrowserBbSdk } from "@kaioken/sdk/browser";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useRef } from "react";
 import type {
@@ -15,7 +16,7 @@ import {
 import { decodeBase64Bytes } from "@/lib/base64-bytes";
 import { buildProjectFileContentUrl } from "@/lib/file-content-urls";
 import { readProjectBranchOptions } from "@/lib/project-branch-options";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { useProjectDetailRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import {
   projectCommandsQueryKey,
@@ -89,6 +90,7 @@ export function useProjectSourceBranches(
   hostId: string | null,
   options?: BranchQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled =
     (options?.enabled ?? true) && Boolean(projectId) && Boolean(hostId);
   useProjectDetailRealtimeSubscription(projectId, { enabled });
@@ -172,6 +174,7 @@ export function useProjectPromptHistory(
   projectId: string | undefined,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled = (options?.enabled ?? true) && Boolean(projectId);
   useProjectDetailRealtimeSubscription(projectId, { enabled });
 
@@ -188,6 +191,7 @@ export function useProjectPromptHistory(
 }
 
 export function useProjectPathSuggestions(args: UseProjectPathSuggestionsArgs) {
+  const sdk = useScopedSdk();
   const {
     projectId,
     query,
@@ -235,6 +239,7 @@ export function useProjectFilePreview(
   routing: { environmentId: string | null; hostId: string | null },
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled =
     (options?.enabled ?? true) && Boolean(projectId) && Boolean(path);
   useProjectDetailRealtimeSubscription(projectId, { enabled });
@@ -290,7 +295,10 @@ export function useProjectFilePreview(
   });
 }
 
-export function projectCommandsQueryOptions(args: UseProjectCommandsArgs) {
+export function projectCommandsQueryOptions(
+  args: UseProjectCommandsArgs,
+  client: BrowserBbSdk,
+) {
   return {
     queryKey: projectCommandsQueryKey(
       args.projectId,
@@ -299,7 +307,7 @@ export function projectCommandsQueryOptions(args: UseProjectCommandsArgs) {
       args.hostId,
     ),
     queryFn: ({ signal }: { signal: AbortSignal }) =>
-      sdk.projects.commands({
+      client.projects.commands({
         projectId: requireProjectId(args.projectId, "useProjectCommands"),
         provider: requireProviderId(args.providerId, "useProjectCommands"),
         signal,
@@ -316,6 +324,7 @@ export function useProjectCommands(
   args: UseProjectCommandsArgs,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled =
     (options?.enabled ?? true) &&
     Boolean(args.projectId) &&
@@ -323,7 +332,7 @@ export function useProjectCommands(
   useProjectDetailRealtimeSubscription(args.projectId, { enabled });
 
   return useQuery<CommandListResponse>({
-    ...projectCommandsQueryOptions(args),
+    ...projectCommandsQueryOptions(args, sdk),
     enabled,
     ...TYPEAHEAD_QUERY_POLICY,
     staleTime: 0,

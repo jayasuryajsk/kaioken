@@ -7,7 +7,7 @@ import type {
   UpdateProjectRequest,
   UploadedPromptAttachment,
 } from "@kaioken/server-contract";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { registerLocalAttachmentPreview } from "@/lib/attachment-local-previews";
 import {
   applyProjectCreateResult,
@@ -50,6 +50,7 @@ interface UploadPromptAttachmentRequest {
 }
 
 export function useCreateProject() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -65,6 +66,7 @@ export function useCreateProject() {
 }
 
 export function useUpdateProject() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -95,6 +97,7 @@ export function useMoveProjectToSection() {
 }
 
 export function useReorderProject() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -110,6 +113,7 @@ export function useReorderProject() {
 }
 
 export function useDeleteProject() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -126,6 +130,7 @@ export function useDeleteProject() {
 }
 
 export function useAddLocalProjectSource() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -154,6 +159,7 @@ interface AddProjectSourceMutationRequest {
 }
 
 export function useAddProjectSource() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -172,6 +178,7 @@ export function useAddProjectSource() {
 }
 
 export function useUpdateLocalProjectSource() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -199,6 +206,7 @@ export function useUpdateLocalProjectSource() {
 }
 
 export function useDeleteLocalProjectSource() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -221,6 +229,7 @@ export function useDeleteLocalProjectSource() {
 }
 
 export function useUploadPromptAttachment() {
+  const sdk = useScopedSdk();
   return useMutation({
     meta: {
       errorMessage: "Failed to upload attachment.",

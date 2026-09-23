@@ -7,7 +7,7 @@ import type {
   ThreadResponse,
   UpdateThreadRequest,
 } from "@kaioken/server-contract";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import type { LifecycleErrorOperation } from "@/lib/lifecycle-errors";
 import {
   applyReorderPinnedThreadResult,
@@ -67,6 +67,7 @@ interface DeleteThreadMutationRequest {
 }
 
 export function useUpdateThread(options?: UpdateThreadMutationOptions) {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -113,6 +114,7 @@ export function useUpdateThread(options?: UpdateThreadMutationOptions) {
 }
 
 export function usePinThread() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -147,6 +149,7 @@ export function usePinThread() {
 }
 
 export function useUnpinThread() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -177,6 +180,7 @@ export function useUnpinThread() {
 }
 
 export function useUnpinAndMoveThread() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -239,6 +243,7 @@ export function useMoveThreadToSection() {
 }
 
 export function useReorderPinnedThread() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -271,6 +276,7 @@ export function useReorderPinnedThread() {
 }
 
 export function useArchiveThreadAndChildren() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -302,6 +308,7 @@ export function useArchiveThreadAndChildren() {
 }
 
 export function useUnarchiveThread() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -330,6 +337,7 @@ export function useUnarchiveThread() {
 }
 
 export function useDeleteThread() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -362,6 +370,7 @@ export function useDeleteThread() {
 }
 
 export function useMarkThreadRead() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -390,6 +399,7 @@ export function useMarkThreadRead() {
 }
 
 export function useMarkThreadUnread() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({

@@ -29,6 +29,7 @@ import { cn } from "@kaioken/shared-ui/lib/utils";
 import { useAppCommandShortcut } from "@/components/commands/AppCommandProvider";
 import { AppCommandShortcutHint } from "@/components/commands/AppCommandShortcutHint";
 import { useInlineThreadTitle } from "@/components/thread/InlineThreadTitle";
+import { useRemoteServer } from "@/lib/federation/remote-server-context";
 import { useThreadActions } from "@/components/thread/ThreadActionsProvider";
 import { ThreadTitleMentions } from "@/components/thread/ThreadTitleMentions";
 import { SecondaryPanelHostLayoutContext } from "@/components/secondary-panel/SecondaryPanelHostLayoutContext";
@@ -86,6 +87,7 @@ export function ThreadDetailHeader({
     },
     [renameThread, threadId],
   );
+  const remoteServer = useRemoteServer();
   const { editor, isEditing, startEditing } = useInlineThreadTitle({
     onCommit: handleRename,
     resetKey: threadId,
@@ -150,8 +152,7 @@ export function ThreadDetailHeader({
     : "Show right panel";
   const rightPanelIconName = RIGHT_PANEL_TOGGLE_ICON_NAME;
   const showRightPanelToggle =
-    secondaryPanelHost === null &&
-    (!isSecondaryPanelOpen || isCompactViewport);
+    secondaryPanelHost === null && (!isSecondaryPanelOpen || isCompactViewport);
 
   const center = (
     <>
@@ -186,6 +187,15 @@ export function ThreadDetailHeader({
           {isEditing ? editor : <ThreadTitleMentions title={threadTitle} />}
         </p>
       </div>
+      {remoteServer ? (
+        <span
+          data-testid="thread-detail-header-computer"
+          className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground"
+        >
+          <Icon name="Laptop" className="size-3" aria-hidden />
+          {remoteServer.name}
+        </span>
+      ) : null}
       {childPillLabel ? (
         <Pill variant="outline" size="sm">
           {childPillLabel}

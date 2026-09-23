@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { decodeBase64Bytes, encodeBase64Bytes } from "@/lib/base64-bytes";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import {
   buildFilePreview,
   isHtmlFilePreviewPath,
@@ -75,6 +75,7 @@ export function useHostFilePreview(
   path: string | null,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled =
     (options?.enabled ?? true) && hostId !== null && path !== null;
   const activeHostId = enabled ? hostId : null;

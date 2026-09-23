@@ -12,7 +12,6 @@ import { RemoteRoute } from "./lib/federation/RemoteRoute";
 import { AppLayout } from "./components/layout/AppLayout";
 import { DesktopWorkspaceNavigation } from "./lib/federation/DesktopWorkspaceNavigation";
 import { workspaceEmbedding } from "./lib/federation/workspace-protocol";
-import { getBbDesktopInfo } from "./lib/kaioken-desktop";
 import { AuthCallbackView } from "./views/AuthCallbackView";
 import { QuickCreateProjectProvider } from "./hooks/useQuickCreateProject";
 import { RouteNavigationProvider } from "./components/ui/app-route-anchor";
@@ -104,9 +103,9 @@ const ProjectDetailSettingsView = lazy(() =>
     default: m.ProjectDetailSettingsView,
   })),
 );
-const RemoteThreadView = lazy(() =>
-  import("./views/RemoteThreadView").then((m) => ({
-    default: m.RemoteThreadView,
+const RemoteThreadRoute = lazy(() =>
+  import("./views/RemoteThreadRoute").then((m) => ({
+    default: m.RemoteThreadRoute,
   })),
 );
 const RemoteComposeView = lazy(() =>
@@ -114,13 +113,6 @@ const RemoteComposeView = lazy(() =>
     default: m.RemoteComposeView,
   })),
 );
-const RemoteWorkspaceDeck = lazy(() =>
-  import("./views/RemoteWorkspaceDeck").then((m) => ({
-    default: m.RemoteWorkspaceDeck,
-  })),
-);
-const fullRemoteWorkspace =
-  workspaceEmbedding === null && getBbDesktopInfo() !== undefined;
 const MachineSettingsView = lazy(() =>
   import("./views/MachineSettingsView").then((m) => ({
     default: m.MachineSettingsView,
@@ -448,32 +440,25 @@ export function AppRoutes() {
             />
             <Route path={PLUGINS_ROUTE_PATH} element={<PluginsRoute />} />
             <Route path={PLUGIN_DETAIL_ROUTE_PATH} element={<PluginsRoute />} />
-            {fullRemoteWorkspace ? (
-              <Route path="/servers/:handle/*" element={null} />
-            ) : (
-              <>
-                <Route
-                  path={REMOTE_THREAD_ROUTE_PATH}
-                  element={
-                    <RemoteRoute>
-                      <RemoteThreadView />
-                    </RemoteRoute>
-                  }
-                />
-                <Route
-                  path={REMOTE_PROJECT_COMPOSE_ROUTE_PATH}
-                  element={
-                    <RemoteRoute>
-                      <RemoteComposeView />
-                    </RemoteRoute>
-                  }
-                />
-                <Route
-                  path="/servers/:handle/*"
-                  element={<LegacyRemoteRoute />}
-                />
-              </>
-            )}
+
+            <Route
+              path={REMOTE_THREAD_ROUTE_PATH}
+              element={
+                <RemoteRoute>
+                  <RemoteThreadRoute />
+                </RemoteRoute>
+              }
+            />
+            <Route
+              path={REMOTE_PROJECT_COMPOSE_ROUTE_PATH}
+              element={
+                <RemoteRoute>
+                  <RemoteComposeView />
+                </RemoteRoute>
+              }
+            />
+            <Route path="/servers/:handle/*" element={<LegacyRemoteRoute />} />
+
             <Route
               path="*"
               element={
@@ -485,7 +470,6 @@ export function AppRoutes() {
               }
             />
           </Routes>
-          {fullRemoteWorkspace ? <RemoteWorkspaceDeck /> : null}
           <RouteContentPaintSignal />
         </Suspense>
       </div>

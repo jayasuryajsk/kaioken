@@ -1,5 +1,6 @@
 import type { FederatedServer } from "@kaioken/client-core";
 import { RemoteServerProvider } from "./remote-server-context";
+import { RemoteScopeProvider } from "./remote-scope";
 import { useEffect, useState, type ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -63,7 +64,9 @@ function RemoteIdentity({
     expected !== identity.data.serverId;
   if (identity.data && !changed)
     return (
-      <RemoteServerProvider server={server}>{children}</RemoteServerProvider>
+      <RemoteServerProvider server={server}>
+        <RemoteScopeProvider server={server}>{children}</RemoteScopeProvider>
+      </RemoteServerProvider>
     );
   return (
     <div

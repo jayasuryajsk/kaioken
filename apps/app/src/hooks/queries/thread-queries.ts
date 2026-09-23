@@ -1,3 +1,4 @@
+import type { BrowserBbSdk } from "@kaioken/sdk/browser";
 import { prependOlderTimelineRows } from "@kaioken/client-core";
 import {
   useInfiniteQuery,
@@ -31,7 +32,7 @@ import type { FilePreview } from "@kaioken/client-core";
 import type { PathListOptions } from "@/lib/path-list-options";
 import type { ThreadStorageFileListOptions } from "@/lib/thread-storage-files";
 import * as api from "@/lib/api";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import {
   useThreadDetailRealtimeSubscription,
   useThreadListRealtimeSubscription,
@@ -326,6 +327,7 @@ export function useArchivedThreads(
   filters: UseArchivedThreadsFilters,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const { projectId, kind = "all" } = filters;
   const enabled = options?.enabled ?? true;
   const hasParent = kind === "all" ? undefined : kind === "child";
@@ -364,6 +366,7 @@ export function useArchivedThreads(
 }
 
 export function useThreads(filters: UseThreadsFilters, options?: QueryOptions) {
+  const sdk = useScopedSdk();
   const { projectId, ...rest } = filters;
   const enabled = (options?.enabled ?? true) && Boolean(projectId);
   useThreadListRealtimeSubscription({ enabled });
@@ -401,6 +404,7 @@ export function useChildThreads({
   enabled: enabledOption,
   parentThreadId,
 }: UseChildThreadsArgs): UseChildThreadsResult {
+  const sdk = useScopedSdk();
   const enabled = enabledOption && Boolean(parentThreadId);
   useThreadListRealtimeSubscription({ enabled });
   const selectChildren = useCallback(
@@ -454,6 +458,7 @@ export function useProjectThreadSubset({
   filters,
   projectId,
 }: UseProjectThreadSubsetArgs): UseProjectThreadSubsetResult {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
   const enabled = (enabledOption ?? true) && Boolean(projectId);
   useThreadListRealtimeSubscription({ enabled });
@@ -531,6 +536,7 @@ export function useProjectThreadSubset({
 export function useThreadMentionCandidates({
   enabled: enabledOption,
 }: UseThreadMentionCandidatesArgs): UseThreadMentionCandidatesResult {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
   const enabled = enabledOption ?? true;
   useThreadListRealtimeSubscription({ enabled });
@@ -578,6 +584,7 @@ export function useThreadSearch({
   limitPerGroup = THREAD_SEARCH_LIMIT_PER_GROUP,
   query,
 }: UseThreadSearchArgs): UseThreadSearchResult {
+  const sdk = useScopedSdk();
   const debouncedRawQuery = useDebouncedValue(query, THREAD_SEARCH_DEBOUNCE_MS);
   const trimmedQuery = query.trim();
   const debouncedQuery = debouncedRawQuery.trim();
@@ -610,6 +617,7 @@ export function useThreadSearch({
 }
 
 export function useThread(id: string, options?: QueryOptions) {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
   const enabled = (options?.enabled ?? true) && Boolean(id);
   useThreadDetailRealtimeSubscription(id, { enabled });
@@ -653,6 +661,7 @@ export function useThreadDetailBootstrap(
   id: string,
   options?: ThreadDetailBootstrapQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
   const enabled = (options?.enabled ?? true) && Boolean(id);
   useThreadDetailRealtimeSubscription(id, { enabled });
@@ -668,6 +677,7 @@ export function useThreadDetailBootstrap(
           queryKey: threadTimelineQueryKey(threadId),
           queryFn: ({ signal: timelineSignal }) =>
             fetchThreadTimeline({
+              client: sdk,
               queryClient,
               signal: timelineSignal,
               threadId,
@@ -697,6 +707,7 @@ export function useThreadQueuedMessages(
   id: string,
   options?: ThreadQueuedMessagesQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled = (options?.enabled ?? true) && Boolean(id);
   useThreadDetailRealtimeSubscription(id, { enabled });
 
@@ -718,6 +729,7 @@ export function useThreadPromptHistory(
   id: string,
   options?: ThreadPromptHistoryQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled = (options?.enabled ?? true) && Boolean(id);
   useThreadDetailRealtimeSubscription(id, { enabled });
 
@@ -738,6 +750,7 @@ export function useThreadPendingInteractions(
   id: string,
   options?: ThreadPendingInteractionsQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled = (options?.enabled ?? true) && Boolean(id);
   useThreadDetailRealtimeSubscription(id, { enabled });
 
@@ -764,6 +777,7 @@ export function useThreadStorageFiles(
   listOptions: ThreadStorageFileListOptions,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled = (options?.enabled ?? true) && Boolean(id);
   useThreadDetailRealtimeSubscription(id, { enabled });
 
@@ -784,6 +798,7 @@ export function useThreadStorageFiles(
 }
 
 export function useThreadStorageLocation(id: string, options?: QueryOptions) {
+  const sdk = useScopedSdk();
   const enabled = (options?.enabled ?? true) && Boolean(id);
   useThreadDetailRealtimeSubscription(id, { enabled });
 
@@ -804,6 +819,7 @@ export function useThreadStoragePaths(
   listOptions: PathListOptions,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled = (options?.enabled ?? true) && Boolean(id);
   useThreadDetailRealtimeSubscription(id, { enabled });
 
@@ -907,16 +923,19 @@ function resolveThreadTimelineSegmentLimit(): number | undefined {
 }
 
 async function fetchThreadTimeline({
+  client,
   queryClient,
   signal,
   threadId,
-}: FetchThreadTimelineArgs): Promise<ThreadTimelineResponse> {
+}: FetchThreadTimelineArgs & {
+  client: BrowserBbSdk;
+}): Promise<ThreadTimelineResponse> {
   const queryKey = threadTimelineQueryKey(threadId);
   const previous = queryClient.getQueryData<ThreadTimelineResponse>(queryKey);
   const segmentLimit = resolveThreadTimelineSegmentLimit();
   const pageArgs =
     segmentLimit === undefined ? {} : { segmentLimit: String(segmentLimit) };
-  const response = await sdk.threads.timeline({
+  const response = await client.threads.timeline({
     threadId,
     signal,
     ...pageArgs,
@@ -925,7 +944,7 @@ async function fetchThreadTimeline({
       : {}),
   });
   return mergeThreadTimelineDelta(previous, response, () =>
-    sdk.threads.timeline({ threadId, signal, ...pageArgs }),
+    client.threads.timeline({ threadId, signal, ...pageArgs }),
   );
 }
 
@@ -933,6 +952,7 @@ export function useThreadTimeline(
   id: string,
   options?: ThreadTimelineQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
   const enabled = (options?.enabled ?? true) && Boolean(id);
   useThreadDetailRealtimeSubscription(id, { enabled });
@@ -942,6 +962,7 @@ export function useThreadTimeline(
     queryFn: async ({ signal }) => {
       const threadId = requireThreadId(id, "useThreadTimeline");
       return fetchThreadTimeline({
+        client: sdk,
         queryClient,
         signal,
         threadId,
@@ -967,6 +988,7 @@ export function useThreadConversationOutline(
   id: string,
   options?: ThreadTimelineQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled = (options?.enabled ?? true) && Boolean(id);
   useThreadDetailRealtimeSubscription(id, { enabled });
 
@@ -988,6 +1010,7 @@ export function useThreadTimelineTurnSummaryDetails(
   identity: ThreadTimelineTurnSummaryDetailsQueryIdentity,
   options?: ThreadTimelineTurnSummaryDetailsQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   return useQuery<TimelineTurnSummaryDetailsResponse>({
     queryKey: threadTimelineTurnSummaryDetailsQueryKey(identity),
     queryFn: async ({ signal }) => {

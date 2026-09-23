@@ -1,9 +1,10 @@
+import type { BrowserBbSdk } from "@kaioken/sdk/browser";
 import { useQuery } from "@tanstack/react-query";
 import type {
   SystemEnvironmentProvider,
   SystemEnvironmentProvidersQuery,
 } from "@kaioken/server-contract";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import {
   environmentProviderListCacheKey,
   readCachedEnvironmentProviderList,
@@ -43,6 +44,7 @@ export function systemEnvironmentProvidersQueryKey(
 const NO_ENVIRONMENT_PROVIDERS: readonly SystemEnvironmentProvider[] = [];
 
 function environmentProvidersQueryOptions(
+  client: BrowserBbSdk,
   query: SystemEnvironmentProvidersQuery,
 ) {
   const cacheKey = environmentProviderListCacheKey({
@@ -52,7 +54,7 @@ function environmentProvidersQueryOptions(
   return {
     queryKey: systemEnvironmentProvidersQueryKey(query),
     queryFn: async () => {
-      const providers = await sdk.environments.listProviders(query);
+      const providers = await client.environments.listProviders(query);
       writeCachedEnvironmentProviderList(cacheKey, providers);
       return providers;
     },
@@ -67,7 +69,8 @@ export function useSystemEnvironmentProviders(
 ): {
   providers: readonly SystemEnvironmentProvider[] | undefined;
 } {
-  const result = useQuery(environmentProvidersQueryOptions(query));
+  const sdk = useScopedSdk();
+  const result = useQuery(environmentProvidersQueryOptions(sdk, query));
   return {
     providers: result.isError ? NO_ENVIRONMENT_PROVIDERS : result.data,
   };

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { skipToken, useQuery } from "@tanstack/react-query";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { hostPathExistenceQueryKey } from "./query-keys";
 
 type HostPathExistence = Record<string, boolean>;
@@ -9,6 +9,7 @@ export function useHostPathExistence(
   hostId: string | null,
   paths: readonly string[],
 ): HostPathExistence {
+  const sdk = useScopedSdk();
   const sortedPaths = useMemo(() => {
     if (paths.length === 0) return [];
     return [...new Set(paths)].sort();

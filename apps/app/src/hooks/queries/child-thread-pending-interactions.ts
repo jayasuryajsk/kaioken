@@ -1,7 +1,7 @@
 import { useQueries, type UseQueryResult } from "@tanstack/react-query";
 import { useMemo } from "react";
 import type { PendingInteraction } from "@kaioken/domain";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { REALTIME_OWNED_NO_FOCUS_QUERY_POLICY } from "./query-policies";
 import { threadPendingInteractionsQueryKey } from "./query-keys";
 import { getLatestPendingInteraction } from "./thread-queries";
@@ -67,6 +67,7 @@ function combinePendingInteractionLists(
 export function useChildThreadPendingAttention(
   children: readonly ChildThreadPendingAttentionSource[],
 ): readonly ChildThreadPendingAttention[] {
+  const sdk = useScopedSdk();
   const pendingChildIds = useMemo(
     () =>
       children

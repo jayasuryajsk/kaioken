@@ -6,7 +6,7 @@ import type {
   TerminalSession,
   UpdateTerminalRequest,
 } from "@kaioken/server-contract";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import {
   applyTerminalSessionClose,
   applyTerminalSessionUpsert,
@@ -54,6 +54,7 @@ export function useTerminals(
   scope: TerminalQueryScope | null | undefined,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   return useQuery<TerminalListResponse>({
     queryKey: terminalsQueryKey(
       scope ?? { kind: "host_path", hostId: "__disabled__" },
@@ -85,6 +86,7 @@ export function useEnvironmentTerminals(id: string, options?: QueryOptions) {
 }
 
 export function useCreateTerminal() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -155,6 +157,7 @@ export function useCreateEnvironmentTerminal() {
 }
 
 export function useRenameTerminal() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -207,6 +210,7 @@ export function useRenameEnvironmentTerminal() {
 }
 
 export function useCloseTerminal() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({

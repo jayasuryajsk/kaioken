@@ -1,3 +1,4 @@
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import type { PromptMentionCommandTrigger } from "@kaioken/domain";
@@ -156,6 +157,7 @@ export function useCommandSuggestions(
     { enabled: isActive },
   );
   const queryClient = useQueryClient();
+  const sdk = useScopedSdk();
   const isPointerCoarse = usePointerCoarse();
   const shouldPrefetchCatalog =
     args.composerFocused === true &&
@@ -172,16 +174,20 @@ export function useCommandSuggestions(
       return;
     }
     void queryClient.prefetchQuery({
-      ...projectCommandsQueryOptions({
-        projectId: prefetchProjectId,
-        providerId: prefetchProviderId,
-        environmentId: prefetchEnvironmentId,
-        hostId: prefetchHostId,
-      }),
+      ...projectCommandsQueryOptions(
+        {
+          projectId: prefetchProjectId,
+          providerId: prefetchProviderId,
+          environmentId: prefetchEnvironmentId,
+          hostId: prefetchHostId,
+        },
+        sdk,
+      ),
       retry: false,
       staleTime: COMMAND_CATALOG_PREFETCH_STALE_TIME_MS,
     });
   }, [
+    sdk,
     prefetchEnvironmentId,
     prefetchHostId,
     prefetchProjectId,

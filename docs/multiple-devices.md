@@ -140,16 +140,15 @@ controller uses its connection manager after restart. Disconnect forgets the
 connection and closes the tunnel; tasks continue on the remote computer.
 
 Each server has a persistent installation UUID, available through
-`kaioken connection inspect [url]`. If a saved URL changes identity, the workspace
-asks you to connect again. Connected workspaces remain mounted while switching
-computers, keeping their loaded history and drafts. Opening an unavailable
-workspace reports its connection state.
+`kaioken connection inspect [url]`. If a saved URL changes identity, Kaioken
+asks you to trust the computer again before it sends anything to it.
 
-In the desktop app, browser panes opened in a connected workspace use the
-controller's native browser through a frame-scoped bridge. Tabs are isolated by
-installation and workspace, and hidden when switching computers. Agent-owned
-browser tabs remain bound to the desktop target that created them; the bridge
-does not transfer their automation sessions or browser credentials.
+Threads on another computer open in the same thread screen as local ones, with
+the full composer, model and permission pickers, info and diff panels. The
+header names the computer the thread runs on. Every request and live update for
+that thread goes to the owning computer; nothing is embedded or mirrored. Each
+connected computer keeps its own cache and realtime connection, so switching
+between computers keeps loaded history without mixing data.
 
 ## Open kaioken from another browser
 

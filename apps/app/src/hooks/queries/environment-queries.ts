@@ -22,7 +22,7 @@ import {
 } from "@kaioken/client-core";
 import { decodeBase64Bytes, encodeBase64Bytes } from "@/lib/base64-bytes";
 import { buildEnvironmentDiffFileContentUrl } from "@/lib/file-content-urls";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { useEnvironmentDetailRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import {
   environmentDiffFilesQueryKey,
@@ -84,6 +84,7 @@ export function useEnvironment(
   environmentId: string | null | undefined,
   options?: EnvironmentQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled = (options?.enabled ?? true) && Boolean(environmentId);
   useEnvironmentDetailRealtimeSubscription(environmentId, { enabled });
 
@@ -104,6 +105,7 @@ export function useEnvironmentWorkStatus(
   mergeBaseBranch?: string,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const normalizedMergeBaseBranch = mergeBaseBranch ?? null;
   const enabled = (options?.enabled ?? true) && Boolean(environmentId);
   useEnvironmentDetailRealtimeSubscription(environmentId, { enabled });
@@ -169,6 +171,7 @@ export function useEnvironmentPullRequest(
   environmentId: string | null | undefined,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled = (options?.enabled ?? true) && Boolean(environmentId);
   useEnvironmentDetailRealtimeSubscription(environmentId, { enabled });
 
@@ -200,6 +203,7 @@ export function useEnvironmentMergeBaseBranches(
   environmentId: string,
   options?: BranchQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const query = options?.query?.trim() ?? "";
   const selectedBranch = options?.selectedBranch?.trim();
   const limit = options?.limit ?? MERGE_BASE_BRANCHES_LIMIT;
@@ -242,6 +246,7 @@ export function useEnvironmentFilePreview(
   source: EnvironmentFilePreviewSource | null,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled =
     (options?.enabled ?? true) &&
     Boolean(environmentId) &&
@@ -301,6 +306,7 @@ interface UseEnvironmentPathSuggestionsArgs {
 export function useEnvironmentPathSuggestions(
   args: UseEnvironmentPathSuggestionsArgs,
 ) {
+  const sdk = useScopedSdk();
   const {
     environmentId,
     query,
@@ -342,6 +348,7 @@ export function useEnvironmentDiffFiles(
   environmentId: string,
   options: UseEnvironmentDiffFilesOptions,
 ) {
+  const sdk = useScopedSdk();
   const target = options.target;
   const enabled =
     (options.enabled ?? true) && Boolean(environmentId) && target !== undefined;

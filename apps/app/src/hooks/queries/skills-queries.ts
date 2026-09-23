@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { DeleteSkillRequest, SkillSummary } from "@kaioken/server-contract";
+import type {
+  DeleteSkillRequest,
+  SkillSummary,
+} from "@kaioken/server-contract";
 import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import {
   projectSkillsQueryKey,
   skillContentQueryKey,
@@ -11,6 +15,7 @@ import {
 import { invalidateProjectSkillsMutationQueries } from "@/hooks/cache-owners/skills-cache-effects";
 
 export function useProjectSkills(projectId: string) {
+  const sdk = useScopedSdk();
   return useQuery({
     queryKey: projectSkillsQueryKey(projectId),
     queryFn: ({ signal }) =>
@@ -26,6 +31,7 @@ export function useSkillContent(
   skill: SkillSummary | null,
   path: string,
 ) {
+  const sdk = useScopedSdk();
   return useQuery({
     queryKey: skill
       ? skillContentQueryKey(projectId, skill.id, path)
@@ -75,6 +81,7 @@ export function prefetchSkillDetail(
 }
 
 export function useSkillFiles(projectId: string, skill: SkillSummary | null) {
+  const sdk = useScopedSdk();
   return useQuery({
     queryKey: skill
       ? skillFilesQueryKey(projectId, skill.id)
@@ -93,6 +100,7 @@ export function useSkillFiles(projectId: string, skill: SkillSummary | null) {
 }
 
 export function useDeleteSkill(projectId: string) {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
   return useMutation({
     meta: { errorMessage: "Failed to delete skill." },

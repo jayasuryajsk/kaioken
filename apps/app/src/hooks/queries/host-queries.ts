@@ -1,8 +1,9 @@
+import type { BrowserBbSdk } from "@kaioken/sdk/browser";
 import { useMemo } from "react";
 import { keepPreviousData, skipToken, useQuery } from "@tanstack/react-query";
 import type { Host } from "@kaioken/domain";
 import type { HostDirectoryListing } from "@kaioken/server-contract";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { useHostListRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useSystemConfig } from "@/hooks/queries/system-queries";
 import {
@@ -13,6 +14,7 @@ import {
 import type { QueryOptions } from "./query-helpers";
 
 export function useHosts(options?: QueryOptions) {
+  const sdk = useScopedSdk();
   const enabled = options?.enabled ?? true;
   useHostListRealtimeSubscription({ enabled });
 
@@ -55,6 +57,7 @@ export function useHostCloneDefaultPath(
   projectId: string | null,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled = options?.enabled ?? true;
   return useQuery<string>({
     queryKey: hostCloneDefaultPathQueryKey(hostId, projectId),
@@ -69,7 +72,7 @@ export function useHostCloneDefaultPath(
 }
 
 export interface HostDirectoryQueryOptions {
-  sdk?: Pick<typeof sdk, "hosts">;
+  sdk?: Pick<BrowserBbSdk, "hosts">;
   cacheScope?: string;
 }
 
@@ -78,6 +81,7 @@ export function useHostDirectory(
   path: string | null,
   options?: HostDirectoryQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const client = options?.sdk ?? sdk;
   const baseKey = hostDirectoryQueryKey(hostId, path);
   return useQuery<HostDirectoryListing>({

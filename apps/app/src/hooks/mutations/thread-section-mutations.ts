@@ -4,7 +4,7 @@ import type {
   DeleteThreadSectionRequest,
   UpdateThreadSectionRequest,
 } from "@kaioken/server-contract";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import {
   invalidateProjectListQueries,
   invalidateThreadListQueries,
@@ -18,6 +18,7 @@ function invalidateThreadSectionQueries(
 }
 
 export function useCreateThreadSection() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -34,6 +35,7 @@ export function useCreateThreadSection() {
 }
 
 export function useUpdateThreadSection() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -50,6 +52,7 @@ export function useUpdateThreadSection() {
 }
 
 export function useDeleteThreadSection() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({

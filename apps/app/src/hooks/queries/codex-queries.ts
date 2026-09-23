@@ -3,7 +3,7 @@ import type {
   CodexSessionListResponse,
   CodexThreadLinkResponse,
 } from "@kaioken/server-contract";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { codexSessionsQueryKey, codexThreadLinkQueryKey } from "./query-keys";
 import type { QueryOptions } from "./query-helpers";
 
@@ -16,6 +16,7 @@ export function isCodexProvider(providerId: string): boolean {
 export function useCodexSessions(
   args: { includeArchived: boolean } & QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   return useQuery<CodexSessionListResponse>({
     queryKey: codexSessionsQueryKey(args.includeArchived),
     queryFn: ({ signal }) =>
@@ -33,6 +34,7 @@ export function useCodexThreadLink(args: {
   providerId: string;
   enabled?: boolean;
 }) {
+  const sdk = useScopedSdk();
   const enabled = (args.enabled ?? true) && isCodexProvider(args.providerId);
   return useQuery<CodexThreadLinkResponse>({
     queryKey: codexThreadLinkQueryKey(args.threadId),

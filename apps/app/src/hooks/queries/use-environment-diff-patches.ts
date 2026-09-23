@@ -6,7 +6,7 @@ import {
   type DiffPatchEntry,
   type EnvironmentDiffPatchResponse,
 } from "@kaioken/server-contract";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { extractErrorMessage } from "@kaioken/core-ui";
 import {
   type PatchQueryIdentity,
@@ -130,6 +130,7 @@ export function useEnvironmentDiffPatches(
   environmentId: string,
   { target }: UseEnvironmentDiffPatchesArgs,
 ): UseEnvironmentDiffPatchesResult {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   const targetType = target?.type ?? null;
@@ -280,7 +281,7 @@ export function useEnvironmentDiffPatches(
         abortControllersRef.current.delete(controller);
       }
     },
-    [environmentId, target, identity, queryClient],
+    [environmentId, target, identity, queryClient, sdk],
   );
 
   const dispatchPending = useCallback(() => {

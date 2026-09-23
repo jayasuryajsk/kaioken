@@ -4,7 +4,7 @@ import type {
   CodexSyncResponse,
   ThreadResponse,
 } from "@kaioken/server-contract";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { appToast } from "@/components/ui/app-toast";
 import { copyToClipboardWithToast } from "@/lib/clipboard";
 import {
@@ -14,6 +14,7 @@ import {
 } from "../cache-owners/codex-cache-owner";
 
 export function useImportCodexSession() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
   return useMutation<ThreadResponse, Error, { id: string }>({
     mutationFn: ({ id }) => sdk.codex.sessions.import({ id, origin: "app" }),
@@ -22,6 +23,7 @@ export function useImportCodexSession() {
 }
 
 export function useCodexHandoff() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
   return useMutation<CodexHandoffResponse, Error, { threadId: string }>({
     mutationFn: ({ threadId }) => sdk.threads.codex.handoff({ threadId }),
@@ -52,6 +54,7 @@ export function useCodexHandoff() {
 }
 
 export function useCodexSync() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
   return useMutation<CodexSyncResponse, Error, { threadId: string }>({
     mutationFn: ({ threadId }) => sdk.threads.codex.sync({ threadId }),

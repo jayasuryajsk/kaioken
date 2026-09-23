@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { ProjectExecutionDefaults } from "@kaioken/domain";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import { useProjectDetailRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { requireProjectId, type QueryOptions } from "./query-helpers";
 import { projectDefaultExecutionOptionsQueryKey } from "./query-keys";
@@ -13,6 +13,7 @@ export function useProjectDefaultExecutionOptions(
   args: UseProjectDefaultExecutionOptionsArgs,
   options?: QueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const { projectId } = args;
   const enabled = (options?.enabled ?? true) && Boolean(projectId);
   useProjectDetailRealtimeSubscription(projectId, { enabled });

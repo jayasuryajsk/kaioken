@@ -1,3 +1,4 @@
+import type { BrowserBbSdk } from "@kaioken/sdk/browser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ThreadQueuedMessage } from "@kaioken/domain";
 import type {
@@ -8,7 +9,7 @@ import type {
   UpdateQueuedMessageRequest,
 } from "@kaioken/server-contract";
 import type { AppCreateThreadRequest } from "@kaioken/client-core";
-import { KaiokenHttpError, sdk } from "@/lib/sdk";
+import { KaiokenHttpError } from "@/lib/sdk";
 import {
   useRemoteServer,
   useScopedSdk,
@@ -111,12 +112,15 @@ function isQueuedMessageNotFoundError(error: unknown): boolean {
   );
 }
 
-async function deleteThreadQueuedMessageOrConfirmMissing({
-  id,
-  queuedMessageId,
-}: DeleteThreadQueuedMessageMutationRequest): Promise<void> {
+async function deleteThreadQueuedMessageOrConfirmMissing(
+  client: BrowserBbSdk,
+  { id, queuedMessageId }: DeleteThreadQueuedMessageMutationRequest,
+): Promise<void> {
   try {
-    await sdk.threads.queuedMessages.delete({ threadId: id, queuedMessageId });
+    await client.threads.queuedMessages.delete({
+      threadId: id,
+      queuedMessageId,
+    });
   } catch (error) {
     if (isQueuedMessageNotFoundError(error)) {
       return;
@@ -126,6 +130,7 @@ async function deleteThreadQueuedMessageOrConfirmMissing({
 }
 
 export function useCreateThread() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -163,6 +168,7 @@ export function useCreateThread() {
 }
 
 export function useSendThreadMessage() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -221,6 +227,7 @@ export function useSendThreadMessage() {
 }
 
 export function useEditThreadMessage() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
   return useMutation({
     meta: {
@@ -243,6 +250,7 @@ export function useEditThreadMessage() {
 }
 
 export function useCreateThreadQueuedMessage() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -295,6 +303,7 @@ export function useCreateThreadQueuedMessage() {
 }
 
 export function useUpdateThreadQueuedMessage() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -338,6 +347,7 @@ export function useUpdateThreadQueuedMessage() {
 }
 
 export function useSendThreadQueuedMessage() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -376,6 +386,7 @@ export function useSendThreadQueuedMessage() {
 }
 
 export function useReorderThreadQueuedMessage() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -421,6 +432,7 @@ export function useReorderThreadQueuedMessage() {
 }
 
 export function useSetThreadQueuedMessageGroupBoundary() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -467,6 +479,7 @@ export function useSetThreadQueuedMessageGroupBoundary() {
 }
 
 export function useDeleteThreadQueuedMessage() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -474,7 +487,8 @@ export function useDeleteThreadQueuedMessage() {
       errorMessage: "Failed to delete queued message.",
       showErrorToast: false,
     },
-    mutationFn: deleteThreadQueuedMessageOrConfirmMissing,
+    mutationFn: (request: DeleteThreadQueuedMessageMutationRequest) =>
+      deleteThreadQueuedMessageOrConfirmMissing(sdk, request),
     onMutate: async (variables): Promise<RemoveQueuedMessageTransaction> =>
       beginRemoveQueuedMessageTransaction({
         queryClient,
@@ -540,6 +554,7 @@ export function useStopThread() {
 }
 
 export function useCancelThreadPlan() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -555,6 +570,7 @@ export function useCancelThreadPlan() {
 }
 
 export function useClearThreadGoal() {
+  const sdk = useScopedSdk();
   const queryClient = useQueryClient();
 
   return useMutation({

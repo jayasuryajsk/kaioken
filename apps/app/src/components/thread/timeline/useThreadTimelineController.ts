@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import type { ThreadTimelineResponse, TimelineRow } from "@kaioken/server-contract";
+import type {
+  ThreadTimelineResponse,
+  TimelineRow,
+} from "@kaioken/server-contract";
 import {
   areTimelinePaginationCursorsEqual,
   buildLoadedTimelineState,
@@ -11,7 +14,8 @@ import {
 import { useConnectionAwareQueryState } from "@/hooks/queries/connection-aware-query-state";
 import { isTransientReadError } from "@/hooks/queries/query-helpers";
 import { useThreadTimeline } from "@/hooks/queries/thread-queries";
-import { KaiokenHttpError, sdk } from "@/lib/sdk";
+import { KaiokenHttpError } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 
 interface UseThreadTimelineControllerArgs {
   enabled?: boolean;
@@ -50,6 +54,7 @@ export function useThreadTimelineController({
   surfaceKey: explicitSurfaceKey,
   threadId,
 }: UseThreadTimelineControllerArgs): UseThreadTimelineControllerResult {
+  const sdk = useScopedSdk();
   const latestTimelineQuery = useThreadTimeline(threadId, {
     enabled,
     refetchOnMount: true,
@@ -179,6 +184,7 @@ export function useThreadTimelineController({
     latestTimeline,
     nextOlderCursor,
     refetchLatestTimeline,
+    sdk,
     surfaceKey,
     threadId,
   ]);

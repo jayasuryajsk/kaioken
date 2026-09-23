@@ -1,6 +1,7 @@
+import type { BrowserBbSdk } from "@kaioken/sdk/browser";
 import { useQuery } from "@tanstack/react-query";
 import type { ResolvedThreadExecutionOptions } from "@kaioken/domain";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import {
   readCachedThreadExecutionOptions,
   threadExecutionOptionsCacheKey,
@@ -23,10 +24,11 @@ interface ThreadDefaultExecutionOptionsQueryOptions {
 }
 
 async function fetchThreadDefaultExecutionOptions(
+  client: BrowserBbSdk,
   threadId: string,
   signal?: AbortSignal,
 ): Promise<ResolvedThreadExecutionOptions | null> {
-  const options = await sdk.threads.defaultExecutionOptions({
+  const options = await client.threads.defaultExecutionOptions({
     threadId,
     signal,
   });
@@ -43,6 +45,7 @@ export function useThreadDefaultExecutionOptions(
   id: string,
   options?: ThreadDefaultExecutionOptionsQueryOptions,
 ) {
+  const sdk = useScopedSdk();
   const enabled = (options?.enabled ?? true) && Boolean(id);
   useThreadDetailRealtimeSubscription(id, { enabled });
 
@@ -50,6 +53,7 @@ export function useThreadDefaultExecutionOptions(
     queryKey: threadDefaultExecutionOptionsQueryKey(id),
     queryFn: ({ signal }) =>
       fetchThreadDefaultExecutionOptions(
+        sdk,
         requireThreadId(id, "useThreadDefaultExecutionOptions"),
         signal,
       ),

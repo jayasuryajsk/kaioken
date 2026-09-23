@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Thread } from "@kaioken/domain";
-import { sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import {
   FORK_THREAD_CREATE_SEED_LOCATION_STATE_KEY,
   isThreadForkable,
@@ -27,6 +27,7 @@ export function useForkThreadFromMessage({
 }: UseForkThreadFromMessageArgs): (
   target: ForkThreadFromMessageTarget,
 ) => Promise<void> {
+  const sdk = useScopedSdk();
   const navigate = useRouteNavigate();
   const queryClient = useQueryClient();
   const setRootComposeProjectId = useSetRootComposeProjectId();
@@ -89,6 +90,6 @@ export function useForkThreadFromMessage({
         forkInFlightRef.current = false;
       }
     },
-    [navigate, queryClient, setRootComposeProjectId],
+    [navigate, queryClient, sdk, setRootComposeProjectId],
   );
 }

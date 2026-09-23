@@ -26,6 +26,7 @@ import type {
   ProviderUsageResponse,
 } from "@kaioken/host-daemon-contract";
 import { KaiokenHttpError, sdk } from "@/lib/sdk";
+import { useScopedSdk } from "@/lib/federation/remote-server-context";
 import {
   modelCatalogCacheKey,
   readCachedModelCatalog,
@@ -216,6 +217,7 @@ export function useKnownProviderModelCatalogScope(
 }
 
 export function useSystemProviders(args: UseSystemProvidersArgs = {}) {
+  const sdk = useScopedSdk();
   const capability = args.capability ?? null;
   const environmentId = args.environmentId ?? null;
   const hostId = args.hostId ?? null;
@@ -279,6 +281,7 @@ export function useSystemProviderInfo({
 export function useSystemExecutionOptions(
   args: UseSystemExecutionOptionsArgs = {},
 ) {
+  const sdk = useScopedSdk();
   const environmentId = args.environmentId ?? null;
   const hostId = args.hostId ?? null;
   const providerId = args.providerId ?? null;
@@ -375,6 +378,7 @@ export function useSystemConfig(options?: QueryOptions) {
 }
 
 export function useCliSkillsStatus(options?: QueryOptions) {
+  const sdk = useScopedSdk();
   return useQuery<SystemCliSkillsStatusResponse>({
     queryKey: systemCliSkillsQueryKey(),
     queryFn: ({ signal }) => sdk.system.cliSkillsStatus({ signal }),
@@ -384,6 +388,7 @@ export function useCliSkillsStatus(options?: QueryOptions) {
 }
 
 export function useSystemVersion(options?: QueryOptions) {
+  const sdk = useScopedSdk();
   return useQuery<SystemVersionResponse>({
     queryKey: systemVersionQueryKey(),
     queryFn: ({ signal }) => sdk.system.version({ signal }),
@@ -401,6 +406,7 @@ export function useHostProviderCliStatus({
   hostId,
   enabled,
 }: UseHostProviderCliStatusArgs) {
+  const sdk = useScopedSdk();
   return useQuery<ProviderCliStatusResponse>({
     queryKey: hostProviderCliStatusQueryKey(hostId),
     queryFn: ({ signal }) =>
@@ -420,6 +426,7 @@ export function useHostProviderCliStatus({
 export function useSystemProviderStates(
   options: UseSystemProviderStatesOptions = {},
 ) {
+  const sdk = useScopedSdk();
   const environmentId = options.environmentId ?? null;
   const hostId = options.hostId ?? null;
   return useQuery<SystemProviderStatesResponse>({
@@ -450,6 +457,7 @@ interface UseSystemProviderUsageLimitsArgs extends QueryOptions {
 export function useSystemProviderUsageLimits(
   args: UseSystemProviderUsageLimitsArgs,
 ) {
+  const sdk = useScopedSdk();
   const hostId = args.hostId ?? null;
   const enabled = args.enabled ?? true;
   const queries = useQueries({

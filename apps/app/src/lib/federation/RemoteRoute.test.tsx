@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createQueryClientTestHarness } from "@/test/queryClientTestHarness";
 import { RemoteRoute } from "./RemoteRoute";
@@ -19,12 +20,16 @@ const fixtures = vi.hoisted(() => ({
     lastSeenAt: null,
   },
   self: vi.fn(),
+  subscribe: vi.fn(() => () => {}),
 }));
 vi.mock("@/hooks/queries/federation-queries", () => ({
   useConnectedComputers: () => [fixtures.server],
 }));
 vi.mock("./remote-sdk", () => ({
-  getRemoteSdk: () => ({ experimental_connections: { self: fixtures.self } }),
+  getRemoteSdk: () => ({
+    experimental_connections: { self: fixtures.self },
+    subscribe: fixtures.subscribe,
+  }),
 }));
 const id = "74bcf65a-a849-4577-9a6f-c9b540940afb";
 beforeEach(() => {
@@ -35,8 +40,14 @@ afterEach(() => {
   cleanup();
   localStorage.clear();
 });
+const seenClients: QueryClient[] = [];
+function ScopedChild() {
+  seenClients.push(useQueryClient());
+  return <button>Reply</button>;
+}
 function open() {
-  const { wrapper } = createQueryClientTestHarness();
+  const harness = createQueryClientTestHarness();
+  const { wrapper } = harness;
   return render(
     <MemoryRouter initialEntries={["/servers/mini/threads/thr_1"]}>
       <Routes>
@@ -44,7 +55,7 @@ function open() {
           path="/servers/:handle/threads/:threadId"
           element={
             <RemoteRoute>
-              <button>Reply</button>
+              <ScopedChild />
             </RemoteRoute>
           }
         />
@@ -78,4 +89,31 @@ it("keeps offline machines visible without sending requests", async () => {
   expect(screen.getByRole("status").textContent).toContain("Mini is offline");
   expect(screen.queryByRole("button", { name: "Reply" })).toBeNull();
   expect(fixtures.self).not.toHaveBeenCalled();
+});
+it("gives the other computer its own cache and live-update stream", async () => {
+  seenClients.length = 0;
+  const harness = createQueryClientTestHarness();
+  render(
+    <MemoryRouter initialEntries={["/servers/mini/threads/thr_1"]}>
+      <Routes>
+        <Route
+          path="/servers/:handle/threads/:threadId"
+          element={
+            <RemoteRoute>
+              <ScopedChild />
+            </RemoteRoute>
+          }
+        />
+      </Routes>
+    </MemoryRouter>,
+    { wrapper: harness.wrapper },
+  );
+  await screen.findByRole("button", { name: "Reply" });
+  expect(seenClients.at(-1)).not.toBe(harness.queryClient);
+  const events = fixtures.subscribe.mock.calls.map(
+    (call) => (call as unknown as [{ event: string }])[0].event,
+  );
+  expect(events).toEqual(
+    expect.arrayContaining(["thread:changed", "realtime:connection"]),
+  );
 });
