@@ -13,16 +13,25 @@ import { useState } from "react";
 import { Input } from "@kaioken/shared-ui/input";
 import { z } from "zod";
 import { sdk } from "@/lib/sdk";
+import { useNavigate } from "react-router-dom";
+import { getRootComposeRoutePath } from "@/lib/route-paths";
+import { useRootComposeComputer } from "@/lib/root-compose-selection";
 
 function DeviceActions({
   handle,
   name,
+  isHome,
+  canStartThread,
   onChanged,
 }: {
   handle: string;
   name: string;
+  isHome: boolean;
+  canStartThread: boolean;
   onChanged: () => void;
 }) {
+  const [, setComputer] = useRootComposeComputer();
+  const navigate = useNavigate();
   const [action, setAction] = useState<"rename" | "revoke" | null>(null);
   const [draft, setDraft] = useState(name);
   const [busy, setBusy] = useState(false);
@@ -83,6 +92,19 @@ function DeviceActions({
         </>
       ) : (
         <>
+          {canStartThread ? (
+            <Button
+              size="sm"
+              variant="outline"
+              aria-label={`New thread on ${name}`}
+              onClick={() => {
+                setComputer(handle);
+                navigate(getRootComposeRoutePath());
+              }}
+            >
+              New thread
+            </Button>
+          ) : null}
           <Button
             size="sm"
             variant="ghost"
@@ -95,17 +117,19 @@ function DeviceActions({
           >
             Rename
           </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-label={`Revoke ${name}`}
-            onClick={() => {
-              setError(null);
-              setAction("revoke");
-            }}
-          >
-            Revoke
-          </Button>
+          {isHome ? null : (
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label={`Revoke ${name}`}
+              onClick={() => {
+                setError(null);
+                setAction("revoke");
+              }}
+            >
+              Revoke
+            </Button>
+          )}
         </>
       )}
       {action ? (
@@ -180,6 +204,8 @@ export function AccountServersSettingsSection() {
                 <DeviceActions
                   handle={server.handle}
                   name={server.name}
+                  isHome={server.home}
+                  canStartThread={!server.home && server.live}
                   onChanged={() => {
                     void serversQuery.refetch();
                   }}
