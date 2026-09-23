@@ -173,6 +173,10 @@ describe("createBundleSwapUpdater", () => {
     );
     expect(script).toContain("open -n '/Applications/Kaioken.app'");
     expect(script).toContain("xattr -dr com.apple.quarantine");
+    expect(script).toContain("lsregister -f '/Applications/Kaioken.app'");
+    expect(script.indexOf("lsregister")).toBeLessThan(
+      script.lastIndexOf("open -n"),
+    );
     expect(script.indexOf("kill -0 99")).toBeLessThan(
       script.indexOf("mv '/Applications"),
     );
