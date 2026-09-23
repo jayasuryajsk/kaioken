@@ -143,6 +143,11 @@ Each server has a persistent installation UUID, available through
 `kaioken connection inspect [url]`. If a saved URL changes identity, Kaioken
 asks you to trust the computer again before it sends anything to it.
 
+To start work on another computer, pick it in the **Computer** menu next to
+the project picker on the new thread screen. The project, environment, model
+and permission choices then come from that computer, and the thread is created
+and runs there. The choice and each computer's last project are remembered.
+
 Threads on another computer open in the same thread screen as local ones, with
 the full composer, model and permission pickers, info and diff panels. The
 header names the computer the thread runs on. Every request and live update for

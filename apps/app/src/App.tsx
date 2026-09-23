@@ -108,9 +108,9 @@ const RemoteThreadRoute = lazy(() =>
     default: m.RemoteThreadRoute,
   })),
 );
-const RemoteComposeView = lazy(() =>
-  import("./views/RemoteComposeView").then((m) => ({
-    default: m.RemoteComposeView,
+const RemoteProjectComposeRedirect = lazy(() =>
+  import("./views/RemoteProjectComposeRedirect").then((m) => ({
+    default: m.RemoteProjectComposeRedirect,
   })),
 );
 const MachineSettingsView = lazy(() =>
@@ -451,11 +451,7 @@ export function AppRoutes() {
             />
             <Route
               path={REMOTE_PROJECT_COMPOSE_ROUTE_PATH}
-              element={
-                <RemoteRoute>
-                  <RemoteComposeView />
-                </RemoteRoute>
-              }
+              element={<RemoteProjectComposeRedirect />}
             />
             <Route path="/servers/:handle/*" element={<LegacyRemoteRoute />} />
 

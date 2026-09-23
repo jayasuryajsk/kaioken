@@ -29,12 +29,34 @@ export function RemoteRoute({ children }: { children: ReactNode }) {
   );
 }
 
-function RemoteIdentity({
+export function RemoteComputerScope({
   server,
   children,
+  renderUnavailable,
 }: {
   server: FederatedServer;
   children: ReactNode;
+  renderUnavailable?: (status: ReactNode) => ReactNode;
+}) {
+  return (
+    <RemoteIdentity
+      key={`${server.handle}:${server.url}`}
+      server={server}
+      {...(renderUnavailable === undefined ? {} : { renderUnavailable })}
+    >
+      {children}
+    </RemoteIdentity>
+  );
+}
+
+function RemoteIdentity({
+  server,
+  children,
+  renderUnavailable,
+}: {
+  server: FederatedServer;
+  children: ReactNode;
+  renderUnavailable?: (status: ReactNode) => ReactNode;
 }) {
   const origin = new URL(server.url).origin;
   const [expected, setExpected] = useState(() =>
@@ -68,7 +90,7 @@ function RemoteIdentity({
         <RemoteScopeProvider server={server}>{children}</RemoteScopeProvider>
       </RemoteServerProvider>
     );
-  return (
+  const status = (
     <div
       className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-sm text-muted-foreground"
       role="status"
@@ -104,4 +126,5 @@ function RemoteIdentity({
       ) : null}
     </div>
   );
+  return renderUnavailable === undefined ? status : renderUnavailable(status);
 }

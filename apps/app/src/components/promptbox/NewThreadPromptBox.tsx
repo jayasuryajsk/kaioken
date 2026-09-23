@@ -99,6 +99,7 @@ export interface NewThreadWorktreeConfig {
 }
 
 export interface NewThreadProjectConfig {
+  leadingControl?: ReactNode;
   projects: readonly ProjectSelectorOption[];
   value: string | null;
   onChange: (projectId: string | null) => void;
@@ -357,6 +358,7 @@ const DefaultNewThreadComposer = memo(function DefaultNewThreadComposer({
       {}
       <div className="mt-1 flex select-none items-center justify-between gap-2 px-3.5">
         <div className="flex min-w-0 flex-1 items-center gap-1">
+          {project?.leadingControl ?? null}
           {project ? (
             <ProjectSelector
               projects={project.projects}

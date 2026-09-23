@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { ComputerPicker } from "@/components/pickers/ComputerPicker";
+import { useConnectedComputers } from "@/hooks/queries/federation-queries";
+import { RemoteComputerScope } from "@/lib/federation/RemoteRoute";
+import { useRemoteServer } from "@/lib/federation/remote-server-context";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { workspaceDraftId } from "@/lib/federation/workspace-drafts";
 import { useQueryClient } from "@tanstack/react-query";
@@ -100,6 +110,7 @@ import {
 } from "./root-compose-initial-prompt";
 import {
   getThreadRoutePath,
+  getRemoteThreadRoutePath,
   getProjectComposeRoutePath,
   getRootComposeRoutePath,
   isRoutePath,
@@ -140,6 +151,7 @@ import {
   toFilePreviewLineRange,
 } from "@/lib/live-file-navigation";
 import {
+  useRootComposeComputer,
   useRootComposeProjectId,
   useSetRootComposeProjectId,
 } from "@/lib/root-compose-selection";
@@ -510,6 +522,45 @@ export function LegacyProjectComposeRedirect({
 }
 
 export function RootComposeView() {
+  const [computerHandle, setComputerHandle] = useRootComposeComputer();
+  const computers = useConnectedComputers();
+  const remote =
+    computerHandle === null
+      ? undefined
+      : computers.find(
+          (computer) => computer.handle === computerHandle && !computer.home,
+        );
+  const computerControl = (
+    <ComputerPicker
+      computers={computers}
+      value={remote?.handle ?? null}
+      onChange={setComputerHandle}
+    />
+  );
+  if (remote === undefined) {
+    return <RootComposeViewContent computerControl={computerControl} />;
+  }
+  return (
+    <RemoteComputerScope
+      server={remote}
+      renderUnavailable={(status) => (
+        <div className="flex flex-1 flex-col items-center justify-center gap-2">
+          {status}
+          {computerControl}
+        </div>
+      )}
+    >
+      <RootComposeViewContent computerControl={computerControl} />
+    </RemoteComputerScope>
+  );
+}
+
+function RootComposeViewContent({
+  computerControl,
+}: {
+  computerControl: ReactNode;
+}) {
+  const remoteServer = useRemoteServer();
   const [rootComposeProjectId, setRootComposeProjectId] =
     useRootComposeProjectId();
   const location = useLocation();
@@ -574,14 +625,20 @@ export function RootComposeView() {
       setRootComposeSectionId(null);
       if (shouldNavigateToCreatedThread) {
         navigate(
-          getThreadRoutePath({
-            projectId: thread.projectId,
-            threadId: thread.id,
-          }),
+          remoteServer === null
+            ? getThreadRoutePath({
+                projectId: thread.projectId,
+                threadId: thread.id,
+              })
+            : getRemoteThreadRoutePath({
+                handle: remoteServer.handle,
+                threadId: thread.id,
+              }),
         );
       }
     },
     [
+      remoteServer,
       createThread,
       forkSeed,
       queryClient,
@@ -625,6 +682,7 @@ export function RootComposeView() {
     >
       {(composer) => (
         <RootComposeSurface
+          computerControl={computerControl}
           composer={composer}
           forkSeed={forkSeed}
           lastCreatedThreadId={lastCreatedThreadId}
@@ -641,6 +699,7 @@ export function RootComposeView() {
 }
 
 interface RootComposeSurfaceProps {
+  computerControl: ReactNode;
   composer: NewThreadComposerState;
   forkSeed: ForkThreadCreateSeed | null;
   lastCreatedThreadId: string | null;
@@ -653,6 +712,7 @@ interface RootComposeSurfaceProps {
 }
 
 function RootComposeSurface({
+  computerControl,
   composer,
   forkSeed,
   lastCreatedThreadId,
@@ -1965,6 +2025,7 @@ function RootComposeSurface({
   );
 
   const promptBox = renderPromptBox({
+    computerControl,
     id: "root-compose-prompt",
     autoFocus: !isProviderCliVersionBlocked,
     allowSoftKeyboardAutoFocus: isCompactViewport,
