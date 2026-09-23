@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs><linearGradient id="stem" gradientUnits="userSpaceOnUse" x1="80" y1="60" x2="440" y2="460"><stop offset="0" stop-color="#4c4c4c"/><stop offset="0.25" stop-color="#373737"/><stop offset="0.5" stop-color="#212121"/><stop offset="0.75" stop-color="#0f0f0f"/><stop offset="1" stop-color="#050505"/></linearGradient><linearGradient id="arm" gradientUnits="userSpaceOnUse" x1="80" y1="60" x2="440" y2="460"><stop offset="0" stop-color="#4c4c4c"/><stop offset="0.25" stop-color="#373737"/><stop offset="0.5" stop-color="#212121"/><stop offset="0.75" stop-color="#0f0f0f"/><stop offset="1" stop-color="#050505"/></linearGradient></defs>
   
-  <g transform="translate(256 256) scale(1) translate(-256 -256)" stroke-linecap="round" fill="none">
-    <line x1="150" y1="118" x2="150" y2="394" stroke="url(#stem)" stroke-width="88"/>
-    <line x1="206" y1="258" x2="384" y2="416" stroke="url(#stem)" stroke-width="88"/>
-    <line x1="206" y1="254" x2="372" y2="100" stroke="url(#arm)" stroke-width="88"/>
+  <g transform="translate(256 256) scale(1) translate(-256 -256)" stroke-linecap="round" stroke-linejoin="round" stroke-width="52" fill="none">
+    <polyline points="143,389 256,297 369,389" stroke="url(#stem)" stroke-opacity="0.38"/>
+    <polyline points="143,292 256,200 369,292" stroke="url(#stem)" stroke-opacity="0.72"/>
+    <polyline points="143,195 256,103 369,195" stroke="url(#arm)"/>
   </g>
 </svg>

@@ -4,8 +4,8 @@
  *
  *   node scripts/generate-kaioken-brand-assets.mjs
  *
- * The mark is a bold "K": a graphite stem and lower arm with a red upper arm,
- * the Kaioken aura. Assets that the app inverts in dark mode, or that the PWA
+ * The mark is "power level": three chevrons stacking upward with the top one
+ * lit red. Assets that the app inverts in dark mode, or that the PWA
  * pipeline tints per favicon color, use the all-graphite variant so the tint
  * math (dark glyph on white) keeps working. After running this, run
  * `pnpm --filter @kaioken/app generate:pwa-icons` to refresh the tinted
@@ -21,7 +21,8 @@ const root = resolve(dirname(new URL(import.meta.url).pathname), "..");
 const sharp = createRequire(resolve(root, "apps/app/package.json"))("sharp");
 
 const GRAPHITE = ["#4c4c4c", "#373737", "#212121", "#0f0f0f", "#050505"];
-const RED = ["#ff5a4f", "#f0342b", "#d11f1f", "#a80f14", "#7a0a10"];
+const RED = ["#e0241b", "#e0241b", "#e0241b", "#e0241b", "#e0241b"];
+const TILE = "#141112";
 const WHITE = ["#ffffff", "#f4f4f4", "#e6e6e6", "#d9d9d9", "#cfcfcf"];
 const ORANGE = ["#ffa14a", "#f76b15", "#d9560c", "#b34407", "#8a3305"];
 const YELLOW = ["#ffd166", "#ffba18", "#e5a300", "#c48a00", "#9c6d00"];
@@ -35,8 +36,10 @@ function gradient(id, stops) {
 }
 
 /**
- * The K mark in a 512x512 box, glyph occupying roughly 70% of the box.
- * `stem` colors the stem and lower arm; `arm` colors the upper arm.
+ * The power-level mark in a 512x512 box: three chevrons stacked upward, the
+ * top one lit. `stem` colors the two lower chevrons (drawn at reduced
+ * opacity so they read as the levels below), `arm` colors the top chevron.
+ * `inset`/`radius` draw the background as a rounded tile inside the box.
  */
 export function markSvg({
   stem = GRAPHITE,
@@ -45,15 +48,17 @@ export function markSvg({
   size = 512,
   scale = 1,
   radius = 0,
+  inset = 0,
 } = {}) {
   const t = 512 / 2;
+  const tileSize = 512 - inset * 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="${size}" height="${size}">
   <defs>${gradient("stem", stem)}${gradient("arm", arm)}</defs>
-  ${background === "none" ? "" : `<rect width="512" height="512" rx="${radius}" fill="${background}"/>`}
-  <g transform="translate(${t} ${t}) scale(${scale}) translate(${-t} ${-t})" stroke-linecap="round" fill="none">
-    <line x1="150" y1="118" x2="150" y2="394" stroke="url(#stem)" stroke-width="88"/>
-    <line x1="206" y1="258" x2="384" y2="416" stroke="url(#stem)" stroke-width="88"/>
-    <line x1="206" y1="254" x2="372" y2="100" stroke="url(#arm)" stroke-width="88"/>
+  ${background === "none" ? "" : `<rect x="${inset}" y="${inset}" width="${tileSize}" height="${tileSize}" rx="${radius}" fill="${background}"/>`}
+  <g transform="translate(${t} ${t}) scale(${scale}) translate(${-t} ${-t})" stroke-linecap="round" stroke-linejoin="round" stroke-width="52" fill="none">
+    <polyline points="143,389 256,297 369,389" stroke="url(#stem)" stroke-opacity="0.38"/>
+    <polyline points="143,292 256,200 369,292" stroke="url(#stem)" stroke-opacity="0.72"/>
+    <polyline points="143,195 256,103 369,195" stroke="url(#arm)"/>
   </g>
 </svg>`;
 }
@@ -114,10 +119,19 @@ async function main() {
     await png(tile({ arm: GRAPHITE }), 1024),
   );
 
-  // Desktop app icons: stable, dev, nightly (yellow).
-  const desktop = tile({ scale: 0.82 });
-  const desktopDev = tile({ stem: ORANGE, arm: ORANGE, scale: 0.82 });
-  const desktopNightly = tile({ stem: YELLOW, arm: YELLOW, scale: 0.82 });
+  // Desktop app icons: a dark rounded tile on the macOS icon grid.
+  const desktopTile = (extra) =>
+    markSvg({
+      background: TILE,
+      inset: 50,
+      radius: 92,
+      stem: WHITE,
+      scale: 0.72,
+      ...extra,
+    });
+  const desktop = desktopTile({});
+  const desktopDev = desktopTile({ arm: ORANGE });
+  const desktopNightly = desktopTile({ arm: YELLOW });
   write("apps/desktop/assets/icon.png", await png(desktop, 1024));
   write("apps/desktop/assets/icon-dev.png", await png(desktopDev, 1024));
   write(

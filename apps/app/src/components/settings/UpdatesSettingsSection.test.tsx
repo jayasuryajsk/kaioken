@@ -1411,7 +1411,9 @@ The canonical release summary.
     const relaunch = screen.getByRole("button", {
       name: /Relaunch kaioken to finish updating/,
     });
-    expect(relaunch.querySelector("img")?.className).toContain("size-3");
+    expect(relaunch.querySelector("svg")?.getAttribute("class")).toContain(
+      "size-3",
+    );
     expect(relaunch.className).toContain("border");
     fireEvent.click(relaunch);
     expect(installUpdate).toHaveBeenCalledOnce();

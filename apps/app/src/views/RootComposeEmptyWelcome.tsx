@@ -1,6 +1,6 @@
 import { Icon, type IconName } from "@kaioken/shared-ui/icon";
 import { usePrefersReducedMotion } from "@kaioken/shared-ui/hooks/use-media-query";
-import kaiokenLogoUrl from "../../../../assets/kaioken-logo.svg";
+import { KaiokenLogo } from "@/components/ui/kaioken-logo";
 
 interface RootComposeEmptyWelcomeProps {
   onCompose: (prompt?: string) => void;
@@ -122,13 +122,7 @@ export function RootComposeEmptyWelcome({
         className="h-24 w-28 select-none"
         style={{ filter: "url(#kaioken-gloss)" }}
       >
-        <img
-          src={kaiokenLogoUrl}
-          alt=""
-          aria-hidden
-          draggable={false}
-          className="size-full object-contain dark:invert"
-        />
+        <KaiokenLogo className="size-full" />
       </div>
       <div className="flex w-full max-w-[360px] flex-col gap-1">
         <WelcomeAction
